@@ -32,6 +32,7 @@ import {
   inconsistentDailyCalls,
   eServiceNotAnInstance,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -820,5 +821,76 @@ describe("update draft descriptor instance", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
+  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is set on declared attribute", async () => {
+    const template = getMockEServiceTemplate();
+
+    const declaredAttributeId = unsafeBrandId<AttributeId>(generateId());
+    const declaredAttribute: Attribute = {
+      name: "Declared attribute",
+      id: declaredAttributeId,
+      kind: "Declared",
+      description: "A declared attribute",
+      creationTime: new Date(),
+    };
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [],
+        declared: [
+          [
+            {
+              id: declaredAttributeId,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+      },
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateId: template.id,
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneAttribute(declaredAttribute);
+    await addOneEService(eservice);
+
+    const attributesWithDiscreteConfigOnDeclared: catalogApi.AttributesSeed = {
+      certified: [],
+      declared: [
+        [
+          {
+            id: declaredAttributeId,
+            explicitAttributeVerification: false,
+            discreteConfig: { threshold: 1, comparator: "GT" },
+          },
+        ],
+      ],
+      verified: [],
+    };
+
+    await expect(
+      catalogService.updateDraftDescriptorTemplateInstance(
+        eservice.id,
+        descriptor.id,
+        {
+          ...buildUpdateDescriptorSeed(descriptor),
+          attributes: attributesWithDiscreteConfigOnDeclared,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      attributeDiscreteConfigNotAllowed(declaredAttributeId)
+    );
   });
 });

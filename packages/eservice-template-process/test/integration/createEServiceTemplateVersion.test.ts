@@ -24,6 +24,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
+  attributeDiscreteConfigNotAllowed,
   attributeNotFound,
   draftEServiceTemplateVersionAlreadyExists,
   eserviceTemplateNotFound,
@@ -341,5 +342,54 @@ describe("createEServiceTemplateVersion", async () => {
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
+  });
+  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is on declared attribute", async () => {
+    const declaredAttribute: Attribute = {
+      name: "Declared Attribute",
+      id: generateId(),
+      kind: "Declared",
+      description: "A declared attribute",
+      creationTime: new Date(),
+    };
+    await addOneAttribute(declaredAttribute);
+
+    const existingVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [existingVersion],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const eserviceTemplateVersionSeed = buildCreateVersionSeed(existingVersion);
+    expect(
+      eserviceTemplateService.createEServiceTemplateVersion(
+        eserviceTemplate.id,
+        {
+          ...eserviceTemplateVersionSeed,
+          attributes: {
+            certified: [],
+            declared: [
+              [
+                {
+                  id: declaredAttribute.id,
+                  explicitAttributeVerification: false,
+                  discreteConfig: { threshold: 1, comparator: "GT" },
+                },
+              ],
+            ],
+            verified: [],
+          },
+        },
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      attributeDiscreteConfigNotAllowed(declaredAttribute.id)
+    );
   });
 });

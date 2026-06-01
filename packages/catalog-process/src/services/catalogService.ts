@@ -187,6 +187,7 @@ import {
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
   assertDailyCallsForCertifiedAttributesOnly,
+  assertDiscreteConfigForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
   assertTemplateInstanceAttributeStructureUnchanged,
   assertIsNotDraftEservice,
@@ -1396,6 +1397,7 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls(eserviceDescriptorSeed);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
@@ -1643,6 +1645,7 @@ export function catalogServiceBuilder(
         : descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         updatedAttributes,
         seed.dailyCallsTotal
@@ -2140,6 +2143,7 @@ export function catalogServiceBuilder(
         : descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2214,6 +2218,7 @@ export function catalogServiceBuilder(
         : descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2951,6 +2956,7 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         descriptor.dailyCallsTotal
@@ -4563,6 +4569,7 @@ async function updateDraftDescriptor(
     : descriptor.attributes;
 
   assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+  assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
   assertAttributeDailyCallsConsistentWithTotal(
     updatedAttributes,
     updatedDailyCallsTotal

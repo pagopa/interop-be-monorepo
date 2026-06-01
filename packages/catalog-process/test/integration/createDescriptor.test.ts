@@ -35,6 +35,7 @@ import {
   inconsistentDailyCalls,
   templateInstanceNotAllowed,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -801,6 +802,57 @@ describe("create descriptor", async () => {
       )
     ).rejects.toThrowError(
       attributeDailyCallsNotAllowed(mockDeclaredAttribute.id)
+    );
+  });
+
+  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is on declared attribute", async () => {
+    const mockDescriptor = {
+      ...getMockDescriptor(),
+      docs: [],
+    };
+
+    const mockDeclaredAttribute: Attribute = {
+      name: "Declared Attribute name",
+      id: generateId(),
+      kind: attributeKind.declared,
+      description: "Declared Attribute Description",
+      creationTime: new Date(),
+    };
+
+    await addOneAttribute(mockDeclaredAttribute);
+
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(mockDescriptor),
+      attributes: {
+        certified: [],
+        declared: [
+          [
+            {
+              id: mockDeclaredAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: { threshold: 1, comparator: "GT" },
+            },
+          ],
+        ],
+        verified: [],
+      },
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [],
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.createDescriptor(
+        eservice.id,
+        descriptorSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      attributeDiscreteConfigNotAllowed(mockDeclaredAttribute.id)
     );
   });
 });

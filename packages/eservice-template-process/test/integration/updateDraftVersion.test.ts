@@ -22,6 +22,7 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
+  attributeDiscreteConfigNotAllowed,
   attributeNotFound,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
@@ -346,5 +347,67 @@ describe("update draft version", () => {
         })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
+  });
+  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is on declared attribute", async () => {
+    const declaredAttribute: Attribute = {
+      name: "Declared Attribute",
+      id: generateId(),
+      kind: "Declared",
+      description: "A declared attribute",
+      creationTime: new Date(),
+    };
+    await addOneAttribute(declaredAttribute);
+
+    const version: EServiceTemplateVersion = {
+      ...mockVersion,
+      state: eserviceTemplateVersionState.draft,
+      attributes: {
+        certified: [],
+        declared: [
+          [
+            {
+              id: declaredAttribute.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        verified: [],
+      },
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    const seed = buildUpdateVersionSeed(version);
+
+    await expect(
+      eserviceTemplateService.updateDraftTemplateVersion(
+        eserviceTemplate.id,
+        version.id,
+        {
+          ...seed,
+          attributes: {
+            certified: [],
+            declared: [
+              [
+                {
+                  id: declaredAttribute.id,
+                  explicitAttributeVerification: false,
+                  discreteConfig: { threshold: 1, comparator: "GT" },
+                },
+              ],
+            ],
+            verified: [],
+          },
+        },
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      attributeDiscreteConfigNotAllowed(declaredAttribute.id)
+    );
   });
 });

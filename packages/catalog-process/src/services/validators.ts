@@ -50,6 +50,7 @@ import {
   eServiceUpdateSameDescriptionConflict,
   eServiceUpdateSameNameConflict,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   eserviceInDraftState,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
@@ -436,6 +437,20 @@ export function assertDailyCallsForCertifiedAttributesOnly(
       attribute.dailyCallsPerConsumer !== undefined
     ) {
       throw attributeDailyCallsNotAllowed(attribute.id);
+    }
+  }
+}
+
+export function assertDiscreteConfigForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
+  for (const attribute of attributesToCheck) {
+    if (
+      "discreteConfig" in attribute &&
+      attribute.discreteConfig !== undefined
+    ) {
+      throw attributeDiscreteConfigNotAllowed(attribute.id);
     }
   }
 }

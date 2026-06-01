@@ -64,6 +64,7 @@ const errorCodes = {
   eserviceInDraftState: "0047",
   attributeDailyCallsNotAllowed: "0048",
   certifiedAttributeGroupNotFoundInSeed: "0049",
+  attributeDiscreteConfigNotAllowed: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -556,6 +557,16 @@ export function attributeDailyCallsNotAllowed(
     detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
     code: "attributeDailyCallsNotAllowed",
     title: "Custom daily calls not allowed for non-certified attribute",
+  });
+}
+
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
   });
 }
 
