@@ -10,14 +10,21 @@ import { tenantServiceBuilder } from "../src/services/tenantService.js";
 import { BffAppContext } from "../src/utilities/context.js";
 
 describe("tenantServiceBuilder.getTenant", () => {
-  it("should include certified discrete attributes in tenant details", async () => {
+  it("should include certified and certified discrete attributes in tenant certified attributes", async () => {
     const tenantId = generateId<TenantId>();
+    const certifiedAttributeId = generateId<AttributeId>();
     const certifiedDiscreteAttributeId = generateId<AttributeId>();
     const assignmentTimestamp = new Date().toISOString();
 
     const tenant = {
       ...getMockedApiTenant({
         attributes: [
+          {
+            certified: {
+              id: certifiedAttributeId,
+              assignmentTimestamp,
+            },
+          },
           {
             certifiedDiscrete: {
               id: certifiedDiscreteAttributeId,
@@ -32,7 +39,15 @@ describe("tenantServiceBuilder.getTenant", () => {
       features: [],
     };
 
-    const registryAttribute = {
+    const registryCertifiedAttribute = {
+      ...getMockedApiAttribute({
+        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+        name: "tenant certified",
+        description: "tenant certified description",
+      }),
+      id: certifiedAttributeId,
+    };
+    const registryCertifiedDiscreteAttribute = {
       ...getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
         name: "tenant certified discrete",
@@ -50,9 +65,10 @@ describe("tenantServiceBuilder.getTenant", () => {
     const attributeProcessClient = {
       getBulkedAttributes: vi.fn((attributeIds: string[]) =>
         Promise.resolve({
-          results: [registryAttribute].filter((attribute) =>
-            attributeIds.includes(attribute.id)
-          ),
+          results: [
+            registryCertifiedAttribute,
+            registryCertifiedDiscreteAttribute,
+          ].filter((attribute) => attributeIds.includes(attribute.id)),
           totalCount: attributeIds.length,
         })
       ),
@@ -76,18 +92,29 @@ describe("tenantServiceBuilder.getTenant", () => {
 
     const result = await service.getTenant(tenantId, ctx);
 
-    expect(result.attributes.certifiedDiscrete).toStrictEqual([
+    expect(result.attributes.certified).toStrictEqual([
+      {
+        id: certifiedAttributeId,
+        name: registryCertifiedAttribute.name,
+        description: registryCertifiedAttribute.description,
+        assignmentTimestamp,
+        revocationTimestamp: undefined,
+      },
       {
         id: certifiedDiscreteAttributeId,
-        name: registryAttribute.name,
-        description: registryAttribute.description,
+        name: registryCertifiedDiscreteAttribute.name,
+        description: registryCertifiedDiscreteAttribute.description,
         assignmentTimestamp,
         revocationTimestamp: undefined,
         discreteValue: 42,
       },
     ]);
+    expect(result.attributes).not.toHaveProperty("certifiedDiscrete");
     expect(attributeProcessClient.getBulkedAttributes).toHaveBeenCalledWith(
-      expect.arrayContaining([certifiedDiscreteAttributeId]),
+      expect.arrayContaining([
+        certifiedAttributeId,
+        certifiedDiscreteAttributeId,
+      ]),
       expect.any(Object)
     );
   });

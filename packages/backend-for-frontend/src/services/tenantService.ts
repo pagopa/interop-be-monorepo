@@ -497,25 +497,23 @@ export function enhanceTenantAttributes(
     .map((attr) => getDeclaredTenantAttribute(attr, registryAttributesMap))
     .filter(isDefined);
 
-  const certified = tenantAttributes
+  const certifiedAttributes = tenantAttributes
     .map((attr) => getCertifiedTenantAttribute(attr, registryAttributesMap))
+    .filter(isDefined);
+  const certifiedDiscreteAttributes = tenantAttributes
+    .map((attr) =>
+      getCertifiedDiscreteTenantAttribute(attr, registryAttributesMap)
+    )
     .filter(isDefined);
 
   const verified = tenantAttributes
     .map((attr) => toApiVerifiedTenantAttribute(attr, registryAttributesMap))
     .filter(isDefined);
 
-  const certifiedDiscrete = tenantAttributes
-    .map((attr) =>
-      getCertifiedDiscreteTenantAttribute(attr, registryAttributesMap)
-    )
-    .filter(isDefined);
-
   return {
-    certified,
+    certified: [...certifiedAttributes, ...certifiedDiscreteAttributes],
     declared,
     verified,
-    certifiedDiscrete,
   };
 }
 
