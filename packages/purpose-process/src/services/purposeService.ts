@@ -1563,13 +1563,6 @@ export function purposeServiceBuilder(
         }
       }
 
-      if (isFeatureFlagEnabled(config, "featureFlagNewOperators")) {
-        assertReviewerWorkflowIsSigned({
-          purposeId,
-          reviewerWorkflow: purpose.data.reviewerWorkflow,
-        });
-      }
-
       const purposeOwnership = await getOrganizationRole({
         purpose: purpose.data,
         producerId: eservice.producerId,
