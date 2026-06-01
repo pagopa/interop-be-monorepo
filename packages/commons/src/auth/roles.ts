@@ -10,6 +10,7 @@ export const userRole = {
   SECURITY_ROLE: "security",
   API_ROLE: "api",
   SUPPORT_ROLE: "support",
+  REVIEWER_ROLE: "reviewer",
 } as const;
 
 export const UserRole = z.enum([

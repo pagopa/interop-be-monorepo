@@ -220,6 +220,7 @@ export function apiUserRoleToUserRole(
     .with("API", () => userRole.API_ROLE)
     .with("SECURITY", () => userRole.SECURITY_ROLE)
     .with("SUPPORT", () => userRole.SUPPORT_ROLE)
+    .with("REVIEWER", () => userRole.REVIEWER_ROLE)
     .exhaustive();
 }
 
@@ -229,5 +230,6 @@ function userRoleToApiUserRole(role: UserRole): notificationConfigApi.UserRole {
     .with(userRole.API_ROLE, () => "API" as const)
     .with(userRole.SECURITY_ROLE, () => "SECURITY" as const)
     .with(userRole.SUPPORT_ROLE, () => "SUPPORT" as const)
+    .with(userRole.REVIEWER_ROLE, () => "REVIEWER" as const)
     .exhaustive();
 }

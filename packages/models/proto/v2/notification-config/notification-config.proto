@@ -59,4 +59,5 @@ enum UserRoleV2 {
   SECURITY = 1;
   API = 2;
   SUPPORT = 3;
+  REVIEWER = 4;
 }
