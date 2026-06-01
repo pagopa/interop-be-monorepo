@@ -28870,15 +28870,6 @@ components:
         - REJECTED
         - WAITING_FOR_APPROVAL
         - ARCHIVED
-    RiskAnalysisSigningState:
-      type: string
-      description: Risk analysis signing state
-      enum:
-        - DRAFT
-        - ASSIGNED
-        - SUBMITTED
-        - SIGNED
-        - REJECTED
     PurposeVersionSignedDocument:
       type: object
       additionalProperties: false
@@ -31029,6 +31020,15 @@ components:
         - ADMIN_WRITES_ADMIN_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
         - REVIEWER_WRITES_REVIEWER_SIGNS
+    RiskAnalysisSigningState:
+      type: string
+      description: Risk analysis signing state
+      enum:
+        - DRAFT
+        - ASSIGNED
+        - SUBMITTED
+        - SIGNED
+        - REJECTED
     ReviewerWorkflow:
       type: object
       additionalProperties: false
