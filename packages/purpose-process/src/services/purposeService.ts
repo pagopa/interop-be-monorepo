@@ -57,6 +57,7 @@ import {
   purposeEventToBinaryData,
   purposeVersionState,
   unsafeBrandId,
+  riskAnalysisReviewMode,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ClientId } from "pagopa-interop-models";
@@ -151,6 +152,7 @@ import {
   verifyRequesterIsConsumerOrDelegateConsumer,
   getUpdatedQuotas,
   assertRiskAnalysisTenantKindMatch,
+  assertRequesterIsConsumer,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -523,19 +525,14 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      assertRequesterCanActAsConsumer(
-        purpose.data,
-        authData,
-        await retrievePurposeDelegation(purpose.data, readModelService)
-      );
+      assertRequesterIsConsumer(purpose.data, authData);
 
-      const existingWorkflow = purpose.data.reviewerWorkflow;
-      if (existingWorkflow) {
+      if (purpose.data.reviewerWorkflow !== undefined) {
         throw reviewerWorkflowConflict(purposeId);
       }
 
       const isReviewerWrites =
-        seed.reviewMode === "ReviewerWritesReviewerSigns";
+        seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
 
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
