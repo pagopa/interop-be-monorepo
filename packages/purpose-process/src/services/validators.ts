@@ -216,21 +216,6 @@ export function assertPurposeIsNotFromTemplate(purpose: Purpose): void {
   }
 }
 
-export function assertReviewerWorkflowIsSigned({
-  purposeId,
-  reviewerWorkflow,
-}: {
-  purposeId: PurposeId;
-  reviewerWorkflow: ReviewerWorkflow | undefined;
-}): void {
-  if (
-    reviewerWorkflow &&
-    reviewerWorkflow.signingState !== riskAnalysisSigningState.signed
-  ) {
-    throw reviewerWorkflowNotInSignedState(purposeId);
-  }
-}
-
 export function assertRiskAnalysisFormCanBeUpdated({
   purposeId,
   reviewerWorkflow,
