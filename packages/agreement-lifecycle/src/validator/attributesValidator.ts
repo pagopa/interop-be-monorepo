@@ -122,7 +122,10 @@ const findDiscreteAttributeThresholdFailureInGroup = (
     const tenantAttribute = tenantAttributes.find(
       (attribute) => attribute.id === descriptorAttribute.id
     );
-    if (tenantAttribute?.type === tenantAttributeType.CERTIFIED_DISCRETE) {
+    if (
+      tenantAttribute?.type === tenantAttributeType.CERTIFIED_DISCRETE &&
+      !tenantAttribute.revocationTimestamp
+    ) {
       return {
         attributeId: descriptorAttribute.id,
         tenantValue: tenantAttribute.discreteValue,
