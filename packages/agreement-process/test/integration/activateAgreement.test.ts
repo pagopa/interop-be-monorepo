@@ -244,12 +244,12 @@ describe("activate agreement", () => {
           : undefined;
         const consumerDelegation = delegateConsumer
           ? getMockDelegation({
-            kind: delegationKind.delegatedConsumer,
-            delegatorId: agreement.consumerId,
-            delegateId: delegateConsumer.id,
-            state: delegationState.active,
-            eserviceId: agreement.eserviceId,
-          })
+              kind: delegationKind.delegatedConsumer,
+              delegatorId: agreement.consumerId,
+              delegateId: delegateConsumer.id,
+              state: delegationState.active,
+              eserviceId: agreement.eserviceId,
+            })
           : undefined;
 
         const validTenantCertifiedAttribute: CertifiedTenantAttribute = {
@@ -589,29 +589,29 @@ describe("activate agreement", () => {
       };
 
       const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
-      {
-        ...getMockVerifiedTenantAttribute(),
-        verifiedBy: [
-          {
-            id: tenantOnlyForVerifierAttribute.id,
-            verificationDate: new Date(),
-          },
-        ],
-        revokedBy: [],
-      };
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: tenantOnlyForVerifierAttribute.id,
+              verificationDate: new Date(),
+            },
+          ],
+          revokedBy: [],
+        };
 
       const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
-      {
-        ...getMockVerifiedTenantAttribute(),
-        verifiedBy: [
-          {
-            id: producer.id,
-            verificationDate: new Date(),
-            extensionDate: new Date(),
-          },
-        ],
-        revokedBy: [],
-      };
+        {
+          ...getMockVerifiedTenantAttribute(),
+          verifiedBy: [
+            {
+              id: producer.id,
+              verificationDate: new Date(),
+              extensionDate: new Date(),
+            },
+          ],
+          revokedBy: [],
+        };
 
       const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
         revokedTenantCertifiedAttribute,
@@ -842,15 +842,15 @@ describe("activate agreement", () => {
             ...mockAgreement.stamps,
             suspensionByProducer: suspendedByProducer
               ? {
-                who: generateId(),
-                when: new Date(),
-              }
+                  who: generateId(),
+                  when: new Date(),
+                }
               : undefined,
             suspensionByConsumer: suspendedByConsumer
               ? {
-                who: generateId(),
-                when: new Date(),
-              }
+                  who: generateId(),
+                  when: new Date(),
+                }
               : undefined,
           },
 
@@ -1010,15 +1010,15 @@ describe("activate agreement", () => {
           ...mockAgreement.stamps,
           suspensionByProducer: suspendedByProducer
             ? {
-              who: authData.userId,
-              when: new Date(),
-            }
+                who: authData.userId,
+                when: new Date(),
+              }
             : undefined,
           suspensionByConsumer: suspendedByConsumer
             ? {
-              who: authData.userId,
-              when: new Date(),
-            }
+                who: authData.userId,
+                when: new Date(),
+              }
             : undefined,
         },
 
@@ -1271,15 +1271,15 @@ describe("activate agreement", () => {
             ...getMockAgreement().stamps,
             suspensionByProducer: suspendedByProducer
               ? {
-                who: generateId(),
-                when: new Date(),
-              }
+                  who: generateId(),
+                  when: new Date(),
+                }
               : undefined,
             suspensionByConsumer: suspendedByConsumer
               ? {
-                who: generateId(),
-                when: new Date(),
-              }
+                  who: generateId(),
+                  when: new Date(),
+                }
               : undefined,
           },
           // Adding some random attributes to check that they are not modified by the Unsuspension
@@ -1515,29 +1515,29 @@ describe("activate agreement", () => {
         };
 
         const tenantVerifiedAttributeByAnotherProducer: VerifiedTenantAttribute =
-        {
-          ...getMockVerifiedTenantAttribute(),
-          verifiedBy: [
-            {
-              id: tenantOnlyForVerifierAttribute.id,
-              verificationDate: new Date(),
-            },
-          ],
-          revokedBy: [],
-        };
+          {
+            ...getMockVerifiedTenantAttribute(),
+            verifiedBy: [
+              {
+                id: tenantOnlyForVerifierAttribute.id,
+                verificationDate: new Date(),
+              },
+            ],
+            revokedBy: [],
+          };
 
         const tenantVerfiedAttributeWithExpiredExtension: VerifiedTenantAttribute =
-        {
-          ...getMockVerifiedTenantAttribute(),
-          verifiedBy: [
-            {
-              id: producer.id,
-              verificationDate: new Date(),
-              extensionDate: new Date(),
-            },
-          ],
-          revokedBy: [],
-        };
+          {
+            ...getMockVerifiedTenantAttribute(),
+            verifiedBy: [
+              {
+                id: producer.id,
+                verificationDate: new Date(),
+                extensionDate: new Date(),
+              },
+            ],
+            revokedBy: [],
+          };
 
         const consumerInvalidAttribute: TenantAttribute = randomArrayItem([
           revokedTenantCertifiedAttribute,
@@ -1591,15 +1591,15 @@ describe("activate agreement", () => {
             ...getMockAgreement().stamps,
             suspensionByProducer: suspendedByProducer
               ? {
-                who: generateId(),
-                when: new Date(),
-              }
+                  who: generateId(),
+                  when: new Date(),
+                }
               : undefined,
             suspensionByConsumer: suspendedByConsumer
               ? {
-                who: generateId(),
-                when: new Date(),
-              }
+                  who: generateId(),
+                  when: new Date(),
+                }
               : undefined,
           },
           // Adding some random attributes to check that they are not modified by the Unsuspension

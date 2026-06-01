@@ -236,10 +236,10 @@ describe("Tenant Events V2", async () => {
     await tenantWriterService.upsertTenant(tenantWithDiscreteAttribute, 1);
 
     const revokedCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
-    {
-      ...certifiedDiscreteAttribute,
-      revocationTimestamp: new Date(),
-    };
+      {
+        ...certifiedDiscreteAttribute,
+        revocationTimestamp: new Date(),
+      };
 
     const tenantWithRevokedDiscreteAttribute: Tenant = {
       ...tenantWithDiscreteAttribute,
@@ -283,10 +283,10 @@ describe("Tenant Events V2", async () => {
     await tenantWriterService.upsertTenant(tenantWithDiscreteAttribute, 1);
 
     const updatedCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
-    {
-      ...certifiedDiscreteAttribute,
-      discreteValue: 200,
-    };
+      {
+        ...certifiedDiscreteAttribute,
+        discreteValue: 200,
+      };
 
     const tenantWithUpdatedDiscreteAttribute: Tenant = {
       ...tenantWithDiscreteAttribute,

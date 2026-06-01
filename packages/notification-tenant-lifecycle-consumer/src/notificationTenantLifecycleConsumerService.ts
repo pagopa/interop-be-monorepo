@@ -163,7 +163,8 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
               "TenantVerifiedAttributeAssigned",
               "TenantVerifiedAttributeExpirationUpdated",
               "TenantVerifiedAttributeExtensionUpdated",
-              "TenantVerifiedAttributeRevoked",),
+              "TenantVerifiedAttributeRevoked"
+            ),
           },
           async (message) => {
             logger.info(`Ignoring ${message.type} message`);
