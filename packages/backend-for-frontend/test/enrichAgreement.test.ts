@@ -166,18 +166,19 @@ describe("enrichAgreement", () => {
         creationTime: agreementCertifiedDiscreteRegistryAttribute.creationTime,
       },
     ]);
-    expect(actualAgreement.consumer.attributes.certifiedDiscrete).toStrictEqual(
-      [
-        {
-          id: tenantCertifiedDiscreteAttributeId,
-          name: tenantCertifiedDiscreteRegistryAttribute.name,
-          description: tenantCertifiedDiscreteRegistryAttribute.description,
-          assignmentTimestamp:
-            consumer.attributes[0].certifiedDiscrete?.assignmentTimestamp,
-          revocationTimestamp: undefined,
-          discreteValue: 42,
-        },
-      ]
+    expect(actualAgreement.consumer.attributes.certified).toStrictEqual([
+      {
+        id: tenantCertifiedDiscreteAttributeId,
+        name: tenantCertifiedDiscreteRegistryAttribute.name,
+        description: tenantCertifiedDiscreteRegistryAttribute.description,
+        assignmentTimestamp:
+          consumer.attributes[0].certifiedDiscrete?.assignmentTimestamp,
+        revocationTimestamp: undefined,
+        discreteValue: 42,
+      },
+    ]);
+    expect(actualAgreement.consumer.attributes).not.toHaveProperty(
+      "certifiedDiscrete"
     );
     expect(
       clients.attributeProcessClient.getBulkedAttributes

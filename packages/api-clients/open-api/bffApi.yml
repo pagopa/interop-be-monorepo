@@ -29065,20 +29065,17 @@ components:
         certified:
           type: array
           items:
-            $ref: "#/components/schemas/CertifiedTenantAttribute"
+            oneOf:
+              - $ref: "#/components/schemas/CertifiedTenantAttribute"
+              - $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
         verified:
           type: array
           items:
             $ref: "#/components/schemas/VerifiedTenantAttribute"
-        certifiedDiscrete:
-          type: array
-          items:
-            $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
       required:
         - declared
         - certified
         - verified
-        - certifiedDiscrete
     DeclaredTenantAttribute:
       type: object
       additionalProperties: false

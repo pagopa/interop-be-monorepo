@@ -184,6 +184,29 @@ export function toBffApiCertifiedTenantAttributes(
     .filter(isDefined);
 }
 
+function toBffApiTenantCertifiedAttributes(
+  certifiedAttributes: tenantApi.CertifiedTenantAttribute[],
+  certifiedDiscreteAttributes: tenantApi.CertifiedDiscreteTenantAttribute[],
+  registryAttributesMap: RegistryAttributesMap
+): bffApi.TenantAttributes["certified"] {
+  const certifiedDiscrete = certifiedDiscreteAttributes
+    .map((tenantAttribute) =>
+      toBffApiCertifiedDiscreteTenantAttribute(
+        tenantAttribute,
+        registryAttributesMap
+      )
+    )
+    .filter(isDefined);
+
+  return [
+    ...toBffApiCertifiedTenantAttributes(
+      certifiedAttributes,
+      registryAttributesMap
+    ),
+    ...certifiedDiscrete,
+  ];
+}
+
 export function toBffApiDeclaredTenantAttributes(
   declaredAttributes: tenantApi.DeclaredTenantAttribute[],
   registryAttributesMap: RegistryAttributesMap
@@ -202,20 +225,6 @@ export function toBffApiVerifiedTenantAttributes(
   return verifiedAttributes
     .map((tenantAttribute) =>
       toBffApiVerifiedTenantAttribute(tenantAttribute, registryAttributesMap)
-    )
-    .filter(isDefined);
-}
-
-function toBffApiCertifiedDiscreteTenantAttributes(
-  certifiedDiscreteAttributes: tenantApi.CertifiedDiscreteTenantAttribute[],
-  registryAttributesMap: RegistryAttributesMap
-): bffApi.CertifiedDiscreteTenantAttribute[] {
-  return certifiedDiscreteAttributes
-    .map((tenantAttribute) =>
-      toBffApiCertifiedDiscreteTenantAttribute(
-        tenantAttribute,
-        registryAttributesMap
-      )
     )
     .filter(isDefined);
 }
@@ -246,8 +255,9 @@ export function toBffApiTenant(
     remoteIds: tenant.remoteIds,
     contactMail: getLatestTenantContactEmail(tenant),
     attributes: {
-      certified: toBffApiCertifiedTenantAttributes(
+      certified: toBffApiTenantCertifiedAttributes(
         certifiedAttributes,
+        certifiedDiscreteAttributes,
         registryAttributesMap
       ),
       declared: toBffApiDeclaredTenantAttributes(
@@ -256,10 +266,6 @@ export function toBffApiTenant(
       ),
       verified: toBffApiVerifiedTenantAttributes(
         verifiedAttributes,
-        registryAttributesMap
-      ),
-      certifiedDiscrete: toBffApiCertifiedDiscreteTenantAttributes(
-        certifiedDiscreteAttributes,
         registryAttributesMap
       ),
     },
