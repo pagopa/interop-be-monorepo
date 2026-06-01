@@ -8,12 +8,14 @@ import {
   decodeProtobufPayload,
   getMockAgreement,
   getMockAttribute,
+  getMockCertifiedDiscreteTenantAttribute,
   getMockCertifiedTenantAttribute,
   getMockContext,
   getMockDeclaredTenantAttribute,
   getMockDelegation,
   getMockEService,
   getMockEServiceAttribute,
+  getMockEServiceAttributeCertifiedDiscrete,
   getMockTenant,
   getMockVerifiedTenantAttribute,
   getMockAuthData,
@@ -36,6 +38,7 @@ import {
   TenantId,
   VerifiedTenantAttribute,
   agreementState,
+  attributeCertifiedDiscreteComparator,
   attributeKind,
   delegationKind,
   delegationState,
@@ -1671,5 +1674,150 @@ describe("upgrade Agreement", () => {
     });
 
     expect(actualAgreementUpgraded.contract).toBeUndefined();
+  });
+
+  it("should re-evaluate certified discrete attributes against the new descriptor, not copy them from the old agreement", async () => {
+    const producer = getMockTenant();
+    const consumerId = generateId<TenantId>();
+    await addOneTenant(producer);
+
+    const oldDiscreteAttribute = getMockAttribute("Certified");
+    const newDiscreteAttribute = getMockAttribute("Certified");
+    await addOneAttribute(oldDiscreteAttribute);
+    await addOneAttribute(newDiscreteAttribute);
+
+    const discreteConfig = {
+      threshold: 40,
+      comparator: attributeCertifiedDiscreteComparator.GTE,
+    };
+
+    // v1 requires discrete attribute A, v2 requires a different discrete attribute B.
+    const currentDescriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      state: descriptorState.deprecated,
+      version: "1",
+      attributes: {
+        certified: [
+          [
+            {
+              ...getMockEServiceAttributeCertifiedDiscrete(
+                oldDiscreteAttribute.id
+              ),
+              discreteConfig,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const newPublishedDescriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      version: "2",
+      attributes: {
+        certified: [
+          [
+            {
+              ...getMockEServiceAttributeCertifiedDiscrete(
+                newDiscreteAttribute.id
+              ),
+              discreteConfig,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+      descriptors: [newPublishedDescriptor, currentDescriptor],
+    };
+    await addOneEService(eservice);
+
+    // The consumer satisfies the discrete requirements of BOTH descriptors.
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      id: consumerId,
+      selfcareId: generateId(),
+      attributes: [
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(oldDiscreteAttribute.id),
+          discreteValue: 50,
+          revocationTimestamp: undefined,
+        },
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(newDiscreteAttribute.id),
+          discreteValue: 50,
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+    await addOneTenant(consumer);
+
+    const agreementId: AgreementId = generateId<AgreementId>();
+    const agreement: Agreement = {
+      ...getMockAgreement(
+        eservice.id,
+        consumerId,
+        randomArrayItem(agreementUpgradableStates)
+      ),
+      id: agreementId,
+      producerId: eservice.producerId,
+      descriptorId: currentDescriptor.id,
+      createdAt: new Date(),
+      certifiedAttributes: [],
+      certifiedDiscreteAttributes: [{ id: oldDiscreteAttribute.id }],
+      declaredAttributes: [],
+      verifiedAttributes: [],
+      consumerDocuments: [],
+      stamps: {
+        submission: getRandomPastStamp(),
+        activation: getRandomPastStamp(),
+      },
+      contract: getMockContract(agreementId, consumerId, producer.id),
+    };
+    await addOneAgreement(agreement);
+
+    const authData = getMockAuthData(consumerId);
+
+    const upgradeAgreementResponse = await agreementService.upgradeAgreement(
+      agreement.id,
+      getMockContext({ authData })
+    );
+
+    const newAgreementId = unsafeBrandId<AgreementId>(
+      upgradeAgreementResponse.data.id
+    );
+
+    const actualAgreementUpgradedEvent = await readAgreementEventByVersion(
+      newAgreementId,
+      0
+    );
+
+    expect(actualAgreementUpgradedEvent).toMatchObject({
+      type: "AgreementUpgraded",
+      event_version: 2,
+      version: "0",
+      stream_id: newAgreementId,
+    });
+
+    const actualAgreementUpgraded: Agreement = fromAgreementV2(
+      decodeProtobufPayload({
+        messageType: AgreementUpgradedV2,
+        payload: actualAgreementUpgradedEvent.data,
+      }).agreement!
+    );
+
+    // The upgraded agreement reflects v2's evaluation, not v1's carried-over value.
+    expect(actualAgreementUpgraded.certifiedDiscreteAttributes).toEqual([
+      { id: newDiscreteAttribute.id },
+    ]);
+    expect(
+      actualAgreementUpgraded.certifiedDiscreteAttributes
+    ).not.toContainEqual({ id: oldDiscreteAttribute.id });
   });
 });
