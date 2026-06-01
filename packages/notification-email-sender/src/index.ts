@@ -248,7 +248,9 @@ export async function handlePurposeMessage(
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
-          "MaintenancePurposeRiskAnalysisSetTenantKind"
+          "MaintenancePurposeRiskAnalysisSetTenantKind",
+          "PurposeRiskAnalysisWorkflowCreated",
+          "PurposeRiskAnalysisAssigned"
         ),
       },
       () => {
