@@ -182,6 +182,7 @@ function isSystemRole(role: AuthRole): role is SystemRole {
       authRole.API_ROLE,
       authRole.SUPPORT_ROLE,
       authRole.REVIEWER_ROLE,
+      authRole.VIEWER_ROLE,
       () => false
     )
     .exhaustive();
@@ -195,6 +196,7 @@ function isUserRole(role: AuthRole): role is UserRole {
       authRole.API_ROLE,
       authRole.SUPPORT_ROLE,
       authRole.REVIEWER_ROLE,
+      authRole.VIEWER_ROLE,
       () => true
     )
     .with(

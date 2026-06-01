@@ -46,6 +46,7 @@ const rolePayloadMap = {
   [userRole.SECURITY_ROLE]: createUserPayload,
   [userRole.SUPPORT_ROLE]: createUserPayload,
   [userRole.REVIEWER_ROLE]: createUserPayload,
+  [userRole.VIEWER_ROLE]: createUserPayload,
   // the `satisfies` ensures that all roles will have a corresponding creator function
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } satisfies Record<AuthRole, (...args: any) => any>;

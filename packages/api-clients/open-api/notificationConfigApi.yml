@@ -609,6 +609,7 @@ components:
         - SECURITY
         - SUPPORT
         - REVIEWER
+        - VIEWER
     Problem:
       properties:
         type:
