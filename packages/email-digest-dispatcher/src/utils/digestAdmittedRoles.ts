@@ -13,8 +13,14 @@ type DigestDataField = {
     : never;
 }[keyof TenantDigestData];
 
-const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, SUPPORT_ROLE, REVIEWER_ROLE, VIEWER_ROLE } =
-  userRole;
+const {
+  ADMIN_ROLE,
+  API_ROLE,
+  SECURITY_ROLE,
+  SUPPORT_ROLE,
+  REVIEWER_ROLE,
+  VIEWER_ROLE,
+} = userRole;
 
 export type DigestSection =
   | "newEservices"

@@ -5,8 +5,14 @@ import {
 } from "pagopa-interop-models";
 import { authRole } from "../auth/authorization.js";
 
-const { ADMIN_ROLE, API_ROLE, SECURITY_ROLE, SUPPORT_ROLE, REVIEWER_ROLE, VIEWER_ROLE } =
-  authRole;
+const {
+  ADMIN_ROLE,
+  API_ROLE,
+  SECURITY_ROLE,
+  SUPPORT_ROLE,
+  REVIEWER_ROLE,
+  VIEWER_ROLE,
+} = authRole;
 
 export const notificationAdmittedRoles = {
   agreementSuspendedUnsuspendedToProducer: {
