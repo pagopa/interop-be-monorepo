@@ -26961,9 +26961,12 @@ components:
           format: uuid
         name:
           type: string
+        kind:
+          $ref: "#/components/schemas/AttributeKind"
       required:
         - id
         - name
+        - kind
     CompactAgreement:
       type: object
       additionalProperties: false
