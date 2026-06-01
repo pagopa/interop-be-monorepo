@@ -29,7 +29,7 @@ const attributesSatisfied = (
       return attributes.filter((a) => tenantAttributes.includes(a)).length > 0;
     });
 
-export const discreteComparatorMatches = (
+export const matchesDiscreteThreshold = (
   value: number,
   threshold: number,
   comparator: AttributeCertifiedDiscreteComparator
@@ -50,7 +50,7 @@ export const matchesCertifiedDiscreteAttribute = (
   tenantAttribute.id === descriptorAttribute.id &&
   tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
   !tenantAttribute.revocationTimestamp &&
-  discreteComparatorMatches(
+  matchesDiscreteThreshold(
     tenantAttribute.discreteValue,
     descriptorAttribute.discreteConfig.threshold,
     descriptorAttribute.discreteConfig.comparator
@@ -77,19 +77,27 @@ export const matchesCertifiedDescriptorAttribute = (
     );
   });
 
-export const certifiedAttributesSatisfied = (
-  descriptorAttributes: Descriptor["attributes"],
+type CertifiedAttributeGroup = Descriptor["attributes"]["certified"][number];
+
+// Descriptor attribute contracts allow empty groups: full descriptor updates are
+// modeled as arrays of arrays, and M2M group seeds allow an empty attributeIds
+// list. Catalog parsing preserves those groups, so descriptors may reach this
+// validator with [] groups. They are ignored here because they carry no actual
+// requirement to satisfy.
+const nonEmptyCertifiedAttributeGroups = (
+  descriptorAttributes: Descriptor["attributes"]
+): CertifiedAttributeGroup[] =>
+  descriptorAttributes.certified.filter((group) => group.length > 0);
+
+// A certified attribute group is an OR condition: one matching attribute is
+// enough to satisfy the whole group.
+const tenantSatisfiesCertifiedAttributeGroup = (
+  group: CertifiedAttributeGroup,
   tenantAttributes: TenantAttribute[]
 ): boolean =>
-  descriptorAttributes.certified
-    .filter((attGroup) => attGroup.length > 0)
-    .every((attributeList) =>
-      attributeList.some((attr) =>
-        matchesCertifiedDescriptorAttribute(attr, tenantAttributes)
-      )
-    );
-
-type CertifiedAttributeGroup = Descriptor["attributes"]["certified"][number];
+  group.some((attribute) =>
+    matchesCertifiedDescriptorAttribute(attribute, tenantAttributes)
+  );
 
 export type CertifiedAttributesSuspension = {
   suspensionReason: AgreementSuspensionReason | undefined;
@@ -101,24 +109,9 @@ const noCertifiedAttributesSuspension: CertifiedAttributesSuspension = {
   discreteAttributeFailure: undefined,
 };
 
-const findUnsatisfiedCertifiedGroup = (
-  descriptorAttributes: Descriptor["attributes"],
-  tenantAttributes: TenantAttribute[]
-): CertifiedAttributeGroup | undefined =>
-  descriptorAttributes.certified
-    .filter((group) => group.length > 0)
-    .find(
-      (group) =>
-        !group.some((attribute) =>
-          matchesCertifiedDescriptorAttribute(attribute, tenantAttributes)
-        )
-    );
-
-const groupRequiresDiscreteAttribute = (
-  group: CertifiedAttributeGroup
-): boolean => group.some((attribute) => "discreteConfig" in attribute);
-
-const findDiscreteThresholdFailure = (
+// Extracts the detailed threshold failure when the tenant owns the discrete
+// attribute but its value does not satisfy the descriptor threshold.
+const findDiscreteAttributeThresholdFailureInGroup = (
   failingGroup: CertifiedAttributeGroup,
   tenantAttributes: TenantAttribute[]
 ): CertifiedDiscreteAttributeFailure | undefined => {
@@ -152,16 +145,21 @@ export const evaluateCertifiedAttributesSuspension = (
     return noCertifiedAttributesSuspension;
   }
 
-  // 2. Something is missing so find the first unsatisfied group.
-  const failingGroup = findUnsatisfiedCertifiedGroup(
-    descriptorAttributes,
-    tenantAttributes
+  // 2. Something is missing, so find the first unsatisfied group: a group is an
+  //    OR, so it is unsatisfied only when none of its attributes match.
+  const failingGroup = nonEmptyCertifiedAttributeGroups(
+    descriptorAttributes
+  ).find(
+    (group) => !tenantSatisfiesCertifiedAttributeGroup(group, tenantAttributes)
   );
 
   // 3. The tenant owns the discrete attribute, but its value is out of threshold
   //    => specific reason with details.
   const discreteFailure = failingGroup
-    ? findDiscreteThresholdFailure(failingGroup, tenantAttributes)
+    ? findDiscreteAttributeThresholdFailureInGroup(
+        failingGroup,
+        tenantAttributes
+      )
     : undefined;
   if (discreteFailure) {
     return {
@@ -172,7 +170,10 @@ export const evaluateCertifiedAttributesSuspension = (
 
   // 4. A discrete attribute was required, but the tenant does not own it at all
   //    => same but without details.
-  if (failingGroup && groupRequiresDiscreteAttribute(failingGroup)) {
+  if (
+    failingGroup &&
+    failingGroup.some((attribute) => "discreteConfig" in attribute)
+  ) {
     return {
       suspensionReason: agreementSuspensionReason.certifiedDiscreteAttribute,
       discreteAttributeFailure: undefined,
@@ -185,6 +186,14 @@ export const evaluateCertifiedAttributesSuspension = (
     discreteAttributeFailure: undefined,
   };
 };
+
+export const certifiedAttributesSatisfied = (
+  descriptorAttributes: Descriptor["attributes"],
+  tenantAttributes: TenantAttribute[]
+): boolean =>
+  nonEmptyCertifiedAttributeGroups(descriptorAttributes).every((group) =>
+    tenantSatisfiesCertifiedAttributeGroup(group, tenantAttributes)
+  );
 
 export const declaredAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
