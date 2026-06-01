@@ -9927,8 +9927,8 @@ paths:
               $ref: "#/components/schemas/RiskAnalysisAssignmentSeed"
         required: true
       responses:
-        "200":
-          description: Risk analysis reviewer assigned
+        "204":
+          description: No Content
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -9945,10 +9945,6 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreatedResource"
         "400":
           description: Bad Request
           content:
