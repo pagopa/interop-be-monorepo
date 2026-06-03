@@ -303,29 +303,26 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post(
-      "/purposes/:purposeId/riskAnalysis/sign",
-      async (req, res) => {
-        const ctx = fromBffAppContext(req.ctx, req.headers);
+    .post("/purposes/:purposeId/riskAnalysis/sign", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
 
-        try {
-          const result = await purposeService.signRiskAnalysis(
-            unsafeBrandId(req.params.purposeId),
-            ctx
-          );
+      try {
+        await purposeService.signRiskAnalysis(
+          unsafeBrandId(req.params.purposeId),
+          ctx
+        );
 
-          return res.status(200).send(bffApi.CreatedResource.parse(result));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            emptyErrorMapper,
-            ctx,
-            `Error signing risk analysis for purpose ${req.params.purposeId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
+        return res.status(204).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error signing risk analysis for purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
       }
-    )
+    })
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
       async (req, res) => {
