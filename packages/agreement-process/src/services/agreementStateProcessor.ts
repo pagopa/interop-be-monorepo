@@ -290,27 +290,27 @@ function updateAgreementState(
     allowedStateTransitions(agreement.data.state).includes(finalState) &&
     newSuspendedByPlatform !== agreement.data.suspendedByPlatform
   ) {
-    const attributesFailure = evaluateCertifiedAttributesSuspension(
-      descriptor.attributes,
-      consumer.attributes,
-      {
-        certifiedDiscreteEnabled: isFeatureFlagEnabled(
-          config,
-          "featureFlagAttributeCertifiedDiscrete"
-        ),
-      }
-    );
-
     return match([finalState, newSuspendedByPlatform])
-      .with([agreementState.suspended, true], () =>
-        toCreateEventAgreementSuspendedByPlatform(
+      .with([agreementState.suspended, true], () => {
+        const attributesFailure = evaluateCertifiedAttributesSuspension(
+          descriptor.attributes,
+          consumer.attributes,
+          {
+            certifiedDiscreteEnabled: isFeatureFlagEnabled(
+              config,
+              "featureFlagAttributeCertifiedDiscrete"
+            ),
+          }
+        );
+
+        return toCreateEventAgreementSuspendedByPlatform(
           updatedAgreement,
           agreement.metadata.version,
           correlationId,
           attributesFailure.suspensionReason,
           attributesFailure.discreteAttributeFailure
-        )
-      )
+        );
+      })
       .with(
         [agreementState.suspended, false],
         [agreementState.active, P._],
