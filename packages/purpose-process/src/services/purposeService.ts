@@ -605,13 +605,7 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotSubmittable(purposeId);
       }
 
-      assertRequesterCanActAsConsumer(
-        purpose.data,
-        authData,
-        await retrievePurposeDelegation(purpose.data, readModelService)
-      );
-
-      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+      assertRequesterIsConsumer(purpose.data, authData);
 
       const tenantKind = await retrieveTenantKind(
         purpose.data.consumerId,
@@ -624,7 +618,7 @@ export function purposeServiceBuilder(
 
       const now = new Date();
 
-      const riskAnalysisFormToValidate = {
+      const riskAnalysisFormToValidate: RiskAnalysisFormToValidate = {
         ...seed.riskAnalysisForm,
         tenantKind,
       };
@@ -640,10 +634,7 @@ export function purposeServiceBuilder(
       const updatedPurpose: Purpose = {
         ...purpose.data,
         riskAnalysisForm: validatedRiskAnalysisForm
-          ? {
-              ...validatedRiskAnalysisForm,
-              riskAnalysisId: riskAnalysisForm?.riskAnalysisId,
-            }
+          ? validatedRiskAnalysisForm
           : purpose.data.riskAnalysisForm,
         reviewerWorkflow: {
           ...workflow,
