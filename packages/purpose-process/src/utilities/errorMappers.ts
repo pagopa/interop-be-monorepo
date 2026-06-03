@@ -286,10 +286,7 @@ export const activatePurposeVersionErrorMapper = (
       "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with(
-      "reviewerWorkflowNotInSignedState",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("reviewerWorkflowNotInSignedState", () => HTTP_STATUS_CONFLICT)
     .with(
       "tenantIsNotTheConsumer",
       "tenantIsNotTheProducer",

@@ -583,9 +583,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(purposeToApiPurpose(purpose))
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

@@ -1,13 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  PurposeId,
-  generateId,
-} from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurpose,
-} from "pagopa-interop-commons-test";
+import { PurposeId, generateId } from "pagopa-interop-models";
+import { generateToken, getMockPurpose } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
@@ -44,9 +38,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
   });
 
   it.each(
-    Object.values(authRole).filter(
-      (role) => role !== authRole.REVIEWER_ROLE
-    )
+    Object.values(authRole).filter((role) => role !== authRole.REVIEWER_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
