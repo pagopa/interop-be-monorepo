@@ -30,7 +30,6 @@ import {
 } from "pagopa-interop-models";
 import {
   PurposeSQL,
-  RiskAnalysisReviewerSQL,
   PurposeRiskAnalysisAnswerSQL,
   PurposeVersionSQL,
   PurposeVersionDocumentSQL,
