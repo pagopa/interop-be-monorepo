@@ -456,13 +456,12 @@ export function purposeServiceBuilder(
     async signRiskAnalysis(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
+    ): Promise<void> {
       logger.info(`Signing risk analysis for purpose ${purposeId}`);
-      const result = await purposeProcessClient.signRiskAnalysis(undefined, {
+      await purposeProcessClient.signRiskAnalysis(undefined, {
         params: { purposeId },
         headers,
       });
-      return { id: result.id };
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
