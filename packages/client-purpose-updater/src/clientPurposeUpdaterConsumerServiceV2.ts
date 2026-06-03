@@ -85,7 +85,10 @@ export async function handleMessageV2({
       { type: "RiskAnalysisDocumentGenerated" },
       { type: "RiskAnalysisSignedDocumentGenerated" },
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
-      () => Promise.resolve
+      { type: "PurposeRiskAnalysisWorkflowCreated" },
+      { type: "PurposeRiskAnalysisAssigned" },
+      { type: "PurposeRiskAnalysisSubmitted" },
+      () => Promise.resolve()
     )
     .exhaustive();
 }

@@ -64,12 +64,12 @@ const errorCodes = {
   reviewerWorkflowConflict: "0044",
   reviewerWorkflowNotFound: "0045",
   reviewerWorkflowNotSubmittable: "0046",
-  requesterIsNotTheWriter: "0047",
   submitNotAllowedForReviewMode: "0048",
   reviewerWorkflowNotInPendingSignatureState: "0049",
   requesterIsNotTheSigner: "0050",
   reviewerWorkflowNotInSignedState: "0051",
   riskAnalysisFormEditNotAllowed: "0052",
+  submitNotAllowedForReviewMode: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

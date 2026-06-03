@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose (
   CONSTRAINT purpose_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
 
-CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose_reviewer (
+CREATE TABLE IF NOT EXISTS readmodel_purpose.risk_analysis_reviewer (
   purpose_id UUID NOT NULL REFERENCES readmodel_purpose.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   reviewer_id UUID NOT NULL,

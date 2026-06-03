@@ -436,30 +436,23 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisAssignmentSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+    ): Promise<void> {
       logger.info(`Assigning risk analysis reviewer to purpose ${purposeId}`);
-      const result = await purposeProcessClient.assignRiskAnalysisReviewer(
-        seed,
-        {
-          params: { purposeId },
-          headers,
-        }
-      );
-      return { id: result.id };
+      await purposeProcessClient.assignRiskAnalysisReviewer(seed, {
+        params: { purposeId },
+        headers,
+      });
     },
     async submitRiskAnalysis(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisSubmissionSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+    ): Promise<void> {
       logger.info(`Submitting risk analysis for purpose ${purposeId}`);
-      const result = await purposeProcessClient.submitRiskAnalysis(seed, {
+      await purposeProcessClient.submitRiskAnalysis(seed, {
         params: { purposeId },
         headers,
       });
-      return { id: result.id };
     },
     async signRiskAnalysis(
       purposeId: PurposeId,
