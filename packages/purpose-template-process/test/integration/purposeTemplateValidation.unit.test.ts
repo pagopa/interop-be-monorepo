@@ -2,6 +2,8 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import {
   DescriptorId,
   EServiceId,
+  EServiceTemplate,
+  EServiceTemplateId,
   TenantId,
   generateId,
   descriptorState,
@@ -11,6 +13,7 @@ import {
 import {
   getMockEService,
   getMockDescriptor,
+  getMockEServiceTemplate,
   getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
@@ -32,12 +35,17 @@ import {
   ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION,
   validateEservicesAssociations,
   validateEservicesDisassociations,
+  validateEServiceTemplatesAssociations,
+  validateEServiceTemplatesDisassociations,
 } from "../../src/services/validators.js";
 
 describe("Purpose Template Validation", () => {
   const mockReadModelService: ReadModelServiceSQL = {
     getEServiceById: vi.fn(),
     getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId:
+      vi.fn(),
+    getEServiceTemplateById: vi.fn(),
+    getEServiceTemplateVersionPurposeTemplateByPurposeTemplateIdAndEServiceTemplateId:
       vi.fn(),
   } as unknown as ReadModelServiceSQL;
 
@@ -395,6 +403,115 @@ describe("Purpose Template Validation", () => {
           },
         ],
       });
+    });
+
+    it("should propagate the original error when disassociation check fails (infra error -> default mapper -> 500)", async () => {
+      const eserviceIds = [eserviceId1];
+      const errorMessage = "Disassociation check failed";
+      const dbError = new Error(errorMessage);
+
+      mockReadModelService.getEServiceById = vi
+        .fn()
+        .mockResolvedValue(mockEService1);
+      mockReadModelService.getPurposeTemplateEServiceDescriptorsByPurposeTemplateIdAndEserviceId =
+        vi.fn().mockRejectedValue(dbError);
+
+      await expect(
+        validateEservicesDisassociations(
+          eserviceIds,
+          purposeTemplate,
+          mockReadModelService
+        )
+      ).rejects.toThrow(dbError);
+    });
+  });
+
+  describe("validateEServiceTemplatesForPurposeTemplate", () => {
+    const purposeTemplate: PurposeTemplate = {
+      ...getMockPurposeTemplate(),
+      handlesPersonalData: true,
+    };
+    const eserviceTemplateId1 = generateId<EServiceTemplateId>();
+
+    const mockEServiceTemplate1: EServiceTemplate = {
+      ...getMockEServiceTemplate(eserviceTemplateId1),
+      personalData: true,
+    };
+
+    it("should propagate the original error when eservice template retrieval fails (infra error -> default mapper -> 500)", async () => {
+      const eserviceTemplateIds = [eserviceTemplateId1];
+      const errorMessage = "Database connection failed";
+      const dbError = new Error(errorMessage);
+
+      mockReadModelService.getEServiceTemplateById = vi
+        .fn()
+        .mockRejectedValue(dbError);
+
+      await expect(
+        validateEServiceTemplatesAssociations(
+          eserviceTemplateIds,
+          purposeTemplate,
+          mockReadModelService
+        )
+      ).rejects.toThrow(dbError);
+    });
+
+    it("should propagate the original error when eservice template association check fails (infra error -> default mapper -> 500)", async () => {
+      const eserviceTemplateIds = [eserviceTemplateId1];
+      const errorMessage = "Association check failed";
+      const dbError = new Error(errorMessage);
+
+      mockReadModelService.getEServiceTemplateById = vi
+        .fn()
+        .mockResolvedValue(mockEServiceTemplate1);
+      mockReadModelService.getEServiceTemplateVersionPurposeTemplateByPurposeTemplateIdAndEServiceTemplateId =
+        vi.fn().mockRejectedValue(dbError);
+
+      await expect(
+        validateEServiceTemplatesAssociations(
+          eserviceTemplateIds,
+          purposeTemplate,
+          mockReadModelService
+        )
+      ).rejects.toThrow(dbError);
+    });
+
+    it("should propagate the original error when eservice template retrieval fails during disassociation (infra error -> default mapper -> 500)", async () => {
+      const eserviceTemplateIds = [eserviceTemplateId1];
+      const errorMessage = "Database connection failed";
+      const dbError = new Error(errorMessage);
+
+      mockReadModelService.getEServiceTemplateById = vi
+        .fn()
+        .mockRejectedValue(dbError);
+
+      await expect(
+        validateEServiceTemplatesDisassociations(
+          eserviceTemplateIds,
+          purposeTemplate,
+          mockReadModelService
+        )
+      ).rejects.toThrow(dbError);
+    });
+
+    it("should propagate the original error when eservice template disassociation check fails (infra error -> default mapper -> 500)", async () => {
+      const eserviceTemplateIds = [eserviceTemplateId1];
+      const errorMessage = "Disassociation check failed";
+      const dbError = new Error(errorMessage);
+
+      mockReadModelService.getEServiceTemplateById = vi
+        .fn()
+        .mockResolvedValue(mockEServiceTemplate1);
+      mockReadModelService.getEServiceTemplateVersionPurposeTemplateByPurposeTemplateIdAndEServiceTemplateId =
+        vi.fn().mockRejectedValue(dbError);
+
+      await expect(
+        validateEServiceTemplatesDisassociations(
+          eserviceTemplateIds,
+          purposeTemplate,
+          mockReadModelService
+        )
+      ).rejects.toThrow(dbError);
     });
   });
 });
