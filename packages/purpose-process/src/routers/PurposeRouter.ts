@@ -510,27 +510,21 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const {
-          data: { purpose, isRiskAnalysisValid },
-          metadata,
-        } = await purposeService.assignRiskAnalysisReviewer(
-          unsafeBrandId(req.params.purposeId),
-          {
-            reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
-            reviewerIds: req.body.reviewerIds,
-          },
-          ctx
-        );
+        const { data: purpose, metadata } =
+          await purposeService.assignRiskAnalysisReviewer(
+            unsafeBrandId(req.params.purposeId),
+            {
+              reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
+              reviewerIds: req.body.reviewerIds,
+            },
+            ctx
+          );
 
         setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -547,7 +541,7 @@ const purposeRouter = (
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
         const {
-          data: { purpose, isRiskAnalysisValid },
+          data: { purpose },
           metadata,
         } = await purposeService.submitRiskAnalysis(
           unsafeBrandId(req.params.purposeId),
@@ -561,11 +555,7 @@ const purposeRouter = (
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

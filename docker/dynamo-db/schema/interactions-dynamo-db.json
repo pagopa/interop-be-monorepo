@@ -18,7 +18,7 @@
   ],
   "GlobalSecondaryIndexes": [
     {
-      "IndexName": "GSIPK_interactionId-index",
+      "IndexName": "interactionId",
       "KeySchema": [
         {
           "AttributeName": "GSIPK_interactionId",

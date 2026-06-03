@@ -872,8 +872,8 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
   ]
 );
 
-export const purposeReviewerInReadmodelPurpose = readmodelPurpose.table(
-  "purpose_reviewer",
+export const riskAnalysisReviewerInReadmodelPurpose = readmodelPurpose.table(
+  "risk_analysis_reviewer",
   {
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
@@ -883,7 +883,7 @@ export const purposeReviewerInReadmodelPurpose = readmodelPurpose.table(
     foreignKey({
       columns: [table.purposeId],
       foreignColumns: [purposeInReadmodelPurpose.id],
-      name: "purpose_reviewer_purpose_id_fkey",
+      name: "risk_analysis_reviewer_purpose_id_fkey",
     }).onDelete("cascade"),
     foreignKey({
       columns: [table.purposeId, table.metadataVersion],
@@ -891,13 +891,13 @@ export const purposeReviewerInReadmodelPurpose = readmodelPurpose.table(
         purposeInReadmodelPurpose.id,
         purposeInReadmodelPurpose.metadataVersion,
       ],
-      name: "purpose_reviewer_purpose_id_metadata_version_fkey",
+      name: "risk_analysis_reviewer_purpose_id_metadata_version_fkey",
     }),
     primaryKey({
       columns: [table.purposeId, table.reviewerId],
-      name: "purpose_reviewer_pkey",
+      name: "risk_analysis_reviewer_pkey",
     }),
-    index("idx_purpose_reviewer_id").on(table.reviewerId),
+    index("idx_risk_analysis_reviewer_id").on(table.reviewerId),
   ]
 );
 
