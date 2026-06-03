@@ -295,6 +295,14 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
   FOREIGN KEY (risk_analysis_form_id, purpose_id) REFERENCES domains.purpose_risk_analysis_form (id, purpose_id)
 );
 
+CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_reviewer (
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  reviewer_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (purpose_id, reviewer_id)
+);
+
 CREATE TABLE IF NOT EXISTS domains.purpose_version (
   id VARCHAR(36),
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
