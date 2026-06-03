@@ -281,18 +281,7 @@ export const apiReviewModeToReviewMode = (
     )
     .exhaustive();
 
-export const apiSigningStateToSigningState = (
-  apiSigningState: purposeApi.RiskAnalysisSigningState
-): RiskAnalysisSigningState =>
-  match(apiSigningState)
-    .with("DRAFT", () => riskAnalysisSigningState.draft)
-    .with("ASSIGNED", () => riskAnalysisSigningState.assigned)
-    .with("SUBMITTED", () => riskAnalysisSigningState.submitted)
-    .with("SIGNED", () => riskAnalysisSigningState.signed)
-    .with("REJECTED", () => riskAnalysisSigningState.rejected)
-    .exhaustive();
-
-export const reviewModeToApiReviewMode = (
+const reviewModeToApiReviewMode = (
   mode: RiskAnalysisReviewMode
 ): purposeApi.RiskAnalysisReviewMode =>
   match(mode)
@@ -306,7 +295,7 @@ export const reviewModeToApiReviewMode = (
     )
     .exhaustive();
 
-export const signingStateToApiSigningState = (
+const signingStateToApiSigningState = (
   state: RiskAnalysisSigningState
 ): purposeApi.RiskAnalysisSigningState =>
   match(state)
@@ -332,7 +321,7 @@ export const signingStateToApiSigningState = (
     )
     .exhaustive();
 
-export const reviewerWorkflowToApiReviewerWorkflow = (
+const reviewerWorkflowToApiReviewerWorkflow = (
   workflow: ReviewerWorkflow
 ): purposeApi.ReviewerWorkflow => ({
   reviewMode: reviewModeToApiReviewMode(workflow.reviewMode),

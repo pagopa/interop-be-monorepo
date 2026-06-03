@@ -15,7 +15,7 @@ import {
 } from "pagopa-interop-models";
 import {
   PurposeItemsSQL,
-  PurposeReviewerSQL,
+  RiskAnalysisReviewerSQL,
   PurposeRiskAnalysisAnswerSQL,
   PurposeRiskAnalysisFormSQL,
   PurposeSQL,
@@ -75,7 +75,7 @@ export const splitPurposeIntoObjectsSQL = (
     ),
   };
 
-  const reviewersSQL: PurposeReviewerSQL[] = (
+  const reviewersSQL: RiskAnalysisReviewerSQL[] = (
     reviewerWorkflow?.reviewerIds ?? []
   ).map((reviewerId) => ({
     purposeId: id,

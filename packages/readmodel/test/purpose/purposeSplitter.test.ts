@@ -31,7 +31,7 @@ import {
 import {
   PurposeRiskAnalysisAnswerSQL,
   PurposeRiskAnalysisFormSQL,
-  PurposeReviewerSQL,
+  RiskAnalysisReviewerSQL,
   PurposeSQL,
   PurposeVersionDocumentSQL,
   PurposeVersionSQL,
@@ -234,7 +234,7 @@ describe("Purpose splitter", () => {
     expect(versionSignedDocumentsSQL).toStrictEqual([
       expectedPurposeVersionSignedDocumentSQL,
     ]);
-    const expectedReviewersSQL: PurposeReviewerSQL[] =
+    const expectedReviewersSQL: RiskAnalysisReviewerSQL[] =
       reviewerWorkflow.reviewerIds.map((reviewerId) => ({
         purposeId: purpose.id,
         metadataVersion: 1,

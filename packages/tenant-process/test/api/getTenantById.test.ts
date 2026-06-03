@@ -74,4 +74,19 @@ describe("API GET /tenants/{id} test", () => {
     const res = await makeRequest(token, "invalid" as TenantId);
     expect(res.status).toBe(400);
   });
+
+  it("Should include selfcareInstitutionType in the response when the tenant has it", async () => {
+    const tenantWithInstitutionType: Tenant = {
+      ...getMockTenant(),
+      selfcareInstitutionType: "SCP",
+    };
+    tenantService.getTenantById = vi
+      .fn()
+      .mockResolvedValue(getMockWithMetadata(tenantWithInstitutionType));
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, tenantWithInstitutionType.id);
+    expect(res.status).toBe(200);
+    expect(res.body.selfcareInstitutionType).toBe("SCP");
+  });
 });
