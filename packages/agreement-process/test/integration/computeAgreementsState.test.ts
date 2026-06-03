@@ -24,10 +24,12 @@ import {
   AgreementSuspensionReasonV2,
   AgreementUnsuspendedByPlatformV2,
   AttributeCertifiedDiscreteComparatorV2,
+  CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceAttributeCertifiedDiscrete,
   Tenant,
   TenantId,
   VerifiedTenantAttribute,
@@ -139,24 +141,26 @@ describe("compute Agreements state by attribute", () => {
     });
 
     it("suspends an active Agreement with certified discrete suspension reason and full failure detail when the threshold is no longer satisfied", async () => {
-      const invalidCertifiedDiscreteAttribute = {
-        ...getMockCertifiedDiscreteTenantAttribute(),
-        discreteValue: 42,
-      };
+      const invalidCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(),
+          discreteValue: 42,
+        };
       const discreteConsumer: Tenant = {
         ...getMockTenant(),
         attributes: [invalidCertifiedDiscreteAttribute],
       };
 
-      const certifiedDiscreteDescriptorAttribute = {
-        ...getMockEServiceAttributeCertifiedDiscrete(
-          invalidCertifiedDiscreteAttribute.id
-        ),
-        discreteConfig: {
-          threshold: 100,
-          comparator: attributeCertifiedDiscreteComparator.GTE,
-        },
-      };
+      const certifiedDiscreteDescriptorAttribute: EServiceAttributeCertifiedDiscrete =
+        {
+          ...getMockEServiceAttributeCertifiedDiscrete(
+            invalidCertifiedDiscreteAttribute.id
+          ),
+          discreteConfig: {
+            threshold: 100,
+            comparator: attributeCertifiedDiscreteComparator.GTE,
+          },
+        };
       const discreteDescriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         attributes: {
@@ -220,7 +224,7 @@ describe("compute Agreements state by attribute", () => {
     });
 
     it("reports the failing certified group, not the triggering discrete attribute, when the discrete one is still satisfied", async () => {
-      const satisfiedDiscreteAttribute = {
+      const satisfiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
         ...getMockCertifiedDiscreteTenantAttribute(),
         discreteValue: 200,
       };
@@ -238,7 +242,7 @@ describe("compute Agreements state by attribute", () => {
         ],
       };
 
-      const discreteDescriptorAttribute = {
+      const discreteDescriptorAttribute: EServiceAttributeCertifiedDiscrete = {
         ...getMockEServiceAttributeCertifiedDiscrete(
           satisfiedDiscreteAttribute.id
         ),
@@ -316,24 +320,26 @@ describe("compute Agreements state by attribute", () => {
 
     it("does not suspend an active Agreement for certified discrete threshold failure when the feature flag is disabled", async () => {
       config.featureFlagAttributeCertifiedDiscrete = false;
-      const invalidCertifiedDiscreteAttribute = {
-        ...getMockCertifiedDiscreteTenantAttribute(),
-        discreteValue: 42,
-      };
+      const invalidCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(),
+          discreteValue: 42,
+        };
       const discreteConsumer: Tenant = {
         ...getMockTenant(),
         attributes: [invalidCertifiedDiscreteAttribute],
       };
 
-      const certifiedDiscreteDescriptorAttribute = {
-        ...getMockEServiceAttributeCertifiedDiscrete(
-          invalidCertifiedDiscreteAttribute.id
-        ),
-        discreteConfig: {
-          threshold: 100,
-          comparator: attributeCertifiedDiscreteComparator.GTE,
-        },
-      };
+      const certifiedDiscreteDescriptorAttribute: EServiceAttributeCertifiedDiscrete =
+        {
+          ...getMockEServiceAttributeCertifiedDiscrete(
+            invalidCertifiedDiscreteAttribute.id
+          ),
+          discreteConfig: {
+            threshold: 100,
+            comparator: attributeCertifiedDiscreteComparator.GTE,
+          },
+        };
       const discreteDescriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         attributes: {
