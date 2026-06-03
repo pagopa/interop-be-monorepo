@@ -31,15 +31,16 @@ describe("enrichAgreement", () => {
     const producerId = generateId();
     const consumerId = generateId();
 
-    const agreementCertifiedDiscreteRegistryAttribute = {
-      ...getMockedApiAttribute({
-        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
-        name: "agreement certified discrete",
-        description: "agreement certified discrete description",
-      }),
-      id: agreementCertifiedDiscreteAttributeId,
-    };
-    const tenantCertifiedRegistryAttribute = {
+    const agreementCertifiedDiscreteRegistryAttribute: attributeRegistryApi.Attribute =
+      {
+        ...getMockedApiAttribute({
+          kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+          name: "agreement certified discrete",
+          description: "agreement certified discrete description",
+        }),
+        id: agreementCertifiedDiscreteAttributeId,
+      };
+    const tenantCertifiedRegistryAttribute: attributeRegistryApi.Attribute = {
       ...getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
         name: "tenant certified",
@@ -47,14 +48,15 @@ describe("enrichAgreement", () => {
       }),
       id: tenantCertifiedAttributeId,
     };
-    const tenantCertifiedDiscreteRegistryAttribute = {
-      ...getMockedApiAttribute({
-        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
-        name: "tenant certified discrete",
-        description: "tenant certified discrete description",
-      }),
-      id: tenantCertifiedDiscreteAttributeId,
-    };
+    const tenantCertifiedDiscreteRegistryAttribute: attributeRegistryApi.Attribute =
+      {
+        ...getMockedApiAttribute({
+          kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+          name: "tenant certified discrete",
+          description: "tenant certified discrete description",
+        }),
+        id: tenantCertifiedDiscreteAttributeId,
+      };
     const registryAttributes = [
       agreementCertifiedDiscreteRegistryAttribute,
       tenantCertifiedRegistryAttribute,

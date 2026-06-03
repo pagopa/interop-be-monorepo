@@ -25,6 +25,7 @@ import {
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
+import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 
 export const getMockBffApiDelegation = (): bffApi.Delegation & {
   id: DelegationId;
@@ -864,7 +865,7 @@ export const getMockBffApiVerifiedAttributesResponse =
     attributes: generateMock(
       z.array(
         z.object({
-          kind: z.literal("Verified"),
+          kind: z.literal(tenantAttributeKind.verified),
           id: z.string().uuid(),
           name: z.string(),
           description: z.string(),
@@ -881,7 +882,7 @@ export const getMockBffApiDeclaredAttributesResponse =
     attributes: generateMock(
       z.array(
         z.object({
-          kind: z.literal("Declared"),
+          kind: z.literal(tenantAttributeKind.declared),
           id: z.string().uuid(),
           name: z.string(),
           description: z.string(),
@@ -898,7 +899,7 @@ export const getMockBffApiCertifiedAttributesResponse =
     attributes: generateMock(
       z.array(
         z.object({
-          kind: z.literal("Certified"),
+          kind: z.literal(tenantAttributeKind.certified),
           id: z.string().uuid(),
           name: z.string(),
           description: z.string(),

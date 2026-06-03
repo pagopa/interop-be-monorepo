@@ -40,7 +40,7 @@ describe("tenantServiceBuilder.getTenant", () => {
       features: [],
     };
 
-    const registryCertifiedAttribute = {
+    const registryCertifiedAttribute: attributeRegistryApi.Attribute = {
       ...getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
         name: "tenant certified",
@@ -48,7 +48,7 @@ describe("tenantServiceBuilder.getTenant", () => {
       }),
       id: certifiedAttributeId,
     };
-    const registryCertifiedDiscreteAttribute = {
+    const registryCertifiedDiscreteAttribute: attributeRegistryApi.Attribute = {
       ...getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
         name: "tenant certified discrete",
@@ -136,7 +136,7 @@ describe("tenantServiceBuilder.getTenant", () => {
       features: [],
     };
 
-    const registryDeclaredAttribute = {
+    const registryDeclaredAttribute: attributeRegistryApi.Attribute = {
       ...getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.DECLARED,
         name: "tenant declared",
@@ -216,7 +216,7 @@ describe("tenantServiceBuilder.getTenant", () => {
       features: [],
     };
 
-    const registryVerifiedAttribute = {
+    const registryVerifiedAttribute: attributeRegistryApi.Attribute = {
       ...getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.VERIFIED,
         name: "tenant verified",
