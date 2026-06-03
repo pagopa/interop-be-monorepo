@@ -592,23 +592,6 @@ export const toPurposeAggregatorArray = (
         purposeReviewersSQL.push(purposeReviewerSQL);
       }
     }
-
-    const riskAnalysisReviewerSQL = row.reviewer;
-    const riskAnalysisReviewerPK = riskAnalysisReviewerSQL
-      ? makeUniqueKey([
-          riskAnalysisReviewerSQL.purposeId,
-          riskAnalysisReviewerSQL.reviewerId,
-        ])
-      : undefined;
-    if (
-      riskAnalysisReviewerSQL &&
-      riskAnalysisReviewerPK &&
-      !riskAnalysisReviewerIdSet.has(riskAnalysisReviewerPK)
-    ) {
-      riskAnalysisReviewerIdSet.add(riskAnalysisReviewerPK);
-      // eslint-disable-next-line functional/immutable-data
-      riskAnalysisReviewersSQL.push(riskAnalysisReviewerSQL);
-    }
   });
 
   return {
