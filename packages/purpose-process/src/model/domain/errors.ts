@@ -67,8 +67,6 @@ const errorCodes = {
   submitNotAllowedForReviewMode: "0047",
   reviewerWorkflowNotInSubmittedState: "0048",
   requesterIsNotDesignatedReviewer: "0049",
-  reviewerWorkflowNotInSignedState: "0050",
-  riskAnalysisFormEditNotAllowed: "0051",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -589,25 +587,5 @@ export function requesterIsNotDesignatedReviewer(
     detail: `Requester is not one of the selected reviewers for signing the risk analysis of purpose ${purposeId}`,
     code: "requesterIsNotDesignatedReviewer",
     title: "Requester is not the designated reviewer",
-  });
-}
-
-export function reviewerWorkflowNotInSignedState(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} reviewer workflow must be in Signed state before activation`,
-    code: "reviewerWorkflowNotInSignedState",
-    title: "Reviewer workflow not in signed state",
-  });
-}
-
-export function riskAnalysisFormEditNotAllowed(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Risk analysis form cannot be edited for purpose ${purposeId} while reviewer workflow is in Submitted or Signed state`,
-    code: "riskAnalysisFormEditNotAllowed",
-    title: "Risk analysis form edit not allowed",
   });
 }
