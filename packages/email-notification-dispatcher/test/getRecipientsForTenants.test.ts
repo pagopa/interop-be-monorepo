@@ -144,6 +144,8 @@ describe("getRecipientsForTenants", () => {
       [authRole.API_ROLE]: false,
       [authRole.SECURITY_ROLE]: false,
       [authRole.SUPPORT_ROLE]: false,
+      [authRole.REVIEWER_ROLE]: false,
+      [authRole.VIEWER_ROLE]: false,
     });
     const result = await getRecipientsForTenants({
       tenants,
@@ -165,6 +167,8 @@ describe("getRecipientsForTenants", () => {
       [authRole.API_ROLE]: true,
       [authRole.SECURITY_ROLE]: false,
       [authRole.SUPPORT_ROLE]: false,
+      [authRole.REVIEWER_ROLE]: false,
+      [authRole.VIEWER_ROLE]: false,
     });
     const result = await getRecipientsForTenants({
       tenants,
@@ -191,6 +195,8 @@ describe("getRecipientsForTenants", () => {
       [authRole.API_ROLE]: false,
       [authRole.SECURITY_ROLE]: true,
       [authRole.SUPPORT_ROLE]: false,
+      [authRole.REVIEWER_ROLE]: false,
+      [authRole.VIEWER_ROLE]: false,
     });
     const result = await getRecipientsForTenants({
       tenants,
