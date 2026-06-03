@@ -727,7 +727,9 @@ export const upsertPurpose = async (
     }
 
     for (const reviewerSQL of reviewersSQL) {
-      await tx.insert(riskAnalysisReviewerInReadmodelPurpose).values(reviewerSQL);
+      await tx
+        .insert(riskAnalysisReviewerInReadmodelPurpose)
+        .values(reviewerSQL);
     }
   });
 };
