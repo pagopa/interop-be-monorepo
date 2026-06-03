@@ -209,6 +209,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purposeRiskAnalysisAnswer: sql<null>`NULL`,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: sql<null>`NULL`,
         })
         .from(purposeInReadmodelPurpose)
         .innerJoin(subquery, eq(purposeInReadmodelPurpose.id, subquery.id))
