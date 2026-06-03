@@ -6,7 +6,11 @@ import {
   getMockPurpose,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  AuthRole,
+  authRole,
+  unexpectedFieldError,
+} from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
@@ -105,7 +109,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/submit test", () => {
     },
     {
       error: riskAnalysisValidationFailed([
-        "Unexpected field fakeField in risk analysis form",
+        unexpectedFieldError("unexpectedField"),
       ]),
       expectedStatus: 400,
     },
