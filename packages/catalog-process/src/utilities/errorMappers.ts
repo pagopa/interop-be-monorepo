@@ -826,3 +826,19 @@ export const archiveEServiceErrorMapper = (
     .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_BAD_REQUEST)
     .with("eServiceAlreadyArchived", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const unarchiveDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "notValidDescriptor",
+      "eserviceWithoutValidDescriptors",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

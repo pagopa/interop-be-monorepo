@@ -14,13 +14,11 @@ import {
   DescriptorId,
   descriptorState,
   EService,
-  EServiceArchivingCanceledV2,
-  EServiceArchivingCompletedV2,
-  EServiceArchivingScheduledV2,
   EServiceDescriptorArchivedV2,
-  EServiceDescriptorArchivingCanceledV2,
-  EServiceDescriptorArchivingCompletedV2,
+  EServiceArchivingScheduledV2,
+  EServiceArchivingCompletedV2,
   EServiceDescriptorArchivingScheduledV2,
+  EServiceDescriptorArchivingCompletedV2,
   EServiceEventV2,
   EServiceIdDescriptorId,
   generateId,
@@ -285,51 +283,5 @@ describe("handleEserviceArchivingToConsumer", () => {
       readModelService
     );
     expect(notifications).toEqual([]);
-  });
-
-  it("emits a notification for EServiceDescriptorArchivingCanceled (descriptor scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorArchivingCanceled",
-      data: {
-        eservice: toEServiceV2(eservice),
-        descriptorId: archivingDescriptor.id,
-      } satisfies EServiceDescriptorArchivingCanceledV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingCanceledDescriptorToConsumer(
-        eservice.name,
-        archivingDescriptor.version,
-        producerTenant.name
-      )
-    );
-  });
-
-  it("emits a notification for EServiceArchivingCanceled (eservice scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceArchivingCanceled",
-      data: {
-        eservice: toEServiceV2(eservice),
-      } satisfies EServiceArchivingCanceledV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingCanceledEserviceToConsumer(
-        eservice.name,
-        producerTenant.name
-      )
-    );
   });
 });

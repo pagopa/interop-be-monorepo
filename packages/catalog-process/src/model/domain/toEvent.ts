@@ -1143,6 +1143,25 @@ export const toCreateEventEServiceArchivingCompleted = (
   },
   correlationId,
 });
+export const toCreateEventMaintenanceEServiceDescriptorUnarchived = (
+  streamId: string,
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId,
+  version,
+  event: {
+    type: "MaintenanceEServiceDescriptorUnarchived",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
 export const toCreateEventEServiceDescriptorAttributeDailyCallsPerConsumerUpdated =
   (
     version: number,

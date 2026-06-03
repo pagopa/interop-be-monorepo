@@ -3,7 +3,6 @@ import {
   EmailNotificationMessagePayload,
   fromEServiceV2,
   generateId,
-  genericError,
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
@@ -15,7 +14,6 @@ import {
   retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
-import { dateAtRomeZone } from "pagopa-interop-commons";
 import { EServiceHandlerParams } from "../../models/handlerParams.js";
 import { config } from "../../config/config.js";
 
@@ -41,11 +39,6 @@ export async function handleEserviceArchivingCompletedToConsumer(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptor = retrieveLatestDescriptor(eservice);
-  if (!descriptor.archivedAt) {
-    throw genericError(
-      `EServiceArchivingCompleted for eservice ${eservice.id} is missing archivedAt on its latest descriptor ${descriptor.id}`
-    );
-  }
 
   const [htmlTemplate, producer, agreements] = await Promise.all([
     retrieveHTMLTemplate(
@@ -72,19 +65,13 @@ export async function handleEserviceArchivingCompletedToConsumer(
   });
 
   if (targets.length === 0) {
-    logger.info(
-      `No consumer users with email notifications enabled for handleEserviceArchivingCompletedToConsumer - entityId: ${eservice.id}/${descriptor.id}`
-    );
     return [];
   }
 
-  const archivedAt = dateAtRomeZone(descriptor.archivedAt);
-  const subject = `L'e-service con cui stai scambiando dati è stato archiviato`;
+  const subject = `Archiviazione conclusa dell'e-service "${eservice.name}"`;
 
-  return targets.flatMap((target) => {
-    const tenant = tenants.find(
-      (candidate) => candidate.id === target.tenantId
-    );
+  return targets.flatMap((t) => {
+    const tenant = tenants.find((x) => x.id === t.tenantId);
     if (!tenant) {
       return [];
     }
@@ -97,17 +84,16 @@ export async function handleEserviceArchivingCompletedToConsumer(
             title: subject,
             notificationType,
             entityId: `${eservice.id}/${descriptor.id}`,
-            ...(target.type === "Tenant" ? { recipientName: tenant.name } : {}),
+            ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             eserviceName: eservice.name,
             producerName: producer.name,
-            archivedAt,
-            ctaLabel: `Accedi a PDND`,
-            selfcareId: target.selfcareId,
+            ctaLabel: `Visualizza e-service`,
+            selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),
         },
-        tenantId: target.tenantId,
-        ...mapRecipientToEmailPayload(target),
+        tenantId: t.tenantId,
+        ...mapRecipientToEmailPayload(t),
       },
     ];
   });

@@ -278,6 +278,11 @@ message MaintenanceEServicePersonalDataFlagResetV2 {
   string reason = 2;
 }
 
+message MaintenanceEServiceDescriptorUnarchivedV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
 message EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2 {
   EServiceV2 eservice = 1;
   string descriptorId = 2;

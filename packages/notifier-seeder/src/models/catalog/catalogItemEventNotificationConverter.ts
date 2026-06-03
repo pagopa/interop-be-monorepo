@@ -176,6 +176,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorArchivingScheduled" },
       { type: "EServiceDescriptorArchivingCanceled" },
       { type: "EServiceDescriptorArchivingCompleted" },
+      { type: "MaintenanceEServiceDescriptorUnarchived" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(

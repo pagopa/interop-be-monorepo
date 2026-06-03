@@ -65,7 +65,7 @@ export async function handleEserviceDescriptorArchivingCompletedToProducer(
     return [];
   }
 
-  const subject = `Conferma archiviazione versione di un tuo e-service`;
+  const subject = `Archiviazione conclusa per la versione ${descriptor.version} dell'e-service "${eservice.name}"`;
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
@@ -78,7 +78,7 @@ export async function handleEserviceDescriptorArchivingCompletedToProducer(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
-        ctaLabel: `Accedi a PDND`,
+        ctaLabel: `Visualizza e-service`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

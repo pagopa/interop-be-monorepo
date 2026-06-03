@@ -2,7 +2,6 @@ import {
   EmailNotificationMessagePayload,
   fromEServiceV2,
   generateId,
-  genericError,
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
@@ -40,11 +39,6 @@ export async function handleEserviceArchivingScheduledToProducer(
 
   const eservice = fromEServiceV2(eserviceV2Msg);
   const descriptor = retrieveLatestDescriptor(eservice);
-  if (!descriptor.archivingSchedule) {
-    throw genericError(
-      `EServiceArchivingScheduled for eservice ${eservice.id} is missing archivingSchedule on its latest descriptor ${descriptor.id}`
-    );
-  }
 
   const [htmlTemplate, producer] = await Promise.all([
     retrieveHTMLTemplate(
@@ -68,10 +62,10 @@ export async function handleEserviceArchivingScheduledToProducer(
     return [];
   }
 
-  const archivableOn = dateAtRomeZone(
-    descriptor.archivingSchedule.archivableOn
-  );
-  const subject = `Un tuo e-service è in fase di archiviazione`;
+  const archivableOn = descriptor.archivingSchedule
+    ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
+    : undefined;
+  const subject = `Avvio archiviazione dell'e-service "${eservice.name}"`;
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
@@ -84,7 +78,7 @@ export async function handleEserviceArchivingScheduledToProducer(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         archivableOn,
-        ctaLabel: `Accedi a PDND`,
+        ctaLabel: `Visualizza e-service`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

@@ -74,8 +74,8 @@
         color: #17324d;
       "
     >
-      <p>Ti informiamo che l'ente erogatore <strong>{{ producerName }}</strong> ha avviato il processo di archiviazione per la versione {{ eserviceVersion }} dell'e-service "{{ eserviceName }}", a cui sei iscritto. La versione non sarà più disponibile a partire dal <strong>{{ archivableOn }}</strong>.</p>
-      <p>Ti invitiamo a prendere le misure necessarie.</p>
+      <p>L'ente erogatore <strong>{{ producerName }}</strong> ha avviato il processo di archiviazione della versione {{ eserviceVersion }} dell'e-service "{{ eserviceName }}" a cui sei iscritto.</p>
+        {{#if archivableOn}}<p>Hai tempo fino al <strong>{{ archivableOn }}</strong> per concludere ordinatamente le chiamate verso questa versione.</p>{{/if}}
     </div>
   </td>
 </tr>
