@@ -1,22 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  PurposeId,
-  generateId,
-} from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurpose,
-} from "pagopa-interop-commons-test";
+import { PurposeId, generateId } from "pagopa-interop-models";
+import { generateToken, getMockPurpose } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
 import {
   purposeNotFound,
   reviewerWorkflowNotFound,
-  reviewerWorkflowNotInPendingSignatureState,
-  requesterIsNotTheSigner,
   rejectNotAllowedInCurrentMode,
+  reviewerWorkflowNotInSubmittedState,
+  requesterIsNotDesignatedReviewer,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/riskAnalysis/reject test", () => {
@@ -49,9 +43,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/reject test", () => {
   });
 
   it.each(
-    Object.values(authRole).filter(
-      (role) => role !== authRole.REVIEWER_ROLE
-    )
+    Object.values(authRole).filter((role) => role !== authRole.REVIEWER_ROLE)
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
     const res = await makeRequest(token);
@@ -65,11 +57,11 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/reject test", () => {
       expectedStatus: 404,
     },
     {
-      error: reviewerWorkflowNotInPendingSignatureState(mockPurpose.id),
+      error: reviewerWorkflowNotInSubmittedState(mockPurpose.id),
       expectedStatus: 409,
     },
     {
-      error: requesterIsNotTheSigner(mockPurpose.id),
+      error: requesterIsNotDesignatedReviewer(mockPurpose.id),
       expectedStatus: 403,
     },
     {
