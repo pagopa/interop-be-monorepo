@@ -408,7 +408,7 @@ export const signRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "requesterIsNotTheSigner",
+      "requesterIsNotDesignatedReviewer",
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN

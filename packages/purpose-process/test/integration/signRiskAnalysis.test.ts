@@ -30,7 +30,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   missingRiskAnalysis,
   purposeNotFound,
-  requesterIsNotTheSigner,
+  requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotInSubmittedState,
 } from "../../src/model/domain/errors.js";
@@ -206,7 +206,7 @@ describe("signRiskAnalysis", () => {
     ).rejects.toThrowError(reviewerWorkflowNotInSubmittedState(mockPurpose.id));
   });
 
-  it("should throw requesterIsNotTheSigner if the requester is not in reviewerIds", async () => {
+  it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
       reviewerWorkflow: {
@@ -226,7 +226,7 @@ describe("signRiskAnalysis", () => {
           authData: getMockAuthData(mockPurpose.consumerId, generateId()),
         })
       )
-    ).rejects.toThrowError(requesterIsNotTheSigner(mockPurpose.id));
+    ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
   });
 
   it("should throw missingRiskAnalysis for ReviewerWritesReviewerSigns if the form is missing", async () => {

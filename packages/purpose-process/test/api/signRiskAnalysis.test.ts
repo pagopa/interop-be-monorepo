@@ -21,7 +21,7 @@ import {
   riskAnalysisValidationFailed,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotInSubmittedState,
-  requesterIsNotTheSigner,
+  requesterIsNotDesignatedReviewer,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
@@ -83,7 +83,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
       expectedStatus: 409,
     },
     {
-      error: requesterIsNotTheSigner(mockPurpose.id),
+      error: requesterIsNotDesignatedReviewer(mockPurpose.id),
       expectedStatus: 403,
     },
     {

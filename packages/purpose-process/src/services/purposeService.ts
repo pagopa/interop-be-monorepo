@@ -91,7 +91,7 @@ import {
   unchangedDailyCalls,
   reviewerWorkflowConflict,
   reviewerWorkflowNotInSubmittedState,
-  requesterIsNotTheSigner,
+  requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
@@ -673,6 +673,8 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
+      assertRequesterIsConsumer(purpose.data, authData);
+
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
@@ -699,7 +701,7 @@ export function purposeServiceBuilder(
         });
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
-        throw requesterIsNotTheSigner(purposeId);
+        throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
       if (isReviewerWritesSignable) {

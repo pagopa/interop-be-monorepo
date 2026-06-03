@@ -66,7 +66,7 @@ const errorCodes = {
   reviewerWorkflowNotSubmittable: "0046",
   submitNotAllowedForReviewMode: "0047",
   reviewerWorkflowNotInSubmittedState: "0048",
-  requesterIsNotTheSigner: "0049",
+  requesterIsNotDesignatedReviewer: "0049",
   reviewerWorkflowNotInSignedState: "0050",
   riskAnalysisFormEditNotAllowed: "0051",
 };
@@ -582,13 +582,13 @@ export function reviewerWorkflowNotInSubmittedState(
   });
 }
 
-export function requesterIsNotTheSigner(
+export function requesterIsNotDesignatedReviewer(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Requester is not authorized to sign the risk analysis for purpose ${purposeId}`,
-    code: "requesterIsNotTheSigner",
-    title: "Requester is not the signer",
+    detail: `Requester is not one of the selected reviewers for signing the risk analysis of purpose ${purposeId}`,
+    code: "requesterIsNotDesignatedReviewer",
+    title: "Requester is not the designated reviewer",
   });
 }
 
