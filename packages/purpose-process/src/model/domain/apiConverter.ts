@@ -8,8 +8,12 @@ import {
   PurposeVersionState,
   ReviewerWorkflow,
   RiskAnalysisMultiAnswer,
+  RiskAnalysisReviewMode,
+  RiskAnalysisSigningState,
   RiskAnalysisSingleAnswer,
   purposeVersionState,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -263,32 +267,7 @@ export const remainingDailyCallsToApiRemainingDailyCalls = (
   remainingDailyCallsTotal: remainingDailyCalls.remainingDailyCallsTotal,
 });
 
-export const apiReviewModeToReviewMode = (
-  apiReviewMode: purposeApi.RiskAnalysisReviewMode
-): RiskAnalysisReviewMode =>
-  match(apiReviewMode)
-    .with(
-      "REVIEWER_WRITES_REVIEWER_SIGNS",
-      () => riskAnalysisReviewMode.reviewerWritesReviewerSigns
-    )
-    .with(
-      "ADMIN_WRITES_REVIEWER_SIGNS",
-      () => riskAnalysisReviewMode.adminWritesReviewerSigns
-    )
-    .exhaustive();
-
-export const apiSigningStateToSigningState = (
-  apiSigningState: purposeApi.RiskAnalysisSigningState
-): RiskAnalysisSigningState =>
-  match(apiSigningState)
-    .with("DRAFT", () => riskAnalysisSigningState.draft)
-    .with("ASSIGNED", () => riskAnalysisSigningState.assigned)
-    .with("SUBMITTED", () => riskAnalysisSigningState.submitted)
-    .with("SIGNED", () => riskAnalysisSigningState.signed)
-    .with("REJECTED", () => riskAnalysisSigningState.rejected)
-    .exhaustive();
-
-export const reviewModeToApiReviewMode = (
+const reviewModeToApiReviewMode = (
   mode: RiskAnalysisReviewMode
 ): purposeApi.RiskAnalysisReviewMode =>
   match(mode)
@@ -302,7 +281,7 @@ export const reviewModeToApiReviewMode = (
     )
     .exhaustive();
 
-export const signingStateToApiSigningState = (
+const signingStateToApiSigningState = (
   state: RiskAnalysisSigningState
 ): purposeApi.RiskAnalysisSigningState =>
   match(state)
@@ -328,7 +307,7 @@ export const signingStateToApiSigningState = (
     )
     .exhaustive();
 
-export const reviewerWorkflowToApiReviewerWorkflow = (
+const reviewerWorkflowToApiReviewerWorkflow = (
   workflow: ReviewerWorkflow
 ): purposeApi.ReviewerWorkflow => ({
   reviewMode: reviewModeToApiReviewMode(workflow.reviewMode),
