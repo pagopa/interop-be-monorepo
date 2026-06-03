@@ -1,7 +1,6 @@
 import {
   WithLogger,
   FileManager,
-  assertFeatureFlagEnabled,
   removeDuplicates,
   UIAuthData,
   getRulesetExpiration,
@@ -458,7 +457,6 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
       logger.info(`Signing risk analysis for purpose ${purposeId}`);
       const result = await purposeProcessClient.signRiskAnalysis(undefined, {
         params: { purposeId },
