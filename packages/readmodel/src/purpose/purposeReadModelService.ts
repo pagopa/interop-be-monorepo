@@ -14,6 +14,7 @@ import {
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregatePurpose,
@@ -55,6 +56,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: riskAnalysisReviewerInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .where(filter)
@@ -111,6 +113,14 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
             purposeVersionInReadmodelPurpose.id,
             purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
           )
+        )
+        .leftJoin(
+          // 7
+          riskAnalysisReviewerInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            riskAnalysisReviewerInReadmodelPurpose.purposeId
+          )
         );
 
       if (queryResult.length === 0) {
@@ -137,6 +147,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: riskAnalysisReviewerInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .where(filter)
@@ -186,6 +197,13 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          riskAnalysisReviewerInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            riskAnalysisReviewerInReadmodelPurpose.purposeId
           )
         );
 
