@@ -444,14 +444,15 @@ export function assertDailyCallsForCertifiedAttributesOnly(
 export function assertDiscreteConfigForCertifiedAttributesOnly(
   attributes: EserviceAttributes
 ): void {
-  const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
-  for (const attribute of attributesToCheck) {
-    if (
-      "discreteConfig" in attribute &&
-      attribute.discreteConfig !== undefined
-    ) {
-      throw attributeDiscreteConfigNotAllowed(attribute.id);
-    }
+  const invalidAttribute = [attributes.declared, attributes.verified]
+    .flat(2)
+    .find(
+      (attribute) =>
+        "discreteConfig" in attribute && attribute.discreteConfig !== undefined
+    );
+
+  if (invalidAttribute) {
+    throw attributeDiscreteConfigNotAllowed(invalidAttribute.id);
   }
 }
 
