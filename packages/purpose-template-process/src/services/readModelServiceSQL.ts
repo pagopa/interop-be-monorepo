@@ -140,10 +140,7 @@ const getPurposeTemplatesFilters = (
         )
       : undefined;
 
-  const eserviceIdsFilter =
-    concreteEserviceMatch || templateEserviceMatch
-      ? or(concreteEserviceMatch, templateEserviceMatch)
-      : undefined;
+  const eserviceIdsFilter = or(concreteEserviceMatch, templateEserviceMatch);
 
   const statesFilter =
     states.length > 0
