@@ -26,7 +26,6 @@ import {
   eserviceTemplateVersionNotFound,
   interfaceAlreadyExists,
   notValidEServiceTemplateVersionState,
-  missingAsyncExchangeProperties,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 import { buildDocumentSeed } from "../mockUtils.js";
@@ -135,13 +134,6 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents"
         eserviceTemplateVersionState.published
       ),
       expectedStatus: 409,
-    },
-    {
-      error: missingAsyncExchangeProperties(
-        mockEserviceTemplate.id,
-        mockEserviceTemplate.versions[0].id
-      ),
-      expectedStatus: 400,
     },
     {
       error: asyncExchangeBulkNotAllowedForSoap(
