@@ -73,6 +73,7 @@ describe("API /producerKeychains authorization test", () => {
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
     authRole.M2M_ROLE,

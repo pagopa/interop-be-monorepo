@@ -684,6 +684,7 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
+          API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
