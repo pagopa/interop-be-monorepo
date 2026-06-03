@@ -27,6 +27,7 @@ import {
   Descriptor,
   DescriptorId,
   EServiceAttribute,
+  EServiceAttributeCertifiedDiscrete,
   EServiceId,
   Tenant,
   TenantAttribute,
@@ -1151,7 +1152,8 @@ describe("create agreement", () => {
     it("should ignore certified discrete requirements when the feature flag is disabled and the consumer has no discrete attribute", async () => {
       config.featureFlagAttributeCertifiedDiscrete = false;
       const producer = getMockTenant();
-      const descriptorAttribute = getMockEServiceAttributeCertifiedDiscrete();
+      const descriptorAttribute: EServiceAttributeCertifiedDiscrete =
+        getMockEServiceAttributeCertifiedDiscrete();
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(generateId<DescriptorId>()),
         attributes: {
