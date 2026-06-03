@@ -89,6 +89,7 @@ import {
   unableToDetermineTenantKind,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
+  multipleReviewersNotAllowed,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -533,6 +534,10 @@ export function purposeServiceBuilder(
 
       const isReviewerWrites =
         seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
+
+      if (seed.reviewerIds.length > 1) {
+        throw multipleReviewersNotAllowed(purposeId);
+      }
 
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,

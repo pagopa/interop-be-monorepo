@@ -24,6 +24,7 @@ import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
+  multipleReviewersNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -203,5 +204,24 @@ describe("assignRiskAnalysisReviewer", () => {
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(reviewerWorkflowConflict(mockPurpose.id));
+  });
+
+  it("should throw multipleReviewersNotAllowed if more than one reviewer are provided", async () => {
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId(), generateId()],
+        },
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      )
+    ).rejects.toThrowError(multipleReviewersNotAllowed(mockPurpose.id));
   });
 });
