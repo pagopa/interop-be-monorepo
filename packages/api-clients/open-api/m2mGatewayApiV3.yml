@@ -10292,7 +10292,11 @@ components:
     EserviceIdsParam:
       in: query
       name: eserviceIds
-      description: Filter by E-Service IDs. If not specified, return results for any E-Service
+      description: >-
+        Filter by E-Service IDs. If not specified, return results for any
+        E-Service. For e-services that are instances of an e-service template,
+        purpose templates linked to the originating e-service template are also
+        returned.
       required: false
       explode: false
       schema:
