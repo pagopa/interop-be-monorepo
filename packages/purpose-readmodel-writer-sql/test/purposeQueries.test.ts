@@ -145,7 +145,7 @@ describe("Purpose queries", () => {
           readModelDB
         );
 
-      const retrievedPurposeRiskAnalysisReviewrsSQL =
+      const retrievedPurposeRiskAnalysisReviewersSQL =
         await retrieveRiskAnalysisReviewersSQLById(purpose.id, readModelDB);
 
       expect(retrievedPurposeSQL).toBeDefined();
@@ -163,7 +163,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
         versionStampsSQL: retrievedPurposeVersionStampSQL,
         versionSignedDocumentsSQL: retrievedPurposeVersionSignedDocumentSQL,
-        reviewersSQL: retrievedPurposeRiskAnalysisReviewrsSQL,
+        reviewersSQL: retrievedPurposeRiskAnalysisReviewersSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({
