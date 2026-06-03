@@ -221,7 +221,10 @@ describe("signRiskAnalysis", () => {
       purposeService.signRiskAnalysis(
         mockPurpose.id,
         getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, generateId()),
+          authData: getMockAuthData(
+            mockPurpose.consumerId,
+            generateId<UserId>()
+          ),
         })
       )
     ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
