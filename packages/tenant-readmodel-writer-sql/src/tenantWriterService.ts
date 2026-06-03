@@ -8,6 +8,7 @@ import {
   DrizzleReturnType,
   DrizzleTransactionType,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
@@ -28,6 +29,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
     const tenantRelatedTables = [
       tenantMailInReadmodelTenant,
       tenantCertifiedAttributeInReadmodelTenant,
+      tenantCertifiedDiscreteAttributeInReadmodelTenant,
       tenantDeclaredAttributeInReadmodelTenant,
       tenantVerifiedAttributeInReadmodelTenant,
       tenantVerifiedAttributeVerifierInReadmodelTenant,
@@ -63,6 +65,7 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
         tenantSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
@@ -97,6 +100,12 @@ export function tenantWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(tenantCertifiedAttributeInReadmodelTenant)
             .values(certifiedAttributeSQL);
+        }
+
+        for (const certifiedDiscreteAttributeSQL of certifiedDiscreteAttributesSQL) {
+          await tx
+            .insert(tenantCertifiedDiscreteAttributeInReadmodelTenant)
+            .values(certifiedDiscreteAttributeSQL);
         }
 
         for (const declaredAttributeSQL of declaredAttributesSQL) {

@@ -68,6 +68,9 @@ export function toOutboundEventV2(
     .with(
       { type: "TenantCertifiedAttributeAssigned" },
       { type: "TenantCertifiedAttributeRevoked" },
+      { type: "TenantCertifiedDiscreteAttributeAssigned" },
+      { type: "TenantCertifiedDiscreteAttributeRevoked" },
+      { type: "TenantCertifiedDiscreteAttributeUpdated" },
       { type: "TenantDeclaredAttributeAssigned" },
       { type: "TenantDeclaredAttributeRevoked" },
       { type: "TenantVerifiedAttributeAssigned" },
