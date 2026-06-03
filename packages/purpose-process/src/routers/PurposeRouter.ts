@@ -540,16 +540,14 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [ADMIN_ROLE]);
 
-        const {
-          data: { purpose },
-          metadata,
-        } = await purposeService.submitRiskAnalysis(
-          unsafeBrandId(req.params.purposeId),
-          {
-            riskAnalysisForm: req.body.riskAnalysisForm,
-          },
-          ctx
-        );
+        const { data: purpose, metadata } =
+          await purposeService.submitRiskAnalysis(
+            unsafeBrandId(req.params.purposeId),
+            {
+              riskAnalysisForm: req.body.riskAnalysisForm,
+            },
+            ctx
+          );
 
         setMetadataVersionHeader(res, metadata);
 

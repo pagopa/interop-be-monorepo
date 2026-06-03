@@ -7,7 +7,6 @@ export const SUPPORT_USER_ID = unsafeBrandId<UserId>(
 
 export const userRole = {
   ADMIN_ROLE: "admin",
-  REVIEWER_ROLE: "reviewer",
   SECURITY_ROLE: "security",
   API_ROLE: "api",
   SUPPORT_ROLE: "support",

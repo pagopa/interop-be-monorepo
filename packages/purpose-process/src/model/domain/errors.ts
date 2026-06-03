@@ -59,18 +59,13 @@ const errorCodes = {
   purposeDraftVersionNotFound: "0039",
   purposeFromTemplateCannotBeModified: "0040",
   invalidFreeOfChargeReason: "0041",
-  reviewerWorkflowConflict: "0042",
-  reviewerWorkflowNotFound: "0043",
-  reviewerWorkflowNotSubmittable: "0044",
-  requesterIsNotTheWriter: "0045",
-  submitNotAllowedForReviewMode: "0046",
   riskAnalysisTenantKindMismatch: "0042",
   unableToDetermineTenantKind: "0043",
   reviewerWorkflowConflict: "0044",
-  reviewerWorkflowNotFound: "0044",
-  reviewerWorkflowNotSubmittable: "0045",
-  requesterIsNotTheWriter: "0046",
-  submitNotAllowedForReviewMode: "0047",
+  reviewerWorkflowNotFound: "0045",
+  reviewerWorkflowNotSubmittable: "0046",
+  requesterIsNotTheWriter: "0047",
+  submitNotAllowedForReviewMode: "0048",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;

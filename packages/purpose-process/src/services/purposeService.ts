@@ -579,9 +579,7 @@ export function purposeServiceBuilder(
         riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
       },
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Submitting risk analysis for Purpose ${purposeId}`);
 
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
@@ -665,7 +663,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        data: updatedPurpose,
         metadata: { version: event.newVersion },
       };
     },
