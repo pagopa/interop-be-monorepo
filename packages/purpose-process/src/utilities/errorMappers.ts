@@ -366,11 +366,7 @@ export const assignRiskAnalysisReviewerErrorMapper = (
 ): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "tenantIsNotTheConsumer",
-      "tenantIsNotTheDelegatedConsumer",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
