@@ -736,29 +736,40 @@ describe("update descriptor", () => {
       };
       await addOneEService(eservice);
 
-      const attributeWithDiscreteConfig = {
-        id: nonCertifiedAttribute.id,
-        explicitAttributeVerification: false,
-        discreteConfig: { threshold: 1, comparator: "GT" },
-      };
       const seed: catalogApi.UpdateEServiceDescriptorQuotasSeed = {
         voucherLifespan: 1000,
         dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
         dailyCallsTotal: descriptor.dailyCallsTotal,
         attributes: {
           certified: [],
-          verified:
-            kind === attributeKind.verified
-              ? [[attributeWithDiscreteConfig]]
-              : [],
           declared:
             kind === attributeKind.declared
-              ? [[attributeWithDiscreteConfig]]
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
               : [],
         },
       };
 
-      expect(
+      await expect(
         catalogService.updateDescriptor(
           eservice.id,
           descriptor.id,

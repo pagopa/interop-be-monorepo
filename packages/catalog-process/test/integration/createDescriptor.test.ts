@@ -9,6 +9,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
@@ -805,54 +806,64 @@ describe("create descriptor", async () => {
     );
   });
 
-  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is on declared attribute", async () => {
-    const mockDescriptor = {
-      ...getMockDescriptor(),
-      docs: [],
-    };
+  it.each([attributeKind.declared, attributeKind.verified])(
+    "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
+    async (kind) => {
+      const mockDescriptor = {
+        ...getMockDescriptor(),
+        docs: [],
+      };
 
-    const mockDeclaredAttribute: Attribute = {
-      name: "Declared Attribute name",
-      id: generateId(),
-      kind: attributeKind.declared,
-      description: "Declared Attribute Description",
-      creationTime: new Date(),
-    };
+      const mockAttribute = getMockAttribute(kind);
+      await addOneAttribute(mockAttribute);
 
-    await addOneAttribute(mockDeclaredAttribute);
+      const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+        ...buildCreateDescriptorSeed(mockDescriptor),
+        attributes: {
+          certified: [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: mockAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: mockAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+        },
+      };
 
-    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
-      ...buildCreateDescriptorSeed(mockDescriptor),
-      attributes: {
-        certified: [],
-        declared: [
-          [
-            {
-              id: mockDeclaredAttribute.id,
-              explicitAttributeVerification: false,
-              discreteConfig: { threshold: 1, comparator: "GT" },
-            },
-          ],
-        ],
-        verified: [],
-      },
-    };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [],
+      };
 
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [],
-    };
+      await addOneEService(eservice);
 
-    await addOneEService(eservice);
-
-    await expect(
-      catalogService.createDescriptor(
-        eservice.id,
-        descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      attributeDiscreteConfigNotAllowed(mockDeclaredAttribute.id)
-    );
-  });
+      await expect(
+        catalogService.createDescriptor(
+          eservice.id,
+          descriptorSeed,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        attributeDiscreteConfigNotAllowed(mockAttribute.id)
+      );
+    }
+  );
 });
