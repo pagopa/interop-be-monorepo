@@ -250,8 +250,8 @@ catalogs:
       specifier: 22.11.2
       version: 22.11.2
     qs:
-      specifier: 6.14.2
-      version: 6.14.2
+      specifier: 6.15.2
+      version: 6.15.2
     rate-limiter-flexible:
       specifier: 5.0.5
       version: 5.0.5
@@ -664,7 +664,7 @@ importers:
         version: link:../commons
       qs:
         specifier: 'catalog:'
-        version: 6.14.2
+        version: 6.15.2
       zod:
         specifier: 'catalog:'
         version: 3.23.8
@@ -852,6 +852,67 @@ importers:
       testcontainers:
         specifier: 'catalog:'
         version: 10.9.0
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/async-token-generation-readmodel-checker:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 'catalog:'
+        version: 3.840.0
+      '@aws-sdk/util-dynamodb':
+        specifier: 'catalog:'
+        version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      json-diff:
+        specifier: 'catalog:'
+        version: 1.0.6
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/json-diff':
+        specifier: 'catalog:'
+        version: 1.0.3
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1
@@ -1376,8 +1437,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.14
-        version: 1.8.14
+        specifier: 1.8.19
+        version: 1.8.19
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1506,6 +1567,12 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
+      pagopa-interop-tenant-kind-history-db-models:
+        specifier: workspace:*
+        version: link:../tenant-kind-history-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -1519,6 +1586,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
@@ -4134,7 +4204,7 @@ importers:
         version: link:../models
       qs:
         specifier: 'catalog:'
-        version: 6.14.2
+        version: 6.15.2
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -4839,6 +4909,58 @@ importers:
         specifier: 'catalog:'
         version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
+  packages/producer-keychain-platformstate-writer:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 'catalog:'
+        version: 3.840.0
+      '@aws-sdk/util-dynamodb':
+        specifier: 'catalog:'
+        version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 'catalog:'
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
   packages/producer-keychain-readmodel-writer-sql:
     dependencies:
       dotenv-flow:
@@ -5027,6 +5149,12 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
+      pagopa-interop-tenant-kind-history-db-models:
+        specifier: workspace:*
+        version: link:../tenant-kind-history-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -5040,6 +5168,9 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
       '@types/supertest':
         specifier: 'catalog:'
         version: 6.0.3
@@ -5383,6 +5514,55 @@ importers:
         specifier: 'catalog:'
         version: 5.4.5
 
+  packages/risk-analysis-processing:
+    dependencies:
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
   packages/selfcare-client-users-updater:
     dependencies:
       dotenv-flow:
@@ -5542,11 +5722,97 @@ importers:
         specifier: 'catalog:'
         version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
+  packages/tenant-kind-history-consumer:
+    dependencies:
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 'catalog:'
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-tenant-kind-history-db-models:
+        specifier: workspace:*
+        version: link:../tenant-kind-history-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/tenant-kind-history-db-models:
+    dependencies:
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
+      drizzle-kit:
+        specifier: 'catalog:'
+        version: 0.30.4
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.12
-        version: 1.8.12
+        specifier: 1.8.19
+        version: 1.8.19
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5776,9 +6042,6 @@ importers:
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
-      drizzle-orm:
-        specifier: 'catalog:'
-        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
       json-diff:
         specifier: 'catalog:'
         version: 1.0.6
@@ -7220,11 +7483,8 @@ packages:
   '@pagopa/interop-outbound-models@1.8.10':
     resolution: {integrity: sha512-amx3SsrQG06QmV1uS5uchpjs8midHoY8T4mvly6sBKCDIfgUto5M/JH+6O2PqoO6FGMSponOTfKWO5O/y5X75w==}
 
-  '@pagopa/interop-outbound-models@1.8.12':
-    resolution: {integrity: sha512-+m2RRwz0sxTYFPwG+9mjFKtC49f0r3O0at/OCNjVcHJELvJyO58bYF2jGQszmRB/TPyV5ZM6FlTGX2TvVgPGbw==}
-
-  '@pagopa/interop-outbound-models@1.8.14':
-    resolution: {integrity: sha512-ZbWHhkv/6efGd2jOYtDB5c30jaUgpXZVn815+96fVgM0brhArnkCx+2kxhJJ5GEsr/vNNaFogRPq3y9eliT5tw==}
+  '@pagopa/interop-outbound-models@1.8.19':
+    resolution: {integrity: sha512-XbyzI0SFMMZy7W0oDXU4nGj2iJRhizfb8NBFfnQcqp6vl2dgIexQHhR7tSmJvG2Re+9Y4KyHhuKGggBRXI+F6g==}
 
   '@pagopa/interop-outbound-models@1.8.8':
     resolution: {integrity: sha512-Qzmle24iM/Kf44zf9Tmq/Bft1NECHVT4QoNGcRTeq2+QQW0d7np247iriz8xd46G2AoOBkXju13cNDFHlr/nMg==}
@@ -10684,6 +10944,10 @@ packages:
     resolution: {integrity: sha512-V/yCWTTF7VJ9hIh18Ugr2zhJMP01MY7c5kh4J870L7imm6/DIzBsNLTXzMwUA3yZ5b/KBqLx8Kp3uRvd7xSe3Q==}
     engines: {node: '>=0.6'}
 
+  qs@6.15.2:
+    resolution: {integrity: sha512-Rzq0KEyX/w/tEybncDgdkZrJgVUsUMk3xjh3t5bv3S1HTAtg+uOYt72+ZfwiQwKdysThkTBdL/rTi6HDmX9Ddw==}
+    engines: {node: '>=0.6'}
+
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
@@ -13753,13 +14017,7 @@ snapshots:
       ts-pattern: 5.2.0
       zod: 3.23.8
 
-  '@pagopa/interop-outbound-models@1.8.12':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.14':
+  '@pagopa/interop-outbound-models@1.8.19':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -17882,6 +18140,10 @@ snapshots:
       side-channel: 1.1.0
 
   qs@6.14.2:
+    dependencies:
+      side-channel: 1.1.0
+
+  qs@6.15.2:
     dependencies:
       side-channel: 1.1.0
 

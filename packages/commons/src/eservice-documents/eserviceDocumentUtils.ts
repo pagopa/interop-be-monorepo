@@ -288,7 +288,7 @@ export const interpolateTemplateSoapApiSpec = async (
 
 export const retrieveServerUrlsAPI = async (
   file: File,
-  kind: "INTERFACE" | "DOCUMENT",
+  kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
   tech: Technology,
   resource: {
     id: string;
@@ -317,6 +317,37 @@ export const retrieveServerUrlsAPI = async (
           fileType: P.union("xml", "wsdl"),
         },
         () => retrieveServerUrlsSoapAPI(fileContent)
+      )
+      .with(
+        {
+          kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+          technology: technology.rest,
+          fileType: P.union("json", "yaml"),
+        },
+        (f) => {
+          const openApi = parseOpenApi(f.fileType, fileContent);
+          const { data: version, error } = z
+            .string()
+            .safeParse(openApi.openapi);
+          if (error) {
+            throw openapiVersionNotRecognized("nd");
+          }
+          if (!version.startsWith("3.")) {
+            throw openapiVersionNotRecognized(version);
+          }
+          return [];
+        }
+      )
+      .with(
+        {
+          kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+          technology: technology.soap,
+          fileType: P.union("xml", "wsdl"),
+        },
+        () => {
+          soapParse(fileContent);
+          return [];
+        }
       )
       .with(
         {
@@ -354,12 +385,12 @@ export type FileSizeLimits = {
 };
 
 const resolveMaxSizeForKind = (
-  kind: "INTERFACE" | "DOCUMENT",
+  kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
   limits: FileSizeLimits
 ): number =>
-  kind === "INTERFACE"
-    ? (limits.maxInterfaceFileSizeBytes ?? limits.maxFileSizeBytes)
-    : limits.maxFileSizeBytes;
+  kind === "DOCUMENT"
+    ? limits.maxFileSizeBytes
+    : (limits.maxInterfaceFileSizeBytes ?? limits.maxFileSizeBytes);
 
 // eslint-disable-next-line max-params
 export async function verifyAndCreateDocument<T>(
@@ -370,7 +401,7 @@ export async function verifyAndCreateDocument<T>(
     isEserviceTemplate: boolean;
   },
   technology: Technology,
-  kind: "INTERFACE" | "DOCUMENT",
+  kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
   doc: File,
   documentId: string,
   documentContainer: string,
@@ -381,7 +412,7 @@ export async function verifyAndCreateDocument<T>(
     fileName: string,
     filePath: string,
     prettyName: string,
-    kind: "INTERFACE" | "DOCUMENT",
+    kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
     serverUrls: string[],
     contentType: string,
     checksum: string
@@ -457,7 +488,7 @@ export const verifyAndCreateImportedDocument = async <T>(
     fileName: string,
     filePath: string,
     prettyName: string,
-    kind: "INTERFACE" | "DOCUMENT",
+    kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
     serverUrls: string[],
     contentType: string,
     checksum: string

@@ -21,6 +21,7 @@ import {
   catalogWriterService,
   checkCompleteEService,
   readModelDB,
+  retrieveEserviceAsyncExchangePropertiesSQLById,
   retrieveEserviceDescriptorAttributesSQLById,
   retrieveEserviceDescriptorsSQLById,
   retrieveEserviceDocumentsSQLById,
@@ -91,6 +92,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
       const retrievedEService = aggregateEservice({
@@ -103,6 +105,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
@@ -156,6 +159,11 @@ describe("E-service queries", () => {
           eservice.id,
           readModelDB
         );
+      const asyncExchangePropertiesSQL =
+        await retrieveEserviceAsyncExchangePropertiesSQLById(
+          eservice.id,
+          readModelDB
+        );
 
       expect(eserviceSQL).toBeDefined();
       expect(descriptorsSQL).toHaveLength(0);
@@ -176,6 +184,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
@@ -244,6 +253,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
       const retrievedEService = aggregateEservice({
@@ -256,6 +266,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        asyncExchangePropertiesSQL,
       });
 
       expect(retrievedEService).toStrictEqual({
