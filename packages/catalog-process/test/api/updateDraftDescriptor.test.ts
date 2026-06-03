@@ -23,6 +23,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { buildUpdateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  asyncExchangeBulkNotAllowedForSoap,
   attributeDailyCallsNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
@@ -137,6 +138,10 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     },
     {
       error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: asyncExchangeBulkNotAllowedForSoap(mockEService.id, descriptor.id),
       expectedStatus: 400,
     },
   ])(
