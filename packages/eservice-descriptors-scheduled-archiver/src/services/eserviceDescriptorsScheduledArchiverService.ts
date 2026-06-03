@@ -57,12 +57,13 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
         loggerInstance.warn(
           `Descriptor ${ref.descriptorId} is already archived`
         );
+        return true;
       } else {
         loggerInstance.error(
           `Error while archiving descriptor with id ${ref.descriptorId} of e-service with id ${ref.eserviceId}: ${error}`
         );
+        return false;
       }
-      return false;
     }
   };
 
@@ -82,12 +83,13 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
     } catch (error) {
       if (isAlreadyArchivedErrorResponse(error)) {
         loggerInstance.warn(`e-service ${eServiceId} is already archived`);
+        return true;
       } else {
         loggerInstance.error(
           `Error while archiving e-service with id ${eServiceId}: ${error}`
         );
+        return false;
       }
-      return false;
     }
   };
   return {
