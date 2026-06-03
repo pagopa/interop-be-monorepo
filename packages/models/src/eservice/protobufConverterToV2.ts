@@ -91,7 +91,7 @@ export const toEServiceAttributeV2 = (
   })),
 });
 
-const toAttributeCertifiedDiscreteComparatorV2 = (
+export const toAttributeCertifiedDiscreteComparatorV2 = (
   input: AttributeCertifiedDiscreteComparator
 ): AttributeCertifiedDiscreteComparatorV2 =>
   match(input)
