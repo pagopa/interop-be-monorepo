@@ -65,7 +65,7 @@ const errorCodes = {
   reviewerWorkflowNotFound: "0045",
   reviewerWorkflowNotSubmittable: "0046",
   submitNotAllowedForReviewMode: "0047",
-  reviewerWorkflowNotInPendingSignatureState: "0048",
+  reviewerWorkflowNotInSubmittedState: "0048",
   requesterIsNotTheSigner: "0049",
   reviewerWorkflowNotInSignedState: "0050",
   riskAnalysisFormEditNotAllowed: "0051",
@@ -572,12 +572,12 @@ export function submitNotAllowedForReviewMode(
   });
 }
 
-export function reviewerWorkflowNotInPendingSignatureState(
+export function reviewerWorkflowNotInSubmittedState(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} reviewer workflow is not in a signable state (must be Submitted for AdminWritesReviewerSigns or Assigned for ReviewerWritesReviewerSigns)`,
-    code: "reviewerWorkflowNotInPendingSignatureState",
+    code: "reviewerWorkflowNotInSubmittedState",
     title: "Reviewer workflow not in signable state",
   });
 }

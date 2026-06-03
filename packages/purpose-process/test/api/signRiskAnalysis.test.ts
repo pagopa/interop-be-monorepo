@@ -8,7 +8,7 @@ import { api, purposeService } from "../vitest.api.setup.js";
 import {
   purposeNotFound,
   reviewerWorkflowNotFound,
-  reviewerWorkflowNotInPendingSignatureState,
+  reviewerWorkflowNotInSubmittedState,
   requesterIsNotTheSigner,
 } from "../../src/model/domain/errors.js";
 
@@ -52,7 +52,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
       expectedStatus: 404,
     },
     {
-      error: reviewerWorkflowNotInPendingSignatureState(mockPurpose.id),
+      error: reviewerWorkflowNotInSubmittedState(mockPurpose.id),
       expectedStatus: 409,
     },
     {

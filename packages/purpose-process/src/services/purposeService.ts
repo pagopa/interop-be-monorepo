@@ -90,7 +90,7 @@ import {
   unableToDetermineTenantKind,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  reviewerWorkflowNotInPendingSignatureState,
+  reviewerWorkflowNotInSubmittedState,
   requesterIsNotTheSigner,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
@@ -697,7 +697,7 @@ export function purposeServiceBuilder(
           () => true
         )
         .otherwise(() => {
-          throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+          throw reviewerWorkflowNotInSubmittedState(purposeId);
         });
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
