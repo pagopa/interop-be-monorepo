@@ -4,7 +4,6 @@ import {
   removeDuplicates,
   UIAuthData,
   getRulesetExpiration,
-  assertFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -437,7 +436,6 @@ export function purposeServiceBuilder(
       seed: bffApi.RiskAnalysisAssignmentSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
-      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
       logger.info(`Assigning risk analysis reviewer to purpose ${purposeId}`);
       await purposeProcessClient.assignRiskAnalysisReviewer(seed, {
         params: { purposeId },
