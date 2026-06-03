@@ -21,8 +21,9 @@ import {
 } from "./mockUtils.js";
 
 describe("enrichAgreement", () => {
-  it("should enrich agreement and tenant certified discrete attributes", async () => {
+  it("should enrich agreement and merge tenant certified and certified discrete attributes", async () => {
     const agreementCertifiedDiscreteAttributeId = generateId<AttributeId>();
+    const tenantCertifiedAttributeId = generateId<AttributeId>();
     const tenantCertifiedDiscreteAttributeId = generateId<AttributeId>();
     const eserviceId = generateId();
     const descriptorId = generateId();
@@ -37,6 +38,14 @@ describe("enrichAgreement", () => {
       }),
       id: agreementCertifiedDiscreteAttributeId,
     };
+    const tenantCertifiedRegistryAttribute = {
+      ...getMockedApiAttribute({
+        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+        name: "tenant certified",
+        description: "tenant certified description",
+      }),
+      id: tenantCertifiedAttributeId,
+    };
     const tenantCertifiedDiscreteRegistryAttribute = {
       ...getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
@@ -47,6 +56,7 @@ describe("enrichAgreement", () => {
     };
     const registryAttributes = [
       agreementCertifiedDiscreteRegistryAttribute,
+      tenantCertifiedRegistryAttribute,
       tenantCertifiedDiscreteRegistryAttribute,
     ];
 
@@ -67,13 +77,21 @@ describe("enrichAgreement", () => {
       declaredAttributes: [],
     };
 
+    const certifiedAssignmentTimestamp = new Date().toISOString();
+    const certifiedDiscreteAssignmentTimestamp = new Date().toISOString();
     const consumer: tenantApi.Tenant = {
       ...getMockedApiTenant({
         attributes: [
           {
+            certified: {
+              id: tenantCertifiedAttributeId,
+              assignmentTimestamp: certifiedAssignmentTimestamp,
+            },
+          },
+          {
             certifiedDiscrete: {
               id: tenantCertifiedDiscreteAttributeId,
-              assignmentTimestamp: new Date().toISOString(),
+              assignmentTimestamp: certifiedDiscreteAssignmentTimestamp,
               discreteValue: 42,
             },
           },
@@ -168,11 +186,17 @@ describe("enrichAgreement", () => {
     ]);
     expect(actualAgreement.consumer.attributes.certified).toStrictEqual([
       {
+        id: tenantCertifiedAttributeId,
+        name: tenantCertifiedRegistryAttribute.name,
+        description: tenantCertifiedRegistryAttribute.description,
+        assignmentTimestamp: certifiedAssignmentTimestamp,
+        revocationTimestamp: undefined,
+      },
+      {
         id: tenantCertifiedDiscreteAttributeId,
         name: tenantCertifiedDiscreteRegistryAttribute.name,
         description: tenantCertifiedDiscreteRegistryAttribute.description,
-        assignmentTimestamp:
-          consumer.attributes[0].certifiedDiscrete?.assignmentTimestamp,
+        assignmentTimestamp: certifiedDiscreteAssignmentTimestamp,
         revocationTimestamp: undefined,
         discreteValue: 42,
       },
@@ -185,6 +209,7 @@ describe("enrichAgreement", () => {
     ).toHaveBeenCalledWith(
       expect.arrayContaining([
         agreementCertifiedDiscreteAttributeId,
+        tenantCertifiedAttributeId,
         tenantCertifiedDiscreteAttributeId,
       ]),
       expect.any(Object)

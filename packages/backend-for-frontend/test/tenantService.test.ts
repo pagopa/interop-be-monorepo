@@ -3,7 +3,7 @@ import {
   getMockedApiAttribute,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
 import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
@@ -16,7 +16,7 @@ describe("tenantServiceBuilder.getTenant", () => {
     const certifiedDiscreteAttributeId = generateId<AttributeId>();
     const assignmentTimestamp = new Date().toISOString();
 
-    const tenant = {
+    const tenant: tenantApi.Tenant = {
       ...getMockedApiTenant({
         attributes: [
           {
