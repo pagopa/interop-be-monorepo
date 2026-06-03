@@ -63,6 +63,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
@@ -685,6 +686,7 @@ export const upsertPurpose = async (
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
     await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
@@ -722,6 +724,10 @@ export const upsertPurpose = async (
       await tx
         .insert(purposeVersionDocumentInReadmodelPurpose)
         .values(versionSignedDocumentSQL);
+    }
+
+    for (const reviewerSQL of reviewersSQL) {
+      await tx.insert(riskAnalysisReviewerInReadmodelPurpose).values(reviewerSQL);
     }
   });
 };

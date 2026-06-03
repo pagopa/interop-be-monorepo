@@ -30,6 +30,7 @@ import {
 } from "pagopa-interop-models";
 import {
   PurposeSQL,
+  RiskAnalysisReviewerSQL,
   PurposeRiskAnalysisAnswerSQL,
   PurposeVersionSQL,
   PurposeVersionDocumentSQL,
@@ -396,6 +397,7 @@ export const toPurposeAggregator = (
     purposeVersionDocument: PurposeVersionDocumentSQL | null;
     purposeVersionStamp: PurposeVersionStampSQL | null;
     purposeVersionSignedDocument: PurposeVersionSignedDocumentSQL | null;
+    reviewer: RiskAnalysisReviewerSQL | null;
   }>
 ): PurposeItemsSQL => {
   const {
@@ -406,6 +408,7 @@ export const toPurposeAggregator = (
     versionDocumentsSQL,
     versionStampsSQL,
     versionSignedDocumentsSQL,
+    reviewersSQL,
   } = toPurposeAggregatorArray(queryRes);
 
   throwIfMultiple(purposesSQL, "purpose");
@@ -418,7 +421,7 @@ export const toPurposeAggregator = (
     versionDocumentsSQL,
     versionStampsSQL,
     versionSignedDocumentsSQL,
-    reviewersSQL: [],
+    reviewersSQL,
   };
 };
 
@@ -431,6 +434,7 @@ export const toPurposeAggregatorArray = (
     purposeVersionDocument: PurposeVersionDocumentSQL | null;
     purposeVersionStamp: PurposeVersionStampSQL | null;
     purposeVersionSignedDocument: PurposeVersionSignedDocumentSQL | null;
+    reviewer: RiskAnalysisReviewerSQL | null;
   }>
 ): {
   purposesSQL: PurposeSQL[];
@@ -440,6 +444,7 @@ export const toPurposeAggregatorArray = (
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
   versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
+  reviewersSQL: RiskAnalysisReviewerSQL[];
 } => {
   const purposeIdSet = new Set<string>();
   const purposesSQL: PurposeSQL[] = [];
@@ -462,6 +467,9 @@ export const toPurposeAggregatorArray = (
   const purposeVersionSignedDocumentIdSet = new Set<string>();
   const purposeVersionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[] =
     [];
+
+  const riskAnalysisReviewerIdSet = new Set<string>();
+  const riskAnalysisReviewersSQL: RiskAnalysisReviewerSQL[] = [];
   // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
   queryRes.forEach((row) => {
     const purposeSQL = row.purpose;
@@ -561,6 +569,23 @@ export const toPurposeAggregatorArray = (
         purposeVersionSignedDocumentsSQL.push(purposeVersionSignedDocumentSQL);
       }
     }
+
+    const riskAnalysisReviewerSQL = row.reviewer;
+    const riskAnalysisReviewerPK = riskAnalysisReviewerSQL
+      ? makeUniqueKey([
+          riskAnalysisReviewerSQL.purposeId,
+          riskAnalysisReviewerSQL.reviewerId,
+        ])
+      : undefined;
+    if (
+      riskAnalysisReviewerSQL &&
+      riskAnalysisReviewerPK &&
+      !riskAnalysisReviewerIdSet.has(riskAnalysisReviewerPK)
+    ) {
+      riskAnalysisReviewerIdSet.add(riskAnalysisReviewerPK);
+      // eslint-disable-next-line functional/immutable-data
+      riskAnalysisReviewersSQL.push(riskAnalysisReviewerSQL);
+    }
   });
 
   return {
@@ -571,5 +596,6 @@ export const toPurposeAggregatorArray = (
     versionDocumentsSQL: purposeVersionDocumentsSQL,
     versionStampsSQL: purposeVersionStampsSQL,
     versionSignedDocumentsSQL: purposeVersionSignedDocumentsSQL,
+    reviewersSQL: riskAnalysisReviewersSQL,
   };
 };
