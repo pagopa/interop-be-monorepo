@@ -9990,7 +9990,7 @@ paths:
               $ref: "#/components/schemas/RiskAnalysisSubmissionSeed"
         required: true
       responses:
-        "200":
+        "204":
           description: Risk analysis submitted for signing
           headers:
             "X-Rate-Limit-Limit":
@@ -10008,10 +10008,6 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreatedResource"
         "400":
           description: Bad Request
           content:
