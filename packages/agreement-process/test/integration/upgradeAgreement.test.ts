@@ -48,7 +48,15 @@ import {
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { addDays } from "date-fns";
 import { agreementUpgradableStates } from "../../src/model/domain/agreement-validators.js";
 import {
@@ -88,6 +96,9 @@ import {
 
 describe("upgrade Agreement", () => {
   const currentExecutionTime = new Date();
+  beforeEach(() => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+  });
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(currentExecutionTime);
