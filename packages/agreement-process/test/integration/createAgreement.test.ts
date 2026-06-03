@@ -774,10 +774,6 @@ describe("create agreement", () => {
   });
 
   describe("certified discrete attributes verification", () => {
-    beforeEach(() => {
-      config.featureFlagAttributeCertifiedDiscrete = true;
-    });
-
     const buildDiscreteScenario = ({
       threshold,
       comparator,
