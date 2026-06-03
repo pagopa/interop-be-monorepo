@@ -29068,6 +29068,11 @@ components:
             oneOf:
               - $ref: "#/components/schemas/CertifiedTenantAttribute"
               - $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+            discriminator:
+              propertyName: kind
+              mapping:
+                Certified: "#/components/schemas/CertifiedTenantAttribute"
+                CertifiedDiscrete: "#/components/schemas/CertifiedDiscreteTenantAttribute"
         verified:
           type: array
           items:
@@ -29080,6 +29085,9 @@ components:
       type: object
       additionalProperties: false
       properties:
+        kind:
+          type: string
+          enum: [Declared]
         id:
           type: string
           format: uuid
@@ -29097,6 +29105,7 @@ components:
           type: string
           format: uuid
       required:
+        - kind
         - id
         - name
         - description
@@ -29151,6 +29160,9 @@ components:
       type: object
       additionalProperties: false
       properties:
+        kind:
+          type: string
+          enum: [Certified]
         id:
           type: string
           format: uuid
@@ -29165,6 +29177,7 @@ components:
           type: string
           format: date-time
       required:
+        - kind
         - id
         - name
         - description
@@ -29173,6 +29186,9 @@ components:
       type: object
       additionalProperties: false
       properties:
+        kind:
+          type: string
+          enum: [CertifiedDiscrete]
         id:
           type: string
           format: uuid
@@ -29192,6 +29208,7 @@ components:
           minimum: 1
           maximum: 1000000000
       required:
+        - kind
         - id
         - name
         - description
@@ -29216,6 +29233,9 @@ components:
       type: object
       additionalProperties: false
       properties:
+        kind:
+          type: string
+          enum: [Verified]
         id:
           type: string
           format: uuid
@@ -29235,6 +29255,7 @@ components:
           items:
             $ref: "#/components/schemas/TenantRevoker"
       required:
+        - kind
         - id
         - name
         - description

@@ -21,6 +21,7 @@ import { config } from "../config/config.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   RegistryAttributesMap,
+  tenantAttributeKind,
   toBffApiTenant,
   toBffApiCompactTenant,
   toBffApiRequesterCertifiedAttributes,
@@ -530,6 +531,7 @@ function getDeclaredTenantAttribute(
   }
 
   return {
+    kind: tenantAttributeKind.declared,
     id: attribute.declared.id,
     name: registryAttribute.name,
     description: registryAttribute.description,
@@ -552,6 +554,7 @@ function getCertifiedTenantAttribute(
   }
 
   return {
+    kind: tenantAttributeKind.certified,
     id: attribute.certified.id,
     name: registryAttribute.name,
     description: registryAttribute.description,
@@ -585,6 +588,7 @@ function toApiVerifiedTenantAttribute(
   }
 
   return {
+    kind: tenantAttributeKind.verified,
     id: attribute.verified.id,
     name: registryAttribute.name,
     description: registryAttribute.description,

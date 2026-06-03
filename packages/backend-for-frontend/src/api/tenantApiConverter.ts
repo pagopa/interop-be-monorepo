@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { isDefined } from "pagopa-interop-commons";
 import {
+  AttributeKind,
   CertifiedTenantAttribute,
   CertifiedDiscreteTenantAttribute,
   DeclaredTenantAttribute,
@@ -17,6 +18,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+
+export const tenantAttributeKind = {
+  certified: "Certified",
+  certifiedDiscrete: "CertifiedDiscrete",
+  declared: "Declared",
+  verified: "Verified",
+} as const satisfies Record<string, AttributeKind>;
 
 function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
   const certified: CertifiedTenantAttribute | undefined = att.certified && {
@@ -109,6 +117,7 @@ const toBffApiCertifiedTenantAttribute = (
 
   return registryAttribute
     ? {
+        kind: tenantAttributeKind.certified,
         id: tenantAttribute.id,
         name: registryAttribute.name,
         description: registryAttribute.description,
@@ -126,6 +135,7 @@ export const toBffApiCertifiedDiscreteTenantAttribute = (
 
   return registryAttribute
     ? {
+        kind: tenantAttributeKind.certifiedDiscrete,
         id: tenantAttribute.id,
         name: registryAttribute.name,
         description: registryAttribute.description,
@@ -145,6 +155,7 @@ const toBffApiDeclaredTenantAttribute = (
 
   return registryAttribute
     ? {
+        kind: tenantAttributeKind.declared,
         id: tenantAttribute.id,
         name: registryAttribute.name,
         description: registryAttribute.description,
@@ -163,6 +174,7 @@ const toBffApiVerifiedTenantAttribute = (
 
   return registryAttribute
     ? {
+        kind: tenantAttributeKind.verified,
         id: tenantAttribute.id,
         name: registryAttribute.name,
         description: registryAttribute.description,

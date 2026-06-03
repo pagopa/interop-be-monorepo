@@ -14,6 +14,7 @@ import { AttributeId, generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { enrichAgreement } from "../src/services/agreementService.js";
+import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { BffAppContext } from "../src/utilities/context.js";
 import {
   getMockCatalogApiEService,
@@ -186,6 +187,7 @@ describe("enrichAgreement", () => {
     ]);
     expect(actualAgreement.consumer.attributes.certified).toStrictEqual([
       {
+        kind: tenantAttributeKind.certified,
         id: tenantCertifiedAttributeId,
         name: tenantCertifiedRegistryAttribute.name,
         description: tenantCertifiedRegistryAttribute.description,
@@ -193,6 +195,7 @@ describe("enrichAgreement", () => {
         revocationTimestamp: undefined,
       },
       {
+        kind: tenantAttributeKind.certifiedDiscrete,
         id: tenantCertifiedDiscreteAttributeId,
         name: tenantCertifiedDiscreteRegistryAttribute.name,
         description: tenantCertifiedDiscreteRegistryAttribute.description,

@@ -864,6 +864,7 @@ export const getMockBffApiVerifiedAttributesResponse =
     attributes: generateMock(
       z.array(
         z.object({
+          kind: z.literal("Verified"),
           id: z.string().uuid(),
           name: z.string(),
           description: z.string(),
@@ -880,6 +881,7 @@ export const getMockBffApiDeclaredAttributesResponse =
     attributes: generateMock(
       z.array(
         z.object({
+          kind: z.literal("Declared"),
           id: z.string().uuid(),
           name: z.string(),
           description: z.string(),
@@ -896,6 +898,7 @@ export const getMockBffApiCertifiedAttributesResponse =
     attributes: generateMock(
       z.array(
         z.object({
+          kind: z.literal("Certified"),
           id: z.string().uuid(),
           name: z.string(),
           description: z.string(),
