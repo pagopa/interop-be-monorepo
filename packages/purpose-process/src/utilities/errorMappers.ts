@@ -91,7 +91,6 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "duplicatedPurposeTitle",
       "purposeFromTemplateCannotBeModified",
-      "riskAnalysisFormEditNotAllowed",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -287,10 +286,6 @@ export const activatePurposeVersionErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "reviewerWorkflowNotInSignedState",
-      () => HTTP_STATUS_CONFLICT
-    )
-    .with(
       "tenantIsNotTheConsumer",
       "tenantIsNotTheProducer",
       "tenantNotAllowed",
@@ -371,11 +366,7 @@ export const assignRiskAnalysisReviewerErrorMapper = (
 ): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with(
-      "tenantIsNotTheConsumer",
-      "tenantIsNotTheDelegatedConsumer",
-      () => HTTP_STATUS_FORBIDDEN
-    )
+    .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -384,12 +375,12 @@ export const submitRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeNotFound", "reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "tenantIsNotTheConsumer",
-      "tenantIsNotTheDelegatedConsumer",
-      () => HTTP_STATUS_FORBIDDEN
+      "purposeNotFound",
+      "reviewerWorkflowNotFound",
+      () => HTTP_STATUS_NOT_FOUND
     )
+    .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "reviewerWorkflowNotSubmittable",
       "submitNotAllowedForReviewMode",
@@ -415,15 +406,12 @@ export const signRiskAnalysisErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "requesterIsNotTheSigner",
+      "requesterIsNotDesignatedReviewer",
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with(
-      "reviewerWorkflowNotInPendingSignatureState",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("reviewerWorkflowNotInSubmittedState", () => HTTP_STATUS_CONFLICT)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
