@@ -30132,9 +30132,11 @@ components:
         responseTime:
           type: integer
           format: int32
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          maximum: 999999
         confirmation:
           type: boolean
         bulk:
@@ -30142,6 +30144,7 @@ components:
         maxResultSet:
           type: integer
           format: int32
+          maximum: 99999
     AsyncExchangePropertiesInstanceSeed:
       type: object
       additionalProperties: false
@@ -30149,12 +30152,15 @@ components:
         responseTime:
           type: integer
           format: int32
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          maximum: 999999
         maxResultSet:
           type: integer
           format: int32
+          maximum: 99999
     EServiceTemplateVersionDetails:
       type: object
       additionalProperties: false

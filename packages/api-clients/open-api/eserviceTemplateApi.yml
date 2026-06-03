@@ -2310,9 +2310,11 @@ components:
         responseTime:
           type: integer
           format: int32
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          maximum: 999999
         confirmation:
           type: boolean
         bulk:
@@ -2320,6 +2322,7 @@ components:
         maxResultSet:
           type: integer
           format: int32
+          maximum: 99999
     CompactOrganization:
       type: object
       additionalProperties: false
