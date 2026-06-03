@@ -379,12 +379,12 @@ export const submitRiskAnalysisErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("purposeNotFound", "reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "tenantIsNotTheConsumer",
-      "tenantIsNotTheDelegatedConsumer",
-      () => HTTP_STATUS_FORBIDDEN
+      "purposeNotFound",
+      "reviewerWorkflowNotFound",
+      () => HTTP_STATUS_NOT_FOUND
     )
+    .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "reviewerWorkflowNotSubmittable",
       "submitNotAllowedForReviewMode",
