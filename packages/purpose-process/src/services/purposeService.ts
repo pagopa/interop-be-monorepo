@@ -134,7 +134,6 @@ type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
   clientId?: ClientId;
 };
 import {
-  assertRiskAnalysisFormCanBeUpdated,
   assertConsistentFreeOfCharge,
   assertEserviceMode,
   assertPersonalDataCompliant,
@@ -144,7 +143,6 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
-  assertReviewerWorkflowIsSigned,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -1409,13 +1407,6 @@ export function purposeServiceBuilder(
         }
       }
 
-      if (isFeatureFlagEnabled(config, "featureFlagNewOperators")) {
-        assertReviewerWorkflowIsSigned({
-          purposeId,
-          reviewerWorkflow: purpose.data.reviewerWorkflow,
-        });
-      }
-
       const purposeOwnership = await getOrganizationRole({
         purpose: purpose.data,
         producerId: eservice.producerId,
@@ -2404,17 +2395,6 @@ const performUpdatePurpose = async (
   // ^ To make sure we extract all the updated fields, even optional ones
 
   const { mode } = modeAndUpdateContent;
-
-  if (
-    mode === eserviceMode.deliver &&
-    isFeatureFlagEnabled(config, "featureFlagNewOperators")
-  ) {
-    assertRiskAnalysisFormCanBeUpdated({
-      purposeId,
-      reviewerWorkflow: purpose.data.reviewerWorkflow,
-      riskAnalysisFormChanged: riskAnalysisForm !== undefined,
-    });
-  }
 
   if (title && title !== purpose.data.title) {
     await assertPurposeTitleIsNotDuplicated({
