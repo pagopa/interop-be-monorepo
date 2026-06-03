@@ -14,6 +14,7 @@ import { AttributeId, generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { enrichAgreement } from "../src/services/agreementService.js";
+import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { BffAppContext } from "../src/utilities/context.js";
 import {
   getMockCatalogApiEService,
@@ -21,32 +22,44 @@ import {
 } from "./mockUtils.js";
 
 describe("enrichAgreement", () => {
-  it("should enrich agreement and tenant certified discrete attributes", async () => {
+  it("should enrich agreement and merge tenant certified and certified discrete attributes", async () => {
     const agreementCertifiedDiscreteAttributeId = generateId<AttributeId>();
+    const tenantCertifiedAttributeId = generateId<AttributeId>();
     const tenantCertifiedDiscreteAttributeId = generateId<AttributeId>();
     const eserviceId = generateId();
     const descriptorId = generateId();
     const producerId = generateId();
     const consumerId = generateId();
 
-    const agreementCertifiedDiscreteRegistryAttribute = {
+    const agreementCertifiedDiscreteRegistryAttribute: attributeRegistryApi.Attribute =
+      {
+        ...getMockedApiAttribute({
+          kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+          name: "agreement certified discrete",
+          description: "agreement certified discrete description",
+        }),
+        id: agreementCertifiedDiscreteAttributeId,
+      };
+    const tenantCertifiedRegistryAttribute: attributeRegistryApi.Attribute = {
       ...getMockedApiAttribute({
-        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
-        name: "agreement certified discrete",
-        description: "agreement certified discrete description",
+        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+        name: "tenant certified",
+        description: "tenant certified description",
       }),
-      id: agreementCertifiedDiscreteAttributeId,
+      id: tenantCertifiedAttributeId,
     };
-    const tenantCertifiedDiscreteRegistryAttribute = {
-      ...getMockedApiAttribute({
-        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
-        name: "tenant certified discrete",
-        description: "tenant certified discrete description",
-      }),
-      id: tenantCertifiedDiscreteAttributeId,
-    };
+    const tenantCertifiedDiscreteRegistryAttribute: attributeRegistryApi.Attribute =
+      {
+        ...getMockedApiAttribute({
+          kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+          name: "tenant certified discrete",
+          description: "tenant certified discrete description",
+        }),
+        id: tenantCertifiedDiscreteAttributeId,
+      };
     const registryAttributes = [
       agreementCertifiedDiscreteRegistryAttribute,
+      tenantCertifiedRegistryAttribute,
       tenantCertifiedDiscreteRegistryAttribute,
     ];
 
@@ -67,13 +80,21 @@ describe("enrichAgreement", () => {
       declaredAttributes: [],
     };
 
+    const certifiedAssignmentTimestamp = new Date().toISOString();
+    const certifiedDiscreteAssignmentTimestamp = new Date().toISOString();
     const consumer: tenantApi.Tenant = {
       ...getMockedApiTenant({
         attributes: [
           {
+            certified: {
+              id: tenantCertifiedAttributeId,
+              assignmentTimestamp: certifiedAssignmentTimestamp,
+            },
+          },
+          {
             certifiedDiscrete: {
               id: tenantCertifiedDiscreteAttributeId,
-              assignmentTimestamp: new Date().toISOString(),
+              assignmentTimestamp: certifiedDiscreteAssignmentTimestamp,
               discreteValue: 42,
             },
           },
@@ -166,24 +187,34 @@ describe("enrichAgreement", () => {
         creationTime: agreementCertifiedDiscreteRegistryAttribute.creationTime,
       },
     ]);
-    expect(actualAgreement.consumer.attributes.certifiedDiscrete).toStrictEqual(
-      [
-        {
-          id: tenantCertifiedDiscreteAttributeId,
-          name: tenantCertifiedDiscreteRegistryAttribute.name,
-          description: tenantCertifiedDiscreteRegistryAttribute.description,
-          assignmentTimestamp:
-            consumer.attributes[0].certifiedDiscrete?.assignmentTimestamp,
-          revocationTimestamp: undefined,
-          discreteValue: 42,
-        },
-      ]
+    expect(actualAgreement.consumer.attributes.certified).toStrictEqual([
+      {
+        kind: tenantAttributeKind.certified,
+        id: tenantCertifiedAttributeId,
+        name: tenantCertifiedRegistryAttribute.name,
+        description: tenantCertifiedRegistryAttribute.description,
+        assignmentTimestamp: certifiedAssignmentTimestamp,
+        revocationTimestamp: undefined,
+      },
+      {
+        kind: tenantAttributeKind.certifiedDiscrete,
+        id: tenantCertifiedDiscreteAttributeId,
+        name: tenantCertifiedDiscreteRegistryAttribute.name,
+        description: tenantCertifiedDiscreteRegistryAttribute.description,
+        assignmentTimestamp: certifiedDiscreteAssignmentTimestamp,
+        revocationTimestamp: undefined,
+        discreteValue: 42,
+      },
+    ]);
+    expect(actualAgreement.consumer.attributes).not.toHaveProperty(
+      "certifiedDiscrete"
     );
     expect(
       clients.attributeProcessClient.getBulkedAttributes
     ).toHaveBeenCalledWith(
       expect.arrayContaining([
         agreementCertifiedDiscreteAttributeId,
+        tenantCertifiedAttributeId,
         tenantCertifiedDiscreteAttributeId,
       ]),
       expect.any(Object)
