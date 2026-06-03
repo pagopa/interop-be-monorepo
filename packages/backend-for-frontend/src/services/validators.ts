@@ -1,4 +1,5 @@
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
+import { isFeatureFlagEnabled } from "pagopa-interop-commons";
 import {
   agreementApi,
   authorizationApi,
@@ -192,7 +193,10 @@ export function hasCertifiedAttributes(
       descriptorAttributesFromApi(descriptor.attributes),
       tenantAttributesFromApi(requesterTenant.attributes),
       {
-        certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+        certifiedDiscreteEnabled: isFeatureFlagEnabled(
+          config,
+          "featureFlagAttributeCertifiedDiscrete"
+        ),
       }
     )
   );

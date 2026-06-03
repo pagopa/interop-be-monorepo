@@ -20,6 +20,7 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 import {
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   M2MAuthData,
   ownership,
@@ -446,7 +447,10 @@ export const validateCertifiedAttributes = ({
 }): void => {
   if (
     !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes, {
-      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
     })
   ) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
@@ -547,7 +551,7 @@ export const matchingCertifiedDiscreteAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): CertifiedDiscreteAgreementAttribute[] => {
-  if (!config.featureFlagAttributeCertifiedDiscrete) {
+  if (!isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")) {
     return [];
   }
 

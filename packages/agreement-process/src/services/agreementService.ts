@@ -13,6 +13,7 @@ import {
   UIAuthData,
   WithLogger,
   eventRepository,
+  isFeatureFlagEnabled,
   ownership,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
@@ -1498,8 +1499,10 @@ export function agreementServiceBuilder(
             descriptor.attributes,
             consumer.attributes,
             {
-              certifiedDiscreteEnabled:
-                config.featureFlagAttributeCertifiedDiscrete,
+              certifiedDiscreteEnabled: isFeatureFlagEnabled(
+                config,
+                "featureFlagAttributeCertifiedDiscrete"
+              ),
             }
           ),
       };

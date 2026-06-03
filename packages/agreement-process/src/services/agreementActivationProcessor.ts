@@ -1,6 +1,7 @@
 /* eslint-disable max-params */
 import {
   CreateEvent,
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   ownership,
   Ownership,
@@ -300,8 +301,10 @@ function maybeCreateSuspensionByPlatformEvents(
           descriptor.attributes,
           consumer.attributes,
           {
-            certifiedDiscreteEnabled:
-              config.featureFlagAttributeCertifiedDiscrete,
+            certifiedDiscreteEnabled: isFeatureFlagEnabled(
+              config,
+              "featureFlagAttributeCertifiedDiscrete"
+            ),
           }
         );
       return [

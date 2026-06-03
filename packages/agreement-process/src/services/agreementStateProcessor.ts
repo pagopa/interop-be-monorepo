@@ -1,4 +1,8 @@
-import { CreateEvent, Logger } from "pagopa-interop-commons";
+import {
+  CreateEvent,
+  isFeatureFlagEnabled,
+  Logger,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -51,7 +55,10 @@ const nextStateFromDraft = (
   }
   if (
     !certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
-      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
     })
   ) {
     return missingCertifiedAttributes;
@@ -81,7 +88,10 @@ const nextStateFromPending = (
 ): AgreementState => {
   if (
     !certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
-      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
     })
   ) {
     return missingCertifiedAttributes;
@@ -111,7 +121,10 @@ const nextStateFromActiveOrSuspended = (
   }
   if (
     certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
-      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
     }) &&
     declaredAttributesSatisfied(descriptor.attributes, tenant.attributes) &&
     verifiedAttributesSatisfied(
@@ -131,7 +144,10 @@ const nextStateFromMissingCertifiedAttributes = (
 ): AgreementState => {
   if (
     certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
-      certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
     })
   ) {
     return draft;
@@ -278,7 +294,10 @@ function updateAgreementState(
       descriptor.attributes,
       consumer.attributes,
       {
-        certifiedDiscreteEnabled: config.featureFlagAttributeCertifiedDiscrete,
+        certifiedDiscreteEnabled: isFeatureFlagEnabled(
+          config,
+          "featureFlagAttributeCertifiedDiscrete"
+        ),
       }
     );
 

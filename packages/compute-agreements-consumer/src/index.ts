@@ -3,6 +3,7 @@ import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
   InteropTokenGenerator,
+  isFeatureFlagEnabled,
   logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
@@ -57,7 +58,9 @@ async function processMessage({
         ),
       },
       async ({ data: { tenant, attributeId } }) => {
-        if (!config.featureFlagAttributeCertifiedDiscrete) {
+        if (
+          !isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")
+        ) {
           return;
         }
 
