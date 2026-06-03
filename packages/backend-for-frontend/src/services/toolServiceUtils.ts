@@ -13,7 +13,7 @@ import {
   Interaction,
   InteractionId,
   interactionState,
-  InteractionState,
+  isInteractionStateAllowedForScope,
   ItemState,
   makeGSIPKInteractionId,
   makeInteractionPK,
@@ -23,26 +23,6 @@ import {
   AsyncCatalogValidationContext,
   RetrievedInteractionValidationResult,
 } from "./toolService.types.js";
-
-const asyncInteractionStateAllowedByScope: Record<
-  InteractionState,
-  InteractionState[]
-> = {
-  [interactionState.startInteraction]: [],
-  [interactionState.callbackInvocation]: [
-    interactionState.startInteraction,
-    interactionState.callbackInvocation,
-  ],
-  [interactionState.getResource]: [
-    interactionState.callbackInvocation,
-    interactionState.getResource,
-  ],
-  [interactionState.confirmation]: [
-    interactionState.callbackInvocation,
-    interactionState.getResource,
-    interactionState.confirmation,
-  ],
-};
 
 export function validateAsyncScopeClaims(
   jwt: AsyncClientAssertion
@@ -196,7 +176,10 @@ export async function retrieveInteractionForAsyncScope(
   }
 
   if (
-    !isInteractionStateAllowedForScope(interaction.state, jwt.payload.scope)
+    !isInteractionStateAllowedForScope({
+      currentState: interaction.state,
+      scope: jwt.payload.scope,
+    })
   ) {
     return {
       interaction: undefined,
@@ -410,13 +393,6 @@ export function toAsyncCatalogValidationContext(
     asyncExchange: eservice.asyncExchange,
     asyncExchangeProperties: descriptor.asyncExchangeProperties,
   };
-}
-
-function isInteractionStateAllowedForScope(
-  currentState: InteractionState,
-  scope: InteractionState
-): boolean {
-  return asyncInteractionStateAllowedByScope[scope].includes(currentState);
 }
 
 export function makeDiagnosticError(
