@@ -18,7 +18,6 @@ import {
   EServiceId,
   EServiceMode,
   Purpose,
-  PurposeId,
   PurposeRiskAnalysisForm,
   PurposeTemplate,
   PurposeTemplateId,
@@ -26,13 +25,11 @@ import {
   purposeVersionState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
-  ReviewerWorkflow,
   TenantId,
   tenantKind,
   TenantKind,
   tenantAttributeType,
   RiskAnalysisFormId,
-  riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -50,8 +47,6 @@ import {
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
-  riskAnalysisFormEditNotAllowed,
-  reviewerWorkflowNotInSignedState,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegate,
@@ -140,7 +135,7 @@ export const assertConsistentFreeOfCharge = (
   }
 };
 
-const assertRequesterIsConsumer = (
+export const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
   authData: Pick<UIAuthData, "organizationId">
 ): void => {

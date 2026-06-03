@@ -1,7 +1,6 @@
 import {
   WithLogger,
   FileManager,
-  assertFeatureFlagEnabled,
   removeDuplicates,
   UIAuthData,
   getRulesetExpiration,
@@ -438,55 +437,44 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisAssignmentSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+    ): Promise<void> {
       logger.info(`Assigning risk analysis reviewer to purpose ${purposeId}`);
-      const result = await purposeProcessClient.assignRiskAnalysisReviewer(
-        seed,
-        {
-          params: { purposeId },
-          headers,
-        }
-      );
-      return { id: result.id };
+      await purposeProcessClient.assignRiskAnalysisReviewer(seed, {
+        params: { purposeId },
+        headers,
+      });
     },
     async submitRiskAnalysis(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisSubmissionSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+    ): Promise<void> {
       logger.info(`Submitting risk analysis for purpose ${purposeId}`);
-      const result = await purposeProcessClient.submitRiskAnalysis(seed, {
+      await purposeProcessClient.submitRiskAnalysis(seed, {
         params: { purposeId },
         headers,
       });
-      return { id: result.id };
     },
     async signRiskAnalysis(
       purposeId: PurposeId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+    ): Promise<void> {
       logger.info(`Signing risk analysis for purpose ${purposeId}`);
-      const result = await purposeProcessClient.signRiskAnalysis(undefined, {
+      await purposeProcessClient.signRiskAnalysis(undefined, {
         params: { purposeId },
         headers,
       });
-      return { id: result.id };
     },
     async rejectRiskAnalysis(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisRejectionSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+    ): Promise<void> {
       logger.info(`Rejecting risk analysis for purpose ${purposeId}`);
-      const result = await purposeProcessClient.rejectRiskAnalysis(seed, {
+      await purposeProcessClient.rejectRiskAnalysis(seed, {
         params: { purposeId },
         headers,
       });
-      return { id: result.id };
     },
     async editRiskAnalysisForm(
       purposeId: PurposeId,

@@ -106,6 +106,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             purposeVersionDocument: null,
             purposeVersionStamp: null,
             purposeVersionSignedDocument: null,
+            purposeRiskAnalysisReviewer: null,
           }))
         )
       ).map((p) => p.data);

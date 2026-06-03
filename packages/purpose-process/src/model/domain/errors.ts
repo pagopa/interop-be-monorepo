@@ -64,15 +64,10 @@ const errorCodes = {
   reviewerWorkflowConflict: "0044",
   reviewerWorkflowNotFound: "0045",
   reviewerWorkflowNotSubmittable: "0046",
-  requesterIsNotTheWriter: "0047",
-  submitNotAllowedForReviewMode: "0048",
-  reviewerWorkflowNotInPendingSignatureState: "0049",
-  requesterIsNotTheSigner: "0050",
-  reviewerWorkflowNotInSignedState: "0051",
-  riskAnalysisFormEditNotAllowed: "0052",
-  rejectNotAllowedInCurrentMode: "0053",
-  editNotAllowedForReviewMode: "0054",
-  reviewerWorkflowNotEditable: "0055",
+  submitNotAllowedForReviewMode: "0047",
+  reviewerWorkflowNotInSubmittedState: "0048",
+  requesterIsNotDesignatedReviewer: "0049",
+  rejectNotAllowedInCurrentMode: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -576,53 +571,23 @@ export function submitNotAllowedForReviewMode(
   });
 }
 
-export function requesterIsNotTheWriter(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Requester is not authorized to write the risk analysis for purpose ${purposeId}`,
-    code: "requesterIsNotTheWriter",
-    title: "Requester is not the writer",
-  });
-}
-
-export function reviewerWorkflowNotInPendingSignatureState(
+export function reviewerWorkflowNotInSubmittedState(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} reviewer workflow is not in a signable state (must be Submitted for AdminWritesReviewerSigns or Assigned for ReviewerWritesReviewerSigns)`,
-    code: "reviewerWorkflowNotInPendingSignatureState",
+    code: "reviewerWorkflowNotInSubmittedState",
     title: "Reviewer workflow not in signable state",
   });
 }
 
-export function requesterIsNotTheSigner(
+export function requesterIsNotDesignatedReviewer(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Requester is not authorized to sign the risk analysis for purpose ${purposeId}`,
-    code: "requesterIsNotTheSigner",
-    title: "Requester is not the signer",
-  });
-}
-
-export function reviewerWorkflowNotInSignedState(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} reviewer workflow must be in Signed state before activation`,
-    code: "reviewerWorkflowNotInSignedState",
-    title: "Reviewer workflow not in signed state",
-  });
-}
-
-export function riskAnalysisFormEditNotAllowed(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Risk analysis form cannot be edited for purpose ${purposeId} while reviewer workflow is in Submitted or Signed state`,
-    code: "riskAnalysisFormEditNotAllowed",
-    title: "Risk analysis form edit not allowed",
+    detail: `Requester is not one of the selected reviewers for signing the risk analysis of purpose ${purposeId}`,
+    code: "requesterIsNotDesignatedReviewer",
+    title: "Requester is not the designated reviewer",
   });
 }
 

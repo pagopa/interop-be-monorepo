@@ -83,25 +83,6 @@ export function toOutboundEventV2(
       })
     )
     .with(
-      { type: "PurposeRiskAnalysisWorkflowCreated" },
-      { type: "PurposeRiskAnalysisSubmitted" },
-      { type: "PurposeRiskAnalysisSigned" },
-      { type: "PurposeRiskAnalysisRejected" },
-      { type: "PurposeRiskAnalysisFormEdited" },
-      (msg) =>
-        ({
-          event_version: msg.event_version,
-          type: msg.type,
-          version: msg.version,
-          data: {
-            purpose: msg.data.purpose && toOutboundPurposeV2(msg.data.purpose),
-          },
-          stream_id: msg.stream_id,
-          streamVersion: msg.version,
-          timestamp: new Date(),
-        }) as unknown as OutboundPurposeEvent
-    )
-    .with(
       { type: "NewPurposeVersionActivated" },
       { type: "PurposeVersionActivated" },
       { type: "PurposeVersionUnsuspendedByProducer" },
@@ -130,6 +111,11 @@ export function toOutboundEventV2(
     )
     .with(
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
+      { type: "PurposeRiskAnalysisWorkflowCreated" },
+      { type: "PurposeRiskAnalysisAssigned" },
+      { type: "PurposeRiskAnalysisSubmitted" },
+      { type: "PurposeRiskAnalysisSigned" },
+      { type: "PurposeRiskAnalysisRejected" },
       () => undefined
     )
     .with({ type: "PurposeCloned" }, (msg) => ({
