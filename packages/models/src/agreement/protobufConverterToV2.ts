@@ -7,14 +7,22 @@ import {
   AgreementStateV2,
   AgreementV2,
 } from "../gen/v2/agreement/agreement.js";
+import {
+  AgreementSuspensionReasonV2,
+  CertifiedDiscreteAttributeFailureV2,
+} from "../gen/v2/agreement/events.js";
+import { toAttributeCertifiedDiscreteComparatorV2 } from "../eservice/protobufConverterToV2.js";
 import { dateToBigInt } from "../utils.js";
 import {
   Agreement,
+  AgreementSuspensionReason,
   AgreementSignedContract,
   AgreementDocument,
   AgreementStamp,
   AgreementStamps,
   AgreementState,
+  CertifiedDiscreteAttributeFailure,
+  agreementSuspensionReason,
   agreementState,
 } from "./agreement.js";
 
@@ -31,6 +39,31 @@ export const toAgreementStateV2 = (state: AgreementState): AgreementStateV2 =>
       () => AgreementStateV2.MISSING_CERTIFIED_ATTRIBUTES
     )
     .exhaustive();
+
+export const toAgreementSuspensionReasonV2 = (
+  suspensionReason: AgreementSuspensionReason
+): AgreementSuspensionReasonV2 =>
+  match(suspensionReason)
+    .with(
+      agreementSuspensionReason.certifiedAttribute,
+      () =>
+        AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_ATTRIBUTE
+    )
+    .with(
+      agreementSuspensionReason.certifiedDiscreteAttribute,
+      () =>
+        AgreementSuspensionReasonV2.AGREEMENT_SUSPENSION_REASON_CERTIFIED_DISCRETE_ATTRIBUTE
+    )
+    .exhaustive();
+
+export const toCertifiedDiscreteAttributeFailureV2 = (
+  failure: CertifiedDiscreteAttributeFailure
+): CertifiedDiscreteAttributeFailureV2 => ({
+  attributeId: failure.attributeId,
+  tenantValue: failure.tenantValue,
+  threshold: failure.threshold,
+  comparator: toAttributeCertifiedDiscreteComparatorV2(failure.comparator),
+});
 
 export const toAgreementDocumentV2 = (
   input: AgreementDocument

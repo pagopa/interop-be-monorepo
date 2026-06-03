@@ -18,7 +18,6 @@ import {
   Delegation,
   delegationState,
   DelegationId,
-  tenantAttributeType,
 } from "pagopa-interop-models";
 import {
   M2MAdminAuthData,
@@ -29,10 +28,10 @@ import {
 } from "pagopa-interop-commons";
 import {
   certifiedAttributesSatisfied,
-  discreteComparatorMatches,
   filterCertifiedAttributes,
   filterDeclaredAttributes,
   filterVerifiedAttributes,
+  matchesCertifiedDiscreteAttribute,
 } from "pagopa-interop-agreement-lifecycle";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
@@ -545,31 +544,21 @@ export const matchingCertifiedDiscreteAttributes = (
   descriptor: Descriptor,
   consumer: Tenant
 ): CertifiedDiscreteAgreementAttribute[] => {
-  const matched = new Set<AttributeId>();
+  const matchedIds = descriptor.attributes.certified
+    .flat()
+    .filter(
+      (descriptorAttribute) =>
+        "discreteConfig" in descriptorAttribute &&
+        consumer.attributes.some((tenantAttribute) =>
+          matchesCertifiedDiscreteAttribute(
+            descriptorAttribute,
+            tenantAttribute
+          )
+        )
+    )
+    .map((descriptorAttribute) => descriptorAttribute.id);
 
-  for (const group of descriptor.attributes.certified) {
-    for (const descriptorAttribute of group) {
-      if ("discreteConfig" in descriptorAttribute) {
-        const tenantAttribute = consumer.attributes.find(
-          (attribute) =>
-            attribute.id === descriptorAttribute.id &&
-            attribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
-            !attribute.revocationTimestamp &&
-            discreteComparatorMatches(
-              attribute.discreteValue,
-              descriptorAttribute.discreteConfig.threshold,
-              descriptorAttribute.discreteConfig.comparator
-            )
-        );
-
-        if (tenantAttribute) {
-          matched.add(descriptorAttribute.id);
-        }
-      }
-    }
-  }
-
-  return Array.from(matched).map(
+  return [...new Set(matchedIds)].map(
     (id) => ({ id }) as CertifiedDiscreteAgreementAttribute
   );
 };

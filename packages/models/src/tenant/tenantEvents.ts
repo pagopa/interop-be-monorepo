@@ -14,6 +14,9 @@ import {
   TenantOnboardDetailsUpdatedV2,
   TenantCertifiedAttributeAssignedV2,
   TenantCertifiedAttributeRevokedV2,
+  TenantCertifiedDiscreteAttributeAssignedV2,
+  TenantCertifiedDiscreteAttributeRevokedV2,
+  TenantCertifiedDiscreteAttributeUpdatedV2,
   TenantDeclaredAttributeAssignedV2,
   TenantDeclaredAttributeRevokedV2,
   TenantVerifiedAttributeAssignedV2,
@@ -81,6 +84,15 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     )
     .with({ type: "TenantCertifiedAttributeRevoked" }, ({ data }) =>
       TenantCertifiedAttributeRevokedV2.toBinary(data)
+    )
+    .with({ type: "TenantCertifiedDiscreteAttributeAssigned" }, ({ data }) =>
+      TenantCertifiedDiscreteAttributeAssignedV2.toBinary(data)
+    )
+    .with({ type: "TenantCertifiedDiscreteAttributeRevoked" }, ({ data }) =>
+      TenantCertifiedDiscreteAttributeRevokedV2.toBinary(data)
+    )
+    .with({ type: "TenantCertifiedDiscreteAttributeUpdated" }, ({ data }) =>
+      TenantCertifiedDiscreteAttributeUpdatedV2.toBinary(data)
     )
     .with({ type: "TenantDeclaredAttributeAssigned" }, ({ data }) =>
       TenantDeclaredAttributeAssignedV2.toBinary(data)
@@ -196,6 +208,21 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("TenantCertifiedAttributeRevoked"),
     data: protobufDecoder(TenantCertifiedAttributeRevokedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantCertifiedDiscreteAttributeAssigned"),
+    data: protobufDecoder(TenantCertifiedDiscreteAttributeAssignedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantCertifiedDiscreteAttributeRevoked"),
+    data: protobufDecoder(TenantCertifiedDiscreteAttributeRevokedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantCertifiedDiscreteAttributeUpdated"),
+    data: protobufDecoder(TenantCertifiedDiscreteAttributeUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),
