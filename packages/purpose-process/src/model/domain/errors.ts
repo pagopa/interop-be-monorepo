@@ -64,8 +64,7 @@ const errorCodes = {
   reviewerWorkflowConflict: "0044",
   reviewerWorkflowNotFound: "0045",
   reviewerWorkflowNotSubmittable: "0046",
-  requesterIsNotTheWriter: "0047",
-  submitNotAllowedForReviewMode: "0048",
+  submitNotAllowedForReviewMode: "0047",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -566,15 +565,5 @@ export function submitNotAllowedForReviewMode(
     detail: `Submit is not allowed for purpose ${purposeId} because the review mode is not AdminWritesReviewerSigns`,
     code: "submitNotAllowedForReviewMode",
     title: "Submit not allowed for review mode",
-  });
-}
-
-export function requesterIsNotTheWriter(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Requester is not authorized to write the risk analysis for purpose ${purposeId}`,
-    code: "requesterIsNotTheWriter",
-    title: "Requester is not the writer",
   });
 }
