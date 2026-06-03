@@ -10013,8 +10013,8 @@ paths:
               $ref: "#/components/schemas/RiskAnalysisAssignmentSeed"
         required: true
       responses:
-        "200":
-          description: Risk analysis reviewer assigned
+        "204":
+          description: No Content
           headers:
             "X-Rate-Limit-Limit":
               schema:
@@ -10031,10 +10031,6 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreatedResource"
         "400":
           description: Bad Request
           content:
@@ -10080,7 +10076,7 @@ paths:
               $ref: "#/components/schemas/RiskAnalysisSubmissionSeed"
         required: true
       responses:
-        "200":
+        "204":
           description: Risk analysis submitted for signing
           headers:
             "X-Rate-Limit-Limit":
@@ -10098,10 +10094,6 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreatedResource"
         "400":
           description: Bad Request
           content:
@@ -10141,7 +10133,7 @@ paths:
       description: Sign/approve the risk analysis as a reviewer
       summary: Sign risk analysis
       responses:
-        "200":
+        "204":
           description: Risk analysis signed
           headers:
             "X-Rate-Limit-Limit":
@@ -10159,10 +10151,6 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreatedResource"
         "403":
           description: Forbidden
           content:
@@ -10202,7 +10190,7 @@ paths:
               $ref: "#/components/schemas/RiskAnalysisRejectionSeed"
         required: true
       responses:
-        "200":
+        "204":
           description: Risk analysis rejected
           headers:
             "X-Rate-Limit-Limit":
@@ -10220,10 +10208,6 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/CreatedResource"
         "403":
           description: Forbidden
           content:
@@ -26450,74 +26434,6 @@ components:
           type: string
       required:
         - rejectionReason
-    RiskAnalysisReviewMode:
-      type: string
-      description: Risk analysis review mode
-      enum:
-        - REVIEWER_WRITES_REVIEWER_SIGNS
-        - ADMIN_WRITES_REVIEWER_SIGNS
-    ReviewerWorkflow:
-      type: object
-      additionalProperties: false
-      description: Reviewer workflow state for a purpose risk analysis
-      properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-        signingState:
-          $ref: "#/components/schemas/RiskAnalysisSigningState"
-        signedBy:
-          type: string
-          format: uuid
-        rejectionReason:
-          type: string
-        sentToReviewerAt:
-          type: string
-          format: date-time
-      required:
-        - reviewMode
-        - reviewerIds
-        - signingState
-    RiskAnalysisAssignmentSeed:
-      type: object
-      additionalProperties: false
-      description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
-      properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-          minItems: 1
-      required:
-        - reviewMode
-        - reviewerIds
-    RiskAnalysisRejectionSeed:
-      type: object
-      additionalProperties: false
-      description: Payload to reject the risk analysis with a reason
-      properties:
-        rejectionReason:
-          type: string
-          minLength: 10
-          maxLength: 250
-      required:
-        - rejectionReason
-    RiskAnalysisSubmissionSeed:
-      type: object
-      additionalProperties: false
-      description: Payload to submit the risk analysis form for reviewer signing
-      properties:
-        riskAnalysisForm:
-          $ref: "#/components/schemas/RiskAnalysisFormSeed"
-      required:
-        - riskAnalysisForm
     GoogleSAMLPayload:
       type: object
       additionalProperties: false
@@ -29296,15 +29212,6 @@ components:
         - REJECTED
         - WAITING_FOR_APPROVAL
         - ARCHIVED
-    RiskAnalysisSigningState:
-      type: string
-      description: Risk analysis signing state
-      enum:
-        - DRAFT
-        - ASSIGNED
-        - SUBMITTED
-        - SIGNED
-        - REJECTED
     PurposeVersionSignedDocument:
       type: object
       additionalProperties: false
@@ -31448,6 +31355,83 @@ components:
         - "TRUE"
         - "FALSE"
         - DEFINED
+    RiskAnalysisReviewMode:
+      type: string
+      description: Risk analysis review mode
+      enum:
+        - ADMIN_WRITES_REVIEWER_SIGNS
+        - REVIEWER_WRITES_REVIEWER_SIGNS
+    RiskAnalysisSigningState:
+      type: string
+      description: Risk analysis signing state
+      enum:
+        - DRAFT
+        - ASSIGNED
+        - SUBMITTED
+        - SIGNED
+        - REJECTED
+    ReviewerWorkflow:
+      type: object
+      additionalProperties: false
+      description: Reviewer workflow state for a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        signingState:
+          $ref: "#/components/schemas/RiskAnalysisSigningState"
+        signedBy:
+          type: string
+          format: uuid
+        rejectionReason:
+          type: string
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - reviewMode
+        - reviewerIds
+        - signingState
+    RiskAnalysisAssignmentSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+        - reviewMode
+        - reviewerIds
+    RiskAnalysisSubmissionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to submit the risk analysis form for reviewer signing
+      properties:
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+      required:
+        - riskAnalysisForm
+    RiskAnalysisRejectionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to reject the risk analysis with a reason
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - rejectionReason
     ProblemError:
       properties:
         code:

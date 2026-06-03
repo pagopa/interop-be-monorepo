@@ -23,7 +23,7 @@ import {
   checkCompletePurpose,
   purposeWriterService,
   readModelDB,
-  retrievePurposeReviewersSQLById,
+  retrieveRiskAnalysisReviewersSQLById,
   retrievePurposeRiskAnalysisAnswersSQLById,
   retrievePurposeRiskAnalysisFormSQLById,
   retrievePurposeSQLById,
@@ -85,6 +85,7 @@ describe("Purpose queries", () => {
       };
 
       await purposeWriterService.upsertPurpose(purpose, 1);
+      const {
         purposeSQL,
         riskAnalysisFormSQL,
         riskAnalysisAnswersSQL,
@@ -144,8 +145,8 @@ describe("Purpose queries", () => {
           readModelDB
         );
 
-      const retrievedPurposeRiskAnalysisReviewrsSQL =
-        await retrievePurposeReviewersSQLById(purpose.id, readModelDB);
+      const retrievedPurposeRiskAnalysisReviewersSQL =
+        await retrieveRiskAnalysisReviewersSQLById(purpose.id, readModelDB);
 
       expect(retrievedPurposeSQL).toBeDefined();
       expect(retrievedRiskAnalysisFormSQL).toBeUndefined();
@@ -162,7 +163,7 @@ describe("Purpose queries", () => {
         versionDocumentsSQL: retrievedPurposeVersionDocumentSQL,
         versionStampsSQL: retrievedPurposeVersionStampSQL,
         versionSignedDocumentsSQL: retrievedPurposeVersionSignedDocumentSQL,
-        reviewersSQL: retrievedPurposeRiskAnalysisReviewrsSQL,
+        reviewersSQL: retrievedPurposeRiskAnalysisReviewersSQL,
       });
 
       expect(retrievedPurpose).toStrictEqual({

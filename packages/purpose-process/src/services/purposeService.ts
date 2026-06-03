@@ -90,8 +90,8 @@ import {
   unableToDetermineTenantKind,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  reviewerWorkflowNotInPendingSignatureState,
-  requesterIsNotTheSigner,
+  reviewerWorkflowNotInSubmittedState,
+  requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
@@ -136,7 +136,6 @@ type GetPurposesFilters = Omit<ReadModelGetPurposesFilters, "purposesIds"> & {
   clientId?: ClientId;
 };
 import {
-  assertRiskAnalysisFormCanBeUpdated,
   assertConsistentFreeOfCharge,
   assertEserviceMode,
   assertPersonalDataCompliant,
@@ -146,7 +145,6 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
-  assertReviewerWorkflowIsSigned,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -164,6 +162,7 @@ import {
   verifyRequesterIsConsumerOrDelegateConsumer,
   getUpdatedQuotas,
   assertRiskAnalysisTenantKindMatch,
+  assertRequesterIsConsumer,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -529,28 +528,21 @@ export function purposeServiceBuilder(
         reviewerIds: string[];
       },
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Assigning risk analysis reviewer to Purpose ${purposeId}`);
 
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
-      assertRequesterCanActAsConsumer(
-        purpose.data,
-        authData,
-        await retrievePurposeDelegation(purpose.data, readModelService)
-      );
+      assertRequesterIsConsumer(purpose.data, authData);
 
-      const existingWorkflow = purpose.data.reviewerWorkflow;
-      if (existingWorkflow) {
+      if (purpose.data.reviewerWorkflow !== undefined) {
         throw reviewerWorkflowConflict(purposeId);
       }
 
       const isReviewerWrites =
-        seed.reviewMode === "ReviewerWritesReviewerSigns";
+        seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
 
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
@@ -582,7 +574,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose: updatedPurpose, isRiskAnalysisValid: false },
+        data: updatedPurpose,
         metadata: { version: event.newVersion },
       };
     },
@@ -592,9 +584,7 @@ export function purposeServiceBuilder(
         riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
       },
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Submitting risk analysis for Purpose ${purposeId}`);
 
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
@@ -620,13 +610,7 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotSubmittable(purposeId);
       }
 
-      assertRequesterCanActAsConsumer(
-        purpose.data,
-        authData,
-        await retrievePurposeDelegation(purpose.data, readModelService)
-      );
-
-      const riskAnalysisForm = purpose.data.riskAnalysisForm;
+      assertRequesterIsConsumer(purpose.data, authData);
 
       const tenantKind = await retrieveTenantKind(
         purpose.data.consumerId,
@@ -639,7 +623,7 @@ export function purposeServiceBuilder(
 
       const now = new Date();
 
-      const riskAnalysisFormToValidate = {
+      const riskAnalysisFormToValidate: RiskAnalysisFormToValidate = {
         ...seed.riskAnalysisForm,
         tenantKind,
       };
@@ -655,10 +639,7 @@ export function purposeServiceBuilder(
       const updatedPurpose: Purpose = {
         ...purpose.data,
         riskAnalysisForm: validatedRiskAnalysisForm
-          ? {
-              ...validatedRiskAnalysisForm,
-              riskAnalysisId: riskAnalysisForm?.riskAnalysisId,
-            }
+          ? validatedRiskAnalysisForm
           : purpose.data.riskAnalysisForm,
         reviewerWorkflow: {
           ...workflow,
@@ -678,7 +659,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        data: updatedPurpose,
         metadata: { version: event.newVersion },
       };
     },
@@ -693,6 +674,8 @@ export function purposeServiceBuilder(
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertRequesterIsConsumer(purpose.data, authData);
 
       const workflow = purpose.data.reviewerWorkflow;
 
@@ -716,11 +699,11 @@ export function purposeServiceBuilder(
           () => true
         )
         .otherwise(() => {
-          throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+          throw reviewerWorkflowNotInSubmittedState(purposeId);
         });
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
-        throw requesterIsNotTheSigner(purposeId);
+        throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
       if (isReviewerWritesSignable) {
@@ -772,9 +755,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       { rejectionReason }: { rejectionReason: string },
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Rejecting risk analysis for Purpose ${purposeId}`);
 
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
@@ -788,7 +769,7 @@ export function purposeServiceBuilder(
       }
 
       if (workflow.signingState !== riskAnalysisSigningState.submitted) {
-        throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+        throw reviewerWorkflowNotInSubmittedState(purposeId);
       }
 
       if (
@@ -798,7 +779,7 @@ export function purposeServiceBuilder(
       }
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
-        throw requesterIsNotTheSigner(purposeId);
+        throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
       const updatedPurpose: Purpose = {
@@ -820,7 +801,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        data: updatedPurpose,
         metadata: { version: event.newVersion },
       };
     },
@@ -1482,13 +1463,6 @@ export function purposeServiceBuilder(
             personalDataInEService: eservice.personalData,
           });
         }
-      }
-
-      if (isFeatureFlagEnabled(config, "featureFlagNewOperators")) {
-        assertReviewerWorkflowIsSigned({
-          purposeId,
-          reviewerWorkflow: purpose.data.reviewerWorkflow,
-        });
       }
 
       const purposeOwnership = await getOrganizationRole({
@@ -2479,17 +2453,6 @@ const performUpdatePurpose = async (
   // ^ To make sure we extract all the updated fields, even optional ones
 
   const { mode } = modeAndUpdateContent;
-
-  if (
-    mode === eserviceMode.deliver &&
-    isFeatureFlagEnabled(config, "featureFlagNewOperators")
-  ) {
-    assertRiskAnalysisFormCanBeUpdated({
-      purposeId,
-      reviewerWorkflow: purpose.data.reviewerWorkflow,
-      riskAnalysisFormChanged: riskAnalysisForm !== undefined,
-    });
-  }
 
   if (title && title !== purpose.data.title) {
     await assertPurposeTitleIsNotDuplicated({
