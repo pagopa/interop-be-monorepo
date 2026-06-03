@@ -422,15 +422,12 @@ export const rejectRiskAnalysisErrorMapper = (
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with(
-      "requesterIsNotTheSigner",
+      "requesterIsNotDesignatedReviewer",
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with(
-      "reviewerWorkflowNotInPendingSignatureState",
-      () => HTTP_STATUS_CONFLICT
-    )
+    .with("reviewerWorkflowNotInSubmittedState", () => HTTP_STATUS_CONFLICT)
     .with("rejectNotAllowedInCurrentMode", () => HTTP_STATUS_CONFLICT)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

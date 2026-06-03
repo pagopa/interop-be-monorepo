@@ -467,14 +467,12 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisRejectionSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
-      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+    ): Promise<void> {
       logger.info(`Rejecting risk analysis for purpose ${purposeId}`);
-      const result = await purposeProcessClient.rejectRiskAnalysis(seed, {
+      await purposeProcessClient.rejectRiskAnalysis(seed, {
         params: { purposeId },
         headers,
       });
-      return { id: result.id };
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,

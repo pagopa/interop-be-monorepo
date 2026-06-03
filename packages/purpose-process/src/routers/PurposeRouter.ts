@@ -600,24 +600,18 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [REVIEWER_ROLE]);
 
-        const {
-          data: { purpose, isRiskAnalysisValid },
-          metadata,
-        } = await purposeService.rejectRiskAnalysis(
-          unsafeBrandId(req.params.purposeId),
-          req.body,
-          ctx
-        );
+        const { data: purpose, metadata } =
+          await purposeService.rejectRiskAnalysis(
+            unsafeBrandId(req.params.purposeId),
+            req.body,
+            ctx
+          );
 
         setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

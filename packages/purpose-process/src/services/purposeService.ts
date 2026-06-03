@@ -755,9 +755,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       { rejectionReason }: { rejectionReason: string },
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Rejecting risk analysis for Purpose ${purposeId}`);
 
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
@@ -771,7 +769,7 @@ export function purposeServiceBuilder(
       }
 
       if (workflow.signingState !== riskAnalysisSigningState.submitted) {
-        throw reviewerWorkflowNotInPendingSignatureState(purposeId);
+        throw reviewerWorkflowNotInSubmittedState(purposeId);
       }
 
       if (
@@ -781,7 +779,7 @@ export function purposeServiceBuilder(
       }
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
-        throw requesterIsNotTheSigner(purposeId);
+        throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
       const updatedPurpose: Purpose = {
@@ -803,7 +801,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        data: updatedPurpose,
         metadata: { version: event.newVersion },
       };
     },

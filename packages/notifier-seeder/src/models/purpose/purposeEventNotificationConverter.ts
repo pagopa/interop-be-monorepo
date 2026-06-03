@@ -76,6 +76,7 @@ export const toPurposeEventNotification = (
       { type: "PurposeRiskAnalysisAssigned" },
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
+      { type: "PurposeRiskAnalysisRejected" },
       () => undefined
     )
     .exhaustive();
