@@ -8,11 +8,11 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
   getNotificationRecipients,
+  inAppTemplates,
   retrieveEservice,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 type AsyncEserviceWithoutKeychainEvent = Extract<
   AuthorizationEventEnvelopeV2,

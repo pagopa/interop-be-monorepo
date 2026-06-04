@@ -50,6 +50,7 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist = [],
   producerKeychainReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
@@ -60,9 +61,11 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
   purposeReadModelServiceSQL: PurposeReadModelService;
+  notificationTypeBlocklist?: NotificationType[];
   producerKeychainReadModelServiceSQL: ProducerKeychainReadModelService;
 }) {
   return {
+    notificationTypeBlocklist,
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
@@ -101,14 +104,15 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
-      notificationName: NotificationType
+      notificationName: NotificationType,
+      notificationChannel: "inApp" | "email"
     ): Promise<
       Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
     > {
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,
         notificationName,
-        "email"
+        notificationChannel
       );
     },
     async getTenantNotificationConfigByTenantId(
