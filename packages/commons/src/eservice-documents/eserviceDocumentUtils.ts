@@ -194,7 +194,7 @@ export const interpolateTemplateRestApiSpec = async (
   /* eslint-enable */
 
   try {
-    await SwaggerParser.validate(jsonApi);
+    await SwaggerParser.validate(structuredClone(jsonApi));
     const updatedInterfaceBuffer = restApiFileToBuffer(
       concreteFileType,
       jsonApi
