@@ -69,6 +69,8 @@ const errorCodes = {
   reviewerWorkflowNotInSubmittedState: "0049",
   requesterIsNotDesignatedReviewer: "0050",
   rejectNotAllowedInCurrentMode: "0051",
+  editNotAllowedForReviewMode: "0052",
+  reviewerWorkflowNotEditable: "0053",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
