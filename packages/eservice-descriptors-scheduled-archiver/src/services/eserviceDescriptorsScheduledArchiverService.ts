@@ -184,7 +184,7 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
       );
 
       const results = await Promise.all(
-        correctEservicesIds.map(await limit(() => archiveEService))
+        correctEservicesIds.map((id) => limit(() => archiveEService(id)))
       );
 
       const success = results.every((success) => success);
