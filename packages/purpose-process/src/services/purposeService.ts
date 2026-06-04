@@ -1038,6 +1038,10 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
+      if (!isDeletable(purpose.data)) {
+        throw purposeCannotBeDeleted(purpose.data.id);
+      }
+
       assertRequesterCanActAsConsumer(
         purpose.data,
         authData,
