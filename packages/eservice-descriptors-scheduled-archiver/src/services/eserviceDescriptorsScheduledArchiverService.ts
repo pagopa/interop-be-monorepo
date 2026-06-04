@@ -2,15 +2,19 @@
 
 import { AxiosError } from "axios";
 import pLimit from "p-limit";
-import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
-import { CorrelationId, EServiceId, generateId } from "pagopa-interop-models";
+import { Logger, RefreshableInteropToken, retry } from "pagopa-interop-commons";
+import {
+  CorrelationId,
+  DescriptorId,
+  EServiceId,
+  generateId,
+} from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { CatalogProcessZodiosClient } from "./catalogProcessClient.js";
 import { config } from "../config/config.js";
-import { ArchivableDescriptorRef } from "../models/models.js";
+import { ArchivableDescriptorRef, Headers } from "../models/models.js";
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const getHeaders = (correlationId: CorrelationId, token: string) => ({
+const getHeaders = (correlationId: CorrelationId, token: string): Headers => ({
   "X-Correlation-Id": correlationId,
   Authorization: `Bearer ${token}`,
 });
@@ -31,6 +35,26 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
   catalogProcessClient: CatalogProcessZodiosClient;
   refreshableToken: RefreshableInteropToken;
 }) {
+  const checkDescriptorIsArchived = async (
+    eServiceId: EServiceId,
+    descriptorId: DescriptorId,
+    headers: Headers
+  ): Promise<void> => {
+    const eservice = await catalogProcessClient.getEServiceById({
+      params: {
+        eServiceId,
+      },
+      headers,
+    });
+    const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+    if (!descriptor) {
+      throw new Error("Descriptor not found");
+    }
+    if (descriptor.state !== "ARCHIVED") {
+      throw new Error("Descriptor not archived");
+    }
+  };
+
   const archiveDescriptor = async (
     ref: ArchivableDescriptorRef
   ): Promise<boolean> => {
@@ -49,6 +73,14 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
             descriptorId: ref.descriptorId,
           },
           headers,
+        }
+      );
+      await retry(
+        () =>
+          checkDescriptorIsArchived(ref.eserviceId, ref.descriptorId, headers),
+        {
+          retries: config.defaultPollingMaxRetries,
+          delay: config.defaultPollingRetryDelay,
         }
       );
       return true;

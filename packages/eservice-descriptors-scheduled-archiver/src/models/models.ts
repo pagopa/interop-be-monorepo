@@ -1,5 +1,6 @@
 import {
   ArchivingScope,
+  CorrelationId,
   DescriptorId,
   DescriptorState,
   EServiceId,
@@ -38,3 +39,9 @@ export const EServicesWithUnarchivableDescriptors = z.array(
 export type EServicesWithUnarchivableDescriptors = z.infer<
   typeof EServicesWithUnarchivableDescriptors
 >;
+
+const Headers = z.object({
+  "X-Correlation-Id": CorrelationId,
+  Authorization: z.string(),
+});
+export type Headers = z.infer<typeof Headers>;
