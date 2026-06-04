@@ -94,6 +94,8 @@ import {
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
+  reviewerWorkflowNotInSubmittedState,
+  requesterIsNotDesignatedReviewer,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
