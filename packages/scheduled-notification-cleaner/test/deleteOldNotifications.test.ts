@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-models";
 import { logger } from "pagopa-interop-commons";
-import { deleteOldNotifications } from "../src/deleteOldNotifications.js";
 import {
   addScheduledNotifications,
   getMockNotification,
   scheduledNotificationDB,
 } from "./utils.js";
+import { deleteOldNotifications } from "../src/deleteOldNotifications.js";
 
 describe("deleteOldNotifications", () => {
   const loggerInstance = logger({ serviceName: "test" });
@@ -226,5 +226,27 @@ describe("deleteOldNotifications", () => {
       .from(scheduledNotification);
 
     expect(remainingNotifications).toHaveLength(2);
+  });
+
+  it("should not delete notifications with sentAt = null", async () => {
+    const pendingNotification = getMockNotification({
+      sentAt: null,
+    });
+
+    await addScheduledNotifications([pendingNotification]);
+
+    const deletedCount = await deleteOldNotifications(
+      scheduledNotificationDB,
+      90,
+      loggerInstance
+    );
+
+    expect(deletedCount).toBe(0);
+
+    const remaining = await scheduledNotificationDB
+      .select()
+      .from(scheduledNotification);
+
+    expect(remaining).toHaveLength(1);
   });
 });
