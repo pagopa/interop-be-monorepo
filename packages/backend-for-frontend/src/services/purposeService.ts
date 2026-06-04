@@ -480,15 +480,14 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       seed: bffApi.RiskAnalysisFormSeed,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.CreatedResource> {
+    ): Promise<void> {
       logger.info(
         `Editing risk analysis form for purpose ${purposeId} by reviewer`
       );
-      const result = await purposeProcessClient.editRiskAnalysisForm(seed, {
+      await purposeProcessClient.editRiskAnalysisForm(seed, {
         params: { purposeId },
         headers,
       });
-      return { id: result.id };
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,

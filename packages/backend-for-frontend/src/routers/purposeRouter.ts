@@ -374,13 +374,13 @@ const purposeRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.editRiskAnalysisForm(
+        await purposeService.editRiskAnalysisForm(
           unsafeBrandId(req.params.purposeId),
           req.body,
           ctx
         );
 
-        return res.status(200).send(bffApi.CreatedResource.parse(result));
+        return res.status(204).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
