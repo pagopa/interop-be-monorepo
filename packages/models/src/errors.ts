@@ -15,6 +15,7 @@ const {
   HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_IMPLEMENTED,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
@@ -312,6 +313,7 @@ export const commonErrorCodes = {
   keyTypeNotAllowed: "10029",
   invalidJWKClaim: "10030",
   contentTooLargeError: "10031",
+  eventConflictError: "10032",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -419,6 +421,28 @@ export function hyperlinkDetectionError(
   });
 }
 
+export function eventConflictError(
+  correlationId?: string,
+  streamId?: string,
+  streamVersion?: number
+): InternalError<CommonErrorCodes> {
+  const correlationIdPrefix = correlationId ? `[CID=${correlationId}]` : "";
+  const streamVersionPrefix =
+    streamVersion !== undefined ? `[SV=${streamVersion}]` : "";
+  const streamIdPrefix = streamId ? `[SID=${streamId}]` : "";
+
+  const prefixes = [
+    correlationIdPrefix,
+    streamVersionPrefix,
+    streamIdPrefix,
+  ].join(" ");
+
+  return new InternalError({
+    code: "eventConflictError",
+    detail: `${prefixes} Request conflicts with an ongoing operation on the same resource. Please retry.`,
+  });
+}
+
 export function kafkaMessageProcessError(
   topic: string,
   partition: number,
@@ -497,6 +521,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .with("eventConflictError", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export function authenticationSaslFailed(
