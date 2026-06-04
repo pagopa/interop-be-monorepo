@@ -65,6 +65,7 @@ describe("API GET /purposes test", () => {
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

@@ -90,15 +90,15 @@ import {
   unableToDetermineTenantKind,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  reviewerWorkflowNotInSubmittedState,
-  requesterIsNotDesignatedReviewer,
+  multipleReviewersNotAllowed,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
+  reviewerWorkflowNotInSubmittedState,
+  requesterIsNotDesignatedReviewer,
   rejectNotAllowedInCurrentMode,
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
-  requesterIsNotTheWriter,
   reviewerWorkflowNotInSignedState,
 } from "../model/domain/errors.js";
 import {
@@ -549,6 +549,10 @@ export function purposeServiceBuilder(
       const isReviewerWrites =
         seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
 
+      if (seed.reviewerIds.length > 1) {
+        throw multipleReviewersNotAllowed(purposeId);
+      }
+
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
         reviewerIds: seed.reviewerIds.map((id) => unsafeBrandId(id)),
@@ -767,6 +771,8 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
+      assertRequesterIsConsumer(purpose.data, authData);
+
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
@@ -814,9 +820,7 @@ export function purposeServiceBuilder(
       purposeId: PurposeId,
       riskAnalysisFormSeed: purposeApi.RiskAnalysisFormSeed,
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(
         `Editing risk analysis form for Purpose ${purposeId} by reviewer`
       );
@@ -843,7 +847,7 @@ export function purposeServiceBuilder(
       }
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
-        throw requesterIsNotTheWriter(purposeId);
+        throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
       const tenantKind = await retrieveTenantKind(
@@ -855,8 +859,13 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      const formToValidate: RiskAnalysisFormToValidate = {
+        ...riskAnalysisFormSeed,
+        tenantKind,
+      };
+
       const validatedFormSeed = validateAndTransformRiskAnalysis(
-        riskAnalysisFormSeed,
+        formToValidate,
         true,
         tenantKind,
         new Date(),
@@ -878,10 +887,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: {
-          purpose: updatedPurpose,
-          isRiskAnalysisValid: validatedFormSeed !== undefined,
-        },
+        data: updatedPurpose,
         metadata: { version: event.newVersion },
       };
     },
@@ -1030,10 +1036,6 @@ export function purposeServiceBuilder(
       logger.info(`Deleting Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
-
-      if (!isDeletable(purpose.data)) {
-        throw purposeCannotBeDeleted(purpose.data.id);
-      }
 
       assertRequesterCanActAsConsumer(
         purpose.data,

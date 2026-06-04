@@ -24,13 +24,13 @@ import {
   apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
   apiReviewModeToReviewMode,
-  apiSigningStateToSigningState,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
   remainingDailyCallsToApiRemainingDailyCalls,
+  apiSigningStateToSigningState,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PurposeService } from "../services/purposeService.js";
@@ -95,6 +95,7 @@ const purposeRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const {
@@ -106,7 +107,7 @@ const purposeRouter = (
           states,
           excludeDraft,
           reviewerId,
-          signingState,
+          signingStates,
           offset,
           limit,
         } = req.query;
@@ -122,7 +123,7 @@ const purposeRouter = (
             reviewerId: reviewerId
               ? unsafeBrandId<UserId>(reviewerId)
               : undefined,
-            signingStates: signingState?.map(apiSigningStateToSigningState),
+            signingStates: signingStates?.map(apiSigningStateToSigningState),
           },
           { offset, limit },
           ctx
@@ -637,24 +638,18 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [REVIEWER_ROLE]);
 
-        const {
-          data: { purpose, isRiskAnalysisValid },
-          metadata,
-        } = await purposeService.editRiskAnalysisForm(
-          unsafeBrandId(req.params.purposeId),
-          req.body,
-          ctx
-        );
+        const { data: purpose, metadata } =
+          await purposeService.editRiskAnalysisForm(
+            unsafeBrandId(req.params.purposeId),
+            req.body,
+            ctx
+          );
 
         setMetadataVersionHeader(res, metadata);
 
         return res
           .status(200)
-          .send(
-            purposeApi.Purpose.parse(
-              purposeToApiPurpose(purpose, isRiskAnalysisValid)
-            )
-          );
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

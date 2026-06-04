@@ -12,26 +12,29 @@ import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
+  editNotAllowedForReviewMode,
   purposeNotFound,
-  reviewerWorkflowNotFound,
-  rejectNotAllowedInCurrentMode,
-  reviewerWorkflowNotInSubmittedState,
   requesterIsNotDesignatedReviewer,
-  tenantIsNotTheConsumer,
+  reviewerWorkflowNotEditable,
+  reviewerWorkflowNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API POST /purposes/{purposeId}/riskAnalysis/reject test", () => {
+describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
   const mockPurpose: Purpose = getMockPurpose();
   const serviceResponse = getMockWithMetadata(mockPurpose);
   const apiResponse = purposeApi.Purpose.parse(
     purposeToApiPurpose(mockPurpose)
   );
-  const defaultBody: purposeApi.RiskAnalysisRejectionSeed = {
-    rejectionReason: "This risk analysis is incomplete and needs revision",
+  const defaultBody: purposeApi.RiskAnalysisFormSeed = {
+    version: "3.0",
+    answers: {
+      purpose: ["INSTITUTIONAL"],
+      institutionalPurpose: ["MyPurpose"],
+    },
   };
 
   beforeEach(() => {
-    purposeService.rejectRiskAnalysis = vi
+    purposeService.editRiskAnalysisForm = vi
       .fn()
       .mockResolvedValue(serviceResponse);
   });
@@ -39,10 +42,10 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/reject test", () => {
   const makeRequest = async (
     token: string,
     purposeId: PurposeId = mockPurpose.id,
-    body: purposeApi.RiskAnalysisRejectionSeed = defaultBody
+    body: purposeApi.RiskAnalysisFormSeed = defaultBody
   ) =>
     request(api)
-      .post(`/purposes/${purposeId}/riskAnalysis/reject`)
+      .put(`/purposes/${purposeId}/riskAnalysis/form`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -77,45 +80,45 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/reject test", () => {
       expectedStatus: 404,
     },
     {
-      error: reviewerWorkflowNotInSubmittedState(mockPurpose.id),
+      error: editNotAllowedForReviewMode(mockPurpose.id),
+      expectedStatus: 409,
+    },
+    {
+      error: reviewerWorkflowNotEditable(mockPurpose.id),
       expectedStatus: 409,
     },
     {
       error: requesterIsNotDesignatedReviewer(mockPurpose.id),
       expectedStatus: 403,
     },
-    {
-      error: tenantIsNotTheConsumer(generateId()),
-      expectedStatus: 403,
-    },
-    {
-      error: rejectNotAllowedInCurrentMode(mockPurpose.id),
-      expectedStatus: 409,
-    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeService.rejectRiskAnalysis = vi.fn().mockRejectedValue(error);
+      purposeService.editRiskAnalysisForm = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.REVIEWER_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
     }
   );
 
+  it("Should return 400 if purposeId is invalid", async () => {
+    const token = generateToken(authRole.REVIEWER_ROLE);
+    const res = await makeRequest(token, "invalid" as PurposeId);
+    expect(res.status).toBe(400);
+  });
+
   it.each([
-    { purposeId: "invalid" as PurposeId },
     { body: {} },
-    { body: { rejectionReason: 1 } },
-    { body: { rejectionReason: "short" } },
-    { body: { ...defaultBody, extraField: 1 } },
+    { body: { version: 1, answers: {} } },
+    { body: { version: "3.0" } },
   ])(
     "Should return 400 if passed invalid data: %s",
-    async ({ purposeId, body }) => {
+    async ({ body }) => {
       const token = generateToken(authRole.REVIEWER_ROLE);
       const res = await makeRequest(
         token,
-        purposeId,
-        body as purposeApi.RiskAnalysisRejectionSeed
+        mockPurpose.id,
+        body as purposeApi.RiskAnalysisFormSeed
       );
       expect(res.status).toBe(400);
     }

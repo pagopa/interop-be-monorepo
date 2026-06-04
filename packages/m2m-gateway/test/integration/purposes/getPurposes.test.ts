@@ -89,6 +89,7 @@ describe("getPurposes", () => {
         producersIds: [],
         clientId: undefined,
         states: [],
+        signingStates: [],
         excludeDraft: false,
         name: undefined,
       },

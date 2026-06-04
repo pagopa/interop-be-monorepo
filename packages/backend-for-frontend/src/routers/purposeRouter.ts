@@ -151,7 +151,7 @@ const purposeRouter = (
         const result = await purposeService.getRiskAnalysisAssignments(
           {
             eservicesIds: req.query.eservicesIds,
-            signingState: req.query.signingState,
+            signingStates: req.query.signingStates,
           },
           req.query.offset,
           req.query.limit,
@@ -164,7 +164,7 @@ const purposeRouter = (
           error,
           getRiskAnalysisAssignmentsErrorMapper,
           ctx,
-          `Error retrieving risk analysis assignments for signingState ${req.query.signingState}, EServices ${req.query.eservicesIds}, offset ${req.query.offset}, limit ${req.query.limit}`
+          `Error retrieving risk analysis assignments for signingStates ${req.query.signingStates}, EServices ${req.query.eservicesIds}, offset ${req.query.offset}, limit ${req.query.limit}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -374,13 +374,13 @@ const purposeRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.editRiskAnalysisForm(
+        await purposeService.editRiskAnalysisForm(
           unsafeBrandId(req.params.purposeId),
           req.body,
           ctx
         );
 
-        return res.status(200).send(bffApi.CreatedResource.parse(result));
+        return res.status(204).end();
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

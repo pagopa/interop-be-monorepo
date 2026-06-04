@@ -438,7 +438,7 @@ export const editRiskAnalysisFormErrorMapper = (
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("requesterIsNotTheWriter", () => HTTP_STATUS_FORBIDDEN)
+    .with("requesterIsNotDesignatedReviewer", () => HTTP_STATUS_FORBIDDEN)
     .with("editNotAllowedForReviewMode", () => HTTP_STATUS_CONFLICT)
     .with("reviewerWorkflowNotEditable", () => HTTP_STATUS_CONFLICT)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)

@@ -180,7 +180,8 @@ export async function handlePurposeEvent(
           "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",
-          "PurposeRiskAnalysisRejected"
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => {

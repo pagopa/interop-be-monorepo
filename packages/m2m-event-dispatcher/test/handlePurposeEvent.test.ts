@@ -203,7 +203,8 @@ describe("handlePurposeEvent test", async () => {
                   "PurposeRiskAnalysisAssigned",
                   "PurposeRiskAnalysisSubmitted",
                   "PurposeRiskAnalysisSigned",
-                  "PurposeRiskAnalysisRejected"
+                  "PurposeRiskAnalysisRejected",
+                  "PurposeRiskAnalysisFormEdited"
                 ),
                 () => [
                   {
