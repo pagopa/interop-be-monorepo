@@ -298,27 +298,23 @@ const reviewModeToApiReviewMode = (
 const signingStateToApiSigningState = (
   state: RiskAnalysisSigningState
 ): purposeApi.RiskAnalysisSigningState =>
-  match(state)
-    .with(
-      riskAnalysisSigningState.draft,
-      (): purposeApi.RiskAnalysisSigningState => "DRAFT"
-    )
-    .with(
-      riskAnalysisSigningState.assigned,
-      (): purposeApi.RiskAnalysisSigningState => "ASSIGNED"
-    )
-    .with(
-      riskAnalysisSigningState.submitted,
-      (): purposeApi.RiskAnalysisSigningState => "SUBMITTED"
-    )
-    .with(
-      riskAnalysisSigningState.signed,
-      (): purposeApi.RiskAnalysisSigningState => "SIGNED"
-    )
-    .with(
-      riskAnalysisSigningState.rejected,
-      (): purposeApi.RiskAnalysisSigningState => "REJECTED"
-    )
+  match<RiskAnalysisSigningState, purposeApi.RiskAnalysisSigningState>(state)
+    .with(riskAnalysisSigningState.draft, () => "DRAFT")
+    .with(riskAnalysisSigningState.assigned, () => "ASSIGNED")
+    .with(riskAnalysisSigningState.submitted, () => "SUBMITTED")
+    .with(riskAnalysisSigningState.signed, () => "SIGNED")
+    .with(riskAnalysisSigningState.rejected, () => "REJECTED")
+    .exhaustive();
+
+export const apiSigningStateToSigningState = (
+  state: purposeApi.RiskAnalysisSigningState
+): RiskAnalysisSigningState =>
+  match<purposeApi.RiskAnalysisSigningState, RiskAnalysisSigningState>(state)
+    .with("DRAFT", () => riskAnalysisSigningState.draft)
+    .with("ASSIGNED", () => riskAnalysisSigningState.assigned)
+    .with("SUBMITTED", () => riskAnalysisSigningState.submitted)
+    .with("SIGNED", () => riskAnalysisSigningState.signed)
+    .with("REJECTED", () => riskAnalysisSigningState.rejected)
     .exhaustive();
 
 const reviewerWorkflowToApiReviewerWorkflow = (

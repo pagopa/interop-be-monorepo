@@ -37,7 +37,6 @@ import {
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
   purposeInReadmodelPurpose,
-  purposeReviewerInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
   riskAnalysisReviewerInReadmodelPurpose,
@@ -167,17 +166,17 @@ const getReviewerIdFilter = (
     ? exists(
         db
           .select()
-          .from(purposeReviewerInReadmodelPurpose)
+          .from(riskAnalysisReviewerInReadmodelPurpose)
           .where(
             and(
               isNotNull(
                 purposeInReadmodelPurpose.reviewerWorkflowSentToReviewerAt
               ),
               eq(
-                purposeReviewerInReadmodelPurpose.purposeId,
+                riskAnalysisReviewerInReadmodelPurpose.purposeId,
                 purposeInReadmodelPurpose.id
               ),
-              eq(purposeReviewerInReadmodelPurpose.reviewerId, reviewerId)
+              eq(riskAnalysisReviewerInReadmodelPurpose.reviewerId, reviewerId)
             )
           )
       )

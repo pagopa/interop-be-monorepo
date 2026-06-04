@@ -90,11 +90,12 @@ import {
   unableToDetermineTenantKind,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  reviewerWorkflowNotInSubmittedState,
-  requesterIsNotDesignatedReviewer,
+  multipleReviewersNotAllowed,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
+  reviewerWorkflowNotInSubmittedState,
+  requesterIsNotDesignatedReviewer,
   rejectNotAllowedInCurrentMode,
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
@@ -548,6 +549,10 @@ export function purposeServiceBuilder(
       const isReviewerWrites =
         seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
 
+      if (seed.reviewerIds.length > 1) {
+        throw multipleReviewersNotAllowed(purposeId);
+      }
+
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
         reviewerIds: seed.reviewerIds.map((id) => unsafeBrandId(id)),
@@ -765,6 +770,8 @@ export function purposeServiceBuilder(
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertRequesterIsConsumer(purpose.data, authData);
 
       const workflow = purpose.data.reviewerWorkflow;
 
