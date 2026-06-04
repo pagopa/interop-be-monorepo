@@ -22,6 +22,7 @@ import { buildCreateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   draftDescriptorAlreadyExists,
@@ -153,6 +154,10 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     },
     {
       error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

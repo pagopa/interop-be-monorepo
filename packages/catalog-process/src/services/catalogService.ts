@@ -187,6 +187,7 @@ import {
   descriptorStatesNotAllowingInterfaceOperations,
   assertValidDelegationFlags,
   assertDailyCallsForCertifiedAttributesOnly,
+  assertDiscreteConfigForCertifiedAttributesOnly,
   assertAttributeDailyCallsConsistentWithTotal,
   assertTemplateInstanceAttributeStructureUnchanged,
   assertIsNotDraftEservice,
@@ -1407,6 +1408,7 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls(eserviceDescriptorSeed);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
@@ -1640,19 +1642,21 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(seed);
 
-      if (seed.attributes) {
+      const parsedSeedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : undefined;
+
+      if (parsedSeedAttributes) {
+        assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes);
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
           eservice.data.templateId,
           descriptor.attributes,
-          seed.attributes
+          parsedSeedAttributes
         );
       }
 
-      const updatedAttributes = seed.attributes
-        ? await parseAndCheckAttributes(seed.attributes, readModelService)
-        : descriptor.attributes;
-
+      const updatedAttributes = parsedSeedAttributes ?? descriptor.attributes;
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         updatedAttributes,
@@ -2151,6 +2155,7 @@ export function catalogServiceBuilder(
         : descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2211,18 +2216,21 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
-      if (seed.attributes) {
+      const parsedSeedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : undefined;
+
+      if (parsedSeedAttributes) {
+        assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes);
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
           eservice.data.templateId,
           descriptor.attributes,
-          seed.attributes
+          parsedSeedAttributes
         );
       }
 
-      const updatedAttributes = seed.attributes
-        ? await parseAndCheckAttributes(seed.attributes, readModelService)
-        : descriptor.attributes;
+      const updatedAttributes = parsedSeedAttributes ?? descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
 
@@ -2962,6 +2970,7 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         descriptor.dailyCallsTotal
@@ -4574,6 +4583,7 @@ async function updateDraftDescriptor(
     : descriptor.attributes;
 
   assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+  assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
   assertAttributeDailyCallsConsistentWithTotal(
     updatedAttributes,
     updatedDailyCallsTotal

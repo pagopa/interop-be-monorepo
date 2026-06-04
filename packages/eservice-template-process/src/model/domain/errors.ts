@@ -40,6 +40,7 @@ const errorCodes = {
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce: "0030",
   eServiceTemplateUpdateSameNameConflict: "0031",
   eServiceTemplateUpdateSameDescriptionConflict: "0032",
+  attributeDiscreteConfigNotAllowed: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -351,5 +352,15 @@ export function eServiceTemplateUpdateSameDescriptionConflict(
     detail: `The description provided is the same as the current one for EService template ${eserviceTemplateId}`,
     code: "eServiceTemplateUpdateSameDescriptionConflict",
     title: "Same eService template description update conflict",
+  });
+}
+
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
   });
 }

@@ -118,6 +118,7 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   versionStatesNotAllowingInterfaceOperations,
+  assertDiscreteConfigForCertifiedAttributesOnly,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -1190,6 +1191,12 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+
       /**
        * In order for the e-service template version attributes to be updatable,
        * each attribute group contained in the seed must be a superset
@@ -1266,7 +1273,7 @@ export function eserviceTemplateServiceBuilder(
 
       const updatedEServiceTemplateVersion: EServiceTemplateVersion = {
         ...eserviceTemplateVersion,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEServiceTemplate = replaceEServiceTemplateVersion(
@@ -1430,6 +1437,7 @@ export function eserviceTemplateServiceBuilder(
         seed.attributes,
         readModelService
       );
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls({
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
@@ -2329,6 +2337,10 @@ async function updateDraftEServiceTemplateVersion(
         readModelService
       )
     : eserviceTemplateVersion.attributes;
+
+  if (attributes) {
+    assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+  }
 
   const updatedVersion: EServiceTemplateVersion = {
     ...eserviceTemplateVersion,
