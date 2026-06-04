@@ -1136,7 +1136,7 @@ paths:
         - tenant
       summary: Deletes a remote id from a tenant
       description: Deletes the remote id with the specified origin from a tenant
-      operationId: deleteRemoteId
+      operationId: maintenanceDeleteRemoteId
       responses:
         "204":
           description: Remote id successfully deleted
