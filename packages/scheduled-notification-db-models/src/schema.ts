@@ -21,6 +21,7 @@ export const scheduledNotification = scheduledNotificationSchema.table(
     correlationId: uuid("correlation_id").notNull(),
     sendAt: timestamp("send_at", { withTimezone: true }).notNull(),
     sentAt: timestamp("sent_at", { withTimezone: true }),
+    skippedAt: timestamp("skipped_at", { withTimezone: true }),
     attempts: integer("attempts").notNull().default(0),
     lastError: text("last_error"),
     createdAt: timestamp("created_at", { withTimezone: true })
@@ -36,7 +37,7 @@ export const scheduledNotification = scheduledNotificationSchema.table(
     ),
     index("scheduled_notification_due_idx")
       .on(t.channel, t.sendAt)
-      .where(sql`${t.sentAt} IS NULL`),
+      .where(sql`${t.sentAt} IS NULL AND ${t.skippedAt} IS NULL`),
   ]
 );
 

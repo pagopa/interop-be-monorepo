@@ -28,3 +28,20 @@ export const ScheduledNotificationDBConfig = z
 export type ScheduledNotificationDBConfig = z.infer<
   typeof ScheduledNotificationDBConfig
 >;
+
+export const ScheduledNotificationStalenessConfig = z
+  .object({
+    SCHEDULED_NOTIFICATION_STALENESS_THRESHOLD_HOURS: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(24),
+  })
+  .transform((c) => ({
+    scheduledNotificationStalenessThresholdHours:
+      c.SCHEDULED_NOTIFICATION_STALENESS_THRESHOLD_HOURS,
+  }));
+
+export type ScheduledNotificationStalenessConfig = z.infer<
+  typeof ScheduledNotificationStalenessConfig
+>;

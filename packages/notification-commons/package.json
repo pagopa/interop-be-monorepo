@@ -18,6 +18,7 @@
   "keywords": [],
   "dependencies": {
     "cpx2": "catalog:",
+    "date-fns": "catalog:",
     "drizzle-orm": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",

@@ -76,6 +76,7 @@ const buildRow = (entityId: string): ScheduledNotificationRow => ({
   correlationId: generateId(),
   sendAt: new Date(),
   sentAt: null,
+  skippedAt: null,
   attempts: 0,
   lastError: null,
   createdAt: new Date(),

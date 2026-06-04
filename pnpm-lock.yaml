@@ -4297,6 +4297,9 @@ importers:
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
