@@ -131,9 +131,11 @@ export function eserviceDescriptorsScheduledArchiverServiceBuilder({
       const descriptorRefs =
         await readModelService.getArchivableDescriptorsRefs();
 
-      const results = await Promise.all(
-        descriptorRefs.map(await limit(() => archiveDescriptor))
-      );
+      const results: boolean[] = [];
+
+      for (const descriptorRef of descriptorRefs) {
+        results.push(await archiveDescriptor(descriptorRef));
+      }
 
       const success = results.every((success) => success);
 
