@@ -48,7 +48,15 @@ import {
   toAgreementV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { addDays } from "date-fns";
 import { agreementUpgradableStates } from "../../src/model/domain/agreement-validators.js";
 import {
@@ -88,6 +96,9 @@ import {
 
 describe("upgrade Agreement", () => {
   const currentExecutionTime = new Date();
+  beforeEach(() => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+  });
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(currentExecutionTime);
@@ -1819,5 +1830,126 @@ describe("upgrade Agreement", () => {
     expect(
       actualAgreementUpgraded.certifiedDiscreteAttributes
     ).not.toContainEqual({ id: oldDiscreteAttribute.id });
+  });
+
+  it("should ignore certified discrete requirements when the feature flag is disabled", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = false;
+
+    const producer = getMockTenant();
+    const consumerId = generateId<TenantId>();
+    await addOneTenant(producer);
+
+    const discreteAttribute = getMockAttribute("Certified");
+    await addOneAttribute(discreteAttribute);
+
+    const currentDescriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      state: descriptorState.deprecated,
+      version: "1",
+      attributes: {
+        certified: [],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const newPublishedDescriptor: Descriptor = {
+      ...getMockDescriptorPublished(),
+      version: "2",
+      attributes: {
+        certified: [
+          [
+            {
+              ...getMockEServiceAttributeCertifiedDiscrete(
+                discreteAttribute.id
+              ),
+              discreteConfig: {
+                threshold: 100,
+                comparator: attributeCertifiedDiscreteComparator.GTE,
+              },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producer.id,
+      descriptors: [newPublishedDescriptor, currentDescriptor],
+    };
+    await addOneEService(eservice);
+
+    const consumer: Tenant = {
+      ...getMockTenant(),
+      id: consumerId,
+      selfcareId: generateId(),
+      attributes: [
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(discreteAttribute.id),
+          discreteValue: 42,
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+    await addOneTenant(consumer);
+
+    const agreementId: AgreementId = generateId<AgreementId>();
+    const agreement: Agreement = {
+      ...getMockAgreement(
+        eservice.id,
+        consumerId,
+        randomArrayItem(agreementUpgradableStates)
+      ),
+      id: agreementId,
+      producerId: eservice.producerId,
+      descriptorId: currentDescriptor.id,
+      createdAt: new Date(),
+      certifiedAttributes: [],
+      certifiedDiscreteAttributes: [],
+      declaredAttributes: [],
+      verifiedAttributes: [],
+      consumerDocuments: [],
+      stamps: {
+        submission: getRandomPastStamp(),
+        activation: getRandomPastStamp(),
+      },
+      contract: getMockContract(agreementId, consumerId, producer.id),
+    };
+    await addOneAgreement(agreement);
+
+    const authData = getMockAuthData(consumerId);
+
+    const upgradeAgreementResponse = await agreementService.upgradeAgreement(
+      agreement.id,
+      getMockContext({ authData })
+    );
+
+    const newAgreementId = unsafeBrandId<AgreementId>(
+      upgradeAgreementResponse.data.id
+    );
+
+    const actualAgreementUpgradedEvent = await readAgreementEventByVersion(
+      newAgreementId,
+      0
+    );
+
+    expect(actualAgreementUpgradedEvent).toMatchObject({
+      type: "AgreementUpgraded",
+      event_version: 2,
+      version: "0",
+      stream_id: newAgreementId,
+    });
+
+    const actualAgreementUpgraded: Agreement = fromAgreementV2(
+      decodeProtobufPayload({
+        messageType: AgreementUpgradedV2,
+        payload: actualAgreementUpgradedEvent.data,
+      }).agreement!
+    );
+
+    expect(actualAgreementUpgraded.certifiedDiscreteAttributes).toEqual([]);
   });
 });

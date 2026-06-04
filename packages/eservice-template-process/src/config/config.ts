@@ -5,6 +5,7 @@ import {
   S3Config,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
+  FeatureFlagAttributeCertifiedDiscreteConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -14,6 +15,7 @@ const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
   .and(FileManagerConfig)
   .and(S3Config)
   .and(EventStoreConfig)
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(
     z
       .object({
