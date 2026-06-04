@@ -829,6 +829,8 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
+      assertRequesterIsConsumer(purpose.data, authData);
+
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
@@ -1036,6 +1038,10 @@ export function purposeServiceBuilder(
       logger.info(`Deleting Purpose ${purposeId}`);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
+
+      if (!isDeletable(purpose.data)) {
+        throw purposeCannotBeDeleted(purpose.data.id);
+      }
 
       assertRequesterCanActAsConsumer(
         purpose.data,
