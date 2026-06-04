@@ -211,27 +211,6 @@ export function assertPurposeIsNotFromTemplate(purpose: Purpose): void {
   }
 }
 
-export function assertRiskAnalysisFormCanBeUpdated({
-  purposeId,
-  reviewerWorkflow,
-  riskAnalysisFormChanged,
-}: {
-  purposeId: PurposeId;
-  reviewerWorkflow: ReviewerWorkflow | undefined;
-  riskAnalysisFormChanged: boolean;
-}): void {
-  if (!reviewerWorkflow || !riskAnalysisFormChanged) {
-    return;
-  }
-
-  if (
-    reviewerWorkflow.signingState === riskAnalysisSigningState.submitted ||
-    reviewerWorkflow.signingState === riskAnalysisSigningState.signed
-  ) {
-    throw riskAnalysisFormEditNotAllowed(purposeId);
-  }
-}
-
 export const isDeletable = (purpose: Purpose): boolean =>
   purpose.versions.every(
     (v) =>
