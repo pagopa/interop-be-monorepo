@@ -116,7 +116,7 @@ describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
     const res = await makeRequest(
       token,
       mockPurpose.id,
-      body as purposeApi.RiskAnalysisFormSeed
+      body as unknown as purposeApi.RiskAnalysisFormSeed
     );
     expect(res.status).toBe(400);
   });
