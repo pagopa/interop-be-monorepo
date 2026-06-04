@@ -69,6 +69,7 @@ import {
   toCreateEventTenantDelegatedConsumerFeatureRemoved,
   toCreateEventTenantDelegatedConsumerFeatureAdded,
   toCreateEventTenantRemoteIdAssigned,
+  toCreateEventMaintenanceTenantRemoteIdDeleted,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -81,6 +82,7 @@ import {
   certifierWithExistingAttributes,
   mailAlreadyExists,
   mailNotFound,
+  remoteIdNotFound,
   tenantIsNotACertifier,
   tenantNotFoundByExternalId,
   tenantNotFoundBySelfcareId,
@@ -1237,6 +1239,43 @@ export function tenantServiceBuilder(
         toCreateEventMaintenanceTenantDeleted(
           version,
           tenant.data,
+          correlationId
+        )
+      );
+    },
+
+    async maintenanceDeleteRemoteId(
+      {
+        tenantId,
+        origin,
+      }: {
+        tenantId: TenantId;
+        origin: string;
+      },
+      { logger, correlationId }: WithLogger<AppContext<MaintenanceAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Deleting remote id with origin ${origin} from Tenant ${tenantId}`
+      );
+
+      const tenant = await retrieveTenant(tenantId, readModelService);
+
+      if (!tenant.data.remoteIds?.some((r) => r.origin === origin)) {
+        throw remoteIdNotFound(origin);
+      }
+
+      const updatedTenant: Tenant = {
+        ...tenant.data,
+        remoteIds: (tenant.data.remoteIds ?? []).filter(
+          (r) => r.origin !== origin
+        ),
+        updatedAt: new Date(),
+      };
+
+      await repository.createEvent(
+        toCreateEventMaintenanceTenantRemoteIdDeleted(
+          tenant.metadata.version,
+          updatedTenant,
           correlationId
         )
       );

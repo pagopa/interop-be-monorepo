@@ -390,3 +390,22 @@ export function toCreateEventTenantRemoteIdAssigned(
     correlationId,
   };
 }
+
+export function toCreateEventMaintenanceTenantRemoteIdDeleted(
+  version: number,
+  tenant: Tenant,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> {
+  return {
+    streamId: tenant.id,
+    version,
+    event: {
+      type: "MaintenanceTenantRemoteIdDeleted",
+      event_version: 2,
+      data: {
+        tenant: toTenantV2(tenant),
+      },
+    },
+    correlationId,
+  };
+}
