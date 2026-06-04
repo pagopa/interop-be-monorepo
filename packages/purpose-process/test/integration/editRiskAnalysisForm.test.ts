@@ -77,14 +77,13 @@ describe("editRiskAnalysisForm", () => {
       getMockValidRiskAnalysisForm(tenantKind.PA)
     );
 
-    const { data: updatedPurpose } =
-      await purposeService.editRiskAnalysisForm(
-        mockPurpose.id,
-        riskAnalysisFormSeed,
-        getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
-        })
-      );
+    const { data: updatedPurpose } = await purposeService.editRiskAnalysisForm(
+      mockPurpose.id,
+      riskAnalysisFormSeed,
+      getMockContext({
+        authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+      })
+    );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -280,8 +279,6 @@ describe("editRiskAnalysisForm", () => {
           ),
         })
       )
-    ).rejects.toThrowError(
-      requesterIsNotDesignatedReviewer(mockPurpose.id)
-    );
+    ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
   });
 });

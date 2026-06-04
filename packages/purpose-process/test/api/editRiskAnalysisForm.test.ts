@@ -111,16 +111,13 @@ describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
     { body: {} },
     { body: { version: 1, answers: {} } },
     { body: { version: "3.0" } },
-  ])(
-    "Should return 400 if passed invalid data: %s",
-    async ({ body }) => {
-      const token = generateToken(authRole.REVIEWER_ROLE);
-      const res = await makeRequest(
-        token,
-        mockPurpose.id,
-        body as purposeApi.RiskAnalysisFormSeed
-      );
-      expect(res.status).toBe(400);
-    }
-  );
+  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
+    const token = generateToken(authRole.REVIEWER_ROLE);
+    const res = await makeRequest(
+      token,
+      mockPurpose.id,
+      body as purposeApi.RiskAnalysisFormSeed
+    );
+    expect(res.status).toBe(400);
+  });
 });
