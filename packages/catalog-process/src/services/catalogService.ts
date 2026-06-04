@@ -1642,21 +1642,22 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(seed);
 
-      if (seed.attributes) {
+      const parsedSeedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : undefined;
+
+      if (parsedSeedAttributes) {
+        assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes);
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
           eservice.data.templateId,
           descriptor.attributes,
-          seed.attributes
+          parsedSeedAttributes
         );
       }
 
-      const updatedAttributes = seed.attributes
-        ? await parseAndCheckAttributes(seed.attributes, readModelService)
-        : descriptor.attributes;
-
+      const updatedAttributes = parsedSeedAttributes ?? descriptor.attributes;
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
-      assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         updatedAttributes,
         seed.dailyCallsTotal
@@ -2215,21 +2216,23 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
-      if (seed.attributes) {
+      const parsedSeedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : undefined;
+
+      if (parsedSeedAttributes) {
+        assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes);
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
           eservice.data.templateId,
           descriptor.attributes,
-          seed.attributes
+          parsedSeedAttributes
         );
       }
 
-      const updatedAttributes = seed.attributes
-        ? await parseAndCheckAttributes(seed.attributes, readModelService)
-        : descriptor.attributes;
+      const updatedAttributes = parsedSeedAttributes ?? descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
-      assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
