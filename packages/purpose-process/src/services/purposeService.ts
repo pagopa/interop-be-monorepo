@@ -762,6 +762,8 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
+      assertRequesterIsConsumer(purpose.data, authData);
+
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
