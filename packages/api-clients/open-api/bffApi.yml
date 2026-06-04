@@ -9287,7 +9287,7 @@ paths:
             default: []
           explode: false
         - in: query
-          name: signingState
+          name: signingStates
           description: comma separated sequence of risk analysis signing states
           schema:
             type: array
