@@ -168,6 +168,48 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
       descriptor.id,
     ],
     [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 1_000_000,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 1_000_000,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 100_000,
+        },
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
       { ...descriptorSeed, attributes: { certified: [], declared: [] } },
       mockEService.id,
       descriptor.id,
