@@ -21,6 +21,9 @@ import { handleEserviceArchivingCompletedToProducer } from "./handleEserviceArch
 import { handleEserviceArchivingCompletedToConsumer } from "./handleEserviceArchivingCompletedToConsumer.js";
 import { handleEserviceDescriptorArchivedToProducer } from "./handleEserviceDescriptorArchivedToProducer.js";
 import { handleEserviceDescriptorArchivedToConsumer } from "./handleEserviceDescriptorArchivedToConsumer.js";
+import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
+import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceDescriptorArchivingCanceledToConsumer } from "./handleEserviceDescriptorArchivingCanceledToConsumer.js";
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEvent>
@@ -246,6 +249,40 @@ export async function handleEServiceEvent(
       }
     )
     .with(
+      { type: "EServiceArchivingCanceled" },
+      async ({ data: { eservice } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingCanceledToProducer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceArchivingCanceledToConsumer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingCanceled" },
+      async ({ data: { eservice, descriptorId } }) =>
+        handleEserviceDescriptorArchivingCanceledToConsumer({
+          eserviceV2Msg: eservice,
+          descriptorId,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "EServiceAdded",
@@ -281,8 +318,6 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
-          "EServiceDescriptorArchivingCanceled",
-          "EServiceArchivingCanceled",
           "MaintenanceEServicePersonalDataFlagReset",
           "MaintenanceEServiceDescriptorUnarchived"
         ),
