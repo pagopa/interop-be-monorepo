@@ -38,6 +38,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
     clientAddedRemovedToProducer: clientAddedRemovedToProducerInApp,
     purposeStatusChangedToProducer: purposeStatusChangedToProducerInApp,
     templateStatusChangedToProducer: templateStatusChangedToProducerInApp,
+    eserviceStateChangedToProducer: eserviceStateChangedToProducerInApp,
     agreementSuspendedUnsuspendedToConsumer:
       agreementSuspendedUnsuspendedToConsumerInApp,
     eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
@@ -78,6 +79,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
     clientAddedRemovedToProducer: clientAddedRemovedToProducerEmail,
     purposeStatusChangedToProducer: purposeStatusChangedToProducerEmail,
     templateStatusChangedToProducer: templateStatusChangedToProducerEmail,
+    eserviceStateChangedToProducer: eserviceStateChangedToProducerEmail,
     agreementSuspendedUnsuspendedToConsumer:
       agreementSuspendedUnsuspendedToConsumerEmail,
     eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
@@ -130,6 +132,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
       clientAddedRemovedToProducer: clientAddedRemovedToProducerInApp,
       purposeStatusChangedToProducer: purposeStatusChangedToProducerInApp,
       templateStatusChangedToProducer: templateStatusChangedToProducerInApp,
+      eserviceStateChangedToProducer: eserviceStateChangedToProducerInApp,
       agreementSuspendedUnsuspendedToConsumer:
         agreementSuspendedUnsuspendedToConsumerInApp,
       eserviceStateChangedToConsumer: eserviceStateChangedToConsumerInApp,
@@ -172,6 +175,7 @@ export function userNotificationConfigToApiUserNotificationConfig({
       clientAddedRemovedToProducer: clientAddedRemovedToProducerEmail,
       purposeStatusChangedToProducer: purposeStatusChangedToProducerEmail,
       templateStatusChangedToProducer: templateStatusChangedToProducerEmail,
+      eserviceStateChangedToProducer: eserviceStateChangedToProducerEmail,
       agreementSuspendedUnsuspendedToConsumer:
         agreementSuspendedUnsuspendedToConsumerEmail,
       eserviceStateChangedToConsumer: eserviceStateChangedToConsumerEmail,
