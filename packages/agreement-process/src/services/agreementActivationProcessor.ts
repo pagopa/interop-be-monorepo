@@ -1,6 +1,7 @@
 /* eslint-disable max-params */
 import {
   CreateEvent,
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   ownership,
   Ownership,
@@ -38,6 +39,7 @@ import {
   toCreateEventAgreementUnsuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -297,7 +299,13 @@ function maybeCreateSuspensionByPlatformEvents(
       const { suspensionReason, discreteAttributeFailure } =
         evaluateCertifiedAttributesSuspension(
           descriptor.attributes,
-          consumer.attributes
+          consumer.attributes,
+          {
+            certifiedDiscreteEnabled: isFeatureFlagEnabled(
+              config,
+              "featureFlagAttributeCertifiedDiscrete"
+            ),
+          }
         );
       return [
         toCreateEventAgreementSuspendedByPlatform(

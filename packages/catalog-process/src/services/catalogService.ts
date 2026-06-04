@@ -477,6 +477,17 @@ async function parseAndCheckAttributesOfKind(
   });
 
   if (kind === attributeKind.certified) {
+    const hasCertifiedDiscreteConfig = parsedAttributesSeed
+      .flat()
+      .some((seedAttribute) => seedAttribute.discreteConfig !== undefined);
+    const hasCertifiedDiscreteAttribute = attributes.some(
+      (attribute) => attribute.kind === attributeKind.certifiedDiscrete
+    );
+
+    if (hasCertifiedDiscreteConfig || hasCertifiedDiscreteAttribute) {
+      assertFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete");
+    }
+
     const attributesById = new Map(
       attributes.map((attribute) => [attribute.id, attribute])
     );

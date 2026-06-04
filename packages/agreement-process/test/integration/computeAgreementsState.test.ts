@@ -24,10 +24,12 @@ import {
   AgreementSuspensionReasonV2,
   AgreementUnsuspendedByPlatformV2,
   AttributeCertifiedDiscreteComparatorV2,
+  CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Descriptor,
   EService,
+  EServiceAttributeCertifiedDiscrete,
   Tenant,
   TenantId,
   VerifiedTenantAttribute,
@@ -36,16 +38,22 @@ import {
   generateId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { addDays } from "date-fns";
 import {
   addOneAgreement,
   addOneEService,
   agreementService,
+  readAgreementEventByVersion,
   readLastAgreementEvent,
 } from "../integrationUtils.js";
+import { config } from "../../src/config/config.js";
 
 describe("compute Agreements state by attribute", () => {
+  beforeEach(() => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+  });
+
   describe("when the given attribute is not satisfied", async () => {
     // Create a consumer with invalid attributes,
     // and use an invalid attribute + the consumer as inputs to computeAgreementsStateByAttribute.
@@ -133,38 +141,32 @@ describe("compute Agreements state by attribute", () => {
     });
 
     it("suspends an active Agreement with certified discrete suspension reason and full failure detail when the threshold is no longer satisfied", async () => {
-      const invalidCertifiedDiscreteAttribute = {
-        ...getMockCertifiedDiscreteTenantAttribute(),
-        discreteValue: 42,
-      };
+      const invalidCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(),
+          discreteValue: 42,
+        };
       const discreteConsumer: Tenant = {
         ...getMockTenant(),
-        attributes: [
-          invalidCertifiedDiscreteAttribute,
-          getMockDeclaredTenantAttribute(),
-          getMockVerifiedTenantAttribute(),
-        ],
+        attributes: [invalidCertifiedDiscreteAttribute],
       };
 
-      const certifiedDiscreteDescriptorAttribute = {
-        ...getMockEServiceAttributeCertifiedDiscrete(
-          invalidCertifiedDiscreteAttribute.id
-        ),
-        discreteConfig: {
-          threshold: 100,
-          comparator: attributeCertifiedDiscreteComparator.GTE,
-        },
-      };
+      const certifiedDiscreteDescriptorAttribute: EServiceAttributeCertifiedDiscrete =
+        {
+          ...getMockEServiceAttributeCertifiedDiscrete(
+            invalidCertifiedDiscreteAttribute.id
+          ),
+          discreteConfig: {
+            threshold: 100,
+            comparator: attributeCertifiedDiscreteComparator.GTE,
+          },
+        };
       const discreteDescriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         attributes: {
           certified: [[certifiedDiscreteDescriptorAttribute]],
-          declared: [
-            [getMockEServiceAttribute(discreteConsumer.attributes[1].id)],
-          ],
-          verified: [
-            [getMockEServiceAttribute(discreteConsumer.attributes[2].id)],
-          ],
+          declared: [],
+          verified: [],
         },
       };
       const discreteEService: EService = {
@@ -222,7 +224,7 @@ describe("compute Agreements state by attribute", () => {
     });
 
     it("reports the failing certified group, not the triggering discrete attribute, when the discrete one is still satisfied", async () => {
-      const satisfiedDiscreteAttribute = {
+      const satisfiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
         ...getMockCertifiedDiscreteTenantAttribute(),
         discreteValue: 200,
       };
@@ -240,7 +242,7 @@ describe("compute Agreements state by attribute", () => {
         ],
       };
 
-      const discreteDescriptorAttribute = {
+      const discreteDescriptorAttribute: EServiceAttributeCertifiedDiscrete = {
         ...getMockEServiceAttributeCertifiedDiscrete(
           satisfiedDiscreteAttribute.id
         ),
@@ -314,6 +316,68 @@ describe("compute Agreements state by attribute", () => {
       expect(
         agreementStateUpdateEventData.discreteAttributeFailure
       ).toBeUndefined();
+    });
+
+    it("does not suspend an active Agreement for certified discrete threshold failure when the feature flag is disabled", async () => {
+      config.featureFlagAttributeCertifiedDiscrete = false;
+      const invalidCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(),
+          discreteValue: 42,
+        };
+      const discreteConsumer: Tenant = {
+        ...getMockTenant(),
+        attributes: [invalidCertifiedDiscreteAttribute],
+      };
+
+      const certifiedDiscreteDescriptorAttribute: EServiceAttributeCertifiedDiscrete =
+        {
+          ...getMockEServiceAttributeCertifiedDiscrete(
+            invalidCertifiedDiscreteAttribute.id
+          ),
+          discreteConfig: {
+            threshold: 100,
+            comparator: attributeCertifiedDiscreteComparator.GTE,
+          },
+        };
+      const discreteDescriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        attributes: {
+          certified: [[certifiedDiscreteDescriptorAttribute]],
+          declared: [],
+          verified: [],
+        },
+      };
+      const discreteEService: EService = {
+        ...getMockEService(),
+        producerId: generateId(),
+        descriptors: [discreteDescriptor],
+      };
+
+      await addOneEService(discreteEService);
+
+      const updatableActiveAgreement: Agreement = {
+        ...getMockAgreement(
+          discreteEService.id,
+          discreteConsumer.id,
+          agreementState.active
+        ),
+        descriptorId: discreteEService.descriptors[0].id,
+        producerId: discreteEService.producerId,
+        suspendedByPlatform: false,
+      };
+
+      await addOneAgreement(updatableActiveAgreement);
+
+      await agreementService.internalComputeAgreementsStateByAttribute(
+        invalidCertifiedDiscreteAttribute.id,
+        discreteConsumer,
+        getMockContextInternal({})
+      );
+
+      await expect(
+        readAgreementEventByVersion(updatableActiveAgreement.id, 1)
+      ).rejects.toThrow();
     });
 
     it.each([agreementState.draft, agreementState.pending])(
