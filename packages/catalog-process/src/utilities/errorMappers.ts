@@ -264,7 +264,6 @@ export const updateDescriptorErrorMapper = (
       "notValidDescriptor",
       "inconsistentDailyCalls",
       "attributeDailyCallsNotAllowed",
-      "attributeDiscreteConfigNotAllowed",
       "templateInstanceNotAllowed",
       "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
