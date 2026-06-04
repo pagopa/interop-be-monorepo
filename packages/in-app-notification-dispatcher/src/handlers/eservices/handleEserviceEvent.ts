@@ -73,9 +73,7 @@ export async function handleEServiceEvent(
           "EServiceArchivingScheduled",
           "EServiceDescriptorArchivingCompleted",
           "EServiceArchivingCompleted",
-          "EServiceDescriptorArchived",
-          "EServiceDescriptorArchivingCanceled",
-          "EServiceArchivingCanceled"
+          "EServiceDescriptorArchived"
         ),
       },
       async (msg) => {
@@ -118,7 +116,10 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
-          "MaintenanceEServicePersonalDataFlagReset"
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceArchivingCanceled",
+          "MaintenanceEServicePersonalDataFlagReset",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {

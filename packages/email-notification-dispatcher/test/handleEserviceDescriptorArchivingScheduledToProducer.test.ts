@@ -99,7 +99,7 @@ describe("handleEserviceDescriptorArchivingScheduledToProducer", () => {
     );
     expect(messages).toHaveLength(users.length);
     expect(messages[0].email.subject).toContain(
-      "Avvio archiviazione per un tuo e-service"
+      "Avvio archiviazione della versione"
     );
   });
 });

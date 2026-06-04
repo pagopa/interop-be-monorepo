@@ -1,5 +1,6 @@
 import { and, eq, isNull, lt, lte } from "drizzle-orm";
 import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-models";
+import { isStale } from "./staleness.js";
 import {
   RunScheduledDeliveryBatchCounters,
   RunScheduledDeliveryBatchParams,
@@ -28,6 +29,7 @@ export const runScheduledDeliveryBatch = async <TPayload>({
   batchSize,
   maxBatchesPerRun,
   maxAttempts,
+  stalenessThresholdHours,
   db,
   dispatch,
   sink,
@@ -36,6 +38,7 @@ export const runScheduledDeliveryBatch = async <TPayload>({
   const counters: RunScheduledDeliveryBatchCounters = {
     processed: 0,
     skipped: 0,
+    skippedStale: 0,
     failed: 0,
   };
 
@@ -47,6 +50,7 @@ export const runScheduledDeliveryBatch = async <TPayload>({
         and(
           eq(scheduledNotification.channel, channel),
           isNull(scheduledNotification.sentAt),
+          isNull(scheduledNotification.skippedAt),
           lte(scheduledNotification.sendAt, new Date()),
           lt(scheduledNotification.attempts, maxAttempts)
         )
@@ -67,6 +71,7 @@ export const runScheduledDeliveryBatch = async <TPayload>({
           and(
             eq(scheduledNotification.id, candidate.id),
             isNull(scheduledNotification.sentAt),
+            isNull(scheduledNotification.skippedAt),
             eq(scheduledNotification.attempts, candidate.attempts)
           )
         )
@@ -77,6 +82,18 @@ export const runScheduledDeliveryBatch = async <TPayload>({
       }
       claimedCount += 1;
       const row = claimed[0];
+
+      if (isStale(row.sendAt, stalenessThresholdHours)) {
+        await db
+          .update(scheduledNotification)
+          .set({ skippedAt: new Date() })
+          .where(eq(scheduledNotification.id, row.id));
+        counters.skippedStale += 1;
+        log.info(
+          `Skipping stale row ${row.id} (sendAt=${row.sendAt.toISOString()}, threshold=${stalenessThresholdHours}h)`
+        );
+        continue;
+      }
 
       try {
         const payloads = await dispatch(row);

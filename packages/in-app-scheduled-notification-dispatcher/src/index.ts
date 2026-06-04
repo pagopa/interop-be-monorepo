@@ -66,6 +66,7 @@ const readModelService = readModelServiceBuilderSQL({
 const inAppSink = inAppNotificationSinkBuilder(inAppDb, log);
 const dispatch = dispatchInAppDeliveryBuilder({
   readModelService,
+  stalenessThresholdHours: config.scheduledNotificationStalenessThresholdHours,
   rootLog: log,
 });
 
@@ -75,13 +76,15 @@ try {
     batchSize: config.deliveryBatchSize,
     maxBatchesPerRun: config.maxBatchesPerRun,
     maxAttempts: config.maxAttempts,
+    stalenessThresholdHours:
+      config.scheduledNotificationStalenessThresholdHours,
     db: scheduledDb,
     dispatch,
     sink: inAppSink.insertNotifications,
     log,
   });
   log.info(
-    `Done. processed=${counters.processed} skipped=${counters.skipped} failed=${counters.failed}`
+    `Done. processed=${counters.processed} skipped=${counters.skipped} skippedStale=${counters.skippedStale} failed=${counters.failed}`
   );
   process.exit(0);
 } catch (err) {

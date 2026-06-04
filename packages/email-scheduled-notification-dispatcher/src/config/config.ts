@@ -5,6 +5,7 @@ import {
   NotificationTypeBlocklistConfig,
   ReadModelSQLDbConfig,
   ScheduledNotificationDBConfig,
+  ScheduledNotificationStalenessConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -28,6 +29,7 @@ const ScheduledEmailNotificationDispatcherConfig = LoggerConfig.and(
   .and(EmailDispatchTopicConfig)
   .and(ReadModelSQLDbConfig)
   .and(ScheduledNotificationDBConfig)
+  .and(ScheduledNotificationStalenessConfig)
   .and(ScheduledDispatcherTuningConfig)
   .and(NotificationTypeBlocklistConfig);
 

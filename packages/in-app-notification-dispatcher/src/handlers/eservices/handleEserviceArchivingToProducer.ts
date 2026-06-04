@@ -5,13 +5,12 @@ import {
   EServiceEventV2,
   EServiceIdDescriptorId,
   fromEServiceV2,
-  genericError,
   missingKafkaMessageDataError,
   NewNotification,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
-import { match, P } from "ts-pattern";
+import { match } from "ts-pattern";
 import {
   getNotificationRecipients,
   inAppTemplates,
@@ -25,9 +24,7 @@ type ArchivingEventType =
   | "EServiceArchivingScheduled"
   | "EServiceDescriptorArchivingCompleted"
   | "EServiceArchivingCompleted"
-  | "EServiceDescriptorArchived"
-  | "EServiceDescriptorArchivingCanceled"
-  | "EServiceArchivingCanceled";
+  | "EServiceDescriptorArchived";
 
 export type ArchivingEvent = Extract<
   EServiceEventV2,
@@ -44,21 +41,12 @@ export async function handleEserviceArchivingToProducer(
   }
   const eservice = fromEServiceV2(msg.data.eservice);
 
-  // Cancellation: the producer initiated the cancel itself, no notification needed
-  if (
-    msg.type === "EServiceArchivingCanceled" ||
-    msg.type === "EServiceDescriptorArchivingCanceled"
-  ) {
-    return [];
-  }
-
   // Discriminator: skip auto-archive routine (Deprecated/Suspended -> Archived)
   if (msg.type === "EServiceDescriptorArchived") {
-    const archivedDescriptor = retrieveDescriptor(
-      eservice,
-      unsafeBrandId<DescriptorId>(msg.data.descriptorId)
+    const archivedDescriptor = eservice.descriptors.find(
+      (d) => d.id === unsafeBrandId<DescriptorId>(msg.data.descriptorId)
     );
-    if (!archivedDescriptor.archivingSchedule) {
+    if (!archivedDescriptor?.archivingSchedule) {
       logger.info(
         `Skipping in-app notification for EServiceDescriptorArchived without archivingSchedule (eservice ${eservice.id}, descriptor ${msg.data.descriptorId}) — routine auto-archiving`
       );
@@ -106,16 +94,11 @@ function bodyAndDescriptorForProducer(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId)
         );
-        if (!descriptor.archivingSchedule) {
-          throw genericError(
-            `EServiceDescriptorArchivingScheduled for eservice ${eservice.id}, descriptor ${descriptor.id} is missing archivingSchedule`
-          );
-        }
         return {
           body: inAppTemplates.eserviceArchivingStartedDescriptorToProducer(
             eservice.name,
             descriptor.version,
-            descriptor.archivingSchedule.archivableOn
+            descriptor.archivingSchedule?.archivableOn
           ),
           descriptor,
         };
@@ -123,15 +106,10 @@ function bodyAndDescriptorForProducer(
     )
     .with({ type: "EServiceArchivingScheduled" }, () => {
       const descriptor = retrieveLatestDescriptor(eservice);
-      if (!descriptor.archivingSchedule) {
-        throw genericError(
-          `EServiceArchivingScheduled for eservice ${eservice.id} is missing archivingSchedule on its latest descriptor ${descriptor.id}`
-        );
-      }
       return {
         body: inAppTemplates.eserviceArchivingStartedEserviceToProducer(
           eservice.name,
-          descriptor.archivingSchedule.archivableOn
+          descriptor.archivingSchedule?.archivableOn
         ),
         descriptor,
       };
@@ -175,19 +153,6 @@ function bodyAndDescriptorForProducer(
           ),
           descriptor,
         };
-      }
-    )
-    .with(
-      {
-        type: P.union(
-          "EServiceArchivingCanceled",
-          "EServiceDescriptorArchivingCanceled"
-        ),
-      },
-      (m) => {
-        throw genericError(
-          `bodyAndDescriptorForProducer reached for canceled event ${m.type} — should have been short-circuited upstream`
-        );
       }
     )
     .exhaustive();

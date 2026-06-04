@@ -22,6 +22,7 @@ import {
   EServiceEventEnvelope,
   EServiceEventEnvelopeV2,
   EServiceTemplateId,
+  MaintenanceEServiceDescriptorUnarchivedV2,
   PlatformStatesCatalogEntry,
   TokenGenerationStatesConsumerClient,
   descriptorState,
@@ -1546,6 +1547,257 @@ describe("integration tests V2 events", async () => {
         expect.arrayContaining([
           tokenGenStatesConsumerClient1,
           tokenGenStatesConsumerClient2,
+        ])
+      );
+    });
+  });
+
+  describe("MaintenanceEServiceDescriptorUnarchived", () => {
+    it("should recreate missing platform entry and set token-generation state to active when descriptor is published", async () => {
+      const restoredPublishedDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
+        interface: getMockDocument(),
+        state: descriptorState.published,
+        publishedAt: new Date(),
+        voucherLifespan: 300,
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [restoredPublishedDescriptor],
+      };
+
+      const payload: MaintenanceEServiceDescriptorUnarchivedV2 = {
+        eservice: toEServiceV2(eservice),
+        descriptorId: restoredPublishedDescriptor.id,
+      };
+      const message: EServiceEventEnvelopeV2 = {
+        sequence_num: 1,
+        stream_id: eservice.id,
+        version: 2,
+        type: "MaintenanceEServiceDescriptorUnarchived",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: restoredPublishedDescriptor.id,
+      });
+
+      // token-generation-states
+      const tokenGenStatesEntryPK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: restoredPublishedDescriptor.id,
+      });
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["old.audience"],
+          descriptorVoucherLifespan: 120,
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
+
+      const tokenGenStatesEntryPK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          descriptorState: itemState.inactive,
+          descriptorAudience: ["old.audience"],
+          descriptorVoucherLifespan: 120,
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      // platform-states
+      const retrievedCatalogEntry = await readCatalogEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+      const expectedCatalogEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: itemState.active,
+        descriptorAudience: restoredPublishedDescriptor.audience,
+        descriptorVoucherLifespan: restoredPublishedDescriptor.voucherLifespan,
+        version: 2,
+        updatedAt: new Date().toISOString(),
+      };
+      expect(retrievedCatalogEntry).toEqual(expectedCatalogEntry);
+
+      // token-generation-states
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
+      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          descriptorState: itemState.active,
+          descriptorAudience: restoredPublishedDescriptor.audience,
+          descriptorVoucherLifespan:
+            restoredPublishedDescriptor.voucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          descriptorState: itemState.active,
+          descriptorAudience: restoredPublishedDescriptor.audience,
+          descriptorVoucherLifespan:
+            restoredPublishedDescriptor.voucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
+
+      expect(retrievedTokenGenStatesEntries).toHaveLength(2);
+      expect(retrievedTokenGenStatesEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenGenStatesConsumeClient2,
+          expectedTokenGenStatesConsumeClient1,
+        ])
+      );
+    });
+
+    it("should recreate missing platform entry and keep token-generation state inactive when descriptor is suspended", async () => {
+      const restoredSuspendedDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        audience: ["pagopa.it/test1", "pagopa.it/test2"],
+        interface: getMockDocument(),
+        state: descriptorState.suspended,
+        publishedAt: new Date(),
+        suspendedAt: new Date(),
+        voucherLifespan: 480,
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [restoredSuspendedDescriptor],
+      };
+
+      const payload: MaintenanceEServiceDescriptorUnarchivedV2 = {
+        eservice: toEServiceV2(eservice),
+        descriptorId: restoredSuspendedDescriptor.id,
+      };
+      const message: EServiceEventEnvelopeV2 = {
+        sequence_num: 1,
+        stream_id: eservice.id,
+        version: 2,
+        type: "MaintenanceEServiceDescriptorUnarchived",
+        event_version: 2,
+        data: payload,
+        log_date: new Date(),
+      };
+
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: restoredSuspendedDescriptor.id,
+      });
+
+      // token-generation-states
+      const tokenGenStatesEntryPK1 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: restoredSuspendedDescriptor.id,
+      });
+      const tokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK1),
+          descriptorState: itemState.active,
+          descriptorAudience: ["old.audience"],
+          descriptorVoucherLifespan: 120,
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient1,
+        dynamoDBClient
+      );
+
+      const tokenGenStatesEntryPK2 =
+        makeTokenGenerationStatesClientKidPurposePK({
+          clientId: generateId(),
+          kid: `kid ${Math.random()}`,
+          purposeId: generateId(),
+        });
+      const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...getMockTokenGenStatesConsumerClient(tokenGenStatesEntryPK2),
+          descriptorState: itemState.active,
+          descriptorAudience: ["old.audience"],
+          descriptorVoucherLifespan: 120,
+          GSIPK_eserviceId_descriptorId: eserviceId_descriptorId,
+        };
+      await writeTokenGenStatesConsumerClient(
+        tokenGenStatesConsumerClient2,
+        dynamoDBClient
+      );
+
+      await handleMessageV2(message, dynamoDBClient, genericLogger);
+
+      // platform-states
+      const retrievedCatalogEntry = await readCatalogEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+      const expectedCatalogEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: itemState.inactive,
+        descriptorAudience: restoredSuspendedDescriptor.audience,
+        descriptorVoucherLifespan: restoredSuspendedDescriptor.voucherLifespan,
+        version: 2,
+        updatedAt: new Date().toISOString(),
+      };
+      expect(retrievedCatalogEntry).toEqual(expectedCatalogEntry);
+
+      // token-generation-states
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
+      const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient1,
+          descriptorState: itemState.inactive,
+          descriptorAudience: restoredSuspendedDescriptor.audience,
+          descriptorVoucherLifespan:
+            restoredSuspendedDescriptor.voucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
+      const expectedTokenGenStatesConsumeClient2: TokenGenerationStatesConsumerClient =
+        {
+          ...tokenGenStatesConsumerClient2,
+          descriptorState: itemState.inactive,
+          descriptorAudience: restoredSuspendedDescriptor.audience,
+          descriptorVoucherLifespan:
+            restoredSuspendedDescriptor.voucherLifespan,
+          updatedAt: new Date().toISOString(),
+        };
+
+      expect(retrievedTokenGenStatesEntries).toHaveLength(2);
+      expect(retrievedTokenGenStatesEntries).toEqual(
+        expect.arrayContaining([
+          expectedTokenGenStatesConsumeClient2,
+          expectedTokenGenStatesConsumeClient1,
         ])
       );
     });

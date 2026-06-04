@@ -24,6 +24,7 @@ const buildRow = (
   correlationId: "00000000-0000-0000-0000-000000000002",
   sendAt: new Date(),
   sentAt: null,
+  skippedAt: null,
   attempts: 0,
   lastError: null,
   createdAt: new Date(),
@@ -110,13 +111,19 @@ describe("runScheduledDeliveryBatch", () => {
       batchSize: 10,
       maxBatchesPerRun: 5,
       maxAttempts: 3,
+      stalenessThresholdHours: 24,
       db,
       dispatch,
       sink,
       log,
     });
 
-    expect(counters).toEqual({ processed: 0, skipped: 0, failed: 0 });
+    expect(counters).toEqual({
+      processed: 0,
+      skipped: 0,
+      skippedStale: 0,
+      failed: 0,
+    });
     expect(dispatch).not.toHaveBeenCalled();
     expect(sink).not.toHaveBeenCalled();
   });
@@ -132,13 +139,19 @@ describe("runScheduledDeliveryBatch", () => {
       batchSize: 10,
       maxBatchesPerRun: 5,
       maxAttempts: 3,
+      stalenessThresholdHours: 24,
       db,
       dispatch,
       sink,
       log,
     });
 
-    expect(counters).toEqual({ processed: 1, skipped: 0, failed: 0 });
+    expect(counters).toEqual({
+      processed: 1,
+      skipped: 0,
+      skippedStale: 0,
+      failed: 0,
+    });
     expect(dispatch).toHaveBeenCalledTimes(1);
     expect(sink).toHaveBeenCalledWith([{ payload: "x" }]);
     // 1 claim update (returning) + 1 sentAt update
@@ -164,13 +177,19 @@ describe("runScheduledDeliveryBatch", () => {
       batchSize: 10,
       maxBatchesPerRun: 5,
       maxAttempts: 3,
+      stalenessThresholdHours: 24,
       db,
       dispatch,
       sink,
       log,
     });
 
-    expect(counters).toEqual({ processed: 0, skipped: 1, failed: 0 });
+    expect(counters).toEqual({
+      processed: 0,
+      skipped: 1,
+      skippedStale: 0,
+      failed: 0,
+    });
     expect(sink).not.toHaveBeenCalled();
     // 1 claim + 1 sentAt update (skipped rows are still marked sent to avoid replay)
     expect(updates).toHaveLength(2);
@@ -190,13 +209,19 @@ describe("runScheduledDeliveryBatch", () => {
       batchSize: 10,
       maxBatchesPerRun: 5,
       maxAttempts: 3,
+      stalenessThresholdHours: 24,
       db,
       dispatch,
       sink,
       log,
     });
 
-    expect(counters).toEqual({ processed: 0, skipped: 0, failed: 1 });
+    expect(counters).toEqual({
+      processed: 0,
+      skipped: 0,
+      skippedStale: 0,
+      failed: 1,
+    });
     expect(sink).not.toHaveBeenCalled();
     expect(updates).toHaveLength(2);
     expect(updates[0]).toMatchObject({
@@ -221,13 +246,19 @@ describe("runScheduledDeliveryBatch", () => {
       batchSize: 10,
       maxBatchesPerRun: 5,
       maxAttempts: 3,
+      stalenessThresholdHours: 24,
       db,
       dispatch,
       sink,
       log,
     });
 
-    expect(counters).toEqual({ processed: 0, skipped: 0, failed: 0 });
+    expect(counters).toEqual({
+      processed: 0,
+      skipped: 0,
+      skippedStale: 0,
+      failed: 0,
+    });
     expect(dispatch).not.toHaveBeenCalled();
     // Only the (failed) claim update was issued
     expect(updates).toHaveLength(1);
@@ -245,6 +276,7 @@ describe("runScheduledDeliveryBatch", () => {
       batchSize: 10,
       maxBatchesPerRun: 99,
       maxAttempts: 3,
+      stalenessThresholdHours: 24,
       db,
       dispatch,
       sink,
@@ -252,6 +284,77 @@ describe("runScheduledDeliveryBatch", () => {
     });
 
     expect(dispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it("marks stale rows as skippedAt and counts skippedStale", async () => {
+    const staleRow = buildRow({
+      sendAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+    });
+    const { db, updates } = makeDb([[staleRow], []]);
+    const dispatch = vi.fn();
+    const sink = vi.fn();
+
+    const counters = await runScheduledDeliveryBatch({
+      channel: scheduledNotificationChannel.inApp,
+      batchSize: 10,
+      maxBatchesPerRun: 5,
+      maxAttempts: 3,
+      stalenessThresholdHours: 24,
+      db,
+      dispatch,
+      sink,
+      log,
+    });
+
+    expect(counters).toEqual({
+      processed: 0,
+      skipped: 0,
+      skippedStale: 1,
+      failed: 0,
+    });
+    expect(dispatch).not.toHaveBeenCalled();
+    expect(sink).not.toHaveBeenCalled();
+    expect(updates).toHaveLength(2);
+    expect(updates[0]).toMatchObject({
+      set: { attempts: 1 },
+      returning: true,
+    });
+    expect(updates[1]).toMatchObject({
+      set: { skippedAt: expect.any(Date) },
+      returning: false,
+    });
+  });
+
+  it("processes non-stale rows alongside stale ones in the same batch", async () => {
+    const staleRow = buildRow({
+      id: "stale-row",
+      sendAt: new Date(Date.now() - 48 * 60 * 60 * 1000),
+    });
+    const freshRow = buildRow({ id: "fresh-row", sendAt: new Date() });
+    const { db } = makeDb([[staleRow, freshRow], []]);
+    const dispatch = vi.fn().mockResolvedValue([{ payload: "x" }]);
+    const sink = vi.fn().mockResolvedValue(undefined);
+
+    const counters = await runScheduledDeliveryBatch({
+      channel: scheduledNotificationChannel.inApp,
+      batchSize: 10,
+      maxBatchesPerRun: 5,
+      maxAttempts: 3,
+      stalenessThresholdHours: 24,
+      db,
+      dispatch,
+      sink,
+      log,
+    });
+
+    expect(counters).toEqual({
+      processed: 1,
+      skipped: 0,
+      skippedStale: 1,
+      failed: 0,
+    });
+    expect(dispatch).toHaveBeenCalledTimes(1);
+    expect(sink).toHaveBeenCalledTimes(1);
   });
 
   it("runs up to maxBatchesPerRun consecutive full batches", async () => {
@@ -266,6 +369,7 @@ describe("runScheduledDeliveryBatch", () => {
       batchSize: 2,
       maxBatchesPerRun: 2,
       maxAttempts: 3,
+      stalenessThresholdHours: 24,
       db,
       dispatch,
       sink,

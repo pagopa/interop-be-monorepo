@@ -91,6 +91,8 @@ export const eventMailTemplateType = {
     "producer-keychain-user-deleted-mail",
   producerKeychainNoKeysForAsyncEserviceMailTemplate:
     "producer-keychain-no-keys-for-async-eservice-mail",
+  asyncEserviceWithoutKeychainMailTemplate:
+    "async-eservice-without-keychain-mail",
   clientKeyAddedMailTemplate: "client-key-added-mail",
   producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
   newPurposeVersionQuotaAdjustmentRequestMailTemplate:
@@ -126,8 +128,6 @@ export const eventMailTemplateType = {
     "eservice-archiving-canceled-eservice-to-consumer-mail",
   eserviceArchivingCanceledEserviceToProducerMailTemplate:
     "eservice-archiving-canceled-eservice-to-producer-mail",
-  asyncEserviceWithoutKeychainMailTemplate:
-    "async-eservice-without-keychain-mail",
   eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate:
     "eservice-state-changed-to-producer-scheduled-reminder-descriptor-mail",
   eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate:

@@ -89,7 +89,7 @@ describe("handleEserviceArchivingCompletedToProducer", () => {
     });
     expect(messages).toHaveLength(users.length);
     expect(messages[0].email.subject).toContain(
-      "Un tuo e-service è stato archiviato"
+      "Archiviazione conclusa dell'e-service"
     );
   });
 });

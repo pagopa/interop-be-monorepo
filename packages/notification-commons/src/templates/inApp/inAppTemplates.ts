@@ -329,7 +329,15 @@ export const inAppTemplates = {
     attributeKind: "certificato" | "verificato",
     revokerName: string
   ): string =>
-    `Ti informiamo che l'ente certificatore  ${revokerName} ha revocato l'attributo ${attributeKind} "${attributeName}". Tutte le richieste di fruizione che utilizzano tale attributo subiranno una sospensione. Non potrai più utilizzare questo attributo per le future richieste di fruizione.`,
+    `L'ente certificatore ${revokerName} ha revocato l'attributo ${attributeKind} "${attributeName}". Tutte le richieste di fruizione con questo attributo saranno sospese e in futuro non potrai più utilizzare questo attributo per le richieste di fruizione.`,
+  certifiedAttributeAssignedToAssigneeFromImport: (
+    attributeName: string
+  ): string =>
+    `Al tuo ente è stato conferito l'attributo certificato "${attributeName}". Puoi ora utilizzarlo nelle richieste di fruizione.`,
+  certifiedAttributeRevokedToAssigneeFromImport: (
+    attributeName: string
+  ): string =>
+    `Al tuo ente è stato revocato l'attributo certificato "${attributeName}". Tutte le richieste di fruizione con questo attributo saranno sospese e in futuro non potrai più utilizzare questo attributo per le richieste di fruizione.`,
   producerKeychainEServiceAddedToConsumer: (
     producerName: string,
     eserviceName: string
@@ -358,18 +366,22 @@ export const inAppTemplates = {
   eserviceArchivingStartedDescriptorToProducer: (
     eserviceName: string,
     descriptorVersion: string,
-    archivableOn: Date
+    archivableOn: Date | undefined
   ): string =>
-    `Il processo di archiviazione per la versione ${descriptorVersion} del tuo e-service "${eserviceName}" si concluderà in data ${dateAtRomeZone(
+    `Hai avviato il processo di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}${
       archivableOn
-    )}.`,
+        ? `. L'archiviazione sarà completata il ${dateAtRomeZone(archivableOn)}`
+        : ""
+    }.`,
   eserviceArchivingStartedEserviceToProducer: (
     eserviceName: string,
-    archivableOn: Date
+    archivableOn: Date | undefined
   ): string =>
-    `Il processo di archiviazione per il tuo e-service "${eserviceName}" si concluderà in data ${dateAtRomeZone(
+    `Hai avviato il processo di archiviazione dell'e-service ${eserviceName}${
       archivableOn
-    )}.`,
+        ? `. L'archiviazione sarà completata il ${dateAtRomeZone(archivableOn)}`
+        : ""
+    }.`,
   eserviceArchivingCompletedDescriptorToProducer: (
     eserviceName: string,
     descriptorVersion: string
@@ -389,19 +401,23 @@ export const inAppTemplates = {
     eserviceName: string,
     descriptorVersion: string,
     producerName: string,
-    archivableOn: Date
+    archivableOn: Date | undefined
   ): string =>
-    `Ti informiamo che l'ente erogatore ${producerName} ha avviato il processo di archiviazione per la versione ${descriptorVersion} dell'e-service "${eserviceName}", a cui sei iscritto. La versione non sarà più disponibile a partire dal ${dateAtRomeZone(
+    `L'ente erogatore ${producerName} ha avviato il processo di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName} a cui sei iscritto${
       archivableOn
-    )}.`,
+        ? `. Hai tempo fino al ${dateAtRomeZone(archivableOn)} per concludere ordinatamente le chiamate`
+        : ""
+    }.`,
   eserviceArchivingStartedEserviceToConsumer: (
     eserviceName: string,
     producerName: string,
-    archivableOn: Date
+    archivableOn: Date | undefined
   ): string =>
-    `Ti informiamo che l'ente erogatore ${producerName} ha avviato il processo di archiviazione per l'e-service "${eserviceName}", a cui sei iscritto. Il servizio non sarà più disponibile a partire dal ${dateAtRomeZone(
+    `L'ente erogatore ${producerName} ha avviato il processo di archiviazione dell'e-service ${eserviceName} a cui sei iscritto${
       archivableOn
-    )}.`,
+        ? `. Hai tempo fino al ${dateAtRomeZone(archivableOn)} per concludere ordinatamente le chiamate`
+        : ""
+    }.`,
   eserviceArchivingCompletedDescriptorToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
@@ -438,6 +454,7 @@ export const inAppTemplates = {
   ): string =>
     `Il portachiavi "${producerKeychainName}" non ha chiavi associate. Gli e-service asincroni collegati (${eserviceNames}) non potranno contattare PDND per scambiare dati con i fruitori. Aggiungi una nuova chiave al portachiavi.`,
 
+  // eservices - archiviazione scheduled reminders (PIN-10069)
   eserviceArchivingScheduledReminderToProducer: (
     eserviceName: string,
     daysRemaining: number,
