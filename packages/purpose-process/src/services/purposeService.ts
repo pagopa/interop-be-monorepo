@@ -90,11 +90,12 @@ import {
   unableToDetermineTenantKind,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  reviewerWorkflowNotInSubmittedState,
-  requesterIsNotDesignatedReviewer,
+  multipleReviewersNotAllowed,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
+  reviewerWorkflowNotInSubmittedState,
+  requesterIsNotDesignatedReviewer,
   rejectNotAllowedInCurrentMode,
 } from "../model/domain/errors.js";
 import {
@@ -543,6 +544,10 @@ export function purposeServiceBuilder(
 
       const isReviewerWrites =
         seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
+
+      if (seed.reviewerIds.length > 1) {
+        throw multipleReviewersNotAllowed(purposeId);
+      }
 
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
