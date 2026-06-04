@@ -19,7 +19,7 @@ export function toPurposeProcessGetPurposesQueryParams(
     clientId: undefined,
     states: allowedPurposeStates,
     excludeDraft: false,
-    signingState: [],
+    signingStates: [],
   };
 }
 

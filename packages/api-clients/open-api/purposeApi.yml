@@ -303,7 +303,7 @@ paths:
             type: string
             format: uuid
         - in: query
-          name: signingState
+          name: signingStates
           description: comma separated sequence of risk analysis signing states
           schema:
             type: array

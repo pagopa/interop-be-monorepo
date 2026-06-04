@@ -21,7 +21,7 @@ export function toGetPurposesApiQueryParams(
     states: params.states,
     excludeDraft: false,
     name: params.title,
-    signingState: [],
+    signingStates: [],
   };
 }
 
@@ -40,7 +40,7 @@ export function toGetPurposesApiQueryParamsForClient(
     states: params.states,
     excludeDraft: false,
     name: "",
-    signingState: [],
+    signingStates: [],
   };
 }
 
