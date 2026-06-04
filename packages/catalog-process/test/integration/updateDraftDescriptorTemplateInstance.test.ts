@@ -9,6 +9,7 @@ import {
   getMockDescriptor,
   getMockEService,
   getMockDocument,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -23,6 +24,7 @@ import {
   delegationKind,
   AttributeId,
   unsafeBrandId,
+  attributeKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -823,74 +825,98 @@ describe("update draft descriptor instance", () => {
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
 
-  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is set on declared attribute", async () => {
-    const template = getMockEServiceTemplate();
+  it.each([attributeKind.declared, attributeKind.verified])(
+    "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
+    async (kind) => {
+      const template = getMockEServiceTemplate();
 
-    const declaredAttributeId = unsafeBrandId<AttributeId>(generateId());
-    const declaredAttribute: Attribute = {
-      name: "Declared attribute",
-      id: declaredAttributeId,
-      kind: "Declared",
-      description: "A declared attribute",
-      creationTime: new Date(),
-    };
+      const nonCertifiedAttribute = getMockAttribute(kind);
 
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.draft,
-      dailyCallsPerConsumer: 1,
-      dailyCallsTotal: 1000,
-      attributes: {
-        certified: [],
-        declared: [
-          [
-            {
-              id: declaredAttributeId,
-              explicitAttributeVerification: false,
-            },
-          ],
-        ],
-        verified: [],
-      },
-    };
-
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-      name: `${template.name} test`,
-      templateId: template.id,
-    };
-
-    await addOneEServiceTemplate(template);
-    await addOneAttribute(declaredAttribute);
-    await addOneEService(eservice);
-
-    const attributesWithDiscreteConfigOnDeclared: catalogApi.AttributesSeed = {
-      certified: [],
-      declared: [
-        [
-          {
-            id: declaredAttributeId,
-            explicitAttributeVerification: false,
-            discreteConfig: { threshold: 1, comparator: "GT" },
-          },
-        ],
-      ],
-      verified: [],
-    };
-
-    await expect(
-      catalogService.updateDraftDescriptorTemplateInstance(
-        eservice.id,
-        descriptor.id,
-        {
-          ...buildUpdateDescriptorSeed(descriptor),
-          attributes: attributesWithDiscreteConfigOnDeclared,
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: {
+          certified: [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                    },
+                  ],
+                ]
+              : [],
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
-      )
-    ).rejects.toThrowError(
-      attributeDiscreteConfigNotAllowed(declaredAttributeId)
-    );
-  });
+      };
+
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+        name: `${template.name} test`,
+        templateId: template.id,
+      };
+
+      await addOneEServiceTemplate(template);
+      await addOneAttribute(nonCertifiedAttribute);
+      await addOneEService(eservice);
+
+      const attributesWithDiscreteConfigOnNonCertified: catalogApi.AttributesSeed =
+        {
+          certified: [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+        };
+
+      await expect(
+        catalogService.updateDraftDescriptorTemplateInstance(
+          eservice.id,
+          descriptor.id,
+          {
+            ...buildUpdateDescriptorSeed(descriptor),
+            attributes: attributesWithDiscreteConfigOnNonCertified,
+          },
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        attributeDiscreteConfigNotAllowed(nonCertifiedAttribute.id)
+      );
+    }
+  );
 });
