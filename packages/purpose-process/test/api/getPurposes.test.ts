@@ -40,9 +40,7 @@ describe("API GET /purposes test", () => {
   };
 
   const apiResponse = purposeApi.Purposes.parse({
-    results: purposes.results.map((purpose) =>
-      purposeToApiPurpose(purpose, false)
-    ),
+    results: purposes.results.map((purpose) => purposeToApiPurpose(purpose)),
     totalCount: purposes.totalCount,
   });
 

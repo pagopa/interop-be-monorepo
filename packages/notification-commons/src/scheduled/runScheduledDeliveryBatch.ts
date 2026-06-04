@@ -1,5 +1,6 @@
 import { and, eq, isNull, lt, lte } from "drizzle-orm";
 import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-models";
+import { isStale } from "./staleness.js";
 import {
   RunScheduledDeliveryBatchCounters,
   RunScheduledDeliveryBatchParams,
@@ -8,21 +9,27 @@ import {
 /**
  * Drain ready rows from `scheduled_notification` for the given channel.
  *
- * Each row is locked with `FOR UPDATE SKIP LOCKED` so concurrent dispatcher
- * runs see disjoint batches. For every locked row we call `dispatch` (which
- * resolves recipients and builds channel-specific payloads), then push the
- * payloads through `sink`. On success we mark `sent_at`; on failure we bump
- * `attempts` and store `last_error`. Rows above `maxAttempts` are excluded
- * from future batches (logical dead-letter).
+ * Concurrency: each candidate row is claimed atomically via a conditional
+ * UPDATE that bumps `attempts` only if `sent_at` is still NULL and the
+ * previously-observed `attempts` value hasn't changed. Concurrent workers
+ * that try to claim the same row will see 0 rows returned and move on.
  *
- * The loop runs up to `maxBatchesPerRun` batches and exits early when a
- * batch returns fewer rows than `batchSize` (no more work).
+ * Side-effect ordering: `dispatch` and `sink` run OUTSIDE any DB transaction.
+ * The post-sink `sent_at` write is a single short statement; if it fails,
+ * the next batch will re-attempt the delivery — accepted trade-off, since
+ * the alternative (sink inside a long-running tx) would silently re-deliver
+ * every row in the batch on any commit failure.
+ *
+ * Rows above `maxAttempts` are excluded from future batches (logical
+ * dead-letter). The loop runs up to `maxBatchesPerRun` batches and exits
+ * early when fewer rows than `batchSize` are claimed.
  */
 export const runScheduledDeliveryBatch = async <TPayload>({
   channel,
   batchSize,
   maxBatchesPerRun,
   maxAttempts,
+  stalenessThresholdHours,
   db,
   dispatch,
   sink,
@@ -31,59 +38,86 @@ export const runScheduledDeliveryBatch = async <TPayload>({
   const counters: RunScheduledDeliveryBatchCounters = {
     processed: 0,
     skipped: 0,
+    skippedStale: 0,
     failed: 0,
   };
 
   for (let i = 0; i < maxBatchesPerRun; i++) {
-    const batchResult = await db.transaction(async (tx) => {
-      const rows = await tx
-        .select()
-        .from(scheduledNotification)
+    const candidates = await db
+      .select()
+      .from(scheduledNotification)
+      .where(
+        and(
+          eq(scheduledNotification.channel, channel),
+          isNull(scheduledNotification.sentAt),
+          isNull(scheduledNotification.skippedAt),
+          lte(scheduledNotification.sendAt, new Date()),
+          lt(scheduledNotification.attempts, maxAttempts)
+        )
+      )
+      .limit(batchSize);
+
+    if (candidates.length === 0) {
+      break;
+    }
+
+    let claimedCount = 0;
+
+    for (const candidate of candidates) {
+      const claimed = await db
+        .update(scheduledNotification)
+        .set({ attempts: candidate.attempts + 1 })
         .where(
           and(
-            eq(scheduledNotification.channel, channel),
+            eq(scheduledNotification.id, candidate.id),
             isNull(scheduledNotification.sentAt),
-            lte(scheduledNotification.sendAt, new Date()),
-            lt(scheduledNotification.attempts, maxAttempts)
+            isNull(scheduledNotification.skippedAt),
+            eq(scheduledNotification.attempts, candidate.attempts)
           )
         )
-        .for("update", { skipLocked: true })
-        .limit(batchSize);
+        .returning();
 
-      if (rows.length === 0) {
-        return { done: true } as const;
+      if (claimed.length === 0) {
+        continue;
+      }
+      claimedCount += 1;
+      const row = claimed[0];
+
+      if (isStale(row.sendAt, stalenessThresholdHours)) {
+        await db
+          .update(scheduledNotification)
+          .set({ skippedAt: new Date() })
+          .where(eq(scheduledNotification.id, row.id));
+        counters.skippedStale += 1;
+        log.info(
+          `Skipping stale row ${row.id} (sendAt=${row.sendAt.toISOString()}, threshold=${stalenessThresholdHours}h)`
+        );
+        continue;
       }
 
-      for (const row of rows) {
-        try {
-          const payloads = await dispatch(row);
-          if (payloads.length === 0) {
-            counters.skipped += 1;
-          } else {
-            await sink(payloads);
-            counters.processed += 1;
-          }
-          await tx
-            .update(scheduledNotification)
-            .set({ sentAt: new Date() })
-            .where(eq(scheduledNotification.id, row.id));
-        } catch (err) {
-          counters.failed += 1;
-          await tx
-            .update(scheduledNotification)
-            .set({
-              attempts: row.attempts + 1,
-              lastError: String(err),
-            })
-            .where(eq(scheduledNotification.id, row.id));
-          log.error(`Delivery failed for row ${row.id}: ${String(err)}`);
+      try {
+        const payloads = await dispatch(row);
+        if (payloads.length === 0) {
+          counters.skipped += 1;
+        } else {
+          await sink(payloads);
+          counters.processed += 1;
         }
+        await db
+          .update(scheduledNotification)
+          .set({ sentAt: new Date() })
+          .where(eq(scheduledNotification.id, row.id));
+      } catch (err) {
+        counters.failed += 1;
+        await db
+          .update(scheduledNotification)
+          .set({ lastError: String(err) })
+          .where(eq(scheduledNotification.id, row.id));
+        log.error(`Delivery failed for row ${row.id}: ${String(err)}`);
       }
+    }
 
-      return { done: rows.length < batchSize } as const;
-    });
-
-    if (batchResult.done) {
+    if (claimedCount < batchSize) {
       break;
     }
   }

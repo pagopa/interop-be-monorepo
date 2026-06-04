@@ -32,6 +32,7 @@ import {
   notificationConfigReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { config } from "./config/config.js";
@@ -68,6 +69,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -80,6 +83,7 @@ const readModelService = readModelServiceBuilderSQL({
   purposeReadModelServiceSQL,
   notificationTypeBlocklist:
     config.notificationTypeBlocklist as NotificationType[],
+  producerKeychainReadModelServiceSQL,
 });
 
 const emailNotificationDispatcherService =

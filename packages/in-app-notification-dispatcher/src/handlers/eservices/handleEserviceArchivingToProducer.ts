@@ -5,7 +5,6 @@ import {
   EServiceEventV2,
   EServiceIdDescriptorId,
   fromEServiceV2,
-  genericError,
   missingKafkaMessageDataError,
   NewNotification,
   unsafeBrandId,
@@ -44,11 +43,10 @@ export async function handleEserviceArchivingToProducer(
 
   // Discriminator: skip auto-archive routine (Deprecated/Suspended -> Archived)
   if (msg.type === "EServiceDescriptorArchived") {
-    const archivedDescriptor = retrieveDescriptor(
-      eservice,
-      unsafeBrandId<DescriptorId>(msg.data.descriptorId)
+    const archivedDescriptor = eservice.descriptors.find(
+      (d) => d.id === unsafeBrandId<DescriptorId>(msg.data.descriptorId)
     );
-    if (!archivedDescriptor.archivingSchedule) {
+    if (!archivedDescriptor?.archivingSchedule) {
       logger.info(
         `Skipping in-app notification for EServiceDescriptorArchived without archivingSchedule (eservice ${eservice.id}, descriptor ${msg.data.descriptorId}) — routine auto-archiving`
       );
@@ -96,16 +94,11 @@ function bodyAndDescriptorForProducer(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId)
         );
-        if (!descriptor.archivingSchedule) {
-          throw genericError(
-            `EServiceDescriptorArchivingScheduled for eservice ${eservice.id}, descriptor ${descriptor.id} is missing archivingSchedule`
-          );
-        }
         return {
           body: inAppTemplates.eserviceArchivingStartedDescriptorToProducer(
             eservice.name,
             descriptor.version,
-            descriptor.archivingSchedule.archivableOn
+            descriptor.archivingSchedule?.archivableOn
           ),
           descriptor,
         };
@@ -113,15 +106,10 @@ function bodyAndDescriptorForProducer(
     )
     .with({ type: "EServiceArchivingScheduled" }, () => {
       const descriptor = retrieveLatestDescriptor(eservice);
-      if (!descriptor.archivingSchedule) {
-        throw genericError(
-          `EServiceArchivingScheduled for eservice ${eservice.id} is missing archivingSchedule on its latest descriptor ${descriptor.id}`
-        );
-      }
       return {
         body: inAppTemplates.eserviceArchivingStartedEserviceToProducer(
           eservice.name,
-          descriptor.archivingSchedule.archivableOn
+          descriptor.archivingSchedule?.archivableOn
         ),
         descriptor,
       };

@@ -25,6 +25,7 @@ import {
 } from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurpose,
   testToM2mGatewayApiPurposeVersion,
 } from "../../mockUtils.js";
 
@@ -88,28 +89,14 @@ describe("updateDraftPurpose", () => {
     );
 
     const purposeVersion = mockPurposeProcessGetResponse.data.versions.at(0);
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockPurposeProcessGetResponse.data.consumerId,
-      createdAt: mockPurposeProcessGetResponse.data.createdAt,
-      description: mockPurposeProcessGetResponse.data.description,
-      eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
-      id: mockPurposeProcessGetResponse.data.id,
-      isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-      isRiskAnalysisValid:
-        mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
-      title: mockPurposeProcessGetResponse.data.title,
-      currentVersion: purposeVersion
-        ? testToM2mGatewayApiPurposeVersion(purposeVersion)
-        : undefined,
-      delegationId: mockPurposeProcessGetResponse.data.delegationId,
-      freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
-      rejectedVersion: undefined,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
-      updatedAt: mockPurposeProcessGetResponse.data.updatedAt,
-      waitingForApprovalVersion: undefined,
-      purposeTemplateId: mockPurposeProcessGetResponse.data.purposeTemplateId,
-    };
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(
+      mockPurposeProcessGetResponse.data,
+      {
+        currentVersion: purposeVersion
+          ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+          : undefined,
+      }
+    );
 
     expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
@@ -151,31 +138,14 @@ describe("updateDraftPurpose", () => {
 
     const purposeVersion =
       mockPurposeProcessGetResponseWithTemplate.data.versions.at(0);
-    const expectedM2MPurpose: m2mGatewayApi.Purpose = {
-      consumerId: mockPurposeProcessGetResponseWithTemplate.data.consumerId,
-      createdAt: mockPurposeProcessGetResponseWithTemplate.data.createdAt,
-      description: mockPurposeProcessGetResponseWithTemplate.data.description,
-      eserviceId: mockPurposeProcessGetResponseWithTemplate.data.eserviceId,
-      id: mockPurposeProcessGetResponseWithTemplate.data.id,
-      isFreeOfCharge:
-        mockPurposeProcessGetResponseWithTemplate.data.isFreeOfCharge,
-      isRiskAnalysisValid:
-        mockPurposeProcessGetResponseWithTemplate.data.isRiskAnalysisValid,
-      title: mockPurposeProcessGetResponseWithTemplate.data.title,
-      currentVersion: purposeVersion
-        ? testToM2mGatewayApiPurposeVersion(purposeVersion)
-        : undefined,
-      delegationId: mockPurposeProcessGetResponseWithTemplate.data.delegationId,
-      freeOfChargeReason:
-        mockPurposeProcessGetResponseWithTemplate.data.freeOfChargeReason,
-      rejectedVersion: undefined,
-      suspendedByConsumer: undefined,
-      suspendedByProducer: undefined,
-      updatedAt: mockPurposeProcessGetResponseWithTemplate.data.updatedAt,
-      waitingForApprovalVersion: undefined,
-      purposeTemplateId:
-        mockPurposeProcessGetResponseWithTemplate.data.purposeTemplateId,
-    };
+    const expectedM2MPurpose = testToM2mGatewayApiPurpose(
+      mockPurposeProcessGetResponseWithTemplate.data,
+      {
+        currentVersion: purposeVersion
+          ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+          : undefined,
+      }
+    );
 
     expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({

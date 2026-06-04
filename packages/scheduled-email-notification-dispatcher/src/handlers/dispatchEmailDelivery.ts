@@ -4,13 +4,15 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { HtmlTemplateService, Logger, logger } from "pagopa-interop-commons";
+import { isStale } from "pagopa-interop-notification-commons";
 import {
   schedulableEventType,
   ScheduledNotificationRow,
 } from "pagopa-interop-scheduled-notification-db-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { handleEserviceStateChangedReminderEmail } from "./eservices/handleEserviceStateChangedReminderEmail.js";
+import { handleEserviceArchivingScheduledReminderEmail } from "./eservices/handleEserviceArchivingScheduledReminderEmail.js";
+import { handleEserviceDescriptorArchivingScheduledReminderEmail } from "./eservices/handleEserviceDescriptorArchivingScheduledReminderEmail.js";
 
 const SERVICE_NAME = "scheduled-email-notification-dispatcher";
 
@@ -19,6 +21,7 @@ export const dispatchEmailDeliveryBuilder =
     readModelService: ReadModelServiceSQL;
     templateService: HtmlTemplateService;
     bffUrl: string;
+    stalenessThresholdHours: number;
     rootLog: Logger;
   }) =>
   async (
@@ -31,18 +34,28 @@ export const dispatchEmailDeliveryBuilder =
       eventType: row.eventType,
       streamId: row.entityId,
     });
+    if (isStale(row.sendAt, deps.stalenessThresholdHours)) {
+      rowLog.info(
+        `Skipping stale row ${row.id} (sendAt=${row.sendAt.toISOString()}, threshold=${deps.stalenessThresholdHours}h)`
+      );
+      return [];
+    }
+    const handlerDeps = {
+      readModelService: deps.readModelService,
+      templateService: deps.templateService,
+      bffUrl: deps.bffUrl,
+      correlationId: rowCorrelationId,
+      log: rowLog,
+    };
     return match(row.eventType)
-      .with(
-        schedulableEventType.eserviceArchivingScheduled,
-        schedulableEventType.eserviceDescriptorArchivingScheduled,
-        () =>
-          handleEserviceStateChangedReminderEmail(row, {
-            readModelService: deps.readModelService,
-            templateService: deps.templateService,
-            bffUrl: deps.bffUrl,
-            correlationId: rowCorrelationId,
-            log: rowLog,
-          })
+      .with(schedulableEventType.eserviceArchivingScheduled, () =>
+        handleEserviceArchivingScheduledReminderEmail(row, handlerDeps)
+      )
+      .with(schedulableEventType.eserviceDescriptorArchivingScheduled, () =>
+        handleEserviceDescriptorArchivingScheduledReminderEmail(
+          row,
+          handlerDeps
+        )
       )
       .otherwise(() => {
         deps.rootLog.warn(

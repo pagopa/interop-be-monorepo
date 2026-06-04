@@ -105,7 +105,10 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorRejectedByDelegator",
         "EServiceDescriptorInterfaceAdded",
         "EServiceDescriptorInterfaceUpdated",
-        "EServiceDescriptorInterfaceDeleted"
+        "EServiceDescriptorInterfaceDeleted",
+        "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+        "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+        "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
       ),
       () => m2mEventVisibility.owner
     )
@@ -128,6 +131,7 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorQuotasUpdated",
         "EServiceDescriptorAgreementApprovalPolicyUpdated",
         "EServiceDescriptorAttributesUpdated",
+        "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
         "EServicePersonalDataFlagUpdatedAfterPublication",
         "EServicePersonalDataFlagUpdatedByTemplateUpdate",
         "EServiceInstanceLabelUpdated",
@@ -137,7 +141,8 @@ function getEServiceM2MEventVisibility(
         "EServiceArchivingScheduled",
         "EServiceArchivingCanceled",
         "EServiceArchivingCompleted",
-        "MaintenanceEServicePersonalDataFlagReset"
+        "MaintenanceEServicePersonalDataFlagReset",
+        "MaintenanceEServiceDescriptorUnarchived"
       ),
       () => m2mEventVisibility.public
     )

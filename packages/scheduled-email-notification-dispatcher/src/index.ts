@@ -40,6 +40,7 @@ const scheduledDb = makeScheduledNotificationDrizzleConnection(config);
 const readModelDb = makeDrizzleConnection(config);
 
 const readModelService = readModelServiceBuilderSQL({
+  readModelDb,
   agreementReadModelServiceSQL: agreementReadModelServiceBuilder(readModelDb),
   attributeReadModelServiceSQL: attributeReadModelServiceBuilder(readModelDb),
   catalogReadModelServiceSQL: catalogReadModelServiceBuilder(readModelDb),
@@ -61,6 +62,7 @@ const dispatch = dispatchEmailDeliveryBuilder({
   readModelService,
   templateService,
   bffUrl: config.bffUrl,
+  stalenessThresholdHours: config.scheduledNotificationStalenessThresholdHours,
   rootLog: log,
 });
 
@@ -70,13 +72,15 @@ try {
     batchSize: config.deliveryBatchSize,
     maxBatchesPerRun: config.maxBatchesPerRun,
     maxAttempts: config.maxAttempts,
+    stalenessThresholdHours:
+      config.scheduledNotificationStalenessThresholdHours,
     db: scheduledDb,
     dispatch,
     sink: emailSink.sendEmails,
     log,
   });
   log.info(
-    `Done. processed=${counters.processed} skipped=${counters.skipped} failed=${counters.failed}`
+    `Done. processed=${counters.processed} skipped=${counters.skipped} skippedStale=${counters.skippedStale} failed=${counters.failed}`
   );
 } catch (err) {
   log.error(`Unhandled error: ${String(err)}`);

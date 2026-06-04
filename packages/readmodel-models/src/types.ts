@@ -22,12 +22,14 @@ import {
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
@@ -40,6 +42,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
@@ -101,6 +104,9 @@ export type EServiceDescriptorAttributeSQL = InferSelectModel<
 export type EServiceDescriptorTemplateVersionRefSQL = InferSelectModel<
   typeof eserviceDescriptorTemplateVersionRefInReadmodelCatalog
 >;
+export type EServiceDescriptorAsyncExchangePropertiesSQL = InferSelectModel<
+  typeof eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog
+>;
 export type EServiceItemsSQL = {
   eserviceSQL: EServiceSQL;
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];
@@ -112,6 +118,7 @@ export type EServiceItemsSQL = {
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
   archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
+  asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
 };
 
 export type EServiceTemplateSQL = InferSelectModel<
@@ -135,6 +142,10 @@ export type EServiceTemplateRiskAnalysisAnswerSQL = InferSelectModel<
 export type EServiceTemplateVersionAttributeSQL = InferSelectModel<
   typeof eserviceTemplateVersionAttributeInReadmodelEserviceTemplate
 >;
+export type EServiceTemplateVersionAsyncExchangePropertiesSQL =
+  InferSelectModel<
+    typeof eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+  >;
 export type EServiceTemplateItemsSQL = {
   eserviceTemplateSQL: EServiceTemplateSQL;
   riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
@@ -143,6 +154,7 @@ export type EServiceTemplateItemsSQL = {
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
+  asyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL[];
 };
 
 export type AttributeSQL = InferSelectModel<
@@ -326,6 +338,9 @@ export type PurposeTemplateSQL = InferSelectModel<
 export type PurposeTemplateEServiceDescriptorSQL = InferSelectModel<
   typeof purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
 >;
+export type EServiceTemplateVersionPurposeTemplateSQL = InferSelectModel<
+  typeof eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+>;
 export type PurposeTemplateRiskAnalysisFormSQL = InferSelectModel<
   typeof purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate
 >;
@@ -360,6 +375,7 @@ export type PurposeTemplateItemsSQL = {
 };
 export const purposeTemplateChildTables = [
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,

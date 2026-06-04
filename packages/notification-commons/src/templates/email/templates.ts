@@ -89,6 +89,10 @@ export const eventMailTemplateType = {
   clientUserDeletedMailTemplate: "client-user-deleted-mail",
   producerKeychainUserDeletedMailTemplate:
     "producer-keychain-user-deleted-mail",
+  producerKeychainNoKeysForAsyncEserviceMailTemplate:
+    "producer-keychain-no-keys-for-async-eservice-mail",
+  asyncEserviceWithoutKeychainMailTemplate:
+    "async-eservice-without-keychain-mail",
   clientKeyAddedMailTemplate: "client-key-added-mail",
   producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
   newPurposeVersionQuotaAdjustmentRequestMailTemplate:
@@ -118,10 +122,20 @@ export const eventMailTemplateType = {
     "eservice-archiving-early-archived-to-producer-mail",
   eserviceArchivingEarlyArchivedToConsumerMailTemplate:
     "eservice-archiving-early-archived-to-consumer-mail",
-  eserviceStateChangedToProducerScheduledReminderMailTemplate:
-    "eservice-state-changed-to-producer-scheduled-reminder-mail",
-  eserviceStateChangedToConsumerScheduledReminderMailTemplate:
-    "eservice-state-changed-to-consumer-scheduled-reminder-mail",
+  eserviceArchivingCanceledDescriptorToConsumerMailTemplate:
+    "eservice-archiving-canceled-descriptor-to-consumer-mail",
+  eserviceArchivingCanceledEserviceToConsumerMailTemplate:
+    "eservice-archiving-canceled-eservice-to-consumer-mail",
+  eserviceArchivingCanceledEserviceToProducerMailTemplate:
+    "eservice-archiving-canceled-eservice-to-producer-mail",
+  eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate:
+    "eservice-state-changed-to-producer-scheduled-reminder-descriptor-mail",
+  eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate:
+    "eservice-state-changed-to-consumer-scheduled-reminder-descriptor-mail",
+  eserviceStateChangedToProducerScheduledReminderEserviceMailTemplate:
+    "eservice-state-changed-to-producer-scheduled-reminder-eservice-mail",
+  eserviceStateChangedToConsumerScheduledReminderEserviceMailTemplate:
+    "eservice-state-changed-to-consumer-scheduled-reminder-eservice-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([

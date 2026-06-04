@@ -16,6 +16,7 @@ export type RunScheduledDeliveryBatchParams<TPayload> = {
   batchSize: number;
   maxBatchesPerRun: number;
   maxAttempts: number;
+  stalenessThresholdHours: number;
   db: ScheduledNotificationDrizzleReturnType;
   dispatch: DispatchFn<TPayload>;
   sink: SinkFn<TPayload>;
@@ -25,5 +26,6 @@ export type RunScheduledDeliveryBatchParams<TPayload> = {
 export type RunScheduledDeliveryBatchCounters = {
   processed: number;
   skipped: number;
+  skippedStale: number;
   failed: number;
 };

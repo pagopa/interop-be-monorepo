@@ -6,7 +6,7 @@ export const ScheduledNotificationDBConfig = z
     SCHEDULED_NOTIFICATION_DB_NAME: z.string().default("root"),
     SCHEDULED_NOTIFICATION_DB_USERNAME: z.string().default("root"),
     SCHEDULED_NOTIFICATION_DB_PASSWORD: z.string().default("root"),
-    SCHEDULED_NOTIFICATION_DB_PORT: z.coerce.number().min(1001).default(6008),
+    SCHEDULED_NOTIFICATION_DB_PORT: z.coerce.number().min(1001).default(6009),
     SCHEDULED_NOTIFICATION_DB_USE_SSL: z
       .enum(["true", "false"])
       .transform((value) => value === "true")
@@ -27,4 +27,21 @@ export const ScheduledNotificationDBConfig = z
 
 export type ScheduledNotificationDBConfig = z.infer<
   typeof ScheduledNotificationDBConfig
+>;
+
+export const ScheduledNotificationStalenessConfig = z
+  .object({
+    SCHEDULED_NOTIFICATION_STALENESS_THRESHOLD_HOURS: z.coerce
+      .number()
+      .int()
+      .min(0)
+      .default(24),
+  })
+  .transform((c) => ({
+    scheduledNotificationStalenessThresholdHours:
+      c.SCHEDULED_NOTIFICATION_STALENESS_THRESHOLD_HOURS,
+  }));
+
+export type ScheduledNotificationStalenessConfig = z.infer<
+  typeof ScheduledNotificationStalenessConfig
 >;

@@ -28,12 +28,14 @@ import {
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
 import {
+  DrizzleReturnType,
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
+  readModelDb,
   agreementReadModelServiceSQL,
   attributeReadModelServiceSQL,
   catalogReadModelServiceSQL,
@@ -43,6 +45,7 @@ export function readModelServiceBuilderSQL({
   purposeReadModelServiceSQL,
   notificationTypeBlocklist = [],
 }: {
+  readModelDb: DrizzleReturnType;
   agreementReadModelServiceSQL: AgreementReadModelService;
   attributeReadModelServiceSQL: AttributeReadModelService;
   catalogReadModelServiceSQL: CatalogReadModelService;
@@ -59,6 +62,16 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantById(tenantId: TenantId): Promise<Tenant | undefined> {
       return (await tenantReadModelServiceSQL.getTenantById(tenantId))?.data;
+    },
+    async getTenantsByIds(tenantIds: TenantId[]): Promise<Tenant[]> {
+      if (tenantIds.length === 0) {
+        return [];
+      }
+      return readModelDb.transaction(async (tx) => {
+        const tenantsWithMetadata =
+          await tenantReadModelServiceSQL.getTenantsByIds(tenantIds, tx);
+        return tenantsWithMetadata.map((twm) => twm.data);
+      });
     },
     async getAgreementsByEserviceId(
       eserviceId: EServiceId,

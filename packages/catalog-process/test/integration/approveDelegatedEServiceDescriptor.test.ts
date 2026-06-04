@@ -22,6 +22,7 @@ import {
   EServiceDescriptorApprovedByDelegatorV2,
   delegationKind,
   agreementState,
+  technology,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 import {
@@ -29,6 +30,8 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
   missingPersonalDataFlag,
+  missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -43,6 +46,7 @@ describe("publish descriptor (after delegator's approval)", () => {
   const mockEService: EService = { ...getMockEService(), personalData: false };
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
+  const mockCallbackInterfaceDocument = getMockDocument();
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -94,8 +98,10 @@ describe("publish descriptor (after delegator's approval)", () => {
       data: expectedEservice,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it("should also archive the previously published descriptor", async () => {
@@ -158,8 +164,10 @@ describe("publish descriptor (after delegator's approval)", () => {
       data: expectedEservice,
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(writtenPayload).toEqual({
+      descriptorId: descriptor2.id,
+      eservice: toEServiceV2(expectedEservice),
+    });
   });
 
   it.each([
@@ -239,8 +247,10 @@ describe("publish descriptor (after delegator's approval)", () => {
         data: expectedEservice,
         metadata: { version: parseInt(writtenEvent.version, 10) },
       });
-      expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor2.id,
+        eservice: toEServiceV2(expectedEservice),
+      });
     }
   );
 
@@ -366,5 +376,133 @@ describe("publish descriptor (after delegator's approval)", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
+  });
+
+  it("should throw missingAsyncExchangeProperties when approving and async exchange properties are missing", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.waitingForApproval,
+      interface: mockDocument,
+      asyncExchangeProperties: undefined,
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeProperties(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should throw missingAsyncExchangeCallbackInterface when approving and callback interface is missing", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.waitingForApproval,
+      interface: mockDocument,
+      asyncExchangeProperties: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: undefined,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeCallbackInterface(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should not throw async exchange bulk errors when approving with SOAP and bulk enabled", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.waitingForApproval,
+      interface: mockDocument,
+      asyncExchangeProperties: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: true,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+      technology: technology.soap,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.toBeDefined();
+  });
+
+  it("should not throw async exchange errors when approving and all conditions are met", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.waitingForApproval,
+      interface: mockDocument,
+      asyncExchangeProperties: {
+        responseTime: 30,
+        resourceAvailableTime: 30,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: mockCallbackInterfaceDocument,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+      technology: technology.rest,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.approveDelegatedEServiceDescriptor(
+        eservice.id,
+        descriptor.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.toBeDefined();
   });
 });

@@ -4,7 +4,7 @@ import {
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
+import { P, match } from "ts-pattern";
 import { CatalogWriterService } from "./catalogWriterService.js";
 
 export async function handleMessageV2(
@@ -21,6 +21,7 @@ export async function handleMessageV2(
     .with(
       {
         type: P.union(
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceAdded",
           "DraftEServiceUpdated",
           "EServiceCloned",
@@ -41,6 +42,7 @@ export async function handleMessageV2(
           "EServiceDescriptorDocumentDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptionUpdated",
           "EServiceIsConsumerDelegableEnabled",
@@ -70,7 +72,11 @@ export async function handleMessageV2(
           "EServiceArchivingScheduled",
           "EServiceArchivingCanceled",
           "EServiceArchivingCompleted",
-          "MaintenanceEServicePersonalDataFlagReset"
+          "MaintenanceEServicePersonalDataFlagReset",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       async (message) => {
