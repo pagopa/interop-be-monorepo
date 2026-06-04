@@ -183,7 +183,7 @@ describe("getClientPurposes", () => {
         producersIds: [],
         clientId: mockApiConsumerClient.id,
         states: [],
-        signingState: [],
+        signingStates: [],
         excludeDraft: false,
         name: "",
       },
