@@ -12151,7 +12151,10 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
-          description: comma separated sequence of e-service IDs
+          description: >-
+            comma separated sequence of e-service IDs. For e-services that are
+            instances of an e-service template, purpose templates linked to the
+            originating e-service template are also returned.
           schema:
             type: array
             items:

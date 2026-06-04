@@ -16423,7 +16423,11 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
-          description: Filter Purpose Templates by E-Service IDs. If not specified, return Purpose Templates for any E-Service.
+          description: >-
+            Filter Purpose Templates by E-Service IDs. If not specified, return
+            Purpose Templates for any E-Service. For e-services that are
+            instances of an e-service template, purpose templates linked to the
+            originating e-service template are also returned.
           schema:
             type: array
             items:

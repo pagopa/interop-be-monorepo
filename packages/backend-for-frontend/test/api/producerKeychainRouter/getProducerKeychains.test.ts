@@ -54,6 +54,13 @@ describe("API GET /producerKeychains test", () => {
     expect(res.body).toEqual(mockCompactProducerKeychains);
   });
 
+  it("Should return 200 for user with role API", async () => {
+    const token = generateToken(authRole.API_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockCompactProducerKeychains);
+  });
+
   it.each([
     { query: {} },
     { query: { ...defaultQuery, offset: undefined } },
