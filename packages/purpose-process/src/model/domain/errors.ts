@@ -62,11 +62,12 @@ const errorCodes = {
   riskAnalysisTenantKindMismatch: "0042",
   unableToDetermineTenantKind: "0043",
   reviewerWorkflowConflict: "0044",
-  reviewerWorkflowNotFound: "0045",
-  reviewerWorkflowNotSubmittable: "0046",
-  submitNotAllowedForReviewMode: "0047",
-  reviewerWorkflowNotInSubmittedState: "0048",
-  requesterIsNotDesignatedReviewer: "0049",
+  multipleReviewersNotAllowed: "0045",
+  reviewerWorkflowNotFound: "0046",
+  reviewerWorkflowNotSubmittable: "0047",
+  submitNotAllowedForReviewMode: "0048",
+  reviewerWorkflowNotInSubmittedState: "0049",
+  requesterIsNotDesignatedReviewer: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -537,6 +538,16 @@ export function reviewerWorkflowConflict(
     detail: `Purpose ${purposeId} already has a reviewer workflow that cannot be reassigned in its current state`,
     code: "reviewerWorkflowConflict",
     title: "Reviewer workflow conflict",
+  });
+}
+
+export function multipleReviewersNotAllowed(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} can't be assigned to multiple reviewers`,
+    code: "multipleReviewersNotAllowed",
+    title: "Multiple reviewers not allowed",
   });
 }
 
