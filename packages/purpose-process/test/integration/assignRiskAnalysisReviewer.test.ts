@@ -18,6 +18,7 @@ import {
   ReviewerWorkflow,
   unsafeBrandId,
   TenantId,
+  UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import {
@@ -44,7 +45,7 @@ describe("assignRiskAnalysisReviewer", () => {
 
     await addOnePurpose(mockPurpose);
 
-    const reviewerIds = [generateId(), generateId()];
+    const reviewerIds = [generateId()];
 
     await purposeService.assignRiskAnalysisReviewer(
       mockPurpose.id,
@@ -100,7 +101,7 @@ describe("assignRiskAnalysisReviewer", () => {
 
     await addOnePurpose(mockPurpose);
 
-    const reviewerIds = [generateId()];
+    const reviewerIds = [generateId<UserId>()];
 
     await purposeService.assignRiskAnalysisReviewer(
       mockPurpose.id,
