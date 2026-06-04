@@ -30,6 +30,7 @@ import {
 import { eserviceDescriptorsScheduledArchiverServiceBuilder } from "../src/services/eserviceDescriptorsScheduledArchiverService.js";
 import { ArchivableDescriptorRef } from "../src/models/models.js";
 import { addOneEService, readModelService, toUTCMidnight } from "./utils.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("EService Descriptors Scheduled Archiver Service", async () => {
   const testCorrelationId: CorrelationId = generateId();
@@ -64,6 +65,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
     // eslint-disable-next-line functional/immutable-data
     catalogProcessClient.archiveDescriptor = vi.fn();
     catalogProcessClient.archiveEService = vi.fn();
+    catalogProcessClient.getEServiceById = vi.fn();
   });
 
   afterEach(async () => {
@@ -87,10 +89,10 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
 
         const numberOfArchivableDescriptors = 5;
 
-        const refs: ArchivableDescriptorRef[] = await Promise.all(
+        const eservices: EService[] = await Promise.all(
           Array.from(
             { length: numberOfArchivableDescriptors },
-            async (): Promise<ArchivableDescriptorRef> => {
+            async (): Promise<EService> => {
               const descriptor: Descriptor = {
                 ...getMockDescriptor(),
                 state,
@@ -109,13 +111,30 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
 
               await addOneEService(eservice);
 
-              return {
-                eserviceId: eservice.id,
-                descriptorId: descriptor.id,
-              };
+              return eservice;
             }
           )
         );
+
+        const refs: ArchivableDescriptorRef[] = eservices.flatMap((eservice) =>
+          eservice.descriptors.map((descriptor) => ({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          }))
+        );
+
+        catalogProcessClient.getEServiceById = vi.fn(({ params }) => {
+          const eservice = eservices.find(
+            (eservice) => eservice.id === params.eServiceId
+          )!;
+          return Promise.resolve({
+            ...eservice,
+            descriptors: eservice?.descriptors.map((d) => ({
+              ...d,
+              state: "ARCHIVED",
+            })),
+          } as unknown as catalogApi.EService);
+        });
 
         const archiverService =
           eserviceDescriptorsScheduledArchiverServiceBuilder({
@@ -284,10 +303,10 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
       const numberOfArchivableDescriptors = 5;
       const numberOfNonArchivableDescriptors = 5;
 
-      const archivableRefs: ArchivableDescriptorRef[] = await Promise.all(
+      const archivableEservices: EService[] = await Promise.all(
         Array.from(
           { length: numberOfArchivableDescriptors },
-          async (): Promise<ArchivableDescriptorRef> => {
+          async (): Promise<EService> => {
             const descriptor: Descriptor = {
               ...getMockDescriptor(),
               state: descriptorState.archiving,
@@ -306,13 +325,31 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
 
             await addOneEService(eservice);
 
-            return {
-              eserviceId: eservice.id,
-              descriptorId: descriptor.id,
-            };
+            return eservice;
           }
         )
       );
+
+      const archivableRefs: ArchivableDescriptorRef[] =
+        archivableEservices.flatMap((eservice) =>
+          eservice.descriptors.map((descriptor) => ({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          }))
+        );
+
+      catalogProcessClient.getEServiceById = vi.fn(({ params }) => {
+        const eservice = archivableEservices.find(
+          (eservice) => eservice.id === params.eServiceId
+        )!;
+        return Promise.resolve({
+          ...eservice,
+          descriptors: eservice?.descriptors.map((d) => ({
+            ...d,
+            state: "ARCHIVED",
+          })),
+        } as unknown as catalogApi.EService);
+      });
 
       const nonArchivableRefs: ArchivableDescriptorRef[] = await Promise.all(
         Array.from(
@@ -394,10 +431,10 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
       const numberOfArchivableDescriptors = 10;
       const rejectIds: ArchivableDescriptorRef[] = [];
 
-      const refs: ArchivableDescriptorRef[] = await Promise.all(
+      const eservices: EService[] = await Promise.all(
         Array.from(
           { length: numberOfArchivableDescriptors },
-          async (_, idx): Promise<ArchivableDescriptorRef> => {
+          async (_, idx): Promise<EService> => {
             const descriptor: Descriptor = {
               ...getMockDescriptor(),
               state: descriptorState.archiving,
@@ -424,13 +461,30 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
               });
             }
 
-            return {
-              eserviceId: eservice.id,
-              descriptorId: descriptor.id,
-            };
+            return eservice;
           }
         )
       );
+
+      const refs: ArchivableDescriptorRef[] = eservices.flatMap((eservice) =>
+        eservice.descriptors.map((descriptor) => ({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        }))
+      );
+
+      catalogProcessClient.getEServiceById = vi.fn(({ params }) => {
+        const eservice = eservices.find(
+          (eservice) => eservice.id === params.eServiceId
+        )!;
+        return Promise.resolve({
+          ...eservice,
+          descriptors: eservice?.descriptors.map((d) => ({
+            ...d,
+            state: "ARCHIVED",
+          })),
+        } as unknown as catalogApi.EService);
+      });
 
       expect(refs.length).toBe(numberOfArchivableDescriptors);
       expect(rejectIds.length).toBe(numberOfArchivableDescriptors / 2);
@@ -487,6 +541,104 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
       );
 
       rejectIds.forEach((ref) => {
+        expect(mockLogger.error).toHaveBeenCalledWith(
+          expect.stringContaining(
+            `Error while archiving descriptor with id ${ref.descriptorId} of e-service with id ${ref.eserviceId}:`
+          )
+        );
+      });
+    });
+
+    it("should return an error if the descriptor is not in status ARCHIVED", async () => {
+      const producerId: TenantId = generateId();
+
+      const numberOfArchivableDescriptors = 10;
+
+      const eservices: EService[] = await Promise.all(
+        Array.from(
+          { length: numberOfArchivableDescriptors },
+          async (): Promise<EService> => {
+            const descriptor: Descriptor = {
+              ...getMockDescriptor(),
+              state: descriptorState.archiving,
+              archivingSchedule: {
+                archivableOn: new Date(toUTCMidnight(new Date(), 0)),
+                startedAt: new Date(toUTCMidnight(new Date(), -30)),
+                scope: "Descriptor",
+              },
+            };
+
+            const eservice = {
+              ...getMockEService(),
+              producerId,
+              descriptors: [descriptor],
+            };
+
+            await addOneEService(eservice);
+
+            return eservice;
+          }
+        )
+      );
+
+      const refs: ArchivableDescriptorRef[] = eservices.flatMap((eservice) =>
+        eservice.descriptors.map((descriptor) => ({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
+        }))
+      );
+
+      catalogProcessClient.getEServiceById = vi.fn(({ params }) => {
+        const eservice = eservices.find(
+          (eservice) => eservice.id === params.eServiceId
+        )!;
+        return Promise.resolve({
+          ...eservice,
+          descriptors: eservice?.descriptors.map((d) => ({
+            ...d,
+            state: "ARCHIVING",
+          })),
+        } as unknown as catalogApi.EService);
+      });
+
+      expect(refs.length).toBe(numberOfArchivableDescriptors);
+      expect(refs.length).toBeGreaterThan(0);
+
+      const archiverService =
+        eserviceDescriptorsScheduledArchiverServiceBuilder({
+          readModelService,
+          catalogProcessClient: catalogProcessClient,
+          loggerInstance: mockLogger,
+          refreshableToken: mockRefreshableToken,
+        });
+      const res = await archiverService.archiveDescriptors();
+
+      expect(res).toBe(false);
+
+      expect(mockLogger.error).toHaveBeenCalledWith(
+        `${refs.length}/${refs.length} descriptors were not successfully archived`
+      );
+
+      refs.forEach((ref) => {
+        expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledWith(
+          manualPayload,
+          {
+            params: {
+              eServiceId: ref.eserviceId,
+              descriptorId: ref.descriptorId,
+            },
+            headers: expect.objectContaining({
+              ...testHeaders,
+              "X-Correlation-Id": expect.any(String),
+            }),
+          }
+        );
+      });
+      expect(catalogProcessClient.archiveDescriptor).toHaveBeenCalledTimes(
+        numberOfArchivableDescriptors
+      );
+
+      refs.forEach((ref) => {
         expect(mockLogger.error).toHaveBeenCalledWith(
           expect.stringContaining(
             `Error while archiving descriptor with id ${ref.descriptorId} of e-service with id ${ref.eserviceId}:`
