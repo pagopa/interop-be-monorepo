@@ -17,7 +17,7 @@ import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { attributeOriginUndefined } from "../../models/errors.js";
 
-export type CertifiedDiscreteAttributeAssignedRevokedUpdatedEventType =
+type CertifiedDiscreteAttributeAssignedRevokedUpdatedEventType =
   | "TenantCertifiedDiscreteAttributeAssigned"
   | "TenantCertifiedDiscreteAttributeRevoked"
   | "TenantCertifiedDiscreteAttributeUpdated";
@@ -93,7 +93,7 @@ export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAs
   }));
 }
 
-export async function getAttributeAssignerOrRevokerOrUpdaterName(
+async function getAttributeAssignerOrRevokerOrUpdaterName(
   eventType: CertifiedDiscreteAttributeAssignedRevokedUpdatedEventType,
   attribute: Attribute,
   readModelService: ReadModelServiceSQL

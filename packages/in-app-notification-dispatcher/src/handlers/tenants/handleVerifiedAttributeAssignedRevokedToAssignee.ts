@@ -23,7 +23,7 @@ import {
 import { match } from "ts-pattern";
 import { verifiedAttributeNotFoundInTenant } from "../../models/errors.js";
 
-export type VerifiedAttributeAssignedRevokedEventType =
+type VerifiedAttributeAssignedRevokedEventType =
   | "TenantVerifiedAttributeAssigned"
   | "TenantVerifiedAttributeRevoked";
 
@@ -92,7 +92,7 @@ export async function handleVerifiedAttributeAssignedRevokedToAssignee(
   }));
 }
 
-export async function getAttributeAssignerOrRevokerName(
+async function getAttributeAssignerOrRevokerName(
   eventType: VerifiedAttributeAssignedRevokedEventType,
   tenant: Tenant,
   attribute: Attribute,

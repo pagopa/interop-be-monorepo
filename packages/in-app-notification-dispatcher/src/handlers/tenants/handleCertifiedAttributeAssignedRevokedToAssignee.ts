@@ -85,7 +85,7 @@ export async function handleCertifiedAttributeAssignedRevokedToAssignee(
   }));
 }
 
-export async function getAttributeAssignerOrRevokerName(
+async function getAttributeAssignerOrRevokerName(
   eventType: CertifiedAttributeAssignedRevokedEventType,
   attribute: Attribute,
   readModelService: ReadModelServiceSQL

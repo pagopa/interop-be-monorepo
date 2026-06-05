@@ -391,6 +391,7 @@ export function toCreateEventTenantRemoteIdAssigned(
   };
 }
 
+/** @public */ // TO-BE-USED in PIN-9886
 export const toCreateEventTenantCertifiedDiscreteAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
@@ -410,6 +411,7 @@ export const toCreateEventTenantCertifiedDiscreteAttributeAssigned = (
   correlationId,
 });
 
+/** @public */ // TO-BE-USED in PIN-9886
 export const toCreateEventTenantCertifiedDiscreteAttributeRevoked = (
   version: number,
   updatedTenant: Tenant,
@@ -429,6 +431,7 @@ export const toCreateEventTenantCertifiedDiscreteAttributeRevoked = (
   correlationId,
 });
 
+/** @public */ // TO-BE-USED in PIN-9886
 export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
   version: number,
   updatedTenant: Tenant,
@@ -451,6 +454,7 @@ export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
   },
   correlationId,
 });
+
 export function toCreateEventMaintenanceTenantRemoteIdDeleted(
   version: number,
   tenant: Tenant,
