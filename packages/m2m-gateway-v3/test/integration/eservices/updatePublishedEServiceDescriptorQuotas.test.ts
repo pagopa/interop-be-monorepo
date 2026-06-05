@@ -80,6 +80,7 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       deprecatedAt: mockDescriptor.deprecatedAt,
       archivedAt: mockDescriptor.archivedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockDescriptor.archivingSchedule,
       asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
     };
 
@@ -153,6 +154,7 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       deprecatedAt: mockDescriptor.deprecatedAt,
       archivedAt: mockDescriptor.archivedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockDescriptor.archivingSchedule,
       asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
     };
 
