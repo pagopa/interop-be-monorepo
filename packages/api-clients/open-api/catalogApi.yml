@@ -3660,6 +3660,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceRiskAnalysisMultiAnswer"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysisSingleAnswer:
       type: object
       additionalProperties: false
@@ -4110,6 +4112,13 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+    TenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
+        - GSP
+        - SCP
     Problem:
       properties:
         type:
