@@ -1055,6 +1055,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "403":
           description: Forbidden
           content:
