@@ -15,7 +15,7 @@ describe("API DELETE /maintenance/tenants/{tenantId}/remoteIds/{origin} test", (
   const origin = "ISTAT";
 
   beforeEach(() => {
-    tenantService.maintenanceDeleteRemoteId = vi
+    tenantService.maintenanceTenantDeleteRemoteId = vi
       .fn()
       .mockResolvedValue(undefined);
   });
@@ -46,7 +46,7 @@ describe("API DELETE /maintenance/tenants/{tenantId}/remoteIds/{origin} test", (
   });
 
   it("Should return 404 for tenantNotFound", async () => {
-    tenantService.maintenanceDeleteRemoteId = vi
+    tenantService.maintenanceTenantDeleteRemoteId = vi
       .fn()
       .mockRejectedValue(tenantNotFound(tenant.id));
     const token = generateToken(authRole.MAINTENANCE_ROLE);
@@ -55,7 +55,7 @@ describe("API DELETE /maintenance/tenants/{tenantId}/remoteIds/{origin} test", (
   });
 
   it("Should return 404 for remoteIdNotFound", async () => {
-    tenantService.maintenanceDeleteRemoteId = vi
+    tenantService.maintenanceTenantDeleteRemoteId = vi
       .fn()
       .mockRejectedValue(remoteIdNotFound(origin));
     const token = generateToken(authRole.MAINTENANCE_ROLE);

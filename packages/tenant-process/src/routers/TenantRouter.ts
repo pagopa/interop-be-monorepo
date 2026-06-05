@@ -42,7 +42,7 @@ import {
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
   maintenanceTenantUpdatedErrorMapper,
-  maintenanceDeleteRemoteIdErrorMapper,
+  maintenanceTenantDeleteRemoteIdErrorMapper,
   updateTenantDelegatedFeaturesErrorMapper,
   getTenantVerifiedAttributeVerifiersErrorMapper,
   getTenantVerifiedAttributeRevokersErrorMapper,
@@ -428,7 +428,7 @@ const tenantsRouter = (
         try {
           validateAuthorization(ctx, [MAINTENANCE_ROLE]);
 
-          await tenantService.maintenanceDeleteRemoteId(
+          await tenantService.maintenanceTenantDeleteRemoteId(
             {
               tenantId: unsafeBrandId(req.params.tenantId),
               origin: req.params.origin,
@@ -439,7 +439,7 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            maintenanceDeleteRemoteIdErrorMapper,
+            maintenanceTenantDeleteRemoteIdErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

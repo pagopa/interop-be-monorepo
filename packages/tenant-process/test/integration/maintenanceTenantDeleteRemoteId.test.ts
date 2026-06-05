@@ -22,7 +22,7 @@ import {
   tenantService,
 } from "../integrationUtils.js";
 
-describe("maintenanceDeleteRemoteId", async () => {
+describe("maintenanceTenantDeleteRemoteId", async () => {
   beforeAll(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -50,7 +50,7 @@ describe("maintenanceDeleteRemoteId", async () => {
     };
 
     await addOneTenant(tenant);
-    await tenantService.maintenanceDeleteRemoteId(
+    await tenantService.maintenanceTenantDeleteRemoteId(
       {
         tenantId: tenant.id,
         origin: deletedRemoteId.origin,
@@ -87,7 +87,7 @@ describe("maintenanceDeleteRemoteId", async () => {
   it("should throw tenantNotFound when the tenant does not exist", async () => {
     const tenantId = generateId<TenantId>();
     await expect(
-      tenantService.maintenanceDeleteRemoteId(
+      tenantService.maintenanceTenantDeleteRemoteId(
         {
           tenantId,
           origin: deletedRemoteId.origin,
@@ -105,7 +105,7 @@ describe("maintenanceDeleteRemoteId", async () => {
 
     await addOneTenant(tenant);
     await expect(
-      tenantService.maintenanceDeleteRemoteId(
+      tenantService.maintenanceTenantDeleteRemoteId(
         {
           tenantId: tenant.id,
           origin: deletedRemoteId.origin,
@@ -123,7 +123,7 @@ describe("maintenanceDeleteRemoteId", async () => {
 
     await addOneTenant(tenant);
     await expect(
-      tenantService.maintenanceDeleteRemoteId(
+      tenantService.maintenanceTenantDeleteRemoteId(
         {
           tenantId: tenant.id,
           origin: deletedRemoteId.origin,

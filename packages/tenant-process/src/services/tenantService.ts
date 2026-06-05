@@ -1244,7 +1244,7 @@ export function tenantServiceBuilder(
       );
     },
 
-    async maintenanceDeleteRemoteId(
+    async maintenanceTenantDeleteRemoteId(
       {
         tenantId,
         origin,
