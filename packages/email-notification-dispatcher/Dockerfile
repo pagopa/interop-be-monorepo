@@ -12,6 +12,7 @@ COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
 
 COPY ./packages/email-notification-dispatcher/package.json /app/packages/email-notification-dispatcher/package.json
+COPY ./packages/notification-commons/package.json /app/packages/notification-commons/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
@@ -24,6 +25,7 @@ COPY tsconfig.json /app/
 COPY turbo.json /app/
 
 COPY ./packages/email-notification-dispatcher /app/packages/email-notification-dispatcher
+COPY ./packages/notification-commons /app/packages/notification-commons
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
@@ -38,6 +40,7 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   cp -a --parents -t /out \
   node_modules packages/email-notification-dispatcher/node_modules \
   package*.json packages/email-notification-dispatcher/package*.json \
+  packages/notification-commons \
   packages/commons \
   packages/models \
   packages/kafka-iam-auth \
