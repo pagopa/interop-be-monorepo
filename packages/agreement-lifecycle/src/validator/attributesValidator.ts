@@ -25,7 +25,7 @@ type CertifiedDiscreteValidationOptions = {
 
 const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],
-  tenantAttributes: Array<TenantAttribute["id"]>,
+  tenantAttributes: Array<TenantAttribute["id"]>
 ): boolean =>
   descriptorAttributes
     .filter((attGroup) => attGroup.length > 0)
@@ -37,7 +37,7 @@ const attributesSatisfied = (
 export const matchesDiscreteThreshold = (
   value: number,
   threshold: number,
-  comparator: AttributeCertifiedDiscreteComparator,
+  comparator: AttributeCertifiedDiscreteComparator
 ): boolean =>
   match(comparator)
     .with(attributeCertifiedDiscreteComparator.GT, () => value > threshold)
@@ -50,7 +50,7 @@ export const matchesDiscreteThreshold = (
 
 export const matchesCertifiedDiscreteAttribute = (
   descriptorAttribute: EServiceAttributeCertifiedDiscrete,
-  tenantAttribute: TenantAttribute,
+  tenantAttribute: TenantAttribute
 ): boolean =>
   tenantAttribute.id === descriptorAttribute.id &&
   tenantAttribute.type === tenantAttributeType.CERTIFIED_DISCRETE &&
@@ -58,7 +58,7 @@ export const matchesCertifiedDiscreteAttribute = (
   matchesDiscreteThreshold(
     tenantAttribute.discreteValue,
     descriptorAttribute.discreteConfig.threshold,
-    descriptorAttribute.discreteConfig.comparator,
+    descriptorAttribute.discreteConfig.comparator
   );
 
 export const matchesCertifiedDescriptorAttribute = (
@@ -66,7 +66,7 @@ export const matchesCertifiedDescriptorAttribute = (
     | EServiceAttributeCertified
     | EServiceAttributeCertifiedDiscrete,
   tenantAttributes: TenantAttribute[],
-  options: CertifiedDiscreteValidationOptions = {},
+  options: CertifiedDiscreteValidationOptions = {}
 ): boolean => {
   const discreteEnabled = options.certifiedDiscreteEnabled ?? true;
 
@@ -80,7 +80,7 @@ export const matchesCertifiedDescriptorAttribute = (
     if ("discreteConfig" in descriptorAttribute) {
       return matchesCertifiedDiscreteAttribute(
         descriptorAttribute,
-        tenantAttribute,
+        tenantAttribute
       );
     }
     // With discrete support disabled, a plain certified requirement is only
@@ -111,13 +111,13 @@ type CertifiedAttributeGroup = Descriptor["attributes"]["certified"][number];
 // of discrete attributes is ignored rather than treated as unsatisfiable.
 const effectiveCertifiedGroups = (
   descriptorAttributes: Descriptor["attributes"],
-  discreteEnabled: boolean,
+  discreteEnabled: boolean
 ): CertifiedAttributeGroup[] =>
   descriptorAttributes.certified
     .map((group) =>
       discreteEnabled
         ? group
-        : group.filter((attr) => !("discreteConfig" in attr)),
+        : group.filter((attr) => !("discreteConfig" in attr))
     )
     .filter((group) => group.length > 0);
 
@@ -126,10 +126,10 @@ const effectiveCertifiedGroups = (
 const tenantSatisfiesCertifiedAttributeGroup = (
   group: CertifiedAttributeGroup,
   tenantAttributes: TenantAttribute[],
-  options: CertifiedDiscreteValidationOptions = {},
+  options: CertifiedDiscreteValidationOptions = {}
 ): boolean =>
   group.some((attribute) =>
-    matchesCertifiedDescriptorAttribute(attribute, tenantAttributes, options),
+    matchesCertifiedDescriptorAttribute(attribute, tenantAttributes, options)
   );
 
 export type CertifiedAttributesSuspension = {
@@ -146,14 +146,14 @@ const noCertifiedAttributesSuspension: CertifiedAttributesSuspension = {
 // attribute but its value does not satisfy the descriptor threshold.
 const findDiscreteAttributeThresholdFailureInGroup = (
   failingGroup: CertifiedAttributeGroup,
-  tenantAttributes: TenantAttribute[],
+  tenantAttributes: TenantAttribute[]
 ): CertifiedDiscreteAttributeFailure | undefined => {
   for (const descriptorAttribute of failingGroup) {
     if (!("discreteConfig" in descriptorAttribute)) {
       continue;
     }
     const tenantAttribute = tenantAttributes.find(
-      (attribute) => attribute.id === descriptorAttribute.id,
+      (attribute) => attribute.id === descriptorAttribute.id
     );
     if (
       tenantAttribute?.type === tenantAttributeType.CERTIFIED_DISCRETE &&
@@ -175,14 +175,14 @@ const findDiscreteAttributeThresholdFailureInGroup = (
 export const evaluateCertifiedAttributesSuspension = (
   descriptorAttributes: Descriptor["attributes"],
   tenantAttributes: TenantAttribute[],
-  options: CertifiedDiscreteValidationOptions = {},
+  options: CertifiedDiscreteValidationOptions = {}
 ): CertifiedAttributesSuspension => {
   // 1. All certified attributes are satisfied => no suspension.
   if (
     certifiedAttributesSatisfied(
       descriptorAttributes,
       tenantAttributes,
-      options,
+      options
     )
   ) {
     return noCertifiedAttributesSuspension;
@@ -197,14 +197,14 @@ export const evaluateCertifiedAttributesSuspension = (
   //    group is unsatisfied and the search always succeeds.
   const failingGroup = effectiveCertifiedGroups(
     descriptorAttributes,
-    discreteEnabled,
+    discreteEnabled
   ).find(
     (group) =>
-      !tenantSatisfiesCertifiedAttributeGroup(group, tenantAttributes, options),
+      !tenantSatisfiesCertifiedAttributeGroup(group, tenantAttributes, options)
   );
   if (!failingGroup) {
     throw genericInternalError(
-      "Invariant violation: no failing certified attribute group found despite certifiedAttributesSatisfied returning false",
+      "Invariant violation: no failing certified attribute group found despite certifiedAttributesSatisfied returning false"
     );
   }
 
@@ -215,7 +215,7 @@ export const evaluateCertifiedAttributesSuspension = (
     //    threshold => specific reason with details.
     const discreteFailure = findDiscreteAttributeThresholdFailureInGroup(
       failingGroup,
-      tenantAttributes,
+      tenantAttributes
     );
     if (discreteFailure) {
       return {
@@ -244,21 +244,21 @@ export const evaluateCertifiedAttributesSuspension = (
 export const certifiedAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
   tenantAttributes: TenantAttribute[],
-  options: CertifiedDiscreteValidationOptions = {},
+  options: CertifiedDiscreteValidationOptions = {}
 ): boolean => {
   const discreteEnabled = options.certifiedDiscreteEnabled ?? true;
   return effectiveCertifiedGroups(descriptorAttributes, discreteEnabled).every(
     (group) =>
-      tenantSatisfiesCertifiedAttributeGroup(group, tenantAttributes, options),
+      tenantSatisfiesCertifiedAttributeGroup(group, tenantAttributes, options)
   );
 };
 
 export const declaredAttributesSatisfied = (
   descriptorAttributes: Descriptor["attributes"],
-  tenantAttributes: TenantAttribute[],
+  tenantAttributes: TenantAttribute[]
 ): boolean => {
   const declaredAttributes = filterDeclaredAttributes(tenantAttributes).map(
-    (a) => a.id,
+    (a) => a.id
   );
 
   return attributesSatisfied(descriptorAttributes.declared, declaredAttributes);
@@ -267,11 +267,11 @@ export const declaredAttributesSatisfied = (
 export const verifiedAttributesSatisfied = (
   producerId: TenantId,
   descriptorAttributes: Descriptor["attributes"],
-  tenantAttributes: TenantAttribute[],
+  tenantAttributes: TenantAttribute[]
 ): boolean => {
   const verifiedAttributes = filterVerifiedAttributes(
     producerId,
-    tenantAttributes,
+    tenantAttributes
   ).map((a) => a.id);
 
   return attributesSatisfied(descriptorAttributes.verified, verifiedAttributes);

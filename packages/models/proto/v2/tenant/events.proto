@@ -113,21 +113,6 @@ message TenantDelegatedConsumerFeatureRemovedV2 {
   TenantV2 tenant = 1;
 }
 
-message TenantCertifiedDiscreteAttributeAssignedV2 {
-  string attributeId = 1;
-  TenantV2 tenant = 2;
-}
-
-message TenantCertifiedDiscreteAttributeRevokedV2 {
-  string attributeId = 1;
-  TenantV2 tenant = 2;
-}
-
-message TenantCertifiedDiscreteAttributeUpdatedV2 {
-  string attributeId = 1;
-  TenantV2 tenant = 2;
-}
-
 message TenantRemoteIdAssignedV2 {
   TenantV2 tenant = 1;
 }

@@ -49,25 +49,25 @@ export function tenantEventToBinaryData(event: TenantEvent): Uint8Array {
 export function tenantEventToBinaryDataV1(event: TenantEventV1): Uint8Array {
   return match(event)
     .with({ type: "TenantCreated" }, ({ data }) =>
-      TenantCreatedV1.toBinary(data),
+      TenantCreatedV1.toBinary(data)
     )
     .with({ type: "TenantUpdated" }, ({ data }) =>
-      TenantUpdatedV1.toBinary(data),
+      TenantUpdatedV1.toBinary(data)
     )
     .with({ type: "TenantDeleted" }, ({ data }) =>
-      TenantDeletedV1.toBinary(data),
+      TenantDeletedV1.toBinary(data)
     )
     .with({ type: "SelfcareMappingCreated" }, ({ data }) =>
-      SelfcareMappingCreatedV1.toBinary(data),
+      SelfcareMappingCreatedV1.toBinary(data)
     )
     .with({ type: "SelfcareMappingDeleted" }, ({ data }) =>
-      SelfcareMappingDeletedV1.toBinary(data),
+      SelfcareMappingDeletedV1.toBinary(data)
     )
     .with({ type: "TenantMailAdded" }, ({ data }) =>
-      TenantMailAddedV1.toBinary(data),
+      TenantMailAddedV1.toBinary(data)
     )
     .with({ type: "TenantMailDeleted" }, ({ data }) =>
-      TenantMailDeletedV1.toBinary(data),
+      TenantMailDeletedV1.toBinary(data)
     )
     .exhaustive();
 }
@@ -75,91 +75,79 @@ export function tenantEventToBinaryDataV1(event: TenantEventV1): Uint8Array {
 export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
   return match(event)
     .with({ type: "TenantOnboarded" }, ({ data }) =>
-      TenantOnboardedV2.toBinary(data),
+      TenantOnboardedV2.toBinary(data)
     )
     .with({ type: "TenantOnboardDetailsUpdated" }, ({ data }) =>
-      TenantOnboardDetailsUpdatedV2.toBinary(data),
+      TenantOnboardDetailsUpdatedV2.toBinary(data)
     )
     .with({ type: "TenantCertifiedAttributeAssigned" }, ({ data }) =>
-      TenantCertifiedAttributeAssignedV2.toBinary(data),
+      TenantCertifiedAttributeAssignedV2.toBinary(data)
     )
     .with({ type: "TenantCertifiedAttributeRevoked" }, ({ data }) =>
-      TenantCertifiedAttributeRevokedV2.toBinary(data),
+      TenantCertifiedAttributeRevokedV2.toBinary(data)
     )
     .with({ type: "TenantCertifiedDiscreteAttributeAssigned" }, ({ data }) =>
-      TenantCertifiedDiscreteAttributeAssignedV2.toBinary(data),
+      TenantCertifiedDiscreteAttributeAssignedV2.toBinary(data)
     )
     .with({ type: "TenantCertifiedDiscreteAttributeRevoked" }, ({ data }) =>
-      TenantCertifiedDiscreteAttributeRevokedV2.toBinary(data),
+      TenantCertifiedDiscreteAttributeRevokedV2.toBinary(data)
     )
     .with({ type: "TenantCertifiedDiscreteAttributeUpdated" }, ({ data }) =>
-      TenantCertifiedDiscreteAttributeUpdatedV2.toBinary(data),
+      TenantCertifiedDiscreteAttributeUpdatedV2.toBinary(data)
     )
     .with({ type: "TenantDeclaredAttributeAssigned" }, ({ data }) =>
-      TenantDeclaredAttributeAssignedV2.toBinary(data),
+      TenantDeclaredAttributeAssignedV2.toBinary(data)
     )
     .with({ type: "TenantDeclaredAttributeRevoked" }, ({ data }) =>
-      TenantDeclaredAttributeRevokedV2.toBinary(data),
+      TenantDeclaredAttributeRevokedV2.toBinary(data)
     )
     .with({ type: "TenantVerifiedAttributeAssigned" }, ({ data }) =>
-      TenantVerifiedAttributeAssignedV2.toBinary(data),
+      TenantVerifiedAttributeAssignedV2.toBinary(data)
     )
     .with({ type: "TenantVerifiedAttributeRevoked" }, ({ data }) =>
-      TenantVerifiedAttributeRevokedV2.toBinary(data),
+      TenantVerifiedAttributeRevokedV2.toBinary(data)
     )
     .with({ type: "TenantVerifiedAttributeExpirationUpdated" }, ({ data }) =>
-      TenantVerifiedAttributeExpirationUpdatedV2.toBinary(data),
+      TenantVerifiedAttributeExpirationUpdatedV2.toBinary(data)
     )
     .with({ type: "TenantVerifiedAttributeExtensionUpdated" }, ({ data }) =>
-      TenantVerifiedAttributeExtensionUpdatedV2.toBinary(data),
+      TenantVerifiedAttributeExtensionUpdatedV2.toBinary(data)
     )
     .with({ type: "MaintenanceTenantDeleted" }, ({ data }) =>
-      MaintenanceTenantDeletedV2.toBinary(data),
+      MaintenanceTenantDeletedV2.toBinary(data)
     )
     .with({ type: "MaintenanceTenantUpdated" }, ({ data }) =>
-      MaintenanceTenantUpdatedV2.toBinary(data),
+      MaintenanceTenantUpdatedV2.toBinary(data)
     )
     .with({ type: "TenantMailAdded" }, ({ data }) =>
-      TenantMailAddedV2.toBinary(data),
+      TenantMailAddedV2.toBinary(data)
     )
     .with({ type: "TenantKindUpdated" }, ({ data }) =>
-      TenantKindUpdatedV2.toBinary(data),
+      TenantKindUpdatedV2.toBinary(data)
     )
     .with({ type: "TenantMailDeleted" }, ({ data }) =>
-      TenantMailDeletedV2.toBinary(data),
+      TenantMailDeletedV2.toBinary(data)
     )
     .with({ type: "MaintenanceTenantPromotedToCertifier" }, ({ data }) =>
-      MaintenanceTenantPromotedToCertifierV2.toBinary(data),
+      MaintenanceTenantPromotedToCertifierV2.toBinary(data)
     )
     .with({ type: "TenantDelegatedProducerFeatureAdded" }, ({ data }) =>
-      TenantDelegatedProducerFeatureAddedV2.toBinary(data),
+      TenantDelegatedProducerFeatureAddedV2.toBinary(data)
     )
     .with({ type: "TenantDelegatedProducerFeatureRemoved" }, ({ data }) =>
-      TenantDelegatedProducerFeatureRemovedV2.toBinary(data),
+      TenantDelegatedProducerFeatureRemovedV2.toBinary(data)
     )
     .with({ type: "TenantDelegatedConsumerFeatureAdded" }, ({ data }) =>
-      TenantDelegatedConsumerFeatureAddedV2.toBinary(data),
+      TenantDelegatedConsumerFeatureAddedV2.toBinary(data)
     )
     .with({ type: "TenantDelegatedConsumerFeatureRemoved" }, ({ data }) =>
-      TenantDelegatedConsumerFeatureRemovedV2.toBinary(data),
-    )
-    .with({ type: "TenantCertifiedDiscreteAttributeAssigned" }, ({ data }) =>
-      TenantCertifiedDiscreteAttributeAssignedV2.toBinary(data),
-    )
-    .with({ type: "TenantCertifiedDiscreteAttributeRevoked" }, ({ data }) =>
-      TenantCertifiedDiscreteAttributeRevokedV2.toBinary(data),
-    )
-    .with({ type: "TenantCertifiedDiscreteAttributeUpdated" }, ({ data }) =>
-      TenantCertifiedDiscreteAttributeUpdatedV2.toBinary(data),
+      TenantDelegatedConsumerFeatureRemovedV2.toBinary(data)
     )
     .with({ type: "TenantRemoteIdAssigned" }, ({ data }) =>
-      TenantRemoteIdAssignedV2.toBinary(data),
-    )
-    .with({ type: "TenantRemoteIdAssigned" }, ({ data }) =>
-      TenantRemoteIdAssignedV2.toBinary(data),
+      TenantRemoteIdAssignedV2.toBinary(data)
     )
     .with({ type: "MaintenanceTenantRemoteIdDeleted" }, ({ data }) =>
-      MaintenanceTenantRemoteIdDeletedV2.toBinary(data),
+      MaintenanceTenantRemoteIdDeletedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -319,21 +307,6 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("TenantDelegatedConsumerFeatureRemoved"),
     data: protobufDecoder(TenantDelegatedConsumerFeatureRemovedV2),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal("TenantCertifiedDiscreteAttributeAssigned"),
-    data: protobufDecoder(TenantCertifiedDiscreteAttributeAssignedV2),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal("TenantCertifiedDiscreteAttributeRevoked"),
-    data: protobufDecoder(TenantCertifiedDiscreteAttributeRevokedV2),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal("TenantCertifiedDiscreteAttributeUpdated"),
-    data: protobufDecoder(TenantCertifiedDiscreteAttributeUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),

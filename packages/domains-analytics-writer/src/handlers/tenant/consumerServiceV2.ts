@@ -55,7 +55,7 @@ export async function handleTenantMessageV2(
             "TenantCertifiedDiscreteAttributeAssigned",
             "TenantCertifiedDiscreteAttributeRevoked",
             "TenantCertifiedDiscreteAttributeUpdated",
-            "TenantRemoteIdAssigned"
+            "TenantRemoteIdAssigned",
             "TenantKindUpdated",
             "TenantMailAdded",
             "TenantMailDeleted",

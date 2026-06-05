@@ -144,7 +144,7 @@ describe("enrichAgreement", () => {
           getTenant: vi.fn(({ params }: { params: { id: string } }) =>
             params.id === consumerId
               ? Promise.resolve(consumer)
-              : Promise.resolve(producer),
+              : Promise.resolve(producer)
           ),
         },
       },
@@ -160,9 +160,9 @@ describe("enrichAgreement", () => {
         getBulkedAttributes: vi.fn((attributeIds: string[]) =>
           Promise.resolve({
             results: registryAttributes.filter((attribute) =>
-              attributeIds.includes(attribute.id),
+              attributeIds.includes(attribute.id)
             ),
-          }),
+          })
         ),
       },
     } as unknown as PagoPAInteropBeClients;
@@ -207,17 +207,17 @@ describe("enrichAgreement", () => {
       },
     ]);
     expect(actualAgreement.consumer.attributes).not.toHaveProperty(
-      "certifiedDiscrete",
+      "certifiedDiscrete"
     );
     expect(
-      clients.attributeProcessClient.getBulkedAttributes,
+      clients.attributeProcessClient.getBulkedAttributes
     ).toHaveBeenCalledWith(
       expect.arrayContaining([
         agreementCertifiedDiscreteAttributeId,
         tenantCertifiedAttributeId,
         tenantCertifiedDiscreteAttributeId,
       ]),
-      expect.any(Object),
+      expect.any(Object)
     );
   });
 });

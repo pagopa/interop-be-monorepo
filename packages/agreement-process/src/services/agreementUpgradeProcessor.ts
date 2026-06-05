@@ -88,18 +88,18 @@ export async function createUpgradeOrNewDraft({
         newAgreementId,
         agreement.data,
         copyFile,
-        logger,
+        logger
       ),
       contract: undefined,
       verifiedAttributes: matchingVerifiedAttributes(
         eservice,
         newDescriptor,
-        consumer,
+        consumer
       ),
       certifiedAttributes: matchingCertifiedAttributes(newDescriptor, consumer),
       certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
         newDescriptor,
-        consumer,
+        consumer
       ),
       declaredAttributes: matchingDeclaredAttributes(newDescriptor, consumer),
       suspendedByConsumer: agreement.data.suspendedByConsumer,
@@ -120,7 +120,7 @@ export async function createUpgradeOrNewDraft({
         toCreateEventAgreementArchivedByUpgrade(
           archived,
           agreement.metadata.version,
-          correlationId,
+          correlationId
         ),
         toCreateEventAgreementUpgraded(upgraded, correlationId),
       ],
@@ -132,7 +132,7 @@ export async function createUpgradeOrNewDraft({
       agreement.data.consumerId,
       agreement.data.eserviceId,
       [agreementState.draft],
-      readModelService,
+      readModelService
     );
 
     const newAgreement: Agreement = {
@@ -148,7 +148,7 @@ export async function createUpgradeOrNewDraft({
         newAgreementId,
         agreement.data,
         copyFile,
-        logger,
+        logger
       ),
       suspendedByPlatform: undefined,
       updatedAt: undefined,
@@ -175,7 +175,7 @@ export async function createUpgradeOrNewDraft({
 
     const createEvent = toCreateEventAgreementAdded(
       newAgreement,
-      correlationId,
+      correlationId
     );
 
     return [newAgreement, [createEvent]];

@@ -71,14 +71,14 @@ describe("tenantServiceBuilder.getTenant", () => {
             registryCertifiedDiscreteAttribute,
           ].filter((attribute) => attributeIds.includes(attribute.id)),
           totalCount: attributeIds.length,
-        }),
+        })
       ),
     };
 
     const service = tenantServiceBuilder(
       tenantProcessClient as never,
       attributeProcessClient as never,
-      {} as never,
+      {} as never
     );
 
     const ctx = {
@@ -155,17 +155,17 @@ describe("tenantServiceBuilder.getTenant", () => {
       getBulkedAttributes: vi.fn((attributeIds: string[]) =>
         Promise.resolve({
           results: [registryDeclaredAttribute].filter((attribute) =>
-            attributeIds.includes(attribute.id),
+            attributeIds.includes(attribute.id)
           ),
           totalCount: attributeIds.length,
-        }),
+        })
       ),
     };
 
     const service = tenantServiceBuilder(
       tenantProcessClient as never,
       attributeProcessClient as never,
-      {} as never,
+      {} as never
     );
 
     const ctx = {
@@ -235,17 +235,17 @@ describe("tenantServiceBuilder.getTenant", () => {
       getBulkedAttributes: vi.fn((attributeIds: string[]) =>
         Promise.resolve({
           results: [registryVerifiedAttribute].filter((attribute) =>
-            attributeIds.includes(attribute.id),
+            attributeIds.includes(attribute.id)
           ),
           totalCount: attributeIds.length,
-        }),
+        })
       ),
     };
 
     const service = tenantServiceBuilder(
       tenantProcessClient as never,
       attributeProcessClient as never,
-      {} as never,
+      {} as never
     );
 
     const ctx = {

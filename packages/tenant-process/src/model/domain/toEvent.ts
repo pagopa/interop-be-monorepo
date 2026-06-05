@@ -11,7 +11,7 @@ import {
 
 export const toCreateEventTenantOnboarded = (
   tenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version: undefined,
@@ -27,7 +27,7 @@ export const toCreateEventTenantOnboardDetailsUpdated = (
   streamId: string,
   version: number,
   updatedTenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId,
   version,
@@ -46,7 +46,7 @@ export const toCreateEventTenantVerifiedAttributeExtensionUpdated = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId,
   version,
@@ -66,7 +66,7 @@ export const toCreateEventTenantVerifiedAttributeExpirationUpdated = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId,
   version,
@@ -85,7 +85,7 @@ export const toCreateEventTenantCertifiedAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -104,7 +104,7 @@ export const toCreateEventTenantKindUpdated = (
   version: number,
   oldKind: TenantKind | undefined,
   updatedTenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -123,7 +123,7 @@ export const toCreateEventTenantCertifiedAttributeRevoked = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -142,7 +142,7 @@ export const toCreateEventTenantDeclaredAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -160,7 +160,7 @@ export const toCreateEventTenantDeclaredAttributeAssigned = (
 export const toCreateEventMaintenanceTenantDeleted = (
   version: number,
   tenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version,
@@ -178,7 +178,7 @@ export const toCreateEventMaintenanceTenantDeleted = (
 export const toCreateEventMaintenanceTenantUpdated = (
   version: number,
   tenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version,
@@ -196,7 +196,7 @@ export const toCreateEventTenantVerifiedAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -215,7 +215,7 @@ export const toCreateEventTenantVerifiedAttributeRevoked = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -234,7 +234,7 @@ export const toCreateEventTenantDeclaredAttributeRevoked = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -253,7 +253,7 @@ export const toCreateEventTenantMailDeleted = (
   version: number,
   updatedTenant: Tenant,
   mailId: string,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -272,7 +272,7 @@ export const toCreateEventTenantMailAdded = (
   version: number,
   updatedTenant: Tenant,
   mailId: string,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -290,7 +290,7 @@ export const toCreateEventTenantMailAdded = (
 export const toCreateEventMaintenanceTenantPromotedToCertifier = (
   version: number,
   tenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: tenant.id,
   version,
@@ -307,7 +307,7 @@ export const toCreateEventMaintenanceTenantPromotedToCertifier = (
 export const toCreateEventTenantDelegatedProducerFeatureAdded = (
   version: number,
   updatedTenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -324,7 +324,7 @@ export const toCreateEventTenantDelegatedProducerFeatureAdded = (
 export const toCreateEventTenantDelegatedProducerFeatureRemoved = (
   version: number,
   updatedTenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -341,7 +341,7 @@ export const toCreateEventTenantDelegatedProducerFeatureRemoved = (
 export const toCreateEventTenantDelegatedConsumerFeatureAdded = (
   version: number,
   updatedTenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -358,7 +358,7 @@ export const toCreateEventTenantDelegatedConsumerFeatureAdded = (
 export const toCreateEventTenantDelegatedConsumerFeatureRemoved = (
   version: number,
   updatedTenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -376,7 +376,7 @@ export const toCreateEventTenantCertifiedDiscreteAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -395,7 +395,7 @@ export const toCreateEventTenantCertifiedDiscreteAttributeRevoked = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -414,7 +414,9 @@ export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
   version: number,
   updatedTenant: Tenant,
   attributeId: AttributeId,
-  correlationId: CorrelationId,
+  previousValue: number,
+  newValue: number,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -424,6 +426,8 @@ export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
     data: {
       attributeId,
       tenant: toTenantV2(updatedTenant),
+      previousValue,
+      newValue,
     },
   },
   correlationId,
@@ -432,7 +436,7 @@ export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
 export const toCreateEventTenantRemoteIdAssigned = (
   version: number,
   updatedTenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> => ({
   streamId: updatedTenant.id,
   version,
@@ -449,7 +453,7 @@ export const toCreateEventTenantRemoteIdAssigned = (
 export function toCreateEventMaintenanceTenantRemoteIdDeleted(
   version: number,
   tenant: Tenant,
-  correlationId: CorrelationId,
+  correlationId: CorrelationId
 ): CreateEvent<TenantEvent> {
   return {
     streamId: tenant.id,

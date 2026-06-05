@@ -95,9 +95,9 @@ describe("parseAndCheckAttributes", () => {
     };
 
     await expect(
-      parseAndCheckAttributes(seed, readModelService),
+      parseAndCheckAttributes(seed, readModelService)
     ).rejects.toThrowError(
-      featureFlagNotEnabled("featureFlagAttributeCertifiedDiscrete"),
+      featureFlagNotEnabled("featureFlagAttributeCertifiedDiscrete")
     );
   });
 
@@ -139,7 +139,7 @@ describe("parseAndCheckAttributes", () => {
     };
 
     await expect(
-      parseAndCheckAttributes(seed, readModelService),
+      parseAndCheckAttributes(seed, readModelService)
     ).rejects.toThrowError(attributeNotFound(certifiedDiscrete1.id));
   });
 
@@ -162,7 +162,7 @@ describe("parseAndCheckAttributes", () => {
     };
 
     await expect(
-      parseAndCheckAttributes(seed, readModelService),
+      parseAndCheckAttributes(seed, readModelService)
     ).rejects.toThrowError(attributeNotFound(certified1.id));
   });
 
@@ -196,9 +196,9 @@ describe("parseAndCheckAttributes", () => {
     "Should throw attributeNotFound when an attribute in the seed does not exist (seed #%#)",
     async (seed) => {
       await expect(
-        parseAndCheckAttributes(seed, readModelService),
+        parseAndCheckAttributes(seed, readModelService)
       ).rejects.toThrow(attributeNotFound(nonExistingAttributeId));
-    },
+    }
   );
 
   it("Should throw attributeNotFound in case of attribute kind mismatch (seed #%#)", async () => {
@@ -216,8 +216,8 @@ describe("parseAndCheckAttributes", () => {
             [{ id: verified1.id, explicitAttributeVerification: false }],
           ],
         },
-        readModelService,
-      ),
+        readModelService
+      )
     ).rejects.toThrowError(attributeNotFound(verified1.id));
 
     await expect(
@@ -235,8 +235,8 @@ describe("parseAndCheckAttributes", () => {
             [{ id: verified1.id, explicitAttributeVerification: false }],
           ],
         },
-        readModelService,
-      ),
+        readModelService
+      )
     ).rejects.toThrowError(attributeNotFound(certified1.id));
 
     await expect(
@@ -258,8 +258,8 @@ describe("parseAndCheckAttributes", () => {
             ],
           ],
         },
-        readModelService,
-      ),
+        readModelService
+      )
     ).rejects.toThrowError(attributeNotFound(declared3.id));
   });
 
@@ -280,8 +280,8 @@ describe("parseAndCheckAttributes", () => {
             [{ id: verified1.id, explicitAttributeVerification: false }],
           ],
         },
-        readModelService,
-      ),
+        readModelService
+      )
     ).rejects.toThrowError(attributeDuplicatedInGroup(certified1.id));
 
     await expect(
@@ -301,8 +301,8 @@ describe("parseAndCheckAttributes", () => {
             [{ id: verified2.id, explicitAttributeVerification: false }],
           ],
         },
-        readModelService,
-      ),
+        readModelService
+      )
     ).rejects.toThrowError(attributeDuplicatedInGroup(declared2.id));
 
     await expect(
@@ -331,8 +331,8 @@ describe("parseAndCheckAttributes", () => {
             ],
           ],
         },
-        readModelService,
-      ),
+        readModelService
+      )
     ).rejects.toThrowError(attributeDuplicatedInGroup(verified3.id));
   });
 });

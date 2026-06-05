@@ -160,7 +160,7 @@ export function notificationTenantLifecycleConsumerServiceBuilder(
               "TenantCertifiedDiscreteAttributeAssigned",
               "TenantCertifiedDiscreteAttributeRevoked",
               "TenantCertifiedDiscreteAttributeUpdated",
-              "TenantRemoteIdAssigned"
+              "TenantRemoteIdAssigned",
               "TenantKindUpdated",
               "TenantMailAdded",
               "TenantMailDeleted",

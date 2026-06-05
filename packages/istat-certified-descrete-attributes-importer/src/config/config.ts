@@ -1,5 +1,6 @@
 import {
   APIEndpoint,
+  FeatureFlagAttributeCertifiedDiscreteConfig,
   FileManagerConfig,
   LoggerConfig,
   ReadModelSQLDbConfig,
@@ -12,11 +13,10 @@ const IstatCertifiedDiscreteAttributesImporterConfig = LoggerConfig.and(
 )
   .and(ReadModelSQLDbConfig)
   .and(TokenGenerationConfig)
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(
     z
       .object({
-        SOURCE_URL: z.string(),
-        HISTORY_BUCKET_NAME: z.string(),
         TENANT_PROCESS_URL: APIEndpoint,
         ATTRIBUTE_PROCESS_URL: APIEndpoint,
         ISTAT_DOWNLOAD_URL: z.string(),
@@ -25,8 +25,6 @@ const IstatCertifiedDiscreteAttributesImporterConfig = LoggerConfig.and(
         DEFAULT_POLLING_MAX_RETRIES: z.coerce.number().default(5),
       })
       .transform((c) => ({
-        sourceUrl: c.SOURCE_URL,
-        historyBucketName: c.HISTORY_BUCKET_NAME,
         tenantProcessUrl: c.TENANT_PROCESS_URL,
         attributeProcessUrl: c.ATTRIBUTE_PROCESS_URL,
         istatDownloadUrl: c.ISTAT_DOWNLOAD_URL,

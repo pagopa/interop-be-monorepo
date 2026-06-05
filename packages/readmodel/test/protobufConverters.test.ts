@@ -47,11 +47,11 @@ describe("Protobuf converters", () => {
     };
 
     const protobuf = AgreementV1.fromBinary(
-      AgreementV1.toBinary(toAgreementV1(agreement)),
+      AgreementV1.toBinary(toAgreementV1(agreement))
     );
 
     expect(fromAgreementV1(protobuf).certifiedDiscreteAttributes).toStrictEqual(
-      [],
+      []
     );
   });
 
@@ -63,11 +63,11 @@ describe("Protobuf converters", () => {
     };
 
     const protobuf = AgreementV2.fromBinary(
-      AgreementV2.toBinary(toAgreementV2(agreement)),
+      AgreementV2.toBinary(toAgreementV2(agreement))
     );
 
     expect(fromAgreementV2(protobuf).certifiedDiscreteAttributes).toStrictEqual(
-      [certifiedDiscreteAttribute],
+      [certifiedDiscreteAttribute]
     );
   });
 
@@ -75,7 +75,7 @@ describe("Protobuf converters", () => {
     const attribute = getMockAttribute(attributeKind.certifiedDiscrete);
 
     const protobuf = AttributeV1.fromBinary(
-      AttributeV1.toBinary(toAttributeV1(attribute)),
+      AttributeV1.toBinary(toAttributeV1(attribute))
     );
 
     expect(fromAttributeV1(protobuf)).toStrictEqual(attribute);
@@ -96,11 +96,11 @@ describe("Protobuf converters", () => {
     const eservice = getMockEService(undefined, undefined, [descriptor]);
 
     const protobuf = EServiceV2.fromBinary(
-      EServiceV2.toBinary(toEServiceV2(eservice)),
+      EServiceV2.toBinary(toEServiceV2(eservice))
     );
 
     expect(
-      fromEServiceV2(protobuf).descriptors[0].attributes.certified,
+      fromEServiceV2(protobuf).descriptors[0].attributes.certified
     ).toStrictEqual([
       [
         { ...certifiedAttribute, dailyCallsPerConsumer: undefined },
@@ -129,11 +129,11 @@ describe("Protobuf converters", () => {
     ]);
 
     const protobuf = EServiceTemplateV2.fromBinary(
-      EServiceTemplateV2.toBinary(toEServiceTemplateV2(eserviceTemplate)),
+      EServiceTemplateV2.toBinary(toEServiceTemplateV2(eserviceTemplate))
     );
 
     expect(
-      fromEServiceTemplateV2(protobuf).versions[0].attributes.certified,
+      fromEServiceTemplateV2(protobuf).versions[0].attributes.certified
     ).toStrictEqual([[certifiedAttribute, certifiedDiscreteAttribute]]);
   });
 

@@ -14,28 +14,28 @@ const {
 } = constants;
 
 export const getAttributesByNameErrorMapper = (
-  error: ApiError<ErrorCodes>,
+  error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAttributeByOriginAndCodeErrorMapper = (
-  error: ApiError<ErrorCodes>,
+  error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAttributeByIdErrorMapper = (
-  error: ApiError<ErrorCodes>,
+  error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createDeclaredAttributesErrorMapper = (
-  error: ApiError<ErrorCodes>,
+  error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
@@ -43,7 +43,7 @@ export const createDeclaredAttributesErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createVerifiedAttributesErrorMapper = (
-  error: ApiError<ErrorCodes>,
+  error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
@@ -51,7 +51,7 @@ export const createVerifiedAttributesErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createCertifiedAttributesErrorMapper = (
-  error: ApiError<ErrorCodes>,
+  error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
@@ -59,7 +59,7 @@ export const createCertifiedAttributesErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createInternalCertifiedAttributesErrorMapper = (
-  error: ApiError<ErrorCodes>,
+  error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)
@@ -67,7 +67,7 @@ export const createInternalCertifiedAttributesErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createInternalCertifiedDiscreteAttributesErrorMapper = (
-  error: ApiError<ErrorCodes>,
+  error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("tenantIsNotACertifier", () => HTTP_STATUS_FORBIDDEN)

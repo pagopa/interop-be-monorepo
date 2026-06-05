@@ -60,12 +60,12 @@ const defaultAttributeRegistryService = attributeRegistryServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelServiceSQL,
+  readModelServiceSQL
 );
 
 const attributeRouter = (
   ctx: ZodiosContext,
-  attributeRegistryService: AttributeRegistryService = defaultAttributeRegistryService,
+  attributeRegistryService: AttributeRegistryService = defaultAttributeRegistryService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const attributeRouter = ctx.router(attributeRegistryApi.attributeApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -108,20 +108,20 @@ const attributeRouter = (
                 offset,
                 limit,
               },
-              ctx,
+              ctx
             );
 
           return res.status(200).send(
             attributeRegistryApi.Attributes.parse({
               results: attributes.results.map(toApiAttribute),
               totalCount: attributes.totalCount,
-            }),
+            })
           );
         } catch (error) {
           const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .get("/attributes/name/:name", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -137,21 +137,19 @@ const attributeRouter = (
 
         const attribute = await attributeRegistryService.getAttributeByName(
           req.params.name,
-          ctx,
+          ctx
         );
 
         return res
           .status(200)
           .send(
-            attributeRegistryApi.Attribute.parse(
-              toApiAttribute(attribute.data),
-            ),
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute.data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getAttributesByNameErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -170,21 +168,19 @@ const attributeRouter = (
               origin,
               code,
             },
-            ctx,
+            ctx
           );
 
         return res
           .status(200)
           .send(
-            attributeRegistryApi.Attribute.parse(
-              toApiAttribute(attribute.data),
-            ),
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute.data))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           getAttributeByOriginAndCodeErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -209,7 +205,7 @@ const attributeRouter = (
           const { data, metadata } =
             await attributeRegistryService.getAttributeById(
               unsafeBrandId(req.params.attributeId),
-              ctx,
+              ctx
             );
 
           setMetadataVersionHeader(res, metadata);
@@ -220,11 +216,11 @@ const attributeRouter = (
           const errorRes = makeApiProblem(
             error,
             getAttributeByIdErrorMapper,
-            ctx,
+            ctx
           );
           return res.status(errorRes.status).send(errorRes);
         }
-      },
+      }
     )
     .post("/bulk/attributes", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
@@ -246,13 +242,13 @@ const attributeRouter = (
             offset,
             limit,
           },
-          ctx,
+          ctx
         );
         return res.status(200).send(
           attributeRegistryApi.Attributes.parse({
             results: attributes.results.map(toApiAttribute),
             totalCount: attributes.totalCount,
-          }),
+          })
         );
       } catch (error) {
         const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
@@ -268,7 +264,7 @@ const attributeRouter = (
         const { data, metadata } =
           await attributeRegistryService.createCertifiedAttribute(
             req.body,
-            ctx,
+            ctx
           );
 
         setMetadataVersionHeader(res, metadata);
@@ -279,7 +275,7 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           createCertifiedAttributesErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -298,13 +294,13 @@ const attributeRouter = (
         return res
           .status(200)
           .send(
-            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute)),
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createDeclaredAttributesErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -323,13 +319,13 @@ const attributeRouter = (
         return res
           .status(200)
           .send(
-            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute)),
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createVerifiedAttributesErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -343,18 +339,18 @@ const attributeRouter = (
         const attribute =
           await attributeRegistryService.internalCreateCertifiedAttribute(
             req.body,
-            ctx,
+            ctx
           );
         return res
           .status(200)
           .send(
-            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute)),
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createInternalCertifiedAttributesErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -368,19 +364,19 @@ const attributeRouter = (
         const attribute =
           await attributeRegistryService.internalCreateCertifiedDiscreteAttribute(
             req.body,
-            ctx,
+            ctx
           );
 
         return res
           .status(200)
           .send(
-            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute)),
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
           );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           createInternalCertifiedDiscreteAttributesErrorMapper,
-          ctx,
+          ctx
         );
         return res.status(errorRes.status).send(errorRes);
       }

@@ -1,6 +1,7 @@
 import {
   InteropTokenGenerator,
   RefreshableInteropToken,
+  isFeatureFlagEnabled,
   logger,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
@@ -43,19 +44,28 @@ const loggerInstance = logger({
 });
 
 try {
-  await importAttributes(
-    istatClient,
-    readModelQueriesSQL,
-    tenantProcess,
-    attributeProcess,
-    refreshableToken,
-    {
-      defaultPollingMaxRetries: config.defaultPollingMaxRetries,
-      defaultPollingRetryDelay: config.defaultPollingRetryDelay,
-    },
-    loggerInstance,
-    correlationId
-  );
+  if (!isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")) {
+    loggerInstance.info(
+      "Feature flag 'featureFlagAttributeCertifiedDiscrete' is disabled. Skipping ISTAT import execution."
+    );
+  } else {
+    await importAttributes(
+      istatClient,
+      readModelQueriesSQL,
+      tenantProcess,
+      attributeProcess,
+      refreshableToken,
+      {
+        defaultPollingMaxRetries: config.defaultPollingMaxRetries,
+        defaultPollingRetryDelay: config.defaultPollingRetryDelay,
+      },
+      loggerInstance,
+      correlationId
+    );
+  }
+} catch (error) {
+  loggerInstance.error(`Error during ISTAT import execution: ${error}`);
+  throw error;
 } finally {
   await cleanup();
 }

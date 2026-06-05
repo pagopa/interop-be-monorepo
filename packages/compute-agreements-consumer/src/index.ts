@@ -21,11 +21,11 @@ import { config } from "./config/config.js";
 import { toApiCompactTenant } from "./converters.js";
 
 const agreementProcessClient = agreementApi.createAgreementApiClient(
-  config.agreementProcessUrl,
+  config.agreementProcessUrl
 );
 
 const refreshableToken = new RefreshableInteropToken(
-  new InteropTokenGenerator(config),
+  new InteropTokenGenerator(config)
 );
 await refreshableToken.init();
 
@@ -54,7 +54,7 @@ async function processMessage({
         type: P.union(
           "TenantCertifiedDiscreteAttributeAssigned",
           "TenantCertifiedDiscreteAttributeRevoked",
-          "TenantCertifiedDiscreteAttributeUpdated",
+          "TenantCertifiedDiscreteAttributeUpdated"
         ),
       },
       async ({ data: { tenant, attributeId } }) => {
@@ -66,7 +66,7 @@ async function processMessage({
 
         if (tenant) {
           loggerInstance.info(
-            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`,
+            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
           );
           const token = (await refreshableToken.get()).serialized;
 
@@ -80,12 +80,12 @@ async function processMessage({
                 "X-Correlation-Id": correlationId,
                 Authorization: `Bearer ${token}`,
               },
-            },
+            }
           );
         } else {
           throw missingKafkaMessageDataError("tenant", decodedMsg.type);
         }
-      },
+      }
     )
     .with(
       {
@@ -96,16 +96,13 @@ async function processMessage({
           "TenantDeclaredAttributeAssigned",
           "TenantDeclaredAttributeRevoked",
           "TenantVerifiedAttributeAssigned",
-          "TenantVerifiedAttributeRevoked",
-          "TenantCertifiedDiscreteAttributeAssigned",
-          "TenantCertifiedDiscreteAttributeRevoked",
-          "TenantCertifiedDiscreteAttributeUpdated",
+          "TenantVerifiedAttributeRevoked"
         ),
       },
       async ({ data: { tenant, attributeId } }) => {
         if (tenant) {
           loggerInstance.info(
-            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`,
+            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
           );
           const token = (await refreshableToken.get()).serialized;
 
@@ -119,12 +116,12 @@ async function processMessage({
                 "X-Correlation-Id": correlationId,
                 Authorization: `Bearer ${token}`,
               },
-            },
+            }
           );
         } else {
           throw missingKafkaMessageDataError("tenant", decodedMsg.type);
         }
-      },
+      }
     )
     .with(
       {
@@ -145,10 +142,10 @@ async function processMessage({
           "TenantDelegatedConsumerFeatureAdded",
           "TenantDelegatedConsumerFeatureRemoved",
           "TenantRemoteIdAssigned",
-          "MaintenanceTenantRemoteIdDeleted",
+          "MaintenanceTenantRemoteIdDeleted"
         ),
       },
-      () => Promise.resolve(),
+      () => Promise.resolve()
     )
     .with({ event_version: 1 }, () => Promise.resolve())
     .exhaustive();
@@ -158,5 +155,5 @@ await runConsumer(
   config,
   [config.tenantTopic],
   processMessage,
-  "compute-agreements-consumer",
+  "compute-agreements-consumer"
 );
