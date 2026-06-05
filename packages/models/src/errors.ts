@@ -427,7 +427,7 @@ export function eventConflictError(
   correlationId?: string,
   streamId?: string,
   streamVersion?: number
-): InternalError<CommonErrorCodes> {
+): ApiError<CommonErrorCodes> {
   const correlationIdPrefix = correlationId ? `[CID=${correlationId}]` : "";
   const streamVersionPrefix =
     streamVersion !== undefined ? `[SV=${streamVersion}]` : "";
@@ -439,7 +439,8 @@ export function eventConflictError(
     streamIdPrefix,
   ].join(" ");
 
-  return new InternalError({
+  return new ApiError({
+    title: "Conflict",
     code: "eventConflictError",
     detail: `${prefixes} Request conflicts with an ongoing operation on the same resource. Please retry.`,
   });
