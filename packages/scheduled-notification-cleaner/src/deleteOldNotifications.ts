@@ -1,4 +1,4 @@
-import { lt } from "drizzle-orm";
+import { lt, or } from "drizzle-orm";
 import { Logger } from "pagopa-interop-commons";
 import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-models";
 import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
@@ -16,9 +16,12 @@ export const deleteOldNotifications = async (
     `Deleting notifications older than ${deleteOlderThanDays} days (cutoff: ${cutoffDate.toISOString()})`
   );
 
-  const result = await db
-    .delete(scheduledNotification)
-    .where(lt(scheduledNotification.sentAt, cutoffDate));
+  const condition = or(
+    lt(scheduledNotification.sentAt, cutoffDate),
+    lt(scheduledNotification.skippedAt, cutoffDate)
+  );
+
+  const result = await db.delete(scheduledNotification).where(condition);
 
   const deletedCount = result.rowCount ?? 0;
 

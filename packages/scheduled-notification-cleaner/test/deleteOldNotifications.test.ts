@@ -188,6 +188,39 @@ describe("deleteOldNotifications", () => {
     expect(remainingNotifications).toHaveLength(0);
   });
 
+  it("should delete notifications if skipped at is older than specified days", async () => {
+    vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
+
+    const oldReadNotification = getMockNotification({
+      skippedAt: new Date("2023-10-01T10:00:00Z"),
+      sendAt: new Date("2023-10-02T10:00:00Z"),
+    });
+
+    const oldUnreadNotification = getMockNotification({
+      skippedAt: new Date("2023-10-05T10:00:00Z"),
+      sendAt: undefined,
+    });
+
+    await addScheduledNotifications([
+      oldReadNotification,
+      oldUnreadNotification,
+    ]);
+
+    const deletedCount = await deleteOldNotifications(
+      scheduledNotificationDB,
+      90,
+      loggerInstance
+    );
+
+    expect(deletedCount).toBe(2);
+
+    const remainingNotifications = await scheduledNotificationDB
+      .select()
+      .from(scheduledNotification);
+
+    expect(remainingNotifications).toHaveLength(0);
+  });
+
   it("should handle edge case at exact cutoff date", async () => {
     vi.setSystemTime(new Date("2024-01-15T10:00:00Z"));
 

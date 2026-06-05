@@ -46,6 +46,7 @@ interface MockNotification {
   correlationId: string;
   sendAt: Date;
   sentAt: Date | null;
+  skippedAt: Date | null;
   attempts: number;
   lastError: string | null;
   createdAt: Date;
@@ -67,6 +68,7 @@ export const getMockNotification = ({
   correlationId = generateId(),
   sendAt = new Date(),
   sentAt = null,
+  skippedAt = null,
   attempts = 0,
   lastError = null,
   createdAt = new Date(),
@@ -81,6 +83,7 @@ export const getMockNotification = ({
   attempts?: number;
   lastError?: string | null;
   createdAt?: Date;
+  skippedAt?: Date | null;
 }): MockNotification => ({
   id,
   channel,
@@ -92,4 +95,5 @@ export const getMockNotification = ({
   attempts,
   lastError,
   createdAt,
+  skippedAt,
 });
