@@ -20,6 +20,7 @@ message EServiceV2 {
   optional bool personalData = 14;
   optional string instanceLabel = 15;
   optional bool asyncExchange = 16;
+  optional string archivingReason = 17;
 }
 
 message EServiceRiskAnalysisV2 {
@@ -93,6 +94,7 @@ message EServiceDescriptorV2 {
   optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
   optional EServiceDocumentV2 asyncExchangeCallbackInterface = 21;
   optional AsyncExchangePropertiesV2 asyncExchangeProperties = 22;
+  optional ArchivingScheduleV2 archivingSchedule = 23;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
@@ -132,6 +134,8 @@ enum EServiceDescriptorStateV2 {
   SUSPENDED = 3;
   ARCHIVED = 4;
   WAITING_FOR_APPROVAL = 5;
+  ARCHIVING = 6;
+  ARCHIVING_SUSPENDED = 7;
 }
 
 enum EServiceTechnologyV2 {
@@ -147,4 +151,15 @@ enum AgreementApprovalPolicyV2 {
 enum EServiceModeV2 {
   RECEIVE = 0;
   DELIVER = 1;
+}
+
+message ArchivingScheduleV2 {
+  int64 archivableOn = 1;
+  ArchivingScopeV2 scope = 2;
+  int64 startedAt = 3;
+}
+
+enum ArchivingScopeV2 {
+  ESERVICE = 0;
+  DESCRIPTOR = 1;
 }

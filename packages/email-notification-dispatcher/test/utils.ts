@@ -1,8 +1,6 @@
-import { fileURLToPath } from "url";
-import fs from "fs";
-import path from "path";
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { registerEmailTemplatePartials } from "pagopa-interop-notification-commons";
 import {
   Agreement,
   Delegation,
@@ -76,21 +74,7 @@ export const readModelService = readModelServiceBuilderSQL({
 });
 
 export const templateService = buildHTMLTemplateService();
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-function registerPartial(name: string, path: string): void {
-  const buffer = fs.readFileSync(`${dirname}/../src${path}`);
-  templateService.registerPartial(name, buffer.toString());
-}
-
-registerPartial(
-  "common-header",
-  "/resources/templates/headers/common-header.hbs"
-);
-registerPartial(
-  "common-footer",
-  "/resources/templates/footers/common-footer.hbs"
-);
+registerEmailTemplatePartials(templateService);
 
 export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);

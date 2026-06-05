@@ -1,15 +1,15 @@
 import {
   DescriptorId,
   EServiceId,
-  TenantId,
   InternalError,
+  TenantId,
 } from "pagopa-interop-models";
 
-type EmailNotificationDispatcherErrorCode =
+type NotificationCommonsErrorCode =
   | "htmlTemplateNotFound"
   | "agreementStampDateNotFound"
   | "attributeNotFound"
-  | "eServiceNotFound"
+  | "eserviceNotFound"
   | "tenantNotFound"
   | "descriptorNotFound"
   | "activeProducerDelegationNotFound"
@@ -20,87 +20,75 @@ type EmailNotificationDispatcherErrorCode =
   | "clientKeyNotFound"
   | "producerKeychainKeyNotFound"
   | "purposeNotFound"
-  | "certifierTenantNotFound";
+  | "attributeOriginUndefined"
+  | "attributeNotFoundInTenant";
 
-export class EmailNotificationDispatcherError extends InternalError<EmailNotificationDispatcherErrorCode> {
+export class NotificationCommonsError extends InternalError<NotificationCommonsErrorCode> {
   constructor({
     code,
     detail,
   }: {
-    code: EmailNotificationDispatcherErrorCode;
+    code: NotificationCommonsErrorCode;
     detail: string;
   }) {
     super({ code, detail });
   }
 }
 
-export function htmlTemplateNotFound(
-  path: string
-): EmailNotificationDispatcherError {
+export function htmlTemplateNotFound(path: string): NotificationCommonsError {
   return new InternalError({
     detail: `HTML template not found at ${path}`,
     code: "htmlTemplateNotFound",
   });
 }
 
-export function eServiceNotFound(
-  eserviceId: EServiceId
-): EmailNotificationDispatcherError {
-  return new InternalError({
-    detail: `EService ${eserviceId} not found`,
-    code: "eServiceNotFound",
-  });
-}
-
-export function tenantNotFound(
-  tenantId: TenantId
-): EmailNotificationDispatcherError {
+export function tenantNotFound(tenantId: TenantId): NotificationCommonsError {
   return new InternalError({
     detail: `Tenant ${tenantId} not found`,
     code: "tenantNotFound",
   });
 }
 
-export function certifierTenantNotFound(
-  certifierId: string
-): EmailNotificationDispatcherError {
+export function eserviceNotFound(
+  eserviceId: EServiceId
+): NotificationCommonsError {
   return new InternalError({
-    detail: `Certifier tenant ${certifierId} not found`,
-    code: "certifierTenantNotFound",
+    detail: `EService ${eserviceId} not found`,
+    code: "eserviceNotFound",
   });
 }
 
 export function descriptorNotFound(
-  eServiceId: EServiceId,
+  eserviceId: EServiceId,
   descriptorId: DescriptorId
-): EmailNotificationDispatcherError {
+): NotificationCommonsError {
   return new InternalError({
-    detail: `Descriptor ${descriptorId} not found in EService ${eServiceId}`,
+    detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
     code: "descriptorNotFound",
   });
 }
 
 export function eserviceWithoutDescriptors(
-  eServiceId: EServiceId
-): EmailNotificationDispatcherError {
+  eserviceId: EServiceId
+): NotificationCommonsError {
   return new InternalError({
-    detail: `EService ${eServiceId} does not have any descriptor`,
+    detail: `EService ${eserviceId} does not have any descriptor`,
     code: "eserviceWithoutDescriptors",
   });
 }
 
 export function activeProducerDelegationNotFound(
-  eServiceId: EServiceId
-): EmailNotificationDispatcherError {
+  eserviceId: EServiceId
+): NotificationCommonsError {
   return new InternalError({
-    detail: `Active producer delegation not found for EService ${eServiceId}`,
+    detail: `Active producer delegation not found for EService ${eserviceId}`,
     code: "activeProducerDelegationNotFound",
   });
 }
 
 export function attributeNotFound(
   attributeId: string
-): EmailNotificationDispatcherError {
+): NotificationCommonsError {
   return new InternalError({
     detail: `Attribute ${attributeId} not found`,
     code: "attributeNotFound",
@@ -110,7 +98,7 @@ export function attributeNotFound(
 export function clientKeyNotFound(
   clientId: string,
   kid: string
-): EmailNotificationDispatcherError {
+): NotificationCommonsError {
   return new InternalError({
     detail: `Client key ${kid} not found in client ${clientId}`,
     code: "clientKeyNotFound",
@@ -120,18 +108,44 @@ export function clientKeyNotFound(
 export function producerKeychainKeyNotFound(
   producerKeychainId: string,
   kid: string
-): EmailNotificationDispatcherError {
+): NotificationCommonsError {
   return new InternalError({
     detail: `Producer keychain key ${kid} not found in producer keychain ${producerKeychainId}`,
     code: "producerKeychainKeyNotFound",
   });
 }
 
-export function purposeNotFound(
-  purposeId: string
-): EmailNotificationDispatcherError {
+export function purposeNotFound(purposeId: string): NotificationCommonsError {
   return new InternalError({
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
+  });
+}
+
+export function certifierTenantNotFound(
+  certifierId: string
+): NotificationCommonsError {
+  return new InternalError({
+    detail: `Certifier tenant ${certifierId} not found`,
+    code: "certifierTenantNotFound",
+  });
+}
+
+export function attributeOriginUndefined(
+  attributeId: string
+): NotificationCommonsError {
+  return new InternalError({
+    detail: `Attribute ${attributeId} has undefined origin`,
+    code: "attributeOriginUndefined",
+  });
+}
+
+export function verifiedAttributeNotFoundInTenant(
+  tenantId: string,
+  attributeId: string
+): NotificationCommonsError {
+  return new InternalError({
+    detail: `Verified attribute ${attributeId} not found in tenant ${tenantId}`,
+    code: "attributeNotFoundInTenant",
   });
 }
