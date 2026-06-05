@@ -608,6 +608,8 @@ components:
         - API
         - SECURITY
         - SUPPORT
+        - REVIEWER
+        - VIEWER
     Problem:
       properties:
         type:
