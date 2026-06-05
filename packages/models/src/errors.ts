@@ -318,6 +318,8 @@ export const commonErrorCodes = {
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
 
+export const PG_DUPLICATE_KEY_ERROR = "23505";
+
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
     return fromZodError(error).message;

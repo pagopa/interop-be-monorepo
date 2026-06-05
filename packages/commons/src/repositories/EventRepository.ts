@@ -2,6 +2,7 @@ import {
   CorrelationId,
   eventConflictError,
   genericInternalError,
+  PG_DUPLICATE_KEY_ERROR,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
@@ -93,8 +94,7 @@ async function internalCreateEvent<T extends Event>(
   } catch (error) {
     const e = error as { code?: string };
 
-    if (e?.code && e.code === "23505") {
-      //duplicate key value violates unique constraint error
+    if (e?.code && e.code === PG_DUPLICATE_KEY_ERROR) {
       throw eventConflictError(
         createEvent.correlationId,
         createEvent?.streamId,
@@ -139,8 +139,7 @@ async function internalCreateEvents<T extends Event>(
   } catch (error) {
     const e = error as { code?: string };
 
-    if (e?.code && e.code === "23505") {
-      //duplicate key value violates unique constraint error
+    if (e?.code && e.code === PG_DUPLICATE_KEY_ERROR) {
       const lastEvent = createEvents[lastProcessedItemIndex];
       throw eventConflictError(
         lastEvent.correlationId,
