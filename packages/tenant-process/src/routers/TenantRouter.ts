@@ -42,6 +42,7 @@ import {
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
   maintenanceTenantUpdatedErrorMapper,
+  maintenanceTenantDeleteRemoteIdErrorMapper,
   updateTenantDelegatedFeaturesErrorMapper,
   getTenantVerifiedAttributeVerifiersErrorMapper,
   getTenantVerifiedAttributeRevokersErrorMapper,
@@ -419,6 +420,32 @@ const tenantsRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete(
+      "/maintenance/tenants/:tenantId/remoteIds/:origin",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+
+          await tenantService.maintenanceTenantDeleteRemoteId(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              origin: req.params.origin,
+            },
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceTenantDeleteRemoteIdErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete("/tenants/:tenantId/mails/:mailId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

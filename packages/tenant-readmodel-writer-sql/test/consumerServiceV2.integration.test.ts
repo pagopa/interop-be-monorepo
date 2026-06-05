@@ -889,4 +889,48 @@ describe("Tenant Events V2", async () => {
       version: 2,
     });
   });
+  it("MaintenanceTenantRemoteIdDeleted", async () => {
+    const deletedRemoteId = {
+      origin: "ISTAT",
+      value: "12345",
+      assignmentTimestamp: new Date(),
+    };
+    const notDeletedRemoteId = {
+      origin: "OTHER",
+      value: "67890",
+      assignmentTimestamp: new Date(),
+    };
+    const tenant: Tenant = {
+      ...mockTenant,
+      remoteIds: [deletedRemoteId, notDeletedRemoteId],
+    };
+    await tenantWriterService.upsertTenant(tenant, 1);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      remoteIds: [notDeletedRemoteId],
+    };
+
+    const payload = {
+      tenant: toTenantV2(updatedTenant),
+    };
+
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "MaintenanceTenantRemoteIdDeleted",
+      data: payload,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
+      version: 2,
+    });
+  });
 });

@@ -56,6 +56,7 @@ export async function handleTenantMessageV2(
             "TenantOnboardDetailsUpdated",
             "TenantOnboarded",
             "TenantRemoteIdAssigned",
+            "MaintenanceTenantRemoteIdDeleted",
             "TenantVerifiedAttributeAssigned",
             "TenantVerifiedAttributeExpirationUpdated",
             "TenantVerifiedAttributeExtensionUpdated",
