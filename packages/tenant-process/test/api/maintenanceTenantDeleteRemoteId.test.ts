@@ -5,10 +5,7 @@ import { generateId, TenantId } from "pagopa-interop-models";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import { api, tenantService } from "../vitest.api.setup.js";
-import {
-  remoteIdNotFound,
-  tenantNotFound,
-} from "../../src/model/domain/errors.js";
+import { tenantNotFound } from "../../src/model/domain/errors.js";
 
 describe("API DELETE /maintenance/tenants/{tenantId}/remoteIds/{origin} test", () => {
   const tenant = getMockTenant();
@@ -49,15 +46,6 @@ describe("API DELETE /maintenance/tenants/{tenantId}/remoteIds/{origin} test", (
     tenantService.maintenanceTenantDeleteRemoteId = vi
       .fn()
       .mockRejectedValue(tenantNotFound(tenant.id));
-    const token = generateToken(authRole.MAINTENANCE_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(404);
-  });
-
-  it("Should return 404 for remoteIdNotFound", async () => {
-    tenantService.maintenanceTenantDeleteRemoteId = vi
-      .fn()
-      .mockRejectedValue(remoteIdNotFound(origin));
     const token = generateToken(authRole.MAINTENANCE_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(404);

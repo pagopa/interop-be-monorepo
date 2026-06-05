@@ -82,7 +82,6 @@ import {
   certifierWithExistingAttributes,
   mailAlreadyExists,
   mailNotFound,
-  remoteIdNotFound,
   tenantIsNotACertifier,
   tenantNotFoundByExternalId,
   tenantNotFoundBySelfcareId,
@@ -1261,7 +1260,7 @@ export function tenantServiceBuilder(
       const tenant = await retrieveTenant(tenantId, readModelService);
 
       if (!tenant.data.remoteIds?.some((r) => r.origin === origin)) {
-        throw remoteIdNotFound(origin);
+        return;
       }
 
       const updatedTenant: Tenant = {

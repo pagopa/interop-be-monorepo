@@ -2,6 +2,7 @@ import {
   generateId,
   MaintenanceTenantRemoteIdDeletedV2,
   protobufDecoder,
+  TenantEvent,
   Tenant,
   TenantId,
   toTenantV2,
@@ -10,12 +11,10 @@ import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
 import {
   getMockContextMaintenance,
   getMockTenant,
+  ReadEvent,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
-import {
-  remoteIdNotFound,
-  tenantNotFound,
-} from "../../src/model/domain/errors.js";
+import { tenantNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   postgresDB,
@@ -97,39 +96,61 @@ describe("maintenanceTenantDeleteRemoteId", async () => {
     ).rejects.toThrowError(tenantNotFound(tenantId));
   });
 
-  it("should throw remoteIdNotFound when the remote id does not exist", async () => {
+  it("should not write an event when the remote id does not exist", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       remoteIds: [notDeletedRemoteId],
     };
 
     await addOneTenant(tenant);
-    await expect(
-      tenantService.maintenanceTenantDeleteRemoteId(
-        {
-          tenantId: tenant.id,
-          origin: deletedRemoteId.origin,
-        },
-        getMockContextMaintenance({})
-      )
-    ).rejects.toThrowError(remoteIdNotFound(deletedRemoteId.origin));
+    await tenantService.maintenanceTenantDeleteRemoteId(
+      {
+        tenantId: tenant.id,
+        origin: deletedRemoteId.origin,
+      },
+      getMockContextMaintenance({})
+    );
+
+    const writtenEvent: ReadEvent<TenantEvent> = await readLastEventByStreamId(
+      tenant.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: tenant.id,
+      version: "0",
+      type: "TenantOnboarded",
+      event_version: 2,
+    });
   });
 
-  it("should throw remoteIdNotFound when the tenant has no remote ids", async () => {
+  it("should not write an event when the tenant has no remote ids", async () => {
     const tenant: Tenant = {
       ...getMockTenant(),
       remoteIds: undefined,
     };
 
     await addOneTenant(tenant);
-    await expect(
-      tenantService.maintenanceTenantDeleteRemoteId(
-        {
-          tenantId: tenant.id,
-          origin: deletedRemoteId.origin,
-        },
-        getMockContextMaintenance({})
-      )
-    ).rejects.toThrowError(remoteIdNotFound(deletedRemoteId.origin));
+    await tenantService.maintenanceTenantDeleteRemoteId(
+      {
+        tenantId: tenant.id,
+        origin: deletedRemoteId.origin,
+      },
+      getMockContextMaintenance({})
+    );
+
+    const writtenEvent: ReadEvent<TenantEvent> = await readLastEventByStreamId(
+      tenant.id,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: tenant.id,
+      version: "0",
+      type: "TenantOnboarded",
+      event_version: 2,
+    });
   });
 });
