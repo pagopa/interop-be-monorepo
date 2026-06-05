@@ -175,7 +175,7 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
       attributeId: certifiedAttribute.id,
     },
   ])(
-    "should return empty array when no users have notifications enabled",
+    "should return empty array when no users have notifications enabled for event $eventType",
     async ({ eventType, attributeId }) => {
       mockGetNotificationRecipients.mockResolvedValue([]);
 
@@ -293,7 +293,7 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
       attributeId: certifiedAttributeIPA.id,
     },
   ])(
-    "should generate notifications for multiple users",
+    "should generate notifications for multiple users for event $eventType",
     async ({ eventType, assigneeAttributes, attributeId }) => {
       const users = [
         { userId: generateId(), tenantId: assignee.id },

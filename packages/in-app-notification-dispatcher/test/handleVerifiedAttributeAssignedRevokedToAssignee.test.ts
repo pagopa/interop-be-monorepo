@@ -28,7 +28,7 @@ import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import { addOneAttribute, addOneTenant, readModelService } from "./utils.js";
 
-describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
+describe("handleVerifiedAttributeAssignedRevokedToAssignee", () => {
   const certifierId = generateId();
 
   const assignee = getMockTenant();
@@ -162,7 +162,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
       attributeId: verifiedAttribute.id,
     },
   ])(
-    "should return empty array when no users have notifications enabled",
+    "should return empty array when no users have notifications enabled for event $eventType",
     async ({ eventType, attributeId }) => {
       mockGetNotificationRecipients.mockResolvedValue([]);
 
@@ -342,7 +342,7 @@ describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
       attributeId: verifiedAttribute.id,
     },
   ])(
-    "should generate notifications for multiple users",
+    "should generate notifications for multiple users for event $eventType",
     async ({ eventType, assigneeAttributes, attributeId }) => {
       const users = [
         { userId: generateId(), tenantId: assignee.id },

@@ -41,26 +41,6 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
     name: "Revoker Name",
   };
 
-  const certifiedAttribute: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
-    name: "Certified Attribute",
-    origin: certifierId,
-  };
-  const certifiedAttributeANAC: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
-    name: "Certified ANAC Attribute",
-    origin: "ANAC",
-  };
-  const certifiedAttributeIPA: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
-    name: "Certified IPA Attribute",
-    origin: "IPA",
-  };
-  const certifiedAttributeIVASS: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
-    name: "Certified IVASS Attribute",
-    origin: "IVASS",
-  };
   const verifiedAttribute: Attribute = {
     ...getMockAttribute(attributeKind.verified),
     name: "Verified Attribute",
@@ -81,10 +61,6 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
     await addOneTenant(assignee);
     await addOneTenant(certifier);
     await addOneTenant(revoker);
-    await addOneAttribute(certifiedAttribute);
-    await addOneAttribute(certifiedAttributeANAC);
-    await addOneAttribute(certifiedAttributeIPA);
-    await addOneAttribute(certifiedAttributeIVASS);
     await addOneAttribute(certifiedAttributeISTAT);
     await addOneAttribute(verifiedAttribute);
   });
@@ -194,7 +170,7 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
       attributeId: certifiedAttributeISTAT.id,
     },
   ])(
-    "should return empty array when no users have notifications enabled",
+    "should return empty array when no users have notifications enabled for event $eventType",
     async ({ eventType, attributeId }) => {
       mockGetNotificationRecipients.mockResolvedValue([]);
 
@@ -350,7 +326,7 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
       attributeId: certifiedAttributeISTAT.id,
     },
   ])(
-    "should generate notifications for multiple users",
+    "should generate notifications for multiple users for event $eventType",
     async ({ eventType, assigneeAttributes, attributeId }) => {
       const users = [
         { userId: generateId(), tenantId: assignee.id },
