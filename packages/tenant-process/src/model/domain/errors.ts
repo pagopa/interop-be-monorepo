@@ -39,6 +39,7 @@ const errorCodes = {
   delegationNotFound: "0029",
   operationRestrictedToDelegate: "0030",
   invalidTenantFeature: "0031",
+  certifiedDiscreteAttributeAlreadyAssigned: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -79,7 +80,7 @@ export function tenantNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
 
 export function tenantNotFoundByExternalId(
   origin: string,
-  code: string
+  code: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with externalId ${origin}/${code} not found`,
@@ -98,7 +99,7 @@ export function eServiceNotFound(eserviceId: EServiceId): ApiError<ErrorCodes> {
 
 export function verifiedAttributeNotFoundInTenant(
   tenantId: TenantId,
-  attributeId: AttributeId
+  attributeId: AttributeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Verified attribute ${attributeId} not found in tenant ${tenantId}`,
@@ -108,7 +109,7 @@ export function verifiedAttributeNotFoundInTenant(
 }
 
 export function expirationDateCannotBeInThePast(
-  date: Date
+  date: Date,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Expiration date ${date} cannot be in the past`,
@@ -119,7 +120,7 @@ export function expirationDateCannotBeInThePast(
 
 export function attributeVerificationNotAllowed(
   consumerId: string,
-  attributeId: AttributeId
+  attributeId: AttributeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant is not allowed to verify attribute ${attributeId} for tenant ${consumerId}`,
@@ -130,7 +131,7 @@ export function attributeVerificationNotAllowed(
 
 export function attributeRevocationNotAllowed(
   consumerId: string,
-  attributeId: AttributeId
+  attributeId: AttributeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant is not allowed to revoke attribute ${attributeId} for tenant ${consumerId}`,
@@ -142,7 +143,7 @@ export function attributeRevocationNotAllowed(
 export function tenantNotFoundInVerifiers(
   requesterId: string,
   tenantId: TenantId,
-  attributeId: AttributeId
+  attributeId: AttributeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${requesterId} not found in verifier for Tenant ${tenantId} and attribute ${attributeId}`,
@@ -152,7 +153,7 @@ export function tenantNotFoundInVerifiers(
 }
 
 export function tenantNotFoundBySelfcareId(
-  selfcareId: string
+  selfcareId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant with selfcareId ${selfcareId} not found`,
@@ -164,7 +165,7 @@ export function tenantNotFoundBySelfcareId(
 export function expirationDateNotFoundInVerifier(
   verifierId: string,
   attributeId: string,
-  tenantId: TenantId
+  tenantId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `ExpirationDate not found in verifier ${verifierId} for Tenant ${tenantId} and attribute ${attributeId}`,
@@ -189,7 +190,7 @@ export function selfcareIdConflict({
 }
 
 export function tenantIsNotACertifier(
-  tenantId: TenantId
+  tenantId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} not allowed to assign attributes`,
@@ -201,7 +202,7 @@ export function tenantIsNotACertifier(
 export function attributeDoesNotBelongToCertifier(
   attributeId: AttributeId,
   certifierId: TenantId,
-  tenantId: TenantId
+  tenantId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${certifierId} not allowed to assign certified attribute ${attributeId} to tenant ${tenantId}`,
@@ -212,7 +213,7 @@ export function attributeDoesNotBelongToCertifier(
 
 export function certifiedAttributeAlreadyAssigned(
   attributeId: AttributeId,
-  tenantId: TenantId
+  tenantId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${tenantId}`,
@@ -221,10 +222,21 @@ export function certifiedAttributeAlreadyAssigned(
   });
 }
 
+export function certifiedDiscreteAttributeAlreadyAssigned(
+  attributeId: AttributeId,
+  tenantId: TenantId,
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified Discrete Attribute ${attributeId} already assigned to tenant ${tenantId}`,
+    code: "certifiedDiscreteAttributeAlreadyAssigned",
+    title: "Certified discrete attribute already assigned",
+  });
+}
+
 export function attributeAlreadyRevoked(
   tenantId: TenantId,
   revokerId: TenantId,
-  attributeId: AttributeId
+  attributeId: AttributeId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute ${attributeId} has been already revoked for ${tenantId} by ${revokerId}`,
@@ -250,7 +262,7 @@ export function mailAlreadyExists(): ApiError<ErrorCodes> {
 
 export function tenantIsAlreadyACertifier(
   tenantId: TenantId,
-  certifierId: string
+  certifierId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} is already a certifier with certifierId ${certifierId}`,
@@ -261,7 +273,7 @@ export function tenantIsAlreadyACertifier(
 
 export function certifierWithExistingAttributes(
   tenantId: TenantId,
-  certifierId: string
+  certifierId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Tenant ${tenantId} with certifierId ${certifierId} has already created attributes`,
@@ -272,7 +284,7 @@ export function certifierWithExistingAttributes(
 
 export function attributeNotFoundInTenant(
   attributeId: AttributeId,
-  tenantId: TenantId
+  tenantId: TenantId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute ${attributeId} not found in tenant ${tenantId}`,
@@ -291,7 +303,7 @@ export function agreementNotFound(agreementId: string): ApiError<ErrorCodes> {
 
 export function descriptorNotFoundInEservice(
   descriptorId: string,
-  eserviceId: string
+  eserviceId: string,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} not found in EService ${eserviceId}`,
@@ -309,7 +321,7 @@ export function notValidMailAddress(): ApiError<ErrorCodes> {
 }
 
 export function delegationNotFound(
-  delegationId: DelegationId
+  delegationId: DelegationId,
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Delegation ${delegationId} not found`,
