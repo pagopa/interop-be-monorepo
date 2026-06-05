@@ -223,7 +223,6 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
         })
         .exhaustive();
       expect(message.email.body).toContain(attribute.name);
-      expect(message.email.body).toContain(attribute.name);
     });
   });
 });
