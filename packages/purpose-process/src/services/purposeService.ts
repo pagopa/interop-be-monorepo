@@ -100,6 +100,7 @@ import {
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotInSignedState,
+  riskAnalysisFormCannotBeUpdated,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -2500,6 +2501,63 @@ const archiveActiveAndSuspendedPurposeVersions = (
 export type UpdatePurposeReturn = WithMetadata<{
   purpose: Purpose;
 }>;
+
+function riskAnalysisFormInputDiffersFromStored(
+  inputForm: purposeApi.RiskAnalysisFormSeed,
+  existingForm: PurposeRiskAnalysisForm,
+  tenantKind: TenantKind,
+  personalDataInEService: boolean | undefined
+): boolean {
+  const transformedInput = validateAndTransformRiskAnalysis(
+    { ...inputForm, tenantKind },
+    true,
+    tenantKind,
+    new Date(),
+    personalDataInEService
+  );
+
+  if (!transformedInput) {
+    return true;
+  }
+
+  const normalize = (form: PurposeRiskAnalysisForm) => ({
+    version: form.version,
+    singleAnswers: [...form.singleAnswers]
+      .sort((a, b) => a.key.localeCompare(b.key))
+      .map(({ key, value }) => ({ key, value })),
+    multiAnswers: [...form.multiAnswers]
+      .sort((a, b) => a.key.localeCompare(b.key))
+      .map(({ key, values }) => ({ key, values })),
+  });
+
+  return (
+    JSON.stringify(normalize(transformedInput)) !==
+    JSON.stringify(normalize(existingForm))
+  );
+}
+
+function assertRiskAnalysisFormEditableInCurrentReviewMode(
+  purposeId: PurposeId,
+  inputForm: purposeApi.RiskAnalysisFormSeed,
+  existingForm: PurposeRiskAnalysisForm,
+  reviewerWorkflow: ReviewerWorkflow,
+  tenantKind: TenantKind,
+  personalDataInEService: boolean | undefined
+): void {
+  if (
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.draft &&
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.rejected &&
+    riskAnalysisFormInputDiffersFromStored(
+      inputForm,
+      existingForm,
+      tenantKind,
+      personalDataInEService
+    )
+  ) {
+    throw riskAnalysisFormCannotBeUpdated(purposeId);
+  }
+}
+
 const performUpdatePurpose = async (
   purposeId: PurposeId,
   modeAndUpdateContent:
@@ -2572,6 +2630,23 @@ const performUpdatePurpose = async (
     purpose.data.consumerId,
     readModelService
   );
+
+  if (
+    mode === eserviceMode.deliver &&
+    isFeatureFlagEnabled(config, "featureFlagNewOperators") &&
+    purpose.data.reviewerWorkflow &&
+    riskAnalysisForm &&
+    purpose.data.riskAnalysisForm
+  ) {
+    assertRiskAnalysisFormEditableInCurrentReviewMode(
+      purposeId,
+      riskAnalysisForm,
+      purpose.data.riskAnalysisForm,
+      purpose.data.reviewerWorkflow,
+      tenantKind,
+      eservice.personalData
+    );
+  }
 
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
