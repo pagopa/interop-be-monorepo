@@ -88,7 +88,6 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
-          REVIEWER_ROLE,
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
