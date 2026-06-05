@@ -25,7 +25,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { handleTenantVerifiedAttributeAssigned } from "../src/handlers/tenants/handleTenantVerifiedAttributeAssigned.js";
-import { attributeNotFound } from "../src/models/errors.js";
+import { attributeNotFound } from "pagopa-interop-notification-commons";
 import {
   addOneAttribute,
   addOneTenant,

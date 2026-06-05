@@ -265,6 +265,7 @@ export function purposeServiceBuilder(
           state: currentDescriptor.state,
           version: currentDescriptor.version,
           audience: currentDescriptor.audience,
+          archivableOn: currentDescriptor.archivingSchedule?.archivableOn,
         },
         mode: eservice.mode,
         personalData: eservice.personalData,
