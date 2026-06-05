@@ -1127,19 +1127,12 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      const producer = await tenantProcessClient.tenant.getTenant({
-        headers,
-        params: {
-          id: eservice.producerId,
-        },
-      });
-
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
 
       return toBffCatalogApiEserviceRiskAnalysis(
         riskAnalysis,
         getRulesetExpiration(
-          producer.kind,
+          riskAnalysis.riskAnalysisForm.tenantKind,
           riskAnalysis.riskAnalysisForm.version
         )?.toJSON()
       );
