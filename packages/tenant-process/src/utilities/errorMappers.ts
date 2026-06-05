@@ -157,7 +157,6 @@ export const maintenanceTenantDeleteRemoteIdErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("remoteIdNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const verifyVerifiedAttributeErrorMapper = (

@@ -39,7 +39,6 @@ const errorCodes = {
   delegationNotFound: "0029",
   operationRestrictedToDelegate: "0030",
   invalidTenantFeature: "0031",
-  remoteIdNotFound: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -238,14 +237,6 @@ export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
     detail: `Mail ${mailId} not found`,
     code: "mailNotFound",
     title: "Mail not found",
-  });
-}
-
-export function remoteIdNotFound(origin: string): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Remote id with origin ${origin} not found`,
-    code: "remoteIdNotFound",
-    title: "Remote id not found",
   });
 }
 
