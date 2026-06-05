@@ -11,7 +11,6 @@ import {
   missingKafkaMessageDataError,
   toTenantV2,
   AttributeId,
-  Tenant,
   Attribute,
   attributeKind,
   TenantAttribute,
@@ -28,18 +27,7 @@ import { inAppTemplates } from "../src/templates/inAppTemplates.js";
 import { addOneAttribute, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () => {
-  const certifierId = generateId();
-
   const assignee = getMockTenant();
-  const certifier: Tenant = {
-    ...getMockTenant(),
-    name: "Certifier Name",
-    features: [{ type: "PersistentCertifier", certifierId }],
-  };
-  const revoker: Tenant = {
-    ...getMockTenant(),
-    name: "Revoker Name",
-  };
 
   const certifiedAttributeISTAT: Attribute = {
     ...getMockAttribute(attributeKind.certified),
@@ -55,8 +43,6 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
     mockGetNotificationRecipients.mockReset();
     // Setup test data
     await addOneTenant(assignee);
-    await addOneTenant(certifier);
-    await addOneTenant(revoker);
     await addOneAttribute(certifiedAttributeISTAT);
   });
 
