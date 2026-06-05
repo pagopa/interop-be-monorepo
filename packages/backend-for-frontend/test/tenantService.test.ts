@@ -3,21 +3,29 @@ import {
   getMockedApiAttribute,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
 import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
+import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 import { BffAppContext } from "../src/utilities/context.js";
 
 describe("tenantServiceBuilder.getTenant", () => {
-  it("should include certified discrete attributes in tenant details", async () => {
+  it("should merge certified and certified discrete attributes into the certified attributes", async () => {
     const tenantId = generateId<TenantId>();
+    const certifiedAttributeId = generateId<AttributeId>();
     const certifiedDiscreteAttributeId = generateId<AttributeId>();
     const assignmentTimestamp = new Date().toISOString();
 
-    const tenant = {
+    const tenant: tenantApi.Tenant = {
       ...getMockedApiTenant({
         attributes: [
+          {
+            certified: {
+              id: certifiedAttributeId,
+              assignmentTimestamp,
+            },
+          },
           {
             certifiedDiscrete: {
               id: certifiedDiscreteAttributeId,
@@ -32,7 +40,15 @@ describe("tenantServiceBuilder.getTenant", () => {
       features: [],
     };
 
-    const registryAttribute = {
+    const registryCertifiedAttribute: attributeRegistryApi.Attribute = {
+      ...getMockedApiAttribute({
+        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+        name: "tenant certified",
+        description: "tenant certified description",
+      }),
+      id: certifiedAttributeId,
+    };
+    const registryCertifiedDiscreteAttribute: attributeRegistryApi.Attribute = {
       ...getMockedApiAttribute({
         kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
         name: "tenant certified discrete",
@@ -50,18 +66,19 @@ describe("tenantServiceBuilder.getTenant", () => {
     const attributeProcessClient = {
       getBulkedAttributes: vi.fn((attributeIds: string[]) =>
         Promise.resolve({
-          results: [registryAttribute].filter((attribute) =>
-            attributeIds.includes(attribute.id)
-          ),
+          results: [
+            registryCertifiedAttribute,
+            registryCertifiedDiscreteAttribute,
+          ].filter((attribute) => attributeIds.includes(attribute.id)),
           totalCount: attributeIds.length,
-        })
+        }),
       ),
     };
 
     const service = tenantServiceBuilder(
       tenantProcessClient as never,
       attributeProcessClient as never,
-      {} as never
+      {} as never,
     );
 
     const ctx = {
@@ -76,19 +93,183 @@ describe("tenantServiceBuilder.getTenant", () => {
 
     const result = await service.getTenant(tenantId, ctx);
 
-    expect(result.attributes.certifiedDiscrete).toStrictEqual([
+    expect(result.attributes.certified).toStrictEqual([
       {
+        kind: tenantAttributeKind.certified,
+        id: certifiedAttributeId,
+        name: registryCertifiedAttribute.name,
+        description: registryCertifiedAttribute.description,
+        assignmentTimestamp,
+        revocationTimestamp: undefined,
+      },
+      {
+        kind: tenantAttributeKind.certifiedDiscrete,
         id: certifiedDiscreteAttributeId,
-        name: registryAttribute.name,
-        description: registryAttribute.description,
+        name: registryCertifiedDiscreteAttribute.name,
+        description: registryCertifiedDiscreteAttribute.description,
         assignmentTimestamp,
         revocationTimestamp: undefined,
         discreteValue: 42,
       },
     ]);
-    expect(attributeProcessClient.getBulkedAttributes).toHaveBeenCalledWith(
-      expect.arrayContaining([certifiedDiscreteAttributeId]),
-      expect.any(Object)
+    expect(result.attributes).not.toHaveProperty("certifiedDiscrete");
+  });
+
+  it("should set the DECLARED kind discriminator on declared attributes", async () => {
+    const tenantId = generateId<TenantId>();
+    const declaredAttributeId = generateId<AttributeId>();
+    const assignmentTimestamp = new Date().toISOString();
+
+    const tenant: tenantApi.Tenant = {
+      ...getMockedApiTenant({
+        attributes: [
+          {
+            declared: {
+              id: declaredAttributeId,
+              assignmentTimestamp,
+            },
+          },
+        ],
+      }),
+      id: tenantId,
+      mails: [],
+      features: [],
+    };
+
+    const registryDeclaredAttribute: attributeRegistryApi.Attribute = {
+      ...getMockedApiAttribute({
+        kind: attributeRegistryApi.AttributeKind.Values.DECLARED,
+        name: "tenant declared",
+        description: "tenant declared description",
+      }),
+      id: declaredAttributeId,
+    };
+
+    const tenantProcessClient = {
+      tenant: {
+        getTenant: vi.fn().mockResolvedValue(tenant),
+      },
+    };
+
+    const attributeProcessClient = {
+      getBulkedAttributes: vi.fn((attributeIds: string[]) =>
+        Promise.resolve({
+          results: [registryDeclaredAttribute].filter((attribute) =>
+            attributeIds.includes(attribute.id),
+          ),
+          totalCount: attributeIds.length,
+        }),
+      ),
+    };
+
+    const service = tenantServiceBuilder(
+      tenantProcessClient as never,
+      attributeProcessClient as never,
+      {} as never,
     );
+
+    const ctx = {
+      authData: { organizationId: tenantId },
+      headers: {
+        "X-Correlation-Id": generateId(),
+        Authorization: "authorization",
+        "X-Forwarded-For": "x-forwarded-for",
+      },
+      logger: genericLogger,
+    } as WithLogger<BffAppContext>;
+
+    const result = await service.getTenant(tenantId, ctx);
+
+    expect(result.attributes.declared).toStrictEqual([
+      {
+        kind: tenantAttributeKind.declared,
+        id: declaredAttributeId,
+        name: registryDeclaredAttribute.name,
+        description: registryDeclaredAttribute.description,
+        assignmentTimestamp,
+        revocationTimestamp: undefined,
+        delegationId: undefined,
+      },
+    ]);
+  });
+
+  it("should set the VERIFIED kind discriminator on verified attributes", async () => {
+    const tenantId = generateId<TenantId>();
+    const verifiedAttributeId = generateId<AttributeId>();
+    const assignmentTimestamp = new Date().toISOString();
+
+    const tenant: tenantApi.Tenant = {
+      ...getMockedApiTenant({
+        attributes: [
+          {
+            verified: {
+              id: verifiedAttributeId,
+              assignmentTimestamp,
+              verifiedBy: [],
+              revokedBy: [],
+            },
+          },
+        ],
+      }),
+      id: tenantId,
+      mails: [],
+      features: [],
+    };
+
+    const registryVerifiedAttribute: attributeRegistryApi.Attribute = {
+      ...getMockedApiAttribute({
+        kind: attributeRegistryApi.AttributeKind.Values.VERIFIED,
+        name: "tenant verified",
+        description: "tenant verified description",
+      }),
+      id: verifiedAttributeId,
+    };
+
+    const tenantProcessClient = {
+      tenant: {
+        getTenant: vi.fn().mockResolvedValue(tenant),
+      },
+    };
+
+    const attributeProcessClient = {
+      getBulkedAttributes: vi.fn((attributeIds: string[]) =>
+        Promise.resolve({
+          results: [registryVerifiedAttribute].filter((attribute) =>
+            attributeIds.includes(attribute.id),
+          ),
+          totalCount: attributeIds.length,
+        }),
+      ),
+    };
+
+    const service = tenantServiceBuilder(
+      tenantProcessClient as never,
+      attributeProcessClient as never,
+      {} as never,
+    );
+
+    const ctx = {
+      authData: { organizationId: tenantId },
+      headers: {
+        "X-Correlation-Id": generateId(),
+        Authorization: "authorization",
+        "X-Forwarded-For": "x-forwarded-for",
+      },
+      logger: genericLogger,
+    } as WithLogger<BffAppContext>;
+
+    const result = await service.getTenant(tenantId, ctx);
+
+    expect(result.attributes.verified).toStrictEqual([
+      {
+        kind: tenantAttributeKind.verified,
+        id: verifiedAttributeId,
+        name: registryVerifiedAttribute.name,
+        description: registryVerifiedAttribute.description,
+        assignmentTimestamp,
+        verifiedBy: [],
+        revokedBy: [],
+      },
+    ]);
   });
 });

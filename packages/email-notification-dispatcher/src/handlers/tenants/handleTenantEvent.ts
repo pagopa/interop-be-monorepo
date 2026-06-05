@@ -12,7 +12,7 @@ import { handleTenantVerifiedAttributeAssigned } from "./handleTenantVerifiedAtt
 import { handleTenantVerifiedAttributeRevoked } from "./handleTenantVerifiedAttributeRevoked.js";
 
 export async function handleTenantEvent(
-  params: HandlerParams<typeof TenantEvent>
+  params: HandlerParams<typeof TenantEvent>,
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     decodedMessage,
@@ -37,7 +37,7 @@ export async function handleTenantEvent(
           readModelService,
           templateService,
           correlationId,
-        })
+        }),
     )
     .with(
       { type: "TenantCertifiedAttributeRevoked" },
@@ -50,12 +50,12 @@ export async function handleTenantEvent(
           readModelService,
           templateService,
           correlationId,
-        })
+        }),
     )
     .with(
       // TODO: handle implementation in PIN-10185
       { type: "TenantCertifiedDiscreteAttributeUpdated" },
-      () => []
+      () => [],
     )
     .with(
       { type: "TenantVerifiedAttributeAssigned" },
@@ -67,7 +67,7 @@ export async function handleTenantEvent(
           readModelService,
           templateService,
           correlationId,
-        })
+        }),
     )
     .with(
       { type: "TenantVerifiedAttributeRevoked" },
@@ -79,7 +79,7 @@ export async function handleTenantEvent(
           readModelService,
           templateService,
           correlationId,
-        })
+        }),
     )
     .with(
       {
@@ -88,6 +88,9 @@ export async function handleTenantEvent(
           "TenantOnboardDetailsUpdated",
           "TenantDeclaredAttributeAssigned",
           "TenantDeclaredAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated",
           "TenantVerifiedAttributeExpirationUpdated",
           "TenantVerifiedAttributeExtensionUpdated",
           "MaintenanceTenantDeleted",
@@ -100,15 +103,16 @@ export async function handleTenantEvent(
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
           "TenantDelegatedConsumerFeatureRemoved",
-          "TenantRemoteIdAssigned"
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted",
         ),
       },
       () => {
         logger.info(
-          `Skipping email notification for event ${decodedMessage.type}`
+          `Skipping email notification for event ${decodedMessage.type}`,
         );
         return [];
-      }
+      },
     )
     .exhaustive();
 }

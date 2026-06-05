@@ -1200,6 +1200,49 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/tenants/{tenantId}/remoteIds/{origin}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: origin
+        in: path
+        description: the origin of the remote id to delete
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - tenant
+      summary: Deletes a remote id from a tenant
+      description: Deletes the remote id with the specified origin from a tenant
+      operationId: maintenanceTenantDeleteRemoteId
+      responses:
+        "204":
+          description: Remote id successfully deleted
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /tenants/{tenantId}/mails/{mailId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1775,6 +1818,10 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
+        remoteIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantRemoteId"
       required:
         - externalId
         - certifiedAttributes

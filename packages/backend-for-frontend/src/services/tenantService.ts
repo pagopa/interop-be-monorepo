@@ -21,6 +21,7 @@ import { config } from "../config/config.js";
 import { TenantProcessClient } from "../clients/clientsProvider.js";
 import {
   RegistryAttributesMap,
+  tenantAttributeKind,
   toBffApiTenant,
   toBffApiCompactTenant,
   toBffApiRequesterCertifiedAttributes,
@@ -497,8 +498,13 @@ export function enhanceTenantAttributes(
     .map((attr) => getDeclaredTenantAttribute(attr, registryAttributesMap))
     .filter(isDefined);
 
-  const certified = tenantAttributes
+  const certifiedAttributes = tenantAttributes
     .map((attr) => getCertifiedTenantAttribute(attr, registryAttributesMap))
+    .filter(isDefined);
+  const certifiedDiscreteAttributes = tenantAttributes
+    .map((attr) =>
+      getCertifiedDiscreteTenantAttribute(attr, registryAttributesMap)
+    )
     .filter(isDefined);
 
   const verified = tenantAttributes
@@ -512,7 +518,7 @@ export function enhanceTenantAttributes(
     .filter(isDefined);
 
   return {
-    certified,
+    certified: [...certifiedAttributes, ...certifiedDiscreteAttributes],
     declared,
     verified,
     certifiedDiscrete,
@@ -532,6 +538,7 @@ function getDeclaredTenantAttribute(
   }
 
   return {
+    kind: tenantAttributeKind.declared,
     id: attribute.declared.id,
     name: registryAttribute.name,
     description: registryAttribute.description,
@@ -554,6 +561,7 @@ function getCertifiedTenantAttribute(
   }
 
   return {
+    kind: tenantAttributeKind.certified,
     id: attribute.certified.id,
     name: registryAttribute.name,
     description: registryAttribute.description,
@@ -587,6 +595,7 @@ function toApiVerifiedTenantAttribute(
   }
 
   return {
+    kind: tenantAttributeKind.verified,
     id: attribute.verified.id,
     name: registryAttribute.name,
     description: registryAttribute.description,

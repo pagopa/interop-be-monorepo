@@ -12,7 +12,7 @@ import { handleCertifiedVerifiedAttributeAssignedRevokedToAssignee } from "./han
 export async function handleTenantEvent(
   decodedMessage: TenantEventEnvelope,
   logger: Logger,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
     .with({ event_version: 1 }, () => {
@@ -25,7 +25,7 @@ export async function handleTenantEvent(
           "TenantCertifiedAttributeAssigned",
           "TenantCertifiedAttributeRevoked",
           "TenantVerifiedAttributeAssigned",
-          "TenantVerifiedAttributeRevoked"
+          "TenantVerifiedAttributeRevoked",
         ),
       },
       ({ data: { tenant, attributeId }, type }) =>
@@ -34,8 +34,8 @@ export async function handleTenantEvent(
           unsafeBrandId<AttributeId>(attributeId),
           logger,
           readModelService,
-          type
-        )
+          type,
+        ),
     )
     .with(
       {
@@ -44,6 +44,9 @@ export async function handleTenantEvent(
           "TenantOnboardDetailsUpdated",
           "TenantDeclaredAttributeAssigned",
           "TenantDeclaredAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated",
           "TenantVerifiedAttributeExpirationUpdated",
           "TenantVerifiedAttributeExtensionUpdated",
           "MaintenanceTenantDeleted",
@@ -59,15 +62,16 @@ export async function handleTenantEvent(
           "TenantCertifiedDiscreteAttributeAssigned", // TODO: handle implementation in PIN-10185
           "TenantCertifiedDiscreteAttributeRevoked", // TODO: handle implementation in PIN-10185
           "TenantCertifiedDiscreteAttributeUpdated", // TODO: handle implementation in PIN-10185
-          "TenantRemoteIdAssigned"
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted",
         ),
       },
       () => {
         logger.info(
-          `Skipping in-app notification for event ${decodedMessage.type}`
+          `Skipping in-app notification for event ${decodedMessage.type}`,
         );
         return [];
-      }
+      },
     )
     .exhaustive();
 }

@@ -1,6 +1,7 @@
 /* eslint-disable max-params */
 import {
   CreateEvent,
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   ownership,
   Ownership,
@@ -18,10 +19,12 @@ import {
   agreementState,
   genericError,
 } from "pagopa-interop-models";
+import { evaluateCertifiedAttributesSuspension } from "pagopa-interop-agreement-lifecycle";
 import { match, P } from "ts-pattern";
 import {
   agreementArchivableStates,
   matchingCertifiedAttributes,
+  matchingCertifiedDiscreteAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/agreement-validators.js";
@@ -36,6 +39,7 @@ import {
   toCreateEventAgreementUnsuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -85,6 +89,10 @@ export function createActivationUpdateAgreementSeed({
         // on first activation once certified discrete agreement validation is
         // implemented.
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
+        certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
+          descriptor,
+          consumer
+        ),
         declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
         verifiedAttributes: matchingVerifiedAttributes(
           eservice,
@@ -123,6 +131,8 @@ export async function createActivationEvent(
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
   agreementOwnership: Ownership,
+  descriptor: Descriptor,
+  consumer: Tenant,
   correlationId: CorrelationId
 ): Promise<Array<CreateEvent<AgreementEventV2>>> {
   if (isFirstActivation) {
@@ -190,6 +200,8 @@ export async function createActivationEvent(
           ),
           ...maybeCreateSuspensionByPlatformEvents(
             updatedAgreement,
+            descriptor,
+            consumer,
             suspendedByPlatformChanged,
             agreementEventStoreVersion + 1,
             correlationId
@@ -214,6 +226,8 @@ export async function createActivationEvent(
         ),
         ...maybeCreateSuspensionByPlatformEvents(
           updatedAgreement,
+          descriptor,
+          consumer,
           suspendedByPlatformChanged,
           agreementEventStoreVersion + 1,
           correlationId
@@ -274,6 +288,8 @@ export const archiveRelatedToAgreements = async (
 
 function maybeCreateSuspensionByPlatformEvents(
   updatedAgreement: Agreement,
+  descriptor: Descriptor,
+  consumer: Tenant,
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
   correlationId: CorrelationId
@@ -282,21 +298,35 @@ function maybeCreateSuspensionByPlatformEvents(
     suspendedByPlatformChanged &&
     updatedAgreement.state === agreementState.suspended
   ) {
-    return updatedAgreement.suspendedByPlatform
-      ? [
-          toCreateEventAgreementSuspendedByPlatform(
-            updatedAgreement,
-            agreementEventStoreVersion,
-            correlationId
-          ),
-        ]
-      : [
-          toCreateEventAgreementUnsuspendedByPlatform(
-            updatedAgreement,
-            agreementEventStoreVersion,
-            correlationId
-          ),
-        ];
+    if (updatedAgreement.suspendedByPlatform) {
+      const { suspensionReason, discreteAttributeFailure } =
+        evaluateCertifiedAttributesSuspension(
+          descriptor.attributes,
+          consumer.attributes,
+          {
+            certifiedDiscreteEnabled: isFeatureFlagEnabled(
+              config,
+              "featureFlagAttributeCertifiedDiscrete"
+            ),
+          }
+        );
+      return [
+        toCreateEventAgreementSuspendedByPlatform(
+          updatedAgreement,
+          agreementEventStoreVersion,
+          correlationId,
+          suspensionReason,
+          discreteAttributeFailure
+        ),
+      ];
+    }
+    return [
+      toCreateEventAgreementUnsuspendedByPlatform(
+        updatedAgreement,
+        agreementEventStoreVersion,
+        correlationId
+      ),
+    ];
   }
   return [];
 }

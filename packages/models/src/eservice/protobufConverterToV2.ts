@@ -36,22 +36,22 @@ import {
 } from "./eservice.js";
 
 const toAgreementApprovalPolicyV2 = (
-  input: AgreementApprovalPolicy | undefined
+  input: AgreementApprovalPolicy | undefined,
 ): AgreementApprovalPolicyV2 =>
   match(input)
     .with(P.nullish, () => AgreementApprovalPolicyV2.AUTOMATIC)
     .with(
       agreementApprovalPolicy.manual,
-      () => AgreementApprovalPolicyV2.MANUAL
+      () => AgreementApprovalPolicyV2.MANUAL,
     )
     .with(
       agreementApprovalPolicy.automatic,
-      () => AgreementApprovalPolicyV2.AUTOMATIC
+      () => AgreementApprovalPolicyV2.AUTOMATIC,
     )
     .exhaustive();
 
 export const toEServiceDescriptorStateV2 = (
-  input: DescriptorState
+  input: DescriptorState,
 ): EServiceDescriptorStateV2 =>
   match(input)
     .with(descriptorState.draft, () => EServiceDescriptorStateV2.DRAFT)
@@ -60,16 +60,16 @@ export const toEServiceDescriptorStateV2 = (
     .with(descriptorState.published, () => EServiceDescriptorStateV2.PUBLISHED)
     .with(
       descriptorState.deprecated,
-      () => EServiceDescriptorStateV2.DEPRECATED
+      () => EServiceDescriptorStateV2.DEPRECATED,
     )
     .with(
       descriptorState.waitingForApproval,
-      () => EServiceDescriptorStateV2.WAITING_FOR_APPROVAL
+      () => EServiceDescriptorStateV2.WAITING_FOR_APPROVAL,
     )
     .exhaustive();
 
 export const toEServiceTechnologyV2 = (
-  input: Technology
+  input: Technology,
 ): EServiceTechnologyV2 =>
   match(input)
     .with(technology.rest, () => EServiceTechnologyV2.REST)
@@ -83,7 +83,7 @@ export const toEServiceModeV2 = (input: EServiceMode): EServiceModeV2 =>
     .exhaustive();
 
 export const toEServiceAttributeV2 = (
-  input: EServiceAttribute[]
+  input: EServiceAttribute[],
 ): EServiceAttributeV2 => ({
   values: input.map((i) => ({
     id: i.id,
@@ -91,45 +91,45 @@ export const toEServiceAttributeV2 = (
   })),
 });
 
-const toAttributeCertifiedDiscreteComparatorV2 = (
-  input: AttributeCertifiedDiscreteComparator
+export const toAttributeCertifiedDiscreteComparatorV2 = (
+  input: AttributeCertifiedDiscreteComparator,
 ): AttributeCertifiedDiscreteComparatorV2 =>
   match(input)
     .with(
       attributeCertifiedDiscreteComparator.GT,
-      () => AttributeCertifiedDiscreteComparatorV2.GT
+      () => AttributeCertifiedDiscreteComparatorV2.GT,
     )
     .with(
       attributeCertifiedDiscreteComparator.LT,
-      () => AttributeCertifiedDiscreteComparatorV2.LT
+      () => AttributeCertifiedDiscreteComparatorV2.LT,
     )
     .with(
       attributeCertifiedDiscreteComparator.EQ,
-      () => AttributeCertifiedDiscreteComparatorV2.EQ
+      () => AttributeCertifiedDiscreteComparatorV2.EQ,
     )
     .with(
       attributeCertifiedDiscreteComparator.GTE,
-      () => AttributeCertifiedDiscreteComparatorV2.GTE
+      () => AttributeCertifiedDiscreteComparatorV2.GTE,
     )
     .with(
       attributeCertifiedDiscreteComparator.LTE,
-      () => AttributeCertifiedDiscreteComparatorV2.LTE
+      () => AttributeCertifiedDiscreteComparatorV2.LTE,
     )
     .with(
       attributeCertifiedDiscreteComparator.NE,
-      () => AttributeCertifiedDiscreteComparatorV2.NE
+      () => AttributeCertifiedDiscreteComparatorV2.NE,
     )
     .exhaustive();
 
 export const toCertifiedDiscreteConfigV2 = (
-  items: EServiceAttributeCertifiedDiscreteConfig
+  items: EServiceAttributeCertifiedDiscreteConfig,
 ) => ({
   threshold: items.threshold,
   comparator: toAttributeCertifiedDiscreteComparatorV2(items.comparator),
 });
 
 export const toEServiceAttributeCertifiedV2 = (
-  input: (EServiceAttributeCertified | EServiceAttributeCertifiedDiscrete)[]
+  input: (EServiceAttributeCertified | EServiceAttributeCertifiedDiscrete)[],
 ): EServiceAttributeV2 => ({
   values: input.map((attribute) => ({
     id: attribute.id,
@@ -144,7 +144,7 @@ export const toEServiceAttributeCertifiedV2 = (
 });
 
 export const toDescriptorRejectedReasonV2 = (
-  input: DescriptorRejectionReason
+  input: DescriptorRejectionReason,
 ): DescriptorRejectionReasonV2 => ({
   ...input,
   rejectedAt: dateToBigInt(input.rejectedAt),
@@ -168,7 +168,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   interface:
     input.interface != null ? toDocumentV2(input.interface) : undefined,
   agreementApprovalPolicy: toAgreementApprovalPolicyV2(
-    input.agreementApprovalPolicy
+    input.agreementApprovalPolicy,
   ),
   createdAt: dateToBigInt(input.createdAt),
   publishedAt: dateToBigInt(input.publishedAt),
@@ -180,7 +180,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
 });
 
 export const toRiskAnalysisV2 = (
-  input: RiskAnalysis
+  input: RiskAnalysis,
 ): EServiceRiskAnalysisV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),

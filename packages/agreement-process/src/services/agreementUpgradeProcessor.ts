@@ -19,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import {
   matchingCertifiedAttributes,
+  matchingCertifiedDiscreteAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   verifyConflictingAgreements,
@@ -87,16 +88,19 @@ export async function createUpgradeOrNewDraft({
         newAgreementId,
         agreement.data,
         copyFile,
-        logger
+        logger,
       ),
       contract: undefined,
       verifiedAttributes: matchingVerifiedAttributes(
         eservice,
         newDescriptor,
-        consumer
+        consumer,
       ),
       certifiedAttributes: matchingCertifiedAttributes(newDescriptor, consumer),
-      certifiedDiscreteAttributes: agreement.data.certifiedDiscreteAttributes,
+      certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
+        newDescriptor,
+        consumer,
+      ),
       declaredAttributes: matchingDeclaredAttributes(newDescriptor, consumer),
       suspendedByConsumer: agreement.data.suspendedByConsumer,
       suspendedByProducer: agreement.data.suspendedByProducer,
@@ -116,7 +120,7 @@ export async function createUpgradeOrNewDraft({
         toCreateEventAgreementArchivedByUpgrade(
           archived,
           agreement.metadata.version,
-          correlationId
+          correlationId,
         ),
         toCreateEventAgreementUpgraded(upgraded, correlationId),
       ],
@@ -128,7 +132,7 @@ export async function createUpgradeOrNewDraft({
       agreement.data.consumerId,
       agreement.data.eserviceId,
       [agreementState.draft],
-      readModelService
+      readModelService,
     );
 
     const newAgreement: Agreement = {
@@ -144,7 +148,7 @@ export async function createUpgradeOrNewDraft({
         newAgreementId,
         agreement.data,
         copyFile,
-        logger
+        logger,
       ),
       suspendedByPlatform: undefined,
       updatedAt: undefined,
@@ -171,7 +175,7 @@ export async function createUpgradeOrNewDraft({
 
     const createEvent = toCreateEventAgreementAdded(
       newAgreement,
-      correlationId
+      correlationId,
     );
 
     return [newAgreement, [createEvent]];

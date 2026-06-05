@@ -9,6 +9,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
@@ -35,6 +36,7 @@ import {
   inconsistentDailyCalls,
   templateInstanceNotAllowed,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
@@ -803,4 +805,65 @@ describe("create descriptor", async () => {
       attributeDailyCallsNotAllowed(mockDeclaredAttribute.id)
     );
   });
+
+  it.each([attributeKind.declared, attributeKind.verified])(
+    "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
+    async (kind) => {
+      const mockDescriptor = {
+        ...getMockDescriptor(),
+        docs: [],
+      };
+
+      const mockAttribute = getMockAttribute(kind);
+      await addOneAttribute(mockAttribute);
+
+      const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+        ...buildCreateDescriptorSeed(mockDescriptor),
+        attributes: {
+          certified: [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: mockAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: mockAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+        },
+      };
+
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [],
+      };
+
+      await addOneEService(eservice);
+
+      await expect(
+        catalogService.createDescriptor(
+          eservice.id,
+          descriptorSeed,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        attributeDiscreteConfigNotAllowed(mockAttribute.id)
+      );
+    }
+  );
 });

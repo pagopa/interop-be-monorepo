@@ -14,19 +14,19 @@ import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
 
 function toOutboundTenantFeaturesV1(
-  feature: TenantFeatureV2
+  feature: TenantFeatureV2,
 ): Exact<OutboundTenantFeatureV2, TenantFeatureV2> {
   return feature as Exact<OutboundTenantFeatureV2, TenantFeatureV2>;
 }
 
 function toOutboundTenantAttributeV1(
-  attribute: TenantAttributeV2
+  attribute: TenantAttributeV2,
 ): Exact<OutboundTenantAttributeV2, TenantAttributeV2> {
   return attribute as Exact<OutboundTenantAttributeV2, TenantAttributeV2>;
 }
 
 function toOutboundTenantV2(
-  tenant: TenantV2
+  tenant: TenantV2,
 ): Exact<OutboundTenantV2, TenantV2> {
   return {
     ...tenant,
@@ -37,7 +37,7 @@ function toOutboundTenantV2(
 }
 
 export function toOutboundEventV2(
-  message: TenantEventEnvelopeV2
+  message: TenantEventEnvelopeV2,
 ): OutboundTenantEvent | undefined {
   return match(message)
     .returnType<OutboundTenantEvent | undefined>()
@@ -51,6 +51,7 @@ export function toOutboundEventV2(
       { type: "TenantDelegatedConsumerFeatureAdded" },
       { type: "TenantDelegatedConsumerFeatureRemoved" },
       { type: "TenantRemoteIdAssigned" },
+      { type: "MaintenanceTenantRemoteIdDeleted" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -63,11 +64,14 @@ export function toOutboundEventV2(
         stream_id: msg.stream_id,
         streamVersion: msg.version,
         timestamp: new Date(),
-      })
+      }),
     )
     .with(
       { type: "TenantCertifiedAttributeAssigned" },
       { type: "TenantCertifiedAttributeRevoked" },
+      { type: "TenantCertifiedDiscreteAttributeAssigned" },
+      { type: "TenantCertifiedDiscreteAttributeRevoked" },
+      { type: "TenantCertifiedDiscreteAttributeUpdated" },
       { type: "TenantDeclaredAttributeAssigned" },
       { type: "TenantDeclaredAttributeRevoked" },
       { type: "TenantVerifiedAttributeAssigned" },
@@ -90,7 +94,7 @@ export function toOutboundEventV2(
         stream_id: msg.stream_id,
         streamVersion: msg.version,
         timestamp: new Date(),
-      })
+      }),
     )
     .with({ type: "MaintenanceTenantDeleted" }, (msg) => ({
       event_version: msg.event_version,
@@ -123,7 +127,7 @@ export function toOutboundEventV2(
     .with(
       { type: "TenantMailAdded" },
       { type: "TenantMailDeleted" },
-      () => undefined
+      () => undefined,
     )
     .exhaustive();
 }
