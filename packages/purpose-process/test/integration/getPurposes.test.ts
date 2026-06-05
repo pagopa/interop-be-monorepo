@@ -589,6 +589,7 @@ describe("getPurposes", async () => {
   it("should get purposes with filters: reviewerId", async () => {
     const reviewerId1: UserId = generateId();
     const reviewerId2: UserId = generateId();
+    const reviewerIdWithoutPurposes: UserId = generateId();
 
     const submittedReviewer1Workflow: ReviewerWorkflow = {
       reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
@@ -674,6 +675,24 @@ describe("getPurposes", async () => {
       assignedReviewer1Purpose,
       submittedReviewer1Purpose,
     ]);
+
+    const emptyResult = await purposeService.getPurposes(
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        clientId: undefined,
+        states: [],
+        excludeDraft: undefined,
+        reviewerId: reviewerIdWithoutPurposes,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({
+        authData: getMockAuthData(producerId1, reviewerIdWithoutPurposes),
+      })
+    );
+
+    expectSinglePageListResult(emptyResult, []);
   });
 
   it("should get purposes with only archived versions (and exclude the ones with both archived and non-archived versions)", async () => {
