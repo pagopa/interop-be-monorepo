@@ -40,6 +40,7 @@ export async function handleMessageV2(
           "TenantOnboardDetailsUpdated",
           "TenantOnboarded",
           "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted",
           "TenantVerifiedAttributeAssigned",
           "TenantVerifiedAttributeExpirationUpdated",
           "TenantVerifiedAttributeExtensionUpdated",

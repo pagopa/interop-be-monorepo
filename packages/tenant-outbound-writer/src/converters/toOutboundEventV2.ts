@@ -51,6 +51,7 @@ export function toOutboundEventV2(
       { type: "TenantDelegatedConsumerFeatureAdded" },
       { type: "TenantDelegatedConsumerFeatureRemoved" },
       { type: "TenantRemoteIdAssigned" },
+      { type: "MaintenanceTenantRemoteIdDeleted" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,

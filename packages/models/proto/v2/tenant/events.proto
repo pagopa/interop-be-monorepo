@@ -116,3 +116,7 @@ message TenantDelegatedConsumerFeatureRemovedV2 {
 message TenantRemoteIdAssignedV2 {
   TenantV2 tenant = 1;
 }
+
+message MaintenanceTenantRemoteIdDeletedV2 {
+  TenantV2 tenant = 1;
+}

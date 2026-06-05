@@ -82,5 +82,6 @@ async function handleTenantEventV2(
         );
       }
     )
+    .with({ type: "MaintenanceTenantRemoteIdDeleted" }, () => Promise.resolve())
     .exhaustive();
 }

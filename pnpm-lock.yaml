@@ -349,8 +349,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.18-attributi.certificati.discreti.2
-        version: 1.8.18-attributi.certificati.discreti.2
+        specifier: 1.8.18-attributi.certificati.discreti.3
+        version: 1.8.18-attributi.certificati.discreti.3
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1376,8 +1376,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.18-attributi.certificati.discreti.2
-        version: 1.8.18-attributi.certificati.discreti.2
+        specifier: 1.8.18-attributi.certificati.discreti.3
+        version: 1.8.18-attributi.certificati.discreti.3
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2284,8 +2284,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.18-attributi.certificati.discreti.2
-        version: 1.8.18-attributi.certificati.discreti.2
+        specifier: 1.8.18-attributi.certificati.discreti.3
+        version: 1.8.18-attributi.certificati.discreti.3
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3041,8 +3041,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.18-attributi.certificati.discreti.2
-        version: 1.8.18-attributi.certificati.discreti.2
+        specifier: 1.8.18-attributi.certificati.discreti.3
+        version: 1.8.18-attributi.certificati.discreti.3
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4894,8 +4894,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.18-attributi.certificati.discreti.2
-        version: 1.8.18-attributi.certificati.discreti.2
+        specifier: 1.8.18-attributi.certificati.discreti.3
+        version: 1.8.18-attributi.certificati.discreti.3
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5123,8 +5123,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.18-attributi.certificati.discreti.2
-        version: 1.8.18-attributi.certificati.discreti.2
+        specifier: 1.8.18-attributi.certificati.discreti.3
+        version: 1.8.18-attributi.certificati.discreti.3
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5542,8 +5542,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.18-attributi.certificati.discreti.2
-        version: 1.8.18-attributi.certificati.discreti.2
+        specifier: 1.8.18-attributi.certificati.discreti.3
+        version: 1.8.18-attributi.certificati.discreti.3
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7208,8 +7208,8 @@ packages:
     peerDependencies:
       eslint: ^9.39.2
 
-  '@pagopa/interop-outbound-models@1.8.18-attributi.certificati.discreti.2':
-    resolution: {integrity: sha512-bW6horKrWyeWczswhkfOthefZwol8PPn4w1Yp/wRGuu2kETbwrE7WNtWe0VmUiu8vXkwaCH/InjujuvhauybYw==}
+  '@pagopa/interop-outbound-models@1.8.18-attributi.certificati.discreti.3':
+    resolution: {integrity: sha512-yDajP7ABbI3gmhLUbe0J7M46dV1H/dqxnjL4UL5p4dnFC2xc97ogxOt7O5AA24xZX7aJh/Mwfb+8m3r01+s57g==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -13697,7 +13697,7 @@ snapshots:
       - supports-color
       - vitest
 
-  '@pagopa/interop-outbound-models@1.8.18-attributi.certificati.discreti.2':
+  '@pagopa/interop-outbound-models@1.8.18-attributi.certificati.discreti.3':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
