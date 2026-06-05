@@ -41,10 +41,6 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
     name: "Revoker Name",
   };
 
-  const verifiedAttribute: Attribute = {
-    ...getMockAttribute(attributeKind.verified),
-    name: "Verified Attribute",
-  };
   const certifiedAttributeISTAT: Attribute = {
     ...getMockAttribute(attributeKind.certified),
     name: "Certified ISTAT Attribute",
@@ -62,7 +58,6 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
     await addOneTenant(certifier);
     await addOneTenant(revoker);
     await addOneAttribute(certifiedAttributeISTAT);
-    await addOneAttribute(verifiedAttribute);
   });
 
   it("should throw missingKafkaMessageDataError when tenant is undefined", async () => {
