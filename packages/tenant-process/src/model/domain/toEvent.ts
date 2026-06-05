@@ -390,3 +390,64 @@ export function toCreateEventTenantRemoteIdAssigned(
     correlationId,
   };
 }
+
+export const toCreateEventTenantCertifiedDiscreteAttributeAssigned = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantCertifiedDiscreteAttributeAssigned",
+    event_version: 2,
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantCertifiedDiscreteAttributeRevoked = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantCertifiedDiscreteAttributeRevoked",
+    event_version: 2,
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
+  version: number,
+  updatedTenant: Tenant,
+  attributeId: AttributeId,
+  previousValue: number,
+  newValue: number,
+  correlationId: CorrelationId
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantCertifiedDiscreteAttributeUpdated",
+    event_version: 2,
+    data: {
+      attributeId,
+      tenant: toTenantV2(updatedTenant),
+      previousValue: previousValue,
+      newValue: newValue,
+    },
+  },
+  correlationId,
+});
