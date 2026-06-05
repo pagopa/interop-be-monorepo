@@ -45,6 +45,7 @@ const errorCodes = {
   missingAsyncExchangeProperties: "0035",
   asyncExchangeBulkNotAllowedForSoap: "0036",
   tenantKindNotFound: "0037",
+  asyncExchangeReceiveTemplateNotAllowed: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -406,5 +407,13 @@ export function asyncExchangeBulkNotAllowedForSoap(
     detail: `Async exchange bulk is not allowed for SOAP technology in version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
     code: "asyncExchangeBulkNotAllowedForSoap",
     title: "Async exchange bulk not allowed for SOAP",
+  });
+}
+
+export function asyncExchangeReceiveTemplateNotAllowed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange cannot be enabled for EService templates in receive mode`,
+    code: "asyncExchangeReceiveTemplateNotAllowed",
+    title: "Async exchange receive template not allowed",
   });
 }

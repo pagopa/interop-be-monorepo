@@ -130,6 +130,7 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   versionStatesNotAllowingInterfaceOperations,
+  assertAsyncExchangeReceiveTemplateNotAllowed,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -1355,6 +1356,13 @@ export function eserviceTemplateServiceBuilder(
       await assertEServiceTemplateNameAvailable(seed.name, readModelService);
 
       assertConsistentDailyCalls(seed.version);
+
+      if (isFeatureFlagEnabled(config, "featureFlagAsyncExchange")) {
+        assertAsyncExchangeReceiveTemplateNotAllowed({
+          mode: apiEServiceModeToEServiceMode(seed.mode),
+          asyncExchange: seed.asyncExchange,
+        });
+      }
 
       const creationDate = new Date();
       const draftVersion: EServiceTemplateVersion = {
