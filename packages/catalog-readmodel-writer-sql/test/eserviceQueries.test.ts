@@ -21,6 +21,7 @@ import {
   catalogWriterService,
   checkCompleteEService,
   readModelDB,
+  retrieveEServiceArchivingSchedulesSQLById,
   retrieveEserviceAsyncExchangePropertiesSQLById,
   retrieveEserviceDescriptorAttributesSQLById,
   retrieveEserviceDescriptorsSQLById,
@@ -92,6 +93,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
         asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
@@ -105,6 +107,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
         asyncExchangePropertiesSQL,
       });
 
@@ -159,6 +162,11 @@ describe("E-service queries", () => {
           eservice.id,
           readModelDB
         );
+      const archivingSchedulesSQL =
+        await retrieveEServiceArchivingSchedulesSQLById(
+          eservice.id,
+          readModelDB
+        );
       const asyncExchangePropertiesSQL =
         await retrieveEserviceAsyncExchangePropertiesSQLById(
           eservice.id,
@@ -173,6 +181,7 @@ describe("E-service queries", () => {
       expect(rejectionReasonsSQL).toHaveLength(0);
       expect(riskAnalysesSQL).toHaveLength(0);
       expect(riskAnalysisAnswersSQL).toHaveLength(0);
+      expect(archivingSchedulesSQL).toHaveLength(0);
 
       const retrievedEService = aggregateEservice({
         eserviceSQL: eserviceSQL!,
@@ -184,6 +193,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
         asyncExchangePropertiesSQL,
       });
 
@@ -253,6 +263,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
         asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
@@ -266,6 +277,7 @@ describe("E-service queries", () => {
         riskAnalysesSQL,
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
         asyncExchangePropertiesSQL,
       });
 

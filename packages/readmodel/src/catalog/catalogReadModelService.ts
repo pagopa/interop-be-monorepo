@@ -7,6 +7,7 @@ import {
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -34,7 +35,9 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
                       descriptor ->5 rejection reason
                       descriptor ->6 template version ref
                       descriptor ->7 async exchange
-                  ->8 risk analysis ->9 answers
+                      descriptor ->8 risk analysis 
+                      descriptor ->9 answers 
+                      descriptor ->10 archiving schedule
   */
   return db
     .select({
@@ -48,6 +51,7 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
       riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
       templateVersionRef:
         eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+      archivingSchedule: eserviceDescriptorArchivingScheduleInReadmodelCatalog,
       asyncExchangeProperties:
         eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
     })
@@ -129,6 +133,14 @@ function getEServicesQueryResult(db: DrizzleReturnType, filter: SQL) {
           eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
           eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
         )
+      )
+    )
+    .leftJoin(
+      // 10
+      eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+      eq(
+        eserviceDescriptorInReadmodelCatalog.id,
+        eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
       )
     );
 }
