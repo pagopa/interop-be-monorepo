@@ -37,6 +37,7 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
@@ -330,6 +331,7 @@ export function readModelServiceBuilderSQL({
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: riskAnalysisReviewerInReadmodelPurpose,
           totalCount: subquery.totalCount,
         })
         .from(purposeInReadmodelPurpose)
@@ -383,6 +385,13 @@ export function readModelServiceBuilderSQL({
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          riskAnalysisReviewerInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            riskAnalysisReviewerInReadmodelPurpose.purposeId
           )
         )
         .leftJoin(

@@ -256,6 +256,11 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         PurposeDbTable.purpose_version_signed_document
       );
 
+      const reviewersSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_reviewer
+      );
+
       return aggregatePurposeArray({
         purposesSQL,
         riskAnalysisFormsSQL,
@@ -267,6 +272,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       });
     },
 
