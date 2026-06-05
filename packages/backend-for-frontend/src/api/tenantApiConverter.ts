@@ -5,7 +5,6 @@ import {
 } from "pagopa-interop-api-clients";
 import { isDefined } from "pagopa-interop-commons";
 import {
-  AttributeKind,
   CertifiedTenantAttribute,
   CertifiedDiscreteTenantAttribute,
   DeclaredTenantAttribute,
@@ -20,11 +19,11 @@ import {
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 
 export const tenantAttributeKind = {
-  certified: "Certified",
-  certifiedDiscrete: "CertifiedDiscrete",
-  declared: "Declared",
-  verified: "Verified",
-} as const satisfies Record<string, AttributeKind>;
+  certified: "CERTIFIED",
+  certifiedDiscrete: "CERTIFIED_DISCRETE",
+  declared: "DECLARED",
+  verified: "VERIFIED",
+} as const satisfies Record<string, bffApi.AttributeKind>;
 
 function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
   const certified: CertifiedTenantAttribute | undefined = att.certified && {

@@ -29071,8 +29071,8 @@ components:
             discriminator:
               propertyName: kind
               mapping:
-                Certified: "#/components/schemas/CertifiedTenantAttribute"
-                CertifiedDiscrete: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+                CERTIFIED: "#/components/schemas/CertifiedTenantAttribute"
+                CERTIFIED_DISCRETE: "#/components/schemas/CertifiedDiscreteTenantAttribute"
         verified:
           type: array
           items:
@@ -29087,7 +29087,7 @@ components:
       properties:
         kind:
           type: string
-          enum: [Declared]
+          enum: [DECLARED]
         id:
           type: string
           format: uuid
@@ -29162,7 +29162,7 @@ components:
       properties:
         kind:
           type: string
-          enum: [Certified]
+          enum: [CERTIFIED]
         id:
           type: string
           format: uuid
@@ -29188,7 +29188,7 @@ components:
       properties:
         kind:
           type: string
-          enum: [CertifiedDiscrete]
+          enum: [CERTIFIED_DISCRETE]
         id:
           type: string
           format: uuid
@@ -29235,7 +29235,7 @@ components:
       properties:
         kind:
           type: string
-          enum: [Verified]
+          enum: [VERIFIED]
         id:
           type: string
           format: uuid
