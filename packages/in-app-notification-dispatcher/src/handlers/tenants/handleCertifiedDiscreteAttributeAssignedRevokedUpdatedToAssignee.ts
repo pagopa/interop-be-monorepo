@@ -1,5 +1,6 @@
 import {
   AttributeId,
+  Attribute,
   fromTenantV2,
   missingKafkaMessageDataError,
   NewNotification,
@@ -12,7 +13,6 @@ import {
   retrieveTenantByCertifierId,
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { Attribute } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { attributeOriginUndefined } from "../../models/errors.js";
@@ -54,29 +54,34 @@ export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAs
 
   const attribute = await retrieveAttribute(attributeId, readModelService);
 
-  const assignerOrRevokerOrUpdaterName =
-    await getAttributeAssignerOrRevokerOrUpdaterName(
-      eventType,
-      attribute,
-      readModelService
-    );
+  const body = await match(eventType)
+    .with("TenantCertifiedDiscreteAttributeAssigned", async () => {
+      const assignerName = await getAttributeAssignerOrRevokerOrUpdaterName(
+        eventType,
+        attribute,
+        readModelService
+      );
 
-  const body = match(eventType)
-    .with("TenantCertifiedDiscreteAttributeAssigned", () =>
-      inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
+      return inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
         attribute.name,
         "certificato",
-        assignerOrRevokerOrUpdaterName
-      )
-    )
-    .with("TenantCertifiedDiscreteAttributeRevoked", () =>
-      inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
+        assignerName
+      );
+    })
+    .with("TenantCertifiedDiscreteAttributeRevoked", async () => {
+      const revokerName = await getAttributeAssignerOrRevokerOrUpdaterName(
+        eventType,
+        attribute,
+        readModelService
+      );
+
+      return inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
         attribute.name,
         "certificato",
-        assignerOrRevokerOrUpdaterName
-      )
-    )
-    .with("TenantCertifiedDiscreteAttributeUpdated", () =>
+        revokerName
+      );
+    })
+    .with("TenantCertifiedDiscreteAttributeUpdated", async () =>
       inAppTemplates.certifiedVerifiedAttributeUpdatedToAssignee(
         attribute.name,
         "certificato"

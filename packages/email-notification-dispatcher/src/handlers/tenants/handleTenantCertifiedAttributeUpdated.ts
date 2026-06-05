@@ -13,10 +13,8 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveAttribute,
-  retrieveTenantByCertifierId,
   TenantHandlerParams,
 } from "../handlerCommons.js";
-import { certifierDatabaseOriginNames } from "../../config/constants.js";
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
@@ -72,11 +70,6 @@ export async function handleTenantCertifiedAttributeUpdated(
     return [];
   }
 
-  const certifierName = certifierDatabaseOriginNames.includes(attribute.origin)
-    ? attribute.origin
-    : (await retrieveTenantByCertifierId(attribute.origin, readModelService))
-        .name;
-
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
@@ -86,7 +79,6 @@ export async function handleTenantCertifiedAttributeUpdated(
         notificationType,
         entityId: tenant.id,
         ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
-        certifierName,
         attributeName: attribute.name,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,

@@ -1,5 +1,6 @@
 import {
   AttributeId,
+  Attribute,
   fromTenantV2,
   missingKafkaMessageDataError,
   NewNotification,
@@ -12,7 +13,6 @@ import {
   retrieveTenantByCertifierId,
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { Attribute } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { attributeOriginUndefined } from "../../models/errors.js";
