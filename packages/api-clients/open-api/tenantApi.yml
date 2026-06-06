@@ -167,6 +167,7 @@ paths:
       - name: tRemoteId
         in: path
         description: The remoteId of the tenant
+        required: true
         schema:
           type: string
       - name: aOrigin
@@ -196,6 +197,7 @@ paths:
               properties:
                 value:
                   type: integer
+                  format: int32
                   description: The discrete numeric value to assign (e.g., the total population)
               required:
                 - value
