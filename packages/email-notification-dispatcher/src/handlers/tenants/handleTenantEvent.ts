@@ -10,6 +10,7 @@ import { handleTenantCertifiedAttributeAssigned } from "./handleTenantCertifiedA
 import { handleTenantCertifiedAttributeRevoked } from "./handleTenantCertifiedAttributeRevoked.js";
 import { handleTenantVerifiedAttributeAssigned } from "./handleTenantVerifiedAttributeAssigned.js";
 import { handleTenantVerifiedAttributeRevoked } from "./handleTenantVerifiedAttributeRevoked.js";
+import { handleTenantCertifiedAttributeUpdated } from "./handleTenantCertifiedAttributeUpdated.js";
 
 export async function handleTenantEvent(
   params: HandlerParams<typeof TenantEvent>
@@ -53,9 +54,16 @@ export async function handleTenantEvent(
         })
     )
     .with(
-      // TODO: handle implementation in PIN-10185
       { type: "TenantCertifiedDiscreteAttributeUpdated" },
-      () => []
+      ({ data: { tenant, attributeId } }) =>
+        handleTenantCertifiedAttributeUpdated({
+          tenantV2Msg: tenant,
+          attributeId: unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
     )
     .with(
       { type: "TenantVerifiedAttributeAssigned" },

@@ -1,47 +1,44 @@
 import {
-  Attribute,
   AttributeId,
   fromTenantV2,
   missingKafkaMessageDataError,
   NewNotification,
-  Tenant,
-  tenantAttributeType,
   TenantV2,
-  VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
-import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveAttribute,
   retrieveTenant,
-  retrieveTenantByCertifierId,
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import {
-  attributeOriginUndefined,
-  verifiedAttributeNotFoundInTenant,
-} from "../../models/errors.js";
 
-type CertifiedVerifiedAttributeAssignedRevokedEventType =
-  | "TenantCertifiedAttributeAssigned"
-  | "TenantCertifiedAttributeRevoked"
+import {
+  Attribute,
+  Tenant,
+  tenantAttributeType,
+  VerifiedTenantAttribute,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { verifiedAttributeNotFoundInTenant } from "../../models/errors.js";
+
+type VerifiedAttributeAssignedRevokedEventType =
   | "TenantVerifiedAttributeAssigned"
   | "TenantVerifiedAttributeRevoked";
 
-export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
+export async function handleVerifiedAttributeAssignedRevokedToAssignee(
   tenantV2Msg: TenantV2 | undefined,
   attributeId: AttributeId,
   logger: Logger,
   readModelService: ReadModelServiceSQL,
-  eventType: CertifiedVerifiedAttributeAssignedRevokedEventType
+  eventType: VerifiedAttributeAssignedRevokedEventType
 ): Promise<NewNotification[]> {
   if (!tenantV2Msg) {
     throw missingKafkaMessageDataError("tenant", eventType);
   }
   logger.info(
-    `Sending in-app notification for handleCertifiedVerifiedAttributeAssignedRevokedToAssignee - entityId: ${tenantV2Msg.id}, eventType: ${eventType}`
+    `Sending in-app notification for handleVerifiedAttributeAssignedRevokedToAssignee - entityId: ${tenantV2Msg.id}, eventType: ${eventType}`
   );
 
   const tenant = fromTenantV2(tenantV2Msg);
@@ -55,7 +52,7 @@ export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for handleCertifiedVerifiedAttributeAssignedRevokedToAssignee - entityId: ${tenant.id}, eventType: ${eventType}`
+      `No users with notifications enabled for handleVerifiedAttributeAssignedRevokedToAssignee - entityId: ${tenant.id}, eventType: ${eventType}`
     );
     return [];
   }
@@ -70,20 +67,6 @@ export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
   );
 
   const body = match(eventType)
-    .with("TenantCertifiedAttributeAssigned", () =>
-      inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
-        attribute.name,
-        "certificato",
-        assignerOrRevokerName
-      )
-    )
-    .with("TenantCertifiedAttributeRevoked", () =>
-      inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
-        attribute.name,
-        "certificato",
-        assignerOrRevokerName
-      )
-    )
     .with("TenantVerifiedAttributeAssigned", () =>
       inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
         attribute.name,
@@ -110,31 +93,12 @@ export async function handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
 }
 
 async function getAttributeAssignerOrRevokerName(
-  eventType: CertifiedVerifiedAttributeAssignedRevokedEventType,
+  eventType: VerifiedAttributeAssignedRevokedEventType,
   tenant: Tenant,
   attribute: Attribute,
   readModelService: ReadModelServiceSQL
 ): Promise<string> {
   return match(eventType)
-    .with(
-      P.union(
-        "TenantCertifiedAttributeAssigned",
-        "TenantCertifiedAttributeRevoked"
-      ),
-      async () => {
-        if (!attribute.origin) {
-          throw attributeOriginUndefined(attribute.id);
-        }
-        return ["ANAC", "IPA", "IVASS"].includes(attribute.origin)
-          ? attribute.origin
-          : (
-              await retrieveTenantByCertifierId(
-                attribute.origin,
-                readModelService
-              )
-            ).name;
-      }
-    )
     .with("TenantVerifiedAttributeAssigned", async () => {
       const tenantAttribute = tenant.attributes.find(
         (attr): attr is VerifiedTenantAttribute =>
