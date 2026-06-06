@@ -1,11 +1,11 @@
-import { parse } from "csv/sync";
+import { parse } from "csv";
 import {
   Logger,
   RefreshableInteropToken,
   delay,
   waitForReadModelMetadataVersion,
 } from "pagopa-interop-commons";
-import { CorrelationId } from "pagopa-interop-models";
+import { CorrelationId, Tenant, WithMetadata } from "pagopa-interop-models";
 import { InteropContext } from "../model/interopContextModel.js";
 import { JobStats } from "../model/istatModel.js";
 import { TenantProcessService } from "./tenantProcessService.js";
@@ -17,10 +17,20 @@ import {
   SUMMARY_AGE_CODE,
 } from "../config/constants.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { Readable } from "stream";
+import { config } from "../config/config.js";
 
 type PollingConfig = {
   defaultPollingMaxRetries: number;
   defaultPollingRetryDelay: number;
+};
+
+const sliceIntoChunks = <T>(arr: T[], chunkSize: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    chunks.push(arr.slice(i, i + chunkSize));
+  }
+  return chunks;
 };
 
 export async function importAttributes(
@@ -34,7 +44,7 @@ export async function importAttributes(
   correlationId: CorrelationId
 ): Promise<void> {
   logger.info("ISTAT Certified discrete attributes importer started");
-  const stats: JobStats = { processed: 0, created: 0, errors: 0 };
+  const stats: JobStats = { processed: 0, created: 0, revoked: 0, errors: 0 };
 
   await ensureAttributeExists(
     readModel,
@@ -53,38 +63,42 @@ export async function importAttributes(
     `Found ${populationByMunicipality.size} municipalities on ISTAT file.`
   );
 
-  for (const [
-    municipalityCode,
-    totalCount,
-  ] of populationByMunicipality.entries()) {
-    stats.processed++;
-    try {
-      const token = await refreshableToken.get();
-      const context: InteropContext = {
-        correlationId,
-        bearerToken: token.serialized,
-      };
+  const entries = Array.from(populationByMunicipality.entries());
+  const chunks = sliceIntoChunks(entries, config.csvChunkSize);
 
-      const metadata =
-        await tenantProcess.internalAssignCertifiedDiscreteAttribute(
-          ISTAT_CERTIFIER_ORIGIN,
-          municipalityCode,
-          ISTAT_CERTIFIER_ORIGIN,
-          ISTAT_POPULATION_ATTRIBUTE_CODE,
-          totalCount,
-          context,
-          logger
-        );
+  for (const chunk of chunks) {
+    await Promise.all(
+      chunk.map(async ([municipalityCode, totalCount]) => {
+        stats.processed++;
+        try {
+          const token = await refreshableToken.get();
+          const context: InteropContext = {
+            correlationId,
+            bearerToken: token.serialized,
+          };
 
-      if (metadata) {
-        stats.created++;
-      }
-    } catch (error) {
-      logger.error(
-        `Error assign certified attribute for municipality ${municipalityCode}: ${error}`
-      );
-      stats.errors++;
-    }
+          const metadata =
+            await tenantProcess.internalAssignCertifiedDiscreteAttribute(
+              ISTAT_CERTIFIER_ORIGIN,
+              municipalityCode,
+              ISTAT_CERTIFIER_ORIGIN,
+              ISTAT_POPULATION_ATTRIBUTE_CODE,
+              totalCount,
+              context,
+              logger
+            );
+
+          if (metadata) {
+            stats.created++;
+          }
+        } catch (error) {
+          logger.error(
+            `Error assign certified attribute for municipality ${municipalityCode}: ${error}`
+          );
+          stats.errors++;
+        }
+      })
+    );
   }
 
   await revokeMissingMunicipalities(
@@ -108,15 +122,20 @@ async function downloadAndAggregateData(
   logger: Logger
 ): Promise<Map<string, number>> {
   const fileContent = await istatClient.downloadNationalDataset(logger);
-  const rawRecords = parse(fileContent, {
-    trim: true,
-    columns: true,
-    delimiter: ";",
-    relax_quotes: true,
-  });
   const populationMap = new Map<string, number>();
 
-  for (const row of rawRecords) {
+  const parser = Readable.from(fileContent).pipe(
+    parse({
+      trim: true,
+      columns: true,
+      delimiter: ";",
+      relax_quotes: true,
+      from_line: 2,
+      relax_column_count: true,
+    })
+  );
+
+  for await (const row of parser) {
     if (Number(row["Età"]) === SUMMARY_AGE_CODE) {
       const codiceComune = row["Codice comune"];
       const totale = Number(row["Totale"]);
@@ -125,9 +144,9 @@ async function downloadAndAggregateData(
       }
     }
   }
+
   return populationMap;
 }
-
 async function revokeMissingMunicipalities(
   readModel: ReadModelServiceSQL,
   tenantProcess: TenantProcessService,
@@ -143,14 +162,32 @@ async function revokeMissingMunicipalities(
     ISTAT_POPULATION_ATTRIBUTE_CODE
   );
 
-  await Promise.all(
-    tenantsWithAttribute.map(async (tenant) => {
-      const tenantData = tenant.data;
-      const istatRemoteId = tenantData.remoteIds?.find(
-        (r) => r.origin === ISTAT_CERTIFIER_ORIGIN
-      )?.value;
+  const tenantsToRevoke = tenantsWithAttribute.filter((tenant) => {
+    const istatRemoteId = tenant.data.remoteIds?.find(
+      (r) => r.origin === ISTAT_CERTIFIER_ORIGIN
+    )?.value;
 
-      if (!istatRemoteId || !populationByMunicipality.has(istatRemoteId)) {
+    return !istatRemoteId || !populationByMunicipality.has(istatRemoteId);
+  });
+
+  if (tenantsToRevoke.length === 0) {
+    logger.info("No municipalities to revoke.");
+    return;
+  }
+
+  logger.info(
+    `Found ${tenantsToRevoke.length} municipalities to revoke. Processing in chunks...`
+  );
+
+  const chunks = sliceIntoChunks<WithMetadata<Tenant>>(
+    tenantsToRevoke,
+    config.csvChunkSize
+  );
+
+  for (const chunk of chunks) {
+    await Promise.all(
+      chunk.map(async (tenant) => {
+        const tenantData = tenant.data;
         logger.info(`Revoking ${tenantData.id}`);
         try {
           const token = await refreshableToken.get();
@@ -176,16 +213,16 @@ async function revokeMissingMunicipalities(
               pollingConfig
             );
           }
-          stats.created++;
+          stats.revoked++;
         } catch (error) {
           logger.error(
             `Error revoking attribute for tenant - ${tenantData.id}: ${error}`
           );
           stats.errors++;
         }
-      }
-    })
-  );
+      })
+    );
+  }
 }
 
 export async function ensureAttributeExists(

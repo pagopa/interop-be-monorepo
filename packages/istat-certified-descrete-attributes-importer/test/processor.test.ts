@@ -167,7 +167,66 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.any(Object)
     );
   });
+  it("should exclusively process rows where Età is 999 and ignore specific ages", async () => {
+    const specificAgesCsv = `"Popolazione residente per età e sesso al 1° gennaio 2026 (stima)"
+"Codice comune";"Comune";"Età";"Totale maschi";"Totale femmine";"Totale"
+"001001";"Trapani";0;10;10;20
+"001001";"Trapani";1;15;15;30
+"001001";"Trapani";999;50;50;100
+"001002";"Roma";5;5;5;10
+"001002";"Roma";999;200;200;400`;
 
+    istatClientMock.downloadNationalDataset.mockResolvedValueOnce(
+      specificAgesCsv
+    );
+    readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
+      id: generateId(),
+    });
+    readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
+
+    tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
+      internalAssignCertifiedDiscreteAttributeMock
+    );
+
+    await importAttributes(
+      istatClientMock as any,
+      readModelQueriesMock as any,
+      tenantProcessMock as any,
+      attributeProcessMock as any,
+      refreshableTokenMock,
+      { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      genericLogger,
+      generateId()
+    );
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).toHaveBeenCalledTimes(2);
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).toHaveBeenCalledWith(
+      ISTAT_CERTIFIER_ORIGIN,
+      "001001",
+      ISTAT_CERTIFIER_ORIGIN,
+      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      100,
+      expect.anything(),
+      expect.anything()
+    );
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).toHaveBeenCalledWith(
+      ISTAT_CERTIFIER_ORIGIN,
+      "001002",
+      ISTAT_CERTIFIER_ORIGIN,
+      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      400,
+      expect.anything(),
+      expect.anything()
+    );
+  });
   it("should create attribute if missing and assign values", async () => {
     readModelQueriesMock.getAttributeByExternalId
       .mockResolvedValueOnce(undefined)
@@ -198,7 +257,45 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalled();
   });
+  it("should process municipalities in chunks successfully", async () => {
+    readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
+      id: generateId(),
+    });
+    readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
+    tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
+      internalAssignCertifiedDiscreteAttributeMock
+    );
 
+    const largePopulationMap = new Map<string, number>();
+    for (let i = 0; i < 1200; i++) {
+      largePopulationMap.set(`COMUNE_${i}`, 1000 + i);
+    }
+
+    let hugeCsv = `"Popolazione residente"\n"Codice comune";"Comune";"Età";"Totale maschi";"Totale femmine";"Totale"\n`;
+    for (let i = 0; i < 1200; i++) {
+      hugeCsv += `"${String(i).padStart(
+        6,
+        "0"
+      )}";"Comune ${i}";999;50;50;100\n`;
+    }
+
+    istatClientMock.downloadNationalDataset.mockResolvedValueOnce(hugeCsv);
+
+    await importAttributes(
+      istatClientMock as any,
+      readModelQueriesMock,
+      tenantProcessMock as any,
+      attributeProcessMock as any,
+      refreshableTokenMock,
+      { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      genericLogger,
+      generateId()
+    );
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).toHaveBeenCalledTimes(1200);
+  });
   it("should revoke attribute for municipalities not in CSV", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
       id: generateId(),
@@ -272,8 +369,6 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     });
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
 
-    // Simuliamo che la prima chiamata di assegnazione vada in errore (es. Network error)
-    // mentre le successive abbiano successo
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute
       .mockRejectedValueOnce(new Error("Internal Server Error on API"))
       .mockImplementation(internalAssignCertifiedDiscreteAttributeMock);
