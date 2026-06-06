@@ -22,6 +22,10 @@ type CertifiedDiscreteAttributeAssignedRevokedUpdatedEventType =
   | "TenantCertifiedDiscreteAttributeRevoked"
   | "TenantCertifiedDiscreteAttributeUpdated";
 
+type CertifiedDiscreteAttributeAssignedRevokedEventType =
+  | "TenantCertifiedDiscreteAttributeAssigned"
+  | "TenantCertifiedDiscreteAttributeRevoked";
+
 export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee(
   tenantV2Msg: TenantV2 | undefined,
   attributeId: AttributeId,
@@ -56,8 +60,8 @@ export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAs
 
   const body = await match(eventType)
     .with("TenantCertifiedDiscreteAttributeAssigned", async () => {
-      const assignerName = await getAttributeAssignerOrRevokerOrUpdaterName(
-        eventType,
+      const assignerName = await getAttributeAssignerOrRevokerName(
+        "TenantCertifiedDiscreteAttributeAssigned",
         attribute,
         readModelService
       );
@@ -69,8 +73,8 @@ export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAs
       );
     })
     .with("TenantCertifiedDiscreteAttributeRevoked", async () => {
-      const revokerName = await getAttributeAssignerOrRevokerOrUpdaterName(
-        eventType,
+      const revokerName = await getAttributeAssignerOrRevokerName(
+        "TenantCertifiedDiscreteAttributeRevoked",
         attribute,
         readModelService
       );
@@ -98,8 +102,8 @@ export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAs
   }));
 }
 
-async function getAttributeAssignerOrRevokerOrUpdaterName(
-  eventType: CertifiedDiscreteAttributeAssignedRevokedUpdatedEventType,
+async function getAttributeAssignerOrRevokerName(
+  eventType: CertifiedDiscreteAttributeAssignedRevokedEventType,
   attribute: Attribute,
   readModelService: ReadModelServiceSQL
 ): Promise<string> {
@@ -107,8 +111,7 @@ async function getAttributeAssignerOrRevokerOrUpdaterName(
     .with(
       P.union(
         "TenantCertifiedDiscreteAttributeAssigned",
-        "TenantCertifiedDiscreteAttributeRevoked",
-        "TenantCertifiedDiscreteAttributeUpdated"
+        "TenantCertifiedDiscreteAttributeRevoked"
       ),
       async () => {
         if (!attribute.origin) {
