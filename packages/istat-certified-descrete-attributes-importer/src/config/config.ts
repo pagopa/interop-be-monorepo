@@ -22,7 +22,7 @@ const IstatCertifiedDiscreteAttributesImporterConfig = LoggerConfig.and(
         ISTAT_DOWNLOAD_URL: z.string(),
         CSV_CHUNK_SIZE: z.number().default(100),
         RECORDS_PROCESS_BATCH_SIZE: z.coerce.number(),
-        DEFAULT_POLLING_RETRY_DELAY: z.coerce.number().default(1000),
+        DEFAULT_POLLING_RETRY_DELAY: z.coerce.number().default(500),
         DEFAULT_POLLING_MAX_RETRIES: z.coerce.number().default(5),
       })
       .transform((c) => ({
@@ -30,7 +30,6 @@ const IstatCertifiedDiscreteAttributesImporterConfig = LoggerConfig.and(
         attributeProcessUrl: c.ATTRIBUTE_PROCESS_URL,
         istatDownloadUrl: c.ISTAT_DOWNLOAD_URL,
         csvChunkSize: c.CSV_CHUNK_SIZE,
-        recordsProcessBatchSize: c.RECORDS_PROCESS_BATCH_SIZE,
         defaultPollingRetryDelay: c.DEFAULT_POLLING_RETRY_DELAY,
         defaultPollingMaxRetries: c.DEFAULT_POLLING_MAX_RETRIES,
       }))
