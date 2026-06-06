@@ -85,9 +85,6 @@ export function createActivationUpdateAgreementSeed({
   return isFirstActivation
     ? {
         state: newState,
-        // TODO(PIN-9889, Work Item 5): populate certifiedDiscreteAttributes
-        // on first activation once certified discrete agreement validation is
-        // implemented.
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
         certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
           descriptor,

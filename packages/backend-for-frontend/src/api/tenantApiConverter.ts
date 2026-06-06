@@ -217,20 +217,6 @@ export function toBffApiVerifiedTenantAttributes(
     .filter(isDefined);
 }
 
-function toBffApiCertifiedDiscreteTenantAttributes(
-  certifiedDiscreteAttributes: tenantApi.CertifiedDiscreteTenantAttribute[],
-  registryAttributesMap: RegistryAttributesMap
-): bffApi.CertifiedDiscreteTenantAttribute[] {
-  return certifiedDiscreteAttributes
-    .map((tenantAttribute) =>
-      toBffApiCertifiedDiscreteTenantAttribute(
-        tenantAttribute,
-        registryAttributesMap
-      )
-    )
-    .filter(isDefined);
-}
-
 export function toBffApiTenant(
   tenant: tenantApi.Tenant,
   certifiedAttributes: tenantApi.CertifiedTenantAttribute[],
@@ -284,10 +270,6 @@ export function toBffApiTenant(
       ),
       verified: toBffApiVerifiedTenantAttributes(
         verifiedAttributes,
-        registryAttributesMap
-      ),
-      certifiedDiscrete: toBffApiCertifiedDiscreteTenantAttributes(
-        certifiedDiscreteAttributes,
         registryAttributesMap
       ),
     },

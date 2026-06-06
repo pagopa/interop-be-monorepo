@@ -29077,15 +29077,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/VerifiedTenantAttribute"
-        certifiedDiscrete:
-          type: array
-          items:
-            $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
       required:
         - declared
         - certified
         - verified
-        - certifiedDiscrete
     DeclaredTenantAttribute:
       type: object
       additionalProperties: false
