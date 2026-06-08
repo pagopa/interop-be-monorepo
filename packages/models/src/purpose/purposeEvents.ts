@@ -167,7 +167,6 @@ export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
     .with({ type: "PurposeRiskAnalysisSubmitted" }, ({ data }) =>
       PurposeRiskAnalysisSubmittedV2.toBinary(data)
     )
-
     .exhaustive();
 }
 
