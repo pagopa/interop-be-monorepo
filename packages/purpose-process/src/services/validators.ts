@@ -832,7 +832,7 @@ export function assertRiskAnalysisFormEditableInCurrentReviewMode(
   if (
     reviewerWorkflow.signingState !== riskAnalysisSigningState.draft &&
     reviewerWorkflow.signingState !== riskAnalysisSigningState.rejected &&
-    riskAnalysisFormInputDiffersFromStored(
+    riskAnalysisFormInputDiffersFromPrevious(
       inputForm,
       existingForm,
       tenantKind,
@@ -843,7 +843,7 @@ export function assertRiskAnalysisFormEditableInCurrentReviewMode(
   }
 }
 
-export function riskAnalysisFormInputDiffersFromStored(
+function riskAnalysisFormInputDiffersFromPrevious(
   inputForm: purposeApi.RiskAnalysisFormSeed,
   existingForm: PurposeRiskAnalysisForm,
   tenantKind: TenantKind,

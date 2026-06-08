@@ -169,6 +169,7 @@ import {
   getUpdatedQuotas,
   assertRiskAnalysisTenantKindMatch,
   assertRequesterIsConsumer,
+  assertRiskAnalysisFormEditableInCurrentReviewMode,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -2502,7 +2503,7 @@ export type UpdatePurposeReturn = WithMetadata<{
   purpose: Purpose;
 }>;
 
-function riskAnalysisFormInputDiffersFromStored(
+function riskAnalysisFormInputDiffersFromPrevious(
   inputForm: purposeApi.RiskAnalysisFormSeed,
   existingForm: PurposeRiskAnalysisForm,
   tenantKind: TenantKind,
@@ -2534,28 +2535,6 @@ function riskAnalysisFormInputDiffersFromStored(
     JSON.stringify(normalize(transformedInput)) !==
     JSON.stringify(normalize(existingForm))
   );
-}
-
-function assertRiskAnalysisFormEditableInCurrentReviewMode(
-  purposeId: PurposeId,
-  inputForm: purposeApi.RiskAnalysisFormSeed,
-  existingForm: PurposeRiskAnalysisForm,
-  reviewerWorkflow: ReviewerWorkflow,
-  tenantKind: TenantKind,
-  personalDataInEService: boolean | undefined
-): void {
-  if (
-    reviewerWorkflow.signingState !== riskAnalysisSigningState.draft &&
-    reviewerWorkflow.signingState !== riskAnalysisSigningState.rejected &&
-    riskAnalysisFormInputDiffersFromStored(
-      inputForm,
-      existingForm,
-      tenantKind,
-      personalDataInEService
-    )
-  ) {
-    throw riskAnalysisFormCannotBeUpdated(purposeId);
-  }
 }
 
 const performUpdatePurpose = async (
