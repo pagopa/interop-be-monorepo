@@ -140,7 +140,7 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
     const otherEservice: EService = {
       ...getMockEService(),
       producerId: producerTenant.id,
-      descriptors: [descriptor],
+      descriptors: [getMockDescriptor(descriptorState.published)],
     };
     await addOneEService(otherEservice);
     const msg: EServiceEventV2 = {
