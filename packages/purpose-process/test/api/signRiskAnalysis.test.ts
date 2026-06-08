@@ -26,10 +26,7 @@ import {
 
 describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
   const mockPurpose: Purpose = getMockPurpose();
-  const serviceResponse = getMockWithMetadata({
-    purpose: mockPurpose,
-    isRiskAnalysisValid: true,
-  });
+  const serviceResponse = getMockWithMetadata(mockPurpose);
   const apiResponse = purposeApi.Purpose.parse(
     purposeToApiPurpose(mockPurpose)
   );

@@ -601,6 +601,8 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
+      assertRequesterIsConsumer(purpose.data, authData);
+
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
@@ -619,8 +621,6 @@ export function purposeServiceBuilder(
       ) {
         throw reviewerWorkflowNotSubmittable(purposeId);
       }
-
-      assertRequesterIsConsumer(purpose.data, authData);
 
       const tenantKind = await retrieveTenantKind(
         purpose.data.consumerId,
@@ -676,9 +676,7 @@ export function purposeServiceBuilder(
     async signRiskAnalysis(
       purposeId: PurposeId,
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<
-      WithMetadata<{ purpose: Purpose; isRiskAnalysisValid: boolean }>
-    > {
+    ): Promise<WithMetadata<Purpose>> {
       logger.info(`Signing risk analysis for Purpose ${purposeId}`);
 
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
@@ -757,7 +755,7 @@ export function purposeServiceBuilder(
       );
 
       return {
-        data: { purpose: updatedPurpose, isRiskAnalysisValid: true },
+        data: updatedPurpose,
         metadata: { version: event.newVersion },
       };
     },

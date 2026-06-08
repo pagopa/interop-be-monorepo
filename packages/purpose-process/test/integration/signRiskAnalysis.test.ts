@@ -72,16 +72,12 @@ describe("signRiskAnalysis", () => {
     await addOneEService(mockEService);
     await addOnePurpose(mockPurpose);
 
-    const {
-      data: { purpose: updatedPurpose, isRiskAnalysisValid },
-    } = await purposeService.signRiskAnalysis(
+    const { data: updatedPurpose } = await purposeService.signRiskAnalysis(
       mockPurpose.id,
       getMockContext({
         authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
       })
     );
-
-    expect(isRiskAnalysisValid).toBe(true);
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -121,16 +117,12 @@ describe("signRiskAnalysis", () => {
 
     await addOnePurpose(mockPurpose);
 
-    const {
-      data: { purpose: updatedPurpose, isRiskAnalysisValid },
-    } = await purposeService.signRiskAnalysis(
+    const { data: updatedPurpose } = await purposeService.signRiskAnalysis(
       mockPurpose.id,
       getMockContext({
         authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
       })
     );
-
-    expect(isRiskAnalysisValid).toBe(true);
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 

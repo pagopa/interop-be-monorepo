@@ -89,7 +89,6 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
-          REVIEWER_ROLE,
           API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
@@ -583,13 +582,11 @@ const purposeRouter = (
       try {
         validateAuthorization(ctx, [REVIEWER_ROLE]);
 
-        const {
-          data: { purpose },
-          metadata,
-        } = await purposeService.signRiskAnalysis(
-          unsafeBrandId(req.params.purposeId),
-          ctx
-        );
+        const { data: purpose, metadata } =
+          await purposeService.signRiskAnalysis(
+            unsafeBrandId(req.params.purposeId),
+            ctx
+          );
 
         setMetadataVersionHeader(res, metadata);
 

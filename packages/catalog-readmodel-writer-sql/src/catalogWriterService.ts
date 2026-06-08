@@ -15,6 +15,7 @@ import {
 import {
   DrizzleReturnType,
   DrizzleTransactionType,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -44,6 +45,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
       eserviceDescriptorAttributeInReadmodelCatalog,
       eserviceRiskAnalysisInReadmodelCatalog,
       eserviceRiskAnalysisAnswerInReadmodelCatalog,
+      eserviceDescriptorArchivingScheduleInReadmodelCatalog,
       eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
     ];
 
@@ -116,6 +118,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           documentsSQL,
           rejectionReasonsSQL,
           templateVersionRefsSQL,
+          archivingSchedulesSQL,
           asyncExchangePropertiesSQL,
         } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
@@ -167,6 +170,12 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
             .values(templateVersionRefSQL);
+        }
+
+        for (const archivingScheduleSQL of archivingSchedulesSQL) {
+          await tx
+            .insert(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+            .values(archivingScheduleSQL);
         }
 
         for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
@@ -485,6 +494,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           interfacesSQL,
           documentsSQL,
           rejectionReasonsSQL,
+          archivingScheduleSQL,
           asyncExchangePropertiesSQL,
         } = splitDescriptorIntoObjectsSQL(
           eserviceId,
@@ -518,6 +528,12 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(eserviceDescriptorRejectionReasonInReadmodelCatalog)
             .values(rejectionReasonSQL);
+        }
+
+        if (archivingScheduleSQL) {
+          await tx
+            .insert(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+            .values(archivingScheduleSQL);
         }
 
         if (asyncExchangePropertiesSQL) {
