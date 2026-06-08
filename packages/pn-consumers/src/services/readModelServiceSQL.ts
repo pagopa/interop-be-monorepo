@@ -101,6 +101,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeRiskAnalysisForm: sql<null>`NULL`,
           purposeRiskAnalysisAnswer: sql<null>`NULL`,
+          purposeRiskAnalysisReviewer: sql<null>`NULL`,
           consumerName: tenantInReadmodelTenant.name,
           consumerExternalIdOrigin: tenantInReadmodelTenant.externalIdOrigin,
           consumerExternalIdValue: tenantInReadmodelTenant.externalIdValue,

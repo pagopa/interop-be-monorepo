@@ -24,9 +24,10 @@ import {
   certifierTenantNotFound,
   tenantNotFound,
   verifiedAttributeNotFoundInTenant,
-} from "../src/models/errors.js";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+  getNotificationRecipients,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+
 import { addOneAttribute, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleCertifiedVerifiedAttributeAssignedRevokedToAssignee", () => {

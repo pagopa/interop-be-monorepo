@@ -7,16 +7,15 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
@@ -49,7 +48,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeQuotaAdjustmentResponseMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
   ]);
 
   const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);

@@ -28,6 +28,7 @@ CREATE TABLE domains.eservice (
   template_id VARCHAR(36),
   personal_data BOOLEAN,
   instance_label VARCHAR(2048),
+  archiving_reason VARCHAR(2048),
   async_exchange BOOLEAN,
   deleted BOOLEAN,
   PRIMARY KEY (id)
@@ -262,6 +263,11 @@ CREATE TABLE IF NOT EXISTS domains.purpose (
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR(2048),
   purpose_template_id VARCHAR(36),
+  reviewer_workflow_review_mode VARCHAR(2048),
+  reviewer_workflow_signing_state VARCHAR(2048),
+  reviewer_workflow_signed_by VARCHAR(36),
+  reviewer_workflow_rejection_reason VARCHAR(2048),
+  reviewer_workflow_sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -288,6 +294,14 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
   deleted BOOLEAN,
   PRIMARY KEY (id, purpose_id),
   FOREIGN KEY (risk_analysis_form_id, purpose_id) REFERENCES domains.purpose_risk_analysis_form (id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_reviewer (
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  reviewer_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (purpose_id, reviewer_id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version (
@@ -775,4 +789,15 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer_annotat
   deleted BOOLEAN,
   checksum VARCHAR NOT NULL,
   PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_descriptor_archiving_schedule (
+  eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id) ON DELETE CASCADE,
+  scope VARCHAR(2048) NOT NULL,
+  archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
+  started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (eservice_id, descriptor_id)
 );

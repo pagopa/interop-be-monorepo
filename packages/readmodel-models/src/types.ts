@@ -21,6 +21,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
@@ -65,6 +66,7 @@ import {
   purposeVersionStampInReadmodelPurpose,
   agreementSignedContractInReadmodelAgreement,
   purposeVersionSignedDocumentInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
@@ -78,6 +80,9 @@ export type DrizzleTransactionType = Parameters<
 export type EServiceSQL = InferSelectModel<typeof eserviceInReadmodelCatalog>;
 export type EServiceDescriptorSQL = InferSelectModel<
   typeof eserviceDescriptorInReadmodelCatalog
+>;
+export type EServiceDescriptorArchivingScheduleSQL = InferSelectModel<
+  typeof eserviceDescriptorArchivingScheduleInReadmodelCatalog
 >;
 export type EServiceDescriptorRejectionReasonSQL = InferSelectModel<
   typeof eserviceDescriptorRejectionReasonInReadmodelCatalog
@@ -113,6 +118,7 @@ export type EServiceItemsSQL = {
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+  archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
   asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
 };
 
@@ -236,6 +242,9 @@ export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
 export type PurposeVersionStampSQL = InferSelectModel<
   typeof purposeVersionStampInReadmodelPurpose
 >;
+export type RiskAnalysisReviewerSQL = InferSelectModel<
+  typeof riskAnalysisReviewerInReadmodelPurpose
+>;
 export type PurposeItemsSQL = {
   purposeSQL: PurposeSQL;
   riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
@@ -244,6 +253,7 @@ export type PurposeItemsSQL = {
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
   versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
+  reviewersSQL: RiskAnalysisReviewerSQL[];
 };
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;
