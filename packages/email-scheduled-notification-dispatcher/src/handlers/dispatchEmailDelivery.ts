@@ -4,7 +4,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { HtmlTemplateService, Logger, logger } from "pagopa-interop-commons";
-import { isStale } from "pagopa-interop-notification-commons";
 import {
   schedulableEventType,
   ScheduledNotificationRow,
@@ -21,12 +20,12 @@ export const dispatchEmailDeliveryBuilder =
     readModelService: ReadModelServiceSQL;
     templateService: HtmlTemplateService;
     bffUrl: string;
-    stalenessThresholdHours: number;
     rootLog: Logger;
   }) =>
   async (
     row: ScheduledNotificationRow
   ): Promise<EmailNotificationMessagePayload[]> => {
+    // staleness is enforced by runScheduledDeliveryBatch before dispatch
     const rowCorrelationId = unsafeBrandId<CorrelationId>(row.correlationId);
     const rowLog = logger({
       serviceName: SERVICE_NAME,
@@ -34,12 +33,6 @@ export const dispatchEmailDeliveryBuilder =
       eventType: row.eventType,
       streamId: row.entityId,
     });
-    if (isStale(row.sendAt, deps.stalenessThresholdHours)) {
-      rowLog.info(
-        `Skipping stale row ${row.id} (sendAt=${row.sendAt.toISOString()}, threshold=${deps.stalenessThresholdHours}h)`
-      );
-      return [];
-    }
     const handlerDeps = {
       readModelService: deps.readModelService,
       templateService: deps.templateService,

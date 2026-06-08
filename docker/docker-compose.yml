@@ -107,6 +107,8 @@ services:
 
   # POSTGRESQL scheduled notification (scheduled-notification-scheduler + dispatchers)
   scheduled-notification-sql:
+    security_opt:
+      - no-new-privileges:true
     volumes:
       - ./scheduled-notification-db:/docker-entrypoint-initdb.d
     image: postgres:14

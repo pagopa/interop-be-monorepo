@@ -3,6 +3,8 @@ syntax = "proto3";
 package notification.config.v2;
 
 message NotificationConfigV2 {
+  reserved 9;
+
   bool agreementSuspendedUnsuspendedToProducer = 1;
   bool agreementManagementToProducer = 2;
   bool clientAddedRemovedToProducer = 3;

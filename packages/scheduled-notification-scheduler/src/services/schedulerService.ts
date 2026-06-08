@@ -129,7 +129,8 @@ export const schedulerServiceBuilder = (
               scheduledNotification.entityId,
               formatEServiceEntityId(eserviceId)
             ),
-            isNull(scheduledNotification.sentAt)
+            isNull(scheduledNotification.sentAt),
+            isNull(scheduledNotification.skippedAt)
           )
         );
     },
@@ -148,7 +149,8 @@ export const schedulerServiceBuilder = (
               scheduledNotification.entityId,
               formatEServiceIdDescriptorId(eserviceId, descriptorId)
             ),
-            isNull(scheduledNotification.sentAt)
+            isNull(scheduledNotification.sentAt),
+            isNull(scheduledNotification.skippedAt)
           )
         );
     },
@@ -157,7 +159,12 @@ export const schedulerServiceBuilder = (
       const result = await db
         .select({ count: sql<number>`count(*)::int` })
         .from(scheduledNotification)
-        .where(isNull(scheduledNotification.sentAt));
+        .where(
+          and(
+            isNull(scheduledNotification.sentAt),
+            isNull(scheduledNotification.skippedAt)
+          )
+        );
       return result[0]?.count ?? 0;
     },
   };
