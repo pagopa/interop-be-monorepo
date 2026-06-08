@@ -61,6 +61,8 @@ const errorCodes = {
   invalidFreeOfChargeReason: "0041",
   riskAnalysisTenantKindMismatch: "0042",
   unableToDetermineTenantKind: "0043",
+  reviewerWorkflowConflict: "0044",
+  multipleReviewersNotAllowed: "0045",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -521,5 +523,25 @@ export function invalidFreeOfChargeReason(
     detail: `Invalid freeOfChargeReason: "${freeOfChargeReason}" for isFreeOfCharge: "${isFreeOfCharge}"`,
     code: "invalidFreeOfChargeReason",
     title: "Invalid free of charge reason",
+  });
+}
+
+export function reviewerWorkflowConflict(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} already has a reviewer workflow that cannot be reassigned in its current state`,
+    code: "reviewerWorkflowConflict",
+    title: "Reviewer workflow conflict",
+  });
+}
+
+export function multipleReviewersNotAllowed(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} can't be assigned to multiple reviewers`,
+    code: "multipleReviewersNotAllowed",
+    title: "Multiple reviewers not allowed",
   });
 }

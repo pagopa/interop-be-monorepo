@@ -18,6 +18,7 @@ import {
   formatDateddMMyyyyHHmmss,
   getFormRulesByVersion,
   getLatestVersionFormRules,
+  assertFeatureFlagEnabled,
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -44,6 +45,9 @@ import {
   PurposeVersionStamps,
   RiskAnalysis,
   RiskAnalysisId,
+  RiskAnalysisReviewMode,
+  RiskAnalysisSigningState,
+  ReviewerWorkflow,
   Tenant,
   TenantId,
   TenantKind,
@@ -53,6 +57,7 @@ import {
   purposeEventToBinaryData,
   purposeVersionState,
   unsafeBrandId,
+  riskAnalysisReviewMode,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ClientId } from "pagopa-interop-models";
@@ -83,6 +88,8 @@ import {
   tenantNotFound,
   unableToDetermineTenantKind,
   unchangedDailyCalls,
+  reviewerWorkflowConflict,
+  multipleReviewersNotAllowed,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -108,6 +115,8 @@ import {
   toCreateEventWaitingForApprovalPurposeDeleted,
   toCreateEventWaitingForApprovalPurposeVersionDeleted,
   toCreateEventRiskAnalysisSignedDocumentGenerated,
+  toCreateEventPurposeRiskAnalysisWorkflowCreated,
+  toCreateEventPurposeRiskAnalysisAssigned,
 } from "../model/domain/toEvent.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
@@ -144,6 +153,7 @@ import {
   verifyRequesterIsConsumerOrDelegateConsumer,
   getUpdatedQuotas,
   assertRiskAnalysisTenantKindMatch,
+  assertRequesterIsConsumer,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -495,6 +505,67 @@ export function purposeServiceBuilder(
           versionId,
           correlationId,
         })
+      );
+
+      return {
+        data: updatedPurpose,
+        metadata: { version: event.newVersion },
+      };
+    },
+    async assignRiskAnalysisReviewer(
+      purposeId: PurposeId,
+      seed: {
+        reviewMode: RiskAnalysisReviewMode;
+        reviewerIds: string[];
+      },
+      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<WithMetadata<Purpose>> {
+      logger.info(`Assigning risk analysis reviewer to Purpose ${purposeId}`);
+
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertRequesterIsConsumer(purpose.data, authData);
+
+      if (purpose.data.reviewerWorkflow !== undefined) {
+        throw reviewerWorkflowConflict(purposeId);
+      }
+
+      const isReviewerWrites =
+        seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
+
+      if (seed.reviewerIds.length > 1) {
+        throw multipleReviewersNotAllowed(purposeId);
+      }
+
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: seed.reviewMode,
+        reviewerIds: seed.reviewerIds.map((id) => unsafeBrandId(id)),
+        signingState: isReviewerWrites
+          ? RiskAnalysisSigningState.Values.Assigned
+          : RiskAnalysisSigningState.Values.Draft,
+        sentToReviewerAt: isReviewerWrites ? new Date() : undefined,
+      };
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        reviewerWorkflow,
+        updatedAt: new Date(),
+      };
+
+      const event = await repository.createEvent(
+        isReviewerWrites
+          ? toCreateEventPurposeRiskAnalysisAssigned({
+              purpose: updatedPurpose,
+              version: purpose.metadata.version,
+              correlationId,
+            })
+          : toCreateEventPurposeRiskAnalysisWorkflowCreated({
+              purpose: updatedPurpose,
+              version: purpose.metadata.version,
+              correlationId,
+            })
       );
 
       return {

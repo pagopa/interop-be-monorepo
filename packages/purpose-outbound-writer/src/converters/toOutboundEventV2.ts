@@ -111,6 +111,8 @@ export function toOutboundEventV2(
     )
     .with(
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
+      { type: "PurposeRiskAnalysisWorkflowCreated" },
+      { type: "PurposeRiskAnalysisAssigned" },
       () => undefined
     )
     .with({ type: "PurposeCloned" }, (msg) => ({
