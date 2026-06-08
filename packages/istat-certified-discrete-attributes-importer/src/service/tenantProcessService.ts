@@ -126,7 +126,7 @@ export class TenantProcessService {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       logger.error(`Error on internalRevokeCertifiedAttribute: ${message}`);
-      throw err
+      throw err;
     }
   }
 }
