@@ -46,6 +46,7 @@ const errorCodes = {
   asyncExchangeBulkNotAllowedForSoap: "0036",
   tenantKindNotFound: "0037",
   asyncExchangeReceiveTemplateNotAllowed: "0038",
+  missingAsyncExchangeCallbackInterface: "0039",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -396,6 +397,17 @@ export function missingAsyncExchangeProperties(
     detail: `Async exchange properties are missing for version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
     code: "missingAsyncExchangeProperties",
     title: "Missing async exchange properties",
+  });
+}
+
+export function missingAsyncExchangeCallbackInterface(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eserviceTemplateId} version ${eserviceTemplateVersionId} can't be published because asyncExchangeCallbackInterface must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeCallbackInterface",
+    title: "Async exchange callback interface must be set before publication",
   });
 }
 
