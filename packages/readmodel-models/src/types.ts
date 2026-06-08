@@ -66,6 +66,7 @@ import {
   purposeVersionStampInReadmodelPurpose,
   agreementSignedContractInReadmodelAgreement,
   purposeVersionSignedDocumentInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
@@ -241,6 +242,9 @@ export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
 export type PurposeVersionStampSQL = InferSelectModel<
   typeof purposeVersionStampInReadmodelPurpose
 >;
+export type RiskAnalysisReviewerSQL = InferSelectModel<
+  typeof riskAnalysisReviewerInReadmodelPurpose
+>;
 export type PurposeItemsSQL = {
   purposeSQL: PurposeSQL;
   riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
@@ -249,6 +253,7 @@ export type PurposeItemsSQL = {
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
   versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
+  reviewersSQL: RiskAnalysisReviewerSQL[];
 };
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;
