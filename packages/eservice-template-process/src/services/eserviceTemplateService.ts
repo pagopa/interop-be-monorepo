@@ -76,6 +76,7 @@ import {
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
   missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import {
@@ -549,6 +550,15 @@ export function eserviceTemplateServiceBuilder(
       ) {
         if (eserviceTemplateVersion.asyncExchangeProperties === undefined) {
           throw missingAsyncExchangeProperties(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
+
+        if (
+          eserviceTemplateVersion.asyncExchangeCallbackInterface === undefined
+        ) {
+          throw missingAsyncExchangeCallbackInterface(
             eserviceTemplateId,
             eserviceTemplateVersionId
           );
