@@ -10202,6 +10202,69 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposes/{purposeId}/riskAnalysis/assign:
+    parameters:
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposes
+      operationId: assignRiskAnalysisReviewer
+      description: Assign reviewer mode and reviewers to the purpose risk analysis
+      summary: Assign risk analysis reviewer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisAssignmentSeed"
+        required: true
+      responses:
+        "204":
+          description: No Content
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions/{versionId}/archive:
     parameters:
       - name: purposeId
@@ -31389,6 +31452,22 @@ components:
         - reviewMode
         - reviewerIds
         - signingState
+    RiskAnalysisAssignmentSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+        - reviewMode
+        - reviewerIds
     ProblemError:
       properties:
         code:

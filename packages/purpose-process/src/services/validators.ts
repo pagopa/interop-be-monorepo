@@ -135,7 +135,7 @@ export const assertConsistentFreeOfCharge = (
   }
 };
 
-const assertRequesterIsConsumer = (
+export const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
   authData: Pick<UIAuthData, "organizationId">
 ): void => {
