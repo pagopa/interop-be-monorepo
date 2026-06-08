@@ -72,6 +72,7 @@ import {
   toCreateEventTenantCertifiedDiscreteAttributeUpdated,
   toCreateEventTenantRemoteIdAssigned,
   toCreateEventMaintenanceTenantRemoteIdDeleted,
+  toCreateEventTenantCertifiedDiscreteAttributeAssigned,
 } from "../model/domain/toEvent.js";
 import {
   attributeAlreadyRevoked,
@@ -1303,7 +1304,7 @@ export function tenantServiceBuilder(
             value,
             correlationId
           )
-        : toCreateEventTenantCertifiedAttributeAssigned(
+        : toCreateEventTenantCertifiedDiscreteAttributeAssigned(
             tenantToModify.metadata.version,
             tenantWithNewAttribute,
             attributeToAssign.id,

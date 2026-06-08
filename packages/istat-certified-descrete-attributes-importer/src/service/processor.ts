@@ -221,7 +221,7 @@ async function revokeMissingMunicipalities(
   }
 }
 
-export async function ensureAttributeExists(
+async function ensureAttributeExists(
   readmodel: ReadModelServiceSQL,
   attributeProcess: AttributeProcessService,
   refreshableToken: RefreshableInteropToken,

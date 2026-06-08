@@ -3,12 +3,10 @@ import {
   Attribute,
   AttributeId,
   Tenant,
-  TenantId,
   WithMetadata,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { inject, vi } from "vitest";
-import { match } from "ts-pattern";
 import { InteropContext } from "../src/model/interopContextModel.js";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import {
@@ -68,8 +66,7 @@ export const csvFileContent = `"Popolazione residente per età e sesso al 1° ge
 "048017";"Bologna";5;500;480;980
 "048017";"Bologna";999;180000;210000;390000`;
 
-export const ATTRIBUTE_ISTAT_POPULATION_ID =
-  "c1d64ee0-fda9-48e2-84f8-1b62f1292b99";
+const ATTRIBUTE_ISTAT_POPULATION_ID = "c1d64ee0-fda9-48e2-84f8-1b62f1292b99";
 
 export const downloadCSVMock = vi
   .fn()
@@ -92,7 +89,7 @@ export const internalRevokeCertifiedDiscreteAttributeMock = (
   _context: InteropContext
 ): Promise<{ version: number } | undefined> => Promise.resolve({ version: 1 });
 
-export const persistentTenant: Tenant = {
+const persistentTenant: Tenant = {
   id: unsafeBrandId("091fbea1-0c8e-411b-988f-5098b6a33ba7"),
   externalId: { origin: "ISTAT", value: "001001" },
   attributes: [],
@@ -113,16 +110,6 @@ export const persistentAttribute: Attribute = {
     "Attributo certificato discreto indicante la popolazione comunale",
 };
 
-export const getAttributeByExternalIdMock = (
-  origin: string,
-  code: string
-): Promise<Attribute | undefined> =>
-  match(code)
-    .with(ISTAT_ATTRIBUTE_SEED.code, () =>
-      Promise.resolve({ ...persistentAttribute, origin, code })
-    )
-    .otherwise(() => Promise.resolve(undefined));
-
 export const getTenantsWithDiscreteAttributeMock = (): Promise<
   WithMetadata<Tenant>[]
 > =>
@@ -132,11 +119,3 @@ export const getTenantsWithDiscreteAttributeMock = (): Promise<
       metadata: { version: 1 },
     },
   ]);
-
-export const getTenantByIdWithMetadataMock = (
-  tenantId: TenantId
-): Promise<WithMetadata<Tenant>> =>
-  Promise.resolve({
-    data: { ...persistentTenant, id: tenantId },
-    metadata: { version: 1 },
-  });

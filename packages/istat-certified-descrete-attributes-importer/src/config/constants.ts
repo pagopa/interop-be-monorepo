@@ -1,9 +1,9 @@
 import crypto from "crypto";
-export const ISTAT_POPULATION_ATTRIBUTE_NAME = "popolazione_residente";
+const ISTAT_POPULATION_ATTRIBUTE_NAME = "popolazione_residente";
 export const SUMMARY_AGE_CODE = 999;
-export const ISTAT_CERTIFIER_ORIGIN = "ISTAT";
+const ISTAT_CERTIFIER_ORIGIN = "ISTAT";
 
-export function generateCodeFromName(name: string): string {
+function generateCodeFromName(name: string): string {
   return crypto.createHash("sha256").update(name).digest("hex");
 }
 
