@@ -71,6 +71,7 @@ export const publishEServiceTemplateVersionErrorMapper = (
       "riskAnalysisValidationFailed",
       "missingPersonalDataFlag",
       "missingAsyncExchangeProperties",
+      "missingAsyncExchangeCallbackInterface",
       "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
