@@ -47,7 +47,7 @@ export const addOneTenant = async (tenant: Tenant): Promise<void> => {
   await upsertTenant(readModelDB, tenant, 0);
 };
 
-export const csvFileContent = `"Popolazione residente per età e sesso al 1° gennaio 2026 (stima)"
+const csvFileContent = `"Popolazione residente per età e sesso al 1° gennaio 2026 (stima)"
 "Codice comune";"Comune";"Età";"Totale maschi";"Totale femmine";"Totale"
 "028001";"Abano Terme";0;60;53;113
 "028001";"Abano Terme";1;61;53;114

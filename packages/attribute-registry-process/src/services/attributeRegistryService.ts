@@ -353,7 +353,7 @@ export function attributeRegistryServiceBuilder(
     },
 
     async internalCreateCertifiedDiscreteAttribute(
-      apiInternalCertifiedDiscreteAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
+      apiInternalCertifiedDiscreteAttributeSeed: attributeRegistryApi.InternalCertifiedDiscreteAttributeSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<Attribute> {
       logger.info(
