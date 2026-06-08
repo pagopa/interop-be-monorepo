@@ -217,26 +217,17 @@ export function purposeServiceBuilder(
     // eslint-disable-next-line functional/no-let
     let rulesetExpiration: Date | undefined;
 
-    // for purpose towards eservice in RECEIVE mode, the ruleset is based on the producer kind
-    const isReversePurpose =
-      eservice.mode === catalogApi.EServiceMode.Values.RECEIVE;
     if (!skipRulesetRetrieval && purpose.riskAnalysisForm?.version) {
       if (
         // no delegation, requester is the consumer
-        delegation === undefined &&
-        authData.organizationId === purpose.consumerId
-      ) {
-        rulesetExpiration = getRulesetExpiration(
-          isReversePurpose ? producer.kind : consumer.kind,
-          purpose.riskAnalysisForm.version
-        );
-      } else if (
+        (delegation === undefined &&
+          authData.organizationId === purpose.consumerId) ||
         // delegated consumer
-        delegation !== undefined &&
-        authData.organizationId === delegation?.delegate.id
+        (delegation !== undefined &&
+          authData.organizationId === delegation?.delegate.id)
       ) {
         rulesetExpiration = getRulesetExpiration(
-          isReversePurpose ? producer.kind : delegation.delegator.kind,
+          purpose.riskAnalysisForm.tenantKind,
           purpose.riskAnalysisForm.version
         );
       } else {
