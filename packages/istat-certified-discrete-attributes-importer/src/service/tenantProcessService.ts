@@ -54,11 +54,50 @@ export class TenantProcessService {
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       logger.error(
-        `Error on internalAssignCertifiedAttribute. Reason: ${message}`
+        `Error on internalAssignDiscreteCertifiedAttribute. Reason: ${message}`
       );
       throw Error(
-        `Unexpected response from internalAssignCertifiedAttribute. Reason: ${message}`
+        `Unexpected response from internalAssignDiscreteCertifiedAttribute. Reason: ${message}`
       );
+    }
+  }
+
+  public async internalUpdateCertifiedDiscreteAttribute(
+    tOrigin: string,
+    tRemoteId: string,
+    aOrigin: string,
+    aExternalId: string,
+    discreteValue: number,
+    context: InteropContext,
+    logger: Logger
+  ): Promise<MetadataVersion | undefined> {
+    try {
+      const response =
+        await this.client.internalUpdateCertifiedDiscreteAttribute(
+          { value: discreteValue },
+          {
+            params: {
+              tOrigin,
+              tRemoteId,
+              aOrigin,
+              aExternalId,
+            },
+            headers: {
+              "X-Correlation-Id": context.correlationId,
+              Authorization: `Bearer ${context.bearerToken}`,
+            },
+          }
+        );
+
+      return response.metadata;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+
+      logger.error(
+        `Error on internalUpdateCertifiedDiscreteAttribute. Reason: ${message}`
+      );
+
+      throw err;
     }
   }
 

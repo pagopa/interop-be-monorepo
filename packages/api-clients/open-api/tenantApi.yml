@@ -222,6 +222,40 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+    put:
+      tags:
+        - internal
+      operationId: internalUpdateCertifiedDiscreteAttribute
+      description: Updates an already assigned Certified discrete attribute with a new numeric value
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                value:
+                  type: integer
+                  format: int32
+                  description: The new discrete numeric value to assign (e.g., the updated total population)
+              required:
+                - value
+      responses:
+        "204":
+          description: Updated Tenant
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant or Attribute Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     delete:
       tags:
         - internal

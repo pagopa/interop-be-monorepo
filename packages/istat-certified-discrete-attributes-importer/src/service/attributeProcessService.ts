@@ -23,12 +23,15 @@ export class AttributeProcessService {
       code,
     };
 
-    const response = await this.client.createInternalCertifiedAttribute(seed, {
-      headers: {
-        "X-Correlation-Id": context.correlationId,
-        Authorization: `Bearer ${context.bearerToken}`,
-      },
-    });
+    const response = await this.client.createInternalCertifiedDiscreteAttribute(
+      seed,
+      {
+        headers: {
+          "X-Correlation-Id": context.correlationId,
+          Authorization: `Bearer ${context.bearerToken}`,
+        },
+      }
+    );
 
     return {
       id: unsafeBrandId(response.id),

@@ -27,6 +27,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   const tenantProcessMock = {
     internalAssignCertifiedDiscreteAttribute: vi.fn(),
     internalRevokeCertifiedDiscreteAttribute: vi.fn(),
+    internalUpdateCertifiedDiscreteAttribute: vi.fn(),
   };
 
   const attributeProcessMock = {
@@ -46,6 +47,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   const refreshableTokenMock = {
     get: vi.fn().mockResolvedValue({ serialized: "mock-token" }),
   } as any;
+
+  const csvChunkSize = 100;
 
   afterEach(() => {
     vi.clearAllMocks();
@@ -102,6 +105,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       attributeProcessMock as any,
       refreshableTokenMock,
       { defaultPollingMaxRetries: 3, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
       genericLogger,
       generateId()
     );
@@ -166,12 +170,12 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   });
   it("should exclusively process rows where Età is 999 and ignore specific ages", async () => {
     const specificAgesCsv = `"Popolazione residente per età e sesso al 1° gennaio 2026 (stima)"
-"Codice comune";"Comune";"Età";"Totale maschi";"Totale femmine";"Totale"
-"001001";"Trapani";0;10;10;20
-"001001";"Trapani";1;15;15;30
-"001001";"Trapani";999;50;50;100
-"001002";"Roma";5;5;5;10
-"001002";"Roma";999;200;200;400`;
+  "Codice comune";"Comune";"Età";"Totale maschi";"Totale femmine";"Totale"
+  "001001";"Trapani";0;10;10;20
+  "001001";"Trapani";1;15;15;30
+  "001001";"Trapani";999;50;50;100
+  "001002";"Roma";5;5;5;10
+  "001002";"Roma";999;200;200;400`;
 
     istatClientMock.downloadNationalDataset.mockResolvedValueOnce(
       specificAgesCsv
@@ -192,6 +196,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       attributeProcessMock as any,
       refreshableTokenMock,
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
       genericLogger,
       generateId()
     );
@@ -243,6 +248,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       attributeProcessMock as any,
       refreshableTokenMock,
       { defaultPollingMaxRetries: 2, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
       genericLogger,
       generateId()
     );
@@ -285,6 +291,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       attributeProcessMock as any,
       refreshableTokenMock,
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
       genericLogger,
       generateId()
     );
@@ -292,6 +299,59 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     expect(
       tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledTimes(1200);
+  });
+  it("should attempt an update if an assignment conflict (409) occurs", async () => {
+    readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
+      id: generateId(),
+    });
+    readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
+
+    tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+      .mockRejectedValueOnce({
+        status: 409,
+        code: "certifiedDiscreteAttributeAlreadyAssigned",
+      })
+      .mockResolvedValueOnce({ version: 1 });
+
+    tenantProcessMock.internalUpdateCertifiedDiscreteAttribute.mockResolvedValue(
+      {
+        version: 1,
+      }
+    );
+
+    const csvContent = `"Popolazione residente per età e sesso"
+    "Codice comune";"Comune";"Età";"Totale maschi";"Totale femmine";"Totale"
+    "001001";"Trapani";999;50;50;100
+    "001002";"Roma";999;200;200;400`;
+    istatClientMock.downloadNationalDataset.mockResolvedValueOnce(csvContent);
+
+    await importAttributes(
+      istatClientMock as any,
+      readModelQueriesMock as any,
+      tenantProcessMock as any,
+      attributeProcessMock as any,
+      refreshableTokenMock,
+      { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
+      genericLogger,
+      generateId()
+    );
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).toHaveBeenCalled();
+
+    expect(
+      tenantProcessMock.internalUpdateCertifiedDiscreteAttribute
+    ).toHaveBeenCalledWith(
+      ISTAT_ATTRIBUTE_SEED.origin,
+      "001001",
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code,
+      100,
+      expect.anything(),
+      expect.anything()
+    );
   });
   it("should revoke attribute for municipalities not in CSV", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
@@ -323,6 +383,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       attributeProcessMock as any,
       refreshableTokenMock,
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
       genericLogger,
       generateId()
     );
@@ -350,6 +411,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
         attributeProcessMock as any,
         refreshableTokenMock,
         { defaultPollingMaxRetries: 2, defaultPollingRetryDelay: 1 },
+        csvChunkSize,
         genericLogger,
         generateId()
       )
@@ -377,6 +439,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       attributeProcessMock as any,
       refreshableTokenMock,
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
       genericLogger,
       generateId()
     );
@@ -416,6 +479,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       attributeProcessMock as any,
       refreshableTokenMock,
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
       genericLogger,
       generateId()
     );
@@ -470,6 +534,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       attributeProcessMock as any,
       refreshableTokenMock,
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
       genericLogger,
       generateId()
     );

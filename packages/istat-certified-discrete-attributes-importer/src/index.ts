@@ -59,6 +59,7 @@ try {
         defaultPollingMaxRetries: config.defaultPollingMaxRetries,
         defaultPollingRetryDelay: config.defaultPollingRetryDelay,
       },
+      config.csvChunkSize,
       loggerInstance,
       correlationId
     );

@@ -16,7 +16,7 @@ import {
   tenantCertifiedAttributeInReadmodelTenant,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { IvassReadModelTenant } from "../model/tenant.js";
+import { IstatReadModelTenant } from "../model/istatModel.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelQueriesBuilderSQL(
@@ -34,7 +34,7 @@ export function readModelQueriesBuilderSQL(
       );
     },
 
-    async getTenantById(tenantId: string): Promise<IvassReadModelTenant> {
+    async getTenantById(tenantId: string): Promise<IstatReadModelTenant> {
       const tenantWithMetadata = await tenantReadModelService.getTenantById(
         unsafeBrandId<TenantId>(tenantId)
       );

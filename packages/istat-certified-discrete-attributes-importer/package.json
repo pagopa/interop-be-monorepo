@@ -1,9 +1,9 @@
 {
-  "name": "pagopa-interop-istat-certified-descrete-attributes-importer",
+  "name": "pagopa-interop-istat-certified-discrete-attributes-importer",
   "private": true,
   "version": "1.0.0",
   "license": "MPL-2.0",
-  "description": "PagoPA Interoperability istat-certified-descrete-attributes-importer job",
+  "description": "PagoPA Interoperability istat-certified-discrete-attributes-importer job",
   "main": "dist",
   "type": "module",
   "scripts": {

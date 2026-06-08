@@ -2,7 +2,7 @@ import { parse } from "csv";
 import {
   Logger,
   RefreshableInteropToken,
-  delay,
+  retry,
   waitForReadModelMetadataVersion,
 } from "pagopa-interop-commons";
 import { CorrelationId, Tenant, WithMetadata } from "pagopa-interop-models";
@@ -14,7 +14,6 @@ import { AttributeProcessService } from "./attributeProcessService.js";
 import { ISTAT_ATTRIBUTE_SEED, SUMMARY_AGE_CODE } from "../config/constants.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { Readable } from "stream";
-import { config } from "../config/config.js";
 
 type PollingConfig = {
   defaultPollingMaxRetries: number;
@@ -36,11 +35,18 @@ export async function importAttributes(
   attributeProcess: AttributeProcessService,
   refreshableToken: RefreshableInteropToken,
   pollingConfig: PollingConfig,
+  csvChunkSize: number,
   logger: Logger,
   correlationId: CorrelationId
 ): Promise<void> {
   logger.info("ISTAT Certified discrete attributes importer started");
-  const stats: JobStats = { processed: 0, created: 0, revoked: 0, errors: 0 };
+  const stats: JobStats = {
+    processed: 0,
+    created: 0,
+    updated: 0,
+    revoked: 0,
+    errors: 0,
+  };
 
   await ensureAttributeExists(
     readModel,
@@ -58,9 +64,8 @@ export async function importAttributes(
   logger.info(
     `Found ${populationByMunicipality.size} municipalities on ISTAT file.`
   );
-
   const entries = Array.from(populationByMunicipality.entries());
-  const chunks = sliceIntoChunks(entries, config.csvChunkSize);
+  const chunks = sliceIntoChunks(entries, csvChunkSize);
 
   for (const chunk of chunks) {
     await Promise.all(
@@ -73,7 +78,7 @@ export async function importAttributes(
             bearerToken: token.serialized,
           };
 
-          const metadata =
+          try {
             await tenantProcess.internalAssignCertifiedDiscreteAttribute(
               ISTAT_ATTRIBUTE_SEED.origin,
               municipalityCode,
@@ -83,13 +88,32 @@ export async function importAttributes(
               context,
               logger
             );
-
-          if (metadata) {
             stats.created++;
+          } catch (error: unknown) {
+            const isConflict =
+              typeof error === "object" &&
+              error !== null &&
+              "status" in error &&
+              error.status === 409;
+
+            if (isConflict) {
+              await tenantProcess.internalUpdateCertifiedDiscreteAttribute(
+                ISTAT_ATTRIBUTE_SEED.origin,
+                municipalityCode,
+                ISTAT_ATTRIBUTE_SEED.origin,
+                ISTAT_ATTRIBUTE_SEED.code,
+                totalCount,
+                context,
+                logger
+              );
+              stats.updated++;
+            } else {
+              throw error;
+            }
           }
         } catch (error) {
           logger.error(
-            `Error assign certified attribute for municipality ${municipalityCode}: ${error}`
+            `Error processing municipality ${municipalityCode}: ${error}`
           );
           stats.errors++;
         }
@@ -103,13 +127,14 @@ export async function importAttributes(
     refreshableToken,
     populationByMunicipality,
     pollingConfig,
+    csvChunkSize,
     stats,
     logger,
     correlationId
   );
 
   logger.info(
-    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Error: ${stats.errors}`
+    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Revoked: ${stats.revoked}, Error: ${stats.errors}`
   );
 }
 
@@ -149,6 +174,7 @@ async function revokeMissingMunicipalities(
   refreshableToken: RefreshableInteropToken,
   populationByMunicipality: Map<string, number>,
   pollingConfig: PollingConfig,
+  csvChunkSize: number,
   stats: JobStats,
   logger: Logger,
   correlationId: CorrelationId
@@ -177,7 +203,7 @@ async function revokeMissingMunicipalities(
 
   const chunks = sliceIntoChunks<WithMetadata<Tenant>>(
     tenantsToRevoke,
-    config.csvChunkSize
+    csvChunkSize
   );
 
   for (const chunk of chunks) {
@@ -255,22 +281,20 @@ async function ensureAttributeExists(
   );
 
   logger.info("Polling Read Model for new attribute...");
-  for (let i = 0; i < pollingConfig.defaultPollingMaxRetries; i++) {
-    attr = await readmodel.getAttributeByExternalId(
-      ISTAT_ATTRIBUTE_SEED.origin,
-      ISTAT_ATTRIBUTE_SEED.code
-    );
-
-    if (attr) {
-      logger.info(`Attribute found after ${i + 1} retries.`);
-      return;
+  attr = await retry(
+    async () => {
+      const a = await readmodel.getAttributeByExternalId(
+        ISTAT_ATTRIBUTE_SEED.origin,
+        ISTAT_ATTRIBUTE_SEED.code
+      );
+      if (!a) throw new Error("Attribute not found");
+      return a;
+    },
+    {
+      retries: pollingConfig.defaultPollingMaxRetries,
+      delay: pollingConfig.defaultPollingRetryDelay,
     }
-
-    logger.info(`Retry ${i + 1}/${pollingConfig.defaultPollingMaxRetries}...`);
-    await delay(pollingConfig.defaultPollingRetryDelay);
-  }
-
-  throw new Error(
-    `Timeout: Attribute ${ISTAT_ATTRIBUTE_SEED.code} not found after polling.`
   );
+
+  logger.info(`Attribute ${attr.data.id} found after polling.`);
 }

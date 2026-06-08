@@ -1,7 +1,6 @@
 import {
   APIEndpoint,
   FeatureFlagAttributeCertifiedDiscreteConfig,
-  FileManagerConfig,
   LoggerConfig,
   ReadModelSQLDbConfig,
   TokenGenerationConfig,
@@ -9,9 +8,8 @@ import {
 import { z } from "zod";
 
 const IstatCertifiedDiscreteAttributesImporterConfig = LoggerConfig.and(
-  FileManagerConfig
+  ReadModelSQLDbConfig
 )
-  .and(ReadModelSQLDbConfig)
   .and(TokenGenerationConfig)
   .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(

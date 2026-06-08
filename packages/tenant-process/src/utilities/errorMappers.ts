@@ -307,6 +307,18 @@ export const internalAddCertifiedDiscreteAttributeErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const internalUpdateCertifiedDiscreteAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "attributeNotFoundInTenant",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const internalRevokeCertifiedDiscreteAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -314,6 +326,7 @@ export const internalRevokeCertifiedDiscreteAttributeErrorMapper = (
     .with(
       "tenantNotFound",
       "attributeNotFoundInTenant",
+      "attributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

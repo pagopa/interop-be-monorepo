@@ -57,9 +57,6 @@ async function handleTenantEventV2(
           "MaintenanceTenantUpdated",
           "TenantDelegatedConsumerFeatureAdded",
           "TenantDelegatedConsumerFeatureRemoved",
-          "TenantCertifiedDiscreteAttributeAssigned",
-          "TenantCertifiedDiscreteAttributeRevoked",
-          "TenantCertifiedDiscreteAttributeUpdated",
           "TenantRemoteIdAssigned"
         ),
       },

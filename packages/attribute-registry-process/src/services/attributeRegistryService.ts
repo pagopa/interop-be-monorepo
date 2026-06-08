@@ -377,7 +377,7 @@ export function attributeRegistryServiceBuilder(
 
       const newInternalCertifiedDiscreteAttribute: Attribute = {
         id: generateId(),
-        kind: attributeKind.certified,
+        kind: attributeKind.certifiedDiscrete,
         name: apiInternalCertifiedDiscreteAttributeSeed.name,
         description: apiInternalCertifiedDiscreteAttributeSeed.description,
         creationTime: new Date(),

@@ -96,6 +96,7 @@ import {
   delegationNotFound,
   operationRestrictedToDelegate,
   verifiedAttributeSelfVerificationNotAllowed,
+  certifiedDiscreteAttributeAlreadyAssigned,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import { fromApiTenantFeature } from "../model/domain/apiConverter.js";
@@ -1231,7 +1232,7 @@ export function tenantServiceBuilder(
       { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<{ version: number }> {
       logger.info(
-        `Assigning/Updating certified discrete attribute (${attributeOrigin}/${attributeExternalId}) with value ${value} to tenant (${tenantOrigin}/${tenantRemoteId})`
+        `Assigning certified discrete attribute (${attributeOrigin}/${attributeExternalId}) with value ${value} to tenant (${tenantOrigin}/${tenantRemoteId})`
       );
 
       const tenantToModify = await retrieveTenantByRemoteId({
@@ -1252,23 +1253,23 @@ export function tenantServiceBuilder(
           (!("revocationTimestamp" in a) || !a.revocationTimestamp)
       );
 
-      const newAttributes = isAlreadyAssigned
-        ? tenantToModify.data.attributes.map((a) =>
-            a.id === attributeToAssign.id &&
-            (!("revocationTimestamp" in a) || !a.revocationTimestamp)
-              ? { ...a, discreteValue: value }
-              : a
-          )
-        : [
-            ...tenantToModify.data.attributes,
-            {
-              id: attributeToAssign.id,
-              type: tenantAttributeType.CERTIFIED_DISCRETE,
-              assignmentTimestamp: new Date(),
-              revocationTimestamp: undefined,
-              discreteValue: value,
-            },
-          ];
+      if (isAlreadyAssigned) {
+        throw certifiedDiscreteAttributeAlreadyAssigned(
+          attributeToAssign.id,
+          tenantToModify.data.id
+        );
+      }
+
+      const newAttributes = [
+        ...tenantToModify.data.attributes,
+        {
+          id: attributeToAssign.id,
+          type: tenantAttributeType.CERTIFIED_DISCRETE,
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: undefined,
+          discreteValue: value,
+        },
+      ];
 
       const tenantWithNewAttribute: Tenant = {
         ...tenantToModify.data,
@@ -1276,44 +1277,14 @@ export function tenantServiceBuilder(
         updatedAt: new Date(),
       };
 
-      const previousAttribute = tenantToModify.data.attributes.find(
-        (attr) => attr.id === attributeToAssign.id
-      );
-
-      const previousValue =
-        previousAttribute &&
-        previousAttribute.type === "PersistentCertifiedDiscreteAttribute"
-          ? previousAttribute.discreteValue
-          : 0;
-
-      if (isAlreadyAssigned && previousValue === value) {
-        logger.info(
-          `Attribute ${attributeToAssign.id} already assigned to tenant ${tenantToModify.data.id} with the same value (${value}). Skipping update.`
+      const primaryEvent =
+        toCreateEventTenantCertifiedDiscreteAttributeAssigned(
+          tenantToModify.metadata.version,
+          tenantWithNewAttribute,
+          attributeToAssign.id,
+          correlationId
         );
-        return { version: tenantToModify.metadata.version };
-      }
 
-      const primaryEvent = isAlreadyAssigned
-        ? toCreateEventTenantCertifiedDiscreteAttributeUpdated(
-            tenantToModify.metadata.version,
-            tenantWithNewAttribute,
-            attributeToAssign.id,
-            previousValue,
-            value,
-            correlationId
-          )
-        : toCreateEventTenantCertifiedDiscreteAttributeAssigned(
-            tenantToModify.metadata.version,
-            tenantWithNewAttribute,
-            attributeToAssign.id,
-            correlationId
-          );
-
-      logger.info(
-        isAlreadyAssigned
-          ? `Attribute already active. Updating discrete attribute ${attributeToAssign.id} from ${previousValue} to ${value}`
-          : `Attribute not active. Assigning with discrete attribute ${attributeToAssign.id} with value ${value}`
-      );
       const tenantKind = await getTenantKindLoadingCertifiedAttributes(
         readModelService,
         tenantWithNewAttribute.attributes,
@@ -1343,6 +1314,125 @@ export function tenantServiceBuilder(
         };
       } else {
         const event = await repository.createEvent(primaryEvent);
+        return { version: event.newVersion };
+      }
+    },
+
+    async internalUpdateCertifiedDiscreteAttribute(
+      {
+        tenantOrigin,
+        tenantRemoteId,
+        attributeOrigin,
+        attributeExternalId,
+        value,
+      }: {
+        tenantOrigin: string;
+        tenantRemoteId: string;
+        attributeOrigin: string;
+        attributeExternalId: string;
+        value: number;
+      },
+      { logger, correlationId }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<{ version: number }> {
+      logger.info(
+        `Updating certified discrete attribute (${attributeOrigin}/${attributeExternalId}) to value ${value} for tenant (${tenantOrigin}/${tenantRemoteId})`
+      );
+
+      const tenantToModify = await retrieveTenantByRemoteId({
+        tenantOrigin,
+        tenantRemoteId,
+        readModelService,
+      });
+
+      const attributeToUpdate = await retrieveCertifiedAttribute({
+        attributeOrigin,
+        attributeExternalId,
+        readModelService,
+      });
+
+      const existingAttribute = tenantToModify.data.attributes.find(
+        (a) =>
+          a.id === attributeToUpdate.id &&
+          (!("revocationTimestamp" in a) || !a.revocationTimestamp)
+      );
+
+      if (
+        !existingAttribute ||
+        existingAttribute.type !== tenantAttributeType.CERTIFIED_DISCRETE
+      ) {
+        throw attributeNotFoundInTenant(
+          attributeToUpdate.id,
+          tenantToModify.data.id
+        );
+      }
+
+      const previousValue = existingAttribute.discreteValue ?? 0;
+
+      if (!existingAttribute) {
+        throw attributeNotFoundInTenant(
+          attributeToUpdate.id,
+          tenantToModify.data.id
+        );
+      }
+
+      if (previousValue === value) {
+        logger.info(
+          `Attribute ${attributeToUpdate.id} already assigned to tenant ${tenantToModify.data.id} with the same value (${value}). Skipping update.`
+        );
+        return { version: tenantToModify.metadata.version };
+      }
+
+      const newAttributes = tenantToModify.data.attributes.map((a) =>
+        a.id === attributeToUpdate.id &&
+        (!("revocationTimestamp" in a) || !a.revocationTimestamp)
+          ? { ...a, discreteValue: value }
+          : a
+      );
+
+      const tenantWithUpdatedAttribute: Tenant = {
+        ...tenantToModify.data,
+        attributes: newAttributes,
+        updatedAt: new Date(),
+      };
+
+      const updateEvent = toCreateEventTenantCertifiedDiscreteAttributeUpdated(
+        tenantToModify.metadata.version,
+        tenantWithUpdatedAttribute,
+        attributeToUpdate.id,
+        previousValue,
+        value,
+        correlationId
+      );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithUpdatedAttribute.attributes,
+        tenantWithUpdatedAttribute.externalId,
+        tenantWithUpdatedAttribute.selfcareInstitutionType
+      );
+
+      if (tenantWithUpdatedAttribute.kind !== tenantKind) {
+        const updatedTenant: Tenant = {
+          ...tenantWithUpdatedAttribute,
+          kind: tenantKind,
+        };
+
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          tenantToModify.metadata.version + 1,
+          tenantToModify.data.kind,
+          updatedTenant,
+          correlationId
+        );
+
+        const createdEvents = await repository.createEvents([
+          updateEvent,
+          tenantKindUpdatedEvent,
+        ]);
+        return {
+          version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+        };
+      } else {
+        const event = await repository.createEvent(updateEvent);
         return { version: event.newVersion };
       }
     },
