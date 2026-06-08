@@ -105,6 +105,8 @@ const eservicesRouter = (
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     MAINTENANCE_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   eservicesRouter
@@ -119,6 +121,8 @@ const eservicesRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const {
@@ -232,6 +236,7 @@ const eservicesRouter = (
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           INTERNAL_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: eservice, metadata } =
@@ -370,6 +375,7 @@ const eservicesRouter = (
           SUPPORT_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const consumers = await catalogService.getEServiceConsumers(
@@ -413,6 +419,7 @@ const eservicesRouter = (
             SECURITY_ROLE,
             M2M_ROLE,
             M2M_ADMIN_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const { eServiceId, descriptorId, documentId } = req.params;
@@ -450,6 +457,7 @@ const eservicesRouter = (
             SECURITY_ROLE,
             M2M_ROLE,
             M2M_ADMIN_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const { eServiceId, descriptorId } = req.params;
