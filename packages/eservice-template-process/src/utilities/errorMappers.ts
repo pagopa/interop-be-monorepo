@@ -265,6 +265,7 @@ export const updateDraftTemplateVersionErrorMapper = (
       "notValidEServiceTemplateVersionState",
       "inconsistentDailyCalls",
       "attributeDuplicatedInGroup",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
