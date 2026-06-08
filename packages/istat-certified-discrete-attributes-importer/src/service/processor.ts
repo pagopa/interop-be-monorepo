@@ -133,7 +133,7 @@ export async function importAttributes(
   );
 
   logger.info(
-    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Revoked: ${stats.revoked}, Error: ${stats.errors}`
+    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Updated: ${stats.updated}, Revoked: ${stats.revoked}, Error: ${stats.errors}`
   );
 }
 
