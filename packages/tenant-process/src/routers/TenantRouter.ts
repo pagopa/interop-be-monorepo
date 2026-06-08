@@ -286,7 +286,7 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, VIEWER_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE]);
 
           const { tenantId, attributeId } = req.params;
           const tenant = await tenantService.updateTenantVerifiedAttribute(
