@@ -443,8 +443,8 @@ export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
     data: {
       attributeId,
       tenant: toTenantV2(updatedTenant),
-      previousValue: previousValue,
-      newValue: newValue,
+      previousValue,
+      newValue,
     },
   },
   correlationId,

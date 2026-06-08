@@ -1,6 +1,5 @@
 /* eslint-disable functional/immutable-data */
 import { describe, it, expect, beforeEach, Mock } from "vitest";
-import { match } from "ts-pattern";
 import {
   getMockContext,
   getMockTenant,
@@ -166,26 +165,14 @@ describe("handleVerifiedAttributeAssignedRevokedToAssignee", () => {
     async ({ eventType, attributeId }) => {
       mockGetNotificationRecipients.mockResolvedValue([]);
 
-      const notifications = await match(eventType)
-        .with("TenantVerifiedAttributeAssigned", () =>
-          handleVerifiedAttributeAssignedRevokedToAssignee(
-            toTenantV2(assignee),
-            attributeId,
-            logger,
-            readModelService,
-            eventType
-          )
-        )
-        .with("TenantVerifiedAttributeRevoked", () =>
-          handleVerifiedAttributeAssignedRevokedToAssignee(
-            toTenantV2(assignee),
-            attributeId,
-            logger,
-            readModelService,
-            eventType
-          )
-        )
-        .exhaustive();
+      const notifications =
+        await handleVerifiedAttributeAssignedRevokedToAssignee(
+          toTenantV2(assignee),
+          attributeId,
+          logger,
+          readModelService,
+          eventType
+        );
 
       expect(notifications).toEqual([]);
     }
@@ -258,26 +245,14 @@ describe("handleVerifiedAttributeAssignedRevokedToAssignee", () => {
 
       mockGetNotificationRecipients.mockResolvedValue(assigneeUsers);
 
-      const notifications = await match(eventType)
-        .with("TenantVerifiedAttributeAssigned", () =>
-          handleVerifiedAttributeAssignedRevokedToAssignee(
-            toTenantV2({ ...assignee, attributes: assigneeAttributes }),
-            attributeId,
-            logger,
-            readModelService,
-            eventType
-          )
-        )
-        .with("TenantVerifiedAttributeRevoked", () =>
-          handleVerifiedAttributeAssignedRevokedToAssignee(
-            toTenantV2({ ...assignee, attributes: assigneeAttributes }),
-            attributeId,
-            logger,
-            readModelService,
-            eventType
-          )
-        )
-        .exhaustive();
+      const notifications =
+        await handleVerifiedAttributeAssignedRevokedToAssignee(
+          toTenantV2({ ...assignee, attributes: assigneeAttributes }),
+          attributeId,
+          logger,
+          readModelService,
+          eventType
+        );
 
       expect(notifications).toHaveLength(assigneeUsers.length);
 
@@ -351,26 +326,14 @@ describe("handleVerifiedAttributeAssignedRevokedToAssignee", () => {
       ];
       mockGetNotificationRecipients.mockResolvedValue(users);
 
-      const notifications = await match(eventType)
-        .with("TenantVerifiedAttributeAssigned", () =>
-          handleVerifiedAttributeAssignedRevokedToAssignee(
-            toTenantV2({ ...assignee, attributes: assigneeAttributes }),
-            attributeId,
-            logger,
-            readModelService,
-            eventType
-          )
-        )
-        .with("TenantVerifiedAttributeRevoked", () =>
-          handleVerifiedAttributeAssignedRevokedToAssignee(
-            toTenantV2({ ...assignee, attributes: assigneeAttributes }),
-            attributeId,
-            logger,
-            readModelService,
-            eventType
-          )
-        )
-        .exhaustive();
+      const notifications =
+        await handleVerifiedAttributeAssignedRevokedToAssignee(
+          toTenantV2({ ...assignee, attributes: assigneeAttributes }),
+          attributeId,
+          logger,
+          readModelService,
+          eventType
+        );
 
       expect(notifications).toHaveLength(3);
 

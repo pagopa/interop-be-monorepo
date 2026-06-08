@@ -34,7 +34,6 @@ import {
 
 describe("handleTenantCertifiedAttributeUpdated", async () => {
   const targetTenantId = generateId<TenantId>();
-  const certifierTenantId = generateId<TenantId>();
   const certifierId = generateId();
   const attributeId = generateId<AttributeId>();
 
@@ -48,23 +47,12 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
     name: "Target Tenant",
     mails: [getMockTenantMail()],
   };
-  const certifierTenant: Tenant = {
-    ...getMockTenant(certifierTenantId),
-    name: "Certifier Tenant",
-    features: [
-      {
-        type: "PersistentCertifier",
-        certifierId,
-      },
-    ],
-  };
   const users = [getMockUser(targetTenantId), getMockUser(targetTenantId)];
 
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
     await addOneTenant(targetTenant);
-    await addOneTenant(certifierTenant);
     await addOneAttribute(attribute);
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
