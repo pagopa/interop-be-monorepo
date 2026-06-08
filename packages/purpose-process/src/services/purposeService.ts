@@ -100,7 +100,6 @@ import {
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotInSignedState,
-  riskAnalysisFormCannotBeUpdated,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
