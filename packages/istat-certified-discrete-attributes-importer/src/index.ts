@@ -43,12 +43,17 @@ const loggerInstance = logger({
   correlationId,
 });
 
+const processExit = async (exitCode: number) => {
+  await cleanup();
+  process.exit(exitCode);
+};
+
 try {
   if (!isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")) {
     loggerInstance.info(
       "Feature flag 'featureFlagAttributeCertifiedDiscrete' is disabled. Skipping ISTAT import execution."
     );
-    process.exit(0);
+    await processExit(0);
   } else {
     await importAttributes(
       istatClient,
@@ -64,11 +69,9 @@ try {
       loggerInstance,
       correlationId
     );
-    process.exit(0);
+    await processExit(0);
   }
 } catch (error) {
   loggerInstance.error(`Error during ISTAT import execution: ${error}`);
-  process.exit(1);
-} finally {
-  await cleanup();
+  await processExit(1);
 }
