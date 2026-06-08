@@ -4,7 +4,10 @@ import {
   fromTenantV2,
   missingKafkaMessageDataError,
   NewNotification,
+  Tenant,
+  tenantAttributeType,
   TenantV2,
+  VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
