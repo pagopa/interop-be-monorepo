@@ -202,6 +202,21 @@ export type FeatureFlagUseSignedDocumentConfig = z.infer<
   typeof FeatureFlagUseSignedDocumentConfig
 >;
 
+export const FeatureFlagNewOperatorsConfig = z
+  .object({
+    FEATURE_FLAG_NEW_OPERATORS: z
+      .enum(["true", "false"])
+      .default("false")
+      .transform((value) => value === "true")
+      .optional(),
+  })
+  .transform((c) => ({
+    featureFlagNewOperators: c.FEATURE_FLAG_NEW_OPERATORS ?? false,
+  }));
+export type FeatureFlagNewOperatorsConfig = z.infer<
+  typeof FeatureFlagNewOperatorsConfig
+>;
+
 type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagApplicationAuditStrictConfig &
   FeatureFlagImprovedProducerVerificationClaimsConfig &
@@ -213,7 +228,8 @@ type FeatureFlags = FeatureFlagAgreementApprovalPolicyUpdateConfig &
   FeatureFlagPurposesProcessContractBuilderConfig &
   FeatureFlagUseSignedDocumentConfig &
   FeatureFlagDelegationConstraintSkipConfig &
-  FeatureFlagTenantKindInRiskAnalysisConfig;
+  FeatureFlagTenantKindInRiskAnalysisConfig &
+  FeatureFlagNewOperatorsConfig;
 
 export type FeatureFlagKeys = keyof FeatureFlags & `featureFlag${string}`;
 
