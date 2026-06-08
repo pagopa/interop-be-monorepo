@@ -41,12 +41,12 @@ describe("scheduledNotificationScheduler integration", () => {
     );
     expect(inserted1).toBe(reminderDays.length * 2);
 
-    // Replay: same payload → no new rows
+    // Replay: same payload → no new rows (onConflictDoNothing)
     const inserted2 = await schedulerService.scheduleReminders(
       params,
       genericLogger
     );
-    expect(inserted2).toBe(reminderDays.length * 2);
+    expect(inserted2).toBe(0);
 
     const stored = await scheduledNotificationDB
       .select()
