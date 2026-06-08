@@ -15,9 +15,9 @@ import {
   fromTenantKindV2,
   toTenantV2,
   TenantCertifiedDiscreteAttributeAssignedV2,
+  TenantCertifiedDiscreteAttributeUpdatedV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { certifiedAttributeAlreadyAssigned } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,
   addOneTenant,
@@ -39,11 +39,18 @@ describe("internalAssignCertifiedDiscreteAttribute", async () => {
   });
 
   it("Should add the certified discrete attribute with value if the Tenant doesn't have it", async () => {
+    const tRemoteOrigin = "ISTAT";
+    const tRemoteId = "015146";
+
     const targetTenant: Tenant = {
       ...getMockTenant(),
       attributes: [],
       remoteIds: [
-        { origin: "ISTAT", value: "015146", assignmentTimestamp: new Date() },
+        {
+          origin: tRemoteOrigin,
+          value: tRemoteId,
+          assignmentTimestamp: new Date(),
+        },
       ],
     };
 
@@ -52,8 +59,8 @@ describe("internalAssignCertifiedDiscreteAttribute", async () => {
 
     await tenantService.internalAssignCertifiedDiscreteAttribute(
       {
-        tenantOrigin: targetTenant.externalId.origin,
-        tenantRemoteId: targetTenant.remoteIds![0].value,
+        tenantOrigin: tRemoteOrigin,
+        tenantRemoteId: tRemoteId,
         attributeOrigin: certifiedAttribute.origin!,
         attributeExternalId: certifiedAttribute.code!,
         value: mockPopulationValue,
@@ -85,56 +92,134 @@ describe("internalAssignCertifiedDiscreteAttribute", async () => {
         {
           id: unsafeBrandId(certifiedAttribute.id),
           type: tenantAttributeType.CERTIFIED_DISCRETE,
-          assignmentTimestamp: expect.any(Date),
+          assignmentTimestamp: new Date(),
           discreteValue: mockPopulationValue,
         },
       ],
       kind: fromTenantKindV2(writtenPayload.tenant!.kind!),
-      updatedAt: expect.any(Date),
+      updatedAt: new Date(),
     };
+
+    const expectedTenantV2 = toTenantV2(updatedTenant);
+
+    expectedTenantV2.updatedAt = writtenPayload.tenant!.updatedAt;
 
     expect(writtenPayload).toEqual({
       attributeId: certifiedAttribute.id,
-      tenant: toTenantV2(updatedTenant),
+      tenant: expectedTenantV2,
     });
   });
 
-  it("Should throw certifiedAttributeAlreadyAssigned if the discrete attribute was already assigned", async () => {
+  it("Should update the certified discrete attribute and emit an Updated event if it already exists with a different value", async () => {
+    const tRemoteOrigin = "ISTAT";
+    const tRemoteId = "015146";
+    const oldPopulationValue = 1000000;
+    const newPopulationValue = 1350000;
+
     const tenantAlreadyAssigned: Tenant = {
       ...getMockTenant(),
       remoteIds: [
-        { origin: "ISTAT", value: "015146", assignmentTimestamp: new Date() },
+        {
+          origin: tRemoteOrigin,
+          value: tRemoteId,
+          assignmentTimestamp: new Date(),
+        },
       ],
       attributes: [
         {
           id: certifiedAttribute.id,
-          type: tenantAttributeType.CERTIFIED,
+          type: tenantAttributeType.CERTIFIED_DISCRETE,
           assignmentTimestamp: new Date(),
+          discreteValue: oldPopulationValue,
+          revocationTimestamp: undefined,
         },
       ],
     };
+
     await addOneAttribute(certifiedAttribute);
     await addOneTenant(tenantAlreadyAssigned);
 
-    expect(
-      // CHIAMATA CORRETTA CON OGGETTO
-      tenantService.internalAssignCertifiedDiscreteAttribute(
-        {
-          tenantOrigin: tenantAlreadyAssigned.externalId.origin,
-          tenantRemoteId: tenantAlreadyAssigned.remoteIds![0].value,
-          attributeOrigin: certifiedAttribute.origin!,
-          attributeExternalId: certifiedAttribute.code!,
-          value: mockPopulationValue,
-        },
-        getMockContextInternal({})
-      )
-    ).rejects.toThrowError(
-      certifiedAttributeAlreadyAssigned(
-        unsafeBrandId(certifiedAttribute.id),
-        unsafeBrandId(tenantAlreadyAssigned.id)
-      )
+    await tenantService.internalAssignCertifiedDiscreteAttribute(
+      {
+        tenantOrigin: tRemoteOrigin,
+        tenantRemoteId: tRemoteId,
+        attributeOrigin: certifiedAttribute.origin!,
+        attributeExternalId: certifiedAttribute.code!,
+        value: newPopulationValue,
+      },
+      getMockContextInternal({})
     );
+
+    const writtenEvent = await readEventByStreamIdAndVersion(
+      tenantAlreadyAssigned.id,
+      1,
+      "tenant",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: tenantAlreadyAssigned.id,
+      version: "1",
+      type: "TenantCertifiedDiscreteAttributeUpdated",
+      event_version: 2,
+    });
+
+    const writtenPayload = protobufDecoder(
+      TenantCertifiedDiscreteAttributeUpdatedV2
+    ).parse(writtenEvent?.data);
+
+    expect(writtenPayload.previousValue).toBe(oldPopulationValue);
+    expect(writtenPayload.newValue).toBe(newPopulationValue);
+    expect(writtenPayload.attributeId).toBe(certifiedAttribute.id);
   });
 
-  // Qui puoi aggiungere i test per tenantNotFound e attributeNotFound seguendo la stessa logica ad oggetto
+  it("Should skip the update and return the current version if the attribute already exists with the exact same value", async () => {
+    const tRemoteOrigin = "ISTAT";
+    const tRemoteId = "015146";
+
+    const tenantAlreadyAssigned: Tenant = {
+      ...getMockTenant(),
+      remoteIds: [
+        {
+          origin: tRemoteOrigin,
+          value: tRemoteId,
+          assignmentTimestamp: new Date(),
+        },
+      ],
+      attributes: [
+        {
+          id: certifiedAttribute.id,
+          type: tenantAttributeType.CERTIFIED_DISCRETE,
+          assignmentTimestamp: new Date(),
+          discreteValue: mockPopulationValue,
+          revocationTimestamp: undefined,
+        },
+      ],
+    };
+
+    await addOneAttribute(certifiedAttribute);
+    await addOneTenant(tenantAlreadyAssigned);
+
+    const result = await tenantService.internalAssignCertifiedDiscreteAttribute(
+      {
+        tenantOrigin: tRemoteOrigin,
+        tenantRemoteId: tRemoteId,
+        attributeOrigin: certifiedAttribute.origin!,
+        attributeExternalId: certifiedAttribute.code!,
+        value: mockPopulationValue,
+      },
+      getMockContextInternal({})
+    );
+
+    expect(result.version).toBeDefined();
+
+    await expect(
+      readEventByStreamIdAndVersion(
+        tenantAlreadyAssigned.id,
+        1,
+        "tenant",
+        postgresDB
+      )
+    ).rejects.toThrow(/No data returned from the query/);
+  });
 });

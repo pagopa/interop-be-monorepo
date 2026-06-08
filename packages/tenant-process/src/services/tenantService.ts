@@ -1249,15 +1249,13 @@ export function tenantServiceBuilder(
       const isAlreadyAssigned = tenantToModify.data.attributes.some(
         (a) =>
           a.id === attributeToAssign.id &&
-          "revocationTimestamp" in a &&
-          !a.revocationTimestamp
+          (!("revocationTimestamp" in a) || !a.revocationTimestamp)
       );
 
       const newAttributes = isAlreadyAssigned
         ? tenantToModify.data.attributes.map((a) =>
             a.id === attributeToAssign.id &&
-            "revocationTimestamp" in a &&
-            !a.revocationTimestamp
+            (!("revocationTimestamp" in a) || !a.revocationTimestamp)
               ? { ...a, discreteValue: value }
               : a
           )
