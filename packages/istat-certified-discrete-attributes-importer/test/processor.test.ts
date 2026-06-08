@@ -181,7 +181,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       specificAgesCsv
     );
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
-      id: generateId(),
+      data: { id: generateId() },
+      metadata: { version: 1 },
     });
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
 
@@ -232,7 +233,10 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   it("should create attribute if missing and assign values", async () => {
     readModelQueriesMock.getAttributeByExternalId
       .mockResolvedValueOnce(undefined)
-      .mockResolvedValueOnce({ id: generateId() });
+      .mockResolvedValueOnce({
+        data: { id: generateId() },
+        metadata: { version: 1 },
+      });
 
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
       internalAssignCertifiedDiscreteAttributeMock
@@ -262,7 +266,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   });
   it("should process municipalities in chunks successfully", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
-      id: generateId(),
+      data: { id: generateId() },
+      metadata: { version: 1 },
     });
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
@@ -302,14 +307,23 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   });
   it("should attempt an update if an assignment conflict (409) occurs", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
-      id: generateId(),
+      data: { id: generateId() },
+      metadata: { version: 1 },
     });
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
+    const axiosError = new Error("Conflict") as any;
+    axiosError.isAxiosError = true;
+    axiosError.response = { status: 409 };
 
+    tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockRejectedValueOnce(
+      axiosError
+    );
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute
       .mockRejectedValueOnce({
-        status: 409,
-        code: "certifiedDiscreteAttributeAlreadyAssigned",
+        response: {
+          status: 409,
+          code: "certifiedDiscreteAttributeAlreadyAssigned",
+        },
       })
       .mockResolvedValueOnce({ version: 1 });
 
@@ -355,7 +369,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   });
   it("should revoke attribute for municipalities not in CSV", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
-      id: generateId(),
+      data: { id: generateId() },
+      metadata: { version: 1 },
     });
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
       internalAssignCertifiedDiscreteAttributeMock
@@ -424,7 +439,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
 
   it("should continue processing other municipalities if one assignment fails", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
-      id: generateId(),
+      data: { id: generateId() },
+      metadata: { version: 1 },
     });
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
 
@@ -451,7 +467,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
 
   it("should revoke a tenant if it possesses the attribute but lacks a valid ISTAT remoteId", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
-      id: generateId(),
+      data: { id: generateId() },
+      metadata: { version: 1 },
     });
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
       internalAssignCertifiedDiscreteAttributeMock
@@ -498,7 +515,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
 
   it("should continue revoking other tenants if one revocation fails", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
-      id: generateId(),
+      data: { id: generateId() },
+      metadata: { version: 1 },
     });
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
       internalAssignCertifiedDiscreteAttributeMock

@@ -14,6 +14,7 @@ import { AttributeProcessService } from "./attributeProcessService.js";
 import { ISTAT_ATTRIBUTE_SEED, SUMMARY_AGE_CODE } from "../config/constants.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { Readable } from "stream";
+import { isAxiosError } from "axios";
 
 type PollingConfig = {
   defaultPollingMaxRetries: number;
@@ -89,12 +90,10 @@ export async function importAttributes(
               logger
             );
             stats.created++;
-          } catch (error: unknown) {
+          } catch (error) {
+            console.log("ERROR", error);
             const isConflict =
-              typeof error === "object" &&
-              error !== null &&
-              "status" in error &&
-              error.status === 409;
+              isAxiosError(error) && error.response?.status === 409;
 
             if (isConflict) {
               await tenantProcess.internalUpdateCertifiedDiscreteAttribute(
@@ -295,6 +294,5 @@ async function ensureAttributeExists(
       delay: pollingConfig.defaultPollingRetryDelay,
     }
   );
-
   logger.info(`Attribute ${attr.data.id} found after polling.`);
 }

@@ -92,7 +92,6 @@ export class TenantProcessService {
       return response.metadata;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-
       logger.error(
         `Error on internalUpdateCertifiedDiscreteAttribute. Reason: ${message}`
       );

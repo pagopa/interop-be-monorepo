@@ -48,6 +48,7 @@ try {
     loggerInstance.info(
       "Feature flag 'featureFlagAttributeCertifiedDiscrete' is disabled. Skipping ISTAT import execution."
     );
+    process.exit(0);
   } else {
     await importAttributes(
       istatClient,
@@ -63,10 +64,11 @@ try {
       loggerInstance,
       correlationId
     );
+    process.exit(0);
   }
 } catch (error) {
   loggerInstance.error(`Error during ISTAT import execution: ${error}`);
-  throw error;
+  process.exit(1);
 } finally {
   await cleanup();
 }
