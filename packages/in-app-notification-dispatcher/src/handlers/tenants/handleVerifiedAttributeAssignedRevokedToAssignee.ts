@@ -1,9 +1,13 @@
 import {
   AttributeId,
+  Attribute,
   fromTenantV2,
   missingKafkaMessageDataError,
   NewNotification,
+  Tenant,
+  tenantAttributeType,
   TenantV2,
+  VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -13,13 +17,6 @@ import {
   retrieveTenant,
 } from "../handlerCommons.js";
 import { inAppTemplates } from "../../templates/inAppTemplates.js";
-
-import {
-  Attribute,
-  Tenant,
-  tenantAttributeType,
-  VerifiedTenantAttribute,
-} from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { verifiedAttributeNotFoundInTenant } from "../../models/errors.js";
 
