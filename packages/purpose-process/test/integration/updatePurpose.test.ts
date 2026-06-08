@@ -38,6 +38,9 @@ import {
   Agreement,
   DelegationId,
   PurposeTemplateId,
+  ReviewerWorkflow,
+  riskAnalysisSigningState,
+  riskAnalysisReviewMode,
 } from "pagopa-interop-models";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
@@ -56,6 +59,7 @@ import {
   purposeDelegationNotFound,
   invalidFreeOfChargeReason,
   purposeFromTemplateCannotBeModified,
+  riskAnalysisFormCannotBeUpdated,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -68,6 +72,7 @@ import {
   sortUpdatePurposeReturn,
 } from "../integrationUtils.js";
 import {
+  buildRiskAnalysisFormSeed,
   buildRiskAnalysisSeed,
   createUpdatedPurpose,
   createUpdatedReversePurpose,
@@ -1339,5 +1344,138 @@ describe("updatePurpose and updateReversePurpose", () => {
         purpose.delegationId
       )
     );
+  });
+  it.each([
+    riskAnalysisSigningState.assigned,
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+  ])(
+    "should throw riskAnalysisFormCannotBeUpdated when a reviewer workflow is active (state: %s) and the risk analysis form differs from the stored one",
+    async (signingState) => {
+      const storedRiskAnalysis = getMockValidRiskAnalysis(tenantType);
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithWorkflow: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantType),
+          id: generateId(),
+        },
+        reviewerWorkflow,
+      };
+
+      const differentRiskAnalysisSeed =
+        buildRiskAnalysisSeed(storedRiskAnalysis);
+      // Mutate one answer to make the seed differ from the stored form
+      const [firstKey] = Object.keys(differentRiskAnalysisSeed.answers);
+      const updateContentWithDifferentRiskAnalysis: purposeApi.PurposeUpdateContent =
+        {
+          ...purposeUpdateContent,
+          riskAnalysisForm: {
+            ...differentRiskAnalysisSeed,
+            answers: {
+              ...differentRiskAnalysisSeed.answers,
+              ...(firstKey ? { [firstKey]: [] } : {}),
+            },
+          },
+        };
+
+      await addOnePurpose(purposeWithWorkflow);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      expect(
+        purposeService.updatePurpose(
+          purposeWithWorkflow.id,
+          updateContentWithDifferentRiskAnalysis,
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).rejects.toThrowError(
+        riskAnalysisFormCannotBeUpdated(purposeWithWorkflow.id)
+      );
+    }
+  );
+  it.each([riskAnalysisSigningState.draft, riskAnalysisSigningState.rejected])(
+    "should succeed when reviewer workflow is in state %s even if the risk analysis form differs",
+    async (signingState) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const storedRiskAnalysis = getMockValidRiskAnalysis(tenantType);
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithWorkflow: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantType),
+          id: generateId(),
+        },
+        reviewerWorkflow,
+      };
+
+      await addOnePurpose(purposeWithWorkflow);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const differentRiskAnalysisSeed =
+        buildRiskAnalysisSeed(storedRiskAnalysis);
+      const updateContentWithDifferentRiskAnalysis: purposeApi.PurposeUpdateContent =
+        {
+          ...purposeUpdateContent,
+          riskAnalysisForm: differentRiskAnalysisSeed,
+        };
+
+      await expect(
+        purposeService.updatePurpose(
+          purposeWithWorkflow.id,
+          updateContentWithDifferentRiskAnalysis,
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).resolves.toBeDefined();
+
+      vi.useRealTimers();
+    }
+  );
+  it("should succeed when a reviewer workflow is active but the risk analysis form is identical to the stored one", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const existingForm = getMockValidRiskAnalysisForm(tenantType);
+    const reviewerWorkflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      reviewerIds: [generateId()],
+      signingState: riskAnalysisSigningState.assigned,
+    };
+    const purposeWithWorkflow: Purpose = {
+      ...purposeForDeliver,
+      riskAnalysisForm: { ...existingForm, id: generateId() },
+      reviewerWorkflow,
+    };
+
+    await addOnePurpose(purposeWithWorkflow);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
+
+    const sameSeed = buildRiskAnalysisFormSeed(existingForm);
+    const updateContentWithSameForm: purposeApi.PurposeUpdateContent = {
+      ...purposeUpdateContent,
+      riskAnalysisForm: sameSeed,
+    };
+
+    await expect(
+      purposeService.updatePurpose(
+        purposeWithWorkflow.id,
+        updateContentWithSameForm,
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).resolves.toBeDefined();
+
+    vi.useRealTimers();
   });
 });

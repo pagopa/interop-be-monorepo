@@ -30,6 +30,9 @@ import {
   TenantKind,
   tenantAttributeType,
   RiskAnalysisFormId,
+  PurposeId,
+  ReviewerWorkflow,
+  riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -44,6 +47,7 @@ import {
   purposeNotInDraftState,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
+  riskAnalysisFormCannotBeUpdated,
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
@@ -814,5 +818,61 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     tenantKind,
     createdAt,
     eservicePersonalData
+  );
+}
+
+export function assertRiskAnalysisFormEditableInCurrentReviewMode(
+  purposeId: PurposeId,
+  inputForm: purposeApi.RiskAnalysisFormSeed,
+  existingForm: PurposeRiskAnalysisForm,
+  reviewerWorkflow: ReviewerWorkflow,
+  tenantKind: TenantKind,
+  personalDataInEService: boolean | undefined
+): void {
+  if (
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.draft &&
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.rejected &&
+    riskAnalysisFormInputDiffersFromPrevious(
+      inputForm,
+      existingForm,
+      tenantKind,
+      personalDataInEService
+    )
+  ) {
+    throw riskAnalysisFormCannotBeUpdated(purposeId);
+  }
+}
+
+function riskAnalysisFormInputDiffersFromPrevious(
+  inputForm: purposeApi.RiskAnalysisFormSeed,
+  existingForm: PurposeRiskAnalysisForm,
+  tenantKind: TenantKind,
+  personalDataInEService: boolean | undefined
+): boolean {
+  const transformedInput = validateAndTransformRiskAnalysis(
+    { ...inputForm, tenantKind },
+    true,
+    tenantKind,
+    new Date(),
+    personalDataInEService
+  );
+
+  if (!transformedInput) {
+    return true;
+  }
+
+  const normalize = (form: PurposeRiskAnalysisForm) => ({
+    version: form.version,
+    singleAnswers: [...form.singleAnswers]
+      .sort((a, b) => a.key.localeCompare(b.key))
+      .map(({ key, value }) => ({ key, value })),
+    multiAnswers: [...form.multiAnswers]
+      .sort((a, b) => a.key.localeCompare(b.key))
+      .map(({ key, values }) => ({ key, values })),
+  });
+
+  return (
+    JSON.stringify(normalize(transformedInput)) !==
+    JSON.stringify(normalize(existingForm))
   );
 }

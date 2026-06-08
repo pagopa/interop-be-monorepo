@@ -168,6 +168,7 @@ import {
   getUpdatedQuotas,
   assertRiskAnalysisTenantKindMatch,
   assertRequesterIsConsumer,
+  assertRiskAnalysisFormEditableInCurrentReviewMode,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -2498,6 +2499,7 @@ const archiveActiveAndSuspendedPurposeVersions = (
 export type UpdatePurposeReturn = WithMetadata<{
   purpose: Purpose;
 }>;
+
 const performUpdatePurpose = async (
   purposeId: PurposeId,
   modeAndUpdateContent:
@@ -2570,6 +2572,23 @@ const performUpdatePurpose = async (
     purpose.data.consumerId,
     readModelService
   );
+
+  if (
+    mode === eserviceMode.deliver &&
+    isFeatureFlagEnabled(config, "featureFlagNewOperators") &&
+    purpose.data.reviewerWorkflow &&
+    riskAnalysisForm &&
+    purpose.data.riskAnalysisForm
+  ) {
+    assertRiskAnalysisFormEditableInCurrentReviewMode(
+      purposeId,
+      riskAnalysisForm,
+      purpose.data.riskAnalysisForm,
+      purpose.data.reviewerWorkflow,
+      tenantKind,
+      eservice.personalData
+    );
+  }
 
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
