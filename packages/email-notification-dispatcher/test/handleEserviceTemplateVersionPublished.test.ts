@@ -24,7 +24,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { tenantNotFound } from "../src/models/errors.js";
+import { tenantNotFound } from "pagopa-interop-notification-commons";
 import { handleEServiceTemplateVersionPublished } from "../src/handlers/eserviceTemplates/handleEserviceTemplateVersionPublished.js";
 import {
   addOneEService,
