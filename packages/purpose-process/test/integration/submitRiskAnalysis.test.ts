@@ -208,71 +208,34 @@ describe("submitRiskAnalysis", () => {
     ).rejects.toThrowError(submitNotAllowedForReviewMode(mockPurpose.id));
   });
 
-  it("should throw reviewerWorkflowNotSubmittable if signing state is Submitted", async () => {
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [unsafeBrandId(generateId())],
-        signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
-      },
-    };
+  it.each([
+    { signingState: riskAnalysisSigningState.assigned },
+    { signingState: riskAnalysisSigningState.submitted },
+    { signingState: riskAnalysisSigningState.signed },
+  ])(
+    "should throw reviewerWorkflowNotSubmittable if signing state is $signingState",
+    async ({ signingState }) => {
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        reviewerWorkflow: {
+          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+          reviewerIds: [unsafeBrandId(generateId())],
+          signingState,
+          sentToReviewerAt: new Date(),
+        },
+      };
 
-    await addOnePurpose(mockPurpose);
+      await addOnePurpose(mockPurpose);
 
-    expect(
-      purposeService.submitRiskAnalysis(
-        mockPurpose.id,
-        { riskAnalysisForm: validFormSeed },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      )
-    ).rejects.toThrowError(reviewerWorkflowNotSubmittable(mockPurpose.id));
-  });
-
-  it("should throw reviewerWorkflowNotSubmittable if signing state is Signed", async () => {
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [unsafeBrandId(generateId())],
-        signingState: riskAnalysisSigningState.signed,
-        sentToReviewerAt: new Date(),
-      },
-    };
-
-    await addOnePurpose(mockPurpose);
-
-    expect(
-      purposeService.submitRiskAnalysis(
-        mockPurpose.id,
-        { riskAnalysisForm: validFormSeed },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      )
-    ).rejects.toThrowError(reviewerWorkflowNotSubmittable(mockPurpose.id));
-  });
-
-  it("should throw reviewerWorkflowNotSubmittable if signing state is Assigned", async () => {
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [unsafeBrandId(generateId())],
-        signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
-      },
-    };
-
-    await addOnePurpose(mockPurpose);
-
-    expect(
-      purposeService.submitRiskAnalysis(
-        mockPurpose.id,
-        { riskAnalysisForm: validFormSeed },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      )
-    ).rejects.toThrowError(reviewerWorkflowNotSubmittable(mockPurpose.id));
-  });
+      expect(
+        purposeService.submitRiskAnalysis(
+          mockPurpose.id,
+          { riskAnalysisForm: validFormSeed },
+          getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        )
+      ).rejects.toThrowError(reviewerWorkflowNotSubmittable(mockPurpose.id));
+    }
+  );
 
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const workflow: ReviewerWorkflow = {

@@ -11,8 +11,8 @@ import {
   getNotificationRecipients,
   retrieveEservice,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 
 export async function handlePurposeSuspendedUnsuspendedToConsumer(
   purposeV2Msg: PurposeV2 | undefined,

@@ -21,8 +21,9 @@ import {
 import {
   activeProducerDelegationNotFound,
   tenantNotFound,
-} from "../src/models/errors.js";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+  getNotificationRecipients,
+} from "pagopa-interop-notification-commons";
+
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "../src/handlers/eservices/handleEserviceNewVersionApprovedRejectedToDelegate.js";
 import { addOneDelegation, addOneTenant, readModelService } from "./utils.js";
 

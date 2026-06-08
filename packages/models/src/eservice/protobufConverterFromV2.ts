@@ -12,6 +12,7 @@ import {
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
   EServiceTemplateVersionRefV2,
+  ArchivingScopeV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -33,6 +34,8 @@ import {
   Document,
   DescriptorRejectionReason,
   EServiceTemplateVersionRef,
+  ArchivingScope,
+  archivingScope,
 } from "./eservice.js";
 import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 
@@ -63,6 +66,21 @@ export const fromEServiceDescriptorStateV2 = (
       return descriptorState.deprecated;
     case EServiceDescriptorStateV2.WAITING_FOR_APPROVAL:
       return descriptorState.waitingForApproval;
+    case EServiceDescriptorStateV2.ARCHIVING:
+      return descriptorState.archiving;
+    case EServiceDescriptorStateV2.ARCHIVING_SUSPENDED:
+      return descriptorState.archivingSuspended;
+  }
+};
+
+export const fromEServiceDescriptorArchivingScopeV2 = (
+  input: ArchivingScopeV2
+): ArchivingScope => {
+  switch (input) {
+    case ArchivingScopeV2.ESERVICE:
+      return archivingScope.eservice;
+    case ArchivingScopeV2.DESCRIPTOR:
+      return archivingScope.descriptor;
   }
 };
 
@@ -165,6 +183,15 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
         }
       : undefined,
   audience: input.audience.map((aud) => aud.replaceAll("\u0000", "")),
+  archivingSchedule: input.archivingSchedule
+    ? {
+        archivableOn: bigIntToDate(input.archivingSchedule.archivableOn),
+        startedAt: bigIntToDate(input.archivingSchedule.startedAt),
+        scope: fromEServiceDescriptorArchivingScopeV2(
+          input.archivingSchedule.scope
+        ),
+      }
+    : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (

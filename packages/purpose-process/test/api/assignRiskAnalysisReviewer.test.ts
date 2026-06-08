@@ -15,6 +15,7 @@ import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
+  multipleReviewersNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
@@ -74,6 +75,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     { error: reviewerWorkflowConflict(mockPurpose.id), expectedStatus: 409 },
+    { error: multipleReviewersNotAllowed(mockPurpose.id), expectedStatus: 400 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
