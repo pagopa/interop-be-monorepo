@@ -1,0 +1,131 @@
+import {
+  AttributeId,
+  Attribute,
+  fromTenantV2,
+  missingKafkaMessageDataError,
+  NewNotification,
+  TenantV2,
+} from "pagopa-interop-models";
+import { Logger } from "pagopa-interop-commons";
+import {
+  getNotificationRecipients,
+  retrieveAttribute,
+  retrieveTenantByCertifierId,
+} from "../handlerCommons.js";
+import { inAppTemplates } from "../../templates/inAppTemplates.js";
+import { match, P } from "ts-pattern";
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { attributeOriginUndefined } from "../../models/errors.js";
+
+type CertifiedDiscreteAttributeAssignedRevokedUpdatedEventType =
+  | "TenantCertifiedDiscreteAttributeAssigned"
+  | "TenantCertifiedDiscreteAttributeRevoked"
+  | "TenantCertifiedDiscreteAttributeUpdated";
+
+type CertifiedDiscreteAttributeAssignedRevokedEventType =
+  | "TenantCertifiedDiscreteAttributeAssigned"
+  | "TenantCertifiedDiscreteAttributeRevoked";
+
+export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee(
+  tenantV2Msg: TenantV2 | undefined,
+  attributeId: AttributeId,
+  logger: Logger,
+  readModelService: ReadModelServiceSQL,
+  eventType: CertifiedDiscreteAttributeAssignedRevokedUpdatedEventType
+): Promise<NewNotification[]> {
+  if (!tenantV2Msg) {
+    throw missingKafkaMessageDataError("tenant", eventType);
+  }
+  logger.info(
+    `Sending in-app notification for handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee - entityId: ${tenantV2Msg.id}, eventType: ${eventType}`
+  );
+
+  const tenant = fromTenantV2(tenantV2Msg);
+
+  const usersWithNotifications = await getNotificationRecipients(
+    [tenant.id],
+    "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+    readModelService,
+    logger
+  );
+
+  if (usersWithNotifications.length === 0) {
+    logger.info(
+      `No users with notifications enabled for handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee - entityId: ${tenant.id}, eventType: ${eventType}`
+    );
+    return [];
+  }
+
+  const attribute = await retrieveAttribute(attributeId, readModelService);
+
+  const body = await match(eventType)
+    .with("TenantCertifiedDiscreteAttributeAssigned", async () => {
+      const assignerName = await getAttributeAssignerOrRevokerName(
+        "TenantCertifiedDiscreteAttributeAssigned",
+        attribute,
+        readModelService
+      );
+
+      return inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
+        attribute.name,
+        "certificato",
+        assignerName
+      );
+    })
+    .with("TenantCertifiedDiscreteAttributeRevoked", async () => {
+      const revokerName = await getAttributeAssignerOrRevokerName(
+        "TenantCertifiedDiscreteAttributeRevoked",
+        attribute,
+        readModelService
+      );
+
+      return inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
+        attribute.name,
+        "certificato",
+        revokerName
+      );
+    })
+    .with("TenantCertifiedDiscreteAttributeUpdated", async () =>
+      inAppTemplates.certifiedVerifiedAttributeUpdatedToAssignee(
+        attribute.name,
+        "certificato"
+      )
+    )
+    .exhaustive();
+
+  return usersWithNotifications.map(({ userId, tenantId }) => ({
+    userId,
+    tenantId,
+    body,
+    notificationType: "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+    entityId: attribute.id,
+  }));
+}
+
+async function getAttributeAssignerOrRevokerName(
+  eventType: CertifiedDiscreteAttributeAssignedRevokedEventType,
+  attribute: Attribute,
+  readModelService: ReadModelServiceSQL
+): Promise<string> {
+  return match(eventType)
+    .with(
+      P.union(
+        "TenantCertifiedDiscreteAttributeAssigned",
+        "TenantCertifiedDiscreteAttributeRevoked"
+      ),
+      async () => {
+        if (!attribute.origin) {
+          throw attributeOriginUndefined(attribute.id);
+        }
+        return ["ISTAT"].includes(attribute.origin)
+          ? attribute.origin
+          : (
+              await retrieveTenantByCertifierId(
+                attribute.origin,
+                readModelService
+              )
+            ).name;
+      }
+    )
+    .exhaustive();
+}

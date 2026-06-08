@@ -22,7 +22,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
-import { handleTenantCertifiedAttributeRevoked } from "../src/handlers/tenants/handleTenantCertifiedAttributeRevoked.js";
+import { handleTenantCertifiedAttributeUpdated } from "../src/handlers/tenants/handleTenantCertifiedAttributeUpdated.js";
 import { attributeNotFound } from "../src/models/errors.js";
 import {
   addOneAttribute,
@@ -32,9 +32,8 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handleTenantCertifiedAttributeRevoked", async () => {
+describe("handleTenantCertifiedAttributeUpdated", async () => {
   const targetTenantId = generateId<TenantId>();
-  const certifierTenantId = generateId<TenantId>();
   const certifierId = generateId();
   const attributeId = generateId<AttributeId>();
 
@@ -48,23 +47,12 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
     name: "Target Tenant",
     mails: [getMockTenantMail()],
   };
-  const certifierTenant: Tenant = {
-    ...getMockTenant(certifierTenantId),
-    name: "Certifier Tenant",
-    features: [
-      {
-        type: "PersistentCertifier",
-        certifierId,
-      },
-    ],
-  };
   const users = [getMockUser(targetTenantId), getMockUser(targetTenantId)];
 
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
     await addOneTenant(targetTenant);
-    await addOneTenant(certifierTenant);
     await addOneAttribute(attribute);
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
@@ -92,7 +80,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
 
   it("should throw missingKafkaMessageDataError when tenant is undefined", async () => {
     await expect(() =>
-      handleTenantCertifiedAttributeRevoked({
+      handleTenantCertifiedAttributeUpdated({
         tenantV2Msg: undefined,
         attributeId: generateId(),
         logger,
@@ -101,7 +89,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("tenant", "TenantCertifiedAttributeRevoked")
+      missingKafkaMessageDataError("tenant", "TenantCertifiedAttributeUpdated")
     );
   });
 
@@ -109,7 +97,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
     const unknownAttributeId = generateId<AttributeId>();
 
     await expect(() =>
-      handleTenantCertifiedAttributeRevoked({
+      handleTenantCertifiedAttributeUpdated({
         tenantV2Msg: toTenantV2(targetTenant),
         attributeId: unknownAttributeId,
         logger,
@@ -128,7 +116,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
     };
     await addOneAttribute(attributeWithNoOrigin);
 
-    const messages = await handleTenantCertifiedAttributeRevoked({
+    const messages = await handleTenantCertifiedAttributeUpdated({
       tenantV2Msg: toTenantV2(targetTenant),
       attributeId: attributeWithNoOrigin.id,
       logger,
@@ -140,8 +128,8 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
     expect(messages.length).toEqual(0);
   });
 
-  it("should generate one message per user of the tenant whose attribute has been revoked", async () => {
-    const messages = await handleTenantCertifiedAttributeRevoked({
+  it("should generate one message per user of the tenant that is updated with the attribute", async () => {
+    const messages = await handleTenantCertifiedAttributeUpdated({
       tenantV2Msg: toTenantV2(targetTenant),
       attributeId,
       logger,
@@ -175,7 +163,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
         },
       ]);
 
-    const messages = await handleTenantCertifiedAttributeRevoked({
+    const messages = await handleTenantCertifiedAttributeUpdated({
       tenantV2Msg: toTenantV2(targetTenant),
       attributeId,
       logger,
@@ -198,7 +186,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
   });
 
   it("should generate a complete and correct message", async () => {
-    const messages = await handleTenantCertifiedAttributeRevoked({
+    const messages = await handleTenantCertifiedAttributeUpdated({
       tenantV2Msg: toTenantV2(targetTenant),
       attributeId,
       logger,
@@ -212,7 +200,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Un tuo attributo certificato è stato revocato`
+        `Un tuo attributo certificato è stato aggiornato`
       );
       match(message.type)
         .with("User", () => {
