@@ -26,7 +26,7 @@ type CanceledArchivingEventType =
   | "EServiceArchivingCanceled"
   | "EServiceDescriptorArchivingCanceled";
 
-export type CanceledArchivingEvent = Extract<
+type CanceledArchivingEvent = Extract<
   EServiceEventV2,
   { type: CanceledArchivingEventType }
 >;
