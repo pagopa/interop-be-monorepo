@@ -89,6 +89,7 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -283,6 +284,7 @@ export const upsertEService = async (
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      archivingSchedulesSQL,
       asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
@@ -334,6 +336,12 @@ export const upsertEService = async (
       await tx
         .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
         .values(templateVersionRefSQL);
+    }
+
+    for (const archivingScheduleSQL of archivingSchedulesSQL) {
+      await tx
+        .insert(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .values(archivingScheduleSQL);
     }
 
     for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {

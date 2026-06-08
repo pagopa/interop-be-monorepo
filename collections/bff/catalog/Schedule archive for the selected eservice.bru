@@ -1,0 +1,25 @@
+meta {
+  name: Schedule archive for the selected eservice
+  type: http
+  seq: 46
+}
+
+post {
+  url: {{host-bff}}/eservices/:eserviceId/scheduleArchive
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: <uuid>
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "archivingReason": "EService eservice no longer necessary"
+  }
+}

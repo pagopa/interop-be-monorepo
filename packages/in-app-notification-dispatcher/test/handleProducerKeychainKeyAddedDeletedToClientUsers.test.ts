@@ -15,8 +15,11 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleProducerKeychainKeyAddedDeletedToClientUsers.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  inAppTemplates,
+  getNotificationRecipients,
+} from "pagopa-interop-notification-commons";
+
 import { addOneTenant, readModelService } from "./utils.js";
 
 describe("handleProducerKeychainKeyAddedDeletedToClientUsers", () => {
