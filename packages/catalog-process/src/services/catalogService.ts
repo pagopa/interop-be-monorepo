@@ -386,7 +386,7 @@ const updateDescriptorState = (
     .exhaustive(),
   archivedAt: match(newState)
     .with(descriptorState.archived, () => new Date())
-    .with(P.not(descriptorState.archived), () => descriptor.archivedAt)
+    .with(P.not(descriptorState.archived), () => undefined)
     .exhaustive(),
 });
 
