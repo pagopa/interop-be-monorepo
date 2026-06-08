@@ -7,6 +7,7 @@ import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEser
 import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
 import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
 import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
+import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelope,
@@ -87,6 +88,16 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceArchivingCanceled"
+        ),
+      },
+      (msg) =>
+        handleEserviceArchivingCanceledToConsumer(msg, logger, readModelService)
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
@@ -116,8 +127,6 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
-          "EServiceDescriptorArchivingCanceled",
-          "EServiceArchivingCanceled",
           "MaintenanceEServicePersonalDataFlagReset",
           "MaintenanceEServiceDescriptorUnarchived"
         ),

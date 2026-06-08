@@ -66,7 +66,6 @@ const readModelService = readModelServiceBuilderSQL({
 const inAppSink = inAppNotificationSinkBuilder(inAppDb, log);
 const dispatch = dispatchInAppDeliveryBuilder({
   readModelService,
-  stalenessThresholdHours: config.scheduledNotificationStalenessThresholdHours,
   rootLog: log,
 });
 

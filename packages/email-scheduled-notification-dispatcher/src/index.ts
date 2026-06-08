@@ -62,7 +62,6 @@ const dispatch = dispatchEmailDeliveryBuilder({
   readModelService,
   templateService,
   bffUrl: config.bffUrl,
-  stalenessThresholdHours: config.scheduledNotificationStalenessThresholdHours,
   rootLog: log,
 });
 

@@ -22,7 +22,6 @@ import { handleEserviceArchivingCompletedToConsumer } from "./handleEserviceArch
 import { handleEserviceDescriptorArchivedToProducer } from "./handleEserviceDescriptorArchivedToProducer.js";
 import { handleEserviceDescriptorArchivedToConsumer } from "./handleEserviceDescriptorArchivedToConsumer.js";
 import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
-import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
 import { handleEserviceDescriptorArchivingCanceledToConsumer } from "./handleEserviceDescriptorArchivingCanceledToConsumer.js";
 
 export async function handleEServiceEvent(
@@ -250,25 +249,16 @@ export async function handleEServiceEvent(
     )
     .with(
       { type: "EServiceArchivingCanceled" },
-      async ({ data: { eservice } }) => {
-        const [prod, cons] = await Promise.all([
-          handleEserviceArchivingCanceledToProducer({
-            eserviceV2Msg: eservice,
-            logger,
-            readModelService,
-            templateService,
-            correlationId,
-          }),
-          handleEserviceArchivingCanceledToConsumer({
-            eserviceV2Msg: eservice,
-            logger,
-            readModelService,
-            templateService,
-            correlationId,
-          }),
-        ]);
-        return [...prod, ...cons];
-      }
+      // per the notification mapping, archiving cancellation is notified only
+      // to consumers (the producer initiated the cancellation)
+      async ({ data: { eservice } }) =>
+        handleEserviceArchivingCanceledToConsumer({
+          eserviceV2Msg: eservice,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
     )
     .with(
       { type: "EServiceDescriptorArchivingCanceled" },

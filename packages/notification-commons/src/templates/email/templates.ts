@@ -126,8 +126,6 @@ export const eventMailTemplateType = {
     "eservice-archiving-canceled-descriptor-to-consumer-mail",
   eserviceArchivingCanceledEserviceToConsumerMailTemplate:
     "eservice-archiving-canceled-eservice-to-consumer-mail",
-  eserviceArchivingCanceledEserviceToProducerMailTemplate:
-    "eservice-archiving-canceled-eservice-to-producer-mail",
   eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate:
     "eservice-state-changed-to-producer-scheduled-reminder-descriptor-mail",
   eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate:
