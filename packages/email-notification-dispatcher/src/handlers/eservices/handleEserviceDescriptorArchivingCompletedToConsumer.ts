@@ -49,7 +49,10 @@ export async function handleEserviceDescriptorArchivingCompletedToConsumer(
       eventMailTemplateType.eserviceArchivingCompletedDescriptorToConsumerMailTemplate
     ),
     retrieveTenant(eservice.producerId, readModelService),
-    readModelService.getAgreementsByEserviceId(eservice.id),
+    // archiving completed: consumer agreements may already be archived
+    readModelService.getAgreementsByEserviceId(eservice.id, {
+      includeArchived: true,
+    }),
   ]);
 
   if (!agreements || agreements.length === 0) {

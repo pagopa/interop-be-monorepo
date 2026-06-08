@@ -49,7 +49,12 @@ export async function handleEserviceArchivingToConsumer(
     `Sending in-app notification to consumers for ${msg.type} - eservice ${eservice.id}`
   );
 
-  const includeArchived = msg.type === "EServiceDescriptorArchived";
+  // when archiving is completed/early-archived, consumer agreements may
+  // already be in archived state, so include them to reach those consumers
+  const includeArchived =
+    msg.type === "EServiceDescriptorArchived" ||
+    msg.type === "EServiceArchivingCompleted" ||
+    msg.type === "EServiceDescriptorArchivingCompleted";
 
   const [producer, agreements] = await Promise.all([
     retrieveTenant(eservice.producerId, readModelService),

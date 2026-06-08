@@ -4,7 +4,6 @@ import {
   NewNotification,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { isStale } from "pagopa-interop-notification-commons";
 import {
   schedulableEventType,
   ScheduledNotificationRow,
@@ -17,19 +16,10 @@ import { handleEserviceDescriptorArchivingScheduledReminderInApp } from "./eserv
 const SERVICE_NAME = "in-app-scheduled-notification-dispatcher";
 
 export const dispatchInAppDeliveryBuilder =
-  (deps: {
-    readModelService: ReadModelServiceSQL;
-    stalenessThresholdHours: number;
-    rootLog: Logger;
-  }) =>
+  (deps: { readModelService: ReadModelServiceSQL; rootLog: Logger }) =>
   async (row: ScheduledNotificationRow): Promise<NewNotification[]> => {
+    // staleness is enforced by runScheduledDeliveryBatch before dispatch
     const rowLog = loggerForRow(row);
-    if (isStale(row.sendAt, deps.stalenessThresholdHours)) {
-      rowLog.info(
-        `Skipping stale row ${row.id} (sendAt=${row.sendAt.toISOString()}, threshold=${deps.stalenessThresholdHours}h)`
-      );
-      return [];
-    }
     return match(row.eventType)
       .with(schedulableEventType.eserviceArchivingScheduled, () =>
         handleEserviceArchivingScheduledReminderInApp(
