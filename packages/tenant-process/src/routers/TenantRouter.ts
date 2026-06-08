@@ -46,6 +46,9 @@ import {
   updateTenantDelegatedFeaturesErrorMapper,
   getTenantVerifiedAttributeVerifiersErrorMapper,
   getTenantVerifiedAttributeRevokersErrorMapper,
+  internalAddCertifiedDiscreteAttributeErrorMapper,
+  internalRevokeCertifiedDiscreteAttributeErrorMapper,
+  internalUpdateCertifiedDiscreteAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 import { TenantService } from "../services/tenantService.js";
 
@@ -745,6 +748,109 @@ const tenantsRouter = (
           const errorRes = makeApiProblem(
             error,
             internalRevokeCertifiedAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/origin/:tOrigin/remoteId/:tRemoteId/certifiedDiscreteAttributes/origin/:aOrigin/externalId/:aExternalId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { tOrigin, tRemoteId, aOrigin, aExternalId } = req.params;
+          const { value } = req.body;
+
+          const metadata =
+            await tenantService.internalAssignCertifiedDiscreteAttribute(
+              {
+                tenantOrigin: tOrigin,
+                tenantRemoteId: tRemoteId,
+                attributeOrigin: aOrigin,
+                attributeExternalId: aExternalId,
+                value,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalAddCertifiedDiscreteAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .put(
+      "/internal/origin/:tOrigin/remoteId/:tRemoteId/certifiedDiscreteAttributes/origin/:aOrigin/externalId/:aExternalId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { tOrigin, tRemoteId, aOrigin, aExternalId } = req.params;
+          const { value } = req.body;
+
+          const metadata =
+            await tenantService.internalUpdateCertifiedDiscreteAttribute(
+              {
+                tenantOrigin: tOrigin,
+                tenantRemoteId: tRemoteId,
+                attributeOrigin: aOrigin,
+                attributeExternalId: aExternalId,
+                value,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalUpdateCertifiedDiscreteAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/internal/origin/:tOrigin/remoteId/:tRemoteId/certifiedDiscreteAttributes/origin/:aOrigin/externalId/:aExternalId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { tOrigin, tRemoteId, aOrigin, aExternalId } = req.params;
+
+          const metadata =
+            await tenantService.internalRevokeCertifiedDiscreteAttribute(
+              {
+                tenantOrigin: tOrigin,
+                tenantRemoteId: tRemoteId,
+                attributeOrigin: aOrigin,
+                attributeExternalId: aExternalId,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalRevokeCertifiedDiscreteAttributeErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

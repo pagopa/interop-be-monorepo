@@ -372,26 +372,23 @@ export const toCreateEventTenantDelegatedConsumerFeatureRemoved = (
   correlationId,
 });
 
-export function toCreateEventTenantRemoteIdAssigned(
+export const toCreateEventTenantRemoteIdAssigned = (
   version: number,
-  tenant: Tenant,
+  updatedTenant: Tenant,
   correlationId: CorrelationId
-): CreateEvent<TenantEvent> {
-  return {
-    streamId: tenant.id,
-    version,
-    event: {
-      type: "TenantRemoteIdAssigned",
-      event_version: 2,
-      data: {
-        tenant: toTenantV2(tenant),
-      },
+): CreateEvent<TenantEvent> => ({
+  streamId: updatedTenant.id,
+  version,
+  event: {
+    type: "TenantRemoteIdAssigned",
+    event_version: 2,
+    data: {
+      tenant: toTenantV2(updatedTenant),
     },
-    correlationId,
-  };
-}
+  },
+  correlationId,
+});
 
-/** @public */ // TO-BE-USED in PIN-9886
 export const toCreateEventTenantCertifiedDiscreteAttributeAssigned = (
   version: number,
   updatedTenant: Tenant,
@@ -411,7 +408,6 @@ export const toCreateEventTenantCertifiedDiscreteAttributeAssigned = (
   correlationId,
 });
 
-/** @public */ // TO-BE-USED in PIN-9886
 export const toCreateEventTenantCertifiedDiscreteAttributeRevoked = (
   version: number,
   updatedTenant: Tenant,
@@ -431,7 +427,6 @@ export const toCreateEventTenantCertifiedDiscreteAttributeRevoked = (
   correlationId,
 });
 
-/** @public */ // TO-BE-USED in PIN-9886
 export const toCreateEventTenantCertifiedDiscreteAttributeUpdated = (
   version: number,
   updatedTenant: Tenant,
