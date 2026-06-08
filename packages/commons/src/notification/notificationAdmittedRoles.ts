@@ -60,6 +60,8 @@ export const notificationAdmittedRoles = {
     [API_ROLE]: false,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
   },
   agreementSuspendedUnsuspendedToConsumer: {
     [ADMIN_ROLE]: true,
