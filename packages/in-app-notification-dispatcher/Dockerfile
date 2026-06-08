@@ -12,6 +12,7 @@ COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
 
 COPY ./packages/in-app-notification-dispatcher/package.json /app/packages/in-app-notification-dispatcher/package.json
+COPY ./packages/notification-commons/package.json /app/packages/notification-commons/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
@@ -25,6 +26,7 @@ COPY tsconfig.json /app/
 COPY turbo.json /app/
 
 COPY ./packages/in-app-notification-dispatcher /app/packages/in-app-notification-dispatcher
+COPY ./packages/notification-commons /app/packages/notification-commons
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
@@ -40,11 +42,12 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   cp -a --parents -t /out \
   node_modules packages/in-app-notification-dispatcher/node_modules \
   package*.json packages/in-app-notification-dispatcher/package*.json \
+  packages/notification-commons \
   packages/commons \
   packages/models \
   packages/kafka-iam-auth \
   packages/readmodel/ \
-  packages/readmodel-models/ \    
+  packages/readmodel-models/ \
   packages/in-app-notification-db-models/ \
   packages/in-app-notification-dispatcher/dist && \
   find /out -exec touch -h --date=@0 {} \;

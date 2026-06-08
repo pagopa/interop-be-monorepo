@@ -1,26 +1,16 @@
-import { fileURLToPath } from "url";
-import fs from "fs/promises";
-import path from "path";
-import { z } from "zod";
 import {
-  Delegation,
-  Descriptor,
-  descriptorState,
+  EmailNotificationMessagePayload,
   EService,
   EServiceId,
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
-import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  activeProducerDelegationNotFound,
-  eServiceNotFound,
-  eserviceWithoutDescriptors,
-  htmlTemplateNotFound,
-  tenantNotFound,
-} from "../models/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import {
+  tenantNotFound,
+  eserviceNotFound,
+} from "pagopa-interop-notification-commons";
 
 export const eventMailTemplateType = {
   agreementActivatedToConsumerMailTemplate:
@@ -120,13 +110,6 @@ export const eventMailTemplateType = {
     "async-eservice-without-keychain-mail",
 } as const;
 
-const EventMailTemplateType = z.enum([
-  Object.values(eventMailTemplateType)[0],
-  ...Object.values(eventMailTemplateType).slice(1),
-]);
-
-type EventMailTemplateType = z.infer<typeof EventMailTemplateType>;
-
 export async function retrieveTenant(
   tenantId: TenantId,
   readModelService: ReadModelServiceSQL
@@ -144,65 +127,10 @@ export const retrieveEService = async (
 ): Promise<EService> => {
   const eservice = await readModelService.getEServiceById(eserviceId);
   if (!eservice) {
-    throw eServiceNotFound(eserviceId);
+    throw eserviceNotFound(eserviceId);
   }
   return eservice;
 };
-
-export async function retrieveProducerDelegation(
-  eservice: EService,
-  readModelService: ReadModelServiceSQL
-): Promise<Delegation> {
-  const delegation = await readModelService.getActiveProducerDelegation(
-    eservice.id,
-    eservice.producerId
-  );
-  if (!delegation) {
-    throw activeProducerDelegationNotFound(eservice.id);
-  }
-  return delegation;
-}
-
-export async function retrieveHTMLTemplate(
-  templateKind: EventMailTemplateType
-): Promise<string> {
-  const filename = fileURLToPath(import.meta.url);
-  const dirname = path.dirname(filename);
-  const templatePath = `/resources/templates/${templateKind}.html`;
-
-  try {
-    const htmlTemplateBuffer = await fs.readFile(
-      `${dirname}/..${templatePath}`
-    );
-    return htmlTemplateBuffer.toString();
-  } catch {
-    throw htmlTemplateNotFound(templatePath);
-  }
-}
-
-export function retrieveLatestDescriptor(eservice: EService): Descriptor {
-  if (eservice.descriptors.length === 0) {
-    throw eserviceWithoutDescriptors(eservice.id);
-  }
-
-  const publishedDescriptor = eservice.descriptors.find(
-    (d) => d.state === descriptorState.published
-  );
-
-  if (publishedDescriptor) {
-    return publishedDescriptor;
-  }
-
-  const latestNotDraftDescriptor = eservice.descriptors
-    .filter((d) => d.state !== descriptorState.draft)
-    .sort((a, b) => Number(a.version) - Number(b.version))
-    .at(-1);
-  if (latestNotDraftDescriptor) {
-    return latestNotDraftDescriptor;
-  }
-
-  return eservice.descriptors[0];
-}
 
 export function encodeEmailEvent(
   event: EmailNotificationMessagePayload

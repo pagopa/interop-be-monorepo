@@ -65,6 +65,7 @@ describe("getEserviceDescriptors", () => {
     deprecatedAt: descriptor.deprecatedAt,
     archivedAt: descriptor.archivedAt,
     templateVersionId: descriptor.templateVersionRef?.id,
+    archivingSchedule: descriptor.archivingSchedule,
     asyncExchangeProperties: descriptor.asyncExchangeProperties,
   });
 
