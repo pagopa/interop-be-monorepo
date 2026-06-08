@@ -91,7 +91,6 @@ export async function importAttributes(
             );
             stats.created++;
           } catch (error) {
-            console.log("ERROR", error);
             const isConflict =
               isAxiosError(error) && error.response?.status === 409;
 
@@ -282,12 +281,12 @@ async function ensureAttributeExists(
   logger.info("Polling Read Model for new attribute...");
   attr = await retry(
     async () => {
-      const a = await readmodel.getAttributeByExternalId(
+      const attribute = await readmodel.getAttributeByExternalId(
         ISTAT_ATTRIBUTE_SEED.origin,
         ISTAT_ATTRIBUTE_SEED.code
       );
-      if (!a) throw new Error("Attribute not found");
-      return a;
+      if (!attribute) throw new Error("Attribute not found");
+      return attribute;
     },
     {
       retries: pollingConfig.defaultPollingMaxRetries,

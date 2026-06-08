@@ -56,9 +56,7 @@ export class TenantProcessService {
       logger.error(
         `Error on internalAssignDiscreteCertifiedAttribute. Reason: ${message}`
       );
-      throw Error(
-        `Unexpected response from internalAssignDiscreteCertifiedAttribute. Reason: ${message}`
-      );
+      throw err;
     }
   }
 
