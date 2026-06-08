@@ -596,6 +596,8 @@ export function purposeServiceBuilder(
 
       const purpose = await retrievePurpose(purposeId, readModelService);
 
+      assertRequesterIsConsumer(purpose.data, authData);
+
       const workflow = purpose.data.reviewerWorkflow;
 
       if (!workflow) {
@@ -614,8 +616,6 @@ export function purposeServiceBuilder(
       ) {
         throw reviewerWorkflowNotSubmittable(purposeId);
       }
-
-      assertRequesterIsConsumer(purpose.data, authData);
 
       const tenantKind = await retrieveTenantKind(
         purpose.data.consumerId,

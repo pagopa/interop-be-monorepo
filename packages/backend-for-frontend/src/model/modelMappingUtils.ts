@@ -20,6 +20,8 @@ const activeDescriptorStatesFilter: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.PUBLISHED,
   catalogApiDescriptorState.SUSPENDED,
   catalogApiDescriptorState.DEPRECATED,
+  catalogApiDescriptorState.ARCHIVING,
+  catalogApiDescriptorState.ARCHIVING_SUSPENDED,
 ];
 
 const invalidDescriptorState: catalogApi.EServiceDescriptorState[] = [
