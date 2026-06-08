@@ -11,8 +11,10 @@ import {
   Descriptor,
   DescriptorRejectionReason,
   dateToString,
+  ArchivingSchedule,
 } from "pagopa-interop-models";
 import {
+  EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
@@ -67,6 +69,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
   } = eservice.descriptors.reduce(
     (
@@ -77,6 +80,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL: EServiceDescriptorDocumentSQL[];
         rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
         templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+        archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
         asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
       },
       currentDescriptor: Descriptor
@@ -88,6 +92,7 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL,
         rejectionReasonsSQL,
         templateVersionRefSQL,
+        archivingScheduleSQL,
         asyncExchangePropertiesSQL: asyncExchangePropsSQL,
       } = splitDescriptorIntoObjectsSQL(
         eservice.id,
@@ -105,6 +110,9 @@ export const splitEserviceIntoObjectsSQL = (
         templateVersionRefsSQL: templateVersionRefSQL
           ? acc.templateVersionRefsSQL.concat(templateVersionRefSQL)
           : acc.templateVersionRefsSQL,
+        archivingSchedulesSQL: archivingScheduleSQL
+          ? acc.archivingSchedulesSQL.concat(archivingScheduleSQL)
+          : acc.archivingSchedulesSQL,
         asyncExchangePropertiesSQL: asyncExchangePropsSQL
           ? acc.asyncExchangePropertiesSQL.concat(asyncExchangePropsSQL)
           : acc.asyncExchangePropertiesSQL,
@@ -117,6 +125,7 @@ export const splitEserviceIntoObjectsSQL = (
       documentsSQL: [],
       rejectionReasonsSQL: [],
       templateVersionRefsSQL: [],
+      archivingSchedulesSQL: [],
       asyncExchangePropertiesSQL: [],
     }
   );
@@ -131,6 +140,7 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
   };
 };
@@ -191,6 +201,7 @@ export const splitDescriptorIntoObjectsSQL = (
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  archivingScheduleSQL: EServiceDescriptorArchivingScheduleSQL | undefined;
   asyncExchangePropertiesSQL:
     | EServiceDescriptorAsyncExchangePropertiesSQL
     | undefined;
@@ -287,6 +298,17 @@ export const splitDescriptorIntoObjectsSQL = (
       }
     : undefined;
 
+  const archivingScheduleSQL:
+    | EServiceDescriptorArchivingScheduleSQL
+    | undefined = descriptor.archivingSchedule
+    ? archivingScheduleToArchivingScheduleSQL(
+        descriptor.archivingSchedule,
+        descriptor.id,
+        eserviceId,
+        version
+      )
+    : undefined;
+
   const asyncExchangePropertiesSQL:
     | EServiceDescriptorAsyncExchangePropertiesSQL
     | undefined = descriptor.asyncExchangeProperties
@@ -310,6 +332,7 @@ export const splitDescriptorIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefSQL,
+    archivingScheduleSQL,
     asyncExchangePropertiesSQL,
   };
 };
@@ -368,6 +391,20 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     ],
   };
 };
+
+export const archivingScheduleToArchivingScheduleSQL = (
+  archivingSchedule: ArchivingSchedule,
+  descriptorId: DescriptorId,
+  eserviceId: EServiceId,
+  version: number
+): EServiceDescriptorArchivingScheduleSQL => ({
+  eserviceId,
+  metadataVersion: version,
+  descriptorId,
+  scope: archivingSchedule.scope,
+  archivableOn: dateToString(archivingSchedule.archivableOn),
+  startedAt: dateToString(archivingSchedule.startedAt),
+});
 
 export const documentToDocumentSQL = (
   document: Document,
@@ -429,6 +466,7 @@ export const eserviceToEserviceSQL = (
   templateId: eservice.templateId ?? null,
   personalData: eservice.personalData ?? null,
   instanceLabel: eservice.instanceLabel ?? null,
+  archivingReason: eservice.archivingReason ?? null,
   asyncExchange: eservice.asyncExchange ?? null,
 });
 

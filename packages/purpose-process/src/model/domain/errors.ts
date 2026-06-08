@@ -566,7 +566,7 @@ export function reviewerWorkflowNotSubmittable(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Purpose ${purposeId} reviewer workflow is not in a submittable state (must be Assigned or Rejected)`,
+    detail: `Purpose ${purposeId} reviewer workflow is not in a submittable state (must be Draft or Rejected)`,
     code: "reviewerWorkflowNotSubmittable",
     title: "Reviewer workflow not submittable",
   });

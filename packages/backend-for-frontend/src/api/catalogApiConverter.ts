@@ -84,6 +84,7 @@ export function toBffCatalogApiEService(
             version: activeDescriptor.version,
             audience: activeDescriptor.audience,
             state: activeDescriptor.state,
+            archivableOn: activeDescriptor.archivingSchedule?.archivableOn,
           },
         }
       : {}),
@@ -141,6 +142,7 @@ export async function toBffCatalogDescriptorEService(
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
+    archivingReason: eservice.archivingReason,
     asyncExchange: eservice.asyncExchange,
     hasProducerKeychain,
     hasProducerKeychainKeys,
@@ -415,6 +417,7 @@ export function toCompactDescriptor(
     state: descriptor.state,
     version: descriptor.version,
     templateVersionId: descriptor.templateVersionRef?.id,
+    archivableOn: descriptor.archivingSchedule?.archivableOn,
   };
 }
 

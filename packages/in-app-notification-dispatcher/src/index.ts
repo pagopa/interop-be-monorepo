@@ -11,6 +11,7 @@ import {
   EServiceTemplateEventV2,
   EventEnvelope,
   NewNotification,
+  NotificationType,
   PurposeEvent,
   TenantEvent,
   generateId,
@@ -79,6 +80,8 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist:
+    config.notificationTypeBlocklist as NotificationType[],
   producerKeychainReadModelServiceSQL,
 });
 

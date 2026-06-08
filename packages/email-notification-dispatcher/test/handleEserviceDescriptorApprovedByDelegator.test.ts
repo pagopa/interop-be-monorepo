@@ -26,7 +26,7 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
-import { tenantNotFound } from "../src/models/errors.js";
+import { tenantNotFound } from "pagopa-interop-notification-commons";
 import { handleEserviceDescriptorApprovedByDelegator } from "../src/handlers/eservices/handleEserviceDescriptorApprovedByDelegator.js";
 import {
   addOneDelegation,

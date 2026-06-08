@@ -21,29 +21,31 @@ headers {
 body:json {
   {
     "riskAnalysisForm": {
-      "version": "3.0",
+      "version": "3.1",
       "answers": {
         "purpose": ["INSTITUTIONAL"],
         "institutionalPurpose": ["MyPurpose"],
+        "usesPersonalData": ["YES"],
         "personalDataTypes": ["OTHER"],
         "otherPersonalDataTypes": ["MyDataTypes"],
         "legalBasis": ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
-        "legalObligationReference": ["somethingLegal"],
+        "legalObligationReference": ["YES"],
         "legalBasisPublicInterest": ["RULE_OF_LAW"],
         "ruleOfLawText": ["TheLaw"],
         "knowsDataQuantity": ["NO"],
         "dataQuantity": [],
-        "deliveryMethod": ["ANONYMOUS"],
+        "dataDownload": ["YES"],
+        "deliveryMethod": ["CLEARTEXT"],
         "policyProvided": ["NO"],
         "confirmPricipleIntegrityAndDiscretion": ["true"],
         "reasonPolicyNotProvided": ["Because"],
         "doneDpia": ["NO"],
-        "dataDownload": ["YES"],
-        "confirmDataRetentionPeriod": ["true"],
+        "dataRetentionPeriod": ["10"],
         "purposePursuit": ["MERE_CORRECTNESS"],
         "checkedExistenceMereCorrectnessInteropCatalogue": ["true"],
-        "usesThirdPartyData": ["NO"],
-        "hasPersonalData": ["true"]
+        "isRequestOnBehalfOfThirdParties": ["YES"],
+        "thirdPartiesRequestDataUsage": ["PA_ONLY"],
+        "declarationConfirmGDPR": ["true"]
       }
     }
   }

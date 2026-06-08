@@ -36,6 +36,7 @@ import {
   inconsistentDailyCalls,
   templateInstanceNotAllowed,
   attributeDailyCallsNotAllowed,
+  eserviceInArchivingOrArchivedState,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -805,6 +806,55 @@ describe("create descriptor", async () => {
     );
   });
 
+  it.each([
+    descriptorState.archived,
+    descriptorState.archivingSuspended,
+    descriptorState.archiving,
+  ])(
+    "should throw an error if the eservice is in archiving or archived state, with latest active descriptor in %s state",
+    async (state) => {
+      const mockDescriptor = {
+        ...getMockDescriptor(),
+        docs: [],
+      };
+      const attribute: Attribute = {
+        name: "Attribute name",
+        id: generateId(),
+        kind: "Declared",
+        description: "Attribute Description",
+        creationTime: new Date(),
+      };
+      await addOneAttribute(attribute);
+      const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+        ...buildCreateDescriptorSeed(mockDescriptor),
+        attributes: {
+          certified: [],
+          declared: [
+            [{ id: attribute.id, explicitAttributeVerification: false }],
+          ],
+          verified: [],
+        },
+      };
+
+      const previousDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        interface: getMockDocument(),
+        state,
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [previousDescriptor],
+      };
+      await addOneEService(eservice);
+      await expect(
+        catalogService.createDescriptor(
+          eservice.id,
+          descriptorSeed,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(eserviceInArchivingOrArchivedState(eservice.id));
+    }
+  );
   it("should persist async exchange descriptor fields when flag ON and asyncExchange true", async () => {
     const eservice: EService = {
       ...getMockEService(),

@@ -507,44 +507,47 @@ describe("create agreement", () => {
     );
   });
 
-  it("should throw a descriptorNotInExpectedState error when the EService's latest non-draft Descriptor is not published", async () => {
-    const authData = getMockAuthData();
-    const eserviceId = generateId<EServiceId>();
+  it.each(
+    Object.values(descriptorState).filter(
+      (state) =>
+        state !== descriptorState.published &&
+        state !== descriptorState.draft &&
+        state !== descriptorState.waitingForApproval
+    )
+  )(
+    "should throw a descriptorNotInExpectedState error when the EService's latest non-draft Descriptor is not published and has state %s",
+    async (testState) => {
+      const authData = getMockAuthData();
+      const eserviceId = generateId<EServiceId>();
 
-    const descriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-      version: "0",
-      state: randomArrayItem(
-        Object.values(descriptorState).filter(
-          (state) =>
-            state !== descriptorState.published &&
-            state !== descriptorState.draft &&
-            state !== descriptorState.waitingForApproval
+      const descriptor: Descriptor = {
+        ...getMockDescriptorPublished(),
+        version: "0",
+        state: testState,
+      };
+
+      const eservice = getMockEService(eserviceId, authData.organizationId, [
+        descriptor,
+      ]);
+
+      await addOneEService(eservice);
+      await addOneTenant(getMockTenant(authData.organizationId));
+
+      await expect(
+        agreementService.createAgreement(
+          {
+            eserviceId,
+            descriptorId: descriptor.id,
+          },
+          getMockContext({ authData })
         )
-      ),
-    };
-
-    const eservice = getMockEService(eserviceId, authData.organizationId, [
-      descriptor,
-    ]);
-
-    await addOneEService(eservice);
-    await addOneTenant(getMockTenant(authData.organizationId));
-
-    await expect(
-      agreementService.createAgreement(
-        {
-          eserviceId,
-          descriptorId: descriptor.id,
-        },
-        getMockContext({ authData })
-      )
-    ).rejects.toThrowError(
-      descriptorNotInExpectedState(eservice.id, descriptor.id, [
-        descriptorState.published,
-      ])
-    );
-  });
+      ).rejects.toThrowError(
+        descriptorNotInExpectedState(eservice.id, descriptor.id, [
+          descriptorState.published,
+        ])
+      );
+    }
+  );
 
   it("should throw an agreementAlreadyExists error when an Agreement in a conflicting state already exists for the same EService and consumer", async () => {
     const consumer: Tenant = getMockTenant();
