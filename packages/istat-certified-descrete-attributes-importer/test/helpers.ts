@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
   Attribute,
+  AttributeId,
   Tenant,
   TenantId,
   WithMetadata,
@@ -8,10 +9,6 @@ import {
 } from "pagopa-interop-models";
 import { inject, vi } from "vitest";
 import { match } from "ts-pattern";
-import {
-  ISTAT_CERTIFIER_ORIGIN,
-  ISTAT_POPULATION_ATTRIBUTE_CODE,
-} from "../src/config/constants.js";
 import { InteropContext } from "../src/model/interopContextModel.js";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import {
@@ -23,6 +20,7 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { readModelQueriesBuilderSQL } from "../src/service/readModelServiceSQL.js";
+import { ISTAT_ATTRIBUTE_SEED } from "../src/config/constants.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,
@@ -105,9 +103,9 @@ export const persistentTenant: Tenant = {
 };
 
 export const persistentAttribute: Attribute = {
-  id: unsafeBrandId(ATTRIBUTE_ISTAT_POPULATION_ID),
-  origin: ISTAT_CERTIFIER_ORIGIN,
-  code: ISTAT_POPULATION_ATTRIBUTE_CODE,
+  id: unsafeBrandId<AttributeId>(ATTRIBUTE_ISTAT_POPULATION_ID),
+  origin: ISTAT_ATTRIBUTE_SEED.origin,
+  code: ISTAT_ATTRIBUTE_SEED.code,
   name: "Popolazione Residente",
   kind: "Certified",
   creationTime: new Date(),
@@ -120,7 +118,7 @@ export const getAttributeByExternalIdMock = (
   code: string
 ): Promise<Attribute | undefined> =>
   match(code)
-    .with(ISTAT_POPULATION_ATTRIBUTE_CODE, () =>
+    .with(ISTAT_ATTRIBUTE_SEED.code, () =>
       Promise.resolve({ ...persistentAttribute, origin, code })
     )
     .otherwise(() => Promise.resolve(undefined));

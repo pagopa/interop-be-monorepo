@@ -11,10 +11,6 @@ import { genericLogger } from "pagopa-interop-commons";
 import { importAttributes } from "../src/service/processor.js";
 
 import {
-  ISTAT_CERTIFIER_ORIGIN,
-  ISTAT_POPULATION_ATTRIBUTE_CODE,
-} from "../src/config/constants.js";
-import {
   addOneAttribute,
   addOneTenant,
   cleanup,
@@ -25,6 +21,7 @@ import {
   persistentAttribute,
   readModelService,
 } from "./helpers.js";
+import { ISTAT_ATTRIBUTE_SEED } from "../src/config/constants.js";
 
 describe("ISTAT Certified Discrete Attributes Importer", () => {
   const tenantProcessMock = {
@@ -81,7 +78,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       ...obsoleteTenant,
       remoteIds: [
         {
-          origin: ISTAT_CERTIFIER_ORIGIN,
+          origin: ISTAT_ATTRIBUTE_SEED.origin,
           value: "999999",
           assignmentTimestamp: new Date(),
         },
@@ -112,10 +109,10 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     expect(
       tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
-      ISTAT_CERTIFIER_ORIGIN,
+      ISTAT_ATTRIBUTE_SEED.origin,
       "015146",
-      ISTAT_CERTIFIER_ORIGIN,
-      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code,
       1350000,
       expect.anything(),
       expect.anything()
@@ -124,10 +121,10 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     expect(
       tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
-      ISTAT_CERTIFIER_ORIGIN,
+      ISTAT_ATTRIBUTE_SEED.origin,
       "090001",
-      ISTAT_CERTIFIER_ORIGIN,
-      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code,
       2800000,
       expect.anything(),
       expect.anything()
@@ -136,10 +133,10 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     expect(
       tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
-      ISTAT_CERTIFIER_ORIGIN,
+      ISTAT_ATTRIBUTE_SEED.origin,
       "028001",
-      ISTAT_CERTIFIER_ORIGIN,
-      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code,
       227,
       expect.anything(),
       expect.anything()
@@ -150,8 +147,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     ).toHaveBeenCalledWith(
       "ISTAT",
       "999999",
-      ISTAT_CERTIFIER_ORIGIN,
-      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code,
       expect.anything(),
       expect.anything()
     );
@@ -206,10 +203,10 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     expect(
       tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
-      ISTAT_CERTIFIER_ORIGIN,
+      ISTAT_ATTRIBUTE_SEED.origin,
       "001001",
-      ISTAT_CERTIFIER_ORIGIN,
-      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code,
       100,
       expect.anything(),
       expect.anything()
@@ -218,10 +215,10 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     expect(
       tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
-      ISTAT_CERTIFIER_ORIGIN,
+      ISTAT_ATTRIBUTE_SEED.origin,
       "001002",
-      ISTAT_CERTIFIER_ORIGIN,
-      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code,
       400,
       expect.anything(),
       expect.anything()
@@ -309,7 +306,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
         data: {
           id: "tenant-da-revocare",
           externalId: { origin: "ISTAT", value: "999999" },
-          remoteIds: [{ origin: ISTAT_CERTIFIER_ORIGIN, value: "999999" }],
+          remoteIds: [{ origin: ISTAT_ATTRIBUTE_SEED.origin, value: "999999" }],
         },
         metadata: { version: 1 },
       },
@@ -335,8 +332,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     ).toHaveBeenCalledWith(
       "ISTAT",
       "999999",
-      ISTAT_CERTIFIER_ORIGIN,
-      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code,
       expect.anything(),
       expect.anything()
     );
@@ -428,8 +425,8 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     ).toHaveBeenCalledWith(
       "ISTAT",
       "12342",
-      ISTAT_CERTIFIER_ORIGIN,
-      ISTAT_POPULATION_ATTRIBUTE_CODE,
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code,
       expect.anything(),
       expect.anything()
     );
@@ -448,7 +445,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
         data: {
           id: "t1",
           externalId: { origin: "ISTAT", value: "999991" },
-          remoteIds: [{ origin: ISTAT_CERTIFIER_ORIGIN, value: "999991" }],
+          remoteIds: [{ origin: ISTAT_ATTRIBUTE_SEED.origin, value: "999991" }],
         },
         metadata: { version: 1 },
       },
@@ -456,7 +453,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
         data: {
           id: "t2",
           externalId: { origin: "ISTAT", value: "999992" },
-          remoteIds: [{ origin: ISTAT_CERTIFIER_ORIGIN, value: "999992" }],
+          remoteIds: [{ origin: ISTAT_ATTRIBUTE_SEED.origin, value: "999992" }],
         },
         metadata: { version: 1 },
       },

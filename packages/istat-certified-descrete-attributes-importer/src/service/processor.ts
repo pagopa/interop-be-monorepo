@@ -11,11 +11,7 @@ import { JobStats } from "../model/istatModel.js";
 import { TenantProcessService } from "./tenantProcessService.js";
 import { IstatClient } from "./istatClient.js";
 import { AttributeProcessService } from "./attributeProcessService.js";
-import {
-  ISTAT_CERTIFIER_ORIGIN,
-  ISTAT_POPULATION_ATTRIBUTE_CODE,
-  SUMMARY_AGE_CODE,
-} from "../config/constants.js";
+import { ISTAT_ATTRIBUTE_SEED, SUMMARY_AGE_CODE } from "../config/constants.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { Readable } from "stream";
 import { config } from "../config/config.js";
@@ -79,10 +75,10 @@ export async function importAttributes(
 
           const metadata =
             await tenantProcess.internalAssignCertifiedDiscreteAttribute(
-              ISTAT_CERTIFIER_ORIGIN,
+              ISTAT_ATTRIBUTE_SEED.origin,
               municipalityCode,
-              ISTAT_CERTIFIER_ORIGIN,
-              ISTAT_POPULATION_ATTRIBUTE_CODE,
+              ISTAT_ATTRIBUTE_SEED.origin,
+              ISTAT_ATTRIBUTE_SEED.code,
               totalCount,
               context,
               logger
@@ -158,13 +154,13 @@ async function revokeMissingMunicipalities(
   correlationId: CorrelationId
 ): Promise<void> {
   const tenantsWithAttribute = await readModel.getTenantsWithDiscreteAttribute(
-    ISTAT_CERTIFIER_ORIGIN,
-    ISTAT_POPULATION_ATTRIBUTE_CODE
+    ISTAT_ATTRIBUTE_SEED.origin,
+    ISTAT_ATTRIBUTE_SEED.code
   );
 
   const tenantsToRevoke = tenantsWithAttribute.filter((tenant) => {
     const istatRemoteId = tenant.data.remoteIds?.find(
-      (r) => r.origin === ISTAT_CERTIFIER_ORIGIN
+      (r) => r.origin === ISTAT_ATTRIBUTE_SEED.origin
     )?.value;
 
     return !istatRemoteId || !populationByMunicipality.has(istatRemoteId);
@@ -200,8 +196,8 @@ async function revokeMissingMunicipalities(
             await tenantProcess.internalRevokeCertifiedDiscreteAttribute(
               tenantData.externalId.origin,
               tenantData.externalId.value,
-              ISTAT_CERTIFIER_ORIGIN,
-              ISTAT_POPULATION_ATTRIBUTE_CODE,
+              ISTAT_ATTRIBUTE_SEED.origin,
+              ISTAT_ATTRIBUTE_SEED.code,
               context,
               logger
             );
@@ -234,16 +230,16 @@ export async function ensureAttributeExists(
   pollingConfig: PollingConfig
 ): Promise<void> {
   let attr = await readmodel.getAttributeByExternalId(
-    ISTAT_CERTIFIER_ORIGIN,
-    ISTAT_POPULATION_ATTRIBUTE_CODE
+    ISTAT_ATTRIBUTE_SEED.origin,
+    ISTAT_ATTRIBUTE_SEED.code
   );
 
   if (attr) {
-    logger.info(`Attribute ${ISTAT_POPULATION_ATTRIBUTE_CODE} already exists.`);
+    logger.info(`Attribute ${ISTAT_ATTRIBUTE_SEED.code} already exists.`);
     return;
   }
 
-  logger.info(`Creating attribute ${ISTAT_POPULATION_ATTRIBUTE_CODE}...`);
+  logger.info(`Creating attribute ${ISTAT_ATTRIBUTE_SEED.code}...`);
   const token = await refreshableToken.get();
   const context: InteropContext = {
     correlationId,
@@ -251,18 +247,18 @@ export async function ensureAttributeExists(
   };
 
   await attributeProcess.createInternalCertifiedDiscreteAttribute(
-    ISTAT_CERTIFIER_ORIGIN,
-    ISTAT_POPULATION_ATTRIBUTE_CODE,
-    "Popolazione Residente",
-    "Attributo certificato discreto indicante la popolazione comunale",
+    ISTAT_ATTRIBUTE_SEED.origin,
+    ISTAT_ATTRIBUTE_SEED.code,
+    ISTAT_ATTRIBUTE_SEED.name,
+    ISTAT_ATTRIBUTE_SEED.description,
     context
   );
 
   logger.info("Polling Read Model for new attribute...");
   for (let i = 0; i < pollingConfig.defaultPollingMaxRetries; i++) {
     attr = await readmodel.getAttributeByExternalId(
-      ISTAT_CERTIFIER_ORIGIN,
-      ISTAT_POPULATION_ATTRIBUTE_CODE
+      ISTAT_ATTRIBUTE_SEED.origin,
+      ISTAT_ATTRIBUTE_SEED.code
     );
 
     if (attr) {
@@ -275,6 +271,6 @@ export async function ensureAttributeExists(
   }
 
   throw new Error(
-    `Timeout: Attribute ${ISTAT_POPULATION_ATTRIBUTE_CODE} not found after polling.`
+    `Timeout: Attribute ${ISTAT_ATTRIBUTE_SEED.code} not found after polling.`
   );
 }
