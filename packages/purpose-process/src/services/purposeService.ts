@@ -2500,40 +2500,6 @@ export type UpdatePurposeReturn = WithMetadata<{
   purpose: Purpose;
 }>;
 
-function riskAnalysisFormInputDiffersFromPrevious(
-  inputForm: purposeApi.RiskAnalysisFormSeed,
-  existingForm: PurposeRiskAnalysisForm,
-  tenantKind: TenantKind,
-  personalDataInEService: boolean | undefined
-): boolean {
-  const transformedInput = validateAndTransformRiskAnalysis(
-    { ...inputForm, tenantKind },
-    true,
-    tenantKind,
-    new Date(),
-    personalDataInEService
-  );
-
-  if (!transformedInput) {
-    return true;
-  }
-
-  const normalize = (form: PurposeRiskAnalysisForm) => ({
-    version: form.version,
-    singleAnswers: [...form.singleAnswers]
-      .sort((a, b) => a.key.localeCompare(b.key))
-      .map(({ key, value }) => ({ key, value })),
-    multiAnswers: [...form.multiAnswers]
-      .sort((a, b) => a.key.localeCompare(b.key))
-      .map(({ key, values }) => ({ key, values })),
-  });
-
-  return (
-    JSON.stringify(normalize(transformedInput)) !==
-    JSON.stringify(normalize(existingForm))
-  );
-}
-
 const performUpdatePurpose = async (
   purposeId: PurposeId,
   modeAndUpdateContent:
