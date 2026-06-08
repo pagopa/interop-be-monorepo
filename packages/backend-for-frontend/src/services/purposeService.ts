@@ -38,7 +38,10 @@ import {
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
-import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
+import {
+  toBffApiPurposeVersion,
+  toBffApiRiskAnalysisForm,
+} from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
@@ -246,7 +249,9 @@ export function purposeServiceBuilder(
         kind: consumer.kind,
         contactMail: getLatestTenantContactEmail(consumer),
       },
-      riskAnalysisForm: purpose.riskAnalysisForm,
+      riskAnalysisForm:
+        purpose.riskAnalysisForm &&
+        toBffApiRiskAnalysisForm(purpose.riskAnalysisForm),
       eservice: {
         id: eservice.id,
         name: eservice.name,
