@@ -4,6 +4,7 @@ import {
   AttributeId,
   Delegation,
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
   EServiceId,
@@ -16,6 +17,7 @@ import {
   activeProducerDelegationNotFound,
   attributeNotFound,
   certifierTenantNotFound,
+  descriptorNotFound,
   eserviceNotFound,
   eserviceWithoutDescriptors,
   purposeNotFound,
@@ -121,4 +123,15 @@ export function retrieveLatestDescriptor(eservice: EService): Descriptor {
   }
 
   return eservice.descriptors[0];
+}
+
+export function retrieveDescriptor(
+  eservice: EService,
+  descriptorId: DescriptorId
+): Descriptor {
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+  if (!descriptor) {
+    throw descriptorNotFound(eservice.id, descriptorId);
+  }
+  return descriptor;
 }

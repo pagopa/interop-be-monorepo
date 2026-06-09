@@ -5,14 +5,11 @@ import {
   ProducerKeychainId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  eventMailTemplateType,
-  retrieveEService,
-  retrieveTenant,
-} from "../../services/utils.js";
+import { retrieveEService, retrieveTenant } from "../../services/utils.js";
 import { ProducerKeychainEServiceHandlerParams } from "../../models/handlerParams.js";
 import { config } from "../../config/config.js";
 import {
+  eventMailTemplateType,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,
