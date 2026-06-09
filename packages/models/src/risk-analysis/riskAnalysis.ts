@@ -5,6 +5,7 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
 } from "../brandedIds.js";
+import { TenantKind } from "../tenant/tenant.js";
 
 export const riskAnalysisAnswerKind = {
   single: "SINGLE",
@@ -33,6 +34,7 @@ export type RiskAnalysisMultiAnswer = z.infer<typeof RiskAnalysisMultiAnswer>;
 export const RiskAnalysisForm = z.object({
   id: RiskAnalysisFormId,
   version: z.string(),
+  tenantKind: TenantKind.optional(),
   singleAnswers: z.array(RiskAnalysisSingleAnswer),
   multiAnswers: z.array(RiskAnalysisMultiAnswer),
 });

@@ -15,10 +15,13 @@ describe("getProducerKeyM2MEvents", () => {
       getMockedProducerKeyM2MEvent(type),
       getMockedProducerKeyM2MEvent(type),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   beforeEach(async () => {
-    await Promise.all(mockProducerKeyM2MEvents.map(writeProducerKeyM2MEvent));
+    for (const event of mockProducerKeyM2MEvents) {
+      await writeProducerKeyM2MEvent(event);
+    }
   });
 
   it("should list all key M2M events", async () => {

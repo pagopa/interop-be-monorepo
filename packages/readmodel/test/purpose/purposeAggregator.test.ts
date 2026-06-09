@@ -7,7 +7,10 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   RiskAnalysisId,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
   tenantKind,
+  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -46,6 +49,14 @@ describe("Purpose aggregator", () => {
         riskAnalysisForm: purposeRiskAnalysisForm,
         versions: [purposeVersion],
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        reviewerWorkflow: {
+          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+          reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+          signingState: riskAnalysisSigningState.signed,
+          signedBy: generateId<UserId>(),
+          rejectionReason: "Reviewer workflow rejection reason",
+          sentToReviewerAt: new Date(),
+        },
       },
       metadata: { version: 1 },
     };
@@ -58,6 +69,7 @@ describe("Purpose aggregator", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
@@ -68,6 +80,7 @@ describe("Purpose aggregator", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     });
 
     expect(aggregatedPurpose).toStrictEqual(purpose);
@@ -89,6 +102,7 @@ describe("Purpose aggregator", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
@@ -99,6 +113,7 @@ describe("Purpose aggregator", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     });
 
     expect(aggregatedPurpose).toStrictEqual(purpose);

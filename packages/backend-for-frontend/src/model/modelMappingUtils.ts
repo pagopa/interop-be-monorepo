@@ -20,6 +20,8 @@ const activeDescriptorStatesFilter: catalogApi.EServiceDescriptorState[] = [
   catalogApiDescriptorState.PUBLISHED,
   catalogApiDescriptorState.SUSPENDED,
   catalogApiDescriptorState.DEPRECATED,
+  catalogApiDescriptorState.ARCHIVING,
+  catalogApiDescriptorState.ARCHIVING_SUSPENDED,
 ];
 
 const invalidDescriptorState: catalogApi.EServiceDescriptorState[] = [
@@ -28,10 +30,15 @@ const invalidDescriptorState: catalogApi.EServiceDescriptorState[] = [
 ];
 
 export function getLatestActiveDescriptor(
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService,
+  includeArchived: boolean = false
 ): catalogApi.EServiceDescriptor | undefined {
   return eservice.descriptors
-    .filter((d) => activeDescriptorStatesFilter.includes(d.state))
+    .filter(
+      (d) =>
+        activeDescriptorStatesFilter.includes(d.state) ||
+        (includeArchived && d.state === catalogApiDescriptorState.ARCHIVED)
+    )
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
 }

@@ -9,6 +9,7 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   PurposeVersionState,
+  RiskAnalysisFormId,
   RiskAnalysisId,
   TenantId,
   TenantKind,
@@ -58,6 +59,10 @@ const errorCodes = {
   purposeDraftVersionNotFound: "0039",
   purposeFromTemplateCannotBeModified: "0040",
   invalidFreeOfChargeReason: "0041",
+  riskAnalysisTenantKindMismatch: "0042",
+  unableToDetermineTenantKind: "0043",
+  reviewerWorkflowConflict: "0044",
+  multipleReviewersNotAllowed: "0045",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -69,6 +74,18 @@ export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
     detail: `Purpose ${purposeId} not found`,
     code: "purposeNotFound",
     title: "Purpose not found",
+  });
+}
+
+export function riskAnalysisTenantKindMismatch(
+  actualKind: TenantKind,
+  expectedKind: TenantKind,
+  riskAnalysisFormId: RiskAnalysisFormId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis tenant kind mismatch for riskAnalysisFormId ${riskAnalysisFormId}: expected ${expectedKind}, actual ${actualKind}`,
+    code: "riskAnalysisTenantKindMismatch",
+    title: "Risk Analysis tenant kind mismatch",
   });
 }
 
@@ -93,6 +110,16 @@ export function tenantKindNotFound(tenantId: TenantId): ApiError<ErrorCodes> {
     detail: `Tenant kind for tenant ${tenantId} not found`,
     code: "tenantKindNotFound",
     title: "Tenant kind not found",
+  });
+}
+
+export function unableToDetermineTenantKind(
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Unable to determine tenant kind for tenant ${tenantId}`,
+    code: "unableToDetermineTenantKind",
+    title: "Unable to determine tenant kind",
   });
 }
 
@@ -496,5 +523,25 @@ export function invalidFreeOfChargeReason(
     detail: `Invalid freeOfChargeReason: "${freeOfChargeReason}" for isFreeOfCharge: "${isFreeOfCharge}"`,
     code: "invalidFreeOfChargeReason",
     title: "Invalid free of charge reason",
+  });
+}
+
+export function reviewerWorkflowConflict(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} already has a reviewer workflow that cannot be reassigned in its current state`,
+    code: "reviewerWorkflowConflict",
+    title: "Reviewer workflow conflict",
+  });
+}
+
+export function multipleReviewersNotAllowed(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} can't be assigned to multiple reviewers`,
+    code: "multipleReviewersNotAllowed",
+    title: "Multiple reviewers not allowed",
   });
 }

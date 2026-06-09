@@ -35,7 +35,7 @@ const errorCodes = {
   privacyNoticeVersionIsNotTheLatest: "0027",
   missingActivePurposeVersion: "0028",
   activeAgreementByEserviceAndConsumerNotFound: "0029",
-  purposeIdNotFoundInClientAssertion: "0030",
+  purposeIdNotProvided: "0030",
   delegationNotFound: "0031",
   tenantNotAllowed: "0032",
   cannotGetKeyWithClient: "0033",
@@ -342,11 +342,11 @@ export function activeAgreementByEserviceAndConsumerNotFound(
   });
 }
 
-export function purposeIdNotFoundInClientAssertion(): ApiError<ErrorCodes> {
+export function purposeIdNotProvided(): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `PurposeId not found in client assertion`,
-    code: "purposeIdNotFoundInClientAssertion",
-    title: "PurposeId not found in client assertion",
+    detail: "Claim purposeId does not exist in this assertion",
+    code: "purposeIdNotProvided",
+    title: "Purpose Id not provided",
   });
 }
 

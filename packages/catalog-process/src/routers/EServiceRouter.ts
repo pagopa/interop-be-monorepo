@@ -54,6 +54,7 @@ import {
   rejectDelegatedEServiceDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
   updateDescriptorAttributesErrorMapper,
+  updateDescriptorCertifiedAttributeErrorMapper,
   updateDescriptorErrorMapper,
   updateDraftDescriptorErrorMapper,
   updateEServiceDescriptionErrorMapper,
@@ -77,7 +78,13 @@ import {
   updateEServicePersonalDataFlagErrorMapper,
   updateTemplateInstancePersonalDataErrorMapper,
   updateEServiceInstanceLabelErrorMapper,
+  updateEserviceDescriptorArchivingStatusErrorMapper,
+  maintenanceFixRiskAnalysisErrorMapper,
   maintenanceResetEServicePersonalDataFlagErrorMapper,
+  updateEServiceArchivingStatusErrorMapper,
+  cancelEServiceArchivingErrorMapper,
+  archiveEServiceErrorMapper,
+  unarchiveDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
 import { CatalogService } from "../services/catalogService.js";
 
@@ -325,6 +332,31 @@ const eservicesRouter = (
         return res.status(204).send();
       } catch (error) {
         const errorRes = makeApiProblem(error, deleteEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/:eServiceId/scheduleArchive", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+        const { data: updatedEService, metadata } =
+          await catalogService.scheduleEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          updateEServiceArchivingStatusErrorMapper,
+          ctx
+        );
         return res.status(errorRes.status).send(errorRes);
       }
     })
@@ -807,7 +839,7 @@ const eservicesRouter = (
       }
     )
     .post(
-      "/eservices/:eServiceId/descriptors/:descriptorId/archive",
+      "/internal/eservices/:eServiceId/descriptors/:descriptorId/archive",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 
@@ -817,6 +849,7 @@ const eservicesRouter = (
           await catalogService.archiveDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
+            req.body,
             ctx
           );
           return res.status(204).send();
@@ -824,6 +857,48 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             archiveDescriptorErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post("/internal/eservices/:eServiceId/archive", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        await catalogService.archiveEService(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(error, archiveEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
+      "/maintenance/eservices/:eServiceId/descriptors/:descriptorId/unarchive",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+
+          await catalogService.unarchiveDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            unarchiveDescriptorErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -857,6 +932,37 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+          const { data: updatedEService, metadata } =
+            await catalogService.scheduleEServiceDescriptorArchiving(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEserviceDescriptorArchivingStatusErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -1087,6 +1193,37 @@ const eservicesRouter = (
       }
     )
     .post(
+      "/maintenance/eservices/:eServiceId/riskAnalyses/:riskAnalysisId/tenantKind/fix",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { data: updatedEService, metadata } =
+            await catalogService.fixEServiceRiskAnalysisTenantKind(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.riskAnalysisId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceFixRiskAnalysisErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/approve",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
@@ -1170,6 +1307,41 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateDescriptorAttributesErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .patch(
+      "/eservices/:eServiceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+          const { metadata, data: updatedEService } =
+            await catalogService.updateDescriptorCertifiedAttribute(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.params.groupIndex,
+              unsafeBrandId(req.params.attributeId),
+              req.body,
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateDescriptorCertifiedAttributeErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -1568,6 +1740,62 @@ const eservicesRouter = (
         }
       }
     )
+    .delete(
+      "/eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+          const updatedEService =
+            await catalogService.cancelEServiceDescriptorArchiving(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, updatedEService.metadata);
+
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(
+                eServiceToApiEService(updatedEService.data)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEserviceDescriptorArchivingStatusErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete("/eservices/:eServiceId/scheduleArchive", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+
+        const { metadata } = await catalogService.cancelEServiceArchiving(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          cancelEServiceArchivingErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .delete(
       "/maintenance/eservices/:eServiceId/personalDataFlag",
       async (req, res) => {
