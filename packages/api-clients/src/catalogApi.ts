@@ -1,10 +1,11 @@
 import * as catalogApi from "./generated/catalogApi.js";
+import { ZodiosInstance } from "@zodios/core";
 import { QueryParametersByAlias } from "./utils.js";
 
-type CatalogApi = typeof catalogApi.processApi.api;
+type CatalogApi = typeof catalogApi.processEndpoints;
 
-export type CatalogProcessClient = ReturnType<
-  typeof catalogApi.createProcessApiClient
+export type CatalogProcessClient = ZodiosInstance<
+  typeof catalogApi.processEndpoints
 >;
 
 export type GetEServicesQueryParams = QueryParametersByAlias<
