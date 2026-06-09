@@ -55,6 +55,14 @@ export const notificationAdmittedRoles = {
     [REVIEWER_ROLE]: false,
     [VIEWER_ROLE]: false,
   },
+  eserviceStateChangedToProducer: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
   agreementSuspendedUnsuspendedToConsumer: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
