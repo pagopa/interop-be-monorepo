@@ -198,6 +198,7 @@ const tenantsRouter = (
           SUPPORT_ROLE,
           INTERNAL_ROLE,
           VIEWER_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const { data: tenant, metadata } = await tenantService.getTenantById(
