@@ -37,7 +37,9 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
       .object({
         ESERVICE_DOCUMENTS_PATH: z.string(),
         MAX_FILE_SIZE_BYTES: z.coerce.number().default(10 * 1024 * 1024),
-        MAX_INTERFACE_FILE_SIZE_BYTES: z.coerce.number().default(3 * 1024 * 1024),
+        MAX_INTERFACE_FILE_SIZE_BYTES: z.coerce
+          .number()
+          .default(3 * 1024 * 1024),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
         GRACE_PERIOD_ARCHIVING_ESERVICE: z.coerce.number().int().positive(),
       })
@@ -57,4 +59,6 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
 
 type CatalogProcessConfig = z.infer<typeof CatalogProcessConfig>;
 
-export const config: CatalogProcessConfig = CatalogProcessConfig.parse(process.env);
+export const config: CatalogProcessConfig = CatalogProcessConfig.parse(
+  process.env
+);
