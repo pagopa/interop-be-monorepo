@@ -236,6 +236,7 @@ const eservicesRouter = (
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           INTERNAL_ROLE,
+          REVIEWER_ROLE,
           VIEWER_ROLE,
         ]);
 

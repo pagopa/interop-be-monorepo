@@ -61,6 +61,7 @@ const tenantsRouter = (
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     MAINTENANCE_ROLE,
+    REVIEWER_ROLE,
     VIEWER_ROLE,
   } = authRole;
   const tenantsRouter = ctx.router(tenantApi.tenantApi.api, {
@@ -145,6 +146,7 @@ const tenantsRouter = (
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           VIEWER_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const {
@@ -192,6 +194,7 @@ const tenantsRouter = (
           SUPPORT_ROLE,
           INTERNAL_ROLE,
           VIEWER_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const { data: tenant, metadata } = await tenantService.getTenantById(
