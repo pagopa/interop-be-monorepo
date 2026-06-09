@@ -1184,9 +1184,7 @@ paths:
       summary: Updates a tenant
       operationId: maintenanceTenantUpdate
       description: >-
-        Updates the specified tenant by its ID.
-        Optional fields (e.g. features) are merged with the existing tenant:
-        if provided, they overwrite the current value; if omitted, the current value is preserved.
+        Updates the specified tenant by its ID. Optional fields (e.g. features) are merged with the existing tenant: if provided, they overwrite the current value; if omitted, the current value is preserved.
       responses:
         "204":
           description: Tenant Updated
@@ -1506,6 +1504,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TenantRemoteId"
+        selfcareInstitutionType:
+          type: string
       required:
         - id
         - certifier

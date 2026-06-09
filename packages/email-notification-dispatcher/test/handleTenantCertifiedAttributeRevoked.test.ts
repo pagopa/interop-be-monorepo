@@ -23,7 +23,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { handleTenantCertifiedAttributeRevoked } from "../src/handlers/tenants/handleTenantCertifiedAttributeRevoked.js";
-import { attributeNotFound } from "../src/models/errors.js";
+import { attributeNotFound } from "pagopa-interop-notification-commons";
 import {
   addOneAttribute,
   addOneTenant,

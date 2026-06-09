@@ -15,10 +15,10 @@ import {
   getNotificationRecipients,
   retrieveAttribute,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  inAppTemplates,
+  verifiedAttributeNotFoundInTenant,
+} from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
-import { verifiedAttributeNotFoundInTenant } from "../../models/errors.js";
 
 type VerifiedAttributeAssignedRevokedEventType =
   | "TenantVerifiedAttributeAssigned"

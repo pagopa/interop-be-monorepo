@@ -6,6 +6,7 @@ import {
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
   FeatureFlagAttributeCertifiedDiscreteConfig,
+  FeatureFlagAsyncExchangeConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -29,6 +30,7 @@ const EServiceTemplateProcessConfig = CommonHTTPServiceConfig.and(
         eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
       }))
   )
+  .and(FeatureFlagAsyncExchangeConfig)
   .and(ApplicationAuditProducerConfig);
 
 type EServiceTemplateProcessConfig = z.infer<

@@ -1,6 +1,5 @@
 import {
   AttributeId,
-  Attribute,
   fromTenantV2,
   missingKafkaMessageDataError,
   NewNotification,
@@ -11,20 +10,18 @@ import {
   getNotificationRecipients,
   retrieveAttribute,
   retrieveTenantByCertifierId,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { match, P } from "ts-pattern";
+  inAppTemplates,
+  attributeOriginUndefined,
+} from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { attributeOriginUndefined } from "../../models/errors.js";
+
+const IMPORTED_ATTRIBUTE_ORIGINS = ["ISTAT"];
 
 type CertifiedDiscreteAttributeAssignedRevokedUpdatedEventType =
   | "TenantCertifiedDiscreteAttributeAssigned"
   | "TenantCertifiedDiscreteAttributeRevoked"
   | "TenantCertifiedDiscreteAttributeUpdated";
-
-type CertifiedDiscreteAttributeAssignedRevokedEventType =
-  | "TenantCertifiedDiscreteAttributeAssigned"
-  | "TenantCertifiedDiscreteAttributeRevoked";
 
 export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee(
   tenantV2Msg: TenantV2 | undefined,
@@ -60,29 +57,41 @@ export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAs
 
   const body = await match(eventType)
     .with("TenantCertifiedDiscreteAttributeAssigned", async () => {
-      const assignerName = await getAttributeAssignerOrRevokerName(
-        "TenantCertifiedDiscreteAttributeAssigned",
-        attribute,
+      if (!attribute.origin) {
+        throw attributeOriginUndefined(attribute.id);
+      }
+      if (IMPORTED_ATTRIBUTE_ORIGINS.includes(attribute.origin)) {
+        return inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
+          attribute.name
+        );
+      }
+      const certifier = await retrieveTenantByCertifierId(
+        attribute.origin,
         readModelService
       );
-
       return inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
         attribute.name,
         "certificato",
-        assignerName
+        certifier.name
       );
     })
     .with("TenantCertifiedDiscreteAttributeRevoked", async () => {
-      const revokerName = await getAttributeAssignerOrRevokerName(
-        "TenantCertifiedDiscreteAttributeRevoked",
-        attribute,
+      if (!attribute.origin) {
+        throw attributeOriginUndefined(attribute.id);
+      }
+      if (IMPORTED_ATTRIBUTE_ORIGINS.includes(attribute.origin)) {
+        return inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
+          attribute.name
+        );
+      }
+      const certifier = await retrieveTenantByCertifierId(
+        attribute.origin,
         readModelService
       );
-
       return inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
         attribute.name,
         "certificato",
-        revokerName
+        certifier.name
       );
     })
     .with("TenantCertifiedDiscreteAttributeUpdated", async () =>
@@ -100,32 +109,4 @@ export async function handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAs
     notificationType: "certifiedVerifiedAttributeAssignedRevokedToAssignee",
     entityId: attribute.id,
   }));
-}
-
-async function getAttributeAssignerOrRevokerName(
-  eventType: CertifiedDiscreteAttributeAssignedRevokedEventType,
-  attribute: Attribute,
-  readModelService: ReadModelServiceSQL
-): Promise<string> {
-  return match(eventType)
-    .with(
-      P.union(
-        "TenantCertifiedDiscreteAttributeAssigned",
-        "TenantCertifiedDiscreteAttributeRevoked"
-      ),
-      async () => {
-        if (!attribute.origin) {
-          throw attributeOriginUndefined(attribute.id);
-        }
-        return ["ISTAT"].includes(attribute.origin)
-          ? attribute.origin
-          : (
-              await retrieveTenantByCertifierId(
-                attribute.origin,
-                readModelService
-              )
-            ).name;
-      }
-    )
-    .exhaustive();
 }

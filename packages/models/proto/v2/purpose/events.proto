@@ -108,3 +108,15 @@ message RiskAnalysisSignedDocumentGeneratedV2 {
   string versionId = 1;
   PurposeV2 purpose = 2;
 }
+
+message MaintenancePurposeRiskAnalysisSetTenantKindV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeRiskAnalysisWorkflowCreatedV2 {
+  PurposeV2 purpose = 1;
+}
+
+message PurposeRiskAnalysisAssignedV2 {
+  PurposeV2 purpose = 1;
+}

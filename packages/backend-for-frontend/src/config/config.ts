@@ -3,11 +3,14 @@ import {
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
-  FeatureFlagClientAssertionStrictClaimsValidationConfig,
-  FeatureFlagDpopClientAssertionDebuggerConfig,
-  FeatureFlagDelegationConstraintSkipConfig,
-  FeatureFlagPurposeTemplateConfig,
+  FeatureFlagAsyncExchangeConfig,
   FeatureFlagAttributeCertifiedDiscreteConfig,
+  FeatureFlagClientAssertionStrictClaimsValidationConfig,
+  FeatureFlagDelegationConstraintSkipConfig,
+  FeatureFlagDpopClientAssertionDebuggerConfig,
+  FeatureFlagNewOperatorsConfig,
+  FeatureFlagPurposeTemplateConfig,
+  FeatureFlagUseSignedDocumentConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
   SelfCareClientConfig,
@@ -16,6 +19,7 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
+import { TokenGenerationValidationConfig } from "./tokenGenerationValidationConfig.js";
 
 const TenantProcessServerConfig = z
   .object({
@@ -83,11 +87,8 @@ const PurposeProcessServerConfig = z
   }));
 type PurposeProcessServerConfig = z.infer<typeof PurposeProcessServerConfig>;
 
-const PurposeTemplateProcessServerConfig = z
   .object({
-    PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
     PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
-    PURPOSE_TEMPLATE_DOCUMENTS_PATH: z.string(),
     RISK_ANALYSIS_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
     RISK_ANALYSIS_TEMPLATE_SIGNED_DOCUMENTS_CONTAINER: z.string(),
     RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH: z.string(),
@@ -341,9 +342,12 @@ const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(FeatureFlagClientAssertionStrictClaimsValidationConfig)
   .and(FeatureFlagDpopClientAssertionDebuggerConfig)
   .and(FrontendBaseURLConfig)
-  .and(FeatureFlagPurposeTemplateConfig)
+  .and(FeatureFlagAsyncExchangeConfig)
+  .and(FeatureFlagUseSignedDocumentConfig)
+  .and(TokenGenerationValidationConfig)
   .and(FeatureFlagDelegationConstraintSkipConfig)
   .and(FeatureFlagAttributeCertifiedDiscreteConfig)
+  .and(FeatureFlagNewOperatorsConfig)
   .and(
     z
       .object({

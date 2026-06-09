@@ -4,6 +4,7 @@ import {
   AttributeId,
   DelegationId,
   DescriptorId,
+  DescriptorState,
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
@@ -64,7 +65,21 @@ const errorCodes = {
   eserviceInDraftState: "0047",
   attributeDailyCallsNotAllowed: "0048",
   certifiedAttributeGroupNotFoundInSeed: "0049",
-  attributeDiscreteConfigNotAllowed: "0050",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0050",
+  eServiceAsyncExchangeNotEnabled: "0051",
+  missingAsyncExchangeProperties: "0053",
+  asyncExchangeBulkNotAllowedForSoap: "0054",
+  asyncExchangeNotAllowedForReceiveMode: "0055",
+  missingAsyncExchangeCallbackInterface: "0056",
+  templateVersionMissingAsyncExchangeProperties: "0057",
+  riskAnalysisTenantKindMismatch: "0058",
+  eserviceInArchivingOrArchivedState: "0059",
+  descriptorArchivingNotCancelableByScope: "0060",
+  descriptorAlreadyArchived: "0061",
+  notValidEServiceState: "0062",
+  eserviceNotInArchiving: "0063",
+  eServiceAlreadyArchived: "0064",
+  attributeDiscreteConfigNotAllowed: "0065",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -90,9 +105,7 @@ export function eServiceNameDuplicateForProducer(
   });
 }
 
-export function eserviceTemplateNameConflict(
-  eserviceName: string
-): ApiError<ErrorCodes> {
+export function eserviceTemplateNameConflict(eserviceName: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `An EService template with name ${eserviceName} already exists`,
     code: "eserviceTemplateNameConflict",
@@ -136,12 +149,20 @@ export function eServiceDocumentNotFound(
 
 export function notValidDescriptorState(
   descriptorId: DescriptorId,
-  descriptorStatus: string
+  descriptorStatus: DescriptorState
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} is in an invalid state ${descriptorStatus} for this operation`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
+  });
+}
+
+export function notValidEServiceState(eserviceId: EServiceId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in an invalid state for this operation`,
+    code: "notValidEServiceState",
+    title: "Not valid EService",
   });
 }
 
@@ -155,9 +176,7 @@ export function eServiceDescriptorWithoutInterface(
   });
 }
 
-export function draftDescriptorAlreadyExists(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
+export function draftDescriptorAlreadyExists(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} already contains a draft descriptor`,
     code: "draftDescriptorAlreadyExists",
@@ -165,9 +184,7 @@ export function draftDescriptorAlreadyExists(
   });
 }
 
-export function invalidDescriptorVersion(
-  details: string
-): ApiError<ErrorCodes> {
+export function invalidDescriptorVersion(details: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: details,
     code: "invalidDescriptorVersion",
@@ -175,9 +192,7 @@ export function invalidDescriptorVersion(
   });
 }
 
-export function interfaceAlreadyExists(
-  descriptorId: DescriptorId
-): ApiError<ErrorCodes> {
+export function interfaceAlreadyExists(descriptorId: DescriptorId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} already contains an interface`,
     code: "interfaceAlreadyExists",
@@ -209,9 +224,7 @@ export function originNotCompliant(origin: string): ApiError<ErrorCodes> {
   });
 }
 
-export function eserviceNotInDraftState(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
+export function eserviceNotInDraftState(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is not in draft state`,
     code: "eserviceNotInDraftState",
@@ -219,9 +232,7 @@ export function eserviceNotInDraftState(
   });
 }
 
-export function eserviceInDraftState(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
+export function eserviceInDraftState(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is in draft state`,
     code: "eserviceInDraftState",
@@ -229,9 +240,7 @@ export function eserviceInDraftState(
   });
 }
 
-export function eserviceNotInReceiveMode(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
+export function eserviceNotInReceiveMode(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is not in receive mode`,
     code: "eserviceNotInReceiveMode",
@@ -259,9 +268,7 @@ export function riskAnalysisValidationFailed(
   issues: RiskAnalysisValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis validation failed. Reasons: [${issues
-      .map((i) => i.detail)
-      .join(", ")}]`,
+    detail: `Risk analysis validation failed. Reasons: [${issues.map((i) => i.detail).join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
   });
@@ -278,9 +285,7 @@ export function eServiceRiskAnalysisNotFound(
   });
 }
 
-export function eServiceRiskAnalysisIsRequired(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
+export function eServiceRiskAnalysisIsRequired(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `At least one Risk Analysis is required for EService ${eserviceId}`,
     code: "eServiceRiskAnalysisIsRequired",
@@ -307,9 +312,7 @@ export function documentPrettyNameDuplicate(
   });
 }
 
-export function eserviceWithoutValidDescriptors(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
+export function eserviceWithoutValidDescriptors(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} does not have a valid descriptor`,
     code: "eserviceWithoutValidDescriptors",
@@ -317,9 +320,7 @@ export function eserviceWithoutValidDescriptors(
   });
 }
 
-export function audienceCannotBeEmpty(
-  descriptorId: DescriptorId
-): ApiError<ErrorCodes> {
+export function audienceCannotBeEmpty(descriptorId: DescriptorId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} can't be published with empty audience`,
     code: "audienceCannotBeEmpty",
@@ -413,9 +414,7 @@ export function templateInstanceNotAllowed(
   });
 }
 
-export function eServiceNotAnInstance(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
+export function eServiceNotAnInstance(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} is not an instance of a template`,
     code: "eServiceNotAnInstance",
@@ -423,9 +422,7 @@ export function eServiceNotAnInstance(
   });
 }
 
-export function eServiceAlreadyUpgraded(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
+export function eServiceAlreadyUpgraded(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService ${eserviceId} has already the latest version of the template`,
     code: "eServiceAlreadyUpgraded",
@@ -487,9 +484,7 @@ export function checksumDuplicate(
   });
 }
 
-export function attributeDuplicatedInGroup(
-  attributeId: AttributeId
-): ApiError<ErrorCodes> {
+export function attributeDuplicatedInGroup(attributeId: AttributeId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Attribute ${attributeId} is duplicated in attribute group`,
     code: "attributeDuplicatedInGroup",
@@ -518,6 +513,19 @@ export function missingPersonalDataFlag(
   });
 }
 
+export function riskAnalysisTenantKindMismatch(
+  actualKind: TenantKind,
+  currentTenantKind: TenantKind,
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis tenant kind mismatch for eserviceId ${eserviceId} with riskAnalysisId ${riskAnalysisId}: expected ${currentTenantKind}, actual ${actualKind}`,
+    code: "riskAnalysisTenantKindMismatch",
+    title: "Risk Analysis tenant kind mismatch",
+  });
+}
+
 export function eServiceTemplateWithoutPersonalDataFlag(
   eServiceTemplateId: EServiceTemplateId,
   eServiceTemplateVersionId: EServiceTemplateVersionId
@@ -525,8 +533,50 @@ export function eServiceTemplateWithoutPersonalDataFlag(
   return new ApiError({
     detail: `Template version ${eServiceTemplateVersionId} in eService Template ${eServiceTemplateId} cannot be instantiated because the personalData flag is not set`,
     code: "eServiceTemplateWithoutPersonalDataFlag",
-    title:
-      "EService Template personalData flag must be set before instantiation",
+    title: "EService Template personalData flag must be set before instantiation",
+  });
+}
+
+export function missingAsyncExchangeProperties(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because async exchange properties (responseTime, resourceAvailableTime, maxResultSet) must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeProperties",
+    title: "Missing required async exchange properties for publication",
+  });
+}
+
+export function missingAsyncExchangeCallbackInterface(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because asyncExchangeCallbackInterface must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeCallbackInterface",
+    title: "Async exchange callback interface must be set before publication",
+  });
+}
+
+export function asyncExchangeBulkNotAllowedForSoap(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published with asyncExchangeBulk enabled when technology is Soap`,
+    code: "asyncExchangeBulkNotAllowedForSoap",
+    title: "Async exchange bulk not allowed for SOAP technology",
+  });
+}
+
+export function asyncExchangeNotAllowedForReceiveMode(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} can't have async exchange enabled with receive mode`,
+    code: "asyncExchangeNotAllowedForReceiveMode",
+    title: "Async exchange not allowed for receive mode",
   });
 }
 
@@ -540,9 +590,7 @@ export function eServiceUpdateSameDescriptionConflict(
   });
 }
 
-export function eServiceUpdateSameNameConflict(
-  eserviceId: EServiceId
-): ApiError<ErrorCodes> {
+export function eServiceUpdateSameNameConflict(eserviceId: EServiceId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
@@ -550,9 +598,36 @@ export function eServiceUpdateSameNameConflict(
   });
 }
 
-export function attributeDailyCallsNotAllowed(
-  attributeId: AttributeId
+export function eServiceAsyncExchangeNotEnabled(eServiceId: EServiceId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eServiceId} does not have async exchange enabled`,
+    code: "eServiceAsyncExchangeNotEnabled",
+    title: "EService does not have async exchange enabled",
+  });
+}
+
+export function asyncExchangeCallbackInterfaceAlreadyExists(
+  descriptorId: DescriptorId
 ): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
+    code: "asyncExchangeCallbackInterfaceAlreadyExists",
+    title: "Descriptor already contains an async exchange callback interface",
+  });
+}
+
+export function templateVersionMissingAsyncExchangeProperties(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange properties are missing for version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
+    code: "templateVersionMissingAsyncExchangeProperties",
+    title: "Template version missing async exchange properties",
+  });
+}
+
+export function attributeDailyCallsNotAllowed(attributeId: AttributeId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
     code: "attributeDailyCallsNotAllowed",
@@ -560,9 +635,7 @@ export function attributeDailyCallsNotAllowed(
   });
 }
 
-export function attributeDiscreteConfigNotAllowed(
-  attributeId: AttributeId
-): ApiError<ErrorCodes> {
+export function attributeDiscreteConfigNotAllowed(attributeId: AttributeId): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
     code: "attributeDiscreteConfigNotAllowed",
@@ -578,5 +651,46 @@ export function certifiedAttributeGroupNotFoundInSeed(
     detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
     code: "certifiedAttributeGroupNotFoundInSeed",
     title: "Certified attribute group not found in seed",
+  });
+}
+
+export function eserviceInArchivingOrArchivedState(eserviceId: EServiceId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `You can't create a new version, because the EService ${eserviceId} is in archiving or archived state`,
+    code: "eserviceInArchivingOrArchivedState",
+    title: "EService in archiving or archived state",
+  });
+}
+
+export function descriptorArchivingNotCancelableByScope(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} archiving cannot be canceled because it was scheduled at eservice scope`,
+    code: "descriptorArchivingNotCancelableByScope",
+    title: "Descriptor archiving not cancelable by scope",
+  });
+}
+export function descriptorAlreadyArchived(descriptorId: DescriptorId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} is already archived`,
+    code: "descriptorAlreadyArchived",
+    title: "Descriptor already archived",
+  });
+}
+
+export function eserviceNotInArchiving(eserviceId: EServiceId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not have an ongoing global archiving orchestration`,
+    code: "eserviceNotInArchiving",
+    title: "EService not in archiving",
+  });
+}
+
+export function eServiceAlreadyArchived(eserviceId: EServiceId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is already archived`,
+    code: "eServiceAlreadyArchived",
+    title: "EService already archived",
   });
 }

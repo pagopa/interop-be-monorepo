@@ -132,6 +132,7 @@ import {
   PurposeVersionSignedDocument,
   DelegationSignedContractDocument,
   SelfcareId,
+  archivingScope,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -198,6 +199,19 @@ export const getTenantOneCertifierFeature = (
   }
   return certifiedFeatures[0];
 };
+
+export const getMockDescriptorArchiving = (
+  descriptorId: DescriptorId = generateId<DescriptorId>()
+): Descriptor => ({
+  ...getMockDescriptor(descriptorState.archiving),
+  id: descriptorId,
+  state: descriptorState.archiving,
+  archivingSchedule: {
+    scope: archivingScope.descriptor,
+    startedAt: new Date(),
+    archivableOn: new Date(new Date().setUTCDate(new Date().getUTCDate() + 30)),
+  },
+});
 
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
@@ -877,7 +891,7 @@ export const getMockClientAssertion = async (props?: {
 
   const headers: jose.JWTHeaderParameters = {
     alg: algorithm.RS256,
-    kid: "kid",
+    kid: "23j6WZbSbFiX_By98MBDgjnL3ZPkJJU83euQxrZxVsA",
     ...props?.customHeader,
   };
 

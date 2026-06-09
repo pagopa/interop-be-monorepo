@@ -20,9 +20,9 @@ import {
   attributeNotFound,
   attributeOriginUndefined,
   certifierTenantNotFound,
-} from "../src/models/errors.js";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+  getNotificationRecipients,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 import { addOneAttribute, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
@@ -33,6 +33,16 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
     ...getMockTenant(),
     name: "Certifier Name",
     features: [{ type: "PersistentCertifier", certifierId }],
+  };
+  const anacCertifier: Tenant = {
+    ...getMockTenant(),
+    name: "ANAC Name",
+    features: [{ type: "PersistentCertifier", certifierId: "ANAC" }],
+  };
+  const ivassCertifier: Tenant = {
+    ...getMockTenant(),
+    name: "IVASS Name",
+    features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
   };
   const revoker: Tenant = {
     ...getMockTenant(),
@@ -59,6 +69,11 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
     name: "Certified IVASS Attribute",
     origin: "IVASS",
   };
+  const certifiedAttributeSELFCARE: Attribute = {
+    ...getMockAttribute(attributeKind.certified),
+    name: "Certified SELFCARE Attribute",
+    origin: "SELFCARE",
+  };
 
   const { logger } = getMockContext({});
 
@@ -69,11 +84,14 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
     // Setup test data
     await addOneTenant(assignee);
     await addOneTenant(certifier);
+    await addOneTenant(anacCertifier);
+    await addOneTenant(ivassCertifier);
     await addOneTenant(revoker);
     await addOneAttribute(certifiedAttribute);
     await addOneAttribute(certifiedAttributeANAC);
     await addOneAttribute(certifiedAttributeIPA);
     await addOneAttribute(certifiedAttributeIVASS);
+    await addOneAttribute(certifiedAttributeSELFCARE);
   });
 
   it("should throw missingKafkaMessageDataError when tenant is undefined", async () => {
@@ -217,18 +235,44 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
       expectedBody: inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
         certifiedAttributeANAC.name,
         "certificato",
-        "ANAC"
+        "ANAC Name"
       ),
+    },
+    {
+      eventType: "TenantCertifiedAttributeAssigned",
+      assigneeAttributes: [],
+      attributeId: certifiedAttributeIPA.id,
+      expectedBody:
+        inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
+          certifiedAttributeIPA.name
+        ),
     },
     {
       eventType: "TenantCertifiedAttributeRevoked",
       assigneeAttributes: [],
       attributeId: certifiedAttributeIPA.id,
-      expectedBody: inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
-        certifiedAttributeIPA.name,
-        "certificato",
-        "IPA"
-      ),
+      expectedBody:
+        inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
+          certifiedAttributeIPA.name
+        ),
+    },
+    {
+      eventType: "TenantCertifiedAttributeAssigned",
+      assigneeAttributes: [],
+      attributeId: certifiedAttributeSELFCARE.id,
+      expectedBody:
+        inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
+          certifiedAttributeSELFCARE.name
+        ),
+    },
+    {
+      eventType: "TenantCertifiedAttributeRevoked",
+      assigneeAttributes: [],
+      attributeId: certifiedAttributeSELFCARE.id,
+      expectedBody:
+        inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
+          certifiedAttributeSELFCARE.name
+        ),
     },
     {
       eventType: "TenantCertifiedAttributeRevoked",
@@ -237,7 +281,7 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
       expectedBody: inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
         certifiedAttributeIVASS.name,
         "certificato",
-        "IVASS"
+        "IVASS Name"
       ),
     },
   ])(

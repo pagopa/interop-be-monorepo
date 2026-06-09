@@ -5,6 +5,7 @@ import {
   attributeKind,
   Descriptor,
   DescriptorId,
+  DescriptorState,
   descriptorState,
   EService,
   EServiceId,
@@ -206,7 +207,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       expectedStatus: 400,
     },
     {
-      error: notValidDescriptorState(generateId(), ""),
+      error: notValidDescriptorState(generateId(), "" as DescriptorState),
       expectedStatus: 400,
     },
     {

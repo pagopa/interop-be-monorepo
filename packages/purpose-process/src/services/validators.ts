@@ -3,7 +3,7 @@ import {
   M2MAdminAuthData,
   Ownership,
   ownership,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
@@ -23,13 +23,13 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   purposeVersionState,
-  RiskAnalysisForm,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
   TenantId,
   tenantKind,
   TenantKind,
   tenantAttributeType,
+  RiskAnalysisFormId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -45,6 +45,7 @@ import {
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
   riskAnalysisMissingExpectedFieldError,
+  riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
@@ -62,24 +63,33 @@ import {
 } from "./purposeService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
-export const isRiskAnalysisFormValid = (
-  riskAnalysisForm: RiskAnalysisForm | undefined,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
-  dateForExpirationValidation: Date,
-  personalDataInEService: boolean | undefined
-): boolean => {
-  if (riskAnalysisForm === undefined) {
-    return false;
-  } else {
-    return (
-      validateRiskAnalysis(
-        riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-        schemaOnlyValidation,
-        tenantKind,
-        dateForExpirationValidation,
-        personalDataInEService
-      ).type === "valid"
+export const assertRiskAnalysisTenantKindMatch = ({
+  actualKind,
+  currentTenantKind,
+  riskAnalysisFormId,
+}: {
+  actualKind: TenantKind | undefined;
+  currentTenantKind: TenantKind;
+  riskAnalysisFormId: RiskAnalysisFormId;
+}): void => {
+  // TODO after the fix
+  // if (actualKind === undefined) {
+  //   throw missingTenantKindError();
+  // }
+
+  const mapKindToKindForRA = (kind: TenantKind): TenantKind =>
+    match(kind)
+      .with(tenantKind.PA, () => tenantKind.PA)
+      .otherwise(() => tenantKind.PRIVATE);
+
+  if (
+    actualKind &&
+    mapKindToKindForRA(actualKind) !== mapKindToKindForRA(currentTenantKind)
+  ) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      currentTenantKind,
+      riskAnalysisFormId
     );
   }
 };
@@ -125,7 +135,7 @@ export const assertConsistentFreeOfCharge = (
   }
 };
 
-const assertRequesterIsConsumer = (
+export const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
   authData: Pick<UIAuthData, "organizationId">
 ): void => {
@@ -137,20 +147,20 @@ const assertRequesterIsConsumer = (
 export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
-  tenantKind,
+  fallbackTenantKind,
   dateForExpirationValidation,
   personalDataInEService,
 }: {
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
+  riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
-  tenantKind: TenantKind;
+  fallbackTenantKind: TenantKind;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -163,9 +173,9 @@ export function validateRiskAnalysisOrThrow({
 }
 
 export function validateAndTransformRiskAnalysis(
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
+  fallbackTenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
@@ -175,7 +185,7 @@ export function validateAndTransformRiskAnalysis(
   const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService,
   });
@@ -768,7 +778,7 @@ function buildAnswersSeed(
 
 export function validateRiskAnalysisAgainstTemplateOrThrow(
   purposeTemplate: PurposeTemplate,
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
   eservicePersonalData: boolean | undefined
@@ -792,9 +802,10 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     riskAnalysisForm
   );
 
-  const formToValidate: purposeApi.RiskAnalysisFormSeed = {
+  const formToValidate: RiskAnalysisFormToValidate = {
     version: purposeTemplate.purposeRiskAnalysisForm.version,
     answers: answersToSeed,
+    tenantKind,
   };
 
   return validateAndTransformRiskAnalysis(

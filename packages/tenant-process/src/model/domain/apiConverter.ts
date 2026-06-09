@@ -153,6 +153,7 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
       value: remoteId.value,
       assignmentTimestamp: remoteId.assignmentTimestamp.toJSON(),
     })),
+    selfcareInstitutionType: tenant.selfcareInstitutionType ?? undefined,
   };
 }
 

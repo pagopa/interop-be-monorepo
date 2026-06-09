@@ -11,6 +11,7 @@ import {
   Purpose,
   PurposeId,
   NotificationType,
+  ProducerKeychainId,
   Tenant,
   TenantId,
   UserId,
@@ -24,6 +25,7 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   NotificationConfigReadModelService,
+  ProducerKeychainReadModelService,
   PurposeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
@@ -42,6 +44,8 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist = [],
+  producerKeychainReadModelServiceSQL,
 }: {
   agreementReadModelServiceSQL: AgreementReadModelService;
   attributeReadModelServiceSQL: AttributeReadModelService;
@@ -50,8 +54,11 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
   purposeReadModelServiceSQL: PurposeReadModelService;
+  notificationTypeBlocklist?: NotificationType[];
+  producerKeychainReadModelServiceSQL: ProducerKeychainReadModelService;
 }) {
   return {
+    notificationTypeBlocklist,
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
@@ -76,14 +83,15 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
-      notificationType: NotificationType
+      notificationType: NotificationType,
+      notificationChannel: "inApp" | "email"
     ): Promise<
       Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
     > {
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,
         notificationType,
-        "inApp"
+        notificationChannel
       );
     },
     async getActiveProducerDelegation(
@@ -131,6 +139,17 @@ export function readModelServiceBuilderSQL({
       return (
         await tenantReadModelServiceSQL.getTenantByCertifierId(certifierId)
       )?.data;
+    },
+    async eserviceExistsInOtherProducerKeychains(
+      eserviceId: EServiceId,
+      producerId: TenantId,
+      excludeKeychainId: ProducerKeychainId
+    ): Promise<boolean> {
+      return producerKeychainReadModelServiceSQL.eserviceExistsInOtherProducerKeychains(
+        eserviceId,
+        producerId,
+        excludeKeychainId
+      );
     },
   };
 }

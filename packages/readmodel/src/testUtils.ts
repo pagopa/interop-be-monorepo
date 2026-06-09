@@ -7,6 +7,7 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
@@ -31,6 +32,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -52,6 +54,7 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -77,6 +80,7 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeVersionStampInReadmodelPurpose,
   purposeTemplateChildTables,
   DrizzleTransactionType,
@@ -86,6 +90,7 @@ import {
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
   tenantRemoteIdInReadmodelTenant,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 import {
@@ -106,6 +111,7 @@ import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
 import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import {
   splitPurposeTemplateIntoObjectsSQL,
+  toEServiceTemplateVersionPurposeTemplateSQL,
   toPurposeTemplateEServiceDescriptorSQL,
 } from "./purpose-template/splitters.js";
 
@@ -279,6 +285,8 @@ export const upsertEService = async (
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
     await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -329,6 +337,18 @@ export const upsertEService = async (
       await tx
         .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
         .values(templateVersionRefSQL);
+    }
+
+    for (const archivingScheduleSQL of archivingSchedulesSQL) {
+      await tx
+        .insert(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .values(archivingScheduleSQL);
+    }
+
+    for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+      await tx
+        .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+        .values(asyncExchangePropsSQL);
     }
   });
 };
@@ -497,6 +517,7 @@ export const upsertEServiceTemplate = async (
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, metadataVersion);
 
     await tx
@@ -537,6 +558,14 @@ export const upsertEServiceTemplate = async (
       await tx
         .insert(eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate)
         .values(riskAnalysisAnswerSQL);
+    }
+
+    for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+      await tx
+        .insert(
+          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+        )
+        .values(asyncExchangePropsSQL);
     }
   });
 };
@@ -832,7 +861,9 @@ export const upsertPurposeTemplate = async (
 
     for (const table of purposeTemplateChildTables) {
       if (
-        table !== purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+        table !== purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate &&
+        table !==
+          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
       ) {
         await tx
           .delete(table)
@@ -908,7 +939,10 @@ export const upsertPurposeTemplate = async (
       tx,
       purposeTemplate.id,
       metadataVersion,
-      [purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate]
+      [
+        purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+        eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
+      ]
     );
   });
 };
@@ -958,5 +992,49 @@ export const upsertPurposeTemplateEServiceDescriptor = async (
     await tx
       .insert(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
       .values(purposeTemplateEServiceDescriptorSQL);
+  });
+};
+
+export const upsertEServiceTemplateVersionPurposeTemplate = async (
+  readModelDB: DrizzleReturnType,
+  eserviceTemplateVersionPurposeTemplate: EServiceTemplateVersionPurposeTemplate,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      purposeTemplateInReadmodelPurposeTemplate,
+      metadataVersion,
+      eserviceTemplateVersionPurposeTemplate.purposeTemplateId
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
+      .where(
+        and(
+          eq(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+            eserviceTemplateVersionPurposeTemplate.purposeTemplateId
+          ),
+          eq(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+            eserviceTemplateVersionPurposeTemplate.eserviceTemplateId
+          )
+        )
+      );
+
+    const eserviceTemplateVersionPurposeTemplateSQL =
+      toEServiceTemplateVersionPurposeTemplateSQL(
+        eserviceTemplateVersionPurposeTemplate,
+        metadataVersion
+      );
+
+    await tx
+      .insert(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
+      .values(eserviceTemplateVersionPurposeTemplateSQL);
   });
 };

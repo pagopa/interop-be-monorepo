@@ -19,10 +19,13 @@ import {
   EServiceId,
   AttributeId,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  getNotificationRecipients,
+  tenantNotFound,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
-import { tenantNotFound } from "../src/models/errors.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+
 import {
   addOneAgreement,
   addOneEService,
@@ -270,6 +273,23 @@ describe("handleEserviceStateChangedToConsumer", async () => {
           eservice: toEServiceV2(eservice),
           descriptorId: eservice.descriptors[0].id,
           attributeIds: [generateId<AttributeId>()] as AttributeId[],
+        },
+      },
+      expectedBody:
+        inAppTemplates.eserviceDescriptorAttributesUpdatedToConsumer(
+          eservice.name,
+          producerTenant.name
+        ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: eservice.descriptors[0].id,
+          attributeId: generateId<AttributeId>(),
+          dailyCallsPerConsumer: 10,
         },
       },
       expectedBody:

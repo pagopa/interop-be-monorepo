@@ -13,8 +13,11 @@ import {
   Descriptor,
   DescriptorRejectionReason,
   dateToString,
+  ArchivingSchedule,
 } from "pagopa-interop-models";
 import {
+  EServiceDescriptorArchivingScheduleSQL,
+  EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
   EServiceDescriptorInterfaceSQL,
@@ -68,6 +71,8 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
+    asyncExchangePropertiesSQL,
   } = eservice.descriptors.reduce(
     (
       acc: {
@@ -77,16 +82,20 @@ export const splitEserviceIntoObjectsSQL = (
         documentsSQL: EServiceDescriptorDocumentSQL[];
         rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
         templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+        archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
+        asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
       },
       currentDescriptor: Descriptor
     ) => {
       const {
         descriptorSQL,
         attributesSQL,
-        interfaceSQL,
+        interfacesSQL: descriptorInterfacesSQL,
         documentsSQL,
         rejectionReasonsSQL,
         templateVersionRefSQL,
+        archivingScheduleSQL,
+        asyncExchangePropertiesSQL: asyncExchangePropsSQL,
       } = splitDescriptorIntoObjectsSQL(
         eservice.id,
         currentDescriptor,
@@ -96,15 +105,19 @@ export const splitEserviceIntoObjectsSQL = (
       return {
         descriptorsSQL: acc.descriptorsSQL.concat([descriptorSQL]),
         attributesSQL: acc.attributesSQL.concat(attributesSQL),
-        interfacesSQL: interfaceSQL
-          ? acc.interfacesSQL.concat([interfaceSQL])
-          : acc.interfacesSQL,
+        interfacesSQL: acc.interfacesSQL.concat(descriptorInterfacesSQL),
         documentsSQL: acc.documentsSQL.concat(documentsSQL),
         rejectionReasonsSQL:
           acc.rejectionReasonsSQL.concat(rejectionReasonsSQL),
         templateVersionRefsSQL: templateVersionRefSQL
           ? acc.templateVersionRefsSQL.concat(templateVersionRefSQL)
           : acc.templateVersionRefsSQL,
+        archivingSchedulesSQL: archivingScheduleSQL
+          ? acc.archivingSchedulesSQL.concat(archivingScheduleSQL)
+          : acc.archivingSchedulesSQL,
+        asyncExchangePropertiesSQL: asyncExchangePropsSQL
+          ? acc.asyncExchangePropertiesSQL.concat(asyncExchangePropsSQL)
+          : acc.asyncExchangePropertiesSQL,
       };
     },
     {
@@ -114,6 +127,8 @@ export const splitEserviceIntoObjectsSQL = (
       documentsSQL: [],
       rejectionReasonsSQL: [],
       templateVersionRefsSQL: [],
+      archivingSchedulesSQL: [],
+      asyncExchangePropertiesSQL: [],
     }
   );
 
@@ -127,6 +142,8 @@ export const splitEserviceIntoObjectsSQL = (
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
@@ -201,10 +218,14 @@ export const splitDescriptorIntoObjectsSQL = (
 ): {
   descriptorSQL: EServiceDescriptorSQL;
   attributesSQL: EServiceDescriptorAttributeSQL[];
-  interfaceSQL: EServiceDescriptorInterfaceSQL | undefined;
+  interfacesSQL: EServiceDescriptorInterfaceSQL[];
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  archivingScheduleSQL: EServiceDescriptorArchivingScheduleSQL | undefined;
+  asyncExchangePropertiesSQL:
+    | EServiceDescriptorAsyncExchangePropertiesSQL
+    | undefined;
 } => {
   const descriptorSQL = descriptorToDescriptorSQL(
     eserviceId,
@@ -235,14 +256,32 @@ export const splitDescriptorIntoObjectsSQL = (
       version
     ),
   ];
-  const interfaceSQL = descriptor.interface
-    ? documentToDocumentSQL(
+
+  const interfacesSQL: EServiceDescriptorInterfaceSQL[] = [];
+
+  if (descriptor.interface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
         descriptor.interface,
         descriptor.id,
         eserviceId,
         version
-      )
-    : undefined;
+      ),
+      kind: "INTERFACE",
+    });
+  }
+
+  if (descriptor.asyncExchangeCallbackInterface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
+        descriptor.asyncExchangeCallbackInterface,
+        descriptor.id,
+        eserviceId,
+        version
+      ),
+      kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+    });
+  }
 
   const documentsSQL = descriptor.docs.map((doc) =>
     documentToDocumentSQL(doc, descriptor.id, eserviceId, version)
@@ -280,13 +319,42 @@ export const splitDescriptorIntoObjectsSQL = (
       }
     : undefined;
 
+  const archivingScheduleSQL:
+    | EServiceDescriptorArchivingScheduleSQL
+    | undefined = descriptor.archivingSchedule
+    ? archivingScheduleToArchivingScheduleSQL(
+        descriptor.archivingSchedule,
+        descriptor.id,
+        eserviceId,
+        version
+      )
+    : undefined;
+
+  const asyncExchangePropertiesSQL:
+    | EServiceDescriptorAsyncExchangePropertiesSQL
+    | undefined = descriptor.asyncExchangeProperties
+    ? {
+        eserviceId,
+        metadataVersion: version,
+        descriptorId: descriptor.id,
+        responseTime: descriptor.asyncExchangeProperties.responseTime,
+        resourceAvailableTime:
+          descriptor.asyncExchangeProperties.resourceAvailableTime,
+        confirmation: descriptor.asyncExchangeProperties.confirmation,
+        bulk: descriptor.asyncExchangeProperties.bulk,
+        maxResultSet: descriptor.asyncExchangeProperties.maxResultSet,
+      }
+    : undefined;
+
   return {
     descriptorSQL,
     attributesSQL,
-    interfaceSQL,
+    interfacesSQL,
     documentsSQL,
     rejectionReasonsSQL,
     templateVersionRefSQL,
+    archivingScheduleSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
@@ -306,6 +374,7 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind ?? null,
   };
 
   const riskAnalysisSingleAnswers: EServiceRiskAnalysisAnswerSQL[] =
@@ -343,6 +412,20 @@ export const splitRiskAnalysisIntoObjectsSQL = (
     ],
   };
 };
+
+export const archivingScheduleToArchivingScheduleSQL = (
+  archivingSchedule: ArchivingSchedule,
+  descriptorId: DescriptorId,
+  eserviceId: EServiceId,
+  version: number
+): EServiceDescriptorArchivingScheduleSQL => ({
+  eserviceId,
+  metadataVersion: version,
+  descriptorId,
+  scope: archivingSchedule.scope,
+  archivableOn: dateToString(archivingSchedule.archivableOn),
+  startedAt: dateToString(archivingSchedule.startedAt),
+});
 
 export const documentToDocumentSQL = (
   document: Document,
@@ -404,6 +487,8 @@ export const eserviceToEserviceSQL = (
   templateId: eservice.templateId ?? null,
   personalData: eservice.personalData ?? null,
   instanceLabel: eservice.instanceLabel ?? null,
+  archivingReason: eservice.archivingReason ?? null,
+  asyncExchange: eservice.asyncExchange ?? null,
 });
 
 export const rejectionReasonToRejectionReasonSQL = (

@@ -1,5 +1,4 @@
 import {
-  EServiceTemplateRiskAnalysis,
   RiskAnalysis,
   RiskAnalysisForm,
   RiskAnalysisFormId,
@@ -28,6 +27,7 @@ export type RiskAnalysisValidationResult<T> =
 
 export type RiskAnalysisFormToValidate = {
   version: string;
+  tenantKind: TenantKind | undefined; // TODO this will become required after the fix
   answers: Record<string, string[]>;
 };
 
@@ -53,6 +53,7 @@ export type RiskAnalysisValidatedSingleOrMultiAnswer =
 
 export type RiskAnalysisValidatedForm = {
   version: string;
+  tenantKind: TenantKind;
   singleAnswers: RiskAnalysisValidatedSingleAnswer[];
   multiAnswers: RiskAnalysisValidatedMultiAnswer[];
 };
@@ -83,27 +84,13 @@ export function riskAnalysisValidatedFormToNewRiskAnalysis(
   };
 }
 
-export function riskAnalysisValidatedFormToNewEServiceTemplateRiskAnalysis(
-  validatedForm: RiskAnalysisValidatedForm,
-  name: RiskAnalysis["name"],
-  tenantKind: TenantKind
-): EServiceTemplateRiskAnalysis {
-  return {
-    id: generateId<RiskAnalysisId>(),
-    name,
-    createdAt: new Date(),
-    riskAnalysisForm:
-      riskAnalysisValidatedFormToNewRiskAnalysisForm(validatedForm),
-    tenantKind,
-  };
-}
-
 export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
   validatedForm: RiskAnalysisValidatedForm
 ): RiskAnalysisForm {
   return {
     id: generateId<RiskAnalysisFormId>(),
     version: validatedForm.version,
+    tenantKind: validatedForm.tenantKind,
     singleAnswers: validatedForm.singleAnswers.map((a) => ({
       ...a,
       id: generateId<RiskAnalysisSingleAnswerId>(),
@@ -118,8 +105,13 @@ export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
 export function riskAnalysisFormToRiskAnalysisFormToValidate(
   form: RiskAnalysisForm
 ): RiskAnalysisFormToValidate {
+  // TODO this will be added after release
+  // if (!form.tenantKind) {
+  //   throw missingTenantKindError();
+  // }
   return {
     version: form.version,
+    tenantKind: form.tenantKind,
     answers: {
       ...form.singleAnswers.reduce(
         (acc, singleAnswer) => ({

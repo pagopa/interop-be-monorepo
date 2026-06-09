@@ -106,6 +106,15 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         CatalogDbTable.eservice_descriptor_template_version_ref
       );
+      const asyncExchangePropertiesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_async_exchange_properties
+      );
+
+      const archivingSchedulesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_archiving_schedule
+      );
 
       return aggregateEserviceArray({
         eservicesSQL,
@@ -124,6 +133,8 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           value: JSON.parse(ra.value),
         })),
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
       });
     },
 
@@ -169,6 +180,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         attributesSQL,
         interfacesSQL,
         documentsSQL,
+        asyncExchangePropertiesSQL: [],
       });
     },
 
@@ -254,6 +266,11 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         PurposeDbTable.purpose_version_signed_document
       );
 
+      const reviewersSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_reviewer
+      );
+
       return aggregatePurposeArray({
         purposesSQL,
         riskAnalysisFormsSQL,
@@ -265,6 +282,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       });
     },
 

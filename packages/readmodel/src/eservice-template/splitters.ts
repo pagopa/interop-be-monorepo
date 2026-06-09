@@ -5,9 +5,10 @@ import {
   Document,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  genericInternalError,
+  RiskAnalysis,
   riskAnalysisAnswerKind,
   type EServiceTemplateAttribute,
   type EServiceTemplateAttributeCertifiedDiscrete,
@@ -17,6 +18,7 @@ import {
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateRiskAnalysisSQL,
   EServiceTemplateSQL,
+  EServiceTemplateVersionAsyncExchangePropertiesSQL,
   EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
   EServiceTemplateVersionInterfaceSQL,
@@ -39,7 +41,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
           riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
           riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
         },
-        currentRiskAnalysis: EServiceTemplateRiskAnalysis
+        currentRiskAnalysis: RiskAnalysis
       ) => {
         const { riskAnalysisSQL, riskAnalysisAnswersSQL } =
           splitEServiceTemplateRiskAnalysisIntoObjectsSQL(
@@ -60,44 +62,53 @@ export const splitEServiceTemplateIntoObjectsSQL = (
       }
     );
 
-  const { versionsSQL, attributesSQL, interfacesSQL, documentsSQL } =
-    eserviceTemplate.versions.reduce(
-      (
-        acc: {
-          versionsSQL: EServiceTemplateVersionSQL[];
-          attributesSQL: EServiceTemplateVersionAttributeSQL[];
-          interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
-          documentsSQL: EServiceTemplateVersionDocumentSQL[];
-        },
-        currentVersion: EServiceTemplateVersion
-      ) => {
-        const {
-          eserviceTemplateVersionSQL,
-          attributesSQL,
-          interfaceSQL,
-          documentsSQL,
-        } = splitEServiceTemplateVersionIntoObjectsSQL(
-          eserviceTemplate.id,
-          currentVersion,
-          metadataVersion
-        );
-
-        return {
-          versionsSQL: acc.versionsSQL.concat([eserviceTemplateVersionSQL]),
-          attributesSQL: acc.attributesSQL.concat(attributesSQL),
-          interfacesSQL: interfaceSQL
-            ? acc.interfacesSQL.concat([interfaceSQL])
-            : acc.interfacesSQL,
-          documentsSQL: acc.documentsSQL.concat(documentsSQL),
-        };
+  const {
+    versionsSQL,
+    attributesSQL,
+    interfacesSQL,
+    documentsSQL,
+    asyncExchangePropertiesSQL,
+  } = eserviceTemplate.versions.reduce(
+    (
+      acc: {
+        versionsSQL: EServiceTemplateVersionSQL[];
+        attributesSQL: EServiceTemplateVersionAttributeSQL[];
+        interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
+        documentsSQL: EServiceTemplateVersionDocumentSQL[];
+        asyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL[];
       },
-      {
-        versionsSQL: [],
-        attributesSQL: [],
-        interfacesSQL: [],
-        documentsSQL: [],
-      }
-    );
+      currentVersion: EServiceTemplateVersion
+    ) => {
+      const {
+        eserviceTemplateVersionSQL,
+        attributesSQL,
+        interfacesSQL,
+        documentsSQL,
+        asyncExchangePropertiesSQL,
+      } = splitEServiceTemplateVersionIntoObjectsSQL(
+        eserviceTemplate.id,
+        currentVersion,
+        metadataVersion
+      );
+
+      return {
+        versionsSQL: acc.versionsSQL.concat([eserviceTemplateVersionSQL]),
+        attributesSQL: acc.attributesSQL.concat(attributesSQL),
+        interfacesSQL: acc.interfacesSQL.concat(interfacesSQL),
+        documentsSQL: acc.documentsSQL.concat(documentsSQL),
+        asyncExchangePropertiesSQL: asyncExchangePropertiesSQL
+          ? acc.asyncExchangePropertiesSQL.concat([asyncExchangePropertiesSQL])
+          : acc.asyncExchangePropertiesSQL,
+      };
+    },
+    {
+      versionsSQL: [],
+      attributesSQL: [],
+      interfacesSQL: [],
+      documentsSQL: [],
+      asyncExchangePropertiesSQL: [],
+    }
+  );
 
   return {
     eserviceTemplateSQL,
@@ -107,6 +118,7 @@ export const splitEServiceTemplateIntoObjectsSQL = (
     attributesSQL,
     interfacesSQL,
     documentsSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
@@ -174,8 +186,11 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
 ): {
   eserviceTemplateVersionSQL: EServiceTemplateVersionSQL;
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
-  interfaceSQL: EServiceTemplateVersionInterfaceSQL | undefined;
+  interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
+  asyncExchangePropertiesSQL:
+    | EServiceTemplateVersionAsyncExchangePropertiesSQL
+    | undefined;
 } => {
   const versionSQL = eserviceTemplateVersionToEServiceTemplateVersionSQL(
     eserviceTemplateId,
@@ -206,14 +221,31 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
       metadataVersion
     ),
   ];
-  const interfaceSQL = eserviceTemplateVersion.interface
-    ? documentToDocumentSQL(
+  const interfacesSQL: EServiceTemplateVersionInterfaceSQL[] = [];
+
+  if (eserviceTemplateVersion.interface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
         eserviceTemplateVersion.interface,
         eserviceTemplateVersion.id,
         eserviceTemplateId,
         metadataVersion
-      )
-    : undefined;
+      ),
+      kind: "INTERFACE",
+    });
+  }
+
+  if (eserviceTemplateVersion.asyncExchangeCallbackInterface) {
+    interfacesSQL.push({
+      ...documentToDocumentSQL(
+        eserviceTemplateVersion.asyncExchangeCallbackInterface,
+        eserviceTemplateVersion.id,
+        eserviceTemplateId,
+        metadataVersion
+      ),
+      kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+    });
+  }
 
   const documentsSQL = eserviceTemplateVersion.docs.map((doc) =>
     documentToDocumentSQL(
@@ -224,22 +256,47 @@ const splitEServiceTemplateVersionIntoObjectsSQL = (
     )
   );
 
+  const asyncExchangePropertiesSQL:
+    | EServiceTemplateVersionAsyncExchangePropertiesSQL
+    | undefined = eserviceTemplateVersion.asyncExchangeProperties
+    ? {
+        eserviceTemplateId,
+        metadataVersion,
+        versionId: eserviceTemplateVersion.id,
+        responseTime:
+          eserviceTemplateVersion.asyncExchangeProperties.responseTime,
+        resourceAvailableTime:
+          eserviceTemplateVersion.asyncExchangeProperties.resourceAvailableTime,
+        confirmation:
+          eserviceTemplateVersion.asyncExchangeProperties.confirmation,
+        bulk: eserviceTemplateVersion.asyncExchangeProperties.bulk,
+        maxResultSet:
+          eserviceTemplateVersion.asyncExchangeProperties.maxResultSet,
+      }
+    : undefined;
+
   return {
     eserviceTemplateVersionSQL: versionSQL,
     attributesSQL,
-    interfaceSQL,
+    interfacesSQL,
     documentsSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
 const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
-  riskAnalysis: EServiceTemplateRiskAnalysis,
+  riskAnalysis: RiskAnalysis,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number
 ): {
   riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL;
   riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[];
 } => {
+  if (!riskAnalysis.riskAnalysisForm.tenantKind) {
+    throw genericInternalError(
+      `Risk analysis form with id ${riskAnalysis.riskAnalysisForm.id} in eservice template ${eserviceTemplateId} is missing tenantKind`
+    );
+  }
   const riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL = {
     id: riskAnalysis.id,
     metadataVersion,
@@ -248,7 +305,7 @@ const splitEServiceTemplateRiskAnalysisIntoObjectsSQL = (
     createdAt: dateToString(riskAnalysis.createdAt),
     riskAnalysisFormId: riskAnalysis.riskAnalysisForm.id,
     riskAnalysisFormVersion: riskAnalysis.riskAnalysisForm.version,
-    tenantKind: riskAnalysis.tenantKind,
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
   };
 
   const riskAnalysisSingleAnswers: EServiceTemplateRiskAnalysisAnswerSQL[] =
@@ -340,4 +397,5 @@ const eserviceTemplateToEServiceTemplateSQL = (
   mode: eserviceTemplate.mode,
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled ?? null,
   personalData: eserviceTemplate.personalData ?? null,
+  asyncExchange: eserviceTemplate.asyncExchange ?? null,
 });

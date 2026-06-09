@@ -20,9 +20,9 @@ import {
   attributeNotFound,
   attributeOriginUndefined,
   certifierTenantNotFound,
-} from "../src/models/errors.js";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+  getNotificationRecipients,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 import { addOneAttribute, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () => {
@@ -180,21 +180,19 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
       eventType: "TenantCertifiedDiscreteAttributeAssigned",
       assigneeAttributes: [],
       attributeId: certifiedAttributeISTAT.id,
-      expectedBody: inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
-        certifiedAttributeISTAT.name,
-        "certificato",
-        "ISTAT"
-      ),
+      expectedBody:
+        inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
+          certifiedAttributeISTAT.name
+        ),
     },
     {
       eventType: "TenantCertifiedDiscreteAttributeRevoked",
       assigneeAttributes: [],
       attributeId: certifiedAttributeISTAT.id,
-      expectedBody: inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
-        certifiedAttributeISTAT.name,
-        "certificato",
-        "ISTAT"
-      ),
+      expectedBody:
+        inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
+          certifiedAttributeISTAT.name
+        ),
     },
     {
       eventType: "TenantCertifiedDiscreteAttributeUpdated",

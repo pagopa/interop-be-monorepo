@@ -177,7 +177,7 @@ export function assertRiskAnalysisIsValidForPublication(
         riskAnalysis.riskAnalysisForm
       ),
       false,
-      riskAnalysis.tenantKind,
+      undefined,
       new Date(),
       eserviceTemplate.personalData
     );
