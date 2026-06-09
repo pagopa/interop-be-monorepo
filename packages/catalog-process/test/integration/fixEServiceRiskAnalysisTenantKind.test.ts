@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, it, expect, vi } from "vitest";
 import {
   EService,
@@ -10,6 +9,7 @@ import {
   generateId,
   EServiceId,
   RiskAnalysisId,
+  EServiceV2,
 } from "pagopa-interop-models";
 import {
   decodeProtobufPayload,
@@ -17,6 +17,7 @@ import {
   getMockEService,
   getMockTenant,
   getMockValidRiskAnalysis,
+  sortBy,
 } from "pagopa-interop-commons-test";
 import {
   eServiceNotFound,
@@ -28,6 +29,34 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+
+// Risk analyses and answers are reconstructed from SQL joins without a defined order.
+const sortRiskAnalysisCollections = (
+  eservice: EServiceV2 | undefined
+): EServiceV2 | undefined =>
+  eservice
+    ? {
+        ...eservice,
+        riskAnalysis: [...eservice.riskAnalysis]
+          .map((riskAnalysis) => ({
+            ...riskAnalysis,
+            ...(riskAnalysis.riskAnalysisForm
+              ? {
+                  riskAnalysisForm: {
+                    ...riskAnalysis.riskAnalysisForm,
+                    singleAnswers: [
+                      ...riskAnalysis.riskAnalysisForm.singleAnswers,
+                    ].sort(sortBy((answer) => answer.id)),
+                    multiAnswers: [
+                      ...riskAnalysis.riskAnalysisForm.multiAnswers,
+                    ].sort(sortBy((answer) => answer.id)),
+                  },
+                }
+              : {}),
+          }))
+          .sort(sortBy((riskAnalysis) => riskAnalysis.id)),
+      }
+    : undefined;
 
 describe("fixEServiceRiskAnalysisTenantKind", () => {
   it("should write on event-store for the fix of a risk analysis tenant kind", async () => {
@@ -97,7 +126,9 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
         riskAnalysis: [riskAnalysisOther, fixedRiskAnalysis],
       };
 
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+      expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+        sortRiskAnalysisCollections(toEServiceV2(expectedEService))
+      );
     } finally {
       vi.useRealTimers();
     }
@@ -119,7 +150,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
 
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.fixEServiceRiskAnalysisTenantKind(
         eservice.id,
         riskAnalysisToFix.id,
@@ -132,7 +163,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
     const unknownEServiceId = generateId<EServiceId>();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
-    expect(
+    await expect(
       catalogService.fixEServiceRiskAnalysisTenantKind(
         unknownEServiceId,
         riskAnalysisId,
