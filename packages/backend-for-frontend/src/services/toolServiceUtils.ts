@@ -362,6 +362,19 @@ export function buildProducerAsyncPlatformErrors(
     return errors;
   }
 
+  if (
+    jwt.payload.entityNumber !== undefined &&
+    jwt.payload.entityNumber > catalogEntry.asyncExchangeProperties.maxResultSet
+  ) {
+    errors.push(
+      makeDiagnosticError(
+        "invalidEntityNumber",
+        `entityNumber ${jwt.payload.entityNumber} exceeds maxResultSet ${catalogEntry.asyncExchangeProperties.maxResultSet} for client ${jwt.payload.sub}`,
+        "Invalid entityNumber"
+      )
+    );
+  }
+
   const elapsedMs =
     Date.now() - Date.parse(String(interaction.startInteractionTokenIssuedAt));
   const responseTimeMs =
