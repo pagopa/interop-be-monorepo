@@ -46,6 +46,7 @@ describe("API GET /purposes/riskAnalysis/latest test", () => {
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(
