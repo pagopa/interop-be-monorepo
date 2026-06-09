@@ -53,23 +53,11 @@ paths:
         "204":
           description: Purpose deleted
         "403":
-          description: Purpose has at least one version that is not in draft state or more than one version
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /internal/delegations/{delegationId}/purposes/{purposeId}/versions/{versionId}/archive:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -101,23 +89,11 @@ paths:
         "204":
           description: Purpose Version Archived
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /internal/purposes/{purposeId}/versions/{versionId}/riskAnalysisDocument:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -152,29 +128,13 @@ paths:
         "204":
           description: Risk Analysis metadata added successfully
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose or Purpose Version not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /internal/purposes/{purposeId}/versions/{versionId}/riskAnalysisDocument/signed:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -209,29 +169,13 @@ paths:
         "204":
           description: Risk Analysis metadata added successfully
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose or Purpose Version not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -320,11 +264,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purposes"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
     post:
       tags:
         - purpose
@@ -341,23 +281,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Name Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       requestBody:
         content:
           application/json:
@@ -391,23 +319,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /reverse/purposes/{id}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -439,29 +355,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Duplicated purpose title
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
     patch:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -486,29 +386,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Duplicated purpose title
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /purposes/{id}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -535,11 +419,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     post:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -561,29 +441,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Duplicated purpose title
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
     patch:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -608,29 +472,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Duplicated purpose title
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
     delete:
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -642,23 +490,11 @@ paths:
         "204":
           description: Purpose deleted
         "403":
-          description: Purpose has at least one version that is not in draft state or more than one version
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /purposes/{purposeId}/versions:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -685,29 +521,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedPurposeVersion"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       requestBody:
         content:
           application/json:
@@ -739,23 +559,11 @@ paths:
               $ref: "#/components/headers/MetadataVersionHeader"
           description: Purpose Version Deleted
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Version cannot be deleted
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       tags:
         - purpose
       description: deletes the purpose version by id
@@ -800,17 +608,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/PurposeVersionDocument"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Document Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /purposes/{purposeId}/versions/{versionId}/signedDocuments/{documentId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -852,17 +652,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/PurposeVersionDocument"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Document Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /status:
     get:
       security: []
@@ -906,23 +698,11 @@ paths:
         "204":
           description: Purpose Version Rejected
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       description: reject the purpose version by id
       tags:
         - purpose
@@ -1012,23 +792,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/PurposeVersion"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       tags:
         - purpose
       description: activates the purpose version by id
@@ -1058,23 +826,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Purpose cannot be cloned
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       tags:
         - purpose
       description: clone purpose
@@ -1112,23 +868,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/PurposeVersion"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       tags:
         - purpose
       description: suspends the purpose version by id
@@ -1161,23 +905,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/PurposeVersion"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Organization not allowed
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       tags:
         - purpose
       description: archives the purpose version by id
@@ -1201,17 +933,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/RiskAnalysisFormConfigResponse"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /purposes/riskAnalysis/version/{riskAnalysisVersion}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1239,17 +963,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/RiskAnalysisFormConfigResponse"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /purposes/{purposeId}/remainingDailyCalls:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1273,23 +989,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/RemainingDailyCallsResponse"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /templates/{purposeTemplateId}/purposes:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1322,29 +1026,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Purpose Template Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Name Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /templates/{purposeTemplateId}/purposes/{purposeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1384,29 +1072,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Name Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /maintenance/purposes/{purposeId}/riskAnalysis/tenantKind/fix:
     post:
       parameters:
@@ -1431,18 +1103,41 @@ paths:
               schema:
                 $ref: "#/components/schemas/Purpose"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Purpose or tenant kind not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
 components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
   headers:
     MetadataVersionHeader:
       description: The version number of the resource in the read model
