@@ -429,12 +429,7 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [
-            ADMIN_ROLE,
-            SUPPORT_ROLE,
-            REVIEWER_ROLE,
-            VIEWER_ROLE,
-          ]);
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
           const document = await purposeService.getRiskAnalysisDocument({
             purposeId: unsafeBrandId(req.params.purposeId),
