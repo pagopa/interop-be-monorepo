@@ -999,9 +999,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/archive:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
   /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive:
     post:
       security:
@@ -1039,10 +1036,10 @@ paths:
           description: E-Service Descriptor archived
         "400":
           $ref: "#/components/responses/BadRequest"
-        "404":
-          $ref: "#/components/responses/NotFound"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
   /internal/eservices/{eServiceId}/archive:
