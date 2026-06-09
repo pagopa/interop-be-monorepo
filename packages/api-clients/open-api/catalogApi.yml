@@ -999,9 +999,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/archive:
-    parameters:
-      - $ref: "#/components/parameters/CorrelationIdHeader"
   /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive:
     post:
       security:
