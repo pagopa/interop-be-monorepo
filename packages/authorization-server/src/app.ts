@@ -13,11 +13,17 @@ import {
 } from "pagopa-interop-application-audit";
 import { authorizationServerApi } from "pagopa-interop-api-clients";
 import authorizationServerRouter from "./routers/AuthorizationServerRouter.js";
+import asyncAuthorizationServerRouter from "./routers/AsyncAuthorizationServerRouter.js";
 import { config } from "./config/config.js";
 import { TokenService } from "./services/tokenService.js";
+import { AsyncTokenService } from "./services/asyncTokenService.js";
+import { asyncExchangeFeatureFlagMiddleware } from "./utilities/middleware.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export async function createApp(service: TokenService) {
+export async function createApp(
+  tokenService: TokenService,
+  asyncTokenService: AsyncTokenService
+) {
   const serviceName = modelsServiceName.AUTHORIZATION_SERVER;
 
   const app = zodiosCtx.app();
@@ -34,7 +40,9 @@ export async function createApp(service: TokenService) {
     await applicationAuditAuthorizationServerEndMiddleware(serviceName, config),
     express.urlencoded({ extended: true }),
     loggerMiddleware(serviceName),
-    authorizationServerRouter(zodiosCtx, service)
+    authorizationServerRouter(zodiosCtx, tokenService),
+    asyncExchangeFeatureFlagMiddleware(),
+    asyncAuthorizationServerRouter(zodiosCtx, asyncTokenService)
   );
 
   app.use(errorsToApiProblemsMiddleware);

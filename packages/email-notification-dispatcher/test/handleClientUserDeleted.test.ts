@@ -21,7 +21,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { handleClientUserDeleted } from "../src/handlers/authorization/handleClientUserDeleted.js";
-import { tenantNotFound } from "../src/models/errors.js";
+import { tenantNotFound } from "pagopa-interop-notification-commons";
 import {
   addOneTenant,
   getMockUser,

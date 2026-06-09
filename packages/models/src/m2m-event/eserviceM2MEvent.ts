@@ -34,6 +34,9 @@ export const EServiceM2MEventType = z.enum([
   "EServicePersonalDataFlagUpdatedAfterPublication",
   "EServicePersonalDataFlagUpdatedByTemplateUpdate",
   "EServiceInstanceLabelUpdated",
+  "EServiceArchivingScheduled",
+  "EServiceArchivingCanceled",
+  "EServiceArchivingCompleted",
   "MaintenanceEServicePersonalDataFlagReset",
 
   // EService Descriptor events
@@ -48,6 +51,7 @@ export const EServiceM2MEventType = z.enum([
   "EServiceDraftDescriptorDeleted",
   "EServiceDraftDescriptorUpdated",
   "EServiceDescriptorAttributesUpdated",
+  "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
   "EServiceDescriptorSubmittedByDelegate",
   "EServiceDescriptorRejectedByDelegator",
   "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
@@ -61,6 +65,13 @@ export const EServiceM2MEventType = z.enum([
   "EServiceDescriptorInterfaceAdded",
   "EServiceDescriptorInterfaceUpdated",
   "EServiceDescriptorInterfaceDeleted",
+  "EServiceDescriptorArchivingScheduled",
+  "EServiceDescriptorArchivingCanceled",
+  "EServiceDescriptorArchivingCompleted",
+  "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+  "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+  "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+  "MaintenanceEServiceDescriptorUnarchived",
 ]);
 export type EServiceM2MEventType = z.infer<typeof EServiceM2MEventType>;
 

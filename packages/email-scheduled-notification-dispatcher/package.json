@@ -1,0 +1,43 @@
+{
+  "name": "pagopa-interop-email-scheduled-notification-dispatcher",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability scheduled email notification dispatcher: a one-shot CronJob that drains ready rows from scheduled_notification and produces email events on emailDispatchTopic",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --config vitest.config.ts",
+    "test:integration": "vitest --config vitest.integration.config.ts",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "pagopa-interop-commons-test": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "date-fns": "catalog:",
+    "dotenv-flow": "catalog:",
+    "drizzle-orm": "catalog:",
+    "kafka-iam-auth": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-notification-commons": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "pagopa-interop-readmodel-models": "workspace:*",
+    "pagopa-interop-scheduled-notification-db-models": "workspace:*",
+    "pg": "catalog:",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}

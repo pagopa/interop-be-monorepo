@@ -38,6 +38,9 @@ import {
   PurposeVersionArchivedByRevokedDelegationV2,
   RiskAnalysisDocumentGeneratedV2,
   RiskAnalysisSignedDocumentGeneratedV2,
+  MaintenancePurposeRiskAnalysisSetTenantKindV2,
+  PurposeRiskAnalysisWorkflowCreatedV2,
+  PurposeRiskAnalysisAssignedV2,
 } from "../gen/v2/purpose/events.js";
 
 export function purposeEventToBinaryData(event: PurposeEvent): Uint8Array {
@@ -150,6 +153,15 @@ export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
     )
     .with({ type: "RiskAnalysisSignedDocumentGenerated" }, ({ data }) =>
       RiskAnalysisSignedDocumentGeneratedV2.toBinary(data)
+    )
+    .with({ type: "MaintenancePurposeRiskAnalysisSetTenantKind" }, ({ data }) =>
+      MaintenancePurposeRiskAnalysisSetTenantKindV2.toBinary(data)
+    )
+    .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, ({ data }) =>
+      PurposeRiskAnalysisWorkflowCreatedV2.toBinary(data)
+    )
+    .with({ type: "PurposeRiskAnalysisAssigned" }, ({ data }) =>
+      PurposeRiskAnalysisAssignedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -323,6 +335,21 @@ export const PurposeEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("RiskAnalysisSignedDocumentGenerated"),
     data: protobufDecoder(RiskAnalysisSignedDocumentGeneratedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("MaintenancePurposeRiskAnalysisSetTenantKind"),
+    data: protobufDecoder(MaintenancePurposeRiskAnalysisSetTenantKindV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeRiskAnalysisWorkflowCreated"),
+    data: protobufDecoder(PurposeRiskAnalysisWorkflowCreatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeRiskAnalysisAssigned"),
+    data: protobufDecoder(PurposeRiskAnalysisAssignedV2),
   }),
 ]);
 export type PurposeEventV2 = z.infer<typeof PurposeEventV2>;
