@@ -865,7 +865,7 @@ export function purposeServiceBuilder(
 
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         formToValidate,
-        true,
+        false,
         tenantKind,
         new Date(),
         eservice.personalData
