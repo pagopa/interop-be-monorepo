@@ -4,17 +4,15 @@ import {
   PurposeId,
   PurposeVersionDocumentId,
   PurposeVersionId,
+  PurposeVersionSignedDocument,
   generateId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurposeVersionDocument,
-} from "pagopa-interop-commons-test";
+import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { api, purposeService } from "../vitest.api.setup.js";
-import { purposeVersionDocumentToApiPurposeVersionDocument } from "../../src/model/domain/apiConverter.js";
+import { purposeVersionSignedDocumentToApiPurposeVersionSignedDocument } from "../../src/model/domain/apiConverter.js";
 import {
   tenantNotAllowed,
   purposeNotFound,
@@ -22,15 +20,21 @@ import {
   purposeVersionNotFound,
 } from "../../src/model/domain/errors.js";
 
-describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{documentId} test", () => {
-  const mockDocument = getMockPurposeVersionDocument();
+describe("API GET /purposes/{purposeId}/versions/{versionId}/signedDocuments/{documentId} test", () => {
+  const mockDocument: PurposeVersionSignedDocument = {
+    id: generateId<PurposeVersionDocumentId>(),
+    path: "s3://path/to/the/risk/analysis/file.pdf",
+    contentType: "application/pdf",
+    createdAt: new Date(),
+    signedAt: new Date(),
+  };
 
-  const apiResponse = purposeApi.PurposeVersionDocument.parse(
-    purposeVersionDocumentToApiPurposeVersionDocument(mockDocument)
+  const apiResponse = purposeApi.PurposeVersionSignedDocument.parse(
+    purposeVersionSignedDocumentToApiPurposeVersionSignedDocument(mockDocument)
   );
 
   beforeEach(() => {
-    purposeService.getRiskAnalysisDocument = vi
+    purposeService.getRiskAnalysisSignedDocument = vi
       .fn()
       .mockResolvedValue(mockDocument);
   });
@@ -43,7 +47,7 @@ describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{document
   ) =>
     request(api)
       .get(
-        `/purposes/${purposeId}/versions/${versionId}/documents/${documentId}`
+        `/purposes/${purposeId}/versions/${versionId}/signedDocuments/${documentId}`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
@@ -90,7 +94,9 @@ describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{document
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      purposeService.getRiskAnalysisDocument = vi.fn().mockRejectedValue(error);
+      purposeService.getRiskAnalysisSignedDocument = vi
+        .fn()
+        .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);

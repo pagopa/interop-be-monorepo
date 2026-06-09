@@ -64,6 +64,7 @@ const eserviceTemplatesRouter = (
     SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   return ctx
@@ -81,6 +82,7 @@ const eserviceTemplatesRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const {
@@ -165,6 +167,7 @@ const eserviceTemplatesRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: eserviceTemplate, metadata } =
@@ -555,6 +558,7 @@ const eserviceTemplatesRouter = (
             SUPPORT_ROLE,
             M2M_ROLE,
             M2M_ADMIN_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const { templateId, templateVersionId, documentId } = req.params;
@@ -911,6 +915,7 @@ const eserviceTemplatesRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { creatorName, offset, limit } = req.query;

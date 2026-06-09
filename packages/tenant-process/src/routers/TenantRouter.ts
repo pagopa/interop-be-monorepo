@@ -65,6 +65,8 @@ const tenantsRouter = (
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     MAINTENANCE_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
   const tenantsRouter = ctx.router(tenantApi.tenantApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -79,6 +81,7 @@ const tenantsRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { name, offset, limit } = req.query;
@@ -111,6 +114,7 @@ const tenantsRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { name, offset, limit } = req.query;
@@ -145,6 +149,8 @@ const tenantsRouter = (
           SUPPORT_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
+          VIEWER_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const {
@@ -191,6 +197,8 @@ const tenantsRouter = (
           SECURITY_ROLE,
           SUPPORT_ROLE,
           INTERNAL_ROLE,
+          VIEWER_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const { data: tenant, metadata } = await tenantService.getTenantById(
@@ -218,6 +226,7 @@ const tenantsRouter = (
           M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { origin, code } = req.params;
@@ -246,7 +255,12 @@ const tenantsRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, SUPPORT_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          M2M_ROLE,
+          SUPPORT_ROLE,
+          VIEWER_ROLE,
+        ]);
 
         const { offset, limit } = req.query;
         const { results, totalCount } =
@@ -501,7 +515,7 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE, VIEWER_ROLE]);
 
           const { offset, limit } = req.query;
           const result =
@@ -536,7 +550,7 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE, VIEWER_ROLE]);
           const { offset, limit } = req.query;
           const result = await tenantService.getTenantVerifiedAttributeRevokers(
             unsafeBrandId(req.params.tenantId),
@@ -627,6 +641,7 @@ const tenantsRouter = (
           SECURITY_ROLE,
           SUPPORT_ROLE,
           INTERNAL_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const tenant = await tenantService.getTenantBySelfcareId(

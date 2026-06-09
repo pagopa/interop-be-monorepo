@@ -52,6 +52,8 @@ describe("API GET /tenants test", () => {
     authRole.SUPPORT_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.VIEWER_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
 
   const makeRequest = async (
