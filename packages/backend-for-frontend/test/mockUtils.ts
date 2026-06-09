@@ -358,6 +358,9 @@ export const getMockBffApiInstanceEServiceSeed =
     isSignalHubEnabled: generateMock(z.boolean().optional()),
     isClientAccessDelegable: generateMock(z.boolean().optional()),
     isConsumerDelegable: generateMock(z.boolean().optional()),
+    asyncExchangeProperties: generateMock(
+      bffApi.AsyncExchangePropertiesInstanceSeed.optional()
+    ),
   });
 
 export const getMockBffApiEServicePersonalDataFlagUpdateSeed =
