@@ -2,12 +2,12 @@ import type { TemplateContext } from "openapi-zod-client";
 
 type EndpointGroup = TemplateContext["endpointsGroups"][string];
 
-export type EndpointChunk = {
+type EndpointChunk = {
   name: string;
   endpoints: EndpointGroup["endpoints"];
 };
 
-export type EndpointChunkHelpers = {
+type EndpointChunkHelpers = {
   endpointChunks: (
     groupName: string,
     endpoints: EndpointGroup["endpoints"]

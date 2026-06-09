@@ -74,10 +74,15 @@ import {
   eServiceAlreadyArchived,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { getLatestActiveDescriptor, getLatestDescriptor } from "../utilities/versionGenerator.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestDescriptor,
+} from "../utilities/versionGenerator.js";
 import { catalogApi } from "pagopa-interop-api-clients";
 
-export function descriptorStatesNotAllowingDocumentOperations(descriptor: Descriptor): boolean {
+export function descriptorStatesNotAllowingDocumentOperations(
+  descriptor: Descriptor
+): boolean {
   return match(descriptor.state)
     .with(
       descriptorState.draft,
@@ -88,11 +93,17 @@ export function descriptorStatesNotAllowingDocumentOperations(descriptor: Descri
       descriptorState.archivingSuspended,
       () => false
     )
-    .with(descriptorState.archived, descriptorState.waitingForApproval, () => true)
+    .with(
+      descriptorState.archived,
+      descriptorState.waitingForApproval,
+      () => true
+    )
     .exhaustive();
 }
 
-export function descriptorStatesNotAllowingInterfaceOperations(descriptor: Descriptor): boolean {
+export function descriptorStatesNotAllowingInterfaceOperations(
+  descriptor: Descriptor
+): boolean {
   return match(descriptor.state)
     .with(descriptorState.draft, () => false)
     .otherwise(() => true);
@@ -153,7 +164,10 @@ function isEserviceArchivable(eservice: EService): boolean {
     .exhaustive();
 }
 
-function isDescriptorArchivable(descriptor: Descriptor, eservice: EService): boolean {
+function isDescriptorArchivable(
+  descriptor: Descriptor,
+  eservice: EService
+): boolean {
   const latestDescriptor = getLatestDescriptor(eservice);
   const isLatest = latestDescriptor.id === descriptor.id;
 
@@ -187,7 +201,8 @@ export async function assertRequesterIsDelegateProducerOrProducer(
 
   // If an active producer delegation exists, check if the requester is the delegate
   if (producerDelegation) {
-    const isRequesterDelegateProducer = authData.organizationId === producerDelegation.delegateId;
+    const isRequesterDelegateProducer =
+      authData.organizationId === producerDelegation.delegateId;
 
     if (!isRequesterDelegateProducer) {
       throw operationForbidden;
@@ -218,7 +233,10 @@ export async function assertNoExistingProducerDelegationInActiveOrPendingState(
   });
 
   if (producerDelegation) {
-    throw eserviceWithActiveOrPendingDelegation(eserviceId, producerDelegation.id);
+    throw eserviceWithActiveOrPendingDelegation(
+      eserviceId,
+      producerDelegation.id
+    );
   }
 }
 
@@ -263,7 +281,9 @@ export function assertTenantKindExists(
   }
 }
 
-export function assertHasNoDraftOrWaitingForApprovalDescriptor(eservice: EService): void {
+export function assertHasNoDraftOrWaitingForApprovalDescriptor(
+  eservice: EService
+): void {
   const hasInvalidDescriptor = eservice.descriptors.some(isNotActiveDescriptor);
   if (hasInvalidDescriptor) {
     throw draftDescriptorAlreadyExists(eservice.id);
@@ -314,7 +334,9 @@ export function assertRiskAnalysisIsValidForPublication(
       });
     }
     const result = validateRiskAnalysis(
-      riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm),
+      riskAnalysisFormToRiskAnalysisFormToValidate(
+        riskAnalysis.riskAnalysisForm
+      ),
       false,
       tenantKind,
       dateForRiskAnalysisValidation,
@@ -343,12 +365,22 @@ function assertRiskAnalysisTenantKindMatch({
       .with(tenantKind.PA, () => tenantKind.PA)
       .otherwise(() => tenantKind.PRIVATE);
 
-  if (actualKind && mapKindToKindForRA(actualKind) !== mapKindToKindForRA(currentTenantKind)) {
-    throw riskAnalysisTenantKindMismatch(actualKind, currentTenantKind, eserviceId, riskAnalysisId);
+  if (
+    actualKind &&
+    mapKindToKindForRA(actualKind) !== mapKindToKindForRA(currentTenantKind)
+  ) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      currentTenantKind,
+      eserviceId,
+      riskAnalysisId
+    );
   }
 }
 
-export function assertInterfaceDeletableDescriptorState(descriptor: Descriptor): void {
+export function assertInterfaceDeletableDescriptorState(
+  descriptor: Descriptor
+): void {
   match(descriptor.state)
     .with(descriptorState.draft, () => void 0)
     .with(
@@ -366,7 +398,9 @@ export function assertInterfaceDeletableDescriptorState(descriptor: Descriptor):
     .exhaustive();
 }
 
-export function assertDocumentDeletableDescriptorState(descriptor: Descriptor): void {
+export function assertDocumentDeletableDescriptorState(
+  descriptor: Descriptor
+): void {
   match(descriptor.state)
     .with(
       descriptorState.draft,
@@ -389,10 +423,11 @@ export async function assertEServiceNameAvailableForProducer(
   producerId: TenantId,
   readModelService: ReadModelServiceSQL
 ): Promise<void> {
-  const isEServiceNameAvailable = await readModelService.isEServiceNameAvailableForProducer({
-    name,
-    producerId,
-  });
+  const isEServiceNameAvailable =
+    await readModelService.isEServiceNameAvailableForProducer({
+      name,
+      producerId,
+    });
   if (!isEServiceNameAvailable) {
     throw eServiceNameDuplicateForProducer(name, producerId);
   }
@@ -447,20 +482,27 @@ export function assertConsistentDailyCalls({
   }
 }
 
-export function assertDescriptorUpdatableAfterPublish(descriptor: Descriptor): void {
+export function assertDescriptorUpdatableAfterPublish(
+  descriptor: Descriptor
+): void {
   if (!isDescriptorUpdatableAfterPublish(descriptor)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }
 
 export function assertEServiceUpdatableAfterPublish(eservice: EService): void {
-  const hasValidDescriptor = eservice.descriptors.some(isDescriptorUpdatableAfterPublish);
+  const hasValidDescriptor = eservice.descriptors.some(
+    isDescriptorUpdatableAfterPublish
+  );
   if (!hasValidDescriptor) {
     throw eserviceWithoutValidDescriptors(eservice.id);
   }
 }
 
-export function assertUpdatedNameDiffersFromCurrent(newName: string, eservice: EService): void {
+export function assertUpdatedNameDiffersFromCurrent(
+  newName: string,
+  eservice: EService
+): void {
   if (newName === eservice.name) {
     throw eServiceUpdateSameNameConflict(eservice.id);
   }
@@ -488,7 +530,11 @@ export function hasRoleToAccessInactiveDescriptors(
       userRole.ADMIN_ROLE,
       userRole.API_ROLE,
       userRole.SUPPORT_ROLE,
-    ]) || hasAtLeastOneSystemRole(authData, [systemRole.M2M_ADMIN_ROLE, systemRole.M2M_ROLE])
+    ]) ||
+    hasAtLeastOneSystemRole(authData, [
+      systemRole.M2M_ADMIN_ROLE,
+      systemRole.M2M_ROLE,
+    ])
   );
 }
 
@@ -521,10 +567,15 @@ export function assertAsyncExchangeBulkAllowedForDescriptor(
   }
 }
 
-export function assertDailyCallsForCertifiedAttributesOnly(attributes: EserviceAttributes): void {
+export function assertDailyCallsForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
   const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
   for (const attribute of attributesToCheck) {
-    if ("dailyCallsPerConsumer" in attribute && attribute.dailyCallsPerConsumer !== undefined) {
+    if (
+      "dailyCallsPerConsumer" in attribute &&
+      attribute.dailyCallsPerConsumer !== undefined
+    ) {
       throw attributeDailyCallsNotAllowed(attribute.id);
     }
   }
@@ -535,7 +586,10 @@ export function assertDiscreteConfigForCertifiedAttributesOnly(
 ): void {
   const invalidAttribute = [attributes.declared, attributes.verified]
     .flat(2)
-    .find((attribute) => "discreteConfig" in attribute && attribute.discreteConfig !== undefined);
+    .find(
+      (attribute) =>
+        "discreteConfig" in attribute && attribute.discreteConfig !== undefined
+    );
 
   if (invalidAttribute) {
     throw attributeDiscreteConfigNotAllowed(invalidAttribute.id);
@@ -596,16 +650,23 @@ function assertAttributeGroupsUnchanged(
     }
 
     for (const descriptorAttr of descriptorGroup) {
-      const seedAttr = matchingSeedGroup.find((attr) => attr.id === descriptorAttr.id);
+      const seedAttr = matchingSeedGroup.find(
+        (attr) => attr.id === descriptorAttr.id
+      );
 
-      const descriptorDiscreteConfig = getEServiceAttributeDiscreteConfig(descriptorAttr);
+      const descriptorDiscreteConfig =
+        getEServiceAttributeDiscreteConfig(descriptorAttr);
 
       if (
         !seedAttr ||
-        seedAttr.explicitAttributeVerification !== descriptorAttr.explicitAttributeVerification ||
-        seedAttr.discreteConfig?.threshold !== descriptorDiscreteConfig?.threshold ||
-        seedAttr.discreteConfig?.comparator !== descriptorDiscreteConfig?.comparator ||
-        Boolean(seedAttr.discreteConfig) !== (descriptorDiscreteConfig !== undefined)
+        seedAttr.explicitAttributeVerification !==
+          descriptorAttr.explicitAttributeVerification ||
+        seedAttr.discreteConfig?.threshold !==
+          descriptorDiscreteConfig?.threshold ||
+        seedAttr.discreteConfig?.comparator !==
+          descriptorDiscreteConfig?.comparator ||
+        Boolean(seedAttr.discreteConfig) !==
+          (descriptorDiscreteConfig !== undefined)
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }
@@ -629,7 +690,10 @@ export function assertAttributeDailyCallsConsistentWithTotal(
   }
 }
 
-export function assertDescriptorArchivable(descriptor: Descriptor, eservice: EService): void {
+export function assertDescriptorArchivable(
+  descriptor: Descriptor,
+  eservice: EService
+): void {
   if (!isDescriptorArchivable(descriptor, eservice)) {
     throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
@@ -650,9 +714,13 @@ export function assertDescriptorInRequiredStates(
   }
 }
 
-export function assertEserviceIsNotInArchivingOrArchivedState(eservice: EService): void {
+export function assertEserviceIsNotInArchivingOrArchivedState(
+  eservice: EService
+): void {
   const latestActiveDescriptor = [...eservice.descriptors]
-    .sort((a, b) => Number.parseInt(a.version, 10) - Number.parseInt(b.version, 10))
+    .sort(
+      (a, b) => Number.parseInt(a.version, 10) - Number.parseInt(b.version, 10)
+    )
     .filter(isActiveDescriptor)
     .at(-1);
   if (
@@ -685,7 +753,11 @@ function isDescriptorCancelArchivable(
   const isLatest = latestDescriptor.id === descriptor.id;
 
   return match(descriptor.state)
-    .with(descriptorState.archiving, descriptorState.archivingSuspended, () => !isLatest)
+    .with(
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+      () => !isLatest
+    )
     .with(
       descriptorState.draft,
       descriptorState.published,
@@ -707,13 +779,17 @@ export function assertDescriptorCancelArchivable(
   }
 }
 
-export function assertDescriptorArchivingIsNotEserviceScoped(descriptor: Descriptor): void {
+export function assertDescriptorArchivingIsNotEserviceScoped(
+  descriptor: Descriptor
+): void {
   if (descriptor.archivingSchedule?.scope === archivingScope.eservice) {
     throw descriptorArchivingNotCancelableByScope(descriptor.id);
   }
 }
 
-export function assertDescriptorIsNotAlreadyArchived(descriptor: Descriptor): void {
+export function assertDescriptorIsNotAlreadyArchived(
+  descriptor: Descriptor
+): void {
   if (descriptor.state === descriptorState.archived) {
     throw descriptorAlreadyArchived(descriptor.id);
   }
@@ -721,7 +797,8 @@ export function assertDescriptorIsNotAlreadyArchived(descriptor: Descriptor): vo
 
 export function assertEServiceIsInArchiving(eservice: EService): void {
   const hasEServiceScopeArchiving =
-    getLatestDescriptor(eservice).archivingSchedule?.scope === archivingScope.eservice;
+    getLatestDescriptor(eservice).archivingSchedule?.scope ===
+    archivingScope.eservice;
 
   const hasDescriptorInWrongState = eservice.descriptors.some(
     (d) =>

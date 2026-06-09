@@ -1,4 +1,8 @@
-import { attributeRegistryApi, bffApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  bffApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import { isDefined } from "pagopa-interop-commons";
 import {
   CertifiedTenantAttribute,
@@ -40,7 +44,9 @@ function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
       verificationDate: new Date(v.verificationDate),
       expirationDate: v.expirationDate ? new Date(v.expirationDate) : undefined,
       extensionDate: v.extensionDate ? new Date(v.extensionDate) : undefined,
-      delegationId: v.delegationId ? unsafeBrandId<DelegationId>(v.delegationId) : undefined,
+      delegationId: v.delegationId
+        ? unsafeBrandId<DelegationId>(v.delegationId)
+        : undefined,
     })),
     revokedBy: att.verified.revokedBy.map((r) => ({
       id: unsafeBrandId(r.id),
@@ -48,7 +54,9 @@ function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
       revocationDate: new Date(r.revocationDate),
       expirationDate: r.expirationDate ? new Date(r.expirationDate) : undefined,
       extensionDate: r.extensionDate ? new Date(r.extensionDate) : undefined,
-      delegationId: r.delegationId ? unsafeBrandId<DelegationId>(r.delegationId) : undefined,
+      delegationId: r.delegationId
+        ? unsafeBrandId<DelegationId>(r.delegationId)
+        : undefined,
     })),
   };
 
@@ -64,15 +72,16 @@ function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
       : undefined,
   };
 
-  const certifiedDiscrete: CertifiedDiscreteTenantAttribute | undefined = att.certifiedDiscrete && {
-    id: unsafeBrandId(att.certifiedDiscrete.id),
-    type: tenantAttributeType.CERTIFIED_DISCRETE,
-    assignmentTimestamp: new Date(att.certifiedDiscrete.assignmentTimestamp),
-    revocationTimestamp: att.certifiedDiscrete.revocationTimestamp
-      ? new Date(att.certifiedDiscrete.revocationTimestamp)
-      : undefined,
-    discreteValue: att.certifiedDiscrete.discreteValue,
-  };
+  const certifiedDiscrete: CertifiedDiscreteTenantAttribute | undefined =
+    att.certifiedDiscrete && {
+      id: unsafeBrandId(att.certifiedDiscrete.id),
+      type: tenantAttributeType.CERTIFIED_DISCRETE,
+      assignmentTimestamp: new Date(att.certifiedDiscrete.assignmentTimestamp),
+      revocationTimestamp: att.certifiedDiscrete.revocationTimestamp
+        ? new Date(att.certifiedDiscrete.revocationTimestamp)
+        : undefined,
+      discreteValue: att.certifiedDiscrete.discreteValue,
+    };
 
   return [certified, verified, declared, certifiedDiscrete].filter(
     (a): a is TenantAttribute => !!a
@@ -220,18 +229,25 @@ export function toBffApiTenant(
       attribute.certifiedDiscrete ? [attribute.certifiedDiscrete] : []
     );
 
-  const toBffApiMergedCertifiedTenantAttributes = (): bffApi.TenantAttributes["certified"] => {
-    const certifiedDiscrete = certifiedDiscreteAttributes
-      .map((tenantAttribute) =>
-        toBffApiCertifiedDiscreteTenantAttribute(tenantAttribute, registryAttributesMap)
-      )
-      .filter(isDefined);
+  const toBffApiMergedCertifiedTenantAttributes =
+    (): bffApi.TenantAttributes["certified"] => {
+      const certifiedDiscrete = certifiedDiscreteAttributes
+        .map((tenantAttribute) =>
+          toBffApiCertifiedDiscreteTenantAttribute(
+            tenantAttribute,
+            registryAttributesMap
+          )
+        )
+        .filter(isDefined);
 
-    return [
-      ...toBffApiCertifiedTenantAttributes(certifiedAttributes, registryAttributesMap),
-      ...certifiedDiscrete,
-    ];
-  };
+      return [
+        ...toBffApiCertifiedTenantAttributes(
+          certifiedAttributes,
+          registryAttributesMap
+        ),
+        ...certifiedDiscrete,
+      ];
+    };
 
   return {
     id: tenant.id,
@@ -249,8 +265,14 @@ export function toBffApiTenant(
     contactMail: getLatestTenantContactEmail(tenant),
     attributes: {
       certified: toBffApiMergedCertifiedTenantAttributes(),
-      declared: toBffApiDeclaredTenantAttributes(declaredAttributes, registryAttributesMap),
-      verified: toBffApiVerifiedTenantAttributes(verifiedAttributes, registryAttributesMap),
+      declared: toBffApiDeclaredTenantAttributes(
+        declaredAttributes,
+        registryAttributesMap
+      ),
+      verified: toBffApiVerifiedTenantAttributes(
+        verifiedAttributes,
+        registryAttributesMap
+      ),
     },
   };
 }
