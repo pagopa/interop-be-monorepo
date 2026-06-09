@@ -1227,7 +1227,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/EService"
         "400":
-         $ref: "#/components/responses/BadRequest"
+          $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "404":
@@ -2660,7 +2660,6 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-             
   /status:
     get:
       security: []
@@ -3225,9 +3224,34 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - explicitAttributeVerification
+    AttributeCertifiedDiscreteComparator:
+      type: string
+      enum:
+        - GT
+        - LT
+        - EQ
+        - GTE
+        - LTE
+        - NE
+    EServiceAttributeCertifiedDiscreteConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        threshold:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        comparator:
+          $ref: "#/components/schemas/AttributeCertifiedDiscreteComparator"
+      required:
+        - threshold
+        - comparator
     EServiceDescriptorAttributeSeed:
       type: object
       additionalProperties: false
@@ -3329,7 +3353,6 @@ components:
           type: string
         asyncExchange:
           type: boolean
-
     CreatedEServiceRiskAnalysis:
       type: object
       additionalProperties: false
@@ -3722,7 +3745,6 @@ components:
       enum:
         - ESERVICE
         - DESCRIPTOR
-        
     ArchivingKindSeed:
       type: object
       additionalProperties: false
@@ -3768,6 +3790,8 @@ components:
           type: integer
           format: int32
           minimum: 1
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - explicitAttributeVerification

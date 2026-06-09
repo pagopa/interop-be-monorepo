@@ -39,6 +39,7 @@ const errorCodes = {
   delegationNotFound: "0029",
   operationRestrictedToDelegate: "0030",
   invalidTenantFeature: "0031",
+  certifiedDiscreteAttributeAlreadyAssigned: "0032",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -218,6 +219,17 @@ export function certifiedAttributeAlreadyAssigned(
     detail: `Certified Attribute ${attributeId} already assigned to tenant ${tenantId}`,
     code: "certifiedAttributeAlreadyAssigned",
     title: "Certified attribute already assigned",
+  });
+}
+
+export function certifiedDiscreteAttributeAlreadyAssigned(
+  attributeId: AttributeId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified Discrete Attribute ${attributeId} already assigned to tenant ${tenantId}`,
+    code: "certifiedDiscreteAttributeAlreadyAssigned",
+    title: "Certified discrete attribute already assigned",
   });
 }
 

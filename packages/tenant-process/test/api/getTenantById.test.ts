@@ -14,7 +14,17 @@ import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
 
 describe("API GET /tenants/{id} test", () => {
-  const tenant: Tenant = getMockTenant();
+  const remoteIdAssignmentTimestamp = new Date();
+  const tenant: Tenant = {
+    ...getMockTenant(),
+    remoteIds: [
+      {
+        origin: "IPA",
+        value: "remote-id",
+        assignmentTimestamp: remoteIdAssignmentTimestamp,
+      },
+    ],
+  };
 
   const serviceResponse = getMockWithMetadata(tenant);
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
@@ -46,6 +56,13 @@ describe("API GET /tenants/{id} test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
+      expect(res.body.remoteIds).toEqual([
+        {
+          origin: "IPA",
+          value: "remote-id",
+          assignmentTimestamp: remoteIdAssignmentTimestamp.toJSON(),
+        },
+      ]);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );
