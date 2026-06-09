@@ -51,7 +51,6 @@ describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{document
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
-    authRole.REVIEWER_ROLE,
     authRole.VIEWER_ROLE,
   ];
 
