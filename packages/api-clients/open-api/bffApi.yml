@@ -30343,8 +30343,8 @@ components:
           type: string
           minLength: 1
           maxLength: 12
-        asyncExchange:
-          type: boolean
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
