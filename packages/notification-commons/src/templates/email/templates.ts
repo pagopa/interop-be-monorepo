@@ -93,6 +93,8 @@ export const eventMailTemplateType = {
     "producer-keychain-user-deleted-mail",
   producerKeychainNoKeysForAsyncEserviceMailTemplate:
     "producer-keychain-no-keys-for-async-eservice-mail",
+  asyncEserviceWithoutKeychainMailTemplate:
+    "async-eservice-without-keychain-mail",
   clientKeyAddedMailTemplate: "client-key-added-mail",
   producerKeychainKeyAddedMailTemplate: "producer-keychain-key-added-mail",
   newPurposeVersionQuotaAdjustmentRequestMailTemplate:
@@ -102,8 +104,38 @@ export const eventMailTemplateType = {
   purposeQuotaOverthresholdMailTemplate: "purpose-quota-overthreshold-mail",
   purposeQuotaAdjustmentResponseMailTemplate:
     "purpose-quota-adjustment-response-mail",
-  asyncEserviceWithoutKeychainMailTemplate:
-    "async-eservice-without-keychain-mail",
+  eserviceArchivingStartedDescriptorToProducerMailTemplate:
+    "eservice-archiving-started-descriptor-to-producer-mail",
+  eserviceArchivingStartedDescriptorToConsumerMailTemplate:
+    "eservice-archiving-started-descriptor-to-consumer-mail",
+  eserviceArchivingStartedEserviceToProducerMailTemplate:
+    "eservice-archiving-started-eservice-to-producer-mail",
+  eserviceArchivingStartedEserviceToConsumerMailTemplate:
+    "eservice-archiving-started-eservice-to-consumer-mail",
+  eserviceArchivingCompletedDescriptorToProducerMailTemplate:
+    "eservice-archiving-completed-descriptor-to-producer-mail",
+  eserviceArchivingCompletedDescriptorToConsumerMailTemplate:
+    "eservice-archiving-completed-descriptor-to-consumer-mail",
+  eserviceArchivingCompletedEserviceToProducerMailTemplate:
+    "eservice-archiving-completed-eservice-to-producer-mail",
+  eserviceArchivingCompletedEserviceToConsumerMailTemplate:
+    "eservice-archiving-completed-eservice-to-consumer-mail",
+  eserviceArchivingEarlyArchivedToProducerMailTemplate:
+    "eservice-archiving-early-archived-to-producer-mail",
+  eserviceArchivingEarlyArchivedToConsumerMailTemplate:
+    "eservice-archiving-early-archived-to-consumer-mail",
+  eserviceArchivingCanceledDescriptorToConsumerMailTemplate:
+    "eservice-archiving-canceled-descriptor-to-consumer-mail",
+  eserviceArchivingCanceledEserviceToConsumerMailTemplate:
+    "eservice-archiving-canceled-eservice-to-consumer-mail",
+  eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate:
+    "eservice-state-changed-to-producer-scheduled-reminder-descriptor-mail",
+  eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate:
+    "eservice-state-changed-to-consumer-scheduled-reminder-descriptor-mail",
+  eserviceStateChangedToProducerScheduledReminderEserviceMailTemplate:
+    "eservice-state-changed-to-producer-scheduled-reminder-eservice-mail",
+  eserviceStateChangedToConsumerScheduledReminderEserviceMailTemplate:
+    "eservice-state-changed-to-consumer-scheduled-reminder-eservice-mail",
 } as const;
 
 const EventMailTemplateType = z.enum([
