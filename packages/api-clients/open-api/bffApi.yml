@@ -31051,6 +31051,7 @@ components:
         - clientAddedRemovedToProducer
         - purposeStatusChangedToProducer
         - templateStatusChangedToProducer
+        - eserviceStateChangedToProducer
         - agreementSuspendedUnsuspendedToConsumer
         - eserviceStateChangedToConsumer
         - agreementActivatedRejectedToConsumer
@@ -31077,6 +31078,8 @@ components:
         purposeStatusChangedToProducer:
           type: boolean
         templateStatusChangedToProducer:
+          type: boolean
+        eserviceStateChangedToProducer:
           type: boolean
         agreementSuspendedUnsuspendedToConsumer:
           type: boolean
