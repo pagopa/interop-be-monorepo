@@ -353,8 +353,6 @@ jobs:
           fi
           echo "Chrome ready at: $CHROME_BIN"
       - name: Run tests for shard
-        env:
-          PUPPETEER_CACHE_DIR: /home/runner/.cache/puppeteer
         run: |
           PACKAGES_JSON='${{ toJson(matrix.shard.packages) }}'
           COMMAND='${{ matrix.shard.command }}'
