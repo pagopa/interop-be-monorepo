@@ -35,7 +35,6 @@ import {
   TenantId,
   tenantKind,
   TenantKind,
-  type EServiceAttribute,
   type EserviceAttributes,
   type EServiceCertifiedAttribute,
 } from "pagopa-interop-models";

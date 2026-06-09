@@ -8,13 +8,11 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveAttribute,
-  TenantHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { TenantHandlerParams } from "../../models/handlerParams.js";
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =

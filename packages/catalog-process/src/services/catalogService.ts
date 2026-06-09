@@ -1680,12 +1680,12 @@ export function catalogServiceBuilder(
         ? await parseAndCheckAttributes(seed.attributes, readModelService)
         : undefined;
 
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
       if (parsedSeedAttributes) {
         assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes);
-        const asyncExchangeEnabled =
-          isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
-          eservice.data.asyncExchange === true;
-
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
           eservice.data.templateId,

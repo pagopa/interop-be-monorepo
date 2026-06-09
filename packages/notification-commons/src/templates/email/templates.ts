@@ -79,6 +79,8 @@ export const eventMailTemplateType = {
     "tenant-certified-attribute-assigned-mail",
   tenantCertifiedAttributeRevokedMailTemplate:
     "tenant-certified-attribute-revoked-mail",
+  tenantCertifiedAttributeUpdatedMailTemplate:
+    "tenant-certified-attribute-updated-mail",
   tenantVerifiedAttributeAssignedMailTemplate:
     "tenant-verified-attribute-assigned-mail",
   tenantVerifiedAttributeRevokedMailTemplate:

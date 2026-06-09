@@ -9,7 +9,6 @@ import {
   FeatureFlagDelegationConstraintSkipConfig,
   FeatureFlagDpopClientAssertionDebuggerConfig,
   FeatureFlagNewOperatorsConfig,
-  FeatureFlagPurposeTemplateConfig,
   FeatureFlagUseSignedDocumentConfig,
   FileManagerConfig,
   RedisRateLimiterConfig,
@@ -87,8 +86,11 @@ const PurposeProcessServerConfig = z
   }));
 type PurposeProcessServerConfig = z.infer<typeof PurposeProcessServerConfig>;
 
+const PurposeTemplateProcessServerConfig = z
   .object({
+    PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
     PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
+    PURPOSE_TEMPLATE_DOCUMENTS_PATH: z.string(),
     RISK_ANALYSIS_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
     RISK_ANALYSIS_TEMPLATE_SIGNED_DOCUMENTS_CONTAINER: z.string(),
     RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH: z.string(),
