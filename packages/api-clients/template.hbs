@@ -1,10 +1,7 @@
 import {
 makeApi,
 Zodios,
-{{#if (eq @root.options.apiClientName "catalogApi")}}
-type ZodiosEndpointDefinitions,
 type ZodiosInstance,
-{{/if}}
 type ZodiosOptions,
 } from "@zodios/core";
 import { z } from "zod";
@@ -19,8 +16,7 @@ export type {{@key}} = z.infer<typeof {{@key}}>;
 	{{/each}}
 
 	{{#each endpointsGroups}}
-	export const {{@key}}Endpoints{{#if (and (eq @root.options.apiClientName "catalogApi") (eq @key "process"))}}:
-	ZodiosEndpointDefinitions{{/if}} = makeApi([
+	export const {{@key}}Endpoints = makeApi([
 	{{#each this.endpoints}}
 	{
 	method: "{{method}}",
@@ -113,30 +109,28 @@ export type {{@key}} = z.infer<typeof {{@key}}>;
 	{{/each}}
 	]);
 
-	export const {{@key}}Api{{#if (and (eq @root.options.apiClientName "catalogApi") (eq @key "process"))}}:
-	ZodiosInstance<ZodiosEndpointDefinitions>{{/if}} = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}}",
-		{{/if}}{{@key}}Endpoints);
+	export const {{@key}}Api = new Zodios({{#if options.baseUrl}}"{{options.baseUrl}}",
+	{{/if}}{{@key}}Endpoints);
 
-		export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: ZodiosOptions){{#if (and (eq
-		@root.options.apiClientName "catalogApi") (eq @key "process"))}}: ZodiosInstance<ZodiosEndpointDefinitions>
-			{{/if}} {
-			const zodiosClient = new Zodios(baseUrl, {{@key}}Endpoints, {
-			...options,
-			validate: false,
-			axiosConfig: {
-			...options?.axiosConfig,
-			// This configuration is used to serialize correctly array query parameters.
-			// The default serialization produces a query param name appending "[]" after the equals:
-			// eg: ids[]=1,2,3 instead of ids=1,2,3
-			paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
-			},
-			});
+	export function create{{pascalcase @key}}ApiClient(baseUrl: string, options?: ZodiosOptions): ZodiosInstance<typeof
+		{{@key}}Endpoints> {
+		const zodiosClient = new Zodios(baseUrl, {{@key}}Endpoints, {
+		...options,
+		validate: false,
+		axiosConfig: {
+		...options?.axiosConfig,
+		// This configuration is used to serialize correctly array query parameters.
+		// The default serialization produces a query param name appending "[]" after the equals:
+		// eg: ids[]=1,2,3 instead of ids=1,2,3
+		paramsSerializer: (params) => qs.stringify(params, { arrayFormat: "comma" }),
+		},
+		});
 
-			configureAxiosLogInterceptors(
-			zodiosClient.axios as AxiosInstance,
-			"{{pascalcase @root.options.apiClientName}} {{pascalcase @key}} Client"
-			);
-			return zodiosClient;
-			}
+		configureAxiosLogInterceptors(
+		zodiosClient.axios as AxiosInstance,
+		"{{pascalcase @root.options.apiClientName}} {{pascalcase @key}} Client"
+		);
+		return zodiosClient;
+		}
 
-			{{/each}}
+		{{/each}}
