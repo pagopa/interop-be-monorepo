@@ -329,6 +329,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -346,8 +349,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.7.0
-        version: 1.7.0
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1434,8 +1437,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.20
-        version: 1.8.20
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2351,8 +2354,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.7.0
-        version: 1.7.0
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3233,8 +3236,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.20
-        version: 1.8.20
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3815,6 +3818,67 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/istat-certified-discrete-attributes-importer:
+    dependencies:
+      adm-zip:
+        specifier: 'catalog:'
+        version: 0.5.16
+      axios:
+        specifier: 'catalog:'
+        version: 1.16.0
+      csv:
+        specifier: 'catalog:'
+        version: 6.3.11
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/adm-zip':
+        specifier: 'catalog:'
+        version: 0.5.7
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
       pagopa-interop-eslint-config:
         specifier: workspace:*
         version: link:../eslint-config
@@ -5251,8 +5315,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.20
-        version: 1.8.20
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5489,8 +5553,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.20
-        version: 1.8.20
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5776,6 +5840,137 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/scheduled-email-notification-dispatcher:
+    dependencies:
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/scheduled-in-app-notification-dispatcher:
+    dependencies:
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-in-app-notification-db-models:
+        specifier: workspace:*
+        version: link:../in-app-notification-db-models
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -6190,8 +6385,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.20
-        version: 1.8.20
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7853,11 +8048,8 @@ packages:
     peerDependencies:
       eslint: ^9.39.2
 
-  '@pagopa/interop-outbound-models@1.7.0':
-    resolution: {integrity: sha512-Y6Nf2ZyN8qFftmG0pBIctrFKQ/oC/a8IlKBlD03qNxYilB0ok7AB08QVpngEYcc7D3zlxhSDH35EVrRcjDj7gw==}
-
-  '@pagopa/interop-outbound-models@1.8.20':
-    resolution: {integrity: sha512-cx8YNSl7FxD4za/+xgWu/ltDgc5dx8hayURi617AbBMTnas5zCfCsmyg0J0SbhwI2Xx+xs2w+PfkUnSfpSpLsg==}
+  '@pagopa/interop-outbound-models@1.8.21':
+    resolution: {integrity: sha512-lm12PsMlznGZoswIuab8cNnHXy6oHamTEPLm5XquT6QVjuuKvxZZOoDC92Lp9e9Y9asX2Oo4TJKKKP3A/pyuEg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -14349,13 +14541,7 @@ snapshots:
       - supports-color
       - vitest
 
-  '@pagopa/interop-outbound-models@1.7.0':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.20':
+  '@pagopa/interop-outbound-models@1.8.21':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
