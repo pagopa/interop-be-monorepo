@@ -42,7 +42,7 @@ const institutionsFields = [
   "Tipologia",
   "Codice_uni_aoo",
   "Codice_uni_uo",
-  "Codice_ISTAT",
+  "Codice_comune_ISTAT",
 ] as const;
 type InstitutionsFields = (typeof institutionsFields)[number];
 
@@ -224,7 +224,7 @@ export async function getAllInstitutions(
       return accumulator;
     }
 
-    const istatCode = extractor("Codice_ISTAT", z.string());
+    const istatCode = extractor("Codice_comune_ISTAT", z.string());
 
     // eslint-disable-next-line functional/immutable-data
     accumulator.push({
