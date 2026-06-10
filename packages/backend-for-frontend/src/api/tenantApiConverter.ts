@@ -241,26 +241,6 @@ export function toBffApiTenant(
       attribute.certifiedDiscrete ? [attribute.certifiedDiscrete] : []
     );
 
-  const toBffApiMergedCertifiedTenantAttributes =
-    (): bffApi.TenantAttributes["certified"] => {
-      const certifiedDiscrete = certifiedDiscreteAttributes
-        .map((tenantAttribute) =>
-          toBffApiCertifiedDiscreteTenantAttribute(
-            tenantAttribute,
-            registryAttributesMap
-          )
-        )
-        .filter(isDefined);
-
-      return [
-        ...toBffApiCertifiedTenantAttributes(
-          certifiedAttributes,
-          registryAttributesMap
-        ),
-        ...certifiedDiscrete,
-      ];
-    };
-
   return {
     id: tenant.id,
     selfcareId: tenant.selfcareId,
@@ -276,7 +256,10 @@ export function toBffApiTenant(
     selfcareInstitutionType: tenant.selfcareInstitutionType,
     contactMail: getLatestTenantContactEmail(tenant),
     attributes: {
-      certified: toBffApiMergedCertifiedTenantAttributes(),
+      certified: toBffApiCertifiedTenantAttributes(
+        [...certifiedAttributes, ...certifiedDiscreteAttributes],
+        registryAttributesMap
+      ),
       declared: toBffApiDeclaredTenantAttributes(
         declaredAttributes,
         registryAttributesMap
