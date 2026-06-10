@@ -42,8 +42,10 @@ import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
+import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
+import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { isAgreementUpgradable } from "./validators.js";
 
 const enrichPurposeDelegation = async (
@@ -90,6 +92,37 @@ const enrichPurposeDelegation = async (
       kind: delegator.kind,
     },
   };
+};
+
+const enrichPurposeReviewerWorkflow = async (
+  reviewerWorkflow: purposeApi.ReviewerWorkflow | undefined,
+  organizationId: string,
+  consumerId: string,
+  delegation: bffApi.DelegationWithCompactTenants | undefined,
+  selfcareV2UserClient: SelfcareV2UsersClient,
+  selfcareId: string,
+  correlationId: CorrelationId
+): Promise<bffApi.ReviewerWorkflow | undefined> => {
+  if (reviewerWorkflow === undefined) {
+    return undefined;
+  }
+  const isConsumerSide =
+    (delegation === undefined && organizationId === consumerId) ||
+    (delegation !== undefined && organizationId === delegation.delegate.id);
+  if (!isConsumerSide) {
+    return reviewerWorkflow;
+  }
+  const reviewers = await Promise.all(
+    reviewerWorkflow.reviewerIds.map((reviewerId) =>
+      getSelfcareCompactUserById(
+        selfcareV2UserClient,
+        reviewerId,
+        selfcareId,
+        correlationId
+      )
+    )
+  );
+  return { ...reviewerWorkflow, reviewers };
 };
 
 const getCurrentVersion = (
@@ -305,7 +338,15 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
-      reviewerWorkflow: purpose.reviewerWorkflow,
+      reviewerWorkflow: await enrichPurposeReviewerWorkflow(
+        purpose.reviewerWorkflow,
+        authData.organizationId,
+        purpose.consumerId,
+        delegation,
+        selfcareV2UserClient,
+        consumer.selfcareId ?? authData.selfcareId,
+        correlationId
+      ),
     };
   };
 
