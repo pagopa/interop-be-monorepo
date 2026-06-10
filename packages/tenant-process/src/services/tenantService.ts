@@ -1941,7 +1941,9 @@ export function tenantServiceBuilder(
             const updatedTenant: Tenant = {
               ...acc.tenantWithRemoteIds,
               remoteIds: [
-                ...(acc.tenantWithRemoteIds.remoteIds ?? []),
+                ...(acc.tenantWithRemoteIds.remoteIds ?? []).filter(
+                  (existing) => existing.origin !== domainRemoteId.origin
+                ),
                 domainRemoteId,
               ],
             };
