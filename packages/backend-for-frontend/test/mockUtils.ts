@@ -914,14 +914,31 @@ export const getMockBffApiCertifiedAttributesResponse =
   (): bffApi.CertifiedAttributesResponse => ({
     attributes: generateMock(
       z.array(
-        z.object({
-          kind: z.literal(tenantAttributeKind.certified),
-          id: z.string().uuid(),
-          name: z.string(),
-          description: z.string(),
-          assignmentTimestamp: z.string().datetime({ offset: true }),
-          revocationTimestamp: z.string().datetime({ offset: true }).optional(),
-        })
+        z.union([
+          z.object({
+            kind: z.literal(tenantAttributeKind.certified),
+            id: z.string().uuid(),
+            name: z.string(),
+            description: z.string(),
+            assignmentTimestamp: z.string().datetime({ offset: true }),
+            revocationTimestamp: z
+              .string()
+              .datetime({ offset: true })
+              .optional(),
+          }),
+          z.object({
+            kind: z.literal(tenantAttributeKind.certifiedDiscrete),
+            id: z.string().uuid(),
+            name: z.string(),
+            description: z.string(),
+            assignmentTimestamp: z.string().datetime({ offset: true }),
+            revocationTimestamp: z
+              .string()
+              .datetime({ offset: true })
+              .optional(),
+            discreteValue: z.number().int().gte(1).lte(1000000000),
+          }),
+        ])
       )
     ),
   });
@@ -932,6 +949,7 @@ export const getMockBffApiRequesterCertifiedAttribute =
     tenantName: generateMock(z.string()),
     attributeId: generateId(),
     attributeName: generateMock(z.string()),
+    kind: tenantAttributeKind.certified,
   });
 
 export const getMockBffApiCompactOrganization =
