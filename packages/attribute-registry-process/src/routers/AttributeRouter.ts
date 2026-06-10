@@ -31,6 +31,7 @@ import {
   createCertifiedAttributesErrorMapper,
   createDeclaredAttributesErrorMapper,
   createInternalCertifiedAttributesErrorMapper,
+  createInternalCertifiedDiscreteAttributesErrorMapper,
   createVerifiedAttributesErrorMapper,
   getAttributeByIdErrorMapper,
   getAttributeByOriginAndCodeErrorMapper,
@@ -349,6 +350,32 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           createInternalCertifiedAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/internal/certifiedDiscreteAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const attribute =
+          await attributeRegistryService.internalCreateCertifiedDiscreteAttribute(
+            req.body,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createInternalCertifiedDiscreteAttributesErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

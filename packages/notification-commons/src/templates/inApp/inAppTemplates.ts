@@ -330,6 +330,11 @@ export const inAppTemplates = {
     revokerName: string
   ): string =>
     `L'ente certificatore ${revokerName} ha revocato l'attributo ${attributeKind} "${attributeName}". Tutte le richieste di fruizione con questo attributo saranno sospese e in futuro non potrai più utilizzare questo attributo per le richieste di fruizione.`,
+  certifiedVerifiedAttributeUpdatedToAssignee: (
+    attributeName: string,
+    attributeKind: "certificato"
+  ): string =>
+    `L'attributo ${attributeKind} "${attributeName}" conferito al tuo ente è stato aggiornato. Puoi ora utilizzarlo nelle richieste di fruizione.`,
   certifiedAttributeAssignedToAssigneeFromImport: (
     attributeName: string
   ): string =>

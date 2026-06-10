@@ -43,6 +43,7 @@ describe("API GET /producers test", () => {
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   const makeRequest = async (
