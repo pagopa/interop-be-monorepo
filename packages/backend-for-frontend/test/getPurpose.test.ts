@@ -82,13 +82,17 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     producerId,
     consumerId,
     state: agreementApi.AgreementState.Values.ACTIVE,
+    verifiedAttributes: [],
+    certifiedAttributes: [],
+    declaredAttributes: [],
     consumerDocuments: [],
     stamps: {},
     createdAt: new Date().toISOString(),
   };
 
+  const basePurposeId = generateId<PurposeId>();
   const basePurpose: purposeApi.Purpose = {
-    id: generateId<PurposeId>(),
+    id: basePurposeId,
     eserviceId: eservice.id,
     consumerId,
     title: "purpose",
