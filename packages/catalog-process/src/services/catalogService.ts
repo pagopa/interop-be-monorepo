@@ -377,12 +377,15 @@ const updateDescriptorState = (
     .with(P.not(isSuspendedState), () => undefined)
     .exhaustive(),
   publishedAt: match(newState)
-    .with(descriptorState.published, () => new Date())
+    .with(descriptorState.published, () => descriptor.publishedAt ?? new Date())
     .with(P.not(descriptorState.published), () => descriptor.publishedAt)
     .exhaustive(),
   deprecatedAt: match(newState)
-    .with(descriptorState.deprecated, () => new Date())
-    .with(P.not(descriptorState.deprecated), () => undefined)
+    .with(
+      descriptorState.deprecated,
+      () => descriptor.deprecatedAt ?? new Date()
+    )
+    .with(P.not(descriptorState.deprecated), () => descriptor.deprecatedAt)
     .exhaustive(),
   archivedAt: match(newState)
     .with(descriptorState.archived, () => new Date())
