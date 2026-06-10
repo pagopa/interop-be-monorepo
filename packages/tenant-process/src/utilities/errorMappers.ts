@@ -299,9 +299,12 @@ export const internalAddCertifiedDiscreteAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("tenantNotFoundByRemoteId", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "tenantNotFoundByRemoteId",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with(
       "certifiedDiscreteAttributeAlreadyAssigned",
       () => HTTP_STATUS_CONFLICT
@@ -316,6 +319,7 @@ export const internalUpdateCertifiedDiscreteAttributeErrorMapper = (
       "tenantNotFound",
       "attributeNotFound",
       "attributeNotFoundInTenant",
+      "tenantNotFoundByRemoteId",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -328,6 +332,7 @@ export const internalRevokeCertifiedDiscreteAttributeErrorMapper = (
       "tenantNotFound",
       "attributeNotFoundInTenant",
       "attributeNotFound",
+      "tenantNotFoundByRemoteId",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
