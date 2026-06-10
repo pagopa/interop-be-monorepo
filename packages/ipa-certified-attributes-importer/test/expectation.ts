@@ -9,7 +9,7 @@ export const agency: Institution[] = [
     origin: "IPA",
     kind: "Stazioni Appaltanti",
     classification: "Agency",
-    istatCode: undefined,
+    istatCode: "010101",
   },
   {
     id: "98765432109",
@@ -19,7 +19,7 @@ export const agency: Institution[] = [
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
     classification: "Agency",
-    istatCode: undefined,
+    istatCode: "020202",
   },
   {
     id: "87654321098",
@@ -29,7 +29,7 @@ export const agency: Institution[] = [
     origin: "IPA",
     kind: "Pubbliche Amministrazioni",
     classification: "Agency",
-    istatCode: undefined,
+    istatCode: "030303",
   },
   {
     id: "76543210987",
@@ -39,7 +39,7 @@ export const agency: Institution[] = [
     origin: "IPA",
     kind: "Stazioni Appaltanti",
     classification: "Agency",
-    istatCode: undefined,
+    istatCode: "040404",
   },
   {
     id: "65432109876",
@@ -49,7 +49,7 @@ export const agency: Institution[] = [
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
     classification: "Agency",
-    istatCode: undefined,
+    istatCode: "050505",
   },
   {
     id: "03782700276",
@@ -59,7 +59,7 @@ export const agency: Institution[] = [
     origin: "IPA",
     kind: "Societa' in Conto Economico Consolidato",
     classification: "Agency",
-    istatCode: "25092983",
+    istatCode: "027042",
   },
   {
     id: "07926631008",
@@ -70,7 +70,7 @@ export const agency: Institution[] = [
     origin: "IPA",
     kind: "Societa' in Conto Economico Consolidato",
     classification: "Agency",
-    istatCode: "21557467",
+    istatCode: "058091",
   },
 ];
 
@@ -83,7 +83,7 @@ export const aoo: Institution[] = [
     origin: "IPA",
     kind: "Stazioni Appaltanti",
     classification: "AOO",
-    istatCode: undefined,
+    istatCode: "045067",
   },
   {
     id: "90098765432",
@@ -93,7 +93,7 @@ export const aoo: Institution[] = [
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
     classification: "AOO",
-    istatCode: undefined,
+    istatCode: "056078",
   },
   {
     id: "90123456789",
@@ -103,7 +103,7 @@ export const aoo: Institution[] = [
     origin: "IPA",
     kind: "Pubbliche Amministrazioni",
     classification: "AOO",
-    istatCode: undefined,
+    istatCode: "078045",
   },
   {
     id: "90234567890",
@@ -113,7 +113,7 @@ export const aoo: Institution[] = [
     origin: "IPA",
     kind: "Stazioni Appaltanti",
     classification: "AOO",
-    istatCode: undefined,
+    istatCode: "089123",
   },
   {
     id: "90345678901",
@@ -123,7 +123,7 @@ export const aoo: Institution[] = [
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
     classification: "AOO",
-    istatCode: undefined,
+    istatCode: "098765",
   },
 ];
 
@@ -137,7 +137,7 @@ export const uo: Institution[] = [
     origin: "IPA",
     kind: "Stazioni Appaltanti",
     classification: "UO",
-    istatCode: undefined,
+    istatCode: "055012",
   },
   {
     id: "91045670482",
@@ -148,7 +148,7 @@ export const uo: Institution[] = [
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
     classification: "UO",
-    istatCode: undefined,
+    istatCode: "055012",
   },
   {
     id: "92067380495",
@@ -159,7 +159,7 @@ export const uo: Institution[] = [
     origin: "IPA",
     kind: "Pubbliche Amministrazioni",
     classification: "UO",
-    istatCode: undefined,
+    istatCode: "120056",
   },
   {
     id: "80234560327",
@@ -169,7 +169,7 @@ export const uo: Institution[] = [
     origin: "IPA",
     kind: "Stazioni Appaltanti",
     classification: "UO",
-    istatCode: undefined,
+    istatCode: "045002",
   },
   {
     id: "12345678901",
@@ -179,7 +179,7 @@ export const uo: Institution[] = [
     origin: "IPA",
     kind: "Gestori di Pubblici Servizi",
     classification: "UO",
-    istatCode: undefined,
+    istatCode: "062010",
   },
 ];
 
