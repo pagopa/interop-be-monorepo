@@ -258,15 +258,20 @@ export function tenantServiceBuilder(
       const certifiedAttributes = tenant.attributes
         .map((v) => v.certified)
         .filter(isDefined);
+      const certifiedDiscreteAttributes = tenant.attributes
+        .map((v) => v.certifiedDiscrete)
+        .filter(isDefined);
 
       const registryAttributesMap = await getRegistryAttributesMap(
-        certifiedAttributes.map((v) => v.id),
+        [...certifiedAttributes, ...certifiedDiscreteAttributes].map(
+          (v) => v.id
+        ),
         attributeRegistryProcessClient,
         headers
       );
 
       const attributes = toBffApiCertifiedTenantAttributes(
-        certifiedAttributes,
+        [...certifiedAttributes, ...certifiedDiscreteAttributes],
         registryAttributesMap
       );
 
