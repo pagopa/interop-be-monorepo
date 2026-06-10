@@ -301,6 +301,7 @@ export const internalAddCertifiedDiscreteAttributeErrorMapper = (
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("tenantNotFoundByRemoteId", () => HTTP_STATUS_NOT_FOUND)
     .with(
       "certifiedDiscreteAttributeAlreadyAssigned",
       () => HTTP_STATUS_CONFLICT

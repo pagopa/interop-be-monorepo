@@ -40,6 +40,7 @@ const errorCodes = {
   operationRestrictedToDelegate: "0030",
   invalidTenantFeature: "0031",
   certifiedDiscreteAttributeAlreadyAssigned: "0032",
+  tenantNotFoundByRemoteId: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -86,6 +87,16 @@ export function tenantNotFoundByExternalId(
     detail: `Tenant with externalId ${origin}/${code} not found`,
     code: "tenantNotFoundByExternalId",
     title: "Tenant not found by externalId",
+  });
+}
+export function tenantNotFoundByRemoteId(
+  origin: string,
+  remoteId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant with remoteId ${origin}/${remoteId} not found`,
+    code: "tenantNotFoundByRemoteId",
+    title: "Tenant not found by remoteId",
   });
 }
 
