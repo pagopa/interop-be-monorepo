@@ -101,6 +101,7 @@ export const toBffApiRequesterCertifiedAttributes = (
   tenantName: input.name,
   attributeId: input.attributeId,
   attributeName: input.attributeName,
+  kind: tenantAttributeKind.certified,
 });
 
 export type RegistryAttributesMap = Map<
@@ -185,12 +186,23 @@ const toBffApiVerifiedTenantAttribute = (
 };
 
 export function toBffApiCertifiedTenantAttributes(
-  certifiedAttributes: tenantApi.CertifiedTenantAttribute[],
+  certifiedAttributes: Array<
+    | tenantApi.CertifiedTenantAttribute
+    | tenantApi.CertifiedDiscreteTenantAttribute
+  >,
   registryAttributesMap: RegistryAttributesMap
-): bffApi.CertifiedTenantAttribute[] {
+): bffApi.CertifiedAttributesResponse["attributes"] {
   return certifiedAttributes
     .map((tenantAttribute) =>
-      toBffApiCertifiedTenantAttribute(tenantAttribute, registryAttributesMap)
+      "discreteValue" in tenantAttribute
+        ? toBffApiCertifiedDiscreteTenantAttribute(
+            tenantAttribute,
+            registryAttributesMap
+          )
+        : toBffApiCertifiedTenantAttribute(
+            tenantAttribute,
+            registryAttributesMap
+          )
     )
     .filter(isDefined);
 }
@@ -229,26 +241,6 @@ export function toBffApiTenant(
       attribute.certifiedDiscrete ? [attribute.certifiedDiscrete] : []
     );
 
-  const toBffApiMergedCertifiedTenantAttributes =
-    (): bffApi.TenantAttributes["certified"] => {
-      const certifiedDiscrete = certifiedDiscreteAttributes
-        .map((tenantAttribute) =>
-          toBffApiCertifiedDiscreteTenantAttribute(
-            tenantAttribute,
-            registryAttributesMap
-          )
-        )
-        .filter(isDefined);
-
-      return [
-        ...toBffApiCertifiedTenantAttributes(
-          certifiedAttributes,
-          registryAttributesMap
-        ),
-        ...certifiedDiscrete,
-      ];
-    };
-
   return {
     id: tenant.id,
     selfcareId: tenant.selfcareId,
@@ -264,7 +256,10 @@ export function toBffApiTenant(
     selfcareInstitutionType: tenant.selfcareInstitutionType,
     contactMail: getLatestTenantContactEmail(tenant),
     attributes: {
-      certified: toBffApiMergedCertifiedTenantAttributes(),
+      certified: toBffApiCertifiedTenantAttributes(
+        [...certifiedAttributes, ...certifiedDiscreteAttributes],
+        registryAttributesMap
+      ),
       declared: toBffApiDeclaredTenantAttributes(
         declaredAttributes,
         registryAttributesMap

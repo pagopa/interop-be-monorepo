@@ -29695,11 +29695,14 @@ components:
           format: uuid
         attributeName:
           type: string
+        kind:
+          $ref: "#/components/schemas/AttributeKind"
       required:
         - tenantId
         - tenantName
         - attributeId
         - attributeName
+        - kind
     RequesterCertifiedAttributes:
       type: object
       additionalProperties: false
@@ -29993,14 +29996,7 @@ components:
         certified:
           type: array
           items:
-            oneOf:
-              - $ref: "#/components/schemas/CertifiedTenantAttribute"
-              - $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
-            discriminator:
-              propertyName: kind
-              mapping:
-                CERTIFIED: "#/components/schemas/CertifiedTenantAttribute"
-                CERTIFIED_DISCRETE: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+            $ref: "#/components/schemas/CertifiedTenantAttribute"
         verified:
           type: array
           items:
@@ -30085,6 +30081,15 @@ components:
         - isDelegatedConsumerFeatureEnabled
         - isDelegatedProducerFeatureEnabled
     CertifiedTenantAttribute:
+      oneOf:
+        - $ref: "#/components/schemas/StandardCertifiedTenantAttribute"
+        - $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+      discriminator:
+        propertyName: kind
+        mapping:
+          CERTIFIED: "#/components/schemas/StandardCertifiedTenantAttribute"
+          CERTIFIED_DISCRETE: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+    StandardCertifiedTenantAttribute:
       type: object
       additionalProperties: false
       properties:
