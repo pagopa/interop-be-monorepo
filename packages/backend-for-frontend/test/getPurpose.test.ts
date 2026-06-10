@@ -2,12 +2,18 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   purposeApi,
+  purposeTemplateApi,
   catalogApi,
+  tenantApi,
   agreementApi,
+  attributeRegistryApi,
+  eserviceTemplateApi,
+  notificationConfigApi,
   inAppNotificationApi,
   SelfcareV2UsersClient,
+  SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { generateId, TenantId, UserId } from "pagopa-interop-models";
+import { generateId, PurposeId, TenantId, UserId } from "pagopa-interop-models";
 import { UIAuthData } from "pagopa-interop-commons";
 import {
   getMockAuthData,
@@ -46,7 +52,7 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     isClientAccessDelegable: false,
   };
 
-  const consumer: catalogApi.Tenant = {
+  const consumer: tenantApi.Tenant = {
     id: consumerId,
     selfcareId: consumerSelfcareId,
     name: "consumer",
@@ -58,7 +64,7 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     features: [],
   };
 
-  const producer: catalogApi.Tenant = {
+  const producer: tenantApi.Tenant = {
     id: producerId,
     name: "producer",
     attributes: [],
@@ -76,14 +82,13 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     producerId,
     consumerId,
     state: agreementApi.AgreementState.Values.ACTIVE,
-    attributes: { certified: [], declared: [], verified: [] },
     consumerDocuments: [],
     stamps: {},
     createdAt: new Date().toISOString(),
   };
 
   const basePurpose: purposeApi.Purpose = {
-    id: generateId(),
+    id: generateId<PurposeId>(),
     eserviceId: eservice.id,
     consumerId,
     title: "purpose",
@@ -124,7 +129,7 @@ describe("getPurpose (service) — reviewer enrichment", () => {
       } as unknown as purposeApi.PurposeProcessClient,
       purposeTemplateProcessClient: {
         getPurposeTemplate: vi.fn(),
-      } as unknown as purposeApi.PurposeTemplateProcessClient,
+      } as unknown as purposeTemplateApi.PurposeTemplateProcessClient,
       catalogProcessClient: {
         getEServiceById: mockGetEServiceById,
       } as unknown as catalogApi.CatalogProcessClient,
@@ -140,14 +145,13 @@ describe("getPurpose (service) — reviewer enrichment", () => {
       inAppNotificationManagerClient: {
         filterUnreadNotifications: vi.fn().mockResolvedValue([]),
       } as unknown as inAppNotificationApi.InAppNotificationManagerClient,
-      selfcareV2InstitutionClient:
-        {} as unknown as purposeApi.SelfcareV2InstitutionClient,
+      selfcareV2InstitutionClient: {} as unknown as SelfcareV2InstitutionClient,
       attributeProcessClient:
-        {} as unknown as purposeApi.AttributeProcessClient,
+        {} as unknown as attributeRegistryApi.AttributeProcessClient,
       eserviceTemplateProcessClient:
-        {} as unknown as purposeApi.EServiceTemplateProcessClient,
+        {} as unknown as eserviceTemplateApi.EServiceTemplateProcessClient,
       notificationConfigProcessClient:
-        {} as unknown as purposeApi.NotificationConfigProcessClient,
+        {} as unknown as notificationConfigApi.NotificationConfigProcessClient,
     },
     fileManager
   );
