@@ -3,11 +3,18 @@ import {
   getMockedApiAttribute,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
-import { attributeRegistryApi, tenantApi } from "pagopa-interop-api-clients";
+import {
+  attributeRegistryApi,
+  bffApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
 import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
-import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
+import {
+  tenantAttributeKind,
+  toBffApiRequesterCertifiedAttributes,
+} from "../src/api/tenantApiConverter.js";
 import { BffAppContext } from "../src/utilities/context.js";
 
 describe("tenantServiceBuilder.getTenant", () => {
@@ -271,5 +278,115 @@ describe("tenantServiceBuilder.getTenant", () => {
         revokedBy: [],
       },
     ]);
+  });
+});
+
+describe("tenantServiceBuilder.getCertifiedAttributes", () => {
+  it("should return certified and certified discrete attributes with their kind discriminator", async () => {
+    const tenantId = generateId<TenantId>();
+    const certifiedAttributeId = generateId<AttributeId>();
+    const certifiedDiscreteAttributeId = generateId<AttributeId>();
+    const assignmentTimestamp = new Date().toISOString();
+
+    const tenant: tenantApi.Tenant = {
+      ...getMockedApiTenant({
+        attributes: [
+          {
+            certified: {
+              id: certifiedAttributeId,
+              assignmentTimestamp,
+            },
+          },
+          {
+            certifiedDiscrete: {
+              id: certifiedDiscreteAttributeId,
+              assignmentTimestamp,
+              discreteValue: 42,
+            },
+          },
+        ],
+      }),
+      id: tenantId,
+      mails: [],
+      features: [],
+    };
+
+    const registryCertifiedAttribute: attributeRegistryApi.Attribute = {
+      ...getMockedApiAttribute({
+        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+      }),
+      id: certifiedAttributeId,
+    };
+    const registryCertifiedDiscreteAttribute: attributeRegistryApi.Attribute = {
+      ...getMockedApiAttribute({
+        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+      }),
+      id: certifiedDiscreteAttributeId,
+    };
+
+    const service = tenantServiceBuilder(
+      {
+        tenant: {
+          getTenant: vi.fn().mockResolvedValue(tenant),
+        },
+      } as never,
+      {
+        getBulkedAttributes: vi.fn().mockResolvedValue({
+          results: [
+            registryCertifiedAttribute,
+            registryCertifiedDiscreteAttribute,
+          ],
+          totalCount: 2,
+        }),
+      } as never,
+      {} as never
+    );
+
+    const ctx = {
+      authData: { organizationId: tenantId },
+      headers: {
+        "X-Correlation-Id": generateId(),
+        Authorization: "authorization",
+        "X-Forwarded-For": "x-forwarded-for",
+      },
+      logger: genericLogger,
+    } as WithLogger<BffAppContext>;
+
+    const result = await service.getCertifiedAttributes(tenantId, ctx);
+    bffApi.CertifiedAttributesResponse.parse(result);
+
+    expect(result.attributes).toStrictEqual([
+      expect.objectContaining({
+        id: certifiedAttributeId,
+        kind: tenantAttributeKind.certified,
+      }),
+      expect.objectContaining({
+        id: certifiedDiscreteAttributeId,
+        kind: tenantAttributeKind.certifiedDiscrete,
+        discreteValue: 42,
+      }),
+    ]);
+  });
+});
+
+describe("toBffApiRequesterCertifiedAttributes", () => {
+  it("should add the certified kind discriminator", () => {
+    const input: tenantApi.CertifiedAttribute = {
+      id: generateId(),
+      name: "tenant",
+      attributeId: generateId(),
+      attributeName: "attribute",
+    };
+
+    const result = toBffApiRequesterCertifiedAttributes(input);
+    bffApi.RequesterCertifiedAttribute.parse(result);
+
+    expect(result).toStrictEqual({
+      tenantId: input.id,
+      tenantName: input.name,
+      attributeId: input.attributeId,
+      attributeName: input.attributeName,
+      kind: tenantAttributeKind.certified,
+    });
   });
 });
