@@ -39,7 +39,7 @@ const attributeProcess = new AttributeProcessService(attributeRegistryClient);
 
 const correlationId: CorrelationId = generateId();
 const loggerInstance = logger({
-  serviceName: "istat-certified-discrete-attributes-importer",
+  serviceName: "istat-certified-attributes-importer",
   correlationId,
 });
 

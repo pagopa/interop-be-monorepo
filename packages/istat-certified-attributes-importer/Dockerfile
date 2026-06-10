@@ -11,7 +11,7 @@ COPY pnpm-lock.yaml /app/
 COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
 
-COPY ./packages/istat-certified-discrete-attributes-importer/package.json /app/packages/istat-certified-discrete-attributes-importer/package.json
+COPY ./packages/istat-certified-attributes-importer/package.json /app/packages/istat-certified-attributes-importer/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
@@ -22,7 +22,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY tsconfig.json /app/
 COPY turbo.json /app/
-COPY ./packages/istat-certified-discrete-attributes-importer /app/packages/istat-certified-discrete-attributes-importer/
+COPY ./packages/istat-certified-attributes-importer /app/packages/istat-certified-attributes-importer/
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/api-clients /app/packages/api-clients
@@ -35,14 +35,14 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   rm -rf /app/node_modules/.cache && \
   mkdir /out && \
   cp -a --parents -t /out \
-  node_modules packages/istat-certified-discrete-attributes-importer/node_modules \
-  package*.json packages/istat-certified-discrete-attributes-importer/package*.json \
+  node_modules packages/istat-certified-attributes-importer/node_modules \
+  package*.json packages/istat-certified-attributes-importer/package*.json \
   packages/commons/ \
   packages/models/ \
   packages/api-clients  \
   packages/readmodel/ \
   packages/readmodel-models/ \    
-  packages/istat-certified-discrete-attributes-importer/dist && \
+  packages/istat-certified-attributes-importer/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
 FROM ${NODE_REGISTRY}/node:20.19.4-slim@sha256:6db5e436948af8f0244488a1f658c2c8e55a3ae51ca2e1686ed042be8f25f70a AS final
@@ -53,7 +53,7 @@ RUN groupadd -r app && useradd -rm -g app app
 RUN chown -R app:app /app && chmod -R 700 /app
 USER app
 
-WORKDIR /app/packages/istat-certified-discrete-attributes-importer
+WORKDIR /app/packages/istat-certified-attributes-importer
 EXPOSE 3000
 
 CMD [ "node", "." ]
