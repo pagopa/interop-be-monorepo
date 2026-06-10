@@ -90,9 +90,9 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     createdAt: new Date().toISOString(),
   };
 
-  const basePurposeId = generateId<PurposeId>();
+  const mockPurposeId = generateId<PurposeId>();
   const basePurpose: purposeApi.Purpose = {
-    id: basePurposeId,
+    id: mockPurposeId,
     eserviceId: eservice.id,
     consumerId,
     title: "purpose",
@@ -185,7 +185,7 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     };
     const ctx = getBffMockContext(getMockContext({ authData }));
 
-    const result = await purposeService.getPurpose(basePurpose.id, ctx);
+    const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
     expect(result.reviewerWorkflow?.reviewers).toEqual([
       { userId: reviewerId, name: "Name", familyName: "Surname" },
@@ -203,7 +203,7 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     };
     const ctx = getBffMockContext(getMockContext({ authData }));
 
-    const result = await purposeService.getPurpose(basePurpose.id, ctx);
+    const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
     expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
     expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
@@ -221,7 +221,7 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     };
     const ctx = getBffMockContext(getMockContext({ authData }));
 
-    const result = await purposeService.getPurpose(basePurpose.id, ctx);
+    const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
     expect(result.reviewerWorkflow?.reviewers).toEqual([]);
     expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
@@ -239,7 +239,7 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     };
     const ctx = getBffMockContext(getMockContext({ authData }));
 
-    const result = await purposeService.getPurpose(basePurpose.id, ctx);
+    const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
     expect(result.reviewerWorkflow).toBeUndefined();
     expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
