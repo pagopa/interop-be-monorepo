@@ -13,6 +13,7 @@ import {
   attributeNotFound,
   certifiedDiscreteAttributeAlreadyAssigned,
   tenantNotFound,
+  tenantNotFoundByRemoteId,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDiscreteAttributes/origin/{aOrigin}/externalId/{aExternalId} test", () => {
@@ -80,6 +81,10 @@ describe("API POST /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDisc
         generateId()
       ),
       expectedStatus: 409,
+    },
+    {
+      error: tenantNotFoundByRemoteId("ISTAT", generateId()),
+      expectedStatus: 404,
     },
   ])(
     "Should return $expectedStatus for $error.code",
