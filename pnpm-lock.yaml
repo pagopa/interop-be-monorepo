@@ -3831,7 +3831,7 @@ importers:
         specifier: 'catalog:'
         version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
-  packages/istat-certified-discrete-attributes-importer:
+  packages/istat-certified-attributes-importer:
     dependencies:
       adm-zip:
         specifier: 'catalog:'
