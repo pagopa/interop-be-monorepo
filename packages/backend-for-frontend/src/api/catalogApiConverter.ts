@@ -463,6 +463,7 @@ export function toCompactProducerDescriptor(
       descriptor.state === catalogApi.EServiceDescriptorState.Values.DRAFT &&
       descriptor.rejectionReasons &&
       descriptor.rejectionReasons.length > 0,
+    archivableOn: descriptor.archivingSchedule?.archivableOn,
   };
 }
 
