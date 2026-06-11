@@ -138,7 +138,8 @@ export async function handlePurposeDocument(
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
           "PurposeRiskAnalysisWorkflowCreated",
-          "PurposeRiskAnalysisAssigned"
+          "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSubmitted"
         ),
       },
       () => Promise.resolve()

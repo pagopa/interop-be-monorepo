@@ -58,6 +58,7 @@ import {
   purposeVersionState,
   unsafeBrandId,
   riskAnalysisReviewMode,
+  riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { ClientId } from "pagopa-interop-models";
@@ -90,6 +91,9 @@ import {
   unchangedDailyCalls,
   reviewerWorkflowConflict,
   multipleReviewersNotAllowed,
+  reviewerWorkflowNotFound,
+  reviewerWorkflowNotSubmittable,
+  submitNotAllowedForReviewMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -117,6 +121,7 @@ import {
   toCreateEventRiskAnalysisSignedDocumentGenerated,
   toCreateEventPurposeRiskAnalysisWorkflowCreated,
   toCreateEventPurposeRiskAnalysisAssigned,
+  toCreateEventPurposeRiskAnalysisSubmitted,
 } from "../model/domain/toEvent.js";
 import {
   GetPurposesFilters as ReadModelGetPurposesFilters,
@@ -566,6 +571,91 @@ export function purposeServiceBuilder(
               version: purpose.metadata.version,
               correlationId,
             })
+      );
+
+      return {
+        data: updatedPurpose,
+        metadata: { version: event.newVersion },
+      };
+    },
+    async submitRiskAnalysis(
+      purposeId: PurposeId,
+      seed: {
+        riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
+      },
+      { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<WithMetadata<Purpose>> {
+      logger.info(`Submitting risk analysis for Purpose ${purposeId}`);
+
+      assertFeatureFlagEnabled(config, "featureFlagNewOperators");
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+
+      assertRequesterIsConsumer(purpose.data, authData);
+
+      const workflow = purpose.data.reviewerWorkflow;
+
+      if (!workflow) {
+        throw reviewerWorkflowNotFound(purposeId);
+      }
+
+      if (
+        workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+      ) {
+        throw submitNotAllowedForReviewMode(purposeId);
+      }
+
+      if (
+        workflow.signingState !== riskAnalysisSigningState.draft &&
+        workflow.signingState !== riskAnalysisSigningState.rejected
+      ) {
+        throw reviewerWorkflowNotSubmittable(purposeId);
+      }
+
+      const tenantKind = await retrieveTenantKind(
+        purpose.data.consumerId,
+        readModelService
+      );
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      const now = new Date();
+
+      const riskAnalysisFormToValidate: RiskAnalysisFormToValidate = {
+        ...seed.riskAnalysisForm,
+        tenantKind,
+      };
+
+      const validatedRiskAnalysisForm = validateAndTransformRiskAnalysis(
+        riskAnalysisFormToValidate,
+        false,
+        tenantKind,
+        now,
+        eservice.personalData
+      );
+
+      const updatedPurpose: Purpose = {
+        ...purpose.data,
+        riskAnalysisForm: validatedRiskAnalysisForm
+          ? validatedRiskAnalysisForm
+          : purpose.data.riskAnalysisForm,
+        reviewerWorkflow: {
+          ...workflow,
+          signingState: riskAnalysisSigningState.submitted,
+          rejectionReason: undefined,
+          sentToReviewerAt: now,
+        },
+        updatedAt: now,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventPurposeRiskAnalysisSubmitted({
+          purpose: updatedPurpose,
+          version: purpose.metadata.version,
+          correlationId,
+        })
       );
 
       return {

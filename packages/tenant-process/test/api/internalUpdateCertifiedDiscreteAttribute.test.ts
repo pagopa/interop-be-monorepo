@@ -9,6 +9,7 @@ import {
   attributeNotFound,
   attributeNotFoundInTenant,
   tenantNotFound,
+  tenantNotFoundByRemoteId,
 } from "../../src/model/domain/errors.js";
 
 describe("API PUT /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDiscreteAttributes/origin/{aOrigin}/externalId/{aExternalId} test", () => {
@@ -54,6 +55,10 @@ describe("API PUT /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDiscr
     { error: attributeNotFound(generateId()), expectedStatus: 404 },
     {
       error: attributeNotFoundInTenant(generateId(), generateId()),
+      expectedStatus: 404,
+    },
+    {
+      error: tenantNotFoundByRemoteId("ISTAT", generateId()),
       expectedStatus: 404,
     },
   ])(

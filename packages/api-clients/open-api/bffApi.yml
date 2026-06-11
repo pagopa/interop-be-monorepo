@@ -10265,6 +10265,69 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /purposes/{purposeId}/riskAnalysis/submit:
+    parameters:
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposes
+      operationId: submitRiskAnalysis
+      description: Validate and submit the risk analysis form for reviewer signing
+      summary: Submit risk analysis for signing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSubmissionSeed"
+        required: true
+      responses:
+        "204":
+          description: Risk analysis submitted for signing
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /purposes/{purposeId}/versions/{versionId}/archive:
     parameters:
       - name: purposeId
@@ -29695,11 +29758,14 @@ components:
           format: uuid
         attributeName:
           type: string
+        kind:
+          $ref: "#/components/schemas/AttributeKind"
       required:
         - tenantId
         - tenantName
         - attributeId
         - attributeName
+        - kind
     RequesterCertifiedAttributes:
       type: object
       additionalProperties: false
@@ -29993,14 +30059,7 @@ components:
         certified:
           type: array
           items:
-            oneOf:
-              - $ref: "#/components/schemas/CertifiedTenantAttribute"
-              - $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
-            discriminator:
-              propertyName: kind
-              mapping:
-                CERTIFIED: "#/components/schemas/CertifiedTenantAttribute"
-                CERTIFIED_DISCRETE: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+            $ref: "#/components/schemas/CertifiedTenantAttribute"
         verified:
           type: array
           items:
@@ -30085,6 +30144,15 @@ components:
         - isDelegatedConsumerFeatureEnabled
         - isDelegatedProducerFeatureEnabled
     CertifiedTenantAttribute:
+      oneOf:
+        - $ref: "#/components/schemas/StandardCertifiedTenantAttribute"
+        - $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+      discriminator:
+        propertyName: kind
+        mapping:
+          CERTIFIED: "#/components/schemas/StandardCertifiedTenantAttribute"
+          CERTIFIED_DISCRETE: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+    StandardCertifiedTenantAttribute:
       type: object
       additionalProperties: false
       properties:
@@ -31607,6 +31675,15 @@ components:
       required:
         - reviewMode
         - reviewerIds
+    RiskAnalysisSubmissionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to submit the risk analysis form for reviewer signing
+      properties:
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+      required:
+        - riskAnalysisForm
     ProblemError:
       properties:
         code:
