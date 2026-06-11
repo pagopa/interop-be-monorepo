@@ -74,6 +74,7 @@ export const toPurposeEventNotification = (
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisAssigned" },
+      { type: "PurposeRiskAnalysisSubmitted" },
       () => undefined
     )
     .exhaustive();
