@@ -6,7 +6,12 @@ import {
   getMockPurpose,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  AuthRole,
+  authRole,
+  unexpectedFieldError,
+  unexpectedFieldValueError,
+} from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import request from "supertest";
 import { api, purposeService } from "../vitest.api.setup.js";
@@ -17,6 +22,7 @@ import {
   requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotFound,
+  riskAnalysisValidationFailed,
 } from "../../src/model/domain/errors.js";
 
 describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
@@ -78,6 +84,12 @@ describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
     {
       error: reviewerWorkflowNotFound(mockPurpose.id),
       expectedStatus: 404,
+    },
+    {
+      error: riskAnalysisValidationFailed([
+        unexpectedFieldError("unexpectedField"),
+      ]),
+      expectedStatus: 400,
     },
     {
       error: editNotAllowedForReviewMode(mockPurpose.id),
