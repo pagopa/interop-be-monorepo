@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import {
   Tenant,
   TenantId,
@@ -42,6 +42,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     getAttributeByExternalId: vi.fn(),
     getTenantsWithDiscreteAttribute: vi.fn(),
     getTenantByIdWithMetadata: vi.fn(),
+    getTenantByRemoteId: vi.fn(),
   } as any;
 
   const refreshableTokenMock = {
@@ -49,6 +50,12 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   } as any;
 
   const csvChunkSize = 100;
+
+  beforeEach(() => {
+    readModelQueriesMock.getTenantByRemoteId.mockResolvedValue({
+      data: { id: generateId() },
+    });
+  });
 
   afterEach(() => {
     vi.clearAllMocks();
@@ -64,6 +71,42 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     };
 
     await addOneAttribute(persistentAttribute);
+    const t1: Tenant = {
+      id: unsafeBrandId<TenantId>(generateId()),
+      externalId: { origin: "ISTAT", value: "015146" },
+      name: "Comune 015146",
+      attributes: [],
+      features: [],
+      createdAt: new Date(),
+      mails: [],
+      remoteIds: [
+        { origin: "ISTAT", value: "015146", assignmentTimestamp: new Date() },
+      ],
+    };
+    const t2: Tenant = {
+      id: unsafeBrandId<TenantId>(generateId()),
+      externalId: { origin: "ISTAT", value: "090001" },
+      name: "Comune 090001",
+      attributes: [],
+      features: [],
+      createdAt: new Date(),
+      mails: [],
+      remoteIds: [
+        { origin: "ISTAT", value: "090001", assignmentTimestamp: new Date() },
+      ],
+    };
+    const t3: Tenant = {
+      id: unsafeBrandId<TenantId>(generateId()),
+      externalId: { origin: "ISTAT", value: "028001" },
+      name: "Comune 028001",
+      attributes: [],
+      features: [],
+      createdAt: new Date(),
+      mails: [],
+      remoteIds: [
+        { origin: "ISTAT", value: "028001", assignmentTimestamp: new Date() },
+      ],
+    };
 
     const obsoleteTenantId = generateId();
     const obsoleteTenant: Tenant = {
@@ -97,7 +140,9 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     await cleanup();
     await addOneAttribute(persistentAttribute);
     await addOneTenant(obsoleteTenantWithAttribute);
-
+    await addOneTenant(t1);
+    await addOneTenant(t2);
+    await addOneTenant(t3);
     await importAttributes(
       istatClientMock as any,
       readModelService,
@@ -367,6 +412,84 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.anything()
     );
   });
+  it("should skip assignment if the tenant is not found in the read model", async () => {
+    const debugSpy = vi.spyOn(genericLogger, "debug");
+    const infoSpy = vi.spyOn(genericLogger, "info");
+    readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
+      data: { id: generateId() },
+      metadata: { version: 1 },
+    });
+    readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
+
+    readModelQueriesMock.getTenantByRemoteId.mockImplementation(
+      async (remoteId: { value: string }) => {
+        if (remoteId.value === "001001") {
+          return { data: { id: "tenant-id-1" } };
+        }
+        return undefined;
+      }
+    );
+
+    tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
+      internalAssignCertifiedDiscreteAttributeMock
+    );
+
+    const csvContent = `"Popolazione residente per età e sesso"
+    "Codice comune";"Comune";"Età";"Totale maschi";"Totale femmine";"Totale"
+    "001001";"Trapani";999;50;50;100
+    "001002";"Roma";999;200;200;400`;
+
+    istatClientMock.downloadNationalDataset.mockResolvedValueOnce(csvContent);
+
+    await importAttributes(
+      istatClientMock as any,
+      readModelQueriesMock as any,
+      tenantProcessMock as any,
+      attributeProcessMock as any,
+      refreshableTokenMock,
+      { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
+      genericLogger,
+      generateId()
+    );
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).toHaveBeenCalledTimes(1);
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).toHaveBeenCalledWith(
+      ISTAT_ATTRIBUTE_SEED.origin,
+      "001001",
+      expect.anything(),
+      expect.anything(),
+      100,
+      expect.anything(),
+      expect.anything()
+    );
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).not.toHaveBeenCalledWith(
+      expect.anything(),
+      "001002",
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything()
+    );
+    expect(debugSpy).toHaveBeenCalledWith(
+      "Tenant with remoteId: 001002 not found. Skipping."
+    );
+
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        "Process complete. Processed: 2, Success: 1, Updated: 0, Skipped: 1, Revoked: 0, Error: 0"
+      )
+    );
+  });
   it("should revoke attribute for municipalities not in CSV", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
       data: { id: generateId() },
@@ -414,7 +537,6 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.anything()
     );
   });
-
   it("should throw a timeout error if attribute polling max retries are reached", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue(undefined);
 
@@ -436,7 +558,6 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).not.toHaveBeenCalled();
   });
-
   it("should continue processing other municipalities if one assignment fails", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
       data: { id: generateId() },
@@ -464,7 +585,6 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledTimes(8);
   });
-
   it("should revoke a tenant if it possesses the attribute but lacks a valid ISTAT remoteId", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
       data: { id: generateId() },
@@ -512,7 +632,6 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.anything()
     );
   });
-
   it("should continue revoking other tenants if one revocation fails", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
       data: { id: generateId() },

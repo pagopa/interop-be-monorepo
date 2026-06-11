@@ -15,6 +15,7 @@ import {
   DrizzleReturnType,
   tenantCertifiedAttributeInReadmodelTenant,
   tenantInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { IstatReadModelTenant } from "../model/istatModel.js";
 
@@ -92,6 +93,28 @@ export function readModelQueriesBuilderSQL(
     ): Promise<WithMetadata<Tenant> | undefined> {
       return tenantReadModelService.getTenantById(
         unsafeBrandId<TenantId>(tenantId)
+      );
+    },
+
+    async getTenantByRemoteId(remoteId: {
+      origin: string;
+      value: string;
+    }): Promise<WithMetadata<Tenant> | undefined> {
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantRemoteIdInReadmodelTenant)
+        .where(
+          and(
+            eq(tenantRemoteIdInReadmodelTenant.origin, remoteId.origin),
+            eq(tenantRemoteIdInReadmodelTenant.value, remoteId.value)
+          )
+        );
+
+      if (tenantSQL.length === 0) {
+        return undefined;
+      }
+      return await tenantReadModelService.getTenantById(
+        unsafeBrandId(tenantSQL[0].tenantId)
       );
     },
   };

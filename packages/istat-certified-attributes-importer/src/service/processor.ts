@@ -45,6 +45,7 @@ export async function importAttributes(
     processed: 0,
     created: 0,
     updated: 0,
+    skipped: 0,
     revoked: 0,
     errors: 0,
   };
@@ -80,6 +81,18 @@ export async function importAttributes(
           };
 
           try {
+            const tenant = await readModel.getTenantByRemoteId({
+              origin: ISTAT_ATTRIBUTE_SEED.origin,
+              value: municipalityCode,
+            });
+
+            if (!tenant) {
+              logger.debug(
+                `Tenant with remoteId: ${municipalityCode} not found. Skipping.`
+              );
+              stats.skipped++;
+              return;
+            }
             await tenantProcess.internalAssignCertifiedDiscreteAttribute(
               ISTAT_ATTRIBUTE_SEED.origin,
               municipalityCode,
@@ -132,7 +145,7 @@ export async function importAttributes(
   );
 
   logger.info(
-    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Updated: ${stats.updated}, Revoked: ${stats.revoked}, Error: ${stats.errors}`
+    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Updated: ${stats.updated}, Skipped: ${stats.skipped}, Revoked: ${stats.revoked}, Error: ${stats.errors}`
   );
 }
 
