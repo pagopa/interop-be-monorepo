@@ -42,7 +42,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     getAttributeByExternalId: vi.fn(),
     getTenantsWithDiscreteAttribute: vi.fn(),
     getTenantByIdWithMetadata: vi.fn(),
-    getTenantByRemoteId: vi.fn(),
+    getAllIstatRemoteIds: vi.fn(),
   } as any;
 
   const refreshableTokenMock = {
@@ -52,9 +52,13 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   const csvChunkSize = 100;
 
   beforeEach(() => {
-    readModelQueriesMock.getTenantByRemoteId.mockResolvedValue({
-      data: { id: generateId() },
-    });
+    readModelQueriesMock.getAllIstatRemoteIds.mockResolvedValue([
+      "015146",
+      "090001",
+      "028001",
+      "001001",
+      "001002",
+    ]);
   });
 
   afterEach(() => {
@@ -318,7 +322,10 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
       internalAssignCertifiedDiscreteAttributeMock
     );
-
+    const fakeIds = Array.from({ length: 1200 }, (_, i) =>
+      String(i).padStart(6, "0")
+    );
+    readModelQueriesMock.getAllIstatRemoteIds.mockResolvedValue(fakeIds);
     const largePopulationMap = new Map<string, number>();
     for (let i = 0; i < 1200; i++) {
       largePopulationMap.set(`COMUNE_${i}`, 1000 + i);
@@ -421,14 +428,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     });
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
 
-    readModelQueriesMock.getTenantByRemoteId.mockImplementation(
-      async (remoteId: { value: string }) => {
-        if (remoteId.value === "001001") {
-          return { data: { id: "tenant-id-1" } };
-        }
-        return undefined;
-      }
-    );
+    readModelQueriesMock.getAllIstatRemoteIds.mockResolvedValue(["001001"]);
 
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
       internalAssignCertifiedDiscreteAttributeMock
@@ -481,7 +481,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.anything()
     );
     expect(debugSpy).toHaveBeenCalledWith(
-      "Tenant with remoteId: 001002 not found. Skipping."
+      "Tenant with remoteId: 001002 not found in DB. Skipping."
     );
 
     expect(infoSpy).toHaveBeenCalledWith(
@@ -569,6 +569,16 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       .mockRejectedValueOnce(new Error("Internal Server Error on API"))
       .mockImplementation(internalAssignCertifiedDiscreteAttributeMock);
 
+    readModelQueriesMock.getAllIstatRemoteIds.mockResolvedValue([
+      "028001",
+      "001002",
+      "003003",
+      "004004",
+      "015146",
+      "102050",
+      "090001",
+      "048017",
+    ]);
     await importAttributes(
       istatClientMock as any,
       readModelQueriesMock as any,

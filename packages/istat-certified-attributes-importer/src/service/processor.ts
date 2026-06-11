@@ -68,6 +68,10 @@ export async function importAttributes(
   );
   const entries = Array.from(populationByMunicipality.entries());
   const chunks = sliceIntoChunks(entries, csvChunkSize);
+  logger.info("Pre-fetching valid ISTAT tenants from database...");
+  const validIstatCodesArray = await readModel.getAllIstatRemoteIds();
+  const validIstatCodes = new Set(validIstatCodesArray);
+  logger.info(`Found ${validIstatCodes.size} valid ISTAT tenants.`);
 
   for (const chunk of chunks) {
     await Promise.all(
@@ -81,14 +85,9 @@ export async function importAttributes(
           };
 
           try {
-            const tenant = await readModel.getTenantByRemoteId({
-              origin: ISTAT_ATTRIBUTE_SEED.origin,
-              value: municipalityCode,
-            });
-
-            if (!tenant) {
+            if (!validIstatCodes.has(municipalityCode)) {
               logger.debug(
-                `Tenant with remoteId: ${municipalityCode} not found. Skipping.`
+                `Tenant with remoteId: ${municipalityCode} not found in DB. Skipping.`
               );
               stats.skipped++;
               return;

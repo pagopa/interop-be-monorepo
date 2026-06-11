@@ -96,26 +96,13 @@ export function readModelQueriesBuilderSQL(
       );
     },
 
-    async getTenantByRemoteId(remoteId: {
-      origin: string;
-      value: string;
-    }): Promise<WithMetadata<Tenant> | undefined> {
-      const tenantSQL = await readModelDB
-        .select()
+    async getAllIstatRemoteIds(): Promise<string[]> {
+      const records = await readModelDB
+        .select({ value: tenantRemoteIdInReadmodelTenant.value })
         .from(tenantRemoteIdInReadmodelTenant)
-        .where(
-          and(
-            eq(tenantRemoteIdInReadmodelTenant.origin, remoteId.origin),
-            eq(tenantRemoteIdInReadmodelTenant.value, remoteId.value)
-          )
-        );
+        .where(eq(tenantRemoteIdInReadmodelTenant.origin, "ISTAT"));
 
-      if (tenantSQL.length === 0) {
-        return undefined;
-      }
-      return await tenantReadModelService.getTenantById(
-        unsafeBrandId(tenantSQL[0].tenantId)
-      );
+      return records.map((r) => r.value);
     },
   };
 }
