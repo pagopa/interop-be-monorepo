@@ -23,6 +23,7 @@ import {
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotFound,
   riskAnalysisValidationFailed,
+  tenantIsNotTheConsumer,
 } from "../../src/model/domain/errors.js";
 
 describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
@@ -91,6 +92,7 @@ describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
       ]),
       expectedStatus: 400,
     },
+    { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
       error: editNotAllowedForReviewMode(mockPurpose.id),
       expectedStatus: 409,
