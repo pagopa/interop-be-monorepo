@@ -364,84 +364,37 @@ const getTemplateDataFromEservice = (
   };
 };
 
+const isSuspendedState = P.union(
+  descriptorState.suspended,
+  descriptorState.archivingSuspended
+);
+
 const updateDescriptorState = (
   descriptor: Descriptor,
   newState: DescriptorState
-): Descriptor => {
-  const descriptorStateChange = [descriptor.state, newState];
-
-  return match(descriptorStateChange)
+): Descriptor => ({
+  ...descriptor,
+  state: newState,
+  suspendedAt: match(newState)
+    .with(isSuspendedState, () => new Date())
+    .with(P.not(isSuspendedState), () => undefined)
+    .exhaustive(),
+  publishedAt: match(newState)
+    .with(descriptorState.published, () => descriptor.publishedAt ?? new Date())
+    .with(P.not(descriptorState.published), () => descriptor.publishedAt)
+    .exhaustive(),
+  deprecatedAt: match(newState)
     .with(
-      [descriptorState.draft, descriptorState.published],
-      [descriptorState.waitingForApproval, descriptorState.published],
-      () => ({
-        ...descriptor,
-        state: newState,
-        publishedAt: new Date(),
-      })
+      descriptorState.deprecated,
+      () => descriptor.deprecatedAt ?? new Date()
     )
-    .with(
-      [descriptorState.published, descriptorState.suspended],
-      [descriptorState.deprecated, descriptorState.suspended],
-      [descriptorState.archiving, descriptorState.archivingSuspended],
-      () => ({
-        ...descriptor,
-        state: newState,
-        suspendedAt: new Date(),
-      })
-    )
-    .with([descriptorState.suspended, descriptorState.deprecated], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: undefined,
-      deprecatedAt: new Date(),
-    }))
-    .with(
-      [descriptorState.suspended, descriptorState.published],
-      [descriptorState.archivingSuspended, descriptorState.archiving],
-      () => ({
-        ...descriptor,
-        state: newState,
-        suspendedAt: undefined,
-      })
-    )
-    .with([descriptorState.suspended, descriptorState.archived], () => ({
-      ...descriptor,
-      state: newState,
-      suspendedAt: undefined,
-      archivedAt: new Date(),
-    }))
-    .with(
-      [descriptorState.published, descriptorState.archived],
-      [descriptorState.deprecated, descriptorState.archived],
-      [descriptorState.archiving, descriptorState.archived],
-      [descriptorState.archivingSuspended, descriptorState.archived],
-      () => ({
-        ...descriptor,
-        state: newState,
-        archivedAt: new Date(),
-      })
-    )
-    .with([descriptorState.published, descriptorState.deprecated], () => ({
-      ...descriptor,
-      state: newState,
-      deprecatedAt: new Date(),
-    }))
-    .with(
-      [descriptorState.archived, descriptorState.published],
-      [descriptorState.archived, descriptorState.deprecated],
-      [descriptorState.archived, descriptorState.suspended],
-      () => ({
-        ...descriptor,
-        state: newState,
-        archivedAt: undefined,
-      })
-    )
-    .otherwise(() => ({
-      ...descriptor,
-      state: newState,
-    }));
-};
+    .with(P.not(descriptorState.deprecated), () => descriptor.deprecatedAt)
+    .exhaustive(),
+  archivedAt: match(newState)
+    .with(descriptorState.archived, () => new Date())
+    .with(P.not(descriptorState.archived), () => undefined)
+    .exhaustive(),
+});
 
 const deprecateDescriptor = (
   eserviceId: EServiceId,
