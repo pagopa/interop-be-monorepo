@@ -2300,6 +2300,82 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttributes/groups/{groupIndex}/attributes/{attributeId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    patch:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Update e-service descriptor certified attribute
+      operationId: updateDescriptorCertifiedAttribute
+      description: Updates properties of a certified attribute in the specified E-Service descriptor attribute group
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: descriptorId
+          in: path
+          description: the descriptor id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: groupIndex
+          in: path
+          description: the certified attribute group index
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - name: attributeId
+          in: path
+          description: the certified attribute id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: A payload containing the certified attribute properties to update
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
+      responses:
+        "200":
+          description: EService descriptor certified attribute updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: EService, descriptor, group, or attribute not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /internal/templates/eservices/{eServiceId}/name/update:
     post:
       parameters:
@@ -2778,6 +2854,56 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+
+  /maintenance/eservices/{eServiceId}/riskAnalyses/{riskAnalysisId}/tenantKind/fix:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Fix tenant kind for a risk analysis
+      operationId: fixEServiceRiskAnalysisTenantKind
+      description: Fixes the tenant kind of a specific risk analysis on the specified E-Service
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: riskAnalysisId
+          in: path
+          description: the risk analysis id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: EService Risk Analysis Fixed
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "404":
+          description: EService or Risk Analysis not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+             
   /status:
     get:
       security: []
@@ -2840,6 +2966,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     UpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2869,6 +2997,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     PatchUpdateEServiceSeed:
       type: object
       additionalProperties: false
@@ -2892,6 +3022,9 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     UpdateEServiceTemplateInstanceSeed:
@@ -2994,6 +3127,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     CreatedEServiceDescriptor:
       type: object
       additionalProperties: false
@@ -3076,6 +3211,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     PatchUpdateEServiceDescriptorSeed:
       type: object
       additionalProperties: false
@@ -3111,6 +3248,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/PatchAttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     UpdateEServiceDescriptorTemplateInstanceSeed:
       required:
         - audience
@@ -3142,6 +3281,8 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     UpdateEServiceDescriptorQuotasSeed:
       type: object
       additionalProperties: false
@@ -3299,6 +3440,17 @@ components:
       required:
         - id
         - explicitAttributeVerification
+    EServiceDescriptorAttributeSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer that has the related certified attribute
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     AgreementApprovalPolicy:
       type: string
       description: |
@@ -3384,6 +3536,8 @@ components:
           type: string
           format: uuid
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
 
     CreatedEServiceRiskAnalysis:
@@ -3506,6 +3660,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceRiskAnalysisMultiAnswer"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysisSingleAnswer:
       type: object
       additionalProperties: false
@@ -3754,6 +3910,10 @@ components:
             $ref: "#/components/schemas/RejectionReason"
         templateVersionRef:
           $ref: "#/components/schemas/EServiceTemplateVersionRef"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
+        asyncExchangeCallbackInterface:
+          $ref: "#/components/schemas/EServiceDoc"
     Attribute:
       type: object
       additionalProperties: false
@@ -3794,6 +3954,53 @@ components:
         - certified
         - declared
         - verified
+    AsyncExchangeProperties:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999999
+        resourceAvailableTime:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999999
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 99999
+    AsyncExchangePropertiesInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999999
+        resourceAvailableTime:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999999
+        maxResultSet:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 99999
     EServiceTechnology:
       type: string
       description: API Technology
@@ -3816,6 +4023,7 @@ components:
       enum:
         - INTERFACE
         - DOCUMENT
+        - ASYNC_EXCHANGE_CALLBACK_INTERFACE
     AgreementState:
       type: string
       description: Agreement State
@@ -3894,6 +4102,8 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     EServiceInstanceLabelUpdateSeed:
       type: object
       additionalProperties: false
@@ -3902,6 +4112,13 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+    TenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
+        - GSP
+        - SCP
     Problem:
       properties:
         type:

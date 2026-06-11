@@ -180,6 +180,19 @@ export const descriptorToApiDescriptor = (
     rejectedAt: reason.rejectedAt.toJSON(),
   })),
   templateVersionRef: descriptor.templateVersionRef,
+  asyncExchangeProperties: descriptor.asyncExchangeProperties
+    ? {
+        responseTime: descriptor.asyncExchangeProperties.responseTime,
+        resourceAvailableTime:
+          descriptor.asyncExchangeProperties.resourceAvailableTime,
+        confirmation: descriptor.asyncExchangeProperties.confirmation,
+        bulk: descriptor.asyncExchangeProperties.bulk,
+        maxResultSet: descriptor.asyncExchangeProperties.maxResultSet,
+      }
+    : undefined,
+  asyncExchangeCallbackInterface: descriptor.asyncExchangeCallbackInterface
+    ? documentToApiDocument(descriptor.asyncExchangeCallbackInterface)
+    : undefined,
 });
 
 export const eServiceToApiEService = (
@@ -200,6 +213,7 @@ export const eServiceToApiEService = (
       version: riskAnalysis.riskAnalysisForm.version,
       singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
       multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
+      tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
     },
   })),
   descriptors: eservice.descriptors.map(descriptorToApiDescriptor),
@@ -209,4 +223,5 @@ export const eServiceToApiEService = (
   templateId: eservice.templateId,
   personalData: eservice.personalData,
   instanceLabel: eservice.instanceLabel,
+  asyncExchange: eservice.asyncExchange,
 });

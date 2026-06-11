@@ -64,6 +64,14 @@ const errorCodes = {
   eserviceInDraftState: "0047",
   attributeDailyCallsNotAllowed: "0048",
   certifiedAttributeGroupNotFoundInSeed: "0049",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0050",
+  eServiceAsyncExchangeNotEnabled: "0051",
+  missingAsyncExchangeProperties: "0053",
+  asyncExchangeBulkNotAllowedForSoap: "0054",
+  asyncExchangeNotAllowedForReceiveMode: "0055",
+  missingAsyncExchangeCallbackInterface: "0056",
+  templateVersionMissingAsyncExchangeProperties: "0057",
+  riskAnalysisTenantKindMismatch: "0058",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -517,6 +525,19 @@ export function missingPersonalDataFlag(
   });
 }
 
+export function riskAnalysisTenantKindMismatch(
+  actualKind: TenantKind,
+  currentTenantKind: TenantKind,
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis tenant kind mismatch for eserviceId ${eserviceId} with riskAnalysisId ${riskAnalysisId}: expected ${currentTenantKind}, actual ${actualKind}`,
+    code: "riskAnalysisTenantKindMismatch",
+    title: "Risk Analysis tenant kind mismatch",
+  });
+}
+
 export function eServiceTemplateWithoutPersonalDataFlag(
   eServiceTemplateId: EServiceTemplateId,
   eServiceTemplateVersionId: EServiceTemplateVersionId
@@ -526,6 +547,49 @@ export function eServiceTemplateWithoutPersonalDataFlag(
     code: "eServiceTemplateWithoutPersonalDataFlag",
     title:
       "EService Template personalData flag must be set before instantiation",
+  });
+}
+
+export function missingAsyncExchangeProperties(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because async exchange properties (responseTime, resourceAvailableTime, maxResultSet) must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeProperties",
+    title: "Missing required async exchange properties for publication",
+  });
+}
+
+export function missingAsyncExchangeCallbackInterface(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because asyncExchangeCallbackInterface must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeCallbackInterface",
+    title: "Async exchange callback interface must be set before publication",
+  });
+}
+
+export function asyncExchangeBulkNotAllowedForSoap(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published with asyncExchangeBulk enabled when technology is Soap`,
+    code: "asyncExchangeBulkNotAllowedForSoap",
+    title: "Async exchange bulk not allowed for SOAP technology",
+  });
+}
+
+export function asyncExchangeNotAllowedForReceiveMode(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} can't have async exchange enabled with receive mode`,
+    code: "asyncExchangeNotAllowedForReceiveMode",
+    title: "Async exchange not allowed for receive mode",
   });
 }
 
@@ -546,6 +610,37 @@ export function eServiceUpdateSameNameConflict(
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
     title: "Same EService name update conflict",
+  });
+}
+
+export function eServiceAsyncExchangeNotEnabled(
+  eServiceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eServiceId} does not have async exchange enabled`,
+    code: "eServiceAsyncExchangeNotEnabled",
+    title: "EService does not have async exchange enabled",
+  });
+}
+
+export function asyncExchangeCallbackInterfaceAlreadyExists(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
+    code: "asyncExchangeCallbackInterfaceAlreadyExists",
+    title: "Descriptor already contains an async exchange callback interface",
+  });
+}
+
+export function templateVersionMissingAsyncExchangeProperties(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange properties are missing for version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
+    code: "templateVersionMissingAsyncExchangeProperties",
+    title: "Template version missing async exchange properties",
   });
 }
 

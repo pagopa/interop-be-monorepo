@@ -7049,6 +7049,94 @@ paths:
               $ref: "#/components/headers/RateLimitRemainingHeader"
             X-Rate-Limit-Interval:
               $ref: "#/components/headers/RateLimitIntervalHeader"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/asyncExchangeCallbackInterface:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor for which to download the async exchange callback interface
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eservices
+      summary: Download an E-Service Descriptor async exchange callback interface
+      description: Download the async exchange callback interface document of an E-Service Descriptor
+      operationId: downloadEServiceDescriptorAsyncExchangeCallbackInterface
+      responses:
+        "200":
+          description: E-Service Descriptor async exchange callback interface retrieved, a multipart containing the file and its metadata
+          content:
+            multipart/form-data:
+              schema:
+                $ref: "#/components/schemas/FileDownloadMultipart"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
   /eservices/{eserviceId}/descriptors/{descriptorId}/suspend:
     post:
       tags:
@@ -16335,7 +16423,11 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
-          description: Filter Purpose Templates by E-Service IDs. If not specified, return Purpose Templates for any E-Service.
+          description: >-
+            Filter Purpose Templates by E-Service IDs. If not specified, return
+            Purpose Templates for any E-Service. For e-services that are
+            instances of an e-service template, purpose templates linked to the
+            originating e-service template are also returned.
           schema:
             type: array
             items:
@@ -19494,6 +19586,9 @@ components:
             - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
             - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
             - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_RISK_ANALYSIS_ADDED
             - ESERVICE_RISK_ANALYSIS_UPDATED
             - ESERVICE_RISK_ANALYSIS_DELETED
@@ -19506,6 +19601,7 @@ components:
             - ESERVICE_SIGNAL_HUB_ENABLED
             - ESERVICE_SIGNAL_HUB_DISABLED
             - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED
+            - ESERVICE_DESCRIPTOR_ATTRIBUTE_DAILY_CALLS_PER_CONSUMER_UPDATED
             - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED
             - ESERVICE_DESCRIPTOR_AGREEMENT_APPROVAL_POLICY_UPDATED
             - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
@@ -19577,6 +19673,9 @@ components:
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
+            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_TEMPLATE_VERSION_PUBLISHED
             - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED
             - ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
@@ -20653,6 +20752,8 @@ components:
           format: uuid
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
       required:
         - id
         - producerId
@@ -20684,6 +20785,9 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     EServiceDescriptor:
@@ -20739,6 +20843,8 @@ components:
         templateVersionId:
           type: string
           format: uuid
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - id
         - version
@@ -20809,6 +20915,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - audience
         - voucherLifespan
@@ -20850,6 +20958,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceDescriptorQuotasUpdateSeed:
       type: object
       additionalProperties: false
@@ -20890,6 +21000,34 @@ components:
       required:
         - results
         - pagination
+    AsyncExchangeProperties:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999999
+        resourceAvailableTime:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999999
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 99999
     EServiceTechnology:
       type: string
       description: API Technology
@@ -21020,6 +21158,8 @@ components:
         deprecatedAt:
           type: string
           format: date-time
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - id
         - version
@@ -21180,6 +21320,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - voucherLifespan
     EServiceTemplateVersionDraftUpdateSeed:
@@ -21211,6 +21353,8 @@ components:
           nullable: true
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicyNullable"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -21242,6 +21386,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     EServiceNameUpdateSeed:
       type: object
@@ -21326,6 +21472,8 @@ components:
           minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     JWK:
       description: JSON Web Key
       type: object

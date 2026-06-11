@@ -16,6 +16,7 @@ import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getEserviceDescriptorErrorMapper,
   downloadEServiceDescriptorInterfaceErrorMapper,
+  downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   uploadEServiceDescriptorInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
   deleteDraftEServiceDescriptorErrorMapper,
@@ -23,6 +24,7 @@ import {
   getEServiceDescriptorAttributesErrorMapper,
   createEServiceDescriptorAttributeGroupsErrorMapper,
   deleteEServiceDescriptorAttributeFromGroupErrorMapper,
+  updateEServiceDescriptorAttributeInGroupErrorMapper,
   assignEServiceDescriptorAttributesErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
@@ -565,6 +567,35 @@ const eserviceRouter = (
         }
       }
     )
+    .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const file =
+            await eserviceService.downloadEServiceDescriptorAsyncExchangeCallbackInterface(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
+            ctx,
+            `Error retrieving async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eserviceId/descriptors/:descriptorId/interface",
       async (req, res) => {
@@ -974,6 +1005,32 @@ const eserviceRouter = (
             createEServiceDescriptorAttributeGroupsErrorMapper,
             ctx,
             `Error creating certified attributes group for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .patch(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceService.updateEServiceDescriptorCertifiedAttributeInGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            unsafeBrandId(req.params.attributeId),
+            req.body,
+            ctx
+          );
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceDescriptorAttributeInGroupErrorMapper,
+            ctx,
+            `Error updating certified attribute ${req.params.attributeId} in group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

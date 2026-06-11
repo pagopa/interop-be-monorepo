@@ -69,12 +69,18 @@ export const buildUpdateDescriptorSeed = (
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): catalogApi.EServiceRiskAnalysisSeed => ({
-  name: riskAnalysis.name,
-  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+): catalogApi.EServiceRiskAnalysisSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
-  ),
-});
+  );
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm: {
+      version,
+      answers,
+    },
+  };
+};
 
 export const buildInterfaceSeed =
   (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
@@ -95,6 +101,18 @@ export const buildDocumentSeed =
     serverUrls: ["pagopa.it"],
     documentId: generateId(),
     kind: "DOCUMENT",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
+
+export const buildAsyncExchangeCallbackInterfaceSeed =
+  (): catalogApi.CreateEServiceDescriptorDocumentSeed => ({
+    contentType: "json",
+    prettyName: "callbackInterfacePrettyName",
+    serverUrls: [],
+    documentId: generateId(),
+    kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
     filePath: "filePath",
     fileName: "fileName",
     checksum: "checksum",

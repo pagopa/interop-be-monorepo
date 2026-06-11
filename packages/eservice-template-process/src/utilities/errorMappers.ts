@@ -70,6 +70,9 @@ export const publishEServiceTemplateVersionErrorMapper = (
       "notValidEServiceTemplateVersionState",
       "riskAnalysisValidationFailed",
       "missingPersonalDataFlag",
+      "missingAsyncExchangeProperties",
+      "missingAsyncExchangeCallbackInterface",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("missingRiskAnalysis", () => HTTP_STATUS_CONFLICT)
@@ -179,6 +182,18 @@ export const updateRiskAnalysisErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const maintenanceFixRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateNotFound",
+      "riskAnalysisNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deleteEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -218,7 +233,11 @@ export const createEServiceTemplateErrorMapper = (
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
     .with("eserviceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
-    .with("inconsistentDailyCalls", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "inconsistentDailyCalls",
+      "asyncExchangeReceiveTemplateNotAllowed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceTemplateErrorMapper = (
@@ -246,6 +265,7 @@ export const updateDraftTemplateVersionErrorMapper = (
       "notValidEServiceTemplateVersionState",
       "inconsistentDailyCalls",
       "attributeDuplicatedInGroup",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -276,7 +296,13 @@ export const createEServiceTemplateDocumentErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("interfaceAlreadyExists", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "interfaceAlreadyExists",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
+      "eserviceTemplateAsyncExchangeNotEnabled",
+      "asyncExchangeBulkNotAllowedForSoap",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with(
       "documentPrettyNameDuplicate",
       "checksumDuplicate",

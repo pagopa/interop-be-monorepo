@@ -26,6 +26,7 @@ export const createEServiceErrorMapper = (
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "invalidDelegationFlags",
+      "asyncExchangeNotAllowedForReceiveMode",
       "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -47,6 +48,7 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
       "eServiceTemplateWithoutPublishedVersion",
       "templateMissingRequiredRiskAnalysis",
       "eServiceTemplateWithoutPersonalDataFlag",
+      "templateVersionMissingAsyncExchangeProperties",
       "invalidDelegationFlags",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -79,6 +81,7 @@ export const updateEServiceErrorMapper = (
       "eserviceNotInDraftState",
       "invalidDelegationFlags",
       "templateInstanceNotAllowed",
+      "asyncExchangeNotAllowedForReceiveMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -120,8 +123,14 @@ export const documentCreateErrorMapper = (
       "notValidDescriptor",
       "documentPrettyNameDuplicate",
       "interfaceAlreadyExists",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
       "checksumDuplicate",
       () => HTTP_STATUS_CONFLICT
+    )
+    .with(
+      "eServiceAsyncExchangeNotEnabled",
+      "asyncExchangeBulkNotAllowedForSoap",
+      () => HTTP_STATUS_BAD_REQUEST
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -189,6 +198,7 @@ export const createDescriptorErrorMapper = (
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
       "templateInstanceNotAllowed",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -224,6 +234,7 @@ export const updateDraftDescriptorErrorMapper = (
       "templateInstanceNotAllowed",
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -292,9 +303,13 @@ export const publishDescriptorErrorMapper = (
       "eServiceDescriptorWithoutInterface",
       "eServiceRiskAnalysisIsRequired",
       "riskAnalysisNotValid",
+      "riskAnalysisTenantKindMismatch",
       "notValidDescriptor",
       "audienceCannotBeEmpty",
       "missingPersonalDataFlag",
+      "missingAsyncExchangeProperties",
+      "missingAsyncExchangeCallbackInterface",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -365,6 +380,7 @@ export const createRiskAnalysisErrorMapper = (
       "eserviceNotInDraftState",
       "eserviceNotInReceiveMode",
       "riskAnalysisValidationFailed",
+      "riskAnalysisTenantKindMismatch",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
@@ -408,6 +424,18 @@ export const deleteRiskAnalysisErrorMapper = (
     )
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceFixRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceRiskAnalysisNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceDescriptionErrorMapper = (
@@ -483,6 +511,27 @@ export const updateDescriptorAttributesErrorMapper = (
     .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateDescriptorCertifiedAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "attributeNotFound",
+      "certifiedAttributeGroupNotFoundInSeed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "notValidDescriptor",
+      "templateInstanceNotAllowed",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const approveDelegatedEServiceDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -492,7 +541,13 @@ export const approveDelegatedEServiceDescriptorErrorMapper = (
       "eServiceDescriptorNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("missingPersonalDataFlag", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "missingPersonalDataFlag",
+      "missingAsyncExchangeProperties",
+      "missingAsyncExchangeCallbackInterface",
+      "asyncExchangeBulkNotAllowedForSoap",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -621,6 +676,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       "invalidContentTypeDetected",
       "documentPrettyNameDuplicate",
       "notValidDescriptor",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
