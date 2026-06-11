@@ -97,6 +97,7 @@ import {
   operationRestrictedToDelegate,
   verifiedAttributeSelfVerificationNotAllowed,
   certifiedDiscreteAttributeAlreadyAssigned,
+  tenantNotFoundByRemoteId,
 } from "../model/domain/errors.js";
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import { fromApiTenantFeature } from "../model/domain/apiConverter.js";
@@ -161,7 +162,7 @@ const retrieveTenantByRemoteId = async ({
     value: tenantRemoteId,
   });
   if (!tenant) {
-    throw tenantNotFoundByExternalId(tenantOrigin, tenantRemoteId);
+    throw tenantNotFoundByRemoteId(tenantOrigin, tenantRemoteId);
   }
   return tenant;
 };

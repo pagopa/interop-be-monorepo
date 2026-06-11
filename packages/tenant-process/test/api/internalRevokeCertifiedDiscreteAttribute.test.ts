@@ -13,6 +13,7 @@ import {
   attributeNotFound,
   attributeNotFoundInTenant,
   tenantNotFound,
+  tenantNotFoundByRemoteId,
 } from "../../src/model/domain/errors.js";
 
 describe("API DELETE /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDiscreteAttributes/origin/{aOrigin}/externalId/{aExternalId} test", () => {
@@ -76,6 +77,10 @@ describe("API DELETE /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDi
     },
     {
       error: attributeNotFound(attribute.id),
+      expectedStatus: 404,
+    },
+    {
+      error: tenantNotFoundByRemoteId("ISTAT", generateId()),
       expectedStatus: 404,
     },
   ])(
