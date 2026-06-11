@@ -1247,7 +1247,13 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       logger.info(`Archiving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
+
       assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      await assertNoExistingProducerDelegationInActiveOrPendingState(
+        eserviceId,
+        readModelService
+      );
 
       assertEServiceArchivable(eservice.data);
 
@@ -2449,6 +2455,11 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      await assertNoExistingProducerDelegationInActiveOrPendingState(
+        eserviceId,
+        readModelService
+      );
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
