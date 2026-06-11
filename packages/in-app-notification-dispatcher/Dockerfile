@@ -19,6 +19,7 @@ COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package
 COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
 COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
 COPY ./packages/in-app-notification-db-models/package.json /app/packages/in-app-notification-db-models/package.json
+COPY ./packages/scheduled-notification-db-models/package.json /app/packages/scheduled-notification-db-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
@@ -33,6 +34,7 @@ COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
 COPY ./packages/in-app-notification-db-models /app/packages/in-app-notification-db-models
+COPY ./packages/scheduled-notification-db-models /app/packages/scheduled-notification-db-models
 
 ARG NODE_HEAP_SIZE=4096
 RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
@@ -49,6 +51,7 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   packages/readmodel/ \
   packages/readmodel-models/ \
   packages/in-app-notification-db-models/ \
+  packages/scheduled-notification-db-models/ \
   packages/in-app-notification-dispatcher/dist && \
   find /out -exec touch -h --date=@0 {} \;
 

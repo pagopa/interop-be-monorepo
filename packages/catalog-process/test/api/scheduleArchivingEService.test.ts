@@ -104,7 +104,7 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
     },
     {
       error: notValidEServiceState(mockEService.id),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

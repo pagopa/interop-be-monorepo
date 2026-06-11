@@ -19,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import {
   matchingCertifiedAttributes,
+  matchingCertifiedDiscreteAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   verifyConflictingAgreements,
@@ -96,6 +97,10 @@ export async function createUpgradeOrNewDraft({
         consumer
       ),
       certifiedAttributes: matchingCertifiedAttributes(newDescriptor, consumer),
+      certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
+        newDescriptor,
+        consumer
+      ),
       declaredAttributes: matchingDeclaredAttributes(newDescriptor, consumer),
       suspendedByConsumer: agreement.data.suspendedByConsumer,
       suspendedByProducer: agreement.data.suspendedByProducer,
@@ -151,6 +156,7 @@ export async function createUpgradeOrNewDraft({
       contract: undefined,
       verifiedAttributes: [],
       certifiedAttributes: [],
+      certifiedDiscreteAttributes: [],
       declaredAttributes: [],
       /* We copy suspendedByProducer, suspendedByProducer, suspendedAt, and
       the corresponding stamps, even if this is a Draft Agreement and suspension

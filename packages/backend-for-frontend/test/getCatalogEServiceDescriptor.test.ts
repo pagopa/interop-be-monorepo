@@ -39,10 +39,12 @@ describe("getCatalogEServiceDescriptor", () => {
 
   const declaredAttributeId = generateId<AttributeId>();
   const certifiedAttributeId = generateId<AttributeId>();
+  const certifiedDiscreteAttributeId = generateId<AttributeId>();
   const verifiedAttributeId = generateId<AttributeId>();
 
   const declaredAttributeName = "mockDeclaredAttributeName";
   const certifiedAttributeName = "mockCertifiedAttributeName";
+  const certifiedDiscreteAttributeName = "mockCertifiedDiscreteAttributeName";
   const verifiedAttributeName = "mockVerifiedAttributeName";
 
   const attributeDescription = "mockDescription";
@@ -73,6 +75,14 @@ describe("getCatalogEServiceDescriptor", () => {
             id: certifiedAttributeId,
             explicitAttributeVerification: false,
             dailyCallsPerConsumer: certifiedAttributeDailyCallsPerConsumer,
+          },
+          {
+            id: certifiedDiscreteAttributeId,
+            explicitAttributeVerification: false,
+            discreteConfig: {
+              threshold: 1000,
+              comparator: "GTE",
+            },
           },
         ],
       ],
@@ -151,6 +161,18 @@ describe("getCatalogEServiceDescriptor", () => {
             id: certifiedAttributeId,
             name: certifiedAttributeName,
             dailyCallsPerConsumer: certifiedAttributeDailyCallsPerConsumer,
+            kind: "CERTIFIED",
+          },
+          {
+            description: attributeDescription,
+            explicitAttributeVerification: false,
+            id: certifiedDiscreteAttributeId,
+            name: certifiedDiscreteAttributeName,
+            discreteConfig: {
+              threshold: 1000,
+              comparator: "GTE",
+            },
+            kind: "CERTIFIED_DISCRETE",
           },
         ],
       ],
@@ -161,6 +183,7 @@ describe("getCatalogEServiceDescriptor", () => {
             explicitAttributeVerification: false,
             id: declaredAttributeId,
             name: declaredAttributeName,
+            kind: "DECLARED",
           },
         ],
       ],
@@ -171,6 +194,7 @@ describe("getCatalogEServiceDescriptor", () => {
             explicitAttributeVerification: true,
             id: verifiedAttributeId,
             name: verifiedAttributeName,
+            kind: "VERIFIED",
           },
         ],
       ],
@@ -238,14 +262,21 @@ describe("getCatalogEServiceDescriptor", () => {
       id: certifiedAttributeId,
       name: certifiedAttributeName,
       description: "mockDescription",
-      kind: "VERIFIED",
+      kind: "CERTIFIED",
       creationTime: new Date().toTimeString(),
     },
     {
       id: declaredAttributeId,
       name: declaredAttributeName,
       description: attributeDescription,
-      kind: "VERIFIED",
+      kind: "DECLARED",
+      creationTime: new Date().toTimeString(),
+    },
+    {
+      id: certifiedDiscreteAttributeId,
+      name: certifiedDiscreteAttributeName,
+      description: attributeDescription,
+      kind: "CERTIFIED_DISCRETE",
       creationTime: new Date().toTimeString(),
     },
     {
@@ -272,6 +303,7 @@ describe("getCatalogEServiceDescriptor", () => {
       state: "ACTIVE",
       verifiedAttributes: [],
       certifiedAttributes: [],
+      certifiedDiscreteAttributes: [],
       declaredAttributes: [],
       consumerDocuments: [],
       createdAt: "2023-01-01T00:00:00.000Z",
@@ -314,7 +346,12 @@ describe("getCatalogEServiceDescriptor", () => {
     expect(attributeService.getAllBulkAttributes).toHaveBeenCalledWith(
       mockAttributeProcessClient,
       bffMockContext.headers,
-      [certifiedAttributeId, declaredAttributeId, verifiedAttributeId]
+      [
+        certifiedAttributeId,
+        certifiedDiscreteAttributeId,
+        declaredAttributeId,
+        verifiedAttributeId,
+      ]
     );
   });
 
