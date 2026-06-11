@@ -9,6 +9,7 @@ import {
   ValidationRule,
   ValidationRuleDependency,
 } from "./models.js";
+import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   RiskAnalysisValidationIssue,
   dependencyNotFoundError,
@@ -20,6 +21,7 @@ import {
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldFormatError,
+  unexpectedFieldHyperlinkError,
   unexpectedFieldValueError,
 } from "./riskAnalysisValidationErrors.js";
 
@@ -297,6 +299,11 @@ function validateFieldValue(
   fieldValue: string[],
   rule: ValidationRule
 ): RiskAnalysisValidationIssue[] {
+  if (rule.dataType === dataType.freeText) {
+    return fieldValue.flatMap((v) =>
+      containsHyperlink(v) ? [unexpectedFieldHyperlinkError(rule.fieldName)] : []
+    );
+  }
   return match(rule.allowedValues)
     .with(P.not(P.nullish), (allowedValues) =>
       fieldValue.flatMap((v) =>

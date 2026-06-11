@@ -5,6 +5,7 @@ import {
   RiskAnalysisValidatedForm,
   WithLogger,
   eventRepository,
+  validateNoHyperlinksSafe,
   validateRiskAnalysis,
   UIAuthData,
   M2MAuthData,
@@ -684,6 +685,8 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Updating name of EService template ${eserviceTemplateId}`);
 
+      validateNoHyperlinksSafe(name);
+
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
@@ -743,6 +746,8 @@ export function eserviceTemplateServiceBuilder(
         `Updating intended target description of EService template ${eserviceTemplateId}`
       );
 
+      validateNoHyperlinksSafe(intendedTarget);
+
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
@@ -784,6 +789,8 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Updating e-service description of EService template ${eserviceTemplateId}`
       );
+
+      validateNoHyperlinksSafe(description);
 
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
@@ -1371,6 +1378,11 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<WithMetadata<EServiceTemplate>> {
       logger.info(`Creating EService template with name ${seed.name}`);
 
+      validateNoHyperlinksSafe(seed.name);
+      validateNoHyperlinksSafe(seed.description);
+      validateNoHyperlinksSafe(seed.intendedTarget);
+      validateNoHyperlinksSafe(seed.version.description);
+
       const origin = await retrieveOriginFromAuthData(
         authData,
         readModelService,
@@ -1486,6 +1498,12 @@ export function eserviceTemplateServiceBuilder(
       logger.info(
         `Creating version for EService template ${eserviceTemplateId}`
       );
+
+      validateNoHyperlinksSafe(seed.description);
+      seed.docs.forEach((doc) => {
+        validateNoHyperlinksSafe(doc.fileName);
+        validateNoHyperlinksSafe(doc.prettyName);
+      });
 
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
@@ -1678,6 +1696,9 @@ export function eserviceTemplateServiceBuilder(
         } for EService Template ${eserviceTemplateId} and Version ${eserviceTemplateVersionId}`
       );
 
+      validateNoHyperlinksSafe(document.fileName);
+      validateNoHyperlinksSafe(document.prettyName);
+
       const eserviceTemplate = await retrieveEServiceTemplate(
         eserviceTemplateId,
         readModelService
@@ -1867,6 +1888,10 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<Document> {
       logger.info(
         `Updating Document ${documentId} of Version ${eserviceTemplateVersionId} for EService template ${eserviceTemplateId}`
+      );
+
+      validateNoHyperlinksSafe(
+        apiEServiceDescriptorDocumentUpdateSeed.prettyName
       );
 
       const eserviceTemplate = await retrieveEServiceTemplate(
@@ -2256,6 +2281,10 @@ async function updateDraftEServiceTemplate(
     intendedTarget,
   } = typeAndSeed.seed;
 
+  validateNoHyperlinksSafe(name);
+  validateNoHyperlinksSafe(description);
+  validateNoHyperlinksSafe(intendedTarget);
+
   if (name && name !== eserviceTemplate.data.name) {
     await assertEServiceTemplateNameAvailable(name, readModelService);
   }
@@ -2408,6 +2437,8 @@ async function updateDraftEServiceTemplateVersion(
   // ^ To make sure we extract all the updated fields.
   // The eslint disables are needed because those fields are extracted
   // but then not used directly, since they are handled in a different way.
+
+  validateNoHyperlinksSafe(description);
 
   const eserviceTemplate = await retrieveEServiceTemplate(
     eserviceTemplateId,

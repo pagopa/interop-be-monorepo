@@ -27,6 +27,7 @@ import {
   unsafeBrandId,
   technology,
   attributeKind,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { catalogApi } from "pagopa-interop-api-clients";
@@ -1068,5 +1069,26 @@ describe("create descriptor", async () => {
     expect(createdDescriptor.asyncExchangeProperties).toBeUndefined();
 
     config.featureFlagAsyncExchange = true;
+  });
+  it("should throw hyperlinkDetectionError when descriptor description contains a hyperlink", async () => {
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [],
+    };
+    await addOneEService(eservice);
+
+    const descriptionWithHyperlink = "see https://evil.example.com";
+    const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+      ...buildCreateDescriptorSeed(getMockDescriptor()),
+      description: descriptionWithHyperlink,
+    };
+
+    await expect(
+      catalogService.createDescriptor(
+        eservice.id,
+        descriptorSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(descriptionWithHyperlink));
   });
 });
