@@ -73,7 +73,6 @@ const purposeRouter = (
     ADMIN_ROLE,
     API_ROLE,
     SECURITY_ROLE,
-    REVIEWER_ROLE,
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
