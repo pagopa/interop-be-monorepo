@@ -1517,6 +1517,25 @@ export const readFileContent = async (fileName: string): Promise<string> => {
   return htmlTemplateBuffer.toString();
 };
 
+export const readFileContentAsBuffer = async (
+  fileName: string
+): Promise<Buffer> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const buffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return buffer;
+};
+
+export const getMockedPdfBuffer = (): Buffer =>
+  Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2d]);
+
+// with the default the last 5 bytes will still be contained
+// in the valid pdf header window
+export const getPaddedMockedPdfBuffer = (padding: number = 1019): Buffer =>
+  Buffer.from([...Array(padding).fill(0xff), 0x25, 0x50, 0x44, 0x46, 0x2d]);
+
 export function createDummyStub<T>(): T {
   return {} as T;
 }
