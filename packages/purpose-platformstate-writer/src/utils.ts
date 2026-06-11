@@ -249,6 +249,14 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
           purpose.id,
           exclusiveStartKey
         );
+
+      if (tokenGenStatesEntries.length === 0) {
+        if (!lastEvaluatedKey) {
+          return;
+        }
+        exclusiveStartKey = lastEvaluatedKey;
+        continue;
+      }
       const GSIPK_consumerId_eserviceId = makeGSIPKConsumerIdEServiceId({
         consumerId: purpose.consumerId,
         eserviceId: purpose.eserviceId,
@@ -394,10 +402,7 @@ export const updateTokenGenStatesEntriesWithPurposeAndPlatformStatesData =
               S: purposeVersionId,
             },
             ":gsiPKConsumerIdEServiceId": {
-              S: makeGSIPKConsumerIdEServiceId({
-                consumerId: purpose.consumerId,
-                eserviceId: purpose.eserviceId,
-              }),
+              S: GSIPK_consumerId_eserviceId,
             },
             ":purposeConsumerId": {
               S: purpose.consumerId,
