@@ -50,7 +50,8 @@ export async function handlePurposeMessageV2(
             "RiskAnalysisDocumentGenerated",
             "RiskAnalysisSignedDocumentGenerated",
             "PurposeRiskAnalysisWorkflowCreated",
-            "PurposeRiskAnalysisAssigned"
+            "PurposeRiskAnalysisAssigned",
+            "PurposeRiskAnalysisSubmitted"
           ),
         },
         (msg) => {

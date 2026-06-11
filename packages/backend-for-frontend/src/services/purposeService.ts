@@ -443,6 +443,17 @@ export function purposeServiceBuilder(
         headers,
       });
     },
+    async submitRiskAnalysis(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisSubmissionSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Submitting risk analysis for purpose ${purposeId}`);
+      await purposeProcessClient.submitRiskAnalysis(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>
