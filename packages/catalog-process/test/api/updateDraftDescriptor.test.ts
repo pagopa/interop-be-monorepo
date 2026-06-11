@@ -24,6 +24,7 @@ import { buildUpdateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   eServiceDescriptorNotFound,
@@ -137,6 +138,10 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     },
     {
       error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

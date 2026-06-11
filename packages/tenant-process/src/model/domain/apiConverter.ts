@@ -106,6 +106,14 @@ function toApiTenantAttribute(
         delegationId: attribute.delegationId,
       },
     }))
+    .with({ type: tenantAttributeType.CERTIFIED_DISCRETE }, (attribute) => ({
+      certifiedDiscrete: {
+        id: attribute.id,
+        assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
+        revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
+        discreteValue: attribute.discreteValue,
+      },
+    }))
     .exhaustive();
 }
 
@@ -140,6 +148,11 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     name: tenant.name,
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
+    remoteIds: tenant.remoteIds?.map((remoteId) => ({
+      origin: remoteId.origin,
+      value: remoteId.value,
+      assignmentTimestamp: remoteId.assignmentTimestamp.toJSON(),
+    })),
     selfcareInstitutionType: tenant.selfcareInstitutionType ?? undefined,
   };
 }

@@ -926,6 +926,113 @@ paths:
       description: reject the purpose version by id
       tags:
         - purpose
+  /purposes/{purposeId}/riskAnalysis/assign:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Assign risk analysis reviewer
+      operationId: assignRiskAnalysisReviewer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisAssignmentSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis reviewer assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      description: Assign reviewer mode and reviewers to the purpose risk analysis
+      tags:
+        - purpose
+  /purposes/{purposeId}/riskAnalysis/submit:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Submit risk analysis for signing
+      operationId: submitRiskAnalysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSubmissionSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis submitted for signing
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      description: Validate and submit the risk analysis form for reviewer signing
+      tags:
+        - purpose
   /purposes/{purposeId}/versions/{versionId}/activate:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1465,6 +1572,31 @@ components:
         - reviewMode
         - reviewerIds
         - signingState
+    RiskAnalysisAssignmentSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+        - reviewMode
+        - reviewerIds
+    RiskAnalysisSubmissionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to submit the risk analysis form for reviewer signing
+      properties:
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+      required:
+        - riskAnalysisForm
     TenantKind:
       type: string
       description: Tenant Kind

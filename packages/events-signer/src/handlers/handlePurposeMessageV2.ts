@@ -146,7 +146,10 @@ export const handlePurposeMessageV2 = async (
             "PurposeDeletedByRevokedDelegation",
             "RiskAnalysisDocumentGenerated",
             "RiskAnalysisSignedDocumentGenerated",
-            "MaintenancePurposeRiskAnalysisSetTenantKind"
+            "MaintenancePurposeRiskAnalysisSetTenantKind",
+            "PurposeRiskAnalysisWorkflowCreated",
+            "PurposeRiskAnalysisAssigned",
+            "PurposeRiskAnalysisSubmitted"
           ),
         },
         (event) => {

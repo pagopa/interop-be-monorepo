@@ -22,6 +22,7 @@ import {
 import {
   apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
+  apiReviewModeToReviewMode,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
@@ -34,6 +35,8 @@ import { PurposeService } from "../services/purposeService.js";
 import {
   activatePurposeVersionErrorMapper,
   archivePurposeVersionErrorMapper,
+  assignRiskAnalysisReviewerErrorMapper,
+  submitRiskAnalysisErrorMapper,
   clonePurposeErrorMapper,
   createPurposeErrorMapper,
   createPurposeFromTemplateErrorMapper,
@@ -72,6 +75,8 @@ const purposeRouter = (
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
   purposeRouter
     .get("/purposes", async (req, res) => {
@@ -85,6 +90,8 @@ const purposeRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const {
@@ -260,6 +267,8 @@ const purposeRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: purpose, metadata } = await purposeService.getPurposeById(
@@ -421,7 +430,7 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
           const document = await purposeService.getRiskAnalysisDocument({
             purposeId: unsafeBrandId(req.params.purposeId),
@@ -501,6 +510,65 @@ const purposeRouter = (
         }
       }
     )
+    .post("/purposes/:purposeId/riskAnalysis/assign", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { data: purpose, metadata } =
+          await purposeService.assignRiskAnalysisReviewer(
+            unsafeBrandId(req.params.purposeId),
+            {
+              reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
+              reviewerIds: req.body.reviewerIds,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          assignRiskAnalysisReviewerErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposes/:purposeId/riskAnalysis/submit", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { data: purpose, metadata } =
+          await purposeService.submitRiskAnalysis(
+            unsafeBrandId(req.params.purposeId),
+            {
+              riskAnalysisForm: req.body.riskAnalysisForm,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          submitRiskAnalysisErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/purposes/:purposeId/versions/:versionId/activate",
       async (req, res) => {
@@ -664,6 +732,7 @@ const purposeRouter = (
           SUPPORT_ROLE,
           API_ROLE,
           SECURITY_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const riskAnalysisConfiguration =
@@ -700,6 +769,7 @@ const purposeRouter = (
             SUPPORT_ROLE,
             API_ROLE,
             SECURITY_ROLE,
+            REVIEWER_ROLE,
           ]);
 
           const riskAnalysisConfiguration =
@@ -846,7 +916,7 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
           const document = await purposeService.getRiskAnalysisSignedDocument({
             purposeId: unsafeBrandId(req.params.purposeId),

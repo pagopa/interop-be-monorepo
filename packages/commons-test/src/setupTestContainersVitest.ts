@@ -25,6 +25,7 @@ import {
   AnalyticsSQLDbConfig,
   InAppNotificationDBConfig,
   M2MEventSQLDbConfig,
+  ScheduledNotificationDBConfig,
   TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import axios from "axios";
@@ -158,7 +159,8 @@ export async function setupTestContainersVitest(
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
   m2mEventDbConfig?: M2MEventSQLDbConfig,
-  tenantKindHistoryDbConfig?: TenantKindHistoryDBConfig
+  tenantKindHistoryDbConfig?: TenantKindHistoryDBConfig,
+  scheduledNotificationDbConfig?: ScheduledNotificationDBConfig
 ): Promise<{
   postgresDB: DB;
   fileManager: FileManager;
@@ -170,6 +172,7 @@ export async function setupTestContainersVitest(
   inAppNotificationDB: DrizzleReturnType;
   m2mEventDB: DrizzleReturnType;
   tenantKindHistoryDB: DrizzleReturnType;
+  scheduledNotificationDB: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }>;
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -183,7 +186,8 @@ export async function setupTestContainersVitest(
   analyticsSQLDbConfig?: AnalyticsSQLDbConfig,
   inAppNotificationDbConfig?: InAppNotificationDBConfig,
   m2mEventDbConfig?: M2MEventSQLDbConfig,
-  tenantKindHistoryDbConfig?: TenantKindHistoryDBConfig
+  tenantKindHistoryDbConfig?: TenantKindHistoryDBConfig,
+  scheduledNotificationDbConfig?: ScheduledNotificationDBConfig
 ): Promise<{
   postgresDB?: DB;
   fileManager?: FileManager;
@@ -195,6 +199,7 @@ export async function setupTestContainersVitest(
   inAppNotificationDB?: DrizzleReturnType;
   m2mEventDB?: DrizzleReturnType;
   tenantKindHistoryDB?: DrizzleReturnType;
+  scheduledNotificationDB?: DrizzleReturnType;
   cleanup: () => Promise<void>;
 }> {
   let postgresDB: DB | undefined;
@@ -208,6 +213,7 @@ export async function setupTestContainersVitest(
   let inAppNotificationDB: DrizzleReturnType | undefined;
   let m2mEventDB: DrizzleReturnType | undefined;
   let tenantKindHistoryDB: DrizzleReturnType | undefined;
+  let scheduledNotificationDB: DrizzleReturnType | undefined;
 
   if (eventStoreConfig) {
     postgresDB = initDB({
@@ -305,6 +311,18 @@ export async function setupTestContainersVitest(
     tenantKindHistoryDB = drizzle({ client: pool });
   }
 
+  if (scheduledNotificationDbConfig) {
+    const pool = new pg.Pool({
+      user: scheduledNotificationDbConfig.scheduledNotificationDBUsername,
+      password: scheduledNotificationDbConfig.scheduledNotificationDBPassword,
+      host: scheduledNotificationDbConfig.scheduledNotificationDBHost,
+      port: scheduledNotificationDbConfig.scheduledNotificationDBPort,
+      database: scheduledNotificationDbConfig.scheduledNotificationDBName,
+      ssl: scheduledNotificationDbConfig.scheduledNotificationDBUseSSL,
+    });
+    scheduledNotificationDB = drizzle({ client: pool });
+  }
+
   return {
     postgresDB,
     fileManager,
@@ -316,6 +334,7 @@ export async function setupTestContainersVitest(
     inAppNotificationDB,
     m2mEventDB,
     tenantKindHistoryDB,
+    scheduledNotificationDB,
     cleanup: async (): Promise<void> => {
       await postgresDB?.none(
         "TRUNCATE TABLE agreement.events RESTART IDENTITY"
@@ -452,6 +471,12 @@ export async function setupTestContainersVitest(
       if (inAppNotificationDB) {
         await inAppNotificationDB.execute(
           "TRUNCATE TABLE notification.notification CASCADE"
+        );
+      }
+
+      if (scheduledNotificationDB) {
+        await scheduledNotificationDB.execute(
+          "TRUNCATE TABLE scheduled_notification.scheduled_notification CASCADE"
         );
       }
 

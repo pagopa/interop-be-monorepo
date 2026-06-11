@@ -92,6 +92,8 @@ describe("API /eservices authorization test", () => {
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.REVIEWER_ROLE,
+    authRole.VIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
