@@ -1566,6 +1566,7 @@ export function purposeServiceBuilder(
           ? {
               id: generateId(),
               version: riskAnalysisFormToClone.version,
+              tenantKind: riskAnalysisFormToClone.tenantKind,
               riskAnalysisId: riskAnalysisFormToClone.riskAnalysisId,
               singleAnswers: riskAnalysisFormToClone.singleAnswers.map(
                 (answer) => ({
