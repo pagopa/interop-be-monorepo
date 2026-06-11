@@ -45,6 +45,7 @@ const errorCodes = {
   missingAsyncExchangeProperties: "0035",
   asyncExchangeBulkNotAllowedForSoap: "0036",
   tenantKindNotFound: "0037",
+  attributeDiscreteConfigNotAllowed: "0038",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -406,5 +407,15 @@ export function asyncExchangeBulkNotAllowedForSoap(
     detail: `Async exchange bulk is not allowed for SOAP technology in version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
     code: "asyncExchangeBulkNotAllowedForSoap",
     title: "Async exchange bulk not allowed for SOAP",
+  });
+}
+
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
   });
 }
