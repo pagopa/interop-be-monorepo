@@ -339,7 +339,7 @@ describe("schedule archiving of a descriptor", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.scheduleEServiceDescriptorArchiving(
         eservice.id,
         descriptor.id,

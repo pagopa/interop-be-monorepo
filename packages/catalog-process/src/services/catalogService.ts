@@ -1248,12 +1248,12 @@ export function catalogServiceBuilder(
       logger.info(`Archiving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
 
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
       await assertNoExistingProducerDelegationInActiveOrPendingState(
         eserviceId,
         readModelService
       );
-
-      assertRequesterIsProducer(eservice.data.producerId, authData);
 
       assertEServiceArchivable(eservice.data);
 
@@ -2454,12 +2454,12 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
       await assertNoExistingProducerDelegationInActiveOrPendingState(
         eserviceId,
         readModelService
       );
-
-      assertRequesterIsProducer(eservice.data.producerId, authData);
 
       assertDescriptorArchivable(descriptor, eservice.data);
 

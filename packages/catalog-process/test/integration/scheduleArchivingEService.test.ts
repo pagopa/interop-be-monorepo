@@ -485,7 +485,7 @@ describe("schedule archiving of an EService", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    expect(
+    await expect(
       catalogService.scheduleEServiceArchiving(
         eservice.id,
         { archivingReason: mockArchivingReason },
