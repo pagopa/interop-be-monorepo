@@ -13,7 +13,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
-  tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
@@ -55,23 +55,23 @@ export function readModelQueriesBuilderSQL(
         .selectDistinct({ id: tenantInReadmodelTenant.id })
         .from(tenantInReadmodelTenant)
         .innerJoin(
-          tenantCertifiedAttributeInReadmodelTenant,
+          tenantCertifiedDiscreteAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
-            tenantCertifiedAttributeInReadmodelTenant.tenantId
+            tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId
           )
         )
         .innerJoin(
           attributeInReadmodelAttribute,
           and(
             eq(
-              tenantCertifiedAttributeInReadmodelTenant.attributeId,
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId,
               attributeInReadmodelAttribute.id
             ),
             eq(attributeInReadmodelAttribute.origin, certifierId),
             eq(attributeInReadmodelAttribute.code, attributeCode),
             isNull(
-              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.revocationTimestamp
             )
           )
         );

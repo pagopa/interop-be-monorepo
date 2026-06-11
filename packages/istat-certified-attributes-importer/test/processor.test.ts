@@ -136,8 +136,9 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       attributes: [
         {
           id: persistentAttribute.id,
-          type: "PersistentCertifiedAttribute",
+          type: "PersistentCertifiedDiscreteAttribute",
           assignmentTimestamp: new Date(),
+          discreteValue: 100,
         } as any,
       ],
     };
