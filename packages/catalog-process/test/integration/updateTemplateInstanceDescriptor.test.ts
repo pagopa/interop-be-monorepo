@@ -20,6 +20,7 @@ import {
   delegationState,
   delegationKind,
   attributeKind,
+  attributeCertifiedDiscreteComparator,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
@@ -41,6 +42,7 @@ import {
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
+import { config } from "../../src/config/config.js";
 
 describe("update descriptor", () => {
   const mockEService = getMockEService();
@@ -646,6 +648,77 @@ describe("update descriptor", () => {
         eservice.id,
         descriptor.id,
         descriptorQuotasSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(eservice.id, mockTemplate.id)
+    );
+  });
+
+  it("should throw templateInstanceNotAllowed when changing inherited discreteConfig", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+    const certifiedDiscreteAttribute = getMockAttribute(
+      attributeKind.certifiedDiscrete
+    );
+    await addOneAttribute(certifiedDiscreteAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedDiscreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: {
+                threshold: 10,
+                comparator: attributeCertifiedDiscreteComparator.GTE,
+              },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const seed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        attributes: {
+          certified: [
+            [
+              {
+                id: certifiedDiscreteAttribute.id,
+                explicitAttributeVerification: false,
+                discreteConfig: {
+                  threshold: 20,
+                  comparator: attributeCertifiedDiscreteComparator.GTE,
+                },
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+
+    await expect(
+      catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        seed,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
