@@ -27,6 +27,7 @@ import {
   eServiceNotFound,
   inconsistentDailyCalls,
   notValidDescriptorState,
+  templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} authorization test", () => {
@@ -114,6 +115,14 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} autho
     },
     {
       error: attributeNotFound(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: templateInstanceNotAllowed(
+        mockEService.id,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        mockEService.templateId!
+      ),
       expectedStatus: 400,
     },
     {
