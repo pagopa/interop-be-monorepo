@@ -478,8 +478,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       {
         data: {
           id: "tenant-malformed",
-          externalId: { origin: "ISTAT", value: "12342" },
-          remoteIds: [],
+          remoteIds: [{ origin: "ISTAT", value: "12342" }],
         },
         metadata: { version: 1 },
       },

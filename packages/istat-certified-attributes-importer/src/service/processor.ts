@@ -208,7 +208,20 @@ async function revokeMissingMunicipalities(
     await Promise.all(
       chunk.map(async (tenant) => {
         const tenantData = tenant.data;
-        logger.info(`Revoking ${tenantData.id}`);
+
+        const istatRemoteId = tenantData.remoteIds?.find(
+          (r) => r.origin === ISTAT_ATTRIBUTE_SEED.origin
+        );
+
+        if (!istatRemoteId) {
+          logger.warn(`istatRemoteId not found for tenant: ${tenantData.id}`);
+          stats.errors++;
+          return;
+        }
+
+        logger.info(
+          `Revoking attribute for tenant ${tenantData.id} (RemoteId: ${istatRemoteId?.origin} / ${istatRemoteId?.value})`
+        );
         try {
           const token = await refreshableToken.get();
           const context: InteropContext = {
@@ -218,8 +231,8 @@ async function revokeMissingMunicipalities(
 
           const metadata =
             await tenantProcess.internalRevokeCertifiedDiscreteAttribute(
-              tenantData.externalId.origin,
-              tenantData.externalId.value,
+              istatRemoteId.origin,
+              istatRemoteId.value,
               ISTAT_ATTRIBUTE_SEED.origin,
               ISTAT_ATTRIBUTE_SEED.code,
               context,
