@@ -12,6 +12,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockAgreement,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -180,13 +181,19 @@ describe("publish descriptor", () => {
       ],
     };
 
-    expect(publishDescriptorResponse).toEqual({
-      data: expectedEservice,
+    expect({
+      ...publishDescriptorResponse,
+      data: sortRiskAnalysisCollections(publishDescriptorResponse.data),
+    }).toEqual({
+      data: sortRiskAnalysisCollections(expectedEservice),
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload).toEqual({
+    expect({
+      ...writtenPayload,
+      eservice: sortRiskAnalysisCollections(writtenPayload.eservice),
+    }).toEqual({
       descriptorId: descriptor.id,
-      eservice: toEServiceV2(expectedEservice),
+      eservice: sortRiskAnalysisCollections(toEServiceV2(expectedEservice)),
     });
   });
 
@@ -260,9 +267,12 @@ describe("publish descriptor", () => {
       ],
     });
 
-    expect(writtenPayload).toEqual({
+    expect({
+      ...writtenPayload,
+      eservice: sortRiskAnalysisCollections(writtenPayload.eservice),
+    }).toEqual({
       descriptorId: descriptor.id,
-      eservice: expectedEservice,
+      eservice: sortRiskAnalysisCollections(expectedEservice),
     });
   });
 
@@ -826,13 +836,19 @@ describe("publish descriptor", () => {
       ],
     };
 
-    expect(publishDescriptorResponse).toEqual({
-      data: expectedEservice,
+    expect({
+      ...publishDescriptorResponse,
+      data: sortRiskAnalysisCollections(publishDescriptorResponse.data),
+    }).toEqual({
+      data: sortRiskAnalysisCollections(expectedEservice),
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
-    expect(writtenPayload).toEqual({
+    expect({
+      ...writtenPayload,
+      eservice: sortRiskAnalysisCollections(writtenPayload.eservice),
+    }).toEqual({
       descriptorId: descriptor.id,
-      eservice: toEServiceV2(expectedEservice),
+      eservice: sortRiskAnalysisCollections(toEServiceV2(expectedEservice)),
     });
   });
 
@@ -1149,11 +1165,16 @@ describe("publish descriptor", () => {
       descriptors: [expectedDescriptor1, expectedDescriptor2],
     };
 
-    expect(publishDescriptorResponse).toEqual({
-      data: expectedEservice,
+    expect({
+      ...publishDescriptorResponse,
+      data: sortRiskAnalysisCollections(publishDescriptorResponse.data),
+    }).toEqual({
+      data: sortRiskAnalysisCollections(expectedEservice),
       metadata: { version: parseInt(writtenEvent.version, 10) },
     });
     expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+      sortRiskAnalysisCollections(toEServiceV2(expectedEservice))
+    );
   });
 });

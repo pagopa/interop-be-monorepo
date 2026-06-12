@@ -1116,6 +1116,44 @@ export const sortBy =
     return 0;
   };
 
+type RiskAnalysisCollection = {
+  id: string;
+  riskAnalysisForm?: {
+    singleAnswers: Array<{ id: string }>;
+    multiAnswers: Array<{ id: string }>;
+  };
+};
+
+// Risk analyses and answers are reconstructed from SQL joins without a defined order.
+export const sortRiskAnalysisCollections = <
+  T extends { riskAnalysis: RiskAnalysisCollection[] } | undefined,
+>(
+  entity: T
+): T =>
+  entity
+    ? {
+        ...entity,
+        riskAnalysis: [...entity.riskAnalysis]
+          .map((riskAnalysis) => ({
+            ...riskAnalysis,
+            ...(riskAnalysis.riskAnalysisForm
+              ? {
+                  riskAnalysisForm: {
+                    ...riskAnalysis.riskAnalysisForm,
+                    singleAnswers: [
+                      ...riskAnalysis.riskAnalysisForm.singleAnswers,
+                    ].sort(sortBy((answer) => answer.id)),
+                    multiAnswers: [
+                      ...riskAnalysis.riskAnalysisForm.multiAnswers,
+                    ].sort(sortBy((answer) => answer.id)),
+                  },
+                }
+              : {}),
+          }))
+          .sort(sortBy((riskAnalysis) => riskAnalysis.id)),
+      }
+    : entity;
+
 export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
   tenant: T
 ): T => {

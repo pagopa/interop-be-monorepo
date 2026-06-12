@@ -9,7 +9,6 @@ import {
   generateId,
   EServiceId,
   RiskAnalysisId,
-  EServiceV2,
 } from "pagopa-interop-models";
 import {
   decodeProtobufPayload,
@@ -17,7 +16,7 @@ import {
   getMockEService,
   getMockTenant,
   getMockValidRiskAnalysis,
-  sortBy,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   eServiceNotFound,
@@ -29,34 +28,6 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-
-// Risk analyses and answers are reconstructed from SQL joins without a defined order.
-const sortRiskAnalysisCollections = (
-  eservice: EServiceV2 | undefined
-): EServiceV2 | undefined =>
-  eservice
-    ? {
-        ...eservice,
-        riskAnalysis: [...eservice.riskAnalysis]
-          .map((riskAnalysis) => ({
-            ...riskAnalysis,
-            ...(riskAnalysis.riskAnalysisForm
-              ? {
-                  riskAnalysisForm: {
-                    ...riskAnalysis.riskAnalysisForm,
-                    singleAnswers: [
-                      ...riskAnalysis.riskAnalysisForm.singleAnswers,
-                    ].sort(sortBy((answer) => answer.id)),
-                    multiAnswers: [
-                      ...riskAnalysis.riskAnalysisForm.multiAnswers,
-                    ].sort(sortBy((answer) => answer.id)),
-                  },
-                }
-              : {}),
-          }))
-          .sort(sortBy((riskAnalysis) => riskAnalysis.id)),
-      }
-    : undefined;
 
 describe("fixEServiceRiskAnalysisTenantKind", () => {
   it("should write on event-store for the fix of a risk analysis tenant kind", async () => {

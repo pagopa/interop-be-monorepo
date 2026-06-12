@@ -14,6 +14,7 @@ import {
   getMockTenant,
   getMockValidEServiceTemplateRiskAnalysis,
   randomArrayItem,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -153,9 +154,16 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       ],
     };
 
-    expect(writtenPayload).toEqual({
+    expect({
+      ...writtenPayload,
+      eserviceTemplate: sortRiskAnalysisCollections(
+        writtenPayload.eserviceTemplate
+      ),
+    }).toEqual({
       riskAnalysisId: riskAnalysisToUpdate.id,
-      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+      eserviceTemplate: sortRiskAnalysisCollections(
+        toEServiceTemplateV2(updatedEServiceTemplate)
+      ),
     });
   });
 

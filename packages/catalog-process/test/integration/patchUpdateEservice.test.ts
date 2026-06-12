@@ -10,6 +10,7 @@ import {
   getMockEService,
   getMockEServiceTemplate,
   getMockContextM2MAdmin,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -194,11 +195,17 @@ describe("patch update eService", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload).toEqual({
-        eservice: toEServiceV2(expectedEService),
+      expect({
+        ...writtenPayload,
+        eservice: sortRiskAnalysisCollections(writtenPayload.eservice),
+      }).toEqual({
+        eservice: sortRiskAnalysisCollections(toEServiceV2(expectedEService)),
       });
-      expect(updateEServiceReturn).toEqual({
-        data: expectedEService,
+      expect({
+        ...updateEServiceReturn,
+        data: sortRiskAnalysisCollections(updateEServiceReturn.data),
+      }).toEqual({
+        data: sortRiskAnalysisCollections(expectedEService),
         metadata: { version: 1 },
       });
     }
