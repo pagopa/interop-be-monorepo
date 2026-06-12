@@ -145,7 +145,10 @@ async function handlePurposeEventV2(
             "MaintenancePurposeRiskAnalysisSetTenantKind",
             "PurposeRiskAnalysisWorkflowCreated",
             "PurposeRiskAnalysisAssigned",
-            "PurposeRiskAnalysisSubmitted"
+            "PurposeRiskAnalysisSubmitted",
+            "PurposeRiskAnalysisSigned",
+            "PurposeRiskAnalysisRejected",
+            "PurposeRiskAnalysisFormEdited"
           ),
         },
         () => Promise.resolve(void 0)

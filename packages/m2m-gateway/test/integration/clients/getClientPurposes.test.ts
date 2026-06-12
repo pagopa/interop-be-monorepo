@@ -186,6 +186,7 @@ describe("getClientPurposes", () => {
         producersIds: [],
         clientId: mockApiConsumerClient.id,
         states: [],
+        signingStates: [],
         excludeDraft: false,
         name: "",
       },

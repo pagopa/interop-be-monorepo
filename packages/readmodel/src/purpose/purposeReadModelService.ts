@@ -44,6 +44,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
         purpose -> 1 purpose_risk_analysis_form -> 2 purpose_risk_analysis_answer
                 -> 3 purpose_version -> 4 purpose_version_document
                                      -> 5 purpose_version_stamp
+                -> 6 risk_analysis_reviewer
       */
       const queryResult = await db
         .select({
