@@ -115,6 +115,7 @@ const tenantsRouter = (
           SECURITY_ROLE,
           SUPPORT_ROLE,
           VIEWER_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const { name, offset, limit } = req.query;
