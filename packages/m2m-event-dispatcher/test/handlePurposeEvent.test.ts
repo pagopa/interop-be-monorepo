@@ -201,7 +201,8 @@ describe("handlePurposeEvent test", async () => {
                   "MaintenancePurposeRiskAnalysisSetTenantKind",
                   "PurposeRiskAnalysisWorkflowCreated",
                   "PurposeRiskAnalysisAssigned",
-                  "PurposeRiskAnalysisSubmitted"
+                  "PurposeRiskAnalysisSubmitted",
+                  "PurposeRiskAnalysisSigned"
                 ),
                 () => [
                   {

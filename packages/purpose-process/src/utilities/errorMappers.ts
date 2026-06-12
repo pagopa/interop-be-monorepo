@@ -394,3 +394,24 @@ export const submitRiskAnalysisErrorMapper = (
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const signRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "riskAnalysisValidationFailed",
+      "missingRiskAnalysis",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "requesterIsNotDesignatedReviewer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("reviewerWorkflowNotInSignableState", () => HTTP_STATUS_CONFLICT)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
