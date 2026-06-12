@@ -10,7 +10,6 @@ import {
   AuthRole,
   authRole,
   unexpectedFieldError,
-  unexpectedFieldValueError,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import request from "supertest";
