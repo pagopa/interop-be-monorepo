@@ -12,7 +12,6 @@ import {
   getMockTenant,
   getMockAuthData,
   getMockValidRiskAnalysisForm,
-  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
