@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
   Descriptor,
@@ -54,9 +54,11 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId} autho
       agreementApprovalPolicy: "AUTOMATIC",
     };
 
-  catalogService.updateDraftDescriptorTemplateInstance = vi
-    .fn()
-    .mockResolvedValue(mockEService);
+  beforeEach(() => {
+    catalogService.updateDraftDescriptorTemplateInstance = vi
+      .fn()
+      .mockResolvedValue(mockEService);
+  });
 
   const makeRequest = async (
     token: string,
