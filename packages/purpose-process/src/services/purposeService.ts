@@ -97,6 +97,7 @@ import {
   reviewerWorkflowNotInSignableState,
   requesterIsNotDesignatedReviewer,
   rejectNotAllowedInCurrentMode,
+  reviewerWorkflowNotInSubmittedState,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
