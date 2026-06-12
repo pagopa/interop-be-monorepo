@@ -195,19 +195,13 @@ describe("patch update eService", () => {
         payload: writtenEvent.data,
       });
 
-      expect({
-        ...writtenPayload,
-        eservice: sortRiskAnalysisCollections(writtenPayload.eservice),
-      }).toEqual({
-        eservice: sortRiskAnalysisCollections(toEServiceV2(expectedEService)),
-      });
-      expect({
-        ...updateEServiceReturn,
-        data: sortRiskAnalysisCollections(updateEServiceReturn.data),
-      }).toEqual({
-        data: sortRiskAnalysisCollections(expectedEService),
-        metadata: { version: 1 },
-      });
+      expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+        sortRiskAnalysisCollections(toEServiceV2(expectedEService))
+      );
+      expect(updateEServiceReturn.metadata).toEqual({ version: 1 });
+      expect(sortRiskAnalysisCollections(updateEServiceReturn.data)).toEqual(
+        sortRiskAnalysisCollections(expectedEService)
+      );
     }
   );
 

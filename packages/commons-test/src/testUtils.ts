@@ -1116,7 +1116,7 @@ export const sortBy =
     return 0;
   };
 
-type RiskAnalysisCollection = {
+type SortableRiskAnalysis = {
   id: string;
   riskAnalysisForm?: {
     singleAnswers: Array<{ id: string }>;
@@ -1124,32 +1124,34 @@ type RiskAnalysisCollection = {
   };
 };
 
+const sortRiskAnalysisAnswers = <T extends SortableRiskAnalysis>(
+  riskAnalysis: T
+): T => {
+  if (!riskAnalysis.riskAnalysisForm) {
+    return riskAnalysis;
+  }
+  const { singleAnswers, multiAnswers } = riskAnalysis.riskAnalysisForm;
+  return {
+    ...riskAnalysis,
+    riskAnalysisForm: {
+      ...riskAnalysis.riskAnalysisForm,
+      singleAnswers: [...singleAnswers].sort(sortBy((answer) => answer.id)),
+      multiAnswers: [...multiAnswers].sort(sortBy((answer) => answer.id)),
+    },
+  };
+};
+
 // Risk analyses and answers are reconstructed from SQL joins without a defined order.
 export const sortRiskAnalysisCollections = <
-  T extends { riskAnalysis: RiskAnalysisCollection[] } | undefined,
+  T extends { riskAnalysis: SortableRiskAnalysis[] } | undefined,
 >(
   entity: T
 ): T =>
   entity
     ? {
         ...entity,
-        riskAnalysis: [...entity.riskAnalysis]
-          .map((riskAnalysis) => ({
-            ...riskAnalysis,
-            ...(riskAnalysis.riskAnalysisForm
-              ? {
-                  riskAnalysisForm: {
-                    ...riskAnalysis.riskAnalysisForm,
-                    singleAnswers: [
-                      ...riskAnalysis.riskAnalysisForm.singleAnswers,
-                    ].sort(sortBy((answer) => answer.id)),
-                    multiAnswers: [
-                      ...riskAnalysis.riskAnalysisForm.multiAnswers,
-                    ].sort(sortBy((answer) => answer.id)),
-                  },
-                }
-              : {}),
-          }))
+        riskAnalysis: entity.riskAnalysis
+          .map(sortRiskAnalysisAnswers)
           .sort(sortBy((riskAnalysis) => riskAnalysis.id)),
       }
     : entity;
