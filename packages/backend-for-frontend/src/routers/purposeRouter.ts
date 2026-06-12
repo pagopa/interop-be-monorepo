@@ -370,6 +370,27 @@ const purposeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .put("/purposes/:purposeId/riskAnalysis/form", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        await purposeService.editRiskAnalysisForm(
+          unsafeBrandId(req.params.purposeId),
+          req.body,
+          ctx
+        );
+
+        return res.status(204).end();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error editing risk analysis form for purpose ${req.params.purposeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post(
       "/purposes/:purposeId/versions/:versionId/archive",
       async (req, res) => {
