@@ -258,6 +258,7 @@ export const updateDraftDescriptorTemplateInstanceErrorMapper = (
       "attributeNotFound",
       "eServiceNotAnInstance",
       "attributeDiscreteConfigNotAllowed",
+      "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -740,6 +741,7 @@ export const updateTemplateInstanceDescriptorErrorMapper = (
       "inconsistentDailyCalls",
       "attributeDailyCallsNotAllowed",
       "attributeDiscreteConfigNotAllowed",
+      "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

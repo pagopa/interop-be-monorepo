@@ -820,12 +820,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: The Descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: An E-Service Descriptor seed
         content:
