@@ -94,9 +94,10 @@ import {
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
-  reviewerWorkflowNotInSubmittedState,
+  reviewerWorkflowNotInSignableState,
   requesterIsNotDesignatedReviewer,
   rejectNotAllowedInCurrentMode,
+  reviewerWorkflowNotInSubmittedState,
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotInSignedState,
@@ -706,7 +707,7 @@ export function purposeServiceBuilder(
           () => true
         )
         .otherwise(() => {
-          throw reviewerWorkflowNotInSubmittedState(purposeId);
+          throw reviewerWorkflowNotInSignableState(purposeId);
         });
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
@@ -866,7 +867,7 @@ export function purposeServiceBuilder(
 
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         formToValidate,
-        true,
+        false,
         tenantKind,
         new Date(),
         eservice.personalData

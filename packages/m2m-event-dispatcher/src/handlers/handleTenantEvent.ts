@@ -38,6 +38,9 @@ async function handleTenantEventV2(
           "TenantOnboardDetailsUpdated",
           "TenantCertifiedAttributeAssigned",
           "TenantCertifiedAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated",
           "TenantDeclaredAttributeAssigned",
           "TenantDeclaredAttributeRevoked",
           "TenantVerifiedAttributeAssigned",
@@ -53,7 +56,8 @@ async function handleTenantEventV2(
           "TenantDelegatedProducerFeatureRemoved",
           "MaintenanceTenantUpdated",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned"
         ),
       },
       async (event) => {
@@ -78,5 +82,6 @@ async function handleTenantEventV2(
         );
       }
     )
+    .with({ type: "MaintenanceTenantRemoteIdDeleted" }, () => Promise.resolve())
     .exhaustive();
 }
