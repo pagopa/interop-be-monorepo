@@ -11,7 +11,7 @@ import { config } from "../../config/config.js";
 import { TenantDbTable } from "../../model/db/index.js";
 import { TenantCertifiedDiscreteAttributeSchema } from "../../model/tenant/tenantCertifiedDiscreteAttribute.js";
 
-export function tenantCertiefiedDiscreteAttributeIdRepository(
+export function tenantCertifiedDiscreteAttributeIdRepository(
   conn: DBConnection
 ) {
   const schemaName = config.dbSchemaName;
@@ -31,7 +31,9 @@ export function tenantCertiefiedDiscreteAttributeIdRepository(
           TenantCertifiedDiscreteAttributeSchema
         );
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(generateStagingDeleteQuery(tableName, ["tenantId"]));
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["attributeId", "tenantId"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`

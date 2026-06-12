@@ -25,7 +25,9 @@ export function tenantRemoteIdRepository(conn: DBConnection) {
       try {
         const cs = buildColumnSet(pgp, tableName, TenantRemoteIdSchema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(generateStagingDeleteQuery(tableName, ["tenantId"]));
+        await t.none(
+          generateStagingDeleteQuery(tableName, ["tenantId", "origin"])
+        );
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`

@@ -24,7 +24,7 @@ import {
 } from "../model/tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../model/tenant/tenantMail.js";
 import { tenantRemoteIdRepository } from "../repository/tenant/tenantRemoteId.repository.js";
-import { tenantCertiefiedDiscreteAttributeIdRepository } from "../repository/tenant/tenantCertifiedDiscreteAttribute.repository.js";
+import { tenantCertifiedDiscreteAttributeIdRepository } from "../repository/tenant/tenantCertifiedDiscreteAttribute.repository.js";
 
 export function tenantServiceBuilder(db: DBContext) {
   const tenantRepo = tenantRepository(db.conn);
@@ -45,7 +45,7 @@ export function tenantServiceBuilder(db: DBContext) {
   const tenantFeatureRepo = tenantFeatureRepository(db.conn);
   const tenantRemoteIdRepo = tenantRemoteIdRepository(db.conn);
   const tenantCertifiedDiscreteAttributeRepo =
-    tenantCertiefiedDiscreteAttributeIdRepository(db.conn);
+    tenantCertifiedDiscreteAttributeIdRepository(db.conn);
 
   return {
     async upsertBatchTenantItems(

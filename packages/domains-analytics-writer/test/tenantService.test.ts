@@ -72,7 +72,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     const mockDeclaredTenantAttribute = getMockDeclaredTenantAttribute();
     const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
     const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
-    const mockTenantRemoteIds: TenantRemoteId = getMockTenantRemoteId();
+    const mockTenantRemoteId = getMockTenantRemoteId();
     mockVerifiedTenantAttribute.verifiedBy = [{ ...mockVerifiedBy }];
     mockVerifiedTenantAttribute.revokedBy = [{ ...mockRevokedBy }];
 
@@ -84,7 +84,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
       mockCertifiedTenantAttribute,
     ];
     mockTenant.features = [mockTenantFeatureCertifier];
-    mockTenant.remoteIds = [mockTenantRemoteIds];
+    mockTenant.remoteIds = [mockTenantRemoteId];
     const payload: TenantCreatedV1 = {
       tenant: toTenantV1(mockTenant),
     };
@@ -164,6 +164,11 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
       TenantDbTable.tenant_certified_attribute,
       { attributeId: mockCertifiedTenantAttribute.id }
     );
+    const storedTenantRemoteIds = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_remote_id,
+      { tenantId: mockTenant.id }
+    );
     expect(storedCertifiedTenantAttributes.length).toBe(1);
     expect(storedCertifiedTenantAttributes[0].attributeId).toBe(
       mockCertifiedTenantAttribute.id
@@ -179,6 +184,8 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     expect(storedTenantFeatures[0].certifierId).toBe(
       mockTenantFeatureCertifier.certifierId
     );
+    expect(storedTenantRemoteIds.length).toBe(1);
+    expect(storedTenantRemoteIds[0].tenantId).toBe(mockTenant.id);
   });
 
   it("TenantDeleted: cascades logical deletion to all related tables", async () => {
