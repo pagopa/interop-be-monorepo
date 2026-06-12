@@ -8,7 +8,6 @@ import {
   FeatureFlagClientAssertionStrictClaimsValidationConfig,
   FeatureFlagDelegationConstraintSkipConfig,
   FeatureFlagDpopClientAssertionDebuggerConfig,
-  FeatureFlagNewOperatorsConfig,
   FeatureFlagUseSignedDocumentConfig,
   FeatureFlagNewOperatorsConfig,
   FileManagerConfig,
