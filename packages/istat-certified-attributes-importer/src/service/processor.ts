@@ -74,16 +74,15 @@ export async function importAttributes(
   logger.info(`Found ${validIstatCodes.size} valid ISTAT tenants.`);
 
   for (const chunk of chunks) {
+    const token = await refreshableToken.get();
+    const context: InteropContext = {
+      correlationId,
+      bearerToken: token.serialized,
+    };
     await Promise.all(
       chunk.map(async ([municipalityCode, totalCount]) => {
         stats.processed++;
         try {
-          const token = await refreshableToken.get();
-          const context: InteropContext = {
-            correlationId,
-            bearerToken: token.serialized,
-          };
-
           try {
             if (!validIstatCodes.has(municipalityCode)) {
               logger.debug(
