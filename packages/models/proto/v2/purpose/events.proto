@@ -128,3 +128,7 @@ message PurposeRiskAnalysisSubmittedV2 {
 message PurposeRiskAnalysisSignedV2 {
   PurposeV2 purpose = 1;
 }
+
+message PurposeRiskAnalysisRejectedV2 {
+  PurposeV2 purpose = 1;
+}

@@ -38,6 +38,7 @@ import {
   assignRiskAnalysisReviewerErrorMapper,
   submitRiskAnalysisErrorMapper,
   signRiskAnalysisErrorMapper,
+  rejectRiskAnalysisErrorMapper,
   clonePurposeErrorMapper,
   createPurposeErrorMapper,
   createPurposeFromTemplateErrorMapper,
@@ -591,6 +592,33 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           signRiskAnalysisErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposes/:purposeId/riskAnalysis/reject", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [REVIEWER_ROLE]);
+
+        const { data: purpose, metadata } =
+          await purposeService.rejectRiskAnalysis(
+            unsafeBrandId(req.params.purposeId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          rejectRiskAnalysisErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

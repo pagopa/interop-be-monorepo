@@ -180,6 +180,7 @@ export async function handleMessageV2(
       { type: "PurposeRiskAnalysisAssigned" },
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
+      { type: "PurposeRiskAnalysisRejected" },
       () => Promise.resolve()
     )
     .exhaustive();

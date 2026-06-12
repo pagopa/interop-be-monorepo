@@ -43,6 +43,7 @@ import {
   PurposeRiskAnalysisAssignedV2,
   PurposeRiskAnalysisSubmittedV2,
   PurposeRiskAnalysisSignedV2,
+  PurposeRiskAnalysisRejectedV2,
 } from "../gen/v2/purpose/events.js";
 
 export function purposeEventToBinaryData(event: PurposeEvent): Uint8Array {
@@ -170,6 +171,9 @@ export function purposeEventToBinaryDataV2(event: PurposeEventV2): Uint8Array {
     )
     .with({ type: "PurposeRiskAnalysisSigned" }, ({ data }) =>
       PurposeRiskAnalysisSignedV2.toBinary(data)
+    )
+    .with({ type: "PurposeRiskAnalysisRejected" }, ({ data }) =>
+      PurposeRiskAnalysisRejectedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -368,6 +372,11 @@ export const PurposeEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("PurposeRiskAnalysisSigned"),
     data: protobufDecoder(PurposeRiskAnalysisSignedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("PurposeRiskAnalysisRejected"),
+    data: protobufDecoder(PurposeRiskAnalysisRejectedV2),
   }),
 ]);
 export type PurposeEventV2 = z.infer<typeof PurposeEventV2>;
