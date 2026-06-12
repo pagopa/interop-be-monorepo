@@ -25,6 +25,7 @@ import {
 import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
 import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
+import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
 
 export const getMockBffApiDelegation = (): bffApi.Delegation & {
   id: DelegationId;
@@ -880,6 +881,7 @@ export const getMockBffApiVerifiedAttributesResponse =
     attributes: generateMock(
       z.array(
         z.object({
+          kind: z.literal(tenantAttributeKind.verified),
           id: z.string().uuid(),
           name: z.string(),
           description: z.string(),
@@ -896,6 +898,7 @@ export const getMockBffApiDeclaredAttributesResponse =
     attributes: generateMock(
       z.array(
         z.object({
+          kind: z.literal(tenantAttributeKind.declared),
           id: z.string().uuid(),
           name: z.string(),
           description: z.string(),
@@ -911,13 +914,31 @@ export const getMockBffApiCertifiedAttributesResponse =
   (): bffApi.CertifiedAttributesResponse => ({
     attributes: generateMock(
       z.array(
-        z.object({
-          id: z.string().uuid(),
-          name: z.string(),
-          description: z.string(),
-          assignmentTimestamp: z.string().datetime({ offset: true }),
-          revocationTimestamp: z.string().datetime({ offset: true }).optional(),
-        })
+        z.union([
+          z.object({
+            kind: z.literal(tenantAttributeKind.certified),
+            id: z.string().uuid(),
+            name: z.string(),
+            description: z.string(),
+            assignmentTimestamp: z.string().datetime({ offset: true }),
+            revocationTimestamp: z
+              .string()
+              .datetime({ offset: true })
+              .optional(),
+          }),
+          z.object({
+            kind: z.literal(tenantAttributeKind.certifiedDiscrete),
+            id: z.string().uuid(),
+            name: z.string(),
+            description: z.string(),
+            assignmentTimestamp: z.string().datetime({ offset: true }),
+            revocationTimestamp: z
+              .string()
+              .datetime({ offset: true })
+              .optional(),
+            discreteValue: z.number().int().gte(1).lte(1000000000),
+          }),
+        ])
       )
     ),
   });
@@ -928,6 +949,7 @@ export const getMockBffApiRequesterCertifiedAttribute =
     tenantName: generateMock(z.string()),
     attributeId: generateId(),
     attributeName: generateMock(z.string()),
+    kind: tenantAttributeKind.certified,
   });
 
 export const getMockBffApiCompactOrganization =
@@ -1001,6 +1023,9 @@ export const getMockBffApiAgreement = (): bffApi.Agreement & {
   state: generateMock(bffApi.AgreementState),
   verifiedAttributes: generateMock(z.array(bffApi.VerifiedAttribute)),
   certifiedAttributes: generateMock(z.array(bffApi.CertifiedAttribute)),
+  certifiedDiscreteAttributes: generateMock(
+    z.array(bffApi.CertifiedDiscreteAttribute)
+  ),
   declaredAttributes: generateMock(z.array(bffApi.DeclaredAttribute)),
   suspendedByConsumer: generateMock(z.boolean().optional()),
   suspendedByPlatform: generateMock(z.boolean().optional()),
@@ -1097,6 +1122,7 @@ export const getMockInAppNotificationApiNotificationsByType =
       clientAddedRemovedToProducer: generateMock(z.number().int()),
       purposeStatusChangedToProducer: generateMock(z.number().int()),
       templateStatusChangedToProducer: generateMock(z.number().int()),
+      eserviceStateChangedToProducer: generateMock(z.number().int()),
       agreementSuspendedUnsuspendedToConsumer: generateMock(z.number().int()),
       eserviceStateChangedToConsumer: generateMock(z.number().int()),
       agreementActivatedRejectedToConsumer: generateMock(z.number().int()),

@@ -14,28 +14,29 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  archivingScope,
   AsyncExchangeProperties,
+  delegationKind,
+  delegationState,
   Descriptor,
   DescriptorId,
+  descriptorState,
+  DescriptorState,
   EService,
   EServiceId,
+  eserviceMode,
+  EServiceTemplateId,
+  getEServiceAttributeDiscreteConfig,
+  operationForbidden,
+  RiskAnalysisId,
+  technology,
   Technology,
   Tenant,
   TenantId,
-  TenantKind,
   tenantKind,
-  archivingScope,
-  delegationKind,
-  delegationState,
-  descriptorState,
-  eserviceMode,
-  operationForbidden,
-  technology,
-  EServiceTemplateId,
-  RiskAnalysisId,
-  type EServiceAttribute,
+  TenantKind,
   type EserviceAttributes,
-  DescriptorState,
+  type EServiceCertifiedAttribute,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -63,6 +64,7 @@ import {
   asyncExchangeBulkNotAllowedForSoap,
   riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
   notValidEServiceState,
@@ -570,9 +572,27 @@ export function assertDailyCallsForCertifiedAttributesOnly(
 ): void {
   const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
   for (const attribute of attributesToCheck) {
-    if (attribute.dailyCallsPerConsumer !== undefined) {
+    if (
+      "dailyCallsPerConsumer" in attribute &&
+      attribute.dailyCallsPerConsumer !== undefined
+    ) {
       throw attributeDailyCallsNotAllowed(attribute.id);
     }
+  }
+}
+
+export function assertDiscreteConfigForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const invalidAttribute = [attributes.declared, attributes.verified]
+    .flat(2)
+    .find(
+      (attribute) =>
+        "discreteConfig" in attribute && attribute.discreteConfig !== undefined
+    );
+
+  if (invalidAttribute) {
+    throw attributeDiscreteConfigNotAllowed(invalidAttribute.id);
   }
 }
 
@@ -609,7 +629,7 @@ export function assertTemplateInstanceAttributeStructureUnchanged(
 function assertAttributeGroupsUnchanged(
   eserviceId: EServiceId,
   templateId: EServiceTemplateId,
-  descriptorGroups: EServiceAttribute[][],
+  descriptorGroups: EServiceCertifiedAttribute[][],
   seedGroups: catalogApi.AttributeSeed[][]
 ): void {
   if (descriptorGroups.length !== seedGroups.length) {
@@ -634,10 +654,19 @@ function assertAttributeGroupsUnchanged(
         (attr) => attr.id === descriptorAttr.id
       );
 
+      const descriptorDiscreteConfig =
+        getEServiceAttributeDiscreteConfig(descriptorAttr);
+
       if (
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
-          descriptorAttr.explicitAttributeVerification
+          descriptorAttr.explicitAttributeVerification ||
+        seedAttr.discreteConfig?.threshold !==
+          descriptorDiscreteConfig?.threshold ||
+        seedAttr.discreteConfig?.comparator !==
+          descriptorDiscreteConfig?.comparator ||
+        Boolean(seedAttr.discreteConfig) !==
+          (descriptorDiscreteConfig !== undefined)
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }

@@ -1,6 +1,8 @@
 import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
+import { genericInternalError } from "../errors.js";
 import {
   AgreementApprovalPolicyV2,
+  AttributeCertifiedDiscreteComparatorV2,
   EServiceAttributeV2,
   EServiceDescriptorStateV2,
   EServiceDescriptorV2,
@@ -12,6 +14,7 @@ import {
   EServiceRiskAnalysisFormV2,
   DescriptorRejectionReasonV2,
   EServiceTemplateVersionRefV2,
+  type EServiceAttributeCertifiedDiscreteConfigV2,
   ArchivingScopeV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
@@ -22,6 +25,8 @@ import { bigIntToDate } from "../utils.js";
 import {
   AgreementApprovalPolicy,
   agreementApprovalPolicy,
+  AttributeCertifiedDiscreteComparator,
+  attributeCertifiedDiscreteComparator,
   DescriptorState,
   descriptorState,
   Technology,
@@ -29,11 +34,14 @@ import {
   EServiceMode,
   eserviceMode,
   EServiceAttribute,
+  EServiceAttributeCertified,
+  EServiceAttributeCertifiedDiscrete,
   Descriptor,
   EService,
   Document,
   DescriptorRejectionReason,
   EServiceTemplateVersionRef,
+  type EServiceAttributeCertifiedDiscreteConfig,
   ArchivingScope,
   archivingScope,
 } from "./eservice.js";
@@ -109,6 +117,55 @@ export const fromEServiceAttributeV2 = (
 ): EServiceAttribute[] =>
   input.values.map((a) => ({ ...a, id: unsafeBrandId(a.id) }));
 
+const fromAttributeCertifiedDiscreteComparatorV2 = (
+  input: AttributeCertifiedDiscreteComparatorV2
+): AttributeCertifiedDiscreteComparator => {
+  switch (input) {
+    case AttributeCertifiedDiscreteComparatorV2.GT:
+      return attributeCertifiedDiscreteComparator.GT;
+    case AttributeCertifiedDiscreteComparatorV2.LT:
+      return attributeCertifiedDiscreteComparator.LT;
+    case AttributeCertifiedDiscreteComparatorV2.EQ:
+      return attributeCertifiedDiscreteComparator.EQ;
+    case AttributeCertifiedDiscreteComparatorV2.GTE:
+      return attributeCertifiedDiscreteComparator.GTE;
+    case AttributeCertifiedDiscreteComparatorV2.LTE:
+      return attributeCertifiedDiscreteComparator.LTE;
+    case AttributeCertifiedDiscreteComparatorV2.NE:
+      return attributeCertifiedDiscreteComparator.NE;
+    case AttributeCertifiedDiscreteComparatorV2.UNSPECIFIED:
+      throw genericInternalError(
+        "Unspecified AttributeCertifiedDiscreteComparator in protobuf event"
+      );
+  }
+};
+
+export const fromCertifiedDiscreteConfigV2 = (
+  input: EServiceAttributeCertifiedDiscreteConfigV2
+): EServiceAttributeCertifiedDiscreteConfig => ({
+  threshold: input.threshold,
+  comparator: fromAttributeCertifiedDiscreteComparatorV2(input.comparator),
+});
+
+export const fromEServiceAttributeCertifiedV2 = (
+  input: EServiceAttributeV2
+): Array<EServiceAttributeCertifiedDiscrete | EServiceAttributeCertified> =>
+  input.values.map((attribute) => {
+    const common: EServiceAttributeCertified = {
+      id: unsafeBrandId(attribute.id),
+      explicitAttributeVerification: attribute.explicitAttributeVerification,
+      dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
+    };
+    return attribute.discreteConfig != null
+      ? {
+          ...common,
+          discreteConfig: fromCertifiedDiscreteConfigV2(
+            attribute.discreteConfig
+          ),
+        }
+      : common;
+  });
+
 export function fromDocumentV2(input: EServiceDocumentV2): Document {
   return {
     ...input,
@@ -138,7 +195,9 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
   attributes:
     input.attributes != null
       ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV2),
+          certified: input.attributes.certified.map(
+            fromEServiceAttributeCertifiedV2
+          ),
           declared: input.attributes.declared.map(fromEServiceAttributeV2),
           verified: input.attributes.verified.map(fromEServiceAttributeV2),
         }

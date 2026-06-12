@@ -34,7 +34,12 @@ function convertAttribute(
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
-  attributeKind: attributeRegistryApi.AttributeKind,
+  // TODO(PIN-10074): remove this exclusion when the future M2M work item adds
+  // CERTIFIED_DISCRETE support to the M2M v3 contract.
+  attributeKind: Exclude<
+    attributeRegistryApi.AttributeKind,
+    "CERTIFIED_DISCRETE"
+  >,
   logger: Logger,
   mapThrownErrorsToNotFound = false
 ):

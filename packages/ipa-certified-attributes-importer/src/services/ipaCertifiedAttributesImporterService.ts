@@ -10,6 +10,7 @@ import {
   Logger,
   waitForReadModelMetadataVersion,
   delay,
+  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   attributeKind,
@@ -27,6 +28,7 @@ import {
   shouldKindBeIncluded,
 } from "./openDataService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
+import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
 
 const AGENCY_CLASSIFICATION = "Agency";
 
@@ -60,6 +62,7 @@ export type TenantSeed = {
   originId: string;
   description: string;
   attributes: Array<{ origin: string; code: string }>;
+  istatCode?: string;
 };
 
 function toTenantKey(key: {
@@ -209,6 +212,7 @@ export function getTenantUpsertData(
       originId: i.originId,
       description: i.description,
       attributes,
+      istatCode: i.istatCode,
     };
   });
 }
@@ -275,6 +279,7 @@ export async function getAttributesToAssign(
   platformTenants: Tenant[],
   platformAttributes: Attribute[],
   tenantSeeds: TenantSeed[],
+  config: IPACertifiedAttributesImporterConfig,
   loggerInstance: Logger
 ): Promise<tenantApi.InternalTenantSeed[]> {
   const tenantsIndex = new Map(
@@ -288,7 +293,7 @@ export async function getAttributesToAssign(
   );
 
   return tenantSeeds
-    .map((seed) => {
+    .map((seed): tenantApi.InternalTenantSeed | undefined => {
       const externalId = { origin: seed.origin, value: seed.originId };
 
       const tenant = tenantsIndex.get(toTenantKey(externalId));
@@ -296,6 +301,24 @@ export async function getAttributesToAssign(
       if (!tenant) {
         loggerInstance.error(`Tenant ${externalId} not found in the platform`);
         return undefined;
+      }
+
+      const remoteIds: tenantApi.TenantRemoteId[] = [];
+
+      if (
+        isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete") &&
+        seed.istatCode
+      ) {
+        const hasIstat = tenant.remoteIds?.some(
+          (r) => r.origin === "ISTAT" && r.value === seed.istatCode
+        );
+        if (!hasIstat) {
+          remoteIds.push({
+            origin: "ISTAT",
+            value: seed.istatCode,
+            assignmentTimestamp: new Date().toISOString(),
+          });
+        }
       }
 
       const tenantCurrentAttributes = new Map(
@@ -327,11 +350,14 @@ export async function getAttributesToAssign(
             origin: a.origin,
             code: a.code,
           })),
+        remoteIds: remoteIds.length > 0 ? remoteIds : undefined,
       };
     })
     .filter(
       (t): t is tenantApi.InternalTenantSeed =>
-        t !== undefined && t.certifiedAttributes.length > 0
+        t !== undefined &&
+        (t.certifiedAttributes.length > 0 ||
+          (t.remoteIds !== undefined && t.remoteIds.length > 0))
     );
 }
 

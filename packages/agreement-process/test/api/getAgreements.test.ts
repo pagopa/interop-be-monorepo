@@ -57,6 +57,7 @@ describe("API GET /agreements test", () => {
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

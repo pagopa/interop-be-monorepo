@@ -66,11 +66,12 @@ const errorCodes = {
   reviewerWorkflowNotFound: "0046",
   reviewerWorkflowNotSubmittable: "0047",
   submitNotAllowedForReviewMode: "0048",
-  reviewerWorkflowNotInSubmittedState: "0049",
+  reviewerWorkflowNotInSignableState: "0049",
   requesterIsNotDesignatedReviewer: "0050",
   rejectNotAllowedInCurrentMode: "0051",
-  editNotAllowedForReviewMode: "0052",
-  reviewerWorkflowNotEditable: "0053",
+  reviewerWorkflowNotInSubmittedState: "0052",
+  editNotAllowedForReviewMode: "0053",
+  reviewerWorkflowNotEditable: "0054",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -584,12 +585,12 @@ export function submitNotAllowedForReviewMode(
   });
 }
 
-export function reviewerWorkflowNotInSubmittedState(
+export function reviewerWorkflowNotInSignableState(
   purposeId: PurposeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Purpose ${purposeId} reviewer workflow is not in a signable state (must be Submitted for AdminWritesReviewerSigns or Assigned for ReviewerWritesReviewerSigns)`,
-    code: "reviewerWorkflowNotInSubmittedState",
+    code: "reviewerWorkflowNotInSignableState",
     title: "Reviewer workflow not in signable state",
   });
 }
@@ -611,6 +612,16 @@ export function rejectNotAllowedInCurrentMode(
     detail: `Rejection is not allowed for purpose ${purposeId} because the review mode is not AdminWritesReviewerSigns`,
     code: "rejectNotAllowedInCurrentMode",
     title: "Reject not allowed in current mode",
+  });
+}
+
+export function reviewerWorkflowNotInSubmittedState(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} reviewer workflow is not in submitted state`,
+    code: "reviewerWorkflowNotInSubmittedState",
+    title: "Reviewer workflow not in submitted state",
   });
 }
 

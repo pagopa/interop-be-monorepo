@@ -6,6 +6,7 @@ import {
 import { isDefined } from "pagopa-interop-commons";
 import {
   CertifiedTenantAttribute,
+  CertifiedDiscreteTenantAttribute,
   DeclaredTenantAttribute,
   DelegationId,
   Tenant,
@@ -16,6 +17,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+
+export const tenantAttributeKind = {
+  certified: "CERTIFIED",
+  certifiedDiscrete: "CERTIFIED_DISCRETE",
+  declared: "DECLARED",
+  verified: "VERIFIED",
+} as const satisfies Record<string, bffApi.AttributeKind>;
 
 function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
   const certified: CertifiedTenantAttribute | undefined = att.certified && {
@@ -64,7 +72,18 @@ function toTenantAttribute(att: tenantApi.TenantAttribute): TenantAttribute[] {
       : undefined,
   };
 
-  return [certified, verified, declared].filter(
+  const certifiedDiscrete: CertifiedDiscreteTenantAttribute | undefined =
+    att.certifiedDiscrete && {
+      id: unsafeBrandId(att.certifiedDiscrete.id),
+      type: tenantAttributeType.CERTIFIED_DISCRETE,
+      assignmentTimestamp: new Date(att.certifiedDiscrete.assignmentTimestamp),
+      revocationTimestamp: att.certifiedDiscrete.revocationTimestamp
+        ? new Date(att.certifiedDiscrete.revocationTimestamp)
+        : undefined,
+      discreteValue: att.certifiedDiscrete.discreteValue,
+    };
+
+  return [certified, verified, declared, certifiedDiscrete].filter(
     (a): a is TenantAttribute => !!a
   );
 }
@@ -82,6 +101,7 @@ export const toBffApiRequesterCertifiedAttributes = (
   tenantName: input.name,
   attributeId: input.attributeId,
   attributeName: input.attributeName,
+  kind: tenantAttributeKind.certified,
 });
 
 export type RegistryAttributesMap = Map<
@@ -97,11 +117,31 @@ const toBffApiCertifiedTenantAttribute = (
 
   return registryAttribute
     ? {
+        kind: tenantAttributeKind.certified,
         id: tenantAttribute.id,
         name: registryAttribute.name,
         description: registryAttribute.description,
         assignmentTimestamp: tenantAttribute.assignmentTimestamp,
         revocationTimestamp: tenantAttribute.revocationTimestamp,
+      }
+    : undefined;
+};
+
+export const toBffApiCertifiedDiscreteTenantAttribute = (
+  tenantAttribute: tenantApi.CertifiedDiscreteTenantAttribute,
+  registryAttributesMap: RegistryAttributesMap
+): bffApi.CertifiedDiscreteTenantAttribute | undefined => {
+  const registryAttribute = registryAttributesMap.get(tenantAttribute.id);
+
+  return registryAttribute
+    ? {
+        kind: tenantAttributeKind.certifiedDiscrete,
+        id: tenantAttribute.id,
+        name: registryAttribute.name,
+        description: registryAttribute.description,
+        assignmentTimestamp: tenantAttribute.assignmentTimestamp,
+        revocationTimestamp: tenantAttribute.revocationTimestamp,
+        discreteValue: tenantAttribute.discreteValue,
       }
     : undefined;
 };
@@ -115,6 +155,7 @@ const toBffApiDeclaredTenantAttribute = (
 
   return registryAttribute
     ? {
+        kind: tenantAttributeKind.declared,
         id: tenantAttribute.id,
         name: registryAttribute.name,
         description: registryAttribute.description,
@@ -133,6 +174,7 @@ const toBffApiVerifiedTenantAttribute = (
 
   return registryAttribute
     ? {
+        kind: tenantAttributeKind.verified,
         id: tenantAttribute.id,
         name: registryAttribute.name,
         description: registryAttribute.description,
@@ -144,12 +186,23 @@ const toBffApiVerifiedTenantAttribute = (
 };
 
 export function toBffApiCertifiedTenantAttributes(
-  certifiedAttributes: tenantApi.CertifiedTenantAttribute[],
+  certifiedAttributes: Array<
+    | tenantApi.CertifiedTenantAttribute
+    | tenantApi.CertifiedDiscreteTenantAttribute
+  >,
   registryAttributesMap: RegistryAttributesMap
-): bffApi.CertifiedTenantAttribute[] {
+): bffApi.CertifiedAttributesResponse["attributes"] {
   return certifiedAttributes
     .map((tenantAttribute) =>
-      toBffApiCertifiedTenantAttribute(tenantAttribute, registryAttributesMap)
+      "discreteValue" in tenantAttribute
+        ? toBffApiCertifiedDiscreteTenantAttribute(
+            tenantAttribute,
+            registryAttributesMap
+          )
+        : toBffApiCertifiedTenantAttribute(
+            tenantAttribute,
+            registryAttributesMap
+          )
     )
     .filter(isDefined);
 }
@@ -183,6 +236,11 @@ export function toBffApiTenant(
   verifiedAttributes: tenantApi.VerifiedTenantAttribute[],
   registryAttributesMap: RegistryAttributesMap
 ): bffApi.Tenant {
+  const certifiedDiscreteAttributes: tenantApi.CertifiedDiscreteTenantAttribute[] =
+    tenant.attributes.flatMap((attribute) =>
+      attribute.certifiedDiscrete ? [attribute.certifiedDiscrete] : []
+    );
+
   return {
     id: tenant.id,
     selfcareId: tenant.selfcareId,
@@ -194,11 +252,12 @@ export function toBffApiTenant(
     features: tenant.features,
     onboardedAt: tenant.onboardedAt,
     subUnitType: tenant.subUnitType,
+    remoteIds: tenant.remoteIds,
     selfcareInstitutionType: tenant.selfcareInstitutionType,
     contactMail: getLatestTenantContactEmail(tenant),
     attributes: {
       certified: toBffApiCertifiedTenantAttributes(
-        certifiedAttributes,
+        [...certifiedAttributes, ...certifiedDiscreteAttributes],
         registryAttributesMap
       ),
       declared: toBffApiDeclaredTenantAttributes(
