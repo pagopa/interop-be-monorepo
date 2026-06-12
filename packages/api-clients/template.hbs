@@ -57,6 +57,8 @@ export type {{@key}} = z.infer<typeof {{@key}}>;
 						schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(EServiceTemplateVersionState).optional().default([])), z.array(EServiceTemplateVersionState).optional().default([])])
 				{{else if (and (eq type "Query") (eq schema "z.array(PurposeTemplateState).optional().default([])"))}}
 					schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(PurposeTemplateState).optional().default([])), z.array(PurposeTemplateState).optional().default([])])
+				{{else if (and (eq type "Query") (eq schema "z.array(RiskAnalysisSigningState).optional().default([])"))}}
+					schema: z.union([z.string().optional().transform(v => v ? v.split(",") : undefined ).pipe(z.array(RiskAnalysisSigningState).optional().default([])), z.array(RiskAnalysisSigningState).optional().default([])])
 				{{else if (and (eq type "Query") (eq schema "z.string().uuid().nullish()"))}}
 					schema: z.union([z.string().uuid(), z.null(), z.undefined()])
 				{{else if (and (eq type "Query") (eq schema "z.array(NotificationType).optional().default([])"))}}
