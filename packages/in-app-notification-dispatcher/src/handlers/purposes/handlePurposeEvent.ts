@@ -111,7 +111,9 @@ export async function handlePurposeEvent(
           "PurposeRiskAnalysisWorkflowCreated",
           "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSubmitted",
-          "PurposeRiskAnalysisSigned"
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => {

@@ -51,6 +51,8 @@ const eventV2TypeMapper = (eventType: PurposeEventEnvelopeV2["type"]): string =>
       "PurposeRiskAnalysisAssigned",
       "PurposeRiskAnalysisSubmitted",
       "PurposeRiskAnalysisSigned",
+      "PurposeRiskAnalysisRejected",
+      "PurposeRiskAnalysisFormEdited",
       () => "purpose_updated"
     )
     .exhaustive();
