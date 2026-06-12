@@ -197,6 +197,7 @@ export const createDescriptorErrorMapper = (
       "inconsistentDailyCalls",
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
+      "attributeDiscreteConfigNotAllowed",
       "templateInstanceNotAllowed",
       "eserviceInArchivingOrArchivedState",
       () => HTTP_STATUS_BAD_REQUEST
@@ -234,6 +235,7 @@ export const updateDraftDescriptorErrorMapper = (
       "templateInstanceNotAllowed",
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
+      "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -253,6 +255,8 @@ export const updateDraftDescriptorTemplateInstanceErrorMapper = (
       "inconsistentDailyCalls",
       "attributeNotFound",
       "eServiceNotAnInstance",
+      "attributeDiscreteConfigNotAllowed",
+      "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -272,6 +276,7 @@ export const updateDescriptorErrorMapper = (
       "inconsistentDailyCalls",
       "attributeDailyCallsNotAllowed",
       "templateInstanceNotAllowed",
+      "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -503,6 +508,7 @@ export const updateDescriptorAttributesErrorMapper = (
       "attributeDuplicatedInGroup",
       "notValidDescriptor",
       "attributeDailyCallsNotAllowed",
+      "attributeDiscreteConfigNotAllowed",
       "templateInstanceNotAllowed",
       "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST
@@ -731,6 +737,9 @@ export const updateTemplateInstanceDescriptorErrorMapper = (
     .with(
       "notValidDescriptor",
       "inconsistentDailyCalls",
+      "attributeDailyCallsNotAllowed",
+      "attributeDiscreteConfigNotAllowed",
+      "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -774,6 +783,7 @@ export const updateEserviceDescriptorArchivingStatusErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("eserviceWithActiveOrPendingDelegation", () => HTTP_STATUS_CONFLICT)
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
@@ -792,13 +802,14 @@ export const updateEServiceArchivingStatusErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("eserviceWithActiveOrPendingDelegation", () => HTTP_STATUS_CONFLICT)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
-      "operationForbidden",
+      "eserviceWithoutValidDescriptors",
       "notValidEServiceState",
-      () => HTTP_STATUS_FORBIDDEN
+      () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const cancelEServiceArchivingErrorMapper = (

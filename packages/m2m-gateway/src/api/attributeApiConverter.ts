@@ -11,6 +11,17 @@ import {
 } from "../utils/validators/attributeValidators.js";
 import { attributeNotFound } from "../model/errors.js";
 
+/**
+ * The m2m-gateway (v1) contract is frozen and intentionally does not expose
+ * CERTIFIED_DISCRETE attributes; that kind is part of the newer m2m-gateway-v3
+ * contract. Excluding it at the type level keeps the legacy converter free of
+ * a runtime branch for a case the public overloads cannot produce.
+ */
+type LegacySupportedAttributeKind = Exclude<
+  attributeRegistryApi.AttributeKind,
+  "CERTIFIED_DISCRETE"
+>;
+
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
   attributeKind: typeof attributeRegistryApi.AttributeKind.Values.CERTIFIED,
@@ -34,7 +45,7 @@ function convertAttribute(
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
-  attributeKind: attributeRegistryApi.AttributeKind,
+  attributeKind: LegacySupportedAttributeKind,
   logger: Logger,
   mapThrownErrorsToNotFound = false
 ):

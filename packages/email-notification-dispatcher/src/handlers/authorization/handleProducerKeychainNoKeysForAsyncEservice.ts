@@ -5,8 +5,9 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
-import { eventMailTemplateType, retrieveTenant } from "../../services/utils.js";
+import { retrieveTenant } from "../../services/utils.js";
 import {
+  eventMailTemplateType,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,

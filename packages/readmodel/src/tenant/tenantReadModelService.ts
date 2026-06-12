@@ -10,6 +10,8 @@ import {
   DrizzleTransactionType,
   tenantCertifiedAttributeInReadmodelTenant,
   TenantCertifiedAttributeSQL,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
+  TenantCertifiedDiscreteAttributeSQL,
   tenantDeclaredAttributeInReadmodelTenant,
   TenantDeclaredAttributeSQL,
   tenantFeatureInReadmodelTenant,
@@ -17,6 +19,8 @@ import {
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
   TenantMailSQL,
+  tenantRemoteIdInReadmodelTenant,
+  TenantRemoteIdSQL,
   TenantSQL,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
@@ -42,11 +46,13 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           tenantSQL,
           mailsSQL,
           certifiedAttributesSQL,
+          certifiedDiscreteAttributesSQL,
           declaredAttributesSQL,
           verifiedAttributesSQL,
           verifiedAttributeVerifiersSQL,
           verifiedAttributeRevokersSQL,
           featuresSQL,
+          remoteIdsSQL,
         ] = await Promise.all([
           readTenantSQL(eq(tenantInReadmodelTenant.id, tenantId), tx),
           readTenantMailsSQL(
@@ -55,6 +61,13 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           ),
           readTenantCertifiedAttributesSQL(
             eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId),
+            tx
+          ),
+          readTenantCertifiedDiscreteAttributesSQL(
+            eq(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId,
+              tenantId
+            ),
             tx
           ),
           readTenantDeclaredAttributesSQL(
@@ -83,6 +96,10 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
             eq(tenantFeatureInReadmodelTenant.tenantId, tenantId),
             tx
           ),
+          readTenantRemoteIdsSQL(
+            eq(tenantRemoteIdInReadmodelTenant.tenantId, tenantId),
+            tx
+          ),
         ]);
 
         if (!tenantSQL) {
@@ -92,11 +109,13 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           tenantSQL,
           mailsSQL,
           certifiedAttributesSQL,
+          certifiedDiscreteAttributesSQL,
           declaredAttributesSQL,
           verifiedAttributesSQL,
           verifiedAttributeVerifiersSQL,
           verifiedAttributeRevokersSQL,
           featuresSQL,
+          remoteIdsSQL,
         });
       };
       return tx
@@ -111,11 +130,13 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       ] = await Promise.all([
         readTenantsSQL(inArray(tenantInReadmodelTenant.id, tenantIds), tx),
         readTenantMailsSQL(
@@ -125,6 +146,13 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
         readTenantCertifiedAttributesSQL(
           inArray(
             tenantCertifiedAttributeInReadmodelTenant.tenantId,
+            tenantIds
+          ),
+          tx
+        ),
+        readTenantCertifiedDiscreteAttributesSQL(
+          inArray(
+            tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId,
             tenantIds
           ),
           tx
@@ -155,17 +183,23 @@ export function tenantReadModelServiceBuilder(db: DrizzleReturnType) {
           inArray(tenantFeatureInReadmodelTenant.tenantId, tenantIds),
           tx
         ),
+        readTenantRemoteIdsSQL(
+          inArray(tenantRemoteIdInReadmodelTenant.tenantId, tenantIds),
+          tx
+        ),
       ]);
 
       return aggregateTenantArray({
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       });
     },
     async getTenantByCertifierId(
@@ -223,6 +257,15 @@ const readTenantCertifiedAttributesSQL = async (
     .from(tenantCertifiedAttributeInReadmodelTenant)
     .where(filter);
 
+const readTenantCertifiedDiscreteAttributesSQL = async (
+  filter: SQL,
+  tx: DrizzleTransactionType
+): Promise<TenantCertifiedDiscreteAttributeSQL[]> =>
+  await tx
+    .select()
+    .from(tenantCertifiedDiscreteAttributeInReadmodelTenant)
+    .where(filter);
+
 const readTenantDeclaredAttributesSQL = async (
   filter: SQL,
   tx: DrizzleTransactionType
@@ -264,3 +307,9 @@ const readTenantFeaturesSQL = async (
   tx: DrizzleTransactionType
 ): Promise<TenantFeatureSQL[]> =>
   await tx.select().from(tenantFeatureInReadmodelTenant).where(filter);
+
+const readTenantRemoteIdsSQL = async (
+  filter: SQL,
+  tx: DrizzleTransactionType
+): Promise<TenantRemoteIdSQL[]> =>
+  await tx.select().from(tenantRemoteIdInReadmodelTenant).where(filter);

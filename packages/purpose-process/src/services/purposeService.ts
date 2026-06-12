@@ -94,9 +94,10 @@ import {
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
-  reviewerWorkflowNotInSubmittedState,
+  reviewerWorkflowNotInSignableState,
   requesterIsNotDesignatedReviewer,
   rejectNotAllowedInCurrentMode,
+  reviewerWorkflowNotInSubmittedState,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -702,7 +703,7 @@ export function purposeServiceBuilder(
           () => true
         )
         .otherwise(() => {
-          throw reviewerWorkflowNotInSubmittedState(purposeId);
+          throw reviewerWorkflowNotInSignableState(purposeId);
         });
 
       if (!workflow.reviewerIds.includes(authData.userId)) {

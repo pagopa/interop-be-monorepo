@@ -81,6 +81,13 @@ import {
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   EServiceTemplateAttribute,
+  CertifiedDiscreteTenantAttribute,
+  TenantRemoteId,
+  EServiceAttributeCertifiedDiscrete,
+  EServiceTemplateAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscreteConfig,
+  attributeCertifiedDiscreteComparator,
+  tenantAttributeType,
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
@@ -231,7 +238,6 @@ export const getMockEServiceAttribute = (
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
   id: attributeId,
-  dailyCallsPerConsumer: undefined,
 });
 
 export const getMockEServiceTemplateAttribute = (
@@ -293,6 +299,44 @@ export const getMockDeclaredTenantAttribute = (
   id: attributeId,
 });
 
+export const getMockCertifiedDiscreteTenantAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): CertifiedDiscreteTenantAttribute => ({
+  id: attributeId,
+  type: tenantAttributeType.CERTIFIED_DISCRETE,
+  assignmentTimestamp: new Date(),
+  revocationTimestamp: undefined,
+  discreteValue: 42,
+});
+
+export const getMockTenantRemoteId = (): TenantRemoteId => ({
+  origin: "ISTAT",
+  value: generateId(),
+  assignmentTimestamp: new Date(),
+});
+
+export const getMockEServiceAttributeCertifiedDiscreteConfig =
+  (): EServiceAttributeCertifiedDiscreteConfig => ({
+    threshold: 1000,
+    comparator: attributeCertifiedDiscreteComparator.GTE,
+  });
+
+export const getMockEServiceAttributeCertifiedDiscrete = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceAttributeCertifiedDiscrete => ({
+  id: attributeId,
+  explicitAttributeVerification: false,
+  discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
+});
+
+export const getMockEServiceTemplateAttributeCertifiedDiscrete = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceTemplateAttributeCertifiedDiscrete => ({
+  id: attributeId,
+  explicitAttributeVerification: false,
+  discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
+});
+
 export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),
   attributes: TenantAttribute[] = []
@@ -348,6 +392,7 @@ export const getMockAgreement = (
   eserviceId,
   consumerId,
   state,
+  certifiedDiscreteAttributes: [],
   stamps: getMockAgreementStamps(),
 });
 
@@ -1115,6 +1160,11 @@ export const sortAgreement = <
             sortBy<AgreementAttribute>((att) => att.id)
           )
         : [],
+      certifiedDiscreteAttributes: agreement.certifiedDiscreteAttributes
+        ? [...agreement.certifiedDiscreteAttributes].sort(
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
+        : [],
       declaredAttributes: agreement.declaredAttributes
         ? [...agreement.declaredAttributes].sort(
             sortBy<AgreementAttribute>((att) => att.id)
@@ -1286,6 +1336,11 @@ export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
     : [],
   certifiedAttributes: agreement?.certifiedAttributes
     ? [...agreement.certifiedAttributes].sort(
+        sortBy<CertifiedAttributeV2>((att) => att.id)
+      )
+    : [],
+  certifiedDiscreteAttributes: agreement?.certifiedDiscreteAttributes
+    ? [...agreement.certifiedDiscreteAttributes].sort(
         sortBy<CertifiedAttributeV2>((att) => att.id)
       )
     : [],

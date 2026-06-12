@@ -38,6 +38,7 @@ import {
   tenantInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { and, asc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
@@ -162,6 +163,28 @@ export function readModelServiceBuilderSQL(
       }
       return await tenantReadModelService.getTenantById(
         unsafeBrandId(tenantSQL[0].id)
+      );
+    },
+
+    async getTenantByRemoteId(remoteId: {
+      origin: string;
+      value: string;
+    }): Promise<WithMetadata<Tenant> | undefined> {
+      const tenantSQL = await readModelDB
+        .select()
+        .from(tenantRemoteIdInReadmodelTenant)
+        .where(
+          and(
+            eq(tenantRemoteIdInReadmodelTenant.origin, remoteId.origin),
+            eq(tenantRemoteIdInReadmodelTenant.value, remoteId.value)
+          )
+        );
+
+      if (tenantSQL.length === 0) {
+        return undefined;
+      }
+      return await tenantReadModelService.getTenantById(
+        unsafeBrandId(tenantSQL[0].tenantId)
       );
     },
 
