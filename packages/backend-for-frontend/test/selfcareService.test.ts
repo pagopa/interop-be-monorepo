@@ -1,0 +1,83 @@
+import { describe, expect, it, vi } from "vitest";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import { genericLogger } from "pagopa-interop-commons";
+import {
+  bffApi,
+  selfcareV2ClientApi,
+  SelfcareV2InstitutionClient,
+  SelfcareV2UsersClient,
+} from "pagopa-interop-api-clients";
+import type { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import { config } from "../src/config/config.js";
+import { selfcareServiceBuilder } from "../src/services/selfcareService.js";
+import { getBffMockContext } from "./utils.js";
+
+describe("selfcareService", () => {
+  it("should skip incomplete institutions instead of failing the whole response", async () => {
+    const v2getUserInstitution =
+      vi.fn<SelfcareV2UsersClient["v2getUserInstitution"]>();
+    const warn = vi.fn();
+
+    const clients = {
+      selfcareV2UserClient: {
+        v2getUserInstitution,
+      } as unknown as SelfcareV2UsersClient,
+      selfcareV2InstitutionClient: {} as unknown as SelfcareV2InstitutionClient,
+      tenantProcessClient:
+        {} as unknown as PagoPAInteropBeClients["tenantProcessClient"],
+    } as unknown as PagoPAInteropBeClients;
+
+    const service = selfcareServiceBuilder(clients);
+    const authData = getMockAuthData();
+    const ctx = {
+      ...getBffMockContext(getMockContext({ authData })),
+      logger: {
+        ...genericLogger,
+        warn,
+      },
+    };
+
+    const validInstitution: selfcareV2ClientApi.UserInstitutionResource = {
+      userId: authData.userId,
+      institutionId: authData.organizationId,
+      institutionDescription: "Valid institution",
+      products: [{ productRole: "ADMIN" }],
+    };
+    const invalidInstitution: selfcareV2ClientApi.UserInstitutionResource = {
+      userId: authData.userId,
+      institutionId: authData.organizationId,
+      products: [{ productRole: "LIMITED" }],
+    };
+
+    const expectedInstitution: bffApi.SelfcareInstitution = {
+      id: authData.organizationId,
+      description: "Valid institution",
+      userProductRoles: ["ADMIN"],
+    };
+
+    v2getUserInstitution.mockResolvedValue([
+      validInstitution,
+      invalidInstitution,
+    ]);
+
+    const result = await service.getSelfcareInstitutions(ctx);
+
+    expect(result).toEqual([expectedInstitution]);
+    expect(v2getUserInstitution).toHaveBeenCalledWith({
+      queries: {
+        userId: authData.userId,
+        states: "ACTIVE",
+        products: config.selfcareProductName,
+      },
+      headers: {
+        "X-Correlation-Id": ctx.correlationId,
+      },
+    });
+    expect(warn).toHaveBeenCalledOnce();
+    const [[warningMessage]] = warn.mock.calls;
+    expect(warningMessage).toContain(
+      "Skipping incomplete selfcare institution"
+    );
+    expect(warningMessage).toContain("institutionDescription");
+  });
+});
