@@ -63,6 +63,7 @@ export const getMockAgreement = ({
   state: agreementState.active,
   verifiedAttributes: [],
   certifiedAttributes: [],
+  certifiedDiscreteAttributes: [],
   declaredAttributes: [],
   consumerDocuments: [],
   stamps: {

@@ -261,6 +261,7 @@ export function purposeServiceBuilder(
           state: currentDescriptor.state,
           version: currentDescriptor.version,
           audience: currentDescriptor.audience,
+          archivableOn: currentDescriptor.archivingSchedule?.archivableOn,
         },
         mode: eservice.mode,
         personalData: eservice.personalData,
@@ -300,6 +301,7 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
+      reviewerWorkflow: purpose.reviewerWorkflow,
     };
   };
 
@@ -425,6 +427,28 @@ export function purposeServiceBuilder(
         headers,
       });
       return { id: result.id };
+    },
+    async assignRiskAnalysisReviewer(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisAssignmentSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Assigning risk analysis reviewer to purpose ${purposeId}`);
+      await purposeProcessClient.assignRiskAnalysisReviewer(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
+    async submitRiskAnalysis(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisSubmissionSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Submitting risk analysis for purpose ${purposeId}`);
+      await purposeProcessClient.submitRiskAnalysis(seed, {
+        params: { purposeId },
+        headers,
+      });
     },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,

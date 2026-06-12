@@ -9,13 +9,12 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  ProducerKeychainKeyHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
-import { producerKeychainKeyNotFound } from "../../models/errors.js";
+  producerKeychainKeyNotFound,
+} from "pagopa-interop-notification-commons";
+import { ProducerKeychainKeyHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
