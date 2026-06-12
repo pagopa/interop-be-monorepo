@@ -21,6 +21,8 @@ import {
   requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotFound,
+  riskAnalysisValidationFailed,
+  tenantIsNotTheConsumer,
 } from "../../src/model/domain/errors.js";
 
 describe("API PUT /purposes/{purposeId}/riskAnalysis/form test", () => {
