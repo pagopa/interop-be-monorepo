@@ -14,6 +14,7 @@ import {
   getMockTenant,
   getMockValidEServiceTemplateRiskAnalysis,
   randomArrayItem,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -153,10 +154,12 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       ],
     };
 
-    expect(writtenPayload).toEqual({
-      riskAnalysisId: riskAnalysisToUpdate.id,
-      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
-    });
+    expect(writtenPayload.riskAnalysisId).toEqual(riskAnalysisToUpdate.id);
+    expect(
+      sortRiskAnalysisCollections(writtenPayload.eserviceTemplate)
+    ).toEqual(
+      sortRiskAnalysisCollections(toEServiceTemplateV2(updatedEServiceTemplate))
+    );
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

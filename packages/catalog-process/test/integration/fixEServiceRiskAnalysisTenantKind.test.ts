@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-floating-promises */
 import { describe, it, expect, vi } from "vitest";
 import {
   EService,
@@ -17,6 +16,7 @@ import {
   getMockEService,
   getMockTenant,
   getMockValidRiskAnalysis,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   eServiceNotFound,
@@ -97,7 +97,9 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
         riskAnalysis: [riskAnalysisOther, fixedRiskAnalysis],
       };
 
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+      expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+        sortRiskAnalysisCollections(toEServiceV2(expectedEService))
+      );
     } finally {
       vi.useRealTimers();
     }
@@ -119,7 +121,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
 
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.fixEServiceRiskAnalysisTenantKind(
         eservice.id,
         riskAnalysisToFix.id,
@@ -132,7 +134,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
     const unknownEServiceId = generateId<EServiceId>();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
-    expect(
+    await expect(
       catalogService.fixEServiceRiskAnalysisTenantKind(
         unknownEServiceId,
         riskAnalysisId,

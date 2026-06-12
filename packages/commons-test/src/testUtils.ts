@@ -1116,6 +1116,46 @@ export const sortBy =
     return 0;
   };
 
+type SortableRiskAnalysis = {
+  id: string;
+  riskAnalysisForm?: {
+    singleAnswers: Array<{ id: string }>;
+    multiAnswers: Array<{ id: string }>;
+  };
+};
+
+const sortRiskAnalysisAnswers = <T extends SortableRiskAnalysis>(
+  riskAnalysis: T
+): T => {
+  if (!riskAnalysis.riskAnalysisForm) {
+    return riskAnalysis;
+  }
+  const { singleAnswers, multiAnswers } = riskAnalysis.riskAnalysisForm;
+  return {
+    ...riskAnalysis,
+    riskAnalysisForm: {
+      ...riskAnalysis.riskAnalysisForm,
+      singleAnswers: [...singleAnswers].sort(sortBy((answer) => answer.id)),
+      multiAnswers: [...multiAnswers].sort(sortBy((answer) => answer.id)),
+    },
+  };
+};
+
+// Risk analyses and answers are reconstructed from SQL joins without a defined order.
+export const sortRiskAnalysisCollections = <
+  T extends { riskAnalysis: SortableRiskAnalysis[] } | undefined,
+>(
+  entity: T
+): T =>
+  entity
+    ? {
+        ...entity,
+        riskAnalysis: entity.riskAnalysis
+          .map(sortRiskAnalysisAnswers)
+          .sort(sortBy((riskAnalysis) => riskAnalysis.id)),
+      }
+    : entity;
+
 export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
   tenant: T
 ): T => {
