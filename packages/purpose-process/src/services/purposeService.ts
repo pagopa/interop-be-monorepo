@@ -394,7 +394,6 @@ export function purposeServiceBuilder(
         referenceDate
       );
 
-      // If historyKind wasn't found at referenceDate, try to recover the first available historyKind in ascending order
       const tenantKind =
         historyKind ?? (await readModelService.getFirstTenantKind(tenantId));
 
