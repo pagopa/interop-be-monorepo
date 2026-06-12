@@ -432,3 +432,23 @@ export const rejectRiskAnalysisErrorMapper = (
     .with("rejectNotAllowedInCurrentMode", () => HTTP_STATUS_CONFLICT)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const editRiskAnalysisFormErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "requesterIsNotDesignatedReviewer",
+      "tenantIsNotTheConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "editNotAllowedForReviewMode",
+      "reviewerWorkflowNotEditable",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

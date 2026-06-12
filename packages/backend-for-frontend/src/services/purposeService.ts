@@ -477,6 +477,19 @@ export function purposeServiceBuilder(
         headers,
       });
     },
+    async editRiskAnalysisForm(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisFormSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Editing risk analysis form for purpose ${purposeId} by reviewer`
+      );
+      await purposeProcessClient.editRiskAnalysisForm(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>
