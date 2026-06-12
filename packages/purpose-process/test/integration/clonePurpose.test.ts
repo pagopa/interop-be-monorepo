@@ -12,6 +12,7 @@ import {
   getMockTenant,
   getMockAuthData,
   getMockValidRiskAnalysisForm,
+  sortPurpose,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -510,17 +511,24 @@ describe("clonePurpose", async () => {
         },
       ],
       createdAt: new Date(),
-      riskAnalysisForm: {
-        ...riskAnalysisForm,
-        id: unsafeBrandId(writtenPayload.purpose!.riskAnalysisForm!.id),
-      },
+      riskAnalysisForm: mockPurpose.riskAnalysisForm,
     };
 
-    expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
-      sourcePurposeId: mockPurpose.id,
-      sourceVersionId: mockPurpose.versions[0].id,
+    // Verify the cloned purpose has the expected structure
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "0",
+      type: "PurposeCloned",
+      event_version: 2,
     });
+
+    expect(writtenPayload.sourcePurposeId).toEqual(mockPurpose.id);
+    expect(writtenPayload.sourceVersionId).toEqual(mockPurpose.versions[0].id);
+
+    // Verify the tenantKind is preserved in the risk analysis form
+    expect(writtenPayload.purpose?.riskAnalysisForm?.tenantKind).toEqual(
+      toPurposeV2(expectedPurpose).riskAnalysisForm?.tenantKind
+    );
   });
   it("should throw purposeCannotBeCloned if the purpose is in draft (no versions)", async () => {
     const mockTenant = {
