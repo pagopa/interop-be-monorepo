@@ -30,7 +30,7 @@ import {
   purposeNotFound,
   requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotFound,
-  reviewerWorkflowNotInSubmittedState,
+  reviewerWorkflowNotInSignableState,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -172,7 +172,7 @@ describe("signRiskAnalysis", () => {
     ).rejects.toThrowError(reviewerWorkflowNotFound(mockPurpose.id));
   });
 
-  it("should throw reviewerWorkflowNotInSubmittedState if the workflow is not signable", async () => {
+  it("should throw reviewerWorkflowNotInSignableState if the workflow is not signable", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
@@ -193,7 +193,7 @@ describe("signRiskAnalysis", () => {
           authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
         })
       )
-    ).rejects.toThrowError(reviewerWorkflowNotInSubmittedState(mockPurpose.id));
+    ).rejects.toThrowError(reviewerWorkflowNotInSignableState(mockPurpose.id));
   });
 
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {

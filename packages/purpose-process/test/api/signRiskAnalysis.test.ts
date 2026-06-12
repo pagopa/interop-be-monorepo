@@ -20,7 +20,7 @@ import {
   purposeNotFound,
   riskAnalysisValidationFailed,
   reviewerWorkflowNotFound,
-  reviewerWorkflowNotInSubmittedState,
+  reviewerWorkflowNotInSignableState,
   requesterIsNotDesignatedReviewer,
 } from "../../src/model/domain/errors.js";
 
@@ -76,7 +76,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/sign test", () => {
       expectedStatus: 404,
     },
     {
-      error: reviewerWorkflowNotInSubmittedState(mockPurpose.id),
+      error: reviewerWorkflowNotInSignableState(mockPurpose.id),
       expectedStatus: 409,
     },
     {
