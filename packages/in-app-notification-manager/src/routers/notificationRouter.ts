@@ -260,7 +260,6 @@ export const notificationRouter = (
           ADMIN_ROLE,
           API_ROLE,
           SECURITY_ROLE,
-          SUPPORT_ROLE,
           REVIEWER_ROLE,
           VIEWER_ROLE,
         ]);
