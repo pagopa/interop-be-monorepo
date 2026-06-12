@@ -87,6 +87,9 @@ export async function handleTenantMessageV2(
               verifiedAttributeRevokersSQL:
                 splitResult.verifiedAttributeRevokersSQL,
               featuresSQL: splitResult.featuresSQL,
+              remoteIdsSQL: splitResult.remoteIdsSQL,
+              certifiedDiscreteAttributeSQL:
+                splitResult.certifiedDiscreteAttributesSQL,
             } satisfies z.input<typeof TenantItemsSchema>)
           );
         }

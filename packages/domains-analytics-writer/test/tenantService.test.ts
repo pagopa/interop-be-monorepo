@@ -24,6 +24,7 @@ import {
   TenantEventEnvelopeV1,
   TenantMailAddedV1,
   TenantOnboardedV2,
+  TenantRemoteId,
 } from "pagopa-interop-models";
 import {
   getMockTenant,
@@ -32,6 +33,7 @@ import {
   getMockDeclaredTenantAttribute,
   getMockVerifiedTenantAttribute,
   toTenantV1,
+  getMockTenantRemoteId,
 } from "pagopa-interop-commons-test";
 import { handleTenantMessageV1 } from "../src/handlers/tenant/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "../src/handlers/tenant/consumerServiceV2.js";
@@ -70,6 +72,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
     const mockDeclaredTenantAttribute = getMockDeclaredTenantAttribute();
     const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
     const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
+    const mockTenantRemoteIds: TenantRemoteId = getMockTenantRemoteId();
     mockVerifiedTenantAttribute.verifiedBy = [{ ...mockVerifiedBy }];
     mockVerifiedTenantAttribute.revokedBy = [{ ...mockRevokedBy }];
 
@@ -81,7 +84,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
       mockCertifiedTenantAttribute,
     ];
     mockTenant.features = [mockTenantFeatureCertifier];
-
+    mockTenant.remoteIds = [mockTenantRemoteIds];
     const payload: TenantCreatedV1 = {
       tenant: toTenantV1(mockTenant),
     };
@@ -194,12 +197,12 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
       ...getMockRevokedBy(),
       id: mockTenantRevoker.id,
     };
-
     const mockDeclaredTenantAttribute = getMockDeclaredTenantAttribute();
     const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
     const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
     mockVerifiedTenantAttribute.verifiedBy = [{ ...mockVerifiedBy }];
     mockVerifiedTenantAttribute.revokedBy = [{ ...mockRevokedBy }];
+    const mockTenantRemoteIds: TenantRemoteId = getMockTenantRemoteId();
 
     const mockTenant = getMockTenant();
     mockTenant.mails = [mockTenantMail];
@@ -209,6 +212,7 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
       mockCertifiedTenantAttribute,
     ];
     mockTenant.features = [mockTenantFeatureCertifier];
+    mockTenant.remoteIds = [mockTenantRemoteIds];
 
     const payload: TenantCreatedV1 = {
       tenant: toTenantV1(mockTenant),
@@ -282,6 +286,11 @@ describe("Tenant messages consumers - handleTenantMessageV1", () => {
         where: { tenantId },
       },
       { table: TenantDbTable.tenant_feature, where: { tenantId } },
+      { table: TenantDbTable.tenant_remote_id, where: { tenantId } },
+      {
+        table: TenantDbTable.tenant_certified_discrete_attribute,
+        where: { tenantId },
+      },
     ];
 
     for (const { table, where } of checks) {

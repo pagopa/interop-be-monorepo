@@ -23,6 +23,8 @@ import {
   TenantDeletingSchema,
 } from "../model/tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../model/tenant/tenantMail.js";
+import { tenantRemoteIdRepository } from "../repository/tenant/tenantRemoteId.repository.js";
+import { tenantCertiefiedDiscreteAttributeIdRepository } from "../repository/tenant/tenantCertifiedDiscreteAttribute.repository.js";
 
 export function tenantServiceBuilder(db: DBContext) {
   const tenantRepo = tenantRepository(db.conn);
@@ -41,6 +43,9 @@ export function tenantServiceBuilder(db: DBContext) {
   const tenantVerifiedAttributeRevokerRepo =
     tenantVerifiedAttributeRevokerRepository(db.conn);
   const tenantFeatureRepo = tenantFeatureRepository(db.conn);
+  const tenantRemoteIdRepo = tenantRemoteIdRepository(db.conn);
+  const tenantCertifiedDiscreteAttributeRepo =
+    tenantCertiefiedDiscreteAttributeIdRepository(db.conn);
 
   return {
     async upsertBatchTenantItems(
@@ -71,6 +76,10 @@ export function tenantServiceBuilder(db: DBContext) {
               (item) => item.verifiedAttributeRevokersSQL
             ),
             featuresSQL: batch.flatMap((item) => item.featuresSQL),
+            tenantRemoteIdSQL: batch.flatMap((item) => item.remoteIdsSQL),
+            tenantCertifiedDiscreteAttributeSQL: batch.flatMap(
+              (item) => item.certifiedDiscreteAttributeSQL
+            ),
           };
 
           if (batchItems.tenantSQL.length) {
@@ -121,6 +130,20 @@ export function tenantServiceBuilder(db: DBContext) {
               batchItems.featuresSQL
             );
           }
+          if (batchItems.tenantRemoteIdSQL.length) {
+            await tenantRemoteIdRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.tenantRemoteIdSQL
+            );
+          }
+          if (batchItems.tenantCertifiedDiscreteAttributeSQL.length) {
+            await tenantCertifiedDiscreteAttributeRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.tenantCertifiedDiscreteAttributeSQL
+            );
+          }
 
           genericLogger.info(
             `Staging inserted for Tenant batch: ${batchItems.tenantSQL
@@ -137,6 +160,8 @@ export function tenantServiceBuilder(db: DBContext) {
         await tenantVerifiedAttributeVerifierRepo.merge(t);
         await tenantVerifiedAttributeRevokerRepo.merge(t);
         await tenantFeatureRepo.merge(t);
+        await tenantRemoteIdRepo.merge(t);
+        await tenantCertifiedDiscreteAttributeRepo.merge(t);
       });
 
       await dbContext.conn.tx(async (t) => {
@@ -151,6 +176,8 @@ export function tenantServiceBuilder(db: DBContext) {
             TenantDbTable.tenant_verified_attribute_verifier,
             TenantDbTable.tenant_verified_attribute_revoker,
             TenantDbTable.tenant_feature,
+            TenantDbTable.tenant_remote_id,
+            TenantDbTable.tenant_certified_discrete_attribute,
           ],
           TenantDbTable.tenant
         );
@@ -166,6 +193,8 @@ export function tenantServiceBuilder(db: DBContext) {
       await tenantVerifiedAttributeVerifierRepo.clean();
       await tenantVerifiedAttributeRevokerRepo.clean();
       await tenantFeatureRepo.clean();
+      await tenantRemoteIdRepo.clean();
+      await tenantCertifiedDiscreteAttributeRepo.clean();
 
       genericLogger.info(`Staging tables cleaned for Tenant batches`);
     },
@@ -227,6 +256,8 @@ export function tenantServiceBuilder(db: DBContext) {
             TenantDbTable.tenant_verified_attribute_verifier,
             TenantDbTable.tenant_verified_attribute_revoker,
             TenantDbTable.tenant_feature,
+            TenantDbTable.tenant_remote_id,
+            TenantDbTable.tenant_certified_discrete_attribute,
           ],
           DeletingDbTable.tenant_deleting_table
         );
