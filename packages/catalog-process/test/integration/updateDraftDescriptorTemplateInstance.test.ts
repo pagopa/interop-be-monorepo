@@ -29,6 +29,7 @@ import {
   AttributeId,
   unsafeBrandId,
   attributeKind,
+  attributeCertifiedDiscreteComparator,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -39,6 +40,7 @@ import {
   eServiceNotAnInstance,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
+  templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -49,6 +51,7 @@ import {
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
 import { buildUpdateDescriptorSeed } from "../mockUtils.js";
+import { config } from "../../src/config/config.js";
 
 describe("update draft descriptor instance", () => {
   const mockDescriptor = getMockDescriptor();
@@ -1084,4 +1087,72 @@ describe("update draft descriptor instance", () => {
       );
     }
   );
+
+  it("should throw templateInstanceNotAllowed when changing inherited discreteConfig", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+    const template = getMockEServiceTemplate();
+    const certifiedDiscreteAttribute = getMockAttribute(
+      attributeKind.certifiedDiscrete
+    );
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedDiscreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: {
+                threshold: 10,
+                comparator: attributeCertifiedDiscreteComparator.GTE,
+              },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateId: template.id,
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneAttribute(certifiedDiscreteAttribute);
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.updateDraftDescriptorTemplateInstance(
+        eservice.id,
+        descriptor.id,
+        {
+          ...buildUpdateDescriptorSeed(descriptor),
+          attributes: {
+            certified: [
+              [
+                {
+                  id: certifiedDiscreteAttribute.id,
+                  explicitAttributeVerification: false,
+                  discreteConfig: {
+                    threshold: 20,
+                    comparator: attributeCertifiedDiscreteComparator.GTE,
+                  },
+                },
+              ],
+            ],
+            declared: [],
+            verified: [],
+          },
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(eservice.id, template.id)
+    );
+  });
 });
