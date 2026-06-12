@@ -3,11 +3,16 @@ import {
   EService,
   Purpose,
   PurposeTemplateId,
+  ReviewerWorkflow,
   TenantId,
+  UserId,
   delegationKind,
   delegationState,
   generateId,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
   purposeVersionState,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
 import {
@@ -508,6 +513,186 @@ describe("getPurposes", async () => {
       mockPurpose6,
       mockDelegatedPurpose2,
     ]);
+  });
+
+  it("should get purposes with filters: signingStates", async () => {
+    const reviewerId: UserId = generateId();
+    const assignedWorkflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerIds: [unsafeBrandId(reviewerId)],
+      signingState: riskAnalysisSigningState.assigned,
+      sentToReviewerAt: new Date(),
+    };
+    const submittedWorkflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerIds: [unsafeBrandId(reviewerId)],
+      signingState: riskAnalysisSigningState.submitted,
+      sentToReviewerAt: new Date(),
+    };
+
+    const assignedPurpose: Purpose = {
+      ...getMockPurpose(),
+      title: "purpose assigned review",
+      consumerId: consumerId1,
+      eserviceId: mockEService1ByTenant1.id,
+      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      reviewerWorkflow: assignedWorkflow,
+    };
+
+    const submittedPurpose: Purpose = {
+      ...getMockPurpose(),
+      title: "purpose submitted review",
+      consumerId: consumerId1,
+      eserviceId: mockEService1ByTenant1.id,
+      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      reviewerWorkflow: submittedWorkflow,
+    };
+
+    await addOnePurpose(assignedPurpose);
+    await addOnePurpose(submittedPurpose);
+
+    const assignedResult = await purposeService.getPurposes(
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        clientId: undefined,
+        states: [],
+        excludeDraft: undefined,
+        reviewerId,
+        signingStates: [riskAnalysisSigningState.assigned],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(producerId1, reviewerId) })
+    );
+
+    expectSinglePageListResult(assignedResult, [assignedPurpose]);
+
+    const submittedResult = await purposeService.getPurposes(
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        clientId: undefined,
+        states: [],
+        excludeDraft: undefined,
+        reviewerId,
+        signingStates: [riskAnalysisSigningState.submitted],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(producerId1, reviewerId) })
+    );
+
+    expectSinglePageListResult(submittedResult, [submittedPurpose]);
+  });
+
+  it("should get purposes with filters: reviewerId", async () => {
+    const reviewerId1: UserId = generateId();
+    const reviewerId2: UserId = generateId();
+    const reviewerIdWithoutPurposes: UserId = generateId();
+
+    const submittedReviewer1Workflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerIds: [unsafeBrandId(reviewerId1)],
+      signingState: riskAnalysisSigningState.submitted,
+      sentToReviewerAt: new Date(),
+    };
+    const submittedReviewer2Workflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerIds: [unsafeBrandId(reviewerId2)],
+      signingState: riskAnalysisSigningState.submitted,
+      sentToReviewerAt: new Date(),
+    };
+    const assignedReviewer1Workflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerIds: [unsafeBrandId(reviewerId1)],
+      signingState: riskAnalysisSigningState.assigned,
+      sentToReviewerAt: new Date(),
+    };
+    const assignedReviewer2Workflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerIds: [unsafeBrandId(reviewerId2)],
+      signingState: riskAnalysisSigningState.assigned,
+      sentToReviewerAt: new Date(),
+    };
+
+    const submittedReviewer1Purpose: Purpose = {
+      ...getMockPurpose(),
+      title: "purpose submitted reviewer 1",
+      consumerId: consumerId1,
+      eserviceId: mockEService1ByTenant1.id,
+      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      reviewerWorkflow: submittedReviewer1Workflow,
+    };
+
+    const submittedReviewer2Purpose: Purpose = {
+      ...getMockPurpose(),
+      title: "purpose submitted reviewer 2",
+      consumerId: consumerId1,
+      eserviceId: mockEService1ByTenant1.id,
+      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      reviewerWorkflow: submittedReviewer2Workflow,
+    };
+
+    const assignedReviewer1Purpose: Purpose = {
+      ...getMockPurpose(),
+      title: "purpose assigned reviewer 1",
+      consumerId: consumerId1,
+      eserviceId: mockEService1ByTenant1.id,
+      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      reviewerWorkflow: assignedReviewer1Workflow,
+    };
+
+    const assignedReviewer2Purpose: Purpose = {
+      ...getMockPurpose(),
+      title: "purpose assigned reviewer 2",
+      consumerId: consumerId1,
+      eserviceId: mockEService1ByTenant1.id,
+      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      reviewerWorkflow: assignedReviewer2Workflow,
+    };
+
+    await addOnePurpose(submittedReviewer1Purpose);
+    await addOnePurpose(submittedReviewer2Purpose);
+    await addOnePurpose(assignedReviewer1Purpose);
+    await addOnePurpose(assignedReviewer2Purpose);
+
+    const result = await purposeService.getPurposes(
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        clientId: undefined,
+        states: [],
+        excludeDraft: undefined,
+        reviewerId: reviewerId1,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(producerId1, reviewerId1) })
+    );
+
+    expectSinglePageListResult(result, [
+      assignedReviewer1Purpose,
+      submittedReviewer1Purpose,
+    ]);
+
+    const emptyResult = await purposeService.getPurposes(
+      {
+        eservicesIds: [],
+        consumersIds: [],
+        producersIds: [],
+        clientId: undefined,
+        states: [],
+        excludeDraft: undefined,
+        reviewerId: reviewerIdWithoutPurposes,
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({
+        authData: getMockAuthData(producerId1, reviewerIdWithoutPurposes),
+      })
+    );
+
+    expectSinglePageListResult(emptyResult, []);
   });
 
   it("should get purposes with only archived versions (and exclude the ones with both archived and non-archived versions)", async () => {

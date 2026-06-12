@@ -79,6 +79,8 @@ const authorizationRouter = (
     SUPPORT_ROLE,
     API_ROLE,
     INTERNAL_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
@@ -741,6 +743,8 @@ const authorizationRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const producerKeychainEServiceFlags =

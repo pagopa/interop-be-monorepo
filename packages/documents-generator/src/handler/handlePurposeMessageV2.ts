@@ -169,7 +169,9 @@ export async function handlePurposeMessageV2(
           "PurposeRiskAnalysisWorkflowCreated",
           "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSubmitted",
-          "PurposeRiskAnalysisSigned"
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => Promise.resolve()
