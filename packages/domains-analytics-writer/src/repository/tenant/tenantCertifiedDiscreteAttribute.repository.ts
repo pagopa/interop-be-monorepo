@@ -11,9 +11,7 @@ import { config } from "../../config/config.js";
 import { TenantDbTable } from "../../model/db/index.js";
 import { TenantCertifiedDiscreteAttributeSchema } from "../../model/tenant/tenantCertifiedDiscreteAttribute.js";
 
-export function tenantCertifiedDiscreteAttributeIdRepository(
-  conn: DBConnection
-) {
+export function tenantCertifiedDiscreteAttributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
   const tableName = TenantDbTable.tenant_certified_discrete_attribute;
   const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;

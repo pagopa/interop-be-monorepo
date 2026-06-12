@@ -24,7 +24,7 @@ import {
 } from "../model/tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../model/tenant/tenantMail.js";
 import { tenantRemoteIdRepository } from "../repository/tenant/tenantRemoteId.repository.js";
-import { tenantCertifiedDiscreteAttributeIdRepository } from "../repository/tenant/tenantCertifiedDiscreteAttribute.repository.js";
+import { tenantCertifiedDiscreteAttributeRepository } from "../repository/tenant/tenantCertifiedDiscreteAttribute.repository.js";
 
 export function tenantServiceBuilder(db: DBContext) {
   const tenantRepo = tenantRepository(db.conn);
@@ -45,7 +45,7 @@ export function tenantServiceBuilder(db: DBContext) {
   const tenantFeatureRepo = tenantFeatureRepository(db.conn);
   const tenantRemoteIdRepo = tenantRemoteIdRepository(db.conn);
   const tenantCertifiedDiscreteAttributeRepo =
-    tenantCertifiedDiscreteAttributeIdRepository(db.conn);
+    tenantCertifiedDiscreteAttributeRepository(db.conn);
 
   return {
     async upsertBatchTenantItems(
@@ -76,9 +76,9 @@ export function tenantServiceBuilder(db: DBContext) {
               (item) => item.verifiedAttributeRevokersSQL
             ),
             featuresSQL: batch.flatMap((item) => item.featuresSQL),
-            tenantRemoteIdSQL: batch.flatMap((item) => item.remoteIdsSQL),
-            tenantCertifiedDiscreteAttributeSQL: batch.flatMap(
-              (item) => item.certifiedDiscreteAttributeSQL
+            tenantRemoteIdsSQL: batch.flatMap((item) => item.remoteIdsSQL),
+            tenantCertifiedDiscreteAttributesSQL: batch.flatMap(
+              (item) => item.certifiedDiscreteAttributesSQL
             ),
           };
 
@@ -130,18 +130,18 @@ export function tenantServiceBuilder(db: DBContext) {
               batchItems.featuresSQL
             );
           }
-          if (batchItems.tenantRemoteIdSQL.length) {
+          if (batchItems.tenantRemoteIdsSQL.length) {
             await tenantRemoteIdRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.tenantRemoteIdSQL
+              batchItems.tenantRemoteIdsSQL
             );
           }
-          if (batchItems.tenantCertifiedDiscreteAttributeSQL.length) {
+          if (batchItems.tenantCertifiedDiscreteAttributesSQL.length) {
             await tenantCertifiedDiscreteAttributeRepo.insert(
               t,
               dbContext.pgp,
-              batchItems.tenantCertifiedDiscreteAttributeSQL
+              batchItems.tenantCertifiedDiscreteAttributesSQL
             );
           }
 

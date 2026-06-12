@@ -40,7 +40,7 @@ export const TenantItemsSchema = z.object({
   verifiedAttributeRevokersSQL: z.array(TenantVerifiedAttributeRevokerSchema),
   featuresSQL: z.array(TenantFeatureSchema),
   remoteIdsSQL: z.array(TenantRemoteIdSchema),
-  certifiedDiscreteAttributeSQL: z.array(
+  certifiedDiscreteAttributesSQL: z.array(
     TenantCertifiedDiscreteAttributeSchema
   ),
 });
