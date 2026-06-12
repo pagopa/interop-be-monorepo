@@ -393,7 +393,12 @@ export function purposeServiceBuilder(
         tenantId,
         referenceDate
       );
-      if (!historyKind) {
+
+      // If historyKind wasn't found at referenceDate, try to recover the first available historyKind in ascending order
+      const tenantKind =
+        historyKind ?? (await readModelService.getFirstTenantKind(tenantId));
+
+      if (!tenantKind) {
         throw tenantKindNotFound(tenantId);
       }
 
@@ -401,7 +406,7 @@ export function purposeServiceBuilder(
         ...purpose.data,
         riskAnalysisForm: {
           ...riskAnalysisForm,
-          tenantKind: historyKind,
+          tenantKind,
         },
       };
 
