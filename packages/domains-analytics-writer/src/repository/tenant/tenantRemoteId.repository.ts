@@ -41,7 +41,7 @@ export function tenantRemoteIdRepository(conn: DBConnection) {
           TenantRemoteIdSchema,
           schemaName,
           tableName,
-          ["tenantId"]
+          ["tenantId", "origin"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {

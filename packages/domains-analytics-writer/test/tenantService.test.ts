@@ -34,6 +34,7 @@ import {
   getMockVerifiedTenantAttribute,
   toTenantV1,
   getMockTenantRemoteId,
+  getMockCertifiedDiscreteTenantAttribute,
 } from "pagopa-interop-commons-test";
 import { handleTenantMessageV1 } from "../src/handlers/tenant/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "../src/handlers/tenant/consumerServiceV2.js";
@@ -475,7 +476,151 @@ describe("Tenant messages consumers - handleTenantMessageV2", () => {
   beforeEach(async () => {
     await resetTargetTables(tenantTables);
   });
+  it("TenantOnboarded: inserts tenant with mails, attributes, features, and remote ids", async () => {
+    const mockTenantMail = getMockTenantMail();
+    const mockTenantFeatureCertifier: TenantFeatureCertifier = {
+      type: tenantFeatureType.persistentCertifier,
+      certifierId: generateId(),
+    };
 
+    const mockTenantVerifier = getMockTenant();
+    const mockTenantRevoker = getMockTenant();
+    const mockVerifiedBy: TenantVerifier = {
+      ...getMockVerifiedBy(),
+      id: mockTenantVerifier.id,
+    };
+    const mockRevokedBy: TenantRevoker = {
+      ...getMockRevokedBy(),
+      id: mockTenantRevoker.id,
+    };
+
+    const mockDeclaredTenantAttribute = getMockDeclaredTenantAttribute();
+    const mockCertifiedTenantAttribute = getMockCertifiedTenantAttribute();
+    const mockVerifiedTenantAttribute = getMockVerifiedTenantAttribute();
+    const mockCertifiedDiscreteTenantAttribute =
+      getMockCertifiedDiscreteTenantAttribute();
+    const mockTenantRemoteId = getMockTenantRemoteId();
+
+    mockVerifiedTenantAttribute.verifiedBy = [{ ...mockVerifiedBy }];
+    mockVerifiedTenantAttribute.revokedBy = [{ ...mockRevokedBy }];
+
+    const mockTenant = getMockTenant();
+    mockTenant.mails = [mockTenantMail];
+    mockTenant.attributes = [
+      mockDeclaredTenantAttribute,
+      mockVerifiedTenantAttribute,
+      mockCertifiedTenantAttribute,
+      mockCertifiedDiscreteTenantAttribute,
+    ];
+    mockTenant.features = [mockTenantFeatureCertifier];
+    mockTenant.remoteIds = [mockTenantRemoteId];
+
+    const msgTenantVerifier: TenantEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockTenantVerifier.id,
+      version: 1,
+      type: "TenantOnboarded",
+      event_version: 2,
+      data: { tenant: toTenantV2(mockTenantVerifier) },
+      log_date: new Date(),
+    };
+
+    const msgTenantRevoker: TenantEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockTenantRevoker.id,
+      version: 1,
+      type: "TenantOnboarded",
+      event_version: 2,
+      data: { tenant: toTenantV2(mockTenantRevoker) },
+      log_date: new Date(),
+    };
+
+    const msgTenantOnboarded: TenantEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: mockTenant.id,
+      version: 1,
+      type: "TenantOnboarded",
+      event_version: 2,
+      data: { tenant: toTenantV2(mockTenant) },
+      log_date: new Date(),
+    };
+
+    await handleTenantMessageV2(
+      [msgTenantVerifier, msgTenantRevoker, msgTenantOnboarded],
+      dbContext
+    );
+
+    const storedTenant = await getOneFromDb(dbContext, TenantDbTable.tenant, {
+      id: mockTenant.id,
+    });
+    expect(storedTenant?.id).toBe(mockTenant.id);
+    expect(storedTenant?.onboardedAt).toStrictEqual(mockTenant.createdAt);
+
+    const storedTenantMails = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_mail,
+      { id: mockTenantMail.id }
+    );
+    expect(storedTenantMails.length).toBe(1);
+    expect(storedTenantMails[0].id).toBe(mockTenantMail.id);
+
+    const storedDeclaredTenantAttributes = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_declared_attribute,
+      { attributeId: mockDeclaredTenantAttribute.id }
+    );
+    expect(storedDeclaredTenantAttributes.length).toBe(1);
+    expect(storedDeclaredTenantAttributes[0].attributeId).toBe(
+      mockDeclaredTenantAttribute.id
+    );
+
+    const storedVerifiedTenantAttributes = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_verified_attribute,
+      { attributeId: mockVerifiedTenantAttribute.id }
+    );
+    expect(storedVerifiedTenantAttributes.length).toBe(1);
+    expect(storedVerifiedTenantAttributes[0].attributeId).toBe(
+      mockVerifiedTenantAttribute.id
+    );
+
+    const storedCertifiedTenantAttributes = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_certified_attribute,
+      { attributeId: mockCertifiedTenantAttribute.id }
+    );
+    expect(storedCertifiedTenantAttributes.length).toBe(1);
+    expect(storedCertifiedTenantAttributes[0].attributeId).toBe(
+      mockCertifiedTenantAttribute.id
+    );
+    const storedCertifiedDiscreteTenantAttributes = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_certified_discrete_attribute,
+      { attributeId: mockCertifiedDiscreteTenantAttribute.id }
+    );
+    expect(storedCertifiedDiscreteTenantAttributes.length).toBe(1);
+    expect(storedCertifiedDiscreteTenantAttributes[0].attributeId).toBe(
+      mockCertifiedDiscreteTenantAttribute.id
+    );
+
+    const storedTenantFeatures = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_feature,
+      { tenantId: mockTenant.id, kind: mockTenantFeatureCertifier.type }
+    );
+    expect(storedTenantFeatures.length).toBe(1);
+    expect(storedTenantFeatures[0].certifierId).toBe(
+      mockTenantFeatureCertifier.certifierId
+    );
+
+    const storedTenantRemoteIds = await getManyFromDb(
+      dbContext,
+      TenantDbTable.tenant_remote_id,
+      { tenantId: mockTenant.id }
+    );
+    expect(storedTenantRemoteIds.length).toBe(1);
+    expect(storedTenantRemoteIds[0].tenantId).toBe(mockTenant.id);
+  });
   it("MaintenanceTenantUpdated: updates tenant fields", async () => {
     const originalTenant = getMockTenant();
     originalTenant.name = "Old Name";

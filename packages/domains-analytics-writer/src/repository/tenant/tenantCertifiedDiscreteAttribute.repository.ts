@@ -47,7 +47,7 @@ export function tenantCertifiedDiscreteAttributeIdRepository(
           TenantCertifiedDiscreteAttributeSchema,
           schemaName,
           tableName,
-          ["tenantId"]
+          ["attributeId", "tenantId"]
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
