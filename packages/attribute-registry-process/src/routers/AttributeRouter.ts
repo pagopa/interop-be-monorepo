@@ -202,6 +202,8 @@ const attributeRouter = (
             SECURITY_ROLE,
             M2M_ADMIN_ROLE,
             M2M_ROLE,
+            REVIEWER_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const { data, metadata } =
