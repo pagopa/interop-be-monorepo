@@ -66,6 +66,8 @@ const errorCodes = {
   reviewerWorkflowNotFound: "0046",
   reviewerWorkflowNotSubmittable: "0047",
   submitNotAllowedForReviewMode: "0048",
+  reviewerWorkflowNotInSignableState: "0049",
+  requesterIsNotDesignatedReviewer: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -576,5 +578,25 @@ export function submitNotAllowedForReviewMode(
     detail: `Submit is not allowed for purpose ${purposeId} because the review mode is not AdminWritesReviewerSigns`,
     code: "submitNotAllowedForReviewMode",
     title: "Submit not allowed for review mode",
+  });
+}
+
+export function reviewerWorkflowNotInSignableState(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} reviewer workflow is not in a signable state (must be Submitted for AdminWritesReviewerSigns or Assigned for ReviewerWritesReviewerSigns)`,
+    code: "reviewerWorkflowNotInSignableState",
+    title: "Reviewer workflow not in signable state",
+  });
+}
+
+export function requesterIsNotDesignatedReviewer(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requester is not one of the selected reviewers for signing the risk analysis of purpose ${purposeId}`,
+    code: "requesterIsNotDesignatedReviewer",
+    title: "Requester is not the designated reviewer",
   });
 }

@@ -454,6 +454,16 @@ export function purposeServiceBuilder(
         headers,
       });
     },
+    async signRiskAnalysis(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Signing risk analysis for purpose ${purposeId}`);
+      await purposeProcessClient.signRiskAnalysis(undefined, {
+        params: { purposeId },
+        headers,
+      });
+    },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>
