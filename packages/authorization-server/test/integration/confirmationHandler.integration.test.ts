@@ -112,7 +112,8 @@ const overrideTokenGenStatesFields = async (
 
 /**
  * Full confirmation scenario: start_interaction, force interaction into
- * `get_resource` (the only valid predecessor) with callback_invocation
+ * `get_resource` (the default valid predecessor; `callback_invocation` is
+ * also allowed) with callback_invocation
  * timestamp set, update catalog entry `confirmation` flag as requested,
  * then issue a fresh consumer JWS for scope=confirmation and align the
  * consumer token-gen-states publicKey.
@@ -248,7 +249,7 @@ const setupConfirmationScenario = async (overrides?: {
   const interactionId = (startResult.token.payload as { interactionId: string })
     .interactionId as InteractionId;
 
-  // Confirmation can only be reached from get_resource; put interaction there.
+  // Confirmation is reachable from get_resource (default) or callback_invocation.
   const targetState =
     overrides?.interactionStateOverride ?? interactionState.getResource;
   await forceInteractionState(dynamoDBClient, interactionId, targetState, {
@@ -560,7 +561,7 @@ describe("async token service - confirmation", () => {
     ).rejects.toThrowError(/was not started by the requesting client/);
   });
 
-  it("should throw interactionStateNotAllowed when interaction is still in callback_invocation", async () => {
+  it("should generate token for confirmation scope from callback_invocation (PIN-10199)", async () => {
     mockProducer.send.mockImplementation(async () => [
       { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
@@ -568,12 +569,14 @@ describe("async token service - confirmation", () => {
     const { consumerJws, consumerClientId } = await setupConfirmationScenario({
       interactionStateOverride: interactionState.callbackInvocation,
     });
+    const result = await callAsyncTokenService(consumerJws, consumerClientId);
 
-    await expect(
-      callAsyncTokenService(consumerJws, consumerClientId)
-    ).rejects.toThrowError(
-      /Interaction .* in state callback_invocation does not allow scope confirmation/
-    );
+    expect(result.limitReached).toBe(false);
+    if (result.limitReached || !result.tokenGenerated) {
+      fail();
+    }
+    expect(result.token.serialized).toBeDefined();
+    expect(result.isDPoP).toBe(false);
   });
 
   it("should throw callbackInvocationTokenIssuedAtMissing when the timestamp is absent", async () => {
