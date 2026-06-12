@@ -298,6 +298,20 @@ paths:
             type: boolean
             default: false
         - in: query
+          name: reviewerId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: signingStates
+          description: comma separated sequence of risk analysis signing states
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/RiskAnalysisSigningState"
+            default: []
+          explode: false
+        - in: query
           name: offset
           required: true
           schema:

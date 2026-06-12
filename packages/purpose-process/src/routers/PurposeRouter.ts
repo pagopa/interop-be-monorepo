@@ -17,6 +17,7 @@ import {
   PurposeTemplateId,
   PurposeVersionDocument,
   TenantId,
+  UserId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -29,6 +30,7 @@ import {
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
   remainingDailyCallsToApiRemainingDailyCalls,
+  apiSigningStateToSigningState,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PurposeService } from "../services/purposeService.js";
@@ -104,6 +106,8 @@ const purposeRouter = (
           clientId,
           states,
           excludeDraft,
+          reviewerId,
+          signingStates,
           offset,
           limit,
         } = req.query;
@@ -116,6 +120,10 @@ const purposeRouter = (
             clientId: clientId ? unsafeBrandId<ClientId>(clientId) : undefined,
             states: states?.map(apiPurposeVersionStateToPurposeVersionState),
             excludeDraft,
+            reviewerId: reviewerId
+              ? unsafeBrandId<UserId>(reviewerId)
+              : undefined,
+            signingStates: signingStates?.map(apiSigningStateToSigningState),
           },
           { offset, limit },
           ctx
