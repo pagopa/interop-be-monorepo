@@ -267,6 +267,26 @@ describe("getRemainingDailyCalls", () => {
       });
     });
 
+    it("applies the differentiated discrete quota even when it is lower than the descriptor default", async () => {
+      config.featureFlagAttributeCertifiedDiscrete = true;
+
+      const { purposeId, consumerId } = await setupDiscreteScenario({
+        threshold: 1000,
+        discreteValue: 1500,
+        differentiatedDailyCalls: 50,
+      });
+
+      const result = await purposeService.getRemainingDailyCalls({
+        purposeId,
+        ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+      });
+
+      expect(result).toEqual({
+        remainingDailyCallsPerConsumer: 10,
+        remainingDailyCallsTotal: 960,
+      });
+    });
+
     it("falls back to the descriptor default when the discrete value does not satisfy the threshold", async () => {
       config.featureFlagAttributeCertifiedDiscrete = true;
 
