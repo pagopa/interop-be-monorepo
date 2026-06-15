@@ -9,12 +9,12 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   retrieveTenant,
   retrieveEservice,
   getNotificationRecipients,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 export type AgreementSuspendedUnsuspendedEventType =
   | "AgreementSuspendedByConsumer"

@@ -47,6 +47,7 @@ const errorCodes = {
   tenantKindNotFound: "0037",
   asyncExchangeReceiveTemplateNotAllowed: "0038",
   missingAsyncExchangeCallbackInterface: "0039",
+  attributeDiscreteConfigNotAllowed: "0040",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -427,5 +428,15 @@ export function asyncExchangeReceiveTemplateNotAllowed(): ApiError<ErrorCodes> {
     detail: `Async exchange cannot be enabled for EService templates in receive mode`,
     code: "asyncExchangeReceiveTemplateNotAllowed",
     title: "Async exchange receive template not allowed",
+  });
+}
+
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
   });
 }

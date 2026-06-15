@@ -18,6 +18,7 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   asyncExchangeBulkNotAllowedForSoap,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   eserviceTemplateNotFound,
@@ -117,6 +118,10 @@ describe("API POST /templates/:templateId/versions/:templateVersionId", () => {
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(
