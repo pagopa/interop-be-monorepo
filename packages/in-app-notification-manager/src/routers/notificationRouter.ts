@@ -52,6 +52,8 @@ export const notificationRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const filterUnreadNotifications: string[] =

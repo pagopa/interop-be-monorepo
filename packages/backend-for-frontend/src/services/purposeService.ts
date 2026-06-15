@@ -4,6 +4,7 @@ import {
   removeDuplicates,
   UIAuthData,
   getRulesetExpiration,
+  authRole,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -202,12 +203,16 @@ export function purposeServiceBuilder(
         )
       : undefined;
 
-    const clients = await getAllClients(
-      authorizationClient,
-      authData.organizationId,
-      purpose.id,
-      headers
-    );
+    const clients =
+      authData.userRoles.includes(authRole.VIEWER_ROLE) ||
+      authData.userRoles.includes(authRole.REVIEWER_ROLE)
+        ? []
+        : await getAllClients(
+            authorizationClient,
+            authData.organizationId,
+            purpose.id,
+            headers
+          );
 
     const hasNotifications = notifications.includes(purpose.id);
 
