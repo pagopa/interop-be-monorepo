@@ -199,6 +199,7 @@ export const createDescriptorErrorMapper = (
       "attributeDailyCallsNotAllowed",
       "attributeDiscreteConfigNotAllowed",
       "templateInstanceNotAllowed",
+      "asyncExchangeBulkNotAllowedForSoap",
       "eserviceInArchivingOrArchivedState",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -235,6 +236,7 @@ export const updateDraftDescriptorErrorMapper = (
       "templateInstanceNotAllowed",
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
+      "asyncExchangeBulkNotAllowedForSoap",
       "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )

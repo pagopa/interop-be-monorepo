@@ -417,7 +417,11 @@ export function purposeServiceBuilder(
         tenantId,
         referenceDate
       );
-      if (!historyKind) {
+
+      const tenantKind =
+        historyKind ?? (await readModelService.getFirstTenantKind(tenantId));
+
+      if (!tenantKind) {
         throw tenantKindNotFound(tenantId);
       }
 
@@ -425,7 +429,7 @@ export function purposeServiceBuilder(
         ...purpose.data,
         riskAnalysisForm: {
           ...riskAnalysisForm,
-          tenantKind: historyKind,
+          tenantKind,
         },
       };
 
@@ -1955,6 +1959,7 @@ export function purposeServiceBuilder(
           ? {
               id: generateId(),
               version: riskAnalysisFormToClone.version,
+              tenantKind: riskAnalysisFormToClone.tenantKind,
               riskAnalysisId: riskAnalysisFormToClone.riskAnalysisId,
               singleAnswers: riskAnalysisFormToClone.singleAnswers.map(
                 (answer) => ({
