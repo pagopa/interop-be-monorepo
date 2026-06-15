@@ -382,9 +382,9 @@ export const inAppTemplates = {
     eserviceName: string,
     archivableOn: Date | undefined
   ): string =>
-    `Hai avviato il processo di archiviazione dell'e-service ${eserviceName}${
+    `Il tuo e-service ${eserviceName} è in fase di archiviazione, ma risulta ancora attivo ${
       archivableOn
-        ? `. L'archiviazione sarà completata il ${dateAtRomeZone(archivableOn)}`
+        ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}`
         : ""
     }.`,
   eserviceArchivingCompletedDescriptorToProducer: (
