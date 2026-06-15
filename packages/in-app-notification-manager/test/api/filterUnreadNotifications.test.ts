@@ -33,6 +33,7 @@ describe("API GET /filterUnreadNotifications", () => {
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.REVIEWER_ROLE,
     authRole.VIEWER_ROLE,
   ];
 
