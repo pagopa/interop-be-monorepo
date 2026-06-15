@@ -101,11 +101,18 @@ describe("update EService template", () => {
       name: mockDocument.name,
       path: `${config.eserviceTemplateDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
+    const mockAsyncExchangeCallbackInterfaceDocument = getMockDocument();
+    const asyncExchangeCallbackInterfaceDocument = {
+      ...mockAsyncExchangeCallbackInterfaceDocument,
+      name: `${mockDocument.name}_callback`,
+      path: `${config.eserviceTemplateDocumentsPath}/${mockAsyncExchangeCallbackInterfaceDocument.id}/${mockDocument.name}_callback`,
+    };
 
     const version: EServiceTemplateVersion = {
       ...mockVersion,
       state: eserviceTemplateVersionState.draft,
       interface: interfaceDocument,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDocument,
     };
     const eserviceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
@@ -125,6 +132,16 @@ describe("update EService template", () => {
       },
       genericLogger
     );
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceTemplateDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDocument.id,
+        name: asyncExchangeCallbackInterfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
 
     const updatedEServiceTemplate: EServiceTemplate = {
       ...eserviceTemplate,
@@ -133,12 +150,16 @@ describe("update EService template", () => {
       versions: eserviceTemplate.versions.map((v) => ({
         ...v,
         interface: undefined,
+        asyncExchangeCallbackInterface: undefined,
       })),
     };
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDocument.path);
 
     const returnedEServiceTemplate =
       await eserviceTemplateService.updateEServiceTemplate(

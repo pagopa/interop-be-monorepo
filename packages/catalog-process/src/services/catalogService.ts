@@ -5209,9 +5209,13 @@ async function updateDraftEService(
     await Promise.all(
       eservice.data.descriptors.map(async (d) => {
         if (d.interface !== undefined) {
-          return await fileManager.delete(
+          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
+        }
+
+        if (d.asyncExchangeCallbackInterface !== undefined) {
+          await fileManager.delete(
             config.s3Bucket,
-            d.interface.path,
+            d.asyncExchangeCallbackInterface.path,
             logger
           );
         }
@@ -5291,6 +5295,7 @@ async function updateDraftEService(
       ? eservice.data.descriptors.map((d) => ({
           ...d,
           interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
           serverUrls: [],
         }))
       : eservice.data.descriptors,

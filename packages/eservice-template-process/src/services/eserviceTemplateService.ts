@@ -76,6 +76,7 @@ import {
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
   missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import {
@@ -130,6 +131,7 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   versionStatesNotAllowingInterfaceOperations,
+  assertAsyncExchangeReceiveTemplateNotAllowed,
   assertDiscreteConfigForCertifiedAttributesOnly,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -571,6 +573,15 @@ export function eserviceTemplateServiceBuilder(
       ) {
         if (eserviceTemplateVersion.asyncExchangeProperties === undefined) {
           throw missingAsyncExchangeProperties(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
+
+        if (
+          eserviceTemplateVersion.asyncExchangeCallbackInterface === undefined
+        ) {
+          throw missingAsyncExchangeCallbackInterface(
             eserviceTemplateId,
             eserviceTemplateVersionId
           );
@@ -1384,6 +1395,13 @@ export function eserviceTemplateServiceBuilder(
       await assertEServiceTemplateNameAvailable(seed.name, readModelService);
 
       assertConsistentDailyCalls(seed.version);
+
+      if (isFeatureFlagEnabled(config, "featureFlagAsyncExchange")) {
+        assertAsyncExchangeReceiveTemplateNotAllowed({
+          mode: apiEServiceModeToEServiceMode(seed.mode),
+          asyncExchange: seed.asyncExchange,
+        });
+      }
 
       const creationDate = new Date();
       const draftVersion: EServiceTemplateVersion = {
@@ -2271,9 +2289,13 @@ async function updateDraftEServiceTemplate(
     await Promise.all(
       eserviceTemplate.data.versions.map(async (d) => {
         if (d.interface !== undefined) {
-          return await fileManager.delete(
+          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
+        }
+
+        if (d.asyncExchangeCallbackInterface !== undefined) {
+          await fileManager.delete(
             config.s3Bucket,
-            d.interface.path,
+            d.asyncExchangeCallbackInterface.path,
             logger
           );
         }
@@ -2334,6 +2356,7 @@ async function updateDraftEServiceTemplate(
       ? eserviceTemplate.data.versions.map((d) => ({
           ...d,
           interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,

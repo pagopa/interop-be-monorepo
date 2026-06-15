@@ -21,6 +21,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  asyncExchangeBulkNotAllowedForSoap,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
@@ -157,6 +158,10 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
       expectedStatus: 400,
     },
     {
+      error: asyncExchangeBulkNotAllowedForSoap(eservice.id, newDescriptor.id),
+      expectedStatus: 400,
+    },
+    {
       error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
@@ -179,6 +184,45 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     [{ ...descriptorSeed, dailyCallsTotal: -1 }, eservice.id],
     [{ ...descriptorSeed, attributes: undefined }, eservice.id],
     [{ ...descriptorSeed, docs: [{}] }, eservice.id],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 1_000_000,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 1_000_000,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+      eservice.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 100_000,
+        },
+      },
+      eservice.id,
+    ],
     [{}, "invalidId"],
     // dailyCalls validation tests on attributes
     [

@@ -60,6 +60,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   and,
+  asc,
   desc,
   eq,
   exists,
@@ -332,6 +333,17 @@ export function readModelServiceBuilderSQL({
           )
         )
         .orderBy(desc(tenantKindHistory.modifiedAt))
+        .limit(1);
+      return result?.kind ? TenantKind.parse(result.kind) : undefined;
+    },
+    async getFirstTenantKind(
+      tenantId: TenantId
+    ): Promise<TenantKind | undefined> {
+      const [result] = await tenantKindHistoryDB
+        .select()
+        .from(tenantKindHistory)
+        .where(eq(tenantKindHistory.tenantId, tenantId))
+        .orderBy(asc(tenantKindHistory.modifiedAt))
         .limit(1);
       return result?.kind ? TenantKind.parse(result.kind) : undefined;
     },
