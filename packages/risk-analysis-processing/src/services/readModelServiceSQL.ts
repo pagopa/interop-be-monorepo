@@ -1,5 +1,10 @@
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
-import { EService, Purpose, EServiceTemplate } from "pagopa-interop-models";
+import {
+  EService,
+  Purpose,
+  EServiceTemplate,
+  TenantId,
+} from "pagopa-interop-models";
 import {
   aggregateEserviceArray,
   toEServiceAggregatorArray,
@@ -18,9 +23,13 @@ import {
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
+export function readModelServiceBuilderSQL(
+  readModelDB: DrizzleReturnType,
+  tenantKindHistoryDB: DrizzleReturnType
+) {
   return {
     async getAllReadModelEServicesWithEmptyTenantKindRAs(): Promise<
       EService[]
@@ -144,6 +153,15 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           }))
         )
       ).map((p) => p.data);
+    },
+
+    async hasTenantKindHistoryEntry(tenantId: TenantId): Promise<boolean> {
+      const [result] = await tenantKindHistoryDB
+        .select()
+        .from(tenantKindHistory)
+        .where(eq(tenantKindHistory.tenantId, tenantId))
+        .limit(1);
+      return result !== undefined;
     },
   };
 }

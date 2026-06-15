@@ -17,6 +17,7 @@
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
+    "@types/pg": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
@@ -31,7 +32,9 @@
     "pagopa-interop-models": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
+    "pagopa-interop-tenant-kind-history-db-models": "workspace:*",
     "pagopa-interop-api-clients": "workspace:*",
+    "pg": "catalog:",
     "zod": "catalog:"
   }
 }

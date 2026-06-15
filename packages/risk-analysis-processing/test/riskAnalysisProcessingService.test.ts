@@ -3,7 +3,7 @@ import {
   eserviceTemplateApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
-import { RefreshableInteropToken } from "pagopa-interop-commons";
+import { genericLogger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EServiceTemplate,
@@ -27,6 +27,7 @@ import {
   addOneEService,
   addOneEServiceTemplate,
   addOnePurpose,
+  addOneTenantKindHistoryEntry,
   mockRiskAnalysisFormWithoutTenantKind,
   mockRiskAnalysisWithoutTenantKind,
   readModelService,
@@ -102,7 +103,8 @@ describe("riskAnalysisProcessingService", () => {
       purposeProcessClient,
       eserviceTemplateProcessClient,
       mockRefreshableToken,
-      testCorrelationId
+      testCorrelationId,
+      genericLogger
     );
 
     const testEservices = [
@@ -157,7 +159,8 @@ describe("riskAnalysisProcessingService", () => {
       purposeProcessClient,
       eserviceTemplateProcessClient,
       mockRefreshableToken,
-      testCorrelationId
+      testCorrelationId,
+      genericLogger
     );
 
     const testPurposes: Purpose[] = [
@@ -178,6 +181,12 @@ describe("riskAnalysisProcessingService", () => {
 
     for (const purpose of testPurposes) {
       await addOnePurpose(purpose);
+      await addOneTenantKindHistoryEntry({
+        tenantId: purpose.consumerId,
+        metadataVersion: 0,
+        kind: tenantKind.PA,
+        modifiedAt: new Date(),
+      });
     }
 
     await riskAnalysisProcessingService.processPurposeRiskAnalyses();
@@ -206,7 +215,8 @@ describe("riskAnalysisProcessingService", () => {
       purposeProcessClient,
       eserviceTemplateProcessClient,
       mockRefreshableToken,
-      testCorrelationId
+      testCorrelationId,
+      genericLogger
     );
 
     const newEServiceTemplates: EServiceTemplate[] = [
@@ -259,5 +269,50 @@ describe("riskAnalysisProcessingService", () => {
         )
       ).toBeTruthy();
     });
+  });
+
+  it("skips purposes whose consumerId has no tenantKindHistory entry", async () => {
+    const riskAnalysisProcessingService = riskAnalysisProcessingServiceBuilder(
+      readModelService,
+      catalogProcessClient,
+      purposeProcessClient,
+      eserviceTemplateProcessClient,
+      mockRefreshableToken,
+      testCorrelationId,
+      genericLogger
+    );
+
+    const purposeWithHistory: Purpose = {
+      ...getMockPurpose(),
+      riskAnalysisForm: mockRiskAnalysisFormWithoutTenantKind(),
+    };
+    const purposeWithoutHistory: Purpose = {
+      ...getMockPurpose(),
+      riskAnalysisForm: mockRiskAnalysisFormWithoutTenantKind(),
+    };
+
+    await addOnePurpose(purposeWithHistory);
+    await addOneTenantKindHistoryEntry({
+      tenantId: purposeWithHistory.consumerId,
+      metadataVersion: 0,
+      kind: tenantKind.PA,
+      modifiedAt: new Date(),
+    });
+    await addOnePurpose(purposeWithoutHistory);
+    // purposeWithoutHistory.consumerId intentionally has no tenantKindHistory entry
+
+    await riskAnalysisProcessingService.processPurposeRiskAnalyses();
+
+    expect(
+      purposeProcessClient.fixPurposeRiskAnalysisTenantKind
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      purposeProcessClient.fixPurposeRiskAnalysisTenantKind
+    ).toHaveBeenCalledWith(
+      undefined,
+      expect.objectContaining({
+        params: { purposeId: purposeWithHistory.id },
+      })
+    );
   });
 });

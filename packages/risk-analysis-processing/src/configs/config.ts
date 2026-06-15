@@ -1,12 +1,14 @@
 import {
   LoggerConfig,
   ReadModelSQLDbConfig,
+  TenantKindHistoryDBConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 const RiskAnalysisProcessingJobConfig = LoggerConfig.and(ReadModelSQLDbConfig)
   .and(TokenGenerationConfig)
+  .and(TenantKindHistoryDBConfig)
   .and(
     z
       .object({

@@ -14,6 +14,8 @@ import { config } from "./configs/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { riskAnalysisProcessingServiceBuilder } from "./services/riskAnalysisProcessingService.js";
+import pg from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 
 const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({
@@ -25,7 +27,22 @@ const tokenGenerator = new InteropTokenGenerator(config);
 const refreshableToken = new RefreshableInteropToken(tokenGenerator);
 
 const readModelDB = makeDrizzleConnection(config);
-const readModelServiceSQL = readModelServiceBuilderSQL(readModelDB);
+const tenantKindHistoryDB = drizzle({
+  client: new pg.Pool({
+    host: config.tenantKindHistoryDBHost,
+    port: config.tenantKindHistoryDBPort,
+    database: config.tenantKindHistoryDBName,
+    user: config.tenantKindHistoryDBUsername,
+    password: config.tenantKindHistoryDBPassword,
+    ssl: config.tenantKindHistoryDBUseSSL
+      ? { rejectUnauthorized: false }
+      : undefined,
+  }),
+});
+const readModelServiceSQL = readModelServiceBuilderSQL(
+  readModelDB,
+  tenantKindHistoryDB
+);
 
 await refreshableToken.init();
 const { catalogProcess, purposeProcess, eserviceTemplateProcess } =
@@ -40,7 +57,8 @@ export async function main(): Promise<void> {
     purposeProcess.client,
     eserviceTemplateProcess.client,
     refreshableToken,
-    correlationId
+    correlationId,
+    loggerInstance
   );
 
   if (
@@ -75,7 +93,7 @@ export async function main(): Promise<void> {
 
   if (purposesProcessingResult.processed.riskAnalyses !== 0) {
     loggerInstance.info(
-      `(Purpose RiskAnalysisForm) fixed ${purposesProcessingResult.processed.riskAnalyses} tenantKind/s.`
+      `(Purpose RiskAnalysisForm) fixed ${purposesProcessingResult.processed.riskAnalyses} tenantKind/s, skipped ${purposesProcessingResult.processed.skipped} purpose/s with no tenantKindHistory entry.`
     );
     return;
   }

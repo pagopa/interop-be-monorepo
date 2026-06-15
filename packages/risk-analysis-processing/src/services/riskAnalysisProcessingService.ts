@@ -4,7 +4,7 @@ import type {
   eserviceTemplateApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
-import { RefreshableInteropToken } from "pagopa-interop-commons";
+import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -20,7 +20,8 @@ export function riskAnalysisProcessingServiceBuilder(
   purposeProcessClient: purposeApi.PurposeProcessClient,
   eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   refreshableToken: RefreshableInteropToken,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  loggerInstance: Logger
 ) {
   return {
     async processEServiceRiskAnalyses(): Promise<{
@@ -63,6 +64,7 @@ export function riskAnalysisProcessingServiceBuilder(
     async processPurposeRiskAnalyses(): Promise<{
       processed: {
         riskAnalyses: number;
+        skipped: number;
       };
     }> {
       const token = (await refreshableToken.get()).serialized;
@@ -71,16 +73,40 @@ export function riskAnalysisProcessingServiceBuilder(
       const purposes =
         await readModelService.getAllReadModelPurposesWithoutTenantKind();
 
-      for (const singlePurpose of purposes) {
+      const purposesToProcess = (
+        await Promise.all(
+          purposes.map(async (p) => {
+            const hasEntry = await readModelService.hasTenantKindHistoryEntry(
+              p.consumerId
+            );
+            if (!hasEntry) {
+              loggerInstance.warn(
+                `Purpose ${p.id} skipped: consumerId ${p.consumerId} has no entry in tenantKindHistory db`
+              );
+              return undefined;
+            }
+            return p.id;
+          })
+        )
+      ).filter((p): p is NonNullable<typeof p> => p !== undefined);
+
+      const skippedCount = purposes.length - purposesToProcess.length;
+
+      for (const purposeId of purposesToProcess) {
         await purposeProcessClient.fixPurposeRiskAnalysisTenantKind(undefined, {
           headers,
           params: {
-            purposeId: singlePurpose.id,
+            purposeId: purposeId,
           },
         });
       }
 
-      return { processed: { riskAnalyses: purposes.length } };
+      return {
+        processed: {
+          riskAnalyses: purposesToProcess.length,
+          skipped: skippedCount,
+        },
+      };
     },
     async processEServiceTemplateRiskAnalyses(
       templates: EServiceTemplateId[]
