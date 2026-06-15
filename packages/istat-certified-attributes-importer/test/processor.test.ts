@@ -609,8 +609,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       {
         data: {
           id: "tenant-malformed",
-          externalId: { origin: "ISTAT", value: "12342" },
-          remoteIds: [],
+          remoteIds: [{ origin: "ISTAT", value: "12342" }],
         },
         metadata: { version: 1 },
       },
@@ -641,6 +640,51 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       ISTAT_ATTRIBUTE_SEED.code,
       expect.anything(),
       expect.anything()
+    );
+  });
+  it("should skip revocation and count an error when a tenant has no ISTAT remoteId", async () => {
+    const warnSpy = vi.spyOn(genericLogger, "warn");
+    readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
+      data: { id: generateId() },
+      metadata: { version: 1 },
+    });
+    tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
+      internalAssignCertifiedDiscreteAttributeMock
+    );
+
+    readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValueOnce([
+      {
+        data: {
+          id: "tenant-without-istat-remoteid",
+          externalId: { origin: "ISTAT", value: "999999" },
+          remoteIds: [],
+        },
+        metadata: { version: 1 },
+      },
+    ]);
+
+    tenantProcessMock.internalRevokeCertifiedDiscreteAttribute.mockImplementation(
+      internalRevokeCertifiedDiscreteAttributeMock
+    );
+
+    await importAttributes(
+      istatClientMock as any,
+      readModelQueriesMock as any,
+      tenantProcessMock as any,
+      attributeProcessMock as any,
+      refreshableTokenMock,
+      { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
+      genericLogger,
+      generateId()
+    );
+
+    expect(
+      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute
+    ).not.toHaveBeenCalled();
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      "istatRemoteId not found for tenant: tenant-without-istat-remoteid"
     );
   });
   it("should continue revoking other tenants if one revocation fails", async () => {
