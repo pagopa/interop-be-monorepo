@@ -45,6 +45,7 @@ export async function importAttributes(
     processed: 0,
     created: 0,
     updated: 0,
+    skipped: 0,
     revoked: 0,
     errors: 0,
   };
@@ -67,19 +68,29 @@ export async function importAttributes(
   );
   const entries = Array.from(populationByMunicipality.entries());
   const chunks = sliceIntoChunks(entries, csvChunkSize);
+  logger.info("Pre-fetching valid ISTAT tenants from database...");
+  const validIstatCodesArray = await readModel.getAllIstatRemoteIds();
+  const validIstatCodes = new Set(validIstatCodesArray);
+  logger.info(`Found ${validIstatCodes.size} valid ISTAT tenants.`);
 
   for (const chunk of chunks) {
+    const token = await refreshableToken.get();
+    const context: InteropContext = {
+      correlationId,
+      bearerToken: token.serialized,
+    };
     await Promise.all(
       chunk.map(async ([municipalityCode, totalCount]) => {
         stats.processed++;
         try {
-          const token = await refreshableToken.get();
-          const context: InteropContext = {
-            correlationId,
-            bearerToken: token.serialized,
-          };
-
           try {
+            if (!validIstatCodes.has(municipalityCode)) {
+              logger.debug(
+                `Tenant with remoteId: ${municipalityCode} not found in DB. Skipping.`
+              );
+              stats.skipped++;
+              return;
+            }
             await tenantProcess.internalAssignCertifiedDiscreteAttribute(
               ISTAT_ATTRIBUTE_SEED.origin,
               municipalityCode,
@@ -132,7 +143,7 @@ export async function importAttributes(
   );
 
   logger.info(
-    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Updated: ${stats.updated}, Revoked: ${stats.revoked}, Error: ${stats.errors}`
+    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Updated: ${stats.updated}, Skipped: ${stats.skipped}, Revoked: ${stats.revoked}, Error: ${stats.errors}`
   );
 }
 
@@ -208,7 +219,20 @@ async function revokeMissingMunicipalities(
     await Promise.all(
       chunk.map(async (tenant) => {
         const tenantData = tenant.data;
-        logger.info(`Revoking ${tenantData.id}`);
+
+        const istatRemoteId = tenantData.remoteIds?.find(
+          (r) => r.origin === ISTAT_ATTRIBUTE_SEED.origin
+        );
+
+        if (!istatRemoteId) {
+          logger.warn(`istatRemoteId not found for tenant: ${tenantData.id}`);
+          stats.errors++;
+          return;
+        }
+
+        logger.info(
+          `Revoking attribute for tenant ${tenantData.id} (RemoteId: ${istatRemoteId?.origin} / ${istatRemoteId?.value})`
+        );
         try {
           const token = await refreshableToken.get();
           const context: InteropContext = {
@@ -218,8 +242,8 @@ async function revokeMissingMunicipalities(
 
           const metadata =
             await tenantProcess.internalRevokeCertifiedDiscreteAttribute(
-              tenantData.externalId.origin,
-              tenantData.externalId.value,
+              istatRemoteId.origin,
+              istatRemoteId.value,
               ISTAT_ATTRIBUTE_SEED.origin,
               ISTAT_ATTRIBUTE_SEED.code,
               context,

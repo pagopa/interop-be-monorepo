@@ -1,0 +1,20 @@
+meta {
+  name: Sign Risk Analysis
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{host-purpose}}/purposes/:purposeId/riskAnalysis/sign
+  body: json
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

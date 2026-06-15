@@ -314,6 +314,8 @@ export function purposeServiceBuilder(
       producersIds?: string[];
       states?: purposeApi.PurposeVersionState[];
       excludeDraft?: boolean | undefined;
+      reviewerId?: string | undefined;
+      signingStates?: purposeApi.RiskAnalysisSigningState[] | undefined;
       offset: number;
       limit: number;
     },
@@ -450,6 +452,40 @@ export function purposeServiceBuilder(
         headers,
       });
     },
+    async signRiskAnalysis(
+      purposeId: PurposeId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Signing risk analysis for purpose ${purposeId}`);
+      await purposeProcessClient.signRiskAnalysis(undefined, {
+        params: { purposeId },
+        headers,
+      });
+    },
+    async rejectRiskAnalysis(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisRejectionSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(`Rejecting risk analysis for purpose ${purposeId}`);
+      await purposeProcessClient.rejectRiskAnalysis(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
+    async editRiskAnalysisForm(
+      purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisFormSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Editing risk analysis form for purpose ${purposeId} by reviewer`
+      );
+      await purposeProcessClient.editRiskAnalysisForm(seed, {
+        params: { purposeId },
+        headers,
+      });
+    },
     async createPurposeForReceiveEservice(
       createSeed: bffApi.PurposeEServiceSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -566,6 +602,39 @@ export function purposeServiceBuilder(
           ...filters,
           excludeDraft: false,
           consumersIds: [authData.organizationId],
+          offset,
+          limit,
+        },
+        ctx
+      );
+    },
+    async getRiskAnalysisAssignments(
+      filters: {
+        eservicesIds?: string[] | undefined;
+        signingStates?: bffApi.RiskAnalysisSigningState[] | undefined;
+      },
+      offset: number,
+      limit: number,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Purposes> {
+      const { authData, logger } = ctx;
+      const signingStates =
+        filters.signingStates && filters.signingStates.length > 0
+          ? filters.signingStates
+          : [
+              bffApi.RiskAnalysisSigningState.Values.ASSIGNED,
+              bffApi.RiskAnalysisSigningState.Values.SUBMITTED,
+            ];
+      logger.info(
+        `Retrieving risk analysis assignments for reviewerId ${authData.userId}, signingState ${signingStates.join(",")}, EServices ${filters.eservicesIds}, offset ${offset}, limit ${limit}`
+      );
+      return await getPurposes(
+        authData,
+        {
+          reviewerId: authData.userId,
+          eservicesIds: filters.eservicesIds,
+          signingStates,
+          excludeDraft: true,
           offset,
           limit,
         },
