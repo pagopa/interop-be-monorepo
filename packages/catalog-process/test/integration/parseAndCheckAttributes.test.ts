@@ -124,6 +124,39 @@ describe("parseAndCheckAttributes", () => {
     expect(result).toEqual(seed);
   });
 
+  it("should parse and check the same certified discrete attribute in different groups", async () => {
+    const seed: catalogApi.AttributesSeed = {
+      certified: [
+        [
+          {
+            id: certifiedDiscrete1.id,
+            explicitAttributeVerification: false,
+            discreteConfig: {
+              threshold: 1000,
+              comparator: attributeCertifiedDiscreteComparator.GT,
+            },
+          },
+        ],
+        [
+          {
+            id: certifiedDiscrete1.id,
+            explicitAttributeVerification: false,
+            discreteConfig: {
+              threshold: 10000,
+              comparator: attributeCertifiedDiscreteComparator.LT,
+            },
+          },
+        ],
+      ],
+      declared: [],
+      verified: [],
+    };
+
+    const result = await parseAndCheckAttributes(seed, readModelService);
+
+    expect(result).toEqual(seed);
+  });
+
   it("should throw attributeNotFound when a certified discrete attribute has no discrete config", async () => {
     const seed: catalogApi.AttributesSeed = {
       certified: [
@@ -264,6 +297,36 @@ describe("parseAndCheckAttributes", () => {
   });
 
   it("Should throw attributeDuplicatedInGroup in case of attribute duplicated in group", async () => {
+    await expect(
+      parseAndCheckAttributes(
+        {
+          certified: [
+            [
+              {
+                id: certifiedDiscrete1.id,
+                explicitAttributeVerification: false,
+                discreteConfig: {
+                  threshold: 1000,
+                  comparator: attributeCertifiedDiscreteComparator.GT,
+                },
+              },
+              {
+                id: certifiedDiscrete1.id,
+                explicitAttributeVerification: false,
+                discreteConfig: {
+                  threshold: 10000,
+                  comparator: attributeCertifiedDiscreteComparator.LT,
+                },
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+        readModelService
+      )
+    ).rejects.toThrowError(attributeDuplicatedInGroup(certifiedDiscrete1.id));
+
     await expect(
       parseAndCheckAttributes(
         {

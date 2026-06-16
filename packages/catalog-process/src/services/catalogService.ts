@@ -232,6 +232,13 @@ import {
   DEFAULT_DAILY_CALLS_PER_CONSUMER,
   DEFAULT_DAILY_CALLS_TOTAL,
 } from "../model/domain/constants.js";
+import {
+  certifiedAttributeRequirementsEqual,
+  certifiedGroupContainsAllById,
+  certifiedGroupContainsAllByRequirement,
+  findMatchingCertifiedGroup,
+  type CertifiedAttributeComparison,
+} from "./attributeGroupUtils.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -4862,44 +4869,12 @@ function retainCurrentCertifiedDailyCalls(
   incomingAttributes: EserviceAttributes,
   currentAttributes: EserviceAttributes
 ): EserviceAttributes {
-  function isMatchingCertifiedGroup(
-    incomingGroup: EServiceCertifiedAttribute[],
-    currentGroup: EServiceCertifiedAttribute[]
-  ): boolean {
-    return currentGroup.every((currentAttribute) =>
-      incomingGroup.some(
-        (incomingAttribute) => incomingAttribute.id === currentAttribute.id
-      )
-    );
-  }
-
-  function findMatchingCertifiedGroup(
-    incomingGroup: EServiceCertifiedAttribute[],
-    currentGroups: EServiceCertifiedAttribute[][],
-    usedCurrentGroupIndexes: Set<number>
-  ): EServiceCertifiedAttribute[] | undefined {
-    for (const [groupIndex, currentGroup] of currentGroups.entries()) {
-      if (usedCurrentGroupIndexes.has(groupIndex)) {
-        continue;
-      }
-
-      if (!isMatchingCertifiedGroup(incomingGroup, currentGroup)) {
-        continue;
-      }
-
-      usedCurrentGroupIndexes.add(groupIndex);
-      return currentGroup;
-    }
-
-    return undefined;
-  }
-
   function findCurrentCertifiedAttribute(
     incomingAttribute: EServiceCertifiedAttribute,
     currentGroup: EServiceCertifiedAttribute[] | undefined
   ): EServiceCertifiedAttribute | undefined {
-    return currentGroup?.find(
-      (currentAttribute) => currentAttribute.id === incomingAttribute.id
+    return currentGroup?.find((currentAttribute) =>
+      certifiedAttributeRequirementsEqual(currentAttribute, incomingAttribute)
     );
   }
 
@@ -4943,9 +4918,11 @@ function retainCurrentCertifiedDailyCalls(
   const updatedCertifiedAttributes = incomingAttributes.certified.map(
     (incomingGroup) => {
       const currentGroup = findMatchingCertifiedGroup(
-        incomingGroup,
         currentAttributes.certified,
-        usedCurrentGroupIndexes
+        incomingGroup,
+        usedCurrentGroupIndexes,
+        (currentGroup, incomingGroup) =>
+          certifiedGroupContainsAllByRequirement(incomingGroup, currentGroup)
       );
 
       return retainCurrentDailyCallsInCertifiedGroup(
@@ -4976,7 +4953,16 @@ function updateEServiceDescriptorAttributeInAdd(
    */
   function validateAndRetrieveNewAttributes(
     attributesDescriptor: EServiceAttribute[][],
-    attributesSeed: catalogApi.Attribute[][]
+    attributesSeed: catalogApi.Attribute[][],
+    groupContainsAll: (
+      candidateGroup: CertifiedAttributeComparison[],
+      requiredGroup: CertifiedAttributeComparison[]
+    ) => boolean = certifiedGroupContainsAllById,
+    attributeAlreadyExists: (
+      descriptorAttribute: CertifiedAttributeComparison,
+      seedAttribute: CertifiedAttributeComparison
+    ) => boolean = (descriptorAttribute, seedAttribute) =>
+      descriptorAttribute.id === seedAttribute.id
   ): string[] {
     // If the seed has a different number of attribute groups than the descriptor, it's invalid
     if (attributesDescriptor.length !== attributesSeed.length) {
@@ -4986,11 +4972,7 @@ function updateEServiceDescriptorAttributeInAdd(
     return attributesDescriptor.flatMap((attributeGroup) => {
       // Get the seed group that is a superset of the descriptor group
       const supersetSeed = attributesSeed.find((seedGroup) =>
-        attributeGroup.every((descriptorAttribute) =>
-          seedGroup.some(
-            (seedAttribute) => descriptorAttribute.id === seedAttribute.id
-          )
-        )
+        groupContainsAll(seedGroup, attributeGroup)
       );
 
       if (!supersetSeed) {
@@ -5004,7 +4986,9 @@ function updateEServiceDescriptorAttributeInAdd(
       return supersetSeed
         .filter(
           (seedAttribute) =>
-            !attributeGroup.some((att) => att.id === seedAttribute.id)
+            !attributeGroup.some((descriptorAttribute) =>
+              attributeAlreadyExists(descriptorAttribute, seedAttribute)
+            )
         )
         .flatMap((seedAttribute) => seedAttribute.id);
     });
@@ -5012,7 +4996,9 @@ function updateEServiceDescriptorAttributeInAdd(
 
   const certifiedAttributes = validateAndRetrieveNewAttributes(
     descriptor.attributes.certified,
-    seed.certified
+    seed.certified,
+    certifiedGroupContainsAllByRequirement,
+    certifiedAttributeRequirementsEqual
   );
 
   const verifiedAttributes = validateAndRetrieveNewAttributes(
@@ -5037,13 +5023,14 @@ function hasCertifiedAttributeConfigurationChanged(
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
 ): boolean {
+  const usedSeedGroupIndexes = new Set<number>();
   return descriptor.attributes.certified.some((descriptorAttributesGroup) => {
-    const seedAttrGroup = seed.certified.find((seedGroup) =>
-      descriptorAttributesGroup.every((descriptorAttribute) =>
-        seedGroup.some(
-          (seedAttribute) => seedAttribute.id === descriptorAttribute.id
-        )
-      )
+    const seedAttrGroup = findMatchingCertifiedGroup(
+      seed.certified,
+      descriptorAttributesGroup,
+      usedSeedGroupIndexes,
+      (seedGroup, descriptorGroup) =>
+        certifiedGroupContainsAllByRequirement(seedGroup, descriptorGroup)
     );
 
     if (seedAttrGroup === undefined) {

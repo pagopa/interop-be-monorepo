@@ -13,12 +13,13 @@ import {
   EService,
   toEServiceV2,
   generateId,
+  attributeCertifiedDiscreteComparator,
   attributeKind,
   EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
   AttributeId,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it, beforeEach, afterEach } from "vitest";
 import {
   attributeNotFound,
   eServiceDescriptorNotFound,
@@ -26,6 +27,7 @@ import {
   inconsistentAttributesSeedGroupsCount,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
 } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneAttribute,
   addOneEService,
@@ -105,6 +107,10 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
     await addOneAttribute(mockDeclaredAttribute1);
     await addOneAttribute(mockDeclaredAttribute2);
     await addOneAttribute(mockDeclaredAttribute3);
+  });
+
+  afterEach(() => {
+    config.featureFlagAttributeCertifiedDiscrete = false;
   });
 
   it.each([descriptorState.published, descriptorState.suspended])(
@@ -694,6 +700,128 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
       };
 
       expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    }
+  );
+
+  it.each([descriptorState.published, descriptorState.suspended])(
+    "should preserve distinct dailyCallsPerConsumer values when the same certified discrete attribute id appears in multiple groups",
+    async (descriptorState) => {
+      config.featureFlagAttributeCertifiedDiscrete = true;
+      const certifiedDiscreteAttribute = getMockAttribute(
+        attributeKind.certifiedDiscrete
+      );
+      await addOneAttribute(certifiedDiscreteAttribute);
+
+      const lowerBoundConfig = {
+        threshold: 1000,
+        comparator: attributeCertifiedDiscreteComparator.GT,
+      };
+      const upperBoundConfig = {
+        threshold: 10000,
+        comparator: attributeCertifiedDiscreteComparator.LT,
+      };
+      const lowerBoundDailyCalls = 100;
+      const upperBoundDailyCalls = 200;
+
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState,
+        dailyCallsTotal: 1000,
+        attributes: {
+          certified: [
+            [
+              {
+                id: certifiedDiscreteAttribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: lowerBoundDailyCalls,
+                discreteConfig: lowerBoundConfig,
+              },
+            ],
+            [
+              {
+                id: certifiedDiscreteAttribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: upperBoundDailyCalls,
+                discreteConfig: upperBoundConfig,
+              },
+            ],
+          ],
+          verified: [],
+          declared: [],
+        },
+      };
+
+      const mockEService: EService = {
+        ...getMockEService(),
+        descriptors: [mockDescriptor],
+      };
+
+      await addOneEService(mockEService);
+
+      const seedWithNewAttribute: catalogApi.AttributesSeed = {
+        certified: [
+          [
+            {
+              id: certifiedDiscreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: lowerBoundConfig,
+            },
+            {
+              id: mockCertifiedAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+          [
+            {
+              id: certifiedDiscreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: upperBoundConfig,
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      };
+
+      await catalogService.internalUpdateTemplateInstanceDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        seedWithNewAttribute,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      );
+
+      const writtenEvent = await readLastEserviceEvent(mockEService.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockEService.id,
+        version: "1",
+        type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+        event_version: 2,
+      });
+
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorAttributesUpdatedByTemplateUpdateV2,
+        payload: writtenEvent.data,
+      });
+
+      const updatedDescriptor = writtenPayload.eservice?.descriptors[0];
+      const lowerBoundGroup =
+        updatedDescriptor?.attributes?.certified[0]?.values;
+      const upperBoundGroup =
+        updatedDescriptor?.attributes?.certified[1]?.values;
+
+      const lowerBoundAttribute = lowerBoundGroup?.find(
+        (attr) => attr.id === certifiedDiscreteAttribute.id
+      );
+      expect(lowerBoundAttribute?.dailyCallsPerConsumer).toBe(
+        lowerBoundDailyCalls
+      );
+
+      const upperBoundAttribute = upperBoundGroup?.find(
+        (attr) => attr.id === certifiedDiscreteAttribute.id
+      );
+      expect(upperBoundAttribute?.dailyCallsPerConsumer).toBe(
+        upperBoundDailyCalls
+      );
     }
   );
 });

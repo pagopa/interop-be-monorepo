@@ -79,6 +79,11 @@ import {
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
 import { catalogApi } from "pagopa-interop-api-clients";
+import {
+  certifiedAttributeRequirementsEqual,
+  certifiedGroupContainsAllByRequirement,
+  findMatchingCertifiedGroup,
+} from "./attributeGroupUtils.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -636,13 +641,15 @@ function assertAttributeGroupsUnchanged(
     throw templateInstanceNotAllowed(eserviceId, templateId);
   }
 
+  const usedSeedGroupIndexes = new Set<number>();
   for (const descriptorGroup of descriptorGroups) {
-    const matchingSeedGroup = seedGroups.find(
-      (seedGroup) =>
+    const matchingSeedGroup = findMatchingCertifiedGroup(
+      seedGroups,
+      descriptorGroup,
+      usedSeedGroupIndexes,
+      (seedGroup, descriptorGroup) =>
         seedGroup.length === descriptorGroup.length &&
-        descriptorGroup.every((descriptorAttr) =>
-          seedGroup.some((seedAttr) => seedAttr.id === descriptorAttr.id)
-        )
+        certifiedGroupContainsAllByRequirement(seedGroup, descriptorGroup)
     );
 
     if (!matchingSeedGroup) {
@@ -661,10 +668,7 @@ function assertAttributeGroupsUnchanged(
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
           descriptorAttr.explicitAttributeVerification ||
-        seedAttr.discreteConfig?.threshold !==
-          descriptorDiscreteConfig?.threshold ||
-        seedAttr.discreteConfig?.comparator !==
-          descriptorDiscreteConfig?.comparator ||
+        !certifiedAttributeRequirementsEqual(seedAttr, descriptorAttr) ||
         Boolean(seedAttr.discreteConfig) !==
           (descriptorDiscreteConfig !== undefined)
       ) {

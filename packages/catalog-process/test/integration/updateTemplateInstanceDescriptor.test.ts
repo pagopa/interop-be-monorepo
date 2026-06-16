@@ -23,7 +23,7 @@ import {
   attributeCertifiedDiscreteComparator,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { expect, describe, it } from "vitest";
+import { expect, describe, it, afterEach } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -49,6 +49,10 @@ describe("update descriptor", () => {
   const mockTemplate = getMockEServiceTemplate();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
+
+  afterEach(() => {
+    config.featureFlagAttributeCertifiedDiscrete = false;
+  });
   it.each([
     descriptorState.published,
     descriptorState.suspended,
@@ -491,6 +495,115 @@ describe("update descriptor", () => {
         }),
       ])
     );
+  });
+
+  it("should update dailyCallsPerConsumer on certified discrete attributes with the same id in different groups of a published template instance descriptor", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+    const certifiedDiscreteAttribute = getMockAttribute(
+      attributeKind.certifiedDiscrete
+    );
+
+    await addOneAttribute(certifiedDiscreteAttribute);
+
+    const lowerBoundConfig = {
+      threshold: 1000,
+      comparator: attributeCertifiedDiscreteComparator.GT,
+    };
+    const upperBoundConfig = {
+      threshold: 10000,
+      comparator: attributeCertifiedDiscreteComparator.LT,
+    };
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      publishedAt: new Date(),
+      dailyCallsPerConsumer: 1,
+      dailyCallsTotal: 1000,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedDiscreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: lowerBoundConfig,
+            },
+          ],
+          [
+            {
+              id: certifiedDiscreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: upperBoundConfig,
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      templateId: mockTemplate.id,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(mockTemplate);
+
+    const descriptorQuotasSeed: catalogApi.UpdateEServiceTemplateInstanceDescriptorQuotasSeed =
+      {
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: {
+          certified: [
+            [
+              {
+                id: certifiedDiscreteAttribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: 500,
+                discreteConfig: lowerBoundConfig,
+              },
+            ],
+            [
+              {
+                id: certifiedDiscreteAttribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: 300,
+                discreteConfig: upperBoundConfig,
+              },
+            ],
+          ],
+          declared: [],
+          verified: [],
+        },
+      };
+
+    const returnedEService =
+      await catalogService.updateTemplateInstanceDescriptor(
+        eservice.id,
+        descriptor.id,
+        descriptorQuotasSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+    expect(returnedEService.descriptors[0].attributes.certified).toEqual([
+      [
+        {
+          id: certifiedDiscreteAttribute.id,
+          explicitAttributeVerification: false,
+          dailyCallsPerConsumer: 500,
+          discreteConfig: lowerBoundConfig,
+        },
+      ],
+      [
+        {
+          id: certifiedDiscreteAttribute.id,
+          explicitAttributeVerification: false,
+          dailyCallsPerConsumer: 300,
+          discreteConfig: upperBoundConfig,
+        },
+      ],
+    ]);
   });
 
   it("should clear existing certified attribute dailyCallsPerConsumer when seed.attributes omits them", async () => {
