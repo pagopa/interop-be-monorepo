@@ -31,7 +31,7 @@ import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
 
 const AGENCY_CLASSIFICATION = "Agency";
-
+const MUNICIPALITY_CODE = "L6";
 // Tipologia Gestori di Pubblici Servizi
 export const PUBLIC_SERVICES_MANAGERS_TYPOLOGY = "Gestori di Pubblici Servizi";
 
@@ -212,7 +212,7 @@ export function getTenantUpsertData(
       originId: i.originId,
       description: i.description,
       attributes,
-      istatCode: i.istatCode,
+      istatCode: i.category === MUNICIPALITY_CODE ? i.istatCode : undefined,
     };
   });
 }
