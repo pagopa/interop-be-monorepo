@@ -101,6 +101,52 @@ describe("interpolateTemplateRestApiSpec", async () => {
     expect(yamlString).toContain("$ref");
   });
 
+  it("should not mutate the spec beyond the interpolated custom fields", async () => {
+    // The interpolation is only allowed to touch the custom fields
+    // (info.contact, info.termsOfService and servers). Everything else
+    // (paths, components, $ref, etc.) must stay byte-for-byte equivalent:
+    // the validation step must not dereference $ref nor reorder the spec.
+    const stripCustomFields = (spec: ReturnType<typeof JSON.parse>): void => {
+      delete spec.servers;
+      delete spec.info.contact;
+      delete spec.info.termsOfService;
+    };
+
+    const jsonResult: File = await interpolateTemplateRestApiSpec(
+      eservice,
+      file,
+      interfaceFileInfo,
+      eserviceInstanceInterfaceData
+    );
+    const jsonOutput = JSON.parse(await jsonResult.text());
+    const jsonInput = JSON.parse(file);
+    stripCustomFields(jsonOutput);
+    stripCustomFields(jsonInput);
+    expect(jsonOutput).toStrictEqual(jsonInput);
+
+    const yamlFileString: string = await readFileContent(
+      "test.openapi.3.0.2.yaml"
+    );
+    const yamlInterfaceFileInfo = {
+      id: generateId(),
+      name: "yaml",
+      contentType: "application/x-yaml",
+      prettyName: "Test Interface YAML",
+    };
+    const yamlResult: File = await interpolateTemplateRestApiSpec(
+      eservice,
+      yamlFileString,
+      yamlInterfaceFileInfo,
+      eserviceInstanceInterfaceData
+    );
+    const { parse } = await import("yaml");
+    const yamlOutput = parse(await yamlResult.text());
+    const yamlInput = parse(yamlFileString);
+    stripCustomFields(yamlOutput);
+    stripCustomFields(yamlInput);
+    expect(yamlOutput).toStrictEqual(yamlInput);
+  });
+
   it("should throw invalidInterfaceFileDetected error for unsupported file type", async () => {
     const interfaceFileInfo = {
       id: generateId(),
