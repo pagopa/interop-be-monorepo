@@ -58,6 +58,7 @@ const {
   M2M_ADMIN_ROLE,
   INTERNAL_ROLE,
   SUPPORT_ROLE,
+  REVIEWER_ROLE,
   VIEWER_ROLE,
 } = authRole;
 
@@ -383,6 +384,7 @@ const agreementRouter = (
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
+          REVIEWER_ROLE,
           VIEWER_ROLE,
         ]);
 
