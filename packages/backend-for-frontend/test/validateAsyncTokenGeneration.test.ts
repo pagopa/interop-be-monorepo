@@ -973,6 +973,106 @@ describe("validateTokenGeneration async validations", () => {
     ).toBe(true);
   });
 
+  it("invalidEntityNumber is detected for callback_invocation when entityNumber exceeds maxResultSet", async () => {
+    const producerKeychainId = generateId<ProducerKeychainId>();
+    const producerClientId = unsafeBrandId<ClientId>(producerKeychainId);
+
+    vi.spyOn(
+      clientAssertionValidation,
+      "verifyAsyncClientAssertion"
+    ).mockReturnValue({
+      errors: undefined,
+      data: {
+        header: { kid: mockKid, alg: "RS256", typ: "JWT" },
+        payload: {
+          sub: producerClientId,
+          jti: "jti",
+          iat: 1,
+          exp: 2,
+          iss: producerClientId,
+          aud: ["audience"],
+          scope: interactionState.callbackInvocation,
+          interactionId: mockInteractionId,
+          entityNumber: 51,
+        },
+      },
+    });
+
+    dynamoDBClient.send = vi.fn().mockResolvedValueOnce({
+      Items: [
+        marshall({
+          PK: `INTERACTION#${mockInteractionId}`,
+          interactionId: mockInteractionId,
+          clientId: mockClientId,
+          consumerId: mockAuthData.organizationId,
+          purposeId: mockPurposeId,
+          eServiceId: mockEServiceId,
+          descriptorId: mockDescriptorId,
+          state: interactionState.startInteraction,
+          startInteractionTokenIssuedAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          ttl: 1,
+        }),
+      ],
+    });
+
+    mockClients.authorizationClient.producerKeychain.getProducerKeychain = vi
+      .fn()
+      .mockResolvedValue({
+        visibility: authorizationApi.Visibility.Values.FULL,
+        id: producerKeychainId,
+        producerId: generateId(),
+        name: "Producer keychain",
+        createdAt: new Date().toISOString(),
+        eservices: [mockEServiceId],
+        description: "Producer keychain description",
+        users: [],
+        keys: [],
+      });
+
+    mockClients.catalogProcessClient.getEServiceById = vi
+      .fn()
+      .mockResolvedValue({
+        id: mockEServiceId,
+        name: "Test eService",
+        asyncExchange: true,
+        descriptors: [
+          {
+            id: mockDescriptorId,
+            version: "1",
+            state: "PUBLISHED",
+            audience: ["audience"],
+            voucherLifespan: 3600,
+            asyncExchangeProperties: {
+              responseTime: 60,
+              resourceAvailableTime: 120,
+              confirmation: true,
+              bulk: false,
+              maxResultSet: 50,
+            },
+          },
+        ],
+      });
+
+    const result = await service.validateTokenGeneration(
+      producerClientId,
+      mockClientAssertion,
+      mockClientAssertionType,
+      mockGrantType,
+      true,
+      undefined,
+      ctx
+    );
+
+    expect(result.steps.platformStatesVerification.result).toBe("FAILED");
+    expect(result.steps.platformStatesVerification.failures).toEqual([
+      {
+        code: "invalidEntityNumber",
+        reason: `entityNumber 51 exceeds maxResultSet 50 for client ${producerClientId}`,
+      },
+    ]);
+  });
+
   it("interactionStateNotAllowed when interaction is in start_interaction state but scope is get_resource", async () => {
     vi.spyOn(
       clientAssertionValidation,

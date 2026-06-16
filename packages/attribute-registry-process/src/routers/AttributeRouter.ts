@@ -79,6 +79,8 @@ const attributeRouter = (
     M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   attributeRouter
@@ -200,6 +202,8 @@ const attributeRouter = (
             SECURITY_ROLE,
             M2M_ADMIN_ROLE,
             M2M_ROLE,
+            REVIEWER_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const { data, metadata } =
@@ -234,6 +238,8 @@ const attributeRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const attributes = await attributeRegistryService.getAttributesByIds(

@@ -4,6 +4,7 @@ import {
   decodeProtobufPayload,
   getMockContext,
   getMockAuthData,
+  getMockDelegation,
   getMockEService,
   getMockDescriptor,
   getMockDocument,
@@ -12,6 +13,8 @@ import {
 import {
   Descriptor,
   descriptorState,
+  delegationKind,
+  delegationState,
   EService,
   toEServiceV2,
   operationForbidden,
@@ -24,9 +27,11 @@ import { expect, describe, it, vi } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
+  eserviceWithActiveOrPendingDelegation,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import {
+  addOneDelegation,
   addOneEService,
   catalogService,
   readLastEserviceEvent,
@@ -314,6 +319,37 @@ describe("schedule archiving of a descriptor", () => {
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
+  });
+
+  it("should throw eserviceWithActiveOrPendingDelegation if there is an active producer delegation", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.deprecated,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    const delegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      state: delegationState.active,
+    });
+
+    await addOneEService(eservice);
+    await addOneDelegation(delegation);
+
+    await expect(
+      catalogService.scheduleEServiceDescriptorArchiving(
+        eservice.id,
+        descriptor.id,
+        getMockContext({
+          authData: getMockAuthData(eservice.producerId),
+        })
+      )
+    ).rejects.toThrowError(
+      eserviceWithActiveOrPendingDelegation(eservice.id, delegation.id)
+    );
   });
 
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {

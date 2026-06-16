@@ -820,12 +820,14 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
         - name: descriptorId
           in: path
           description: The Descriptor Id
           required: true
           schema:
             type: string
+            format: uuid
       requestBody:
         description: An E-Service Descriptor seed
         content:
@@ -3473,6 +3475,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceRiskAnalysisMultiAnswer"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysisSingleAnswer:
       type: object
       additionalProperties: false
@@ -3831,9 +3835,13 @@ components:
         responseTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         confirmation:
           type: boolean
         bulk:
@@ -3841,6 +3849,8 @@ components:
         maxResultSet:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 99999
     AsyncExchangePropertiesInstanceSeed:
       type: object
       additionalProperties: false
@@ -3848,12 +3858,18 @@ components:
         responseTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         maxResultSet:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 99999
     EServiceTechnology:
       type: string
       description: API Technology
@@ -3967,6 +3983,13 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+    TenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
+        - GSP
+        - SCP
     Problem:
       properties:
         type:
