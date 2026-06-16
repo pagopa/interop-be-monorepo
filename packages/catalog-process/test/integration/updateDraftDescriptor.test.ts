@@ -12,6 +12,7 @@ import {
   getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
+  attributeCertifiedDiscreteComparator,
   Descriptor,
   descriptorState,
   EService,
@@ -24,7 +25,7 @@ import {
   delegationKind,
   technology,
 } from "pagopa-interop-models";
-import { expect, describe, it, beforeEach } from "vitest";
+import { expect, describe, it, beforeEach, afterEach } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -60,6 +61,10 @@ describe("updateDraftDescriptor", () => {
     await addOneAttribute(certifiedAttribute);
     await addOneAttribute(verifiedAttribute);
     await addOneAttribute(declaredAttribute);
+  });
+
+  afterEach(() => {
+    config.featureFlagAttributeCertifiedDiscrete = false;
   });
 
   it("should write on event-store for the update of a draft descriptor", async () => {
@@ -148,6 +153,77 @@ describe("updateDraftDescriptor", () => {
     expect(updateDescriptorResponse).toEqual({
       data: expectedEService,
       metadata: { version: 1 },
+    });
+  });
+
+  it("should update certified discrete attribute config on a draft descriptor", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+    const certifiedDiscreteAttribute: Attribute =
+      getMockAttribute("CertifiedDiscrete");
+    await addOneAttribute(certifiedDiscreteAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedDiscreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: {
+                threshold: 1000,
+                comparator: attributeCertifiedDiscreteComparator.GTE,
+              },
+            },
+          ],
+        ],
+        verified: [],
+        declared: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedDiscreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: {
+                threshold: 10000,
+                comparator: attributeCertifiedDiscreteComparator.LT,
+              },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const updateDescriptorResponse = await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      descriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    expect(
+      updateDescriptorResponse.data.descriptors[0].attributes.certified[0][0]
+    ).toEqual({
+      id: certifiedDiscreteAttribute.id,
+      explicitAttributeVerification: false,
+      discreteConfig: {
+        threshold: 10000,
+        comparator: attributeCertifiedDiscreteComparator.LT,
+      },
     });
   });
 

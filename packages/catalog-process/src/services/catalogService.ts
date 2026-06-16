@@ -82,6 +82,7 @@ import {
 import {
   attributeNotFound,
   audienceCannotBeEmpty,
+  certifiedDiscreteAttributeConfigCannotBeChanged,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
   documentPrettyNameDuplicate,
   eServiceAlreadyUpgraded,
@@ -2410,6 +2411,14 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
+      if (seed.attributes !== undefined) {
+        assertCertifiedDiscreteConfigsUnchanged(
+          eserviceId,
+          descriptor,
+          seed.attributes
+        );
+      }
+
       const updatedAttributes = seed.attributes
         ? await parseAndCheckAttributes(seed.attributes, readModelService)
         : descriptor.attributes;
@@ -3322,6 +3331,8 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       assertDescriptorUpdatableAfterPublish(descriptor);
+
+      assertCertifiedDiscreteConfigsUnchanged(eserviceId, descriptor, seed);
 
       const newAttributes = updateEServiceDescriptorAttributeInAdd(
         eserviceId,
@@ -5016,6 +5027,62 @@ function updateEServiceDescriptorAttributeInAdd(
     ...verifiedAttributes,
     ...declaredAttributes,
   ].map(unsafeBrandId<AttributeId>);
+}
+
+function assertCertifiedDiscreteConfigsUnchanged(
+  eserviceId: EServiceId,
+  descriptor: Descriptor,
+  seed: catalogApi.AttributesSeed
+): void {
+  const usedSeedGroupIndexesByRequirement = new Set<number>();
+  const usedSeedGroupIndexesById = new Set<number>();
+
+  for (const descriptorGroup of descriptor.attributes.certified) {
+    const sameRequirementSeedGroup = findMatchingCertifiedGroup(
+      seed.certified,
+      descriptorGroup,
+      usedSeedGroupIndexesByRequirement,
+      (seedGroup, descriptorGroup) =>
+        certifiedGroupContainsAllByRequirement(seedGroup, descriptorGroup)
+    );
+
+    if (sameRequirementSeedGroup !== undefined) {
+      continue;
+    }
+
+    const sameIdsSeedGroup = findMatchingCertifiedGroup(
+      seed.certified,
+      descriptorGroup,
+      usedSeedGroupIndexesById,
+      (seedGroup, descriptorGroup) =>
+        certifiedGroupContainsAllById(seedGroup, descriptorGroup)
+    );
+
+    if (sameIdsSeedGroup === undefined) {
+      continue;
+    }
+
+    const changedCertifiedDiscreteAttribute = descriptorGroup.find(
+      (descriptorAttribute) =>
+        getEServiceAttributeDiscreteConfig(descriptorAttribute) !== undefined &&
+        sameIdsSeedGroup.some(
+          (seedAttribute) =>
+            seedAttribute.id === descriptorAttribute.id &&
+            !certifiedAttributeRequirementsEqual(
+              seedAttribute,
+              descriptorAttribute
+            )
+        )
+    );
+
+    if (changedCertifiedDiscreteAttribute !== undefined) {
+      throw certifiedDiscreteAttributeConfigCannotBeChanged(
+        eserviceId,
+        descriptor.id,
+        changedCertifiedDiscreteAttribute.id
+      );
+    }
+  }
 }
 
 function hasCertifiedAttributeConfigurationChanged(
