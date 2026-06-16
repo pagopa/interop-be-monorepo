@@ -16,6 +16,10 @@ export const eventMailTemplateType = {
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
   eserviceDescriptorSuspendedMailTemplate: "eservice-descriptor-suspended-mail",
   eserviceDescriptorActivatedMailTemplate: "eservice-descriptor-activated-mail",
+  eserviceArchivingDescriptorSuspendedMailTemplate:
+    "eservice-archiving-descriptor-suspended-mail",
+  eserviceArchivingDescriptorActivatedMailTemplate:
+    "eservice-archiving-descriptor-activated-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   producerKeychainEserviceAddedMailTemplate:
     "producer-keychain-eservice-added-mail",
