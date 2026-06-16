@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { addDays, addMinutes } from "date-fns";
+import { addDays } from "date-fns";
 import { describe, it, expect, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -186,39 +186,5 @@ describe("handleEserviceDescriptorArchivingScheduledReminderInApp", () => {
     expect(consumer?.userId).toBe(consumerUserId);
     expect(consumer?.tenantId).toBe(consumerId);
     expect(consumer?.body).toContain("producer-tenant");
-  });
-
-  it("clamps daysRemaining to 0 when archivableOn is in the past", async () => {
-    const descriptor = makeDescriptor({
-      archivingSchedule: {
-        archivableOn: addMinutes(new Date(), -1),
-        startedAt: new Date(),
-        scope: archivingScope.descriptor,
-      },
-    });
-    const eservice = makeEservice({ descriptors: [descriptor] });
-
-    const readModelService = {
-      notificationTypeBlocklist: [],
-      getEServiceById: vi.fn().mockResolvedValue(eservice),
-      getTenantById: vi.fn().mockResolvedValue({ name: "producer-tenant" }),
-      getAgreementsByEserviceId: vi.fn().mockResolvedValue([]),
-      getTenantUsersWithNotificationEnabled: vi.fn().mockResolvedValue([
-        {
-          userId: generateId<UserId>(),
-          tenantId: eservice.producerId,
-          userRoles: ["admin"],
-        },
-      ]),
-    } as any;
-
-    const result =
-      await handleEserviceDescriptorArchivingScheduledReminderInApp(
-        buildRow(formatEServiceIdDescriptorId(eservice.id, descriptor.id)),
-        readModelService,
-        genericLogger
-      );
-    expect(result).toHaveLength(1);
-    expect(result[0].body).toContain("oggi");
   });
 });

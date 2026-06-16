@@ -56,12 +56,12 @@ export async function handleEserviceArchivingToConsumer(
     msg.type === "EServiceArchivingCompleted" ||
     msg.type === "EServiceDescriptorArchivingCompleted";
 
-  const [producer, agreements] = await Promise.all([
-    retrieveTenant(eservice.producerId, readModelService),
-    readModelService.getAgreementsByEserviceId(eservice.id, {
+  const agreements = await readModelService.getAgreementsByEserviceId(
+    eservice.id,
+    {
       includeArchived,
-    }),
-  ]);
+    }
+  );
   if (!agreements || agreements.length === 0) {
     return [];
   }
@@ -82,11 +82,7 @@ export async function handleEserviceArchivingToConsumer(
     return [];
   }
 
-  const { body, descriptor } = bodyAndDescriptorForConsumer(
-    msg,
-    eservice,
-    producer.name
-  );
+  const { body, descriptor } = bodyAndDescriptorForConsumer(msg, eservice);
   const entityId = EServiceIdDescriptorId.parse(
     `${eservice.id}/${descriptor.id}`
   );
@@ -102,8 +98,7 @@ export async function handleEserviceArchivingToConsumer(
 
 function bodyAndDescriptorForConsumer(
   msg: ArchivingEvent,
-  eservice: EService,
-  producerName: string
+  eservice: EService
 ): { body: string; descriptor: Descriptor } {
   return match(msg)
     .with(
@@ -117,7 +112,6 @@ function bodyAndDescriptorForConsumer(
           body: inAppTemplates.eserviceArchivingStartedDescriptorToConsumer(
             eservice.name,
             descriptor.version,
-            producerName,
             descriptor.archivingSchedule?.archivableOn
           ),
           descriptor,
@@ -129,7 +123,6 @@ function bodyAndDescriptorForConsumer(
       return {
         body: inAppTemplates.eserviceArchivingStartedEserviceToConsumer(
           eservice.name,
-          producerName,
           descriptor.archivingSchedule?.archivableOn
         ),
         descriptor,
@@ -146,7 +139,7 @@ function bodyAndDescriptorForConsumer(
           body: inAppTemplates.eserviceArchivingCompletedDescriptorToConsumer(
             eservice.name,
             descriptor.version,
-            producerName
+            descriptor.archivingSchedule?.archivableOn
           ),
           descriptor,
         };
@@ -157,7 +150,7 @@ function bodyAndDescriptorForConsumer(
       return {
         body: inAppTemplates.eserviceArchivingCompletedEserviceToConsumer(
           eservice.name,
-          producerName
+          descriptor.archivingSchedule?.archivableOn
         ),
         descriptor,
       };
@@ -172,8 +165,7 @@ function bodyAndDescriptorForConsumer(
         return {
           body: inAppTemplates.eserviceArchivingEarlyArchivedToConsumer(
             eservice.name,
-            descriptor.version,
-            producerName
+            descriptor.version
           ),
           descriptor,
         };

@@ -12,12 +12,6 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 
-// export const formatDaysRemaining = (daysRemaining: number): string =>
-//   match(daysRemaining)
-//     .with(0, () => "oggi")
-//     .with(1, () => "domani")
-//     .otherwise((n) => `fra ${n} giorni`);
-
 export const inAppTemplates = {
   // agreements - erogazione
   agreementSubmittedToProducer: (
@@ -443,10 +437,9 @@ export const inAppTemplates = {
     }.`,
   eserviceArchivingEarlyArchivedToConsumer: (
     eserviceName: string,
-    descriptorVersion: string,
-    producerName: string
+    descriptorVersion: string
   ): string =>
-    `Ti informiamo che l'ente erogatore ${producerName} ha archiviato in anticipo la versione ${descriptorVersion} dell'e-service "${eserviceName}".`,
+    `Ti informiamo che l'ente erogatore ha archiviato in anticipo la versione ${descriptorVersion} dell'e-service "${eserviceName}".`,
   eserviceArchivingCanceledDescriptorToConsumer: (
     eserviceName: string,
     descriptorVersion: string
