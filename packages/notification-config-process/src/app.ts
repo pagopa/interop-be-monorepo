@@ -4,6 +4,7 @@ import {
   errorsToApiProblemsMiddleware,
   healthRouter,
   loggerMiddleware,
+  trimMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import {
@@ -34,6 +35,7 @@ export async function createApp(service: NotificationConfigService) {
   app.use(await applicationAuditEndMiddleware(serviceName, config));
   app.use(authenticationMiddleware(config));
   app.use(loggerMiddleware(serviceName));
+  app.use(trimMiddleware());
   app.use(router);
   app.use(errorsToApiProblemsMiddleware);
 
