@@ -12,11 +12,11 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 
-export const formatDaysRemaining = (daysRemaining: number): string =>
-  match(daysRemaining)
-    .with(0, () => "oggi")
-    .with(1, () => "domani")
-    .otherwise((n) => `fra ${n} giorni`);
+// export const formatDaysRemaining = (daysRemaining: number): string =>
+//   match(daysRemaining)
+//     .with(0, () => "oggi")
+//     .with(1, () => "domani")
+//     .otherwise((n) => `fra ${n} giorni`);
 
 export const inAppTemplates = {
   // agreements - erogazione
@@ -373,9 +373,9 @@ export const inAppTemplates = {
     descriptorVersion: string,
     archivableOn: Date | undefined
   ): string =>
-    `Hai avviato il processo di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}${
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} è in fase di archiviazione ma è ancora attiva ${
       archivableOn
-        ? `. L'archiviazione sarà completata il ${dateAtRomeZone(archivableOn)}`
+        ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}`
         : ""
     }.`,
   eserviceArchivingStartedEserviceToProducer: (
@@ -487,9 +487,7 @@ export const inAppTemplates = {
     daysRemaining: number,
     archivableOn: Date | undefined
   ): string =>
-    `Promemoria: la versione ${descriptorVersion} del tuo e-service "${eserviceName}" verrà archiviata ${formatDaysRemaining(
-      daysRemaining
-    )}${archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""}.`,
+    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" sarà archiviata il giorno ${archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""}.`,
   eserviceDescriptorArchivingScheduledReminderToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
