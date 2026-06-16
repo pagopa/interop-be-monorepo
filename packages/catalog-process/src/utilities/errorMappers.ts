@@ -743,7 +743,6 @@ export const updateTemplateInstanceDescriptorErrorMapper = (
       "inconsistentDailyCalls",
       "attributeDailyCallsNotAllowed",
       "attributeDiscreteConfigNotAllowed",
-      "certifiedDiscreteAttributeConfigCannotBeChanged",
       "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )

@@ -26,7 +26,6 @@ import {
   EServiceId,
   eserviceMode,
   EServiceTemplateId,
-  getEServiceAttributeDiscreteConfig,
   operationForbidden,
   RiskAnalysisId,
   technology,
@@ -661,16 +660,11 @@ function assertAttributeGroupsUnchanged(
         (attr) => attr.id === descriptorAttr.id
       );
 
-      const descriptorDiscreteConfig =
-        getEServiceAttributeDiscreteConfig(descriptorAttr);
-
       if (
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
           descriptorAttr.explicitAttributeVerification ||
-        !certifiedAttributeRequirementsEqual(seedAttr, descriptorAttr) ||
-        Boolean(seedAttr.discreteConfig) !==
-          (descriptorDiscreteConfig !== undefined)
+        !certifiedAttributeRequirementsEqual(seedAttr, descriptorAttr)
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }
