@@ -637,6 +637,7 @@ export function purposeServiceBuilder(
         authData,
         {
           reviewerId: authData.userId,
+          consumersIds: [authData.organizationId],
           eservicesIds: filters.eservicesIds,
           signingStates,
           excludeDraft: false,
