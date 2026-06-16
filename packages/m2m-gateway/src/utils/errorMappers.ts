@@ -171,6 +171,9 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  uploadEServiceDescriptorInterfaceErrorMapper;
+
 export const deleteEServiceDescriptorInterfaceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -181,6 +184,16 @@ export const deleteEServiceDescriptorInterfaceErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    match(error.code)
+      .with(
+        "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+        "eserviceDescriptorNotFound",
+        () => HTTP_STATUS_NOT_FOUND
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const assignTenantDeclaredAttributeErrorMapper = (
   error: ApiError<ErrorCodes>

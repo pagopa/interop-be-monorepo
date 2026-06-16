@@ -1,0 +1,21 @@
+meta {
+  name: Delete eservice descriptor async exchange callback interface
+  type: http
+  seq: 9
+}
+
+delete {
+  url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
