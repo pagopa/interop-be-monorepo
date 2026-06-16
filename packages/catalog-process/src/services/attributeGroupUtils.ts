@@ -14,7 +14,7 @@ export const certifiedAttributeRequirementsEqual = (
   first.discreteConfig?.comparator === second.discreteConfig?.comparator &&
   Boolean(first.discreteConfig) === Boolean(second.discreteConfig);
 
-export const certifiedAttributeIdsEqual = (
+const certifiedAttributeIdsEqual = (
   first: CertifiedAttributeComparison,
   second: CertifiedAttributeComparison
 ): boolean => first.id === second.id;
