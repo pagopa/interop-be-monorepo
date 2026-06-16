@@ -20,6 +20,7 @@ type PurposeTemplateValidationIssueCode =
   | "invalidDescriptorState"
   | "unexpectedUnassociationEServiceError"
   | "purposeTemplateEServicePersonalDataFlagMismatch"
+  | "eserviceInReceiveMode"
   | "invalidDescriptorStateForPublicationError"
   | "eserviceIsInstanceOfEServiceTemplate"
   | "unexpectedEServiceTemplateError"
@@ -161,6 +162,15 @@ export function purposeTemplateEServicePersonalDataFlagMismatch(
   return new PurposeTemplateValidationIssue({
     code: "purposeTemplateEServicePersonalDataFlagMismatch",
     detail: `EService ${eservice.id} personal data flag (${eservice.personalData}) does not match purpose template ${purposeTemplate.id} personal data flag (${purposeTemplate.handlesPersonalData}).`,
+  });
+}
+
+export function eserviceInReceiveMode(
+  eserviceId: EServiceId
+): PurposeTemplateValidationIssue {
+  return new PurposeTemplateValidationIssue({
+    code: "eserviceInReceiveMode",
+    detail: `EService ${eserviceId} is in receive mode and cannot be linked to a purpose template.`,
   });
 }
 
