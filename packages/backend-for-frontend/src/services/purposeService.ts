@@ -639,7 +639,7 @@ export function purposeServiceBuilder(
           reviewerId: authData.userId,
           eservicesIds: filters.eservicesIds,
           signingStates,
-          excludeDraft: true,
+          excludeDraft: false,
           offset,
           limit,
         },
