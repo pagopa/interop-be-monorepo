@@ -41,19 +41,6 @@ export async function handleEserviceArchivingToProducer(
   }
   const eservice = fromEServiceV2(msg.data.eservice);
 
-  // Discriminator: skip auto-archive routine (Deprecated/Suspended -> Archived)
-  if (msg.type === "EServiceDescriptorArchived") {
-    const archivedDescriptor = eservice.descriptors.find(
-      (d) => d.id === unsafeBrandId<DescriptorId>(msg.data.descriptorId)
-    );
-    if (!archivedDescriptor?.archivingSchedule) {
-      logger.info(
-        `Skipping in-app notification for EServiceDescriptorArchived without archivingSchedule (eservice ${eservice.id}, descriptor ${msg.data.descriptorId}) — routine auto-archiving`
-      );
-      return [];
-    }
-  }
-
   logger.info(
     `Sending in-app notification to producer for ${msg.type} - eservice ${eservice.id}`
   );
@@ -147,7 +134,7 @@ function bodyAndDescriptorForProducer(
           unsafeBrandId<DescriptorId>(descriptorId)
         );
         return {
-          body: inAppTemplates.eserviceArchivingEarlyArchivedToProducer(
+          body: inAppTemplates.eserviceArchivingDescriptorArchivedToProducer(
             eservice.name,
             descriptor.version
           ),

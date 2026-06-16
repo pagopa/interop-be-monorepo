@@ -170,7 +170,7 @@ function bodyAndDescriptorForConsumer(
           unsafeBrandId<DescriptorId>(descriptorId)
         );
         return {
-          body: inAppTemplates.eserviceArchivingEarlyArchivedToConsumer(
+          body: inAppTemplates.eserviceArchivingDescriptorArchivedToConsumer(
             eservice.name,
             descriptor.version,
             producerName

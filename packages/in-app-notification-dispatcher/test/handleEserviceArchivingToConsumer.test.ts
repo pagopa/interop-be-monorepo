@@ -221,7 +221,7 @@ describe("handleEserviceArchivingToConsumer", () => {
     // Includes both the active agreement consumer and the archived one (deduped by tenant in real flow, but here it's the same tenant)
     expect(notifications.length).toBeGreaterThanOrEqual(1);
     expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingEarlyArchivedToConsumer(
+      inAppTemplates.eserviceArchivingDescriptorArchivedToConsumer(
         eservice.name,
         archivingDescriptor.version,
         producerTenant.name

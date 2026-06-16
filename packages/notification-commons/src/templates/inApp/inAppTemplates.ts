@@ -396,12 +396,11 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `È stato archiviato il tuo e-service "${eserviceName}". Da questo momento, gli aderenti non possono più fruire dei dati esposti.`,
-  eserviceArchivingEarlyArchivedToProducer: (
+  eserviceArchivingDescriptorArchivedToProducer: (
     eserviceName: string,
     descriptorVersion: string
   ): string =>
-    `È stata archiviata in anticipo la versione ${descriptorVersion} del tuo e-service "${eserviceName}" poiché tutte le sottoscrizioni attive si sono concluse. Da questo momento, gli aderenti non possono più fruire dei dati esposti in quella versione.`,
-
+    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" è stata archiviata il giorno ${dateAtRomeZone(new Date())} perché senza fruitori. Da ora non è più attiva.`,
   eserviceArchivingStartedDescriptorToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
@@ -434,7 +433,7 @@ export const inAppTemplates = {
     producerName: string
   ): string =>
     `Ti informiamo che l'ente erogatore ${producerName} ha archiviato l'e-service "${eserviceName}".`,
-  eserviceArchivingEarlyArchivedToConsumer: (
+  eserviceArchivingDescriptorArchivedToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
     producerName: string

@@ -120,10 +120,10 @@ export const eventMailTemplateType = {
     "eservice-archiving-completed-eservice-to-producer-mail",
   eserviceArchivingCompletedEserviceToConsumerMailTemplate:
     "eservice-archiving-completed-eservice-to-consumer-mail",
-  eserviceArchivingEarlyArchivedToProducerMailTemplate:
-    "eservice-archiving-early-archived-to-producer-mail",
-  eserviceArchivingEarlyArchivedToConsumerMailTemplate:
-    "eservice-archiving-early-archived-to-consumer-mail",
+  eserviceArchivingDescriptorArchivedToProducerMailTemplate:
+    "eservice-archiving-descriptor-archived-to-producer-mail",
+  eserviceArchivingDescriptorArchivedToConsumerMailTemplate:
+    "eservice-archiving-descriptor-archived-to-consumer-mail",
   eserviceArchivingCanceledDescriptorToConsumerMailTemplate:
     "eservice-archiving-canceled-descriptor-to-consumer-mail",
   eserviceArchivingCanceledEserviceToConsumerMailTemplate:

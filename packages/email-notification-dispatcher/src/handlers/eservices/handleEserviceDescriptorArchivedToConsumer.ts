@@ -54,7 +54,7 @@ export async function handleEserviceDescriptorArchivedToConsumer(
 
   const [htmlTemplate, producer, agreements] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceArchivingEarlyArchivedToConsumerMailTemplate
+      eventMailTemplateType.eserviceArchivingDescriptorArchivedToConsumerMailTemplate
     ),
     retrieveTenant(eservice.producerId, readModelService),
     readModelService.getAgreementsByEserviceId(eservice.id, {
