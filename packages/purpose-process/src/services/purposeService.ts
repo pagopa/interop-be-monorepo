@@ -398,7 +398,10 @@ export function purposeServiceBuilder(
         historyKind ?? (await readModelService.getFirstTenantKind(tenantId));
 
       if (!tenantKind) {
-        throw tenantKindNotFound(tenantId);
+        logger.warn(
+          `Unable to determine tenant kind for purpose ${purposeId} and tenant ${tenantId}, skipping update`
+        );
+        return purpose;
       }
 
       const updatedPurpose: Purpose = {
