@@ -367,9 +367,9 @@ export const inAppTemplates = {
     descriptorVersion: string,
     archivableOn: Date | undefined
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service ${eserviceName} è in fase di archiviazione ma è ancora attiva ${
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} è in fase di archiviazione ma è ancora attiva.${
       archivableOn
-        ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}`
+        ? ` L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}.`
         : ""
     }.`,
   eserviceArchivingStartedEserviceToProducer: (
