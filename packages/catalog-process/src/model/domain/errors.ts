@@ -79,6 +79,7 @@ const errorCodes = {
   notValidEServiceState: "0062",
   eserviceNotInArchiving: "0063",
   eServiceAlreadyArchived: "0064",
+  attributeDiscreteConfigNotAllowed: "0065",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -283,9 +284,7 @@ export function riskAnalysisValidationFailed(
   issues: RiskAnalysisValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis validation failed. Reasons: [${issues
-      .map((i) => i.detail)
-      .join(", ")}]`,
+    detail: `Risk analysis validation failed. Reasons: [${issues.map((i) => i.detail).join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
   });
@@ -668,6 +667,16 @@ export function attributeDailyCallsNotAllowed(
     detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
     code: "attributeDailyCallsNotAllowed",
     title: "Custom daily calls not allowed for non-certified attribute",
+  });
+}
+
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
   });
 }
 

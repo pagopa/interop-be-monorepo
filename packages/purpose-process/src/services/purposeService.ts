@@ -94,9 +94,10 @@ import {
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
-  reviewerWorkflowNotInSubmittedState,
+  reviewerWorkflowNotInSignableState,
   requesterIsNotDesignatedReviewer,
   rejectNotAllowedInCurrentMode,
+  reviewerWorkflowNotInSubmittedState,
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotInSignedState,
@@ -418,7 +419,11 @@ export function purposeServiceBuilder(
         tenantId,
         referenceDate
       );
-      if (!historyKind) {
+
+      const tenantKind =
+        historyKind ?? (await readModelService.getFirstTenantKind(tenantId));
+
+      if (!tenantKind) {
         throw tenantKindNotFound(tenantId);
       }
 
@@ -426,7 +431,7 @@ export function purposeServiceBuilder(
         ...purpose.data,
         riskAnalysisForm: {
           ...riskAnalysisForm,
-          tenantKind: historyKind,
+          tenantKind,
         },
       };
 
@@ -707,7 +712,7 @@ export function purposeServiceBuilder(
           () => true
         )
         .otherwise(() => {
-          throw reviewerWorkflowNotInSubmittedState(purposeId);
+          throw reviewerWorkflowNotInSignableState(purposeId);
         });
 
       if (!workflow.reviewerIds.includes(authData.userId)) {
@@ -867,7 +872,7 @@ export function purposeServiceBuilder(
 
       const validatedFormSeed = validateAndTransformRiskAnalysis(
         formToValidate,
-        true,
+        false,
         tenantKind,
         new Date(),
         eservice.personalData
@@ -1966,6 +1971,7 @@ export function purposeServiceBuilder(
           ? {
               id: generateId(),
               version: riskAnalysisFormToClone.version,
+              tenantKind: riskAnalysisFormToClone.tenantKind,
               riskAnalysisId: riskAnalysisFormToClone.riskAnalysisId,
               singleAnswers: riskAnalysisFormToClone.singleAnswers.map(
                 (answer) => ({
