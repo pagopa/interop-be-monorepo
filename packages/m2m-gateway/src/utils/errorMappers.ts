@@ -172,7 +172,8 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
-  uploadEServiceDescriptorInterfaceErrorMapper;
+  (error: ApiError<ErrorCodes>): number =>
+    uploadEServiceDescriptorInterfaceErrorMapper(error);
 
 export const deleteEServiceDescriptorInterfaceErrorMapper = (
   error: ApiError<ErrorCodes>
