@@ -825,8 +825,8 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
 
 export function assertRiskAnalysisFormEditableInCurrentReviewMode(
   purposeId: PurposeId,
-  inputForm: purposeApi.RiskAnalysisFormSeed,
-  existingForm: PurposeRiskAnalysisForm,
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined,
   reviewerWorkflow: ReviewerWorkflow,
   tenantKind: TenantKind,
   personalDataInEService: boolean | undefined
@@ -846,13 +846,29 @@ export function assertRiskAnalysisFormEditableInCurrentReviewMode(
 }
 
 function riskAnalysisFormInputDiffersFromPrevious(
-  inputForm: purposeApi.RiskAnalysisFormSeed,
-  existingForm: PurposeRiskAnalysisForm,
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined,
   tenantKind: TenantKind,
   personalDataInEService: boolean | undefined
 ): boolean {
+  // If input form is undefined (removal) and existing form exists, it counts as a change
+  if (!inputForm && existingForm) {
+    return true;
+  }
+
+  // If no existing form and input form exists, adding one counts as a change
+  if (!existingForm && inputForm) {
+    return true;
+  }
+
+  // Both undefined or both null - no change
+  if (!inputForm && !existingForm) {
+    return false;
+  }
+
+  // Both exist, compare them (at this point both inputForm and existingForm are defined)
   const transformedInput = validateAndTransformRiskAnalysis(
-    { ...inputForm, tenantKind },
+    { ...(inputForm as purposeApi.RiskAnalysisFormSeed), tenantKind },
     true,
     tenantKind,
     new Date(),
@@ -875,6 +891,6 @@ function riskAnalysisFormInputDiffersFromPrevious(
 
   return (
     JSON.stringify(normalize(transformedInput)) !==
-    JSON.stringify(normalize(existingForm))
+    JSON.stringify(normalize(existingForm as PurposeRiskAnalysisForm))
   );
 }

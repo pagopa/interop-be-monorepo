@@ -2583,9 +2583,9 @@ const performUpdatePurpose = async (
     mode === eserviceMode.deliver &&
     isFeatureFlagEnabled(config, "featureFlagNewOperators") &&
     purpose.data.reviewerWorkflow &&
-    riskAnalysisForm &&
-    purpose.data.riskAnalysisForm
+    (riskAnalysisForm || purpose.data.riskAnalysisForm)
   ) {
+    // Validate form changes (add, update, or removal) during active reviewer workflow
     assertRiskAnalysisFormEditableInCurrentReviewMode(
       purposeId,
       riskAnalysisForm,

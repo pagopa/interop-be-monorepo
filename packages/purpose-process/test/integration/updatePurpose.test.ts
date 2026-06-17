@@ -1478,4 +1478,125 @@ describe("updatePurpose and updateReversePurpose", () => {
 
     vi.useRealTimers();
   });
+  it.each([
+    riskAnalysisSigningState.assigned,
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+  ])(
+    "should throw riskAnalysisFormCannotBeUpdated when a reviewer workflow is active (state: %s) and trying to add an initial risk analysis form",
+    async (signingState) => {
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithWorkflowNoForm: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: undefined,
+        reviewerWorkflow,
+      };
+
+      const newRiskAnalysisSeed = buildRiskAnalysisSeed(
+        getMockValidRiskAnalysis(tenantType)
+      );
+      const updateContentWithNewRiskAnalysis: purposeApi.PurposeUpdateContent =
+        {
+          ...purposeUpdateContent,
+          riskAnalysisForm: newRiskAnalysisSeed,
+        };
+
+      await addOnePurpose(purposeWithWorkflowNoForm);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      expect(
+        purposeService.updatePurpose(
+          purposeWithWorkflowNoForm.id,
+          updateContentWithNewRiskAnalysis,
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).rejects.toThrowError(
+        riskAnalysisFormCannotBeUpdated(purposeWithWorkflowNoForm.id)
+      );
+    }
+  );
+  it.each([
+    riskAnalysisSigningState.assigned,
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+  ])(
+    "should throw riskAnalysisFormCannotBeUpdated when a reviewer workflow is active (state: %s) and trying to remove the risk analysis form",
+    async (signingState) => {
+      const existingForm = getMockValidRiskAnalysisForm(tenantType);
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithFormAndWorkflow: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: { ...existingForm, id: generateId() },
+        reviewerWorkflow,
+      };
+
+      // Update content without riskAnalysisForm (trying to remove it)
+      const updateContentWithoutForm: purposeApi.PurposeUpdateContent = {
+        ...purposeUpdateContent,
+        riskAnalysisForm: undefined,
+      };
+
+      await addOnePurpose(purposeWithFormAndWorkflow);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      expect(
+        purposeService.updatePurpose(
+          purposeWithFormAndWorkflow.id,
+          updateContentWithoutForm,
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).rejects.toThrowError(
+        riskAnalysisFormCannotBeUpdated(purposeWithFormAndWorkflow.id)
+      );
+    }
+  );
+  it.each([riskAnalysisSigningState.draft, riskAnalysisSigningState.rejected])(
+    "should succeed when removing a risk analysis form and reviewer workflow is in state %s",
+    async (signingState) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const existingForm = getMockValidRiskAnalysisForm(tenantType);
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithFormAndWorkflow: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: { ...existingForm, id: generateId() },
+        reviewerWorkflow,
+      };
+
+      // Update content without riskAnalysisForm (trying to remove it)
+      const updateContentWithoutForm: purposeApi.PurposeUpdateContent = {
+        ...purposeUpdateContent,
+        riskAnalysisForm: undefined,
+      };
+
+      await addOnePurpose(purposeWithFormAndWorkflow);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      await expect(
+        purposeService.updatePurpose(
+          purposeWithFormAndWorkflow.id,
+          updateContentWithoutForm,
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).resolves.toBeDefined();
+
+      vi.useRealTimers();
+    }
+  );
 });
