@@ -222,10 +222,17 @@ export function purposeTemplateServiceBuilder(
     const eserviceTemplateById = new Map(
       eserviceTemplates.map((t) => [t.id, t])
     );
+    const pageEServices = page.flatMap((p) =>
+      p.kind === "ESERVICE"
+        ? [eserviceById.get(p.link.eserviceId)].filter(
+            (e): e is catalogApi.EService => e !== undefined
+          )
+        : []
+    );
 
     const tenantIds = Array.from(
       new Set([
-        ...eservices.map((e) => e.producerId),
+        ...pageEServices.map((e) => e.producerId),
         ...eserviceTemplates.map((t) => t.creatorId),
       ])
     );

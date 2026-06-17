@@ -93,6 +93,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
   const buildConcreteFixture = (createdAt: string) => {
     const descriptor = getMockedApiEserviceDescriptor();
     const eservice = getMockedApiEservice({ descriptors: [descriptor] });
+    eservice.mode = catalogApi.EServiceMode.Values.DELIVER;
     const link: purposeTemplateApi.EServiceDescriptorPurposeTemplate = {
       purposeTemplateId,
       eserviceId: eservice.id,
