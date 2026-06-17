@@ -30,10 +30,15 @@ const invalidDescriptorState: catalogApi.EServiceDescriptorState[] = [
 ];
 
 export function getLatestActiveDescriptor(
-  eservice: catalogApi.EService
+  eservice: catalogApi.EService,
+  includeArchived: boolean = false
 ): catalogApi.EServiceDescriptor | undefined {
   return eservice.descriptors
-    .filter((d) => activeDescriptorStatesFilter.includes(d.state))
+    .filter(
+      (d) =>
+        activeDescriptorStatesFilter.includes(d.state) ||
+        (includeArchived && d.state === catalogApiDescriptorState.ARCHIVED)
+    )
     .sort((a, b) => Number(a.version) - Number(b.version))
     .at(-1);
 }
@@ -85,6 +90,7 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     clientAddedRemovedToProducer: "/erogazione/finalita",
     purposeStatusChangedToProducer: "/erogazione/finalita",
     templateStatusChangedToProducer: "/erogazione/template-eservice",
+    eserviceStateChangedToProducer: "/erogazione/e-service",
     newEserviceTemplateVersionToInstantiator: "/erogazione/e-service",
     eserviceTemplateNameChangedToInstantiator: "/erogazione/e-service",
     eserviceTemplateStatusChangedToInstantiator: "/erogazione/e-service",
@@ -123,6 +129,7 @@ export const notificationTypeToCategory: Record<NotificationType, Category> = {
   clientAddedRemovedToProducer: "Providers",
   purposeStatusChangedToProducer: "Providers",
   templateStatusChangedToProducer: "Providers",
+  eserviceStateChangedToProducer: "Providers",
   newEserviceTemplateVersionToInstantiator: "Providers",
   eserviceTemplateNameChangedToInstantiator: "Providers",
   eserviceTemplateStatusChangedToInstantiator: "Providers",

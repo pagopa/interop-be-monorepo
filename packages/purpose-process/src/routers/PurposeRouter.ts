@@ -76,11 +76,12 @@ const purposeRouter = (
     ADMIN_ROLE,
     API_ROLE,
     SECURITY_ROLE,
-    REVIEWER_ROLE,
     M2M_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
   purposeRouter
     .get("/purposes", async (req, res) => {
@@ -95,6 +96,7 @@ const purposeRouter = (
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
           REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const {
@@ -276,6 +278,8 @@ const purposeRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: purpose, metadata } = await purposeService.getPurposeById(
@@ -437,7 +441,7 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
           const document = await purposeService.getRiskAnalysisDocument({
             purposeId: unsafeBrandId(req.params.purposeId),
@@ -819,6 +823,8 @@ const purposeRouter = (
           SUPPORT_ROLE,
           API_ROLE,
           SECURITY_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const riskAnalysisConfiguration =
@@ -855,6 +861,7 @@ const purposeRouter = (
             SUPPORT_ROLE,
             API_ROLE,
             SECURITY_ROLE,
+            REVIEWER_ROLE,
           ]);
 
           const riskAnalysisConfiguration =
@@ -1001,7 +1008,7 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
           const document = await purposeService.getRiskAnalysisSignedDocument({
             purposeId: unsafeBrandId(req.params.purposeId),

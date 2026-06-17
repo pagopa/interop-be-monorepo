@@ -4,6 +4,7 @@ import {
   removeDuplicates,
   UIAuthData,
   getRulesetExpiration,
+  authRole,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -38,7 +39,10 @@ import {
 import { BffAppContext, Headers } from "../utilities/context.js";
 import { config } from "../config/config.js";
 import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
-import { toBffApiPurposeVersion } from "../api/purposeApiConverter.js";
+import {
+  toBffApiPurposeVersion,
+  toBffApiRiskAnalysisForm,
+} from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
@@ -232,12 +236,16 @@ export function purposeServiceBuilder(
         )
       : undefined;
 
-    const clients = await getAllClients(
-      authorizationClient,
-      authData.organizationId,
-      purpose.id,
-      headers
-    );
+    const clients =
+      authData.userRoles.includes(authRole.VIEWER_ROLE) ||
+      authData.userRoles.includes(authRole.REVIEWER_ROLE)
+        ? []
+        : await getAllClients(
+            authorizationClient,
+            authData.organizationId,
+            purpose.id,
+            headers
+          );
 
     const hasNotifications = notifications.includes(purpose.id);
 
@@ -250,26 +258,17 @@ export function purposeServiceBuilder(
     // eslint-disable-next-line functional/no-let
     let rulesetExpiration: Date | undefined;
 
-    // for purpose towards eservice in RECEIVE mode, the ruleset is based on the producer kind
-    const isReversePurpose =
-      eservice.mode === catalogApi.EServiceMode.Values.RECEIVE;
     if (!skipRulesetRetrieval && purpose.riskAnalysisForm?.version) {
       if (
         // no delegation, requester is the consumer
-        delegation === undefined &&
-        authData.organizationId === purpose.consumerId
-      ) {
-        rulesetExpiration = getRulesetExpiration(
-          isReversePurpose ? producer.kind : consumer.kind,
-          purpose.riskAnalysisForm.version
-        );
-      } else if (
+        (delegation === undefined &&
+          authData.organizationId === purpose.consumerId) ||
         // delegated consumer
-        delegation !== undefined &&
-        authData.organizationId === delegation?.delegate.id
+        (delegation !== undefined &&
+          authData.organizationId === delegation?.delegate.id)
       ) {
         rulesetExpiration = getRulesetExpiration(
-          isReversePurpose ? producer.kind : delegation.delegator.kind,
+          purpose.riskAnalysisForm.tenantKind,
           purpose.riskAnalysisForm.version
         );
       } else {
@@ -288,7 +287,9 @@ export function purposeServiceBuilder(
         kind: consumer.kind,
         contactMail: getLatestTenantContactEmail(consumer),
       },
-      riskAnalysisForm: purpose.riskAnalysisForm,
+      riskAnalysisForm:
+        purpose.riskAnalysisForm &&
+        toBffApiRiskAnalysisForm(purpose.riskAnalysisForm),
       eservice: {
         id: eservice.id,
         name: eservice.name,
@@ -677,9 +678,10 @@ export function purposeServiceBuilder(
         authData,
         {
           reviewerId: authData.userId,
+          consumersIds: [authData.organizationId],
           eservicesIds: filters.eservicesIds,
           signingStates,
-          excludeDraft: true,
+          excludeDraft: false,
           offset,
           limit,
         },

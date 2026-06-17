@@ -25,12 +25,14 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   editNotAllowedForReviewMode,
   purposeNotFound,
   requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotFound,
+  riskAnalysisValidationFailed,
   tenantIsNotTheConsumer,
 } from "../../src/model/domain/errors.js";
 import {
@@ -280,5 +282,47 @@ describe("editRiskAnalysisForm", () => {
         })
       )
     ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
+  });
+
+  it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
+    const reviewerId: UserId = generateId();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      consumerId: mockTenant.id,
+      eserviceId: mockEService.id,
+      reviewerWorkflow: {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [reviewerId],
+        signingState: riskAnalysisSigningState.assigned,
+        sentToReviewerAt: new Date(),
+      },
+    };
+
+    await addOneTenant(mockTenant);
+    await addOneEService(mockEService);
+    await addOnePurpose(mockPurpose);
+
+    const invalidRiskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(tenantKind.PA),
+      version: "0",
+    };
+
+    const riskAnalysisFormSeed = buildRiskAnalysisFormSeed(
+      invalidRiskAnalysisForm
+    );
+
+    await expect(
+      purposeService.editRiskAnalysisForm(
+        mockPurpose.id,
+        riskAnalysisFormSeed,
+        getMockContext({
+          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisValidationFailed([
+        rulesVersionNotFoundError(mockTenant.kind!, "0"),
+      ])
+    );
   });
 });

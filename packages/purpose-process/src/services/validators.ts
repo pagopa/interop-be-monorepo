@@ -1,5 +1,7 @@
 import { purposeApi } from "pagopa-interop-api-clients";
+import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   Ownership,
   ownership,
@@ -28,7 +30,6 @@ import {
   TenantId,
   tenantKind,
   TenantKind,
-  tenantAttributeType,
   RiskAnalysisFormId,
   PurposeId,
   ReviewerWorkflow,
@@ -60,6 +61,7 @@ import {
   tenantNotAllowed,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
 import {
   retrieveActiveAgreement,
@@ -331,21 +333,21 @@ export async function getUpdatedQuotas(
     throw tenantNotFound(consumerId);
   }
 
-  const consumerCertifiedAttributesIds = new Set(
-    tenant.attributes
-      .filter(
-        (a) =>
-          a.type === tenantAttributeType.CERTIFIED && !a.revocationTimestamp
-      )
-      .map((a) => a.id)
+  const certifiedDiscreteEnabled = isFeatureFlagEnabled(
+    config,
+    "featureFlagAttributeCertifiedDiscrete"
   );
 
   const maxDailyCallsPerConsumer =
     currentDescriptor.attributes.certified.flat().reduce((max, current) => {
-      if (!consumerCertifiedAttributesIds.has(current.id)) {
+      if (!current.dailyCallsPerConsumer) {
         return max;
       }
-      if (!current.dailyCallsPerConsumer) {
+      if (
+        !matchesCertifiedDescriptorAttribute(current, tenant.attributes, {
+          certifiedDiscreteEnabled,
+        })
+      ) {
         return max;
       }
       return Math.max(max, current.dailyCallsPerConsumer);
@@ -823,56 +825,67 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
 
 export function assertRiskAnalysisFormEditableInCurrentReviewMode(
   purposeId: PurposeId,
-  inputForm: purposeApi.RiskAnalysisFormSeed,
-  existingForm: PurposeRiskAnalysisForm,
-  reviewerWorkflow: ReviewerWorkflow,
-  tenantKind: TenantKind,
-  personalDataInEService: boolean | undefined
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined,
+  reviewerWorkflow: ReviewerWorkflow
 ): void {
   if (
     reviewerWorkflow.signingState !== riskAnalysisSigningState.draft &&
     reviewerWorkflow.signingState !== riskAnalysisSigningState.rejected &&
-    riskAnalysisFormInputDiffersFromPrevious(
-      inputForm,
-      existingForm,
-      tenantKind,
-      personalDataInEService
-    )
+    riskAnalysisFormInputDiffersFromPrevious(inputForm, existingForm)
   ) {
     throw riskAnalysisFormCannotBeUpdated(purposeId);
   }
 }
 
 function riskAnalysisFormInputDiffersFromPrevious(
-  inputForm: purposeApi.RiskAnalysisFormSeed,
-  existingForm: PurposeRiskAnalysisForm,
-  tenantKind: TenantKind,
-  personalDataInEService: boolean | undefined
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined
 ): boolean {
-  const transformedInput = validateAndTransformRiskAnalysis(
-    { ...inputForm, tenantKind },
-    true,
-    tenantKind,
-    new Date(),
-    personalDataInEService
-  );
-
-  if (!transformedInput) {
+  // If input form is undefined (removal) and existing form exists, it counts as a change
+  if (!inputForm && existingForm) {
     return true;
   }
 
-  const normalize = (form: PurposeRiskAnalysisForm) => ({
-    version: form.version,
-    singleAnswers: [...form.singleAnswers]
-      .sort((a, b) => a.key.localeCompare(b.key))
-      .map(({ key, value }) => ({ key, value })),
-    multiAnswers: [...form.multiAnswers]
-      .sort((a, b) => a.key.localeCompare(b.key))
-      .map(({ key, values }) => ({ key, values })),
-  });
+  // If no existing form and input form exists, adding one counts as a change
+  if (!existingForm && inputForm) {
+    return true;
+  }
 
-  return (
-    JSON.stringify(normalize(transformedInput)) !==
-    JSON.stringify(normalize(existingForm))
-  );
+  // Both undefined - no change
+  if (!inputForm && !existingForm) {
+    return false;
+  }
+
+  // Both exist - compare them after normalizing to same structure
+  if (inputForm && existingForm) {
+    // Normalize existing form to match input form structure
+    const existingAnswers = {
+      ...Object.fromEntries(
+        existingForm.singleAnswers.map(({ key, value }) => [
+          key,
+          value ? [value] : [],
+        ])
+      ),
+      ...Object.fromEntries(
+        existingForm.multiAnswers.map(({ key, values }) => [key, values])
+      ),
+    };
+
+    // Sort both structures by key to make comparison order-independent
+    const sortedInputAnswers = Object.fromEntries(
+      Object.entries(inputForm.answers).sort(([a], [b]) => a.localeCompare(b))
+    );
+    const sortedExistingAnswers = Object.fromEntries(
+      Object.entries(existingAnswers).sort(([a], [b]) => a.localeCompare(b))
+    );
+
+    return (
+      inputForm.version !== existingForm.version ||
+      JSON.stringify(sortedInputAnswers) !==
+        JSON.stringify(sortedExistingAnswers)
+    );
+  }
+
+  return false;
 }

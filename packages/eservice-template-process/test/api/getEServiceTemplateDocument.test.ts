@@ -51,6 +51,7 @@ describe("API GET /templates/:templateId/versions/:templateVersionId/documents/:
     authRole.SUPPORT_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.VIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
