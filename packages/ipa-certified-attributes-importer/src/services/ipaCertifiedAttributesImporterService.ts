@@ -212,7 +212,11 @@ export function getTenantUpsertData(
       originId: i.originId,
       description: i.description,
       attributes,
-      istatCode: i.category === MUNICIPALITY_CODE ? i.istatCode : undefined,
+      istatCode:
+        i.category === MUNICIPALITY_CODE &&
+        i.classification === AGENCY_CLASSIFICATION
+          ? i.istatCode
+          : undefined,
     };
   });
 }

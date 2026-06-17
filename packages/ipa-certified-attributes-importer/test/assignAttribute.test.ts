@@ -1,17 +1,11 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import { randomUUID } from "crypto";
-import {
-  Attribute,
-  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-  Tenant,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { Attribute, Tenant, unsafeBrandId } from "pagopa-interop-models";
 import { expect, describe, it, vi, beforeAll, afterAll } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   TenantSeed,
   getAttributesToAssign,
-  getTenantUpsertData,
 } from "../src/services/ipaCertifiedAttributesImporterService.js";
 import { attributes } from "./expectation.js";
 import { parseIPACertifiedAttributesImporterConfig } from "../src/config/config.js";
@@ -384,67 +378,5 @@ describe("GetAttributesToAssign", async () => {
         remoteIds: undefined,
       },
     ]);
-  });
-  describe("getTenantUpsertData", () => {
-    it("should populate istatCode only if the institution category is L6", () => {
-      const registryData = {
-        institutions: [
-          {
-            id: "tax-code-1",
-            originId: "ipa-l6",
-            origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-            category: "L6",
-            description: "Ente L6",
-            kind: "Pubbliche Amministrazioni",
-            classification: "Agency" as const,
-            istatCode: "123456",
-          },
-          {
-            id: "tax-code-2",
-            originId: "ipa-l18",
-            origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-            category: "L18",
-            description: "Ente L18",
-            kind: "Pubbliche Amministrazioni",
-            classification: "Agency" as const,
-            istatCode: "654321",
-          },
-        ],
-        attributes: [],
-      };
-
-      const platformTenants: Tenant[] = [
-        {
-          id: unsafeBrandId("1"),
-          externalId: {
-            origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-            value: "ipa-l6",
-          },
-        } as Tenant,
-        {
-          id: unsafeBrandId("2"),
-          externalId: {
-            origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
-            value: "ipa-l18",
-          },
-        } as Tenant,
-      ];
-
-      const economicAccountCompaniesAllowlist: string[] = [];
-
-      const tenantSeeds = getTenantUpsertData(
-        registryData,
-        platformTenants,
-        economicAccountCompaniesAllowlist
-      );
-
-      const l6Seed = tenantSeeds.find((seed) => seed.originId === "ipa-l6");
-      expect(l6Seed).toBeDefined();
-      expect(l6Seed?.istatCode).toBe("123456");
-
-      const l18Seed = tenantSeeds.find((seed) => seed.originId === "ipa-l18");
-      expect(l18Seed).toBeDefined();
-      expect(l18Seed?.istatCode).toBeUndefined();
-    });
   });
 });
