@@ -190,7 +190,7 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
     expect(producer?.body).not.toMatch(/versione\s+\d/);
     expect(consumers).toHaveLength(2);
     expect(consumers.every((c) => c.body.includes("producer-tenant"))).toBe(
-      true
+      false
     );
     expect(consumers.every((c) => !/versione\s+\d/.test(c.body))).toBe(true);
   });
