@@ -1730,7 +1730,13 @@ describe("update descriptor", () => {
     );
   });
 
-  it.each([descriptorState.published, descriptorState.suspended])(
+  it.each([
+    descriptorState.deprecated,
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
+  ])(
     "should throw certifiedDiscreteAttributeConfigCannotBeChanged when changing the discreteConfig of an existing certified attribute on a descriptor with state %s",
     async (state) => {
       config.featureFlagAttributeCertifiedDiscrete = true;
@@ -1795,107 +1801,116 @@ describe("update descriptor", () => {
     }
   );
 
-  it("should allow updating only dailyCallsPerConsumer of a certified discrete attribute without changing its discreteConfig", async () => {
-    config.featureFlagAttributeCertifiedDiscrete = true;
-    const certifiedDiscreteAttribute = getMockAttribute(
-      attributeKind.certifiedDiscrete
-    );
-    await addOneAttribute(certifiedDiscreteAttribute);
+  it.each([
+    descriptorState.deprecated,
+    descriptorState.published,
+    descriptorState.suspended,
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
+  ])(
+    "should allow updating only dailyCallsPerConsumer of a certified discrete attribute without changing its discreteConfig on a descriptor with state %s",
+    async (state) => {
+      config.featureFlagAttributeCertifiedDiscrete = true;
+      const certifiedDiscreteAttribute = getMockAttribute(
+        attributeKind.certifiedDiscrete
+      );
+      await addOneAttribute(certifiedDiscreteAttribute);
 
-    const mockDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.published,
-      dailyCallsTotal: 1000,
-      attributes: {
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state,
+        dailyCallsTotal: 1000,
+        attributes: {
+          certified: [
+            [
+              {
+                id: certifiedDiscreteAttribute.id,
+                explicitAttributeVerification: false,
+                dailyCallsPerConsumer: 100,
+                discreteConfig: { threshold: 100, comparator: "GT" },
+              },
+            ],
+          ],
+          verified: [],
+          declared: [],
+        },
+      };
+
+      const mockEService: EService = {
+        ...getMockEService(),
+        descriptors: [mockDescriptor],
+      };
+
+      await addOneEService(mockEService);
+
+      const seedWithUpdatedDailyCalls: catalogApi.AttributesSeed = {
         certified: [
           [
             {
               id: certifiedDiscreteAttribute.id,
               explicitAttributeVerification: false,
-              dailyCallsPerConsumer: 100,
+              dailyCallsPerConsumer: 200,
               discreteConfig: { threshold: 100, comparator: "GT" },
             },
           ],
         ],
         verified: [],
         declared: [],
-      },
-    };
+      };
 
-    const mockEService: EService = {
-      ...getMockEService(),
-      descriptors: [mockDescriptor],
-    };
-
-    await addOneEService(mockEService);
-
-    const seedWithUpdatedDailyCalls: catalogApi.AttributesSeed = {
-      certified: [
-        [
+      const updatedEService: EService = {
+        ...mockEService,
+        descriptors: [
           {
-            id: certifiedDiscreteAttribute.id,
-            explicitAttributeVerification: false,
-            dailyCallsPerConsumer: 200,
-            discreteConfig: { threshold: 100, comparator: "GT" },
+            ...mockDescriptor,
+            attributes: {
+              certified: [
+                [
+                  {
+                    id: certifiedDiscreteAttribute.id,
+                    explicitAttributeVerification: false,
+                    dailyCallsPerConsumer: 200,
+                    discreteConfig: { threshold: 100, comparator: "GT" },
+                  },
+                ],
+              ],
+              verified: [],
+              declared: [],
+            },
           },
         ],
-      ],
-      verified: [],
-      declared: [],
-    };
+      };
 
-    const updatedEService: EService = {
-      ...mockEService,
-      descriptors: [
-        {
-          ...mockDescriptor,
-          attributes: {
-            certified: [
-              [
-                {
-                  id: certifiedDiscreteAttribute.id,
-                  explicitAttributeVerification: false,
-                  dailyCallsPerConsumer: 200,
-                  discreteConfig: { threshold: 100, comparator: "GT" },
-                },
-              ],
-            ],
-            verified: [],
-            declared: [],
-          },
-        },
-      ],
-    };
+      const returnedEService = await catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        seedWithUpdatedDailyCalls,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      );
 
-    const returnedEService = await catalogService.updateDescriptorAttributes(
-      mockEService.id,
-      mockDescriptor.id,
-      seedWithUpdatedDailyCalls,
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-    );
+      const writtenEvent = await readLastEserviceEvent(mockEService.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockEService.id,
+        version: "1",
+        type: "EServiceDescriptorAttributesUpdated",
+        event_version: 2,
+      });
 
-    const writtenEvent = await readLastEserviceEvent(mockEService.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockEService.id,
-      version: "1",
-      type: "EServiceDescriptorAttributesUpdated",
-      event_version: 2,
-    });
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorAttributesUpdatedV2,
+        payload: writtenEvent.data,
+      });
 
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorAttributesUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload).toEqual({
-      descriptorId: mockDescriptor.id,
-      attributeIds: [],
-      eservice: toEServiceV2(updatedEService),
-    });
-    expect(writtenPayload).toEqual({
-      descriptorId: mockDescriptor.id,
-      attributeIds: [],
-      eservice: toEServiceV2(returnedEService.data),
-    });
-  });
+      expect(writtenPayload).toEqual({
+        descriptorId: mockDescriptor.id,
+        attributeIds: [],
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: mockDescriptor.id,
+        attributeIds: [],
+        eservice: toEServiceV2(returnedEService.data),
+      });
+    }
+  );
 });

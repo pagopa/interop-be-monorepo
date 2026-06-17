@@ -24,7 +24,6 @@ import {
   descriptorState,
   DescriptorState,
   EService,
-  EServiceAttributeCertifiedDiscreteConfig,
   EServiceId,
   eserviceMode,
   EServiceTemplateId,
@@ -608,43 +607,53 @@ export function assertCertifiedDiscreteConfigUnchanged(
     return;
   }
 
-  const publishedDiscreteConfigsById = new Map<
-    AttributeId,
-    EServiceAttributeCertifiedDiscreteConfig[]
-  >();
-  for (const attribute of descriptor.attributes.certified.flat()) {
+  const publishedConfigsById = collectDiscreteConfigKeysById(
+    descriptor.attributes.certified.flat()
+  );
+
+  if (publishedConfigsById.size === 0) {
+    return;
+  }
+
+  const newConfigsById = collectDiscreteConfigKeysById(
+    newAttributes.certified.flat()
+  );
+
+  for (const [attributeId, publishedConfigs] of publishedConfigsById) {
+    const newConfigs = newConfigsById.get(attributeId);
+
+    if (newConfigs === undefined) {
+      continue;
+    }
+
+    const configsUnchanged =
+      newConfigs.size === publishedConfigs.size &&
+      [...publishedConfigs].every((config) => newConfigs.has(config));
+
+    if (!configsUnchanged) {
+      throw certifiedDiscreteAttributeConfigCannotBeChanged(
+        eserviceId,
+        descriptor.id,
+        attributeId
+      );
+    }
+  }
+}
+
+function collectDiscreteConfigKeysById(
+  attributes: EServiceCertifiedAttribute[]
+): Map<AttributeId, Set<string>> {
+  const configsById = new Map<AttributeId, Set<string>>();
+  for (const attribute of attributes) {
     const config = getEServiceAttributeDiscreteConfig(attribute);
     if (config === undefined) {
       continue;
     }
-    const configs = publishedDiscreteConfigsById.get(attribute.id) ?? [];
-    configs.push(config);
-    publishedDiscreteConfigsById.set(attribute.id, configs);
+    const configs = configsById.get(attribute.id) ?? new Set<string>();
+    configs.add(`${config.comparator}:${config.threshold}`);
+    configsById.set(attribute.id, configs);
   }
-
-  for (const attribute of newAttributes.certified.flat()) {
-    const publishedConfigs = publishedDiscreteConfigsById.get(attribute.id);
-
-    if (publishedConfigs === undefined) {
-      continue;
-    }
-
-    const config = getEServiceAttributeDiscreteConfig(attribute);
-
-    const isPublishedConfig = publishedConfigs.some(
-      (publishedConfig) =>
-        publishedConfig.threshold === config?.threshold &&
-        publishedConfig.comparator === config?.comparator
-    );
-
-    if (!isPublishedConfig) {
-      throw certifiedDiscreteAttributeConfigCannotBeChanged(
-        eserviceId,
-        descriptor.id,
-        attribute.id
-      );
-    }
-  }
+  return configsById;
 }
 
 export function assertTemplateInstanceAttributeStructureUnchanged(
