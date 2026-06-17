@@ -1,5 +1,5 @@
 import crypto from "crypto";
-const ISTAT_POPULATION_ATTRIBUTE_NAME = "popolazione_residente";
+const ISTAT_POPULATION_ATTRIBUTE_NAME = "Popolazione residente";
 export const SUMMARY_AGE_CODE = 999;
 const ISTAT_CERTIFIER_ORIGIN = "ISTAT";
 

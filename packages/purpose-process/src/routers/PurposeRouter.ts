@@ -824,6 +824,7 @@ const purposeRouter = (
           API_ROLE,
           SECURITY_ROLE,
           REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const riskAnalysisConfiguration =

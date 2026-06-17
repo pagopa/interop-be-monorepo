@@ -6,6 +6,7 @@ export type JobStats = {
   created: number;
   updated: number;
   revoked: number;
+  skipped: number;
   errors: number;
 };
 

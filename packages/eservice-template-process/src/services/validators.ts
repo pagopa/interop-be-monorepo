@@ -16,6 +16,7 @@ import {
   operationForbidden,
   TenantId,
   eserviceMode,
+  EServiceMode,
   RiskAnalysisId,
   type EserviceAttributes,
 } from "pagopa-interop-models";
@@ -32,6 +33,7 @@ import {
   riskAnalysisNotFound,
   eServiceTemplateUpdateSameNameConflict,
   eServiceTemplateUpdateSameDescriptionConflict,
+  asyncExchangeReceiveTemplateNotAllowed,
   attributeDiscreteConfigNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -111,6 +113,18 @@ export function assertConsistentDailyCalls({
     dailyCallsPerConsumer > dailyCallsTotal
   ) {
     throw inconsistentDailyCalls();
+  }
+}
+
+export function assertAsyncExchangeReceiveTemplateNotAllowed({
+  mode,
+  asyncExchange,
+}: {
+  mode: EServiceMode;
+  asyncExchange: boolean | undefined;
+}): void {
+  if (mode === eserviceMode.receive && asyncExchange === true) {
+    throw asyncExchangeReceiveTemplateNotAllowed();
   }
 }
 

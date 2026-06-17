@@ -648,6 +648,23 @@ describe("getUpdatedQuotas - certified discrete attributes", () => {
     expect(result.maxDailyCallsPerConsumer).toBe(200);
   });
 
+  it("applies the differentiated quota even when it is lower than the descriptor default", async () => {
+    const eservice = buildEService([
+      [
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          50
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([discreteTenantAttribute(1500)]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(50);
+  });
+
   it("falls back to the descriptor default when the discrete value does NOT satisfy the threshold", async () => {
     const eservice = buildEService([
       [
