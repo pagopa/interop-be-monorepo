@@ -44,13 +44,6 @@ export async function handleEserviceDescriptorSuspendedToProducer(
   const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
   const descriptor = retrieveDescriptor(eservice, descriptorId);
 
-  const [htmlTemplate, producer] = await Promise.all([
-    retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceArchivingDescriptorSuspendedToProducerMailTemplate
-    ),
-    retrieveTenant(eservice.producerId, readModelService),
-  ]);
-
   const archivingSchedule = descriptor.archivingSchedule;
 
   if (!archivingSchedule) {
@@ -59,6 +52,13 @@ export async function handleEserviceDescriptorSuspendedToProducer(
     );
     return [];
   }
+
+  const [htmlTemplate, producer] = await Promise.all([
+    retrieveHTMLTemplate(
+      eventMailTemplateType.eserviceArchivingDescriptorSuspendedToProducerMailTemplate
+    ),
+    retrieveTenant(eservice.producerId, readModelService),
+  ]);
 
   const targets = await getRecipientsForTenants({
     tenants: [producer],
