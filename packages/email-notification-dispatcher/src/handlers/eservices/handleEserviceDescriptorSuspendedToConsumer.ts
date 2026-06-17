@@ -23,7 +23,7 @@ import { dateAtRomeZone } from "pagopa-interop-commons";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
-export async function handleEserviceDescriptorSuspended(
+export async function handleEserviceDescriptorSuspendedToConsumer(
   data: EServiceDescriptorHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -55,7 +55,7 @@ export async function handleEserviceDescriptorSuspended(
   const [htmlTemplate, agreements, producer] = await Promise.all([
     retrieveHTMLTemplate(
       archivingSchedule
-        ? eventMailTemplateType.eserviceArchivingDescriptorSuspendedMailTemplate
+        ? eventMailTemplateType.eserviceArchivingDescriptorSuspendedToConsumerMailTemplate
         : eventMailTemplateType.eserviceDescriptorSuspendedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
@@ -83,7 +83,7 @@ export async function handleEserviceDescriptorSuspended(
 
   if (targets.length === 0) {
     logger.info(
-      `No users with email notifications enabled for handleEserviceDescriptorSuspended - entityId: ${eservice.id}, eventType: ${notificationType}`
+      `No users with email notifications enabled for handleEserviceDescriptorSuspendedToConsumer - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }

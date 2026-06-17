@@ -16,10 +16,14 @@ export const eventMailTemplateType = {
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
   eserviceDescriptorSuspendedMailTemplate: "eservice-descriptor-suspended-mail",
   eserviceDescriptorActivatedMailTemplate: "eservice-descriptor-activated-mail",
-  eserviceArchivingDescriptorSuspendedMailTemplate:
-    "eservice-archiving-descriptor-suspended-mail",
-  eserviceArchivingDescriptorActivatedMailTemplate:
-    "eservice-archiving-descriptor-activated-mail",
+  eserviceArchivingDescriptorSuspendedToConsumerMailTemplate:
+    "eservice-archiving-descriptor-suspended-to-consumer-mail",
+  eserviceArchivingDescriptorActivatedToConsumerMailTemplate:
+    "eservice-archiving-descriptor-activated-to-consumer-mail",
+  eserviceArchivingDescriptorSuspendedToProducerMailTemplate:
+    "eservice-archiving-descriptor-suspended-to-producer-mail",
+  eserviceArchivingDescriptorActivatedToProducerMailTemplate:
+    "eservice-archiving-descriptor-activated-to-producer-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   producerKeychainEserviceAddedMailTemplate:
     "producer-keychain-eservice-added-mail",
@@ -126,8 +130,6 @@ export const eventMailTemplateType = {
     "eservice-archiving-completed-eservice-to-consumer-mail",
   eserviceArchivingDescriptorArchivedToProducerMailTemplate:
     "eservice-archiving-descriptor-archived-to-producer-mail",
-  eserviceArchivingDescriptorArchivedToConsumerMailTemplate:
-    "eservice-archiving-descriptor-archived-to-consumer-mail",
   eserviceArchivingCanceledDescriptorToConsumerMailTemplate:
     "eservice-archiving-canceled-descriptor-to-consumer-mail",
   eserviceArchivingCanceledEserviceToConsumerMailTemplate:
