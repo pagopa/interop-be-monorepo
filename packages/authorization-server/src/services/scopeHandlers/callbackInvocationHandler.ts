@@ -2,6 +2,7 @@ import {
   clientKindTokenGenStates,
   genericInternalError,
   interactionState,
+  isInteractionStateAllowedForScope,
   unsafeBrandId,
   ProducerKeychainId,
 } from "pagopa-interop-models";
@@ -28,7 +29,6 @@ import {
 } from "../../utilities/tokenServiceHelpers.js";
 import {
   readInteraction,
-  isInteractionStateAllowedForScope,
   updateInteractionState,
 } from "../../utilities/interactionsUtils.js";
 import type {

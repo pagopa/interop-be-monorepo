@@ -21,6 +21,7 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
+  templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update authorization test", () => {
@@ -90,6 +91,10 @@ describe("API /templates/eservices/{eServiceId}/descriptors/{descriptorId}/updat
     {
       error: eServiceDescriptorNotFound(mockEService.id, descriptor.id),
       expectedStatus: 404,
+    },
+    {
+      error: templateInstanceNotAllowed(mockEService.id, generateId()),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

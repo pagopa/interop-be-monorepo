@@ -40,3 +40,37 @@ export const Interaction = z.object({
   ttl: z.number(),
 });
 export type Interaction = z.infer<typeof Interaction>;
+
+/**
+ * For a given requested scope, the interaction states from which that scope
+ * may be requested. This is the single source of truth for async interaction
+ * state-transition validation, shared by every service that validates async
+ * token requests (authorization-server, backend-for-frontend).
+ */
+const interactionStateAllowedByScope: Record<
+  InteractionState,
+  InteractionState[]
+> = {
+  [interactionState.startInteraction]: [],
+  [interactionState.callbackInvocation]: [
+    interactionState.startInteraction,
+    interactionState.callbackInvocation,
+  ],
+  [interactionState.getResource]: [
+    interactionState.callbackInvocation,
+    interactionState.getResource,
+  ],
+  [interactionState.confirmation]: [
+    interactionState.callbackInvocation,
+    interactionState.getResource,
+    interactionState.confirmation,
+  ],
+};
+
+export const isInteractionStateAllowedForScope = ({
+  currentState,
+  scope,
+}: {
+  currentState: InteractionState;
+  scope: InteractionState;
+}): boolean => interactionStateAllowedByScope[scope].includes(currentState);

@@ -182,7 +182,7 @@ const enhanceProducerEService = (
   eserviceTemplates: eserviceTemplateApi.EServiceTemplate[],
   hasNotifications: boolean
 ): bffApi.ProducerEService => {
-  const activeDescriptor = getLatestActiveDescriptor(eservice);
+  const activeDescriptor = getLatestActiveDescriptor(eservice, true);
   const draftDescriptor = eservice.descriptors.find(isInvalidDescriptor);
 
   const isRequesterDelegateProducer = requesterId !== eservice.producerId;
@@ -558,13 +558,6 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      const producer = await tenantProcessClient.tenant.getTenant({
-        headers,
-        params: {
-          id: eservice.producerId,
-        },
-      });
-
       await assertRequesterCanActAsProducer(
         delegationProcessClient,
         headers,
@@ -579,8 +572,7 @@ export function catalogServiceBuilder(
         technology: eservice.technology,
         mode: eservice.mode,
         riskAnalysis: await enhanceEServiceRiskAnalysisArray(
-          eservice.riskAnalysis,
-          producer.kind
+          eservice.riskAnalysis
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isConsumerDelegable: eservice.isConsumerDelegable,
@@ -1142,19 +1134,12 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      const producer = await tenantProcessClient.tenant.getTenant({
-        headers,
-        params: {
-          id: eservice.producerId,
-        },
-      });
-
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
 
       return toBffCatalogApiEserviceRiskAnalysis(
         riskAnalysis,
         getRulesetExpiration(
-          producer.kind,
+          riskAnalysis.riskAnalysisForm.tenantKind,
           riskAnalysis.riskAnalysisForm.version
         )?.toJSON()
       );

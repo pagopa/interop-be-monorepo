@@ -1,5 +1,7 @@
 import { purposeApi } from "pagopa-interop-api-clients";
+import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   Ownership,
   ownership,
@@ -28,7 +30,6 @@ import {
   TenantId,
   tenantKind,
   TenantKind,
-  tenantAttributeType,
   RiskAnalysisFormId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -56,6 +57,7 @@ import {
   tenantNotAllowed,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
 import {
   retrieveActiveAgreement,
@@ -135,7 +137,7 @@ export const assertConsistentFreeOfCharge = (
   }
 };
 
-const assertRequesterIsConsumer = (
+export const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
   authData: Pick<UIAuthData, "organizationId">
 ): void => {
@@ -327,21 +329,21 @@ export async function getUpdatedQuotas(
     throw tenantNotFound(consumerId);
   }
 
-  const consumerCertifiedAttributesIds = new Set(
-    tenant.attributes
-      .filter(
-        (a) =>
-          a.type === tenantAttributeType.CERTIFIED && !a.revocationTimestamp
-      )
-      .map((a) => a.id)
+  const certifiedDiscreteEnabled = isFeatureFlagEnabled(
+    config,
+    "featureFlagAttributeCertifiedDiscrete"
   );
 
   const maxDailyCallsPerConsumer =
     currentDescriptor.attributes.certified.flat().reduce((max, current) => {
-      if (!consumerCertifiedAttributesIds.has(current.id)) {
+      if (!current.dailyCallsPerConsumer) {
         return max;
       }
-      if (!current.dailyCallsPerConsumer) {
+      if (
+        !matchesCertifiedDescriptorAttribute(current, tenant.attributes, {
+          certifiedDiscreteEnabled,
+        })
+      ) {
         return max;
       }
       return Math.max(max, current.dailyCallsPerConsumer);
