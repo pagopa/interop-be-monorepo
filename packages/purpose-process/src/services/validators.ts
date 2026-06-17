@@ -827,19 +827,12 @@ export function assertRiskAnalysisFormEditableInCurrentReviewMode(
   purposeId: PurposeId,
   inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
   existingForm: PurposeRiskAnalysisForm | undefined,
-  reviewerWorkflow: ReviewerWorkflow,
-  tenantKind: TenantKind,
-  personalDataInEService: boolean | undefined
+  reviewerWorkflow: ReviewerWorkflow
 ): void {
   if (
     reviewerWorkflow.signingState !== riskAnalysisSigningState.draft &&
     reviewerWorkflow.signingState !== riskAnalysisSigningState.rejected &&
-    riskAnalysisFormInputDiffersFromPrevious(
-      inputForm,
-      existingForm,
-      tenantKind,
-      personalDataInEService
-    )
+    riskAnalysisFormInputDiffersFromPrevious(inputForm, existingForm)
   ) {
     throw riskAnalysisFormCannotBeUpdated(purposeId);
   }
@@ -847,9 +840,7 @@ export function assertRiskAnalysisFormEditableInCurrentReviewMode(
 
 function riskAnalysisFormInputDiffersFromPrevious(
   inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
-  existingForm: PurposeRiskAnalysisForm | undefined,
-  tenantKind: TenantKind,
-  personalDataInEService: boolean | undefined
+  existingForm: PurposeRiskAnalysisForm | undefined
 ): boolean {
   // If input form is undefined (removal) and existing form exists, it counts as a change
   if (!inputForm && existingForm) {
@@ -861,36 +852,40 @@ function riskAnalysisFormInputDiffersFromPrevious(
     return true;
   }
 
-  // Both undefined or both null - no change
+  // Both undefined - no change
   if (!inputForm && !existingForm) {
     return false;
   }
 
-  // Both exist, compare them (at this point both inputForm and existingForm are defined)
-  const transformedInput = validateAndTransformRiskAnalysis(
-    { ...(inputForm as purposeApi.RiskAnalysisFormSeed), tenantKind },
-    true,
-    tenantKind,
-    new Date(),
-    personalDataInEService
-  );
+  // Both exist - compare them after normalizing to same structure
+  if (inputForm && existingForm) {
+    // Normalize existing form to match input form structure
+    const existingAnswers = {
+      ...Object.fromEntries(
+        existingForm.singleAnswers.map(({ key, value }) => [
+          key,
+          value ? [value] : [],
+        ])
+      ),
+      ...Object.fromEntries(
+        existingForm.multiAnswers.map(({ key, values }) => [key, values])
+      ),
+    };
 
-  if (!transformedInput) {
-    return true;
+    // Sort both structures by key to make comparison order-independent
+    const sortedInputAnswers = Object.fromEntries(
+      Object.entries(inputForm.answers).sort(([a], [b]) => a.localeCompare(b))
+    );
+    const sortedExistingAnswers = Object.fromEntries(
+      Object.entries(existingAnswers).sort(([a], [b]) => a.localeCompare(b))
+    );
+
+    return (
+      inputForm.version !== existingForm.version ||
+      JSON.stringify(sortedInputAnswers) !==
+        JSON.stringify(sortedExistingAnswers)
+    );
   }
 
-  const normalize = (form: PurposeRiskAnalysisForm) => ({
-    version: form.version,
-    singleAnswers: [...form.singleAnswers]
-      .sort((a, b) => a.key.localeCompare(b.key))
-      .map(({ key, value }) => ({ key, value })),
-    multiAnswers: [...form.multiAnswers]
-      .sort((a, b) => a.key.localeCompare(b.key))
-      .map(({ key, values }) => ({ key, values })),
-  });
-
-  return (
-    JSON.stringify(normalize(transformedInput)) !==
-    JSON.stringify(normalize(existingForm as PurposeRiskAnalysisForm))
-  );
+  return false;
 }

@@ -2590,9 +2590,7 @@ const performUpdatePurpose = async (
       purposeId,
       riskAnalysisForm,
       purpose.data.riskAnalysisForm,
-      purpose.data.reviewerWorkflow,
-      tenantKind,
-      eservice.personalData
+      purpose.data.reviewerWorkflow
     );
   }
 
