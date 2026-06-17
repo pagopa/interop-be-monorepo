@@ -100,6 +100,7 @@ import {
   reviewerWorkflowNotInSubmittedState,
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
+  reviewerWorkflowNotInSignedState,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -1552,6 +1553,16 @@ export function purposeServiceBuilder(
             dateForExpirationValidation: new Date(),
             personalDataInEService: eservice.personalData,
           });
+        }
+      }
+
+      if (isFeatureFlagEnabled(config, "featureFlagNewOperators")) {
+        if (
+          purpose.data.reviewerWorkflow &&
+          purpose.data.reviewerWorkflow.signingState !==
+            riskAnalysisSigningState.signed
+        ) {
+          throw reviewerWorkflowNotInSignedState(purposeId);
         }
       }
 

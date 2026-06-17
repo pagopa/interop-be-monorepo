@@ -72,6 +72,7 @@ const errorCodes = {
   reviewerWorkflowNotInSubmittedState: "0052",
   editNotAllowedForReviewMode: "0053",
   reviewerWorkflowNotEditable: "0054",
+  reviewerWorkflowNotInSignedState: "0055",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -642,5 +643,15 @@ export function reviewerWorkflowNotEditable(
     detail: `Purpose ${purposeId} reviewer workflow is not in an editable state (must be Assigned)`,
     code: "reviewerWorkflowNotEditable",
     title: "Reviewer workflow not editable",
+  });
+}
+
+export function reviewerWorkflowNotInSignedState(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} reviewer workflow is not in the Signed state`,
+    code: "reviewerWorkflowNotInSignedState",
+    title: "Reviewer workflow not in signed state",
   });
 }

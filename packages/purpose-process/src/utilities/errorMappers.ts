@@ -283,6 +283,7 @@ export const activatePurposeVersionErrorMapper = (
       "agreementNotFound",
       "riskAnalysisValidationFailed",
       "riskAnalysisTenantKindMismatch",
+      "reviewerWorkflowNotInSignedState",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
