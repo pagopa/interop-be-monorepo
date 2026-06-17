@@ -16,6 +16,7 @@ import {
 import {
   archivingScope,
   AsyncExchangeProperties,
+  AttributeId,
   delegationKind,
   delegationState,
   Descriptor,
@@ -23,6 +24,7 @@ import {
   descriptorState,
   DescriptorState,
   EService,
+  EServiceAttributeCertifiedDiscreteConfig,
   EServiceId,
   eserviceMode,
   EServiceTemplateId,
@@ -65,6 +67,7 @@ import {
   riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
+  certifiedDiscreteAttributeConfigCannotBeChanged,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
   notValidEServiceState,
@@ -593,6 +596,54 @@ export function assertDiscreteConfigForCertifiedAttributesOnly(
 
   if (invalidAttribute) {
     throw attributeDiscreteConfigNotAllowed(invalidAttribute.id);
+  }
+}
+
+export function assertCertifiedDiscreteConfigUnchanged(
+  eserviceId: EServiceId,
+  descriptor: Descriptor,
+  newAttributes: EserviceAttributes
+): void {
+  if (descriptor.state === descriptorState.draft) {
+    return;
+  }
+
+  const publishedDiscreteConfigsById = new Map<
+    AttributeId,
+    EServiceAttributeCertifiedDiscreteConfig[]
+  >();
+  for (const attribute of descriptor.attributes.certified.flat()) {
+    const config = getEServiceAttributeDiscreteConfig(attribute);
+    if (config === undefined) {
+      continue;
+    }
+    const configs = publishedDiscreteConfigsById.get(attribute.id) ?? [];
+    configs.push(config);
+    publishedDiscreteConfigsById.set(attribute.id, configs);
+  }
+
+  for (const attribute of newAttributes.certified.flat()) {
+    const publishedConfigs = publishedDiscreteConfigsById.get(attribute.id);
+
+    if (publishedConfigs === undefined) {
+      continue;
+    }
+
+    const config = getEServiceAttributeDiscreteConfig(attribute);
+
+    const isPublishedConfig = publishedConfigs.some(
+      (publishedConfig) =>
+        publishedConfig.threshold === config?.threshold &&
+        publishedConfig.comparator === config?.comparator
+    );
+
+    if (!isPublishedConfig) {
+      throw certifiedDiscreteAttributeConfigCannotBeChanged(
+        eserviceId,
+        descriptor.id,
+        attribute.id
+      );
+    }
   }
 }
 

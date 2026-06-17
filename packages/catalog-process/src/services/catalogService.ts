@@ -213,6 +213,7 @@ import {
   assertAsyncExchangeReadyForPublication,
   assertDailyCallsForCertifiedAttributesOnly,
   assertDiscreteConfigForCertifiedAttributesOnly,
+  assertCertifiedDiscreteConfigUnchanged,
   assertAttributeDailyCallsConsistentWithTotal,
   assertEserviceIsNotInArchivingOrArchivedState,
   assertDescriptorArchivable,
@@ -2409,6 +2410,11 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(
+        eserviceId,
+        descriptor,
+        updatedAttributes
+      );
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -3335,6 +3341,11 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(
+        eserviceId,
+        descriptor,
+        parsedAttributes
+      );
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         descriptor.dailyCallsTotal
