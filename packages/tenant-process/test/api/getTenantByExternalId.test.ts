@@ -24,6 +24,7 @@ describe("API GET /tenants/origin/{origin}/code/{code} test", () => {
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
     authRole.M2M_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   const makeRequest = async (token: string) =>

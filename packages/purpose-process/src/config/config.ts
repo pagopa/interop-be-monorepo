@@ -7,6 +7,8 @@ import {
   ReadModelSQLDbConfig,
   TenantKindHistoryDBConfig,
   FeatureFlagTenantKindInRiskAnalysisConfig,
+  FeatureFlagNewOperatorsConfig,
+  FeatureFlagAttributeCertifiedDiscreteConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -25,7 +27,9 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
       }))
   )
-  .and(ApplicationAuditProducerConfig);
+  .and(ApplicationAuditProducerConfig)
+  .and(FeatureFlagNewOperatorsConfig)
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig);
 type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
 
 export const config: PurposeProcessConfig = PurposeProcessConfig.parse(

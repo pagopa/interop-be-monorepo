@@ -9,6 +9,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockEService,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Attribute,
@@ -36,6 +37,8 @@ import {
   inconsistentDailyCalls,
   templateInstanceNotAllowed,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
+  eserviceInArchivingOrArchivedState,
 } from "../../src/model/domain/errors.js";
 import { config } from "../../src/config/config.js";
 import {
@@ -805,6 +808,116 @@ describe("create descriptor", async () => {
     );
   });
 
+  it.each([attributeKind.declared, attributeKind.verified])(
+    "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
+    async (kind) => {
+      const mockDescriptor = {
+        ...getMockDescriptor(),
+        docs: [],
+      };
+
+      const mockAttribute = getMockAttribute(kind);
+      await addOneAttribute(mockAttribute);
+
+      const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+        ...buildCreateDescriptorSeed(mockDescriptor),
+        attributes: {
+          certified: [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: mockAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: mockAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+        },
+      };
+
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [],
+      };
+
+      await addOneEService(eservice);
+
+      await expect(
+        catalogService.createDescriptor(
+          eservice.id,
+          descriptorSeed,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        attributeDiscreteConfigNotAllowed(mockAttribute.id)
+      );
+    }
+  );
+
+  it.each([
+    descriptorState.archived,
+    descriptorState.archivingSuspended,
+    descriptorState.archiving,
+  ])(
+    "should throw an error if the eservice is in archiving or archived state, with latest active descriptor in %s state",
+    async (state) => {
+      const mockDescriptor = {
+        ...getMockDescriptor(),
+        docs: [],
+      };
+      const attribute: Attribute = {
+        name: "Attribute name",
+        id: generateId(),
+        kind: "Declared",
+        description: "Attribute Description",
+        creationTime: new Date(),
+      };
+      await addOneAttribute(attribute);
+      const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
+        ...buildCreateDescriptorSeed(mockDescriptor),
+        attributes: {
+          certified: [],
+          declared: [
+            [{ id: attribute.id, explicitAttributeVerification: false }],
+          ],
+          verified: [],
+        },
+      };
+
+      const previousDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        interface: getMockDocument(),
+        state,
+      };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [previousDescriptor],
+      };
+      await addOneEService(eservice);
+      await expect(
+        catalogService.createDescriptor(
+          eservice.id,
+          descriptorSeed,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(eserviceInArchivingOrArchivedState(eservice.id));
+    }
+  );
   it("should persist async exchange descriptor fields when flag ON and asyncExchange true", async () => {
     const eservice: EService = {
       ...getMockEService(),

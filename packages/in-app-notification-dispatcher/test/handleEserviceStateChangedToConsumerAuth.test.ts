@@ -13,10 +13,14 @@ import {
   TenantId,
   EServiceId,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  getNotificationRecipients,
+  eserviceNotFound,
+  tenantNotFound,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 import { handleEserviceStateChangedToConsumer } from "../src/handlers/authorizations/handleEserviceStateChangedToConsumer.js";
-import { eserviceNotFound, tenantNotFound } from "../src/models/errors.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+
 import {
   addOneAgreement,
   addOneEService,

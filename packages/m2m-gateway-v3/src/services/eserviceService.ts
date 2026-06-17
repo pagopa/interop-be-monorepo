@@ -752,6 +752,22 @@ export function eserviceServiceBuilder(
       await pollEserviceUntilDeletion(eserviceId, headers);
     },
 
+    async scheduleArchiveEService(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApiV3.EServiceArchivingReasonSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(`Scheduling archive for eservice with id ${eserviceId}`);
+
+      const response =
+        await clients.catalogProcessClient.scheduleEServiceArchiving(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
     async updatePublishedEServiceDelegation(
       eserviceId: EServiceId,
       seed: m2mGatewayApiV3.EServiceDelegationUpdateSeed,
@@ -996,6 +1012,81 @@ export function eserviceServiceBuilder(
       );
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+    async scheduleArchiveEserviceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Scheduling archive for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.scheduleEServiceDescriptorArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      await pollEService(response, headers);
+
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+    async cancelEServiceDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Canceling archive for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.cancelEServiceDescriptorArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      await pollEService(response, headers);
+
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+
+    async cancelEServiceArchiving(
+      eserviceId: EServiceId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(`Canceling archiving for eservice with id ${eserviceId}`);
+
+      const { metadata } =
+        await clients.catalogProcessClient.cancelScheduleArchiveEservice(
+          undefined,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+      const polledEService = await pollEServiceById(
+        eserviceId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiEService(polledEService.data);
     },
     async uploadEServiceDescriptorInterface(
       eserviceId: EServiceId,

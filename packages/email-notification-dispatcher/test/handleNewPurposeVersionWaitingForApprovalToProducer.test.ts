@@ -26,7 +26,10 @@ import {
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
-import { eServiceNotFound, tenantNotFound } from "../src/models/errors.js";
+import {
+  eserviceNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { handleNewPurposeVersionWaitingForApprovalToProducer } from "../src/handlers/purposes/handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import {
   addOneEService,
@@ -158,7 +161,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
     ).rejects.toThrow(tenantNotFound(unknownProducerId));
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
     const purpose: Purpose = {
@@ -176,7 +179,7 @@ describe("handleNewPurposeVersionWaitingForApproval", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+    ).rejects.toThrow(eserviceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the producer", async () => {

@@ -76,6 +76,7 @@ import {
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
   missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import {
@@ -130,6 +131,8 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   versionStatesNotAllowingInterfaceOperations,
+  assertAsyncExchangeReceiveTemplateNotAllowed,
+  assertDiscreteConfigForCertifiedAttributesOnly,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -306,10 +309,19 @@ async function parseAndCheckAttributesOfKind(
     .flat()
     .map(({ id }) => id);
 
-  const attributes = await readModelService.getAttributesByIds(
-    attributesSeedIds,
-    kind
-  );
+  const attributes =
+    kind === attributeKind.certified
+      ? [
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
+      : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
   attributesSeedIds.forEach((attributeId) => {
@@ -317,6 +329,19 @@ async function parseAndCheckAttributesOfKind(
       throw attributeNotFound(attributeId);
     }
   });
+
+  if (kind === attributeKind.certified) {
+    const hasCertifiedDiscreteConfig = parsedAttributesSeed
+      .flat()
+      .some((seedAttribute) => seedAttribute.discreteConfig !== undefined);
+    const hasCertifiedDiscreteAttribute = attributes.some(
+      (attribute) => attribute.kind === attributeKind.certifiedDiscrete
+    );
+
+    if (hasCertifiedDiscreteConfig || hasCertifiedDiscreteAttribute) {
+      assertFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete");
+    }
+  }
 
   return parsedAttributesSeed;
 }
@@ -548,6 +573,15 @@ export function eserviceTemplateServiceBuilder(
       ) {
         if (eserviceTemplateVersion.asyncExchangeProperties === undefined) {
           throw missingAsyncExchangeProperties(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
+
+        if (
+          eserviceTemplateVersion.asyncExchangeCallbackInterface === undefined
+        ) {
+          throw missingAsyncExchangeCallbackInterface(
             eserviceTemplateId,
             eserviceTemplateVersionId
           );
@@ -1232,6 +1266,12 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+
       /**
        * In order for the e-service template version attributes to be updatable,
        * each attribute group contained in the seed must be a superset
@@ -1308,7 +1348,7 @@ export function eserviceTemplateServiceBuilder(
 
       const updatedEServiceTemplateVersion: EServiceTemplateVersion = {
         ...eserviceTemplateVersion,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEServiceTemplate = replaceEServiceTemplateVersion(
@@ -1355,6 +1395,13 @@ export function eserviceTemplateServiceBuilder(
       await assertEServiceTemplateNameAvailable(seed.name, readModelService);
 
       assertConsistentDailyCalls(seed.version);
+
+      if (isFeatureFlagEnabled(config, "featureFlagAsyncExchange")) {
+        assertAsyncExchangeReceiveTemplateNotAllowed({
+          mode: apiEServiceModeToEServiceMode(seed.mode),
+          asyncExchange: seed.asyncExchange,
+        });
+      }
 
       const creationDate = new Date();
       const draftVersion: EServiceTemplateVersion = {
@@ -1475,6 +1522,7 @@ export function eserviceTemplateServiceBuilder(
         seed.attributes,
         readModelService
       );
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls({
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
@@ -1707,13 +1755,6 @@ export function eserviceTemplateServiceBuilder(
         if (eserviceTemplate.data.asyncExchange !== true) {
           throw eserviceTemplateAsyncExchangeNotEnabled(
             eserviceTemplate.data.id
-          );
-        }
-
-        if (version.asyncExchangeProperties === undefined) {
-          throw missingAsyncExchangeProperties(
-            eserviceTemplate.data.id,
-            version.id
           );
         }
 
@@ -2248,9 +2289,13 @@ async function updateDraftEServiceTemplate(
     await Promise.all(
       eserviceTemplate.data.versions.map(async (d) => {
         if (d.interface !== undefined) {
-          return await fileManager.delete(
+          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
+        }
+
+        if (d.asyncExchangeCallbackInterface !== undefined) {
+          await fileManager.delete(
             config.s3Bucket,
-            d.interface.path,
+            d.asyncExchangeCallbackInterface.path,
             logger
           );
         }
@@ -2311,6 +2356,7 @@ async function updateDraftEServiceTemplate(
       ? eserviceTemplate.data.versions.map((d) => ({
           ...d,
           interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
@@ -2464,6 +2510,10 @@ async function updateDraftEServiceTemplateVersion(
         readModelService
       )
     : eserviceTemplateVersion.attributes;
+
+  if (attributes) {
+    assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+  }
 
   const asyncExchangeEnabled =
     isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
