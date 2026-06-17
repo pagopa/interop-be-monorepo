@@ -182,7 +182,7 @@ describe("handleEserviceDescriptorArchivingScheduledReminderInApp", () => {
     );
     expect(producer?.userId).toBe(producerUserId);
     expect(producer?.tenantId).toBe(eservice.producerId);
-    expect(producer?.body).toContain("verrà archiviata");
+    expect(producer?.body).toContain("sarà archiviata");
     expect(consumer?.userId).toBe(consumerUserId);
     expect(consumer?.tenantId).toBe(consumerId);
     expect(consumer?.body).toContain("producer-tenant");
