@@ -138,6 +138,14 @@ export const inAppTemplates = {
         ? " È disponibile una nuova versione per continuare a scambiare dati con l'e-service."
         : ""
     }`,
+  eserviceArchivingDescriptorSuspendedToProducer: (
+    eserviceName: string,
+    version: string,
+    archivableOn: Date
+  ): string =>
+    `La versione ${version ?? ""} dell'e-service ${
+      eserviceName
+    } è al momento sospesa. Sarà archiviata il giorno ${dateAtRomeZone(archivableOn)}.`,
   eserviceDescriptorActivatedToConsumer: (
     eserviceName: string,
     producerName: string,
@@ -157,6 +165,14 @@ export const inAppTemplates = {
     } è di nuovo attiva. L'archiviazione avverrà il giorno ${dateAtRomeZone(
       archivableOn
     )}.${newVersionAvailable ? " È disponibile una nuova versione." : ""}`,
+  eserviceArchivingDescriptorActivatedToProducer: (
+    eserviceName: string,
+    version: string,
+    archivableOn: Date
+  ): string =>
+    `La versione ${version ?? ""} dell'e-service ${
+      eserviceName
+    } è di nuovo attiva. Sarà archiviata il giorno ${dateAtRomeZone(archivableOn)}.`,
   eserviceDescriptorQuotasUpdatedToConsumer: (
     eserviceName: string,
     version: string | undefined,
