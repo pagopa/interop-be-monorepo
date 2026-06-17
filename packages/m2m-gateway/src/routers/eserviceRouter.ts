@@ -17,9 +17,7 @@ import {
   downloadEServiceDescriptorInterfaceErrorMapper,
   downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   uploadEServiceDescriptorInterfaceErrorMapper,
-  uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
-  deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   deleteDraftEServiceDescriptorErrorMapper,
   getEServiceRiskAnalysisErrorMapper,
   getEServiceDescriptorAttributesErrorMapper,
@@ -575,60 +573,6 @@ const eserviceRouter = (
             downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
             ctx,
             `Error retrieving async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .post(
-      "/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-
-          const document =
-            await eserviceService.uploadEServiceDescriptorAsyncExchangeCallbackInterface(
-              unsafeBrandId(req.params.eserviceId),
-              unsafeBrandId(req.params.descriptorId),
-              req.body,
-              ctx
-            );
-
-          return res.status(201).send(m2mGatewayApi.Document.parse(document));
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
-            ctx,
-            `Error uploading async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
-          );
-          return res.status(errorRes.status).send(errorRes);
-        }
-      }
-    )
-    .delete(
-      "/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface",
-      async (req, res) => {
-        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
-
-        try {
-          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
-
-          await eserviceService.deleteEServiceDescriptorAsyncExchangeCallbackInterface(
-            unsafeBrandId(req.params.eserviceId),
-            unsafeBrandId(req.params.descriptorId),
-            ctx
-          );
-
-          return res.status(200).send({});
-        } catch (error) {
-          const errorRes = makeApiProblem(
-            error,
-            deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
-            ctx,
-            `Error deleting async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

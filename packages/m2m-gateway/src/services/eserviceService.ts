@@ -1024,39 +1024,6 @@ export function eserviceServiceBuilder(
       return toM2MGatewayApiDocument(document);
     },
 
-    async uploadEServiceDescriptorAsyncExchangeCallbackInterface(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      fileUpload: m2mGatewayApi.FileUploadMultipart,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApi.Document> {
-      logger.info(
-        `Adding async exchange callback interface document ${fileUpload.file.name} to eservice ${eserviceId} descriptor ${descriptorId}`
-      );
-
-      const { data: eservice } = await retrieveEServiceById(
-        headers,
-        eserviceId
-      );
-
-      const { data: document, metadata } = await uploadEServiceDocument({
-        eservice,
-        descriptorId,
-        documentKind:
-          catalogApi.EServiceDocumentKind.Values
-            .ASYNC_EXCHANGE_CALLBACK_INTERFACE,
-        fileUpload,
-        fileManager,
-        catalogProcessClient: clients.catalogProcessClient,
-        headers,
-        logger,
-      });
-
-      await pollEServiceById(eserviceId, metadata, headers);
-
-      return toM2MGatewayApiDocument(document);
-    },
-
     async deleteEServiceDescriptorInterface(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1083,43 +1050,6 @@ export function eserviceServiceBuilder(
               eServiceId: eserviceId,
               descriptorId,
               documentId: descriptor.interface.id,
-            },
-            headers,
-          }
-        );
-
-      await pollEService(response, headers);
-    },
-
-    async deleteEServiceDescriptorAsyncExchangeCallbackInterface(
-      eserviceId: EServiceId,
-      descriptorId: DescriptorId,
-      { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<void> {
-      logger.info(
-        `Deleting async exchange callback interface document from eservice ${eserviceId} descriptor ${descriptorId}`
-      );
-
-      const descriptor = retrieveEServiceDescriptorById(
-        await retrieveEServiceById(headers, eserviceId),
-        descriptorId
-      );
-
-      if (!descriptor.asyncExchangeCallbackInterface) {
-        throw eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
-          eserviceId,
-          descriptorId
-        );
-      }
-
-      const response =
-        await clients.catalogProcessClient.deleteEServiceDocumentById(
-          undefined,
-          {
-            params: {
-              eServiceId: eserviceId,
-              descriptorId,
-              documentId: descriptor.asyncExchangeCallbackInterface.id,
             },
             headers,
           }
