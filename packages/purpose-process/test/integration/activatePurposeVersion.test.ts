@@ -202,6 +202,8 @@ describe("activatePurposeVersion", () => {
 
     expect(updatedVersion.riskAnalysis).toBeDefined();
 
+    expect(updatedVersion.stamps?.creation.who).toEqual(consumerUserId);
+
     expect({
       ...writtenPayload,
       purpose: sortPurpose(writtenPayload.purpose),
@@ -600,13 +602,14 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
+    const authData = getMockAuthData(mockConsumer.id);
     const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: purpose.id,
         versionId: purposeVersion.id,
         delegationId: undefined,
       },
-      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      getMockContext({ authData })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -625,7 +628,16 @@ describe("activatePurposeVersion", () => {
     const expectedPurpose: Purpose = {
       ...purpose,
       versions: [
-        { ...purposeVersion, state: purposeVersionState.waitingForApproval },
+        {
+          ...purposeVersion,
+          state: purposeVersionState.waitingForApproval,
+          stamps: {
+            creation: {
+              who: authData.userId,
+              when: new Date(),
+            },
+          },
+        },
       ],
       updatedAt: new Date(),
     };
