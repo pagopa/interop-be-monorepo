@@ -199,6 +199,7 @@ export const createDescriptorErrorMapper = (
       "attributeDailyCallsNotAllowed",
       "attributeDiscreteConfigNotAllowed",
       "templateInstanceNotAllowed",
+      "asyncExchangeBulkNotAllowedForSoap",
       "eserviceInArchivingOrArchivedState",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -235,6 +236,7 @@ export const updateDraftDescriptorErrorMapper = (
       "templateInstanceNotAllowed",
       "attributeDuplicatedInGroup",
       "attributeDailyCallsNotAllowed",
+      "asyncExchangeBulkNotAllowedForSoap",
       "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
@@ -256,6 +258,7 @@ export const updateDraftDescriptorTemplateInstanceErrorMapper = (
       "attributeNotFound",
       "eServiceNotAnInstance",
       "attributeDiscreteConfigNotAllowed",
+      "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -738,6 +741,7 @@ export const updateTemplateInstanceDescriptorErrorMapper = (
       "inconsistentDailyCalls",
       "attributeDailyCallsNotAllowed",
       "attributeDiscreteConfigNotAllowed",
+      "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -781,6 +785,7 @@ export const updateEserviceDescriptorArchivingStatusErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("eserviceWithActiveOrPendingDelegation", () => HTTP_STATUS_CONFLICT)
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
@@ -799,6 +804,7 @@ export const updateEServiceArchivingStatusErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("eserviceWithActiveOrPendingDelegation", () => HTTP_STATUS_CONFLICT)
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(

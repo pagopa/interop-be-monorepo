@@ -10614,8 +10614,11 @@ components:
     EserviceIdsParam:
       in: query
       name: eserviceIds
-      description: Filter by E-Service IDs. If not specified, return results for any
-        E-Service
+      description: >-
+        Filter by E-Service IDs. If not specified, return results for any
+        E-Service. For e-services that are instances of an e-service template,
+        purpose templates linked to the originating e-service template are also
+        returned.
       required: false
       explode: false
       schema:
@@ -12455,9 +12458,13 @@ components:
         responseTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         confirmation:
           type: boolean
         bulk:
@@ -12465,6 +12472,8 @@ components:
         maxResultSet:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 99999
     EServiceTechnology:
       type: string
       description: API Technology

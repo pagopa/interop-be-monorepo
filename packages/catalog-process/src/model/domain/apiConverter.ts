@@ -236,6 +236,7 @@ export const eServiceToApiEService = (
       version: riskAnalysis.riskAnalysisForm.version,
       singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
       multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
+      tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
     },
   })),
   descriptors: eservice.descriptors.map(descriptorToApiDescriptor),

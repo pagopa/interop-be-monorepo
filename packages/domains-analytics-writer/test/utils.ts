@@ -97,6 +97,8 @@ export const tenantTables: TenantDbTable[] = [
   TenantDbTable.tenant_verified_attribute,
   TenantDbTable.tenant_verified_attribute_revoker,
   TenantDbTable.tenant_verified_attribute_verifier,
+  TenantDbTable.tenant_remote_id,
+  TenantDbTable.tenant_certified_discrete_attribute,
 ];
 
 export const eserviceTemplateTables: EserviceTemplateDbTable[] = [

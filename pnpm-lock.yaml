@@ -5427,6 +5427,9 @@ importers:
       express:
         specifier: 'catalog:'
         version: 4.20.0
+      pagopa-interop-agreement-lifecycle:
+        specifier: workspace:*
+        version: link:../agreement-lifecycle
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients

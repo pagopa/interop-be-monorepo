@@ -258,7 +258,11 @@ export async function handlePurposeMessage(
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
           "PurposeRiskAnalysisWorkflowCreated",
-          "PurposeRiskAnalysisAssigned"
+          "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => {
