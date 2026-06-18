@@ -63,10 +63,9 @@ async function processMessage(
     );
 
     if (!signature) {
-      logger.warn(
-        `Skipping non-processable message: missing signature reference for fileKey ${fileKey} (message ${id})`
+      throw genericInternalError(
+        `Missing signature reference for fileKey ${fileKey} (message ${id})`
       );
-      return;
     }
 
     const { fileKind } = signature;
