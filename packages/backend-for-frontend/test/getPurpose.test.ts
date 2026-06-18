@@ -2,16 +2,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   purposeApi,
-  purposeTemplateApi,
   catalogApi,
   tenantApi,
   agreementApi,
-  attributeRegistryApi,
-  eserviceTemplateApi,
-  notificationConfigApi,
-  inAppNotificationApi,
-  SelfcareV2UsersClient,
-  SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
 import { generateId, PurposeId, TenantId, UserId } from "pagopa-interop-models";
 import { UIAuthData } from "pagopa-interop-commons";
@@ -23,6 +16,7 @@ import {
 import type {
   AuthorizationProcessClient,
   DelegationProcessClient,
+  PagoPAInteropBeClients,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
@@ -128,35 +122,18 @@ describe("getPurpose (service) — reviewer enrichment", () => {
 
   const purposeService = purposeServiceBuilder(
     {
-      purposeProcessClient: {
-        getPurpose: mockGetPurpose,
-      } as unknown as purposeApi.PurposeProcessClient,
-      purposeTemplateProcessClient: {
-        getPurposeTemplate: vi.fn(),
-      } as unknown as purposeTemplateApi.PurposeTemplateProcessClient,
-      catalogProcessClient: {
-        getEServiceById: mockGetEServiceById,
-      } as unknown as catalogApi.CatalogProcessClient,
+      purposeProcessClient: { getPurpose: mockGetPurpose },
+      purposeTemplateProcessClient: { getPurposeTemplate: vi.fn() },
+      catalogProcessClient: { getEServiceById: mockGetEServiceById },
       tenantProcessClient: mockTenantProcessClient,
-      agreementProcessClient: {
-        getAgreements: mockGetAgreements,
-      } as unknown as agreementApi.AgreementProcessClient,
+      agreementProcessClient: { getAgreements: mockGetAgreements },
       authorizationClient: mockAuthorizationClient,
       delegationProcessClient: mockDelegationProcessClient,
-      selfcareV2UserClient: {
-        getUserInfoUsingGET: mockGetUserInfoUsingGET,
-      } as unknown as SelfcareV2UsersClient,
+      selfcareV2UserClient: { getUserInfoUsingGET: mockGetUserInfoUsingGET },
       inAppNotificationManagerClient: {
         filterUnreadNotifications: vi.fn().mockResolvedValue([]),
-      } as unknown as inAppNotificationApi.InAppNotificationManagerClient,
-      selfcareV2InstitutionClient: {} as unknown as SelfcareV2InstitutionClient,
-      attributeProcessClient:
-        {} as unknown as attributeRegistryApi.AttributeProcessClient,
-      eserviceTemplateProcessClient:
-        {} as unknown as eserviceTemplateApi.EServiceTemplateProcessClient,
-      notificationConfigProcessClient:
-        {} as unknown as notificationConfigApi.NotificationConfigProcessClient,
-    },
+      },
+    } as unknown as PagoPAInteropBeClients,
     fileManager
   );
 
