@@ -351,7 +351,7 @@ export function purposeServiceBuilder(
         delegation,
         authData.userRoles,
         selfcareV2UserClient,
-        consumer.selfcareId ?? authData.selfcareId,
+        authData.selfcareId,
         correlationId
       ),
     };
