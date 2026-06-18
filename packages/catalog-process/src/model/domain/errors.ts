@@ -682,12 +682,10 @@ export function attributeDiscreteConfigNotAllowed(
 }
 
 export function certifiedDiscreteAttributeConfigCannotBeChanged(
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
   attributeId: AttributeId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Discrete config of certified attribute ${attributeId} cannot be changed for descriptor ${descriptorId} of EService ${eserviceId} because the descriptor is not in draft state`,
+    detail: `The discrete configuration for the certified attribute ${attributeId} cannot be changed`,
     code: "certifiedDiscreteAttributeConfigCannotBeChanged",
     title: "Certified discrete attribute config cannot be changed",
   });

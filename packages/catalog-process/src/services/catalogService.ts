@@ -2410,11 +2410,7 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
-      assertCertifiedDiscreteConfigUnchanged(
-        eserviceId,
-        descriptor,
-        updatedAttributes
-      );
+      assertCertifiedDiscreteConfigUnchanged(descriptor, updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -3341,11 +3337,7 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
-      assertCertifiedDiscreteConfigUnchanged(
-        eserviceId,
-        descriptor,
-        parsedAttributes
-      );
+      assertCertifiedDiscreteConfigUnchanged(descriptor, parsedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         descriptor.dailyCallsTotal

@@ -599,7 +599,6 @@ export function assertDiscreteConfigForCertifiedAttributesOnly(
 }
 
 export function assertCertifiedDiscreteConfigUnchanged(
-  eserviceId: EServiceId,
   descriptor: Descriptor,
   newAttributes: EserviceAttributes
 ): void {
@@ -631,11 +630,7 @@ export function assertCertifiedDiscreteConfigUnchanged(
       [...publishedConfigs].every((config) => newConfigs.has(config));
 
     if (!configsUnchanged) {
-      throw certifiedDiscreteAttributeConfigCannotBeChanged(
-        eserviceId,
-        descriptor.id,
-        attributeId
-      );
+      throw certifiedDiscreteAttributeConfigCannotBeChanged(attributeId);
     }
   }
 }
