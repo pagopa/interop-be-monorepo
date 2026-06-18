@@ -41,11 +41,22 @@ describe("handleEserviceDescriptorActivatedToProducer", () => {
       scope: archivingScope.descriptor,
     },
   };
+
+  const archivingDescriptorEserviceScope: Descriptor = {
+    ...getMockDescriptor(descriptorState.archiving),
+    version: "2",
+    archivingSchedule: {
+      archivableOn: new Date("2026-12-31T00:00:00.000Z"),
+      startedAt: new Date("2026-05-14T00:00:00.000Z"),
+      scope: archivingScope.eservice,
+    },
+  };
+
   const eservice: EService = {
     ...getMockEService(),
     name: "Test E-service",
     producerId,
-    descriptors: [archivingDescriptor],
+    descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
   };
 
   const users = [
@@ -55,8 +66,11 @@ describe("handleEserviceDescriptorActivatedToProducer", () => {
 
   const { logger } = getMockContext({});
 
-  const expectedMessageBody =
+  const expectedDescriptorMessageBody =
     /<p>La versione \d+ dell'e-service "[^"]+" è di nuovo attiva. I fruitori potranno nuovamente scambiare dati con questa versione.<\/p>[\s\n]+<p>La versione è in fase di archiviazione e sarà archiviata definitivamente il giorno \d{2}\/\d{2}\/\d{4}\./;
+
+  const expectedEserviceMessageBody =
+    /<p>La versione \d+ dell'e-service "[^"]+" è di nuovo attiva. I fruitori potranno nuovamente scambiare dati con questa versione.<\/p>[\s\n]+<p>L'e-service è in fase di archiviazione e sarà archiviato definitivamente il giorno \d{2}\/\d{2}\/\d{4}\./;
 
   beforeEach(async () => {
     await addOneEService(eservice);
@@ -89,7 +103,7 @@ describe("handleEserviceDescriptorActivatedToProducer", () => {
     );
   });
 
-  it("emits one email per producer user with the expected subject and body when archivingSchedule is present on the descriptor", async () => {
+  it("emits one email per producer user with the expected subject and body when archivingSchedule is present on the descriptor (scope descriptor)", async () => {
     const messages = await handleEserviceDescriptorActivatedToProducer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: archivingDescriptor.id,
@@ -102,7 +116,23 @@ describe("handleEserviceDescriptorActivatedToProducer", () => {
     expect(messages[0].email.subject).toBe(
       `Una versione di "${eservice.name}" è stata riattivata`
     );
-    expect(messages[0].email.body).toMatch(expectedMessageBody);
+    expect(messages[0].email.body).toMatch(expectedDescriptorMessageBody);
+  });
+
+  it("emits one email per producer user with the expected subject and body when archivingSchedule is present on the descriptor (scope eservice)", async () => {
+    const messages = await handleEserviceDescriptorActivatedToProducer({
+      eserviceV2Msg: toEServiceV2(eservice),
+      descriptorId: archivingDescriptorEserviceScope.id,
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+    expect(messages).toHaveLength(users.length);
+    expect(messages[0].email.subject).toBe(
+      `Una versione di "${eservice.name}" è stata riattivata`
+    );
+    expect(messages[0].email.body).toMatch(expectedEserviceMessageBody);
   });
 
   it("emits no email per producer user when archivingSchedule is absent on the descriptor (routine auto-archive)", async () => {

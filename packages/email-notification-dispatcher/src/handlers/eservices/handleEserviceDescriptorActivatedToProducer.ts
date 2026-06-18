@@ -1,4 +1,5 @@
 import {
+  archivingScope,
   DescriptorId,
   EmailNotificationMessagePayload,
   fromEServiceV2,
@@ -83,6 +84,8 @@ export async function handleEserviceDescriptorActivatedToProducer(
         title: `Una versione di "${eservice.name}" è stata riattivata`,
         notificationType,
         archivableOn: dateAtRomeZone(archivingSchedule.archivableOn),
+        isEserviceArchiving:
+          archivingSchedule.scope === archivingScope.eservice,
         entityId: `${eservice.id}/${descriptor.id}`,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,

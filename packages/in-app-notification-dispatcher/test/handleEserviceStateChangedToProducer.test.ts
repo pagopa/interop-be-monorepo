@@ -41,10 +41,20 @@ describe("handleEserviceStateChangedToProducer", () => {
     },
   };
 
+  const archivingDescriptorEserviceScope: Descriptor = {
+    ...getMockDescriptor(descriptorState.archiving),
+    version: "2",
+    archivingSchedule: {
+      archivableOn: new Date("2026-12-31T00:00:00.000Z"),
+      startedAt: new Date("2026-05-14T00:00:00.000Z"),
+      scope: archivingScope.eservice,
+    },
+  };
+
   const eservice: EService = {
     ...getMockEService(),
     producerId: producerTenant.id,
-    descriptors: [archivingDescriptor],
+    descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
   };
 
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
@@ -74,7 +84,7 @@ describe("handleEserviceStateChangedToProducer", () => {
     );
   });
 
-  it("emits a notification for EServiceDescriptorSuspended", async () => {
+  it("emits a notification for EServiceDescriptorSuspended (descriptor scope)", async () => {
     const msg: EServiceEventV2 = {
       event_version: 2,
       type: "EServiceDescriptorSuspended",
@@ -99,12 +109,44 @@ describe("handleEserviceStateChangedToProducer", () => {
       body: inAppTemplates.eserviceArchivingDescriptorSuspendedToProducer(
         eservice.name,
         archivingDescriptor.version,
-        archivingDescriptor.archivingSchedule!.archivableOn
+        archivingDescriptor.archivingSchedule!.archivableOn,
+        false
       ),
     });
   });
 
-  it("emits a notification for EServiceDescriptorActivated", async () => {
+  it("emits a notification for EServiceDescriptorSuspended (eservice scope)", async () => {
+    const msg: EServiceEventV2 = {
+      event_version: 2,
+      type: "EServiceDescriptorSuspended",
+      data: {
+        eservice: toEServiceV2(eservice),
+        descriptorId: archivingDescriptorEserviceScope.id,
+      } satisfies EServiceDescriptorSuspendedV2,
+    };
+    const notifications = await handleEserviceStateChangedToProducer(
+      msg,
+      logger,
+      readModelService
+    );
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0]).toEqual({
+      userId,
+      tenantId: producerTenant.id,
+      notificationType: "eserviceStateChangedToProducer",
+      entityId: EServiceIdDescriptorId.parse(
+        `${eservice.id}/${archivingDescriptorEserviceScope.id}`
+      ),
+      body: inAppTemplates.eserviceArchivingDescriptorSuspendedToProducer(
+        eservice.name,
+        archivingDescriptorEserviceScope.version,
+        archivingDescriptorEserviceScope.archivingSchedule!.archivableOn,
+        true
+      ),
+    });
+  });
+
+  it("emits a notification for EServiceDescriptorActivated (descriptor scope)", async () => {
     const msg: EServiceEventV2 = {
       event_version: 2,
       type: "EServiceDescriptorActivated",
@@ -123,7 +165,36 @@ describe("handleEserviceStateChangedToProducer", () => {
       inAppTemplates.eserviceArchivingDescriptorActivatedToProducer(
         eservice.name,
         archivingDescriptor.version,
-        archivingDescriptor.archivingSchedule!.archivableOn
+        archivingDescriptor.archivingSchedule!.archivableOn,
+        false
+      )
+    );
+    expect(notifications[0].notificationType).toBe(
+      "eserviceStateChangedToProducer"
+    );
+  });
+
+  it("emits a notification for EServiceDescriptorActivated (eservice scope)", async () => {
+    const msg: EServiceEventV2 = {
+      event_version: 2,
+      type: "EServiceDescriptorActivated",
+      data: {
+        descriptorId: archivingDescriptorEserviceScope.id,
+        eservice: toEServiceV2(eservice),
+      } satisfies EServiceDescriptorActivatedV2,
+    };
+    const notifications = await handleEserviceStateChangedToProducer(
+      msg,
+      logger,
+      readModelService
+    );
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0].body).toBe(
+      inAppTemplates.eserviceArchivingDescriptorActivatedToProducer(
+        eservice.name,
+        archivingDescriptorEserviceScope.version,
+        archivingDescriptorEserviceScope.archivingSchedule!.archivableOn,
+        true
       )
     );
     expect(notifications[0].notificationType).toBe(

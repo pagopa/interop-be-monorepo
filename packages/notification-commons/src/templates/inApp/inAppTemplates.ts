@@ -141,11 +141,12 @@ export const inAppTemplates = {
   eserviceArchivingDescriptorSuspendedToProducer: (
     eserviceName: string,
     version: string,
-    archivableOn: Date
+    archivableOn: Date,
+    isEserviceArchiving: boolean
   ): string =>
     `La versione ${version ?? ""} dell'e-service ${
       eserviceName
-    } è al momento sospesa. Sarà archiviata il giorno ${dateAtRomeZone(archivableOn)}.`,
+    } è al momento sospesa. ${isEserviceArchiving ? "L'e-service sarà archiviato" : "Sarà archiviata"} il giorno ${dateAtRomeZone(archivableOn)}.`,
   eserviceDescriptorActivatedToConsumer: (
     eserviceName: string,
     producerName: string,
@@ -168,11 +169,12 @@ export const inAppTemplates = {
   eserviceArchivingDescriptorActivatedToProducer: (
     eserviceName: string,
     version: string,
-    archivableOn: Date
+    archivableOn: Date,
+    isEserviceArchiving: boolean
   ): string =>
     `La versione ${version ?? ""} dell'e-service ${
       eserviceName
-    } è di nuovo attiva. Sarà archiviata il giorno ${dateAtRomeZone(archivableOn)}.`,
+    } è di nuovo attiva. ${isEserviceArchiving ? "L'e-service sarà archiviato" : "Sarà archiviata"} il giorno ${dateAtRomeZone(archivableOn)}.`,
   eserviceDescriptorQuotasUpdatedToConsumer: (
     eserviceName: string,
     version: string | undefined,

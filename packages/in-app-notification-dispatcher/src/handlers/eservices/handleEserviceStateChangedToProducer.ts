@@ -1,4 +1,5 @@
 import {
+  archivingScope,
   Descriptor,
   DescriptorId,
   EService,
@@ -87,7 +88,8 @@ function getNotificationBodyForProducer(
           inAppTemplates.eserviceArchivingDescriptorActivatedToProducer(
             eservice.name,
             descriptor.version,
-            archivingSchedule.archivableOn
+            archivingSchedule.archivableOn,
+            archivingSchedule.scope === archivingScope.eservice
           )
         )
         .otherwise(() => undefined)
@@ -98,7 +100,8 @@ function getNotificationBodyForProducer(
           inAppTemplates.eserviceArchivingDescriptorSuspendedToProducer(
             eservice.name,
             descriptor.version,
-            archivingSchedule.archivableOn
+            archivingSchedule.archivableOn,
+            archivingSchedule.scope === archivingScope.eservice
           )
         )
         .otherwise(() => undefined)
