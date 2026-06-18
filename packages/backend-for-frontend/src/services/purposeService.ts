@@ -103,6 +103,7 @@ const enrichPurposeReviewerWorkflow = async (
   organizationId: string,
   consumerId: string,
   delegation: bffApi.DelegationWithCompactTenants | undefined,
+  userRoles: string[],
   selfcareV2UserClient: SelfcareV2UsersClient,
   selfcareId: string,
   correlationId: CorrelationId
@@ -113,20 +114,24 @@ const enrichPurposeReviewerWorkflow = async (
   const isConsumerSide =
     (delegation === undefined && organizationId === consumerId) ||
     (delegation !== undefined && organizationId === delegation.delegate.id);
-  if (!isConsumerSide) {
-    return reviewerWorkflow;
-  }
-  const reviewers = await Promise.all(
-    reviewerWorkflow.reviewerIds.map((reviewerId) =>
-      getSelfcareCompactUserById(
-        selfcareV2UserClient,
-        reviewerId,
-        selfcareId,
-        correlationId
+  const hasAdminOrViewerRole =
+    userRoles.includes(authRole.ADMIN_ROLE) ||
+    userRoles.includes(authRole.VIEWER_ROLE);
+
+  if (isConsumerSide && hasAdminOrViewerRole) {
+    const reviewers = await Promise.all(
+      reviewerWorkflow.reviewerIds.map((reviewerId) =>
+        getSelfcareCompactUserById(
+          selfcareV2UserClient,
+          reviewerId,
+          selfcareId,
+          correlationId
+        )
       )
-    )
-  );
-  return { ...reviewerWorkflow, reviewers };
+    );
+    return { ...reviewerWorkflow, reviewers };
+  }
+  return reviewerWorkflow;
 };
 
 const getCurrentVersion = (
@@ -344,6 +349,7 @@ export function purposeServiceBuilder(
         authData.organizationId,
         purpose.consumerId,
         delegation,
+        authData.userRoles,
         selfcareV2UserClient,
         consumer.selfcareId ?? authData.selfcareId,
         correlationId
