@@ -63,15 +63,19 @@ async function processMessage(
     );
 
     if (!signature) {
-      throw genericInternalError(
-        `Missing signature reference for fileKey ${fileKey} (message ${id})`
+      logger.warn(
+        `Skipping non-processable message: missing signature reference for fileKey ${fileKey} (message ${id})`
       );
+      return;
     }
 
     const { fileKind } = signature;
 
     if (!(fileKind in FILE_KIND_CONFIG)) {
-      throw genericInternalError(`Unknown fileKind: ${fileKind}`);
+      logger.warn(
+        `Skipping non-processable message: unknown fileKind '${fileKind}' for fileKey ${fileKey} (message ${id})`
+      );
+      return;
     }
     const signatureFileKind = FileKindSchema.parse(fileKind);
     const fileRef = await safeStorageService.getFile(fileKey, false, logger);
@@ -256,7 +260,8 @@ export const sqsMessageHandler = async (
 
   try {
     if (!messagePayload.Body) {
-      throw genericInternalError("Missing SQS message body");
+      logInstance.warn("Skipping non-processable message: missing SQS body");
+      return;
     }
 
     logInstance.info(`SQS message body: ${messagePayload.Body}`);
@@ -266,8 +271,10 @@ export const sqsMessageHandler = async (
     );
 
     if (!parsed.success) {
-      logInstance.error(`Invalid SQS message: ${parsed.error.message}`);
-      throw genericInternalError("Invalid SQS payload");
+      logInstance.warn(
+        `Skipping non-processable message: invalid SQS payload: ${parsed.error.message}`
+      );
+      return;
     }
 
     const messageData = parsed.data;

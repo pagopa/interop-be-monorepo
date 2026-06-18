@@ -4,7 +4,6 @@ import {
   RefreshableInteropToken,
   SafeStorageService,
 } from "pagopa-interop-commons";
-import { InternalError } from "pagopa-interop-models";
 import { Message } from "@aws-sdk/client-sqs";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
@@ -321,7 +320,7 @@ describe("sqsMessageHandler", () => {
     );
   });
 
-  it("should throw an InternalError and not call other services if the SQS message is invalid", async () => {
+  it("should skip (resolve without throwing) and not call other services if the SQS message is invalid", async () => {
     const invalidSqsMessagePayload: Message = {
       Body: JSON.stringify({ invalid: "payload" }),
     };
@@ -334,14 +333,14 @@ describe("sqsMessageHandler", () => {
         mockSafeStorageService,
         mockRefreshableToken
       )
-    ).rejects.toThrow(InternalError);
+    ).resolves.toBeUndefined();
 
     expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
     expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
     expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
   });
 
-  it("should throw an InternalError (so the message is retried/DLQ'd, not crashing the consumer) when the signature reference is missing", async () => {
+  it("should skip (resolve without throwing, so the message is deleted and not retried forever) when the signature reference is missing", async () => {
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
@@ -372,7 +371,7 @@ describe("sqsMessageHandler", () => {
       undefined
     );
 
-    const rejection = expect(
+    await expect(
       sqsMessageHandler(
         sqsMessagePayload,
         mockFileManager as FileManager,
@@ -380,11 +379,7 @@ describe("sqsMessageHandler", () => {
         mockSafeStorageService,
         mockRefreshableToken
       )
-    ).rejects;
-
-    await rejection.toThrow(InternalError);
-    // the actual fileKey must be in the error to make incidents investigable
-    await rejection.toThrow(sqsMessageBody.detail.key);
+    ).resolves.toBeUndefined();
 
     expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
     expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
