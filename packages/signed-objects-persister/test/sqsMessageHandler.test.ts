@@ -4,6 +4,7 @@ import {
   RefreshableInteropToken,
   SafeStorageService,
 } from "pagopa-interop-commons";
+import { InternalError } from "pagopa-interop-models";
 import { Message } from "@aws-sdk/client-sqs";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
@@ -320,7 +321,7 @@ describe("sqsMessageHandler", () => {
     );
   });
 
-  it("should throw an error and not call other services if the SQS message is invalid", async () => {
+  it("should throw an InternalError and not call other services if the SQS message is invalid", async () => {
     const invalidSqsMessagePayload: Message = {
       Body: JSON.stringify({ invalid: "payload" }),
     };
@@ -333,7 +334,57 @@ describe("sqsMessageHandler", () => {
         mockSafeStorageService,
         mockRefreshableToken
       )
-    ).rejects.toThrow("Invalid SQS payload");
+    ).rejects.toThrow(InternalError);
+
+    expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
+    expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
+    expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
+  });
+
+  it("should throw an InternalError (so the message is retried/DLQ'd, not crashing the consumer) when the signature reference is missing", async () => {
+    const sqsMessageBody = {
+      version: "0",
+      id: "6e902b1c-7f55-4074-a036-749e75551f33",
+      "detail-type": "Object Created",
+      source: "aws.s3",
+      account: "123456789012",
+      time: "2025-01-01T10:00:00Z",
+      region: "eu-central-1",
+      resources: ["arn:aws:s3:::some-bucket"],
+      detail: {
+        key: "missing-reference-file-key.pdf",
+        versionId: "12345",
+        documentType: "INTEROP_LEGAL_FACTS",
+        documentStatus: "SAVED",
+        contentType: "application/pdf",
+        checksum: "mock-checksum",
+        retentionUntil: "2026-01-01T10:00:00Z",
+        tags: null,
+        client_short_code: "12345",
+      },
+    };
+
+    const sqsMessagePayload: Message = {
+      Body: JSON.stringify(sqsMessageBody),
+    };
+
+    (mockDbService.readSignatureReferenceById as Mock).mockResolvedValueOnce(
+      undefined
+    );
+
+    const rejection = expect(
+      sqsMessageHandler(
+        sqsMessagePayload,
+        mockFileManager as FileManager,
+        mockDbService,
+        mockSafeStorageService,
+        mockRefreshableToken
+      )
+    ).rejects;
+
+    await rejection.toThrow(InternalError);
+    // the actual fileKey must be in the error to make incidents investigable
+    await rejection.toThrow(sqsMessageBody.detail.key);
 
     expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
     expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();

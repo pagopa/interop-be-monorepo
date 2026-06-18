@@ -27,6 +27,7 @@ import {
   bigIntToDate,
   RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateDocumentId,
+  genericInternalError,
 } from "pagopa-interop-models";
 
 import { S3ServiceException } from "@aws-sdk/client-s3";
@@ -62,18 +63,22 @@ async function processMessage(
     );
 
     if (!signature) {
-      throw new Error(`Missing signature reference for message ${id}`);
+      throw genericInternalError(
+        `Missing signature reference for fileKey ${fileKey} (message ${id})`
+      );
     }
 
     const { fileKind } = signature;
 
     if (!(fileKind in FILE_KIND_CONFIG)) {
-      throw new Error(`Unknown fileKind: ${fileKind}`);
+      throw genericInternalError(`Unknown fileKind: ${fileKind}`);
     }
     const signatureFileKind = FileKindSchema.parse(fileKind);
     const fileRef = await safeStorageService.getFile(fileKey, false, logger);
     if (!fileRef.download?.url) {
-      throw new Error(`Missing download URL for fileKey: ${fileKey}`);
+      throw genericInternalError(
+        `Missing download URL for fileKey: ${fileKey}`
+      );
     }
     const fileContent = await safeStorageService.downloadFileContent(
       fileRef.download.url,
@@ -251,7 +256,7 @@ export const sqsMessageHandler = async (
 
   try {
     if (!messagePayload.Body) {
-      throw new Error("Missing SQS message body");
+      throw genericInternalError("Missing SQS message body");
     }
 
     logInstance.info(`SQS message body: ${messagePayload.Body}`);
@@ -262,7 +267,7 @@ export const sqsMessageHandler = async (
 
     if (!parsed.success) {
       logInstance.error(`Invalid SQS message: ${parsed.error.message}`);
-      throw new Error("Invalid SQS payload");
+      throw genericInternalError("Invalid SQS payload");
     }
 
     const messageData = parsed.data;
