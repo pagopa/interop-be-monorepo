@@ -78,6 +78,7 @@ describe("getPurpose (service) — reviewer enrichment", () => {
     state: agreementApi.AgreementState.Values.ACTIVE,
     verifiedAttributes: [],
     certifiedAttributes: [],
+    certifiedDiscreteAttributes: [],
     declaredAttributes: [],
     consumerDocuments: [],
     stamps: {},
