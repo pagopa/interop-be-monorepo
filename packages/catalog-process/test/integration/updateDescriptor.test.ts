@@ -902,11 +902,7 @@ describe("update descriptor", () => {
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(
-        certifiedDiscreteAttributeConfigCannotBeChanged(
-          eservice.id,
-          descriptor.id,
-          certifiedAttribute.id
-        )
+        certifiedDiscreteAttributeConfigCannotBeChanged(certifiedAttribute.id)
       );
     }
   );
@@ -982,11 +978,7 @@ describe("update descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      certifiedDiscreteAttributeConfigCannotBeChanged(
-        eservice.id,
-        descriptor.id,
-        discreteAttribute.id
-      )
+      certifiedDiscreteAttributeConfigCannotBeChanged(discreteAttribute.id)
     );
   });
 
@@ -1063,11 +1055,7 @@ describe("update descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      certifiedDiscreteAttributeConfigCannotBeChanged(
-        eservice.id,
-        descriptor.id,
-        discreteAttribute.id
-      )
+      certifiedDiscreteAttributeConfigCannotBeChanged(discreteAttribute.id)
     );
   });
 
@@ -1149,11 +1137,7 @@ describe("update descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      certifiedDiscreteAttributeConfigCannotBeChanged(
-        eservice.id,
-        descriptor.id,
-        discreteAttribute.id
-      )
+      certifiedDiscreteAttributeConfigCannotBeChanged(discreteAttribute.id)
     );
   });
 
@@ -1230,11 +1214,7 @@ describe("update descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
-      certifiedDiscreteAttributeConfigCannotBeChanged(
-        eservice.id,
-        descriptor.id,
-        discreteAttribute.id
-      )
+      certifiedDiscreteAttributeConfigCannotBeChanged(discreteAttribute.id)
     );
   });
 

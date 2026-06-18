@@ -1793,8 +1793,6 @@ describe("update descriptor", () => {
         )
       ).rejects.toThrowError(
         certifiedDiscreteAttributeConfigCannotBeChanged(
-          mockEService.id,
-          mockDescriptor.id,
           certifiedDiscreteAttribute.id
         )
       );
