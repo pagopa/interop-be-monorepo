@@ -26,10 +26,7 @@ type ArchivingEventType =
   | "EServiceArchivingCompleted"
   | "EServiceDescriptorArchived";
 
-export type ArchivingEvent = Extract<
-  EServiceEventV2,
-  { type: ArchivingEventType }
->;
+type ArchivingEvent = Extract<EServiceEventV2, { type: ArchivingEventType }>;
 
 export async function handleEserviceArchivingToProducer(
   msg: ArchivingEvent,

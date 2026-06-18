@@ -475,12 +475,6 @@ export const inAppTemplates = {
     producerName: string
   ): string =>
     `Ti informiamo che l'ente erogatore ${producerName} ha archiviato l'e-service "${eserviceName}".`,
-  eserviceArchivingDescriptorArchivedToConsumer: (
-    eserviceName: string,
-    descriptorVersion: string,
-    producerName: string
-  ): string =>
-    `Ti informiamo che l'ente erogatore ${producerName} ha archiviato in anticipo la versione ${descriptorVersion} dell'e-service "${eserviceName}".`,
   eserviceArchivingCanceledDescriptorToConsumer: (
     eserviceName: string,
     descriptorVersion: string,

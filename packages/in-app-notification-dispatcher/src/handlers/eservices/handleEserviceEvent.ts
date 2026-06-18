@@ -83,12 +83,17 @@ export async function handleEServiceEvent(
     )
     .with(
       {
+        type: "EServiceDescriptorArchived",
+      },
+      (msg) => handleEserviceArchivingToProducer(msg, logger, readModelService)
+    )
+    .with(
+      {
         type: P.union(
           "EServiceDescriptorArchivingScheduled",
           "EServiceArchivingScheduled",
           "EServiceDescriptorArchivingCompleted",
-          "EServiceArchivingCompleted",
-          "EServiceDescriptorArchived"
+          "EServiceArchivingCompleted"
         ),
       },
       async (msg) => {

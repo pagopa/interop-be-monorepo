@@ -3,7 +3,6 @@ import {
   getMockAgreement,
   getMockContext,
   getMockDescriptor,
-  getMockDescriptorPublished,
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
@@ -14,7 +13,6 @@ import {
   DescriptorId,
   descriptorState,
   EService,
-  EServiceDescriptorArchivedV2,
   EServiceArchivingScheduledV2,
   EServiceArchivingCompletedV2,
   EServiceDescriptorArchivingScheduledV2,
@@ -193,68 +191,6 @@ describe("handleEserviceArchivingToConsumer", () => {
         producerTenant.name
       )
     );
-  });
-
-  it("emits early-archived notification to consumers whose agreements are now archived", async () => {
-    // Same eservice but the consumer's agreement is in 'archived' state — that's
-    // exactly the scenario that triggers an early archive (subscriptions exhausted).
-    const archivedAgreement = getMockAgreement(
-      eservice.id,
-      consumerTenant.id,
-      agreementState.archived
-    );
-    await addOneAgreement(archivedAgreement);
-
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorArchived",
-      data: {
-        eservice: toEServiceV2(eservice),
-        descriptorId: archivingDescriptor.id,
-      } satisfies EServiceDescriptorArchivedV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    // Includes both the active agreement consumer and the archived one (deduped by tenant in real flow, but here it's the same tenant)
-    expect(notifications.length).toBeGreaterThanOrEqual(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingDescriptorArchivedToConsumer(
-        eservice.name,
-        archivingDescriptor.version,
-        producerTenant.name
-      )
-    );
-  });
-
-  it("returns empty array (skip routine) when archivingSchedule is absent on EServiceDescriptorArchived", async () => {
-    const routineDescriptor: Descriptor = {
-      ...getMockDescriptorPublished(),
-    };
-    const routineEservice: EService = {
-      ...eservice,
-      id: generateId(),
-      descriptors: [routineDescriptor],
-    };
-    await addOneEService(routineEservice);
-
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorArchived",
-      data: {
-        eservice: toEServiceV2(routineEservice),
-        descriptorId: routineDescriptor.id,
-      } satisfies EServiceDescriptorArchivedV2,
-    };
-    const notifications = await handleEserviceArchivingToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toEqual([]);
-    expect(mockGetNotificationRecipients).not.toHaveBeenCalled();
   });
 
   it("returns empty array when there are no agreements", async () => {
