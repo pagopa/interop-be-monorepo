@@ -80,7 +80,8 @@ const errorCodes = {
   eserviceNotInArchiving: "0063",
   eServiceAlreadyArchived: "0064",
   attributeDiscreteConfigNotAllowed: "0065",
-  eserviceDescriptorWithActiveOrPendingDelegation: "0066",
+  certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
+  eserviceDescriptorWithActiveOrPendingDelegation: "0067",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -690,6 +691,16 @@ export function attributeDiscreteConfigNotAllowed(
     detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
     code: "attributeDiscreteConfigNotAllowed",
     title: "Discrete config not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedDiscreteAttributeConfigCannotBeChanged(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The discrete configuration for the certified attribute ${attributeId} cannot be changed`,
+    code: "certifiedDiscreteAttributeConfigCannotBeChanged",
+    title: "Certified discrete attribute config cannot be changed",
   });
 }
 
