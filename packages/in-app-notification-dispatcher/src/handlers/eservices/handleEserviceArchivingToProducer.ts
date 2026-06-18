@@ -108,7 +108,8 @@ function bodyAndDescriptorForProducer(
         return {
           body: inAppTemplates.eserviceArchivingCompletedDescriptorToProducer(
             eservice.name,
-            descriptor.version
+            descriptor.version,
+            descriptor.archivingSchedule?.archivableOn
           ),
           descriptor,
         };

@@ -61,7 +61,7 @@ export async function handleEserviceArchivingCompletedToProducer(
     return [];
   }
 
-  const subject = `Archiviazione conclusa dell'e-service "${eservice.name}"`;
+  const subject = `Un tuo e-service è stato archiviato`;
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
