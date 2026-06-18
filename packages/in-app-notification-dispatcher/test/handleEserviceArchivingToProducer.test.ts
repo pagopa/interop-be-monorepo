@@ -153,7 +153,8 @@ describe("handleEserviceArchivingToProducer", () => {
     expect(notifications[0].body).toBe(
       inAppTemplates.eserviceArchivingCompletedDescriptorToProducer(
         eservice.name,
-        archivingDescriptor.version
+        archivingDescriptor.version,
+        archivingDescriptor.archivingSchedule!.archivableOn
       )
     );
   });

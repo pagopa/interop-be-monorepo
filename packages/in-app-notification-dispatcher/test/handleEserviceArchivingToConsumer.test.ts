@@ -120,7 +120,6 @@ describe("handleEserviceArchivingToConsumer", () => {
       body: inAppTemplates.eserviceArchivingStartedDescriptorToConsumer(
         eservice.name,
         archivingDescriptor.version,
-        producerTenant.name,
         archivingDescriptor.archivingSchedule!.archivableOn
       ),
     });
@@ -143,7 +142,6 @@ describe("handleEserviceArchivingToConsumer", () => {
     expect(notifications[0].body).toBe(
       inAppTemplates.eserviceArchivingStartedEserviceToConsumer(
         eservice.name,
-        producerTenant.name,
         archivingDescriptor.archivingSchedule!.archivableOn
       )
     );
@@ -168,7 +166,7 @@ describe("handleEserviceArchivingToConsumer", () => {
       inAppTemplates.eserviceArchivingCompletedDescriptorToConsumer(
         eservice.name,
         archivingDescriptor.version,
-        producerTenant.name
+        archivingDescriptor.archivingSchedule!.archivableOn
       )
     );
   });
@@ -190,7 +188,7 @@ describe("handleEserviceArchivingToConsumer", () => {
     expect(notifications[0].body).toBe(
       inAppTemplates.eserviceArchivingCompletedEserviceToConsumer(
         eservice.name,
-        producerTenant.name
+        archivingDescriptor.archivingSchedule!.archivableOn
       )
     );
   });
@@ -223,8 +221,7 @@ describe("handleEserviceArchivingToConsumer", () => {
     expect(notifications[0].body).toBe(
       inAppTemplates.eserviceArchivingEarlyArchivedToConsumer(
         eservice.name,
-        archivingDescriptor.version,
-        producerTenant.name
+        archivingDescriptor.version
       )
     );
   });
