@@ -16,6 +16,7 @@ import {
 import {
   archivingScope,
   AsyncExchangeProperties,
+  AttributeId,
   delegationKind,
   delegationState,
   Descriptor,
@@ -65,6 +66,7 @@ import {
   riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
+  certifiedDiscreteAttributeConfigCannotBeChanged,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
   notValidEServiceState,
@@ -594,6 +596,59 @@ export function assertDiscreteConfigForCertifiedAttributesOnly(
   if (invalidAttribute) {
     throw attributeDiscreteConfigNotAllowed(invalidAttribute.id);
   }
+}
+
+export function assertCertifiedDiscreteConfigUnchanged(
+  descriptor: Descriptor,
+  newAttributes: EserviceAttributes
+): void {
+  if (descriptor.state === descriptorState.draft) {
+    return;
+  }
+
+  const publishedConfigsById = collectDiscreteConfigKeysById(
+    descriptor.attributes.certified.flat()
+  );
+
+  if (publishedConfigsById.size === 0) {
+    return;
+  }
+
+  const newConfigsById = collectDiscreteConfigKeysById(
+    newAttributes.certified.flat()
+  );
+
+  for (const [attributeId, publishedConfigs] of publishedConfigsById) {
+    const newConfigs = newConfigsById.get(attributeId);
+
+    if (newConfigs === undefined) {
+      continue;
+    }
+
+    const configsUnchanged =
+      newConfigs.size === publishedConfigs.size &&
+      [...publishedConfigs].every((config) => newConfigs.has(config));
+
+    if (!configsUnchanged) {
+      throw certifiedDiscreteAttributeConfigCannotBeChanged(attributeId);
+    }
+  }
+}
+
+function collectDiscreteConfigKeysById(
+  attributes: EServiceCertifiedAttribute[]
+): Map<AttributeId, Set<string>> {
+  const configsById = new Map<AttributeId, Set<string>>();
+  for (const attribute of attributes) {
+    const config = getEServiceAttributeDiscreteConfig(attribute);
+    if (config === undefined) {
+      continue;
+    }
+    const configs = configsById.get(attribute.id) ?? new Set<string>();
+    configs.add(`${config.comparator}:${config.threshold}`);
+    configsById.set(attribute.id, configs);
+  }
+  return configsById;
 }
 
 export function assertTemplateInstanceAttributeStructureUnchanged(
