@@ -24,7 +24,7 @@ import {
 import { expect, describe, it } from "vitest";
 import {
   eServiceNotFound,
-  eserviceWithActiveOrPendingDelegation,
+  eserviceArchivingWithActiveOrPendingDelegation,
   notValidEServiceState,
 } from "../../src/model/domain/errors.js";
 import {
@@ -467,7 +467,7 @@ describe("schedule archiving of an EService", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eserviceWithActiveOrPendingDelegation if there is an active producer delegation", async () => {
+  it("should throw eserviceArchivingWithActiveOrPendingDelegation if there is an active producer delegation", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.published,
@@ -494,7 +494,7 @@ describe("schedule archiving of an EService", () => {
         })
       )
     ).rejects.toThrowError(
-      eserviceWithActiveOrPendingDelegation(eservice.id, delegation.id)
+      eserviceArchivingWithActiveOrPendingDelegation(eservice.id, delegation.id)
     );
   });
 });
