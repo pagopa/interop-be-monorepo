@@ -279,6 +279,7 @@ export const updateDescriptorErrorMapper = (
       "attributeDailyCallsNotAllowed",
       "templateInstanceNotAllowed",
       "attributeDiscreteConfigNotAllowed",
+      "certifiedDiscreteAttributeConfigCannotBeChanged",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -511,6 +512,7 @@ export const updateDescriptorAttributesErrorMapper = (
       "notValidDescriptor",
       "attributeDailyCallsNotAllowed",
       "attributeDiscreteConfigNotAllowed",
+      "certifiedDiscreteAttributeConfigCannotBeChanged",
       "templateInstanceNotAllowed",
       "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST
