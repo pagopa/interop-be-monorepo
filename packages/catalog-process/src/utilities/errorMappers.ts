@@ -785,7 +785,11 @@ export const updateEserviceDescriptorArchivingStatusErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eserviceWithActiveOrPendingDelegation", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eserviceWithActiveOrPendingDelegation",
+      "eserviceDescriptorWithActiveOrPendingDelegation",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound",

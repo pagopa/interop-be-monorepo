@@ -190,6 +190,7 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertNoExistingProducerDelegationForDescriptorArchiving,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -2456,8 +2457,9 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationForDescriptorArchiving(
         eserviceId,
+        descriptorId,
         readModelService
       );
 
