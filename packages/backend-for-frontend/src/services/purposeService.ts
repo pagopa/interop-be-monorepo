@@ -100,9 +100,8 @@ const enrichPurposeDelegation = async (
 
 const enrichPurposeReviewerWorkflow = async (
   reviewerWorkflow: purposeApi.ReviewerWorkflow | undefined,
-  organizationId: string,
+  authData: UIAuthData,
   consumerId: string,
-  delegation: bffApi.DelegationWithCompactTenants | undefined,
   userRoles: string[],
   selfcareV2UserClient: SelfcareV2UsersClient,
   selfcareId: string,
@@ -111,14 +110,12 @@ const enrichPurposeReviewerWorkflow = async (
   if (reviewerWorkflow === undefined) {
     return undefined;
   }
-  const isConsumerSide =
-    (delegation === undefined && organizationId === consumerId) ||
-    (delegation !== undefined && organizationId === delegation.delegate.id);
+  const isConsumer = authData.organizationId === consumerId;
   const hasAdminOrViewerRole =
     userRoles.includes(authRole.ADMIN_ROLE) ||
     userRoles.includes(authRole.VIEWER_ROLE);
 
-  if (isConsumerSide && hasAdminOrViewerRole) {
+  if (isConsumer && hasAdminOrViewerRole) {
     const reviewers = await Promise.all(
       reviewerWorkflow.reviewerIds.map((reviewerId) =>
         getSelfcareCompactUserById(
@@ -346,9 +343,8 @@ export function purposeServiceBuilder(
       rulesetExpiration: rulesetExpiration?.toJSON(),
       reviewerWorkflow: await enrichPurposeReviewerWorkflow(
         purpose.reviewerWorkflow,
-        authData.organizationId,
+        authData,
         purpose.consumerId,
-        delegation,
         authData.userRoles,
         selfcareV2UserClient,
         authData.selfcareId,
