@@ -4640,7 +4640,10 @@ async function processDescriptorArchiving(
   requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(requestDate, config.gracePeriodArchivingEService),
+    ...calculateArchivableOn(
+      requestDate,
+      config.gracePeriodArchivingEServiceDays
+    ),
     scope,
   };
 
