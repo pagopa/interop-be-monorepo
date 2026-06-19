@@ -27,7 +27,7 @@ import { expect, describe, it, vi } from "vitest";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
-  eserviceWithActiveOrPendingDelegation,
+  eserviceDescriptorWithActiveOrPendingDelegation,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import {
@@ -321,36 +321,43 @@ describe("schedule archiving of a descriptor", () => {
     ).rejects.toThrowError(operationForbidden);
   });
 
-  it("should throw eserviceWithActiveOrPendingDelegation if there is an active producer delegation", async () => {
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      state: descriptorState.deprecated,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    const delegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      eserviceId: eservice.id,
-      state: delegationState.active,
-    });
+  it.each([delegationState.active, delegationState.waitingForApproval])(
+    "should throw eserviceDescriptorWithActiveOrPendingDelegation if there is a producer delegation in %s state",
+    async (state) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.deprecated,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        eserviceId: eservice.id,
+        state,
+      });
 
-    await addOneEService(eservice);
-    await addOneDelegation(delegation);
+      await addOneEService(eservice);
+      await addOneDelegation(delegation);
 
-    await expect(
-      catalogService.scheduleEServiceDescriptorArchiving(
-        eservice.id,
-        descriptor.id,
-        getMockContext({
-          authData: getMockAuthData(eservice.producerId),
-        })
-      )
-    ).rejects.toThrowError(
-      eserviceWithActiveOrPendingDelegation(eservice.id, delegation.id)
-    );
-  });
+      await expect(
+        catalogService.scheduleEServiceDescriptorArchiving(
+          eservice.id,
+          descriptor.id,
+          getMockContext({
+            authData: getMockAuthData(eservice.producerId),
+          })
+        )
+      ).rejects.toThrowError(
+        eserviceDescriptorWithActiveOrPendingDelegation(
+          eservice.id,
+          descriptor.id,
+          delegation.id
+        )
+      );
+    }
+  );
 
   it("should throw eServiceDescriptorNotFound if the descriptor doesn't exist", async () => {
     const eservice: EService = {
