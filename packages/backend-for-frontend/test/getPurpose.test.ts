@@ -174,57 +174,41 @@ describe("getPurpose — reviewer enrichment", () => {
     );
   });
 
-  it("should NOT include reviewers in reviewerWorkflow when requester is the producer", async () => {
-    const authData: UIAuthData = {
-      ...getMockAuthData(undefined, undefined, [userRole.SECURITY_ROLE]),
-      organizationId: producerId,
-    };
-    const ctx = getBffMockContext(getMockContext({ authData }));
+  it.each([userRole.SECURITY_ROLE, userRole.ADMIN_ROLE, userRole.VIEWER_ROLE])(
+    "should NOT include reviewers in reviewerWorkflow when requester is the producer (role: %s)",
+    async (role) => {
+      const authData: UIAuthData = {
+        ...getMockAuthData(undefined, undefined, [role]),
+        organizationId: producerId,
+      };
+      const ctx = getBffMockContext(getMockContext({ authData }));
 
-    const result = await purposeService.getPurpose(mockPurposeId, ctx);
+      const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
-    expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
-    expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
-  });
+      expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
+      expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
+    }
+  );
 
-  it("should NOT include reviewers when requester is the producer with admin role", async () => {
-    const authData: UIAuthData = {
-      ...getMockAuthData(undefined, undefined, [userRole.ADMIN_ROLE]),
-      organizationId: producerId,
-    };
-    const ctx = getBffMockContext(getMockContext({ authData }));
+  it.each(
+    Object.values(userRole).filter(
+      (role) => role !== userRole.ADMIN_ROLE && role !== userRole.VIEWER_ROLE
+    )
+  )(
+    "should NOT include reviewers when requester is the consumer with role: %s",
+    async (role) => {
+      const authData: UIAuthData = {
+        ...getMockAuthData(undefined, undefined, [role]),
+        organizationId: consumerId,
+      };
+      const ctx = getBffMockContext(getMockContext({ authData }));
 
-    const result = await purposeService.getPurpose(mockPurposeId, ctx);
+      const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
-    expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
-    expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
-  });
-
-  it("should NOT include reviewers when requester is the producer with viewer role", async () => {
-    const authData: UIAuthData = {
-      ...getMockAuthData(undefined, undefined, [userRole.VIEWER_ROLE]),
-      organizationId: producerId,
-    };
-    const ctx = getBffMockContext(getMockContext({ authData }));
-
-    const result = await purposeService.getPurpose(mockPurposeId, ctx);
-
-    expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
-    expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
-  });
-
-  it("should NOT include reviewers when requester is the consumer with a non-admin/viewer role", async () => {
-    const authData: UIAuthData = {
-      ...getMockAuthData(undefined, undefined, [userRole.SECURITY_ROLE]),
-      organizationId: consumerId,
-    };
-    const ctx = getBffMockContext(getMockContext({ authData }));
-
-    const result = await purposeService.getPurpose(mockPurposeId, ctx);
-
-    expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
-    expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
-  });
+      expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
+      expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
+    }
+  );
 
   it("should return empty reviewers array when reviewerIds is empty (consumer)", async () => {
     mockGetPurpose.mockResolvedValue({
