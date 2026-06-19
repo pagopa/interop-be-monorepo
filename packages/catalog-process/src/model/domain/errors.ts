@@ -408,7 +408,6 @@ export function eserviceArchivingWithActiveOrPendingDelegation(
   });
 }
 
-
 export function eserviceDescriptorWithActiveOrPendingDelegation(
   eserviceId: EServiceId,
   descriptorId: DescriptorId,

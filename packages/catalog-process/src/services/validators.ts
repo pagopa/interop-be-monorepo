@@ -291,7 +291,6 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
   }
 }
 
-
 export function assertIsDraftEservice(eservice: EService): void {
   if (eservice.descriptors.some((d) => d.state !== descriptorState.draft)) {
     throw eserviceNotInDraftState(eservice.id);
