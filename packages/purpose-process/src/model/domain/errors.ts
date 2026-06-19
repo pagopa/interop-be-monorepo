@@ -74,8 +74,9 @@ const errorCodes = {
   editNotAllowedForReviewMode: "0053",
   reviewerWorkflowNotEditable: "0054",
   reviewerWorkflowNotInSignedState: "0055",
-  userWithoutReviewerPrivileges: "0056",
-  missingSelfcareId: "0057",
+  riskAnalysisFormCannotBeUpdated: "0056",
+  userWithoutReviewerPrivileges: "0057",
+  missingSelfcareId: "0058",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -656,6 +657,16 @@ export function reviewerWorkflowNotInSignedState(
     detail: `Purpose ${purposeId} reviewer workflow is not in the Signed state`,
     code: "reviewerWorkflowNotInSignedState",
     title: "Reviewer workflow not in signed state",
+  });
+}
+
+export function riskAnalysisFormCannotBeUpdated(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis form of purpose ${purposeId} cannot be updated because a reviewer workflow is active`,
+    code: "riskAnalysisFormCannotBeUpdated",
+    title: "Risk analysis form cannot be updated",
   });
 }
 

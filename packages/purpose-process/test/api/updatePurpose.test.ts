@@ -33,6 +33,7 @@ import {
   tenantNotFound,
   invalidFreeOfChargeReason,
   purposeFromTemplateCannotBeModified,
+  riskAnalysisFormCannotBeUpdated,
 } from "../../src/model/domain/errors.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
@@ -118,6 +119,10 @@ describe("API POST /purposes/{purposeId} test", () => {
     },
     {
       error: purposeFromTemplateCannotBeModified(generateId(), generateId()),
+      expectedStatus: 409,
+    },
+    {
+      error: riskAnalysisFormCannotBeUpdated(mockPurpose.id),
       expectedStatus: 409,
     },
     { error: eserviceNotFound(generateId()), expectedStatus: 500 },
