@@ -49,6 +49,7 @@ import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
+  eserviceDescriptorWithActiveOrPendingDelegation,
   notValidDescriptorState,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
@@ -237,6 +238,26 @@ export async function assertNoExistingProducerDelegationInActiveOrPendingState(
   if (producerDelegation) {
     throw eserviceWithActiveOrPendingDelegation(
       eserviceId,
+      producerDelegation.id
+    );
+  }
+}
+
+export async function assertNoExistingProducerDelegationForDescriptorArchiving(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await readModelService.getLatestDelegation({
+    eserviceId,
+    kind: delegationKind.delegatedProducer,
+    states: [delegationState.active, delegationState.waitingForApproval],
+  });
+
+  if (producerDelegation) {
+    throw eserviceDescriptorWithActiveOrPendingDelegation(
+      eserviceId,
+      descriptorId,
       producerDelegation.id
     );
   }
