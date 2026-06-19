@@ -933,4 +933,3 @@ export const assertUserSelfcareReviewerPrivileges = async ({
     throw userWithoutReviewerPrivileges(consumerId, userIdToCheck);
   }
 };
-
