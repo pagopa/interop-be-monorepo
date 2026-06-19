@@ -1,6 +1,5 @@
 /* eslint-disable functional/immutable-data */
 import {
-  getMockAgreement,
   getMockContext,
   getMockDescriptor,
   getMockDescriptorPublished,
@@ -9,24 +8,20 @@ import {
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import {
-  Agreement,
-  agreementState,
-  archivingScope,
   CorrelationId,
   Descriptor,
-  DescriptorId,
   descriptorState,
   EService,
   EServiceId,
+  archivingScope,
   generateId,
   missingKafkaMessageDataError,
   TenantId,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { handleEserviceDescriptorArchivedToConsumer } from "../src/handlers/eservices/handleEserviceDescriptorArchivedToConsumer.js";
+import { handleEserviceDescriptorSuspendedToProducer } from "../src/handlers/eservices/handleEserviceDescriptorSuspendedToProducer.js";
 import {
-  addOneAgreement,
   addOneEService,
   addOneTenant,
   getMockUser,
@@ -34,37 +29,52 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handleEserviceDescriptorArchivedToConsumer", () => {
+describe("handleEserviceDescriptorSuspendedToProducer", () => {
   const producerId = generateId<TenantId>();
-  const consumerId = generateId<TenantId>();
   const producerTenant = { ...getMockTenant(producerId), name: "Producer T" };
-  const consumerTenant = { ...getMockTenant(consumerId), name: "Consumer T" };
 
   const archivingDescriptor: Descriptor = {
-    ...getMockDescriptor(descriptorState.archiving),
+    ...getMockDescriptor(descriptorState.archivingSuspended),
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.descriptor,
     },
   };
+
+  const archivingDescriptorEserviceScope: Descriptor = {
+    ...getMockDescriptor(descriptorState.archiving),
+    version: "2",
+    archivingSchedule: {
+      archivableOn: new Date("2026-12-31T00:00:00.000Z"),
+      startedAt: new Date("2026-05-14T00:00:00.000Z"),
+      scope: archivingScope.eservice,
+    },
+  };
+
   const eservice: EService = {
     ...getMockEService(),
     name: "Test E-service",
     producerId,
-    descriptors: [archivingDescriptor],
+    descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
   };
+
   const users = [
-    getMockUser(consumerTenant.id),
-    getMockUser(consumerTenant.id),
+    getMockUser(producerTenant.id),
+    getMockUser(producerTenant.id),
   ];
 
   const { logger } = getMockContext({});
 
+  const expectedDescriptorMessageBody =
+    /<p>La versione \d+ dell'e-service "[^"]+" è al momento sospesa. I fruitori non potranno più scambiare dati con questa versione.<\/p>[\s\n]+<p>La versione è in fase di archiviazione e sarà archiviata definitivamente il giorno \d{2}\/\d{2}\/\d{4}./;
+
+  const expectedEserviceMessageBody =
+    /<p>La versione \d+ dell'e-service "[^"]+" è al momento sospesa. I fruitori non potranno più scambiare dati con questa versione.<\/p>[\s\n]+<p>L'e-service è in fase di archiviazione e sarà archiviato definitivamente il giorno \d{2}\/\d{2}\/\d{4}./;
+
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
-    await addOneTenant(consumerTenant);
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockImplementation((tenantIds: TenantId[]) =>
@@ -80,7 +90,7 @@ describe("handleEserviceDescriptorArchivedToConsumer", () => {
 
   it("throws missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-      handleEserviceDescriptorArchivedToConsumer({
+      handleEserviceDescriptorSuspendedToProducer({
         eserviceV2Msg: undefined,
         descriptorId: archivingDescriptor.id,
         logger,
@@ -89,23 +99,12 @@ describe("handleEserviceDescriptorArchivedToConsumer", () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "EServiceDescriptorArchived")
+      missingKafkaMessageDataError("eservice", "EServiceDescriptorSuspended")
     );
   });
 
-  it("emits one email per consumer user", async () => {
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      stamps: {},
-      eserviceId: eservice.id,
-      producerId,
-      descriptorId: archivingDescriptor.id,
-      consumerId: consumerTenant.id,
-      state: agreementState.active,
-    };
-    await addOneAgreement(agreement);
-
-    const messages = await handleEserviceDescriptorArchivedToConsumer({
+  it("emits one email per producer user with the expected subject and body when archivingSchedule is present on the descriptor (scope descriptor)", async () => {
+    const messages = await handleEserviceDescriptorSuspendedToProducer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: archivingDescriptor.id,
       logger,
@@ -113,58 +112,30 @@ describe("handleEserviceDescriptorArchivedToConsumer", () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBeGreaterThanOrEqual(1);
-    expect(messages[0].email.subject).toContain(
-      "Archiviazione anticipata della versione"
+    expect(messages).toHaveLength(users.length);
+    expect(messages[0].email.subject).toBe(
+      `Una versione di "${eservice.name}" è stata sospesa`
     );
+    expect(messages[0].email.body).toMatch(expectedDescriptorMessageBody);
   });
 
-  it("returns empty array when there are no agreements", async () => {
-    const otherDescriptor: Descriptor = {
-      ...archivingDescriptor,
-      id: generateId<DescriptorId>(),
-    };
-    const otherEservice: EService = {
-      ...getMockEService(),
-      id: generateId<EServiceId>(),
-      producerId,
-      descriptors: [otherDescriptor],
-    };
-    await addOneEService(otherEservice);
-    const messages = await handleEserviceDescriptorArchivedToConsumer({
-      eserviceV2Msg: toEServiceV2(otherEservice),
-      descriptorId: otherDescriptor.id,
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages).toEqual([]);
-  });
-
-  it("includes consumers with archived agreements (early-archive path)", async () => {
-    const archivedAgreement: Agreement = {
-      ...getMockAgreement(),
-      stamps: {},
-      eserviceId: eservice.id,
-      producerId,
-      descriptorId: archivingDescriptor.id,
-      consumerId: consumerTenant.id,
-      state: agreementState.archived,
-    };
-    await addOneAgreement(archivedAgreement);
-    const messages = await handleEserviceDescriptorArchivedToConsumer({
+  it("emits one email per producer user with the expected subject and body when archivingSchedule is present on the descriptor (scope eservice)", async () => {
+    const messages = await handleEserviceDescriptorSuspendedToProducer({
       eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: archivingDescriptor.id,
+      descriptorId: archivingDescriptorEserviceScope.id,
       logger,
       templateService,
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages.length).toBeGreaterThanOrEqual(1);
+    expect(messages).toHaveLength(users.length);
+    expect(messages[0].email.subject).toBe(
+      `Una versione di "${eservice.name}" è stata sospesa`
+    );
+    expect(messages[0].email.body).toMatch(expectedEserviceMessageBody);
   });
 
-  it("returns empty array when archivingSchedule is absent on the descriptor (routine auto-archive)", async () => {
+  it("emits no email per producer user when archivingSchedule is absent on the descriptor (routine auto-archive)", async () => {
     const routineDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
     };
@@ -175,8 +146,9 @@ describe("handleEserviceDescriptorArchivedToConsumer", () => {
       descriptors: [routineDescriptor],
     };
     await addOneEService(routineEservice);
+    await addOneTenant({ ...getMockTenant(producerId), name: "Producer T" });
 
-    const messages = await handleEserviceDescriptorArchivedToConsumer({
+    const messages = await handleEserviceDescriptorSuspendedToProducer({
       eserviceV2Msg: toEServiceV2(routineEservice),
       descriptorId: routineDescriptor.id,
       logger,
@@ -184,6 +156,6 @@ describe("handleEserviceDescriptorArchivedToConsumer", () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages).toEqual([]);
+    expect(messages).toHaveLength(0);
   });
 });

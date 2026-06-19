@@ -3,6 +3,7 @@ import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
+import { handleEserviceStateChangedToProducer } from "./handleEserviceStateChangedToProducer.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
 import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
 import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
@@ -22,11 +23,24 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorActivated"
+        ),
+      },
+      async (msg) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceStateChangedToProducer(msg, logger, readModelService),
+          handleEserviceStateChangedToConsumer(msg, logger, readModelService),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceNameUpdated",
           "EServiceDescriptionUpdated",
           "EServiceDescriptorPublished",
-          "EServiceDescriptorSuspended",
-          "EServiceDescriptorActivated",
           "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
@@ -69,12 +83,17 @@ export async function handleEServiceEvent(
     )
     .with(
       {
+        type: "EServiceDescriptorArchived",
+      },
+      (msg) => handleEserviceArchivingToProducer(msg, logger, readModelService)
+    )
+    .with(
+      {
         type: P.union(
           "EServiceDescriptorArchivingScheduled",
           "EServiceArchivingScheduled",
           "EServiceDescriptorArchivingCompleted",
-          "EServiceArchivingCompleted",
-          "EServiceDescriptorArchived"
+          "EServiceArchivingCompleted"
         ),
       },
       async (msg) => {
