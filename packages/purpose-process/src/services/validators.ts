@@ -854,6 +854,10 @@ function riskAnalysisFormInputDiffersFromPrevious(
 
   // Both exist - compare them after normalizing to same structure
   if (inputForm && existingForm) {
+    if (inputForm.version !== existingForm.version) {
+      return true;
+    }
+
     // Normalize existing form to match input form structure
     const existingAnswers = {
       ...Object.fromEntries(
@@ -876,9 +880,8 @@ function riskAnalysisFormInputDiffersFromPrevious(
     );
 
     return (
-      inputForm.version !== existingForm.version ||
       JSON.stringify(sortedInputAnswers) !==
-        JSON.stringify(sortedExistingAnswers)
+      JSON.stringify(sortedExistingAnswers)
     );
   }
 
