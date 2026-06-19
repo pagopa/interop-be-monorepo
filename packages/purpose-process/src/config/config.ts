@@ -5,6 +5,7 @@ import {
   S3Config,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
+  SelfCareClientConfig,
   TenantKindHistoryDBConfig,
   FeatureFlagTenantKindInRiskAnalysisConfig,
   FeatureFlagNewOperatorsConfig,
@@ -16,6 +17,7 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(EventStoreConfig)
   .and(FileManagerConfig)
   .and(S3Config)
+  .and(SelfCareClientConfig)
   .and(TenantKindHistoryDBConfig)
   .and(FeatureFlagTenantKindInRiskAnalysisConfig)
   .and(

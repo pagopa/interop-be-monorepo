@@ -13,6 +13,7 @@ import {
   RiskAnalysisId,
   TenantId,
   TenantKind,
+  UserId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
@@ -73,6 +74,8 @@ const errorCodes = {
   editNotAllowedForReviewMode: "0053",
   reviewerWorkflowNotEditable: "0054",
   reviewerWorkflowNotInSignedState: "0055",
+  userWithoutReviewerPrivileges: "0056",
+  missingSelfcareId: "0057",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -653,5 +656,24 @@ export function reviewerWorkflowNotInSignedState(
     detail: `Purpose ${purposeId} reviewer workflow is not in the Signed state`,
     code: "reviewerWorkflowNotInSignedState",
     title: "Reviewer workflow not in signed state",
+  });
+}
+
+export function userWithoutReviewerPrivileges(
+  consumerId: TenantId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} does not have reviewer privileges for tenant ${consumerId}`,
+    code: "userWithoutReviewerPrivileges",
+    title: "User without reviewer privileges",
+  });
+}
+
+export function missingSelfcareId(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} does not have a selfcare ID`,
+    code: "missingSelfcareId",
+    title: "Missing selfcare ID",
   });
 }
