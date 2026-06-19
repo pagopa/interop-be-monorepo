@@ -842,18 +842,13 @@ function riskAnalysisFormInputDiffersFromPrevious(
   inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
   existingForm: PurposeRiskAnalysisForm | undefined
 ): boolean {
-  // If input form is undefined (removal) and existing form exists, it counts as a change
-  if (!inputForm && existingForm) {
-    return true;
-  }
-
   // If no existing form and input form exists, adding one counts as a change
   if (!existingForm && inputForm) {
     return true;
   }
 
-  // Both undefined - no change
-  if (!inputForm && !existingForm) {
+  // If input form is undefined, the existing form remains unchanged
+  if (!inputForm) {
     return false;
   }
 

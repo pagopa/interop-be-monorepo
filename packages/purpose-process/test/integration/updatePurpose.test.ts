@@ -15,6 +15,7 @@ import {
   addSomeRandomDelegations,
   getMockAgreement,
   getMockContext,
+  getMockContextM2MAdmin,
   getMockEService,
   sortPurpose,
 } from "pagopa-interop-commons-test";
@@ -1524,44 +1525,10 @@ describe("updatePurpose and updateReversePurpose", () => {
     riskAnalysisSigningState.assigned,
     riskAnalysisSigningState.submitted,
     riskAnalysisSigningState.signed,
+    riskAnalysisSigningState.draft,
+    riskAnalysisSigningState.rejected,
   ])(
-    "should throw riskAnalysisFormCannotBeUpdated when a reviewer workflow is active (state: %s) and trying to remove the risk analysis form",
-    async (signingState) => {
-      const existingForm = getMockValidRiskAnalysisForm(tenantType);
-      const reviewerWorkflow: ReviewerWorkflow = {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [generateId()],
-        signingState,
-      };
-      const purposeWithFormAndWorkflow: Purpose = {
-        ...purposeForDeliver,
-        riskAnalysisForm: { ...existingForm, id: generateId() },
-        reviewerWorkflow,
-      };
-
-      // Update content without riskAnalysisForm (trying to remove it)
-      const updateContentWithoutForm: purposeApi.PurposeUpdateContent = {
-        ...purposeUpdateContent,
-        riskAnalysisForm: undefined,
-      };
-
-      await addOnePurpose(purposeWithFormAndWorkflow);
-      await addOneEService(eServiceDeliver);
-      await addOneTenant(tenant);
-
-      expect(
-        purposeService.updatePurpose(
-          purposeWithFormAndWorkflow.id,
-          updateContentWithoutForm,
-          getMockContext({ authData: getMockAuthData(tenant.id) })
-        )
-      ).rejects.toThrowError(
-        riskAnalysisFormCannotBeUpdated(purposeWithFormAndWorkflow.id)
-      );
-    }
-  );
-  it.each([riskAnalysisSigningState.draft, riskAnalysisSigningState.rejected])(
-    "should succeed when removing a risk analysis form and reviewer workflow is in state %s",
+    "should succeed and preserve the existing risk analysis form when riskAnalysisForm is omitted from the update, regardless of reviewer workflow state %s",
     async (signingState) => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
@@ -1578,7 +1545,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         reviewerWorkflow,
       };
 
-      // Update content without riskAnalysisForm (trying to remove it)
+      // Omitting riskAnalysisForm means the existing form is preserved, not removed
       const updateContentWithoutForm: purposeApi.PurposeUpdateContent = {
         ...purposeUpdateContent,
         riskAnalysisForm: undefined,
@@ -1588,13 +1555,59 @@ describe("updatePurpose and updateReversePurpose", () => {
       await addOneEService(eServiceDeliver);
       await addOneTenant(tenant);
 
-      await expect(
-        purposeService.updatePurpose(
-          purposeWithFormAndWorkflow.id,
-          updateContentWithoutForm,
-          getMockContext({ authData: getMockAuthData(tenant.id) })
-        )
-      ).resolves.toBeDefined();
+      const result = await purposeService.updatePurpose(
+        purposeWithFormAndWorkflow.id,
+        updateContentWithoutForm,
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      );
+
+      expect(result.data.purpose.riskAnalysisForm).toEqual(
+        purposeWithFormAndWorkflow.riskAnalysisForm
+      );
+
+      vi.useRealTimers();
+    }
+  );
+  it.each([
+    riskAnalysisSigningState.assigned,
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+  ])(
+    "should succeed and preserve the existing risk analysis form when patchUpdatePurpose updates only non-form fields and reviewer workflow is active (state: %s)",
+    async (signingState) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const existingForm = getMockValidRiskAnalysisForm(tenantType);
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithFormAndWorkflow: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: { ...existingForm, id: generateId() },
+        reviewerWorkflow,
+      };
+
+      // Partial update with only dailyCalls - riskAnalysisForm is omitted entirely
+      const patchContent: purposeApi.PatchPurposeUpdateContent = {
+        dailyCalls: 99,
+      };
+
+      await addOnePurpose(purposeWithFormAndWorkflow);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const result = await purposeService.patchUpdatePurpose(
+        purposeWithFormAndWorkflow.id,
+        patchContent,
+        getMockContextM2MAdmin({ organizationId: tenant.id })
+      );
+
+      expect(result.data.purpose.riskAnalysisForm).toEqual(
+        purposeWithFormAndWorkflow.riskAnalysisForm
+      );
 
       vi.useRealTimers();
     }
