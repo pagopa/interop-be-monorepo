@@ -1,4 +1,5 @@
 import {
+  archivingScope,
   DescriptorId,
   EmailNotificationMessagePayload,
   fromEServiceV2,
@@ -17,10 +18,11 @@ import {
 } from "pagopa-interop-notification-commons";
 import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 import { config } from "../../config/config.js";
+import { dateAtRomeZone } from "pagopa-interop-commons";
 
 const notificationType: NotificationType = "eserviceStateChangedToProducer";
 
-export async function handleEserviceDescriptorArchivingCompletedToProducer(
+export async function handleEserviceDescriptorActivatedToProducer(
   data: EServiceDescriptorHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -35,7 +37,7 @@ export async function handleEserviceDescriptorArchivingCompletedToProducer(
   if (!eserviceV2Msg) {
     throw missingKafkaMessageDataError(
       "eservice",
-      "EServiceDescriptorArchivingCompleted"
+      "EServiceDescriptorActivated"
     );
   }
 
@@ -43,9 +45,18 @@ export async function handleEserviceDescriptorArchivingCompletedToProducer(
   const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
   const descriptor = retrieveDescriptor(eservice, descriptorId);
 
+  const archivingSchedule = descriptor.archivingSchedule;
+
+  if (!archivingSchedule) {
+    logger.info(
+      `Archiving schedule not found for eservice ${eservice.id}, skipping email`
+    );
+    return [];
+  }
+
   const [htmlTemplate, producer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceArchivingCompletedDescriptorToProducerMailTemplate
+      eventMailTemplateType.eserviceArchivingDescriptorActivatedToProducerMailTemplate
     ),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
@@ -60,20 +71,21 @@ export async function handleEserviceDescriptorArchivingCompletedToProducer(
 
   if (targets.length === 0) {
     logger.info(
-      `No producer users with email notifications enabled for handleEserviceDescriptorArchivingCompletedToProducer - entityId: ${eservice.id}/${descriptor.id}`
+      `No producer users with email notifications enabled for handleEserviceDescriptorActivatedToProducer - entityId: ${eservice.id}/${descriptor.id}`
     );
     return [];
   }
 
-  const subject = `La versione di un tuo e-service è stata archiviata`;
-
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
     email: {
-      subject,
+      subject: `Una versione di "${eservice.name}" è stata riattivata`,
       body: templateService.compileHtml(htmlTemplate, {
-        title: subject,
+        title: `Una versione di "${eservice.name}" è stata riattivata`,
         notificationType,
+        archivableOn: dateAtRomeZone(archivingSchedule.archivableOn),
+        isEserviceArchiving:
+          archivingSchedule.scope === archivingScope.eservice,
         entityId: `${eservice.id}/${descriptor.id}`,
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,

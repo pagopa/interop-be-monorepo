@@ -2933,9 +2933,6 @@ importers:
 
   packages/email-scheduled-notification-dispatcher:
     dependencies:
-      date-fns:
-        specifier: 'catalog:'
-        version: 4.1.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5864,9 +5861,6 @@ importers:
 
   packages/scheduled-email-notification-dispatcher:
     dependencies:
-      date-fns:
-        specifier: 'catalog:'
-        version: 4.1.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
