@@ -810,7 +810,6 @@ export const updateEServiceArchivingStatusErrorMapper = (
 ): number =>
   match(error.code)
     .with(
-      "eserviceWithActiveOrPendingDelegation",
       "eserviceArchivingWithActiveOrPendingDelegation",
       () => HTTP_STATUS_CONFLICT
     )
