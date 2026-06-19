@@ -66,22 +66,13 @@ export function toApiPurposeM2MEventType(
       "PurposeRiskAnalysisWorkflowCreated",
       () => "PURPOSE_RISK_ANALYSIS_WORKFLOW_CREATED"
     )
-    .with(
-      "PurposeRiskAnalysisAssigned",
-      () => "PURPOSE_RISK_ANALYSIS_ASSIGNED"
-    )
+    .with("PurposeRiskAnalysisAssigned", () => "PURPOSE_RISK_ANALYSIS_ASSIGNED")
     .with(
       "PurposeRiskAnalysisSubmitted",
       () => "PURPOSE_RISK_ANALYSIS_SUBMITTED"
     )
-    .with(
-      "PurposeRiskAnalysisSigned",
-      () => "PURPOSE_RISK_ANALYSIS_SIGNED"
-    )
-    .with(
-      "PurposeRiskAnalysisRejected",
-      () => "PURPOSE_RISK_ANALYSIS_REJECTED"
-    )
+    .with("PurposeRiskAnalysisSigned", () => "PURPOSE_RISK_ANALYSIS_SIGNED")
+    .with("PurposeRiskAnalysisRejected", () => "PURPOSE_RISK_ANALYSIS_REJECTED")
     .with(
       "PurposeRiskAnalysisFormEdited",
       () => "PURPOSE_RISK_ANALYSIS_FORM_EDITED"
