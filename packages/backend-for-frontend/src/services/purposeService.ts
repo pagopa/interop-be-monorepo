@@ -46,8 +46,10 @@ import {
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
+import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
+import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { isAgreementUpgradable } from "./validators.js";
 
 const enrichPurposeDelegation = async (
@@ -94,6 +96,39 @@ const enrichPurposeDelegation = async (
       kind: delegator.kind,
     },
   };
+};
+
+const enrichPurposeReviewerWorkflow = async (
+  reviewerWorkflow: purposeApi.ReviewerWorkflow | undefined,
+  authData: UIAuthData,
+  consumerId: string,
+  userRoles: string[],
+  selfcareV2UserClient: SelfcareV2UsersClient,
+  selfcareId: string,
+  correlationId: CorrelationId
+): Promise<bffApi.ReviewerWorkflow | undefined> => {
+  if (reviewerWorkflow === undefined) {
+    return undefined;
+  }
+  const isConsumer = authData.organizationId === consumerId;
+  const hasAdminOrViewerRole =
+    userRoles.includes(authRole.ADMIN_ROLE) ||
+    userRoles.includes(authRole.VIEWER_ROLE);
+
+  if (isConsumer && hasAdminOrViewerRole) {
+    const reviewers = await Promise.all(
+      reviewerWorkflow.reviewerIds.map((reviewerId) =>
+        getSelfcareCompactUserById(
+          selfcareV2UserClient,
+          reviewerId,
+          selfcareId,
+          correlationId
+        )
+      )
+    );
+    return { ...reviewerWorkflow, reviewers };
+  }
+  return reviewerWorkflow;
 };
 
 const getCurrentVersion = (
@@ -306,7 +341,15 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
-      reviewerWorkflow: purpose.reviewerWorkflow,
+      reviewerWorkflow: await enrichPurposeReviewerWorkflow(
+        purpose.reviewerWorkflow,
+        authData,
+        purpose.consumerId,
+        authData.userRoles,
+        selfcareV2UserClient,
+        authData.selfcareId,
+        correlationId
+      ),
     };
   };
 
@@ -637,9 +680,10 @@ export function purposeServiceBuilder(
         authData,
         {
           reviewerId: authData.userId,
+          consumersIds: [authData.organizationId],
           eservicesIds: filters.eservicesIds,
           signingStates,
-          excludeDraft: true,
+          excludeDraft: false,
           offset,
           limit,
         },

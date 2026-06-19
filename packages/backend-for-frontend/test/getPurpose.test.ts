@@ -1,0 +1,248 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  purposeApi,
+  catalogApi,
+  tenantApi,
+  agreementApi,
+} from "pagopa-interop-api-clients";
+import { generateId, PurposeId, TenantId, UserId } from "pagopa-interop-models";
+import { UIAuthData, userRole } from "pagopa-interop-commons";
+import {
+  getMockAuthData,
+  getMockContext,
+  getMockedApiEserviceDescriptor,
+} from "pagopa-interop-commons-test";
+import type {
+  AuthorizationProcessClient,
+  DelegationProcessClient,
+  PagoPAInteropBeClients,
+  TenantProcessClient,
+} from "../src/clients/clientsProvider.js";
+import { purposeServiceBuilder } from "../src/services/purposeService.js";
+import { fileManager, getBffMockContext } from "./utils.js";
+
+describe("getPurpose — reviewer enrichment", () => {
+  const consumerId = generateId<TenantId>();
+  const producerId = generateId<TenantId>();
+  const reviewerId = generateId<UserId>();
+  const consumerSelfcareId = generateId();
+
+  const descriptor = getMockedApiEserviceDescriptor({
+    state: catalogApi.EServiceDescriptorState.Values.PUBLISHED,
+  });
+
+  const eservice: catalogApi.EService = {
+    id: generateId(),
+    name: "eservice",
+    producerId,
+    description: "desc",
+    technology: catalogApi.EServiceTechnology.Values.REST,
+    descriptors: [descriptor],
+    riskAnalysis: [],
+    mode: catalogApi.EServiceMode.Values.DELIVER,
+    isSignalHubEnabled: false,
+    isConsumerDelegable: false,
+    isClientAccessDelegable: false,
+  };
+
+  const consumer: tenantApi.Tenant = {
+    id: consumerId,
+    selfcareId: consumerSelfcareId,
+    name: "consumer",
+    attributes: [],
+    externalId: { origin: "IPA", value: "123" },
+    createdAt: new Date().toISOString(),
+    kind: "GSP",
+    mails: [],
+    features: [],
+  };
+
+  const producer: tenantApi.Tenant = {
+    id: producerId,
+    name: "producer",
+    attributes: [],
+    externalId: { origin: "IPA", value: "456" },
+    createdAt: new Date().toISOString(),
+    kind: "GSP",
+    mails: [],
+    features: [],
+  };
+
+  const agreement: agreementApi.Agreement = {
+    id: generateId(),
+    eserviceId: eservice.id,
+    descriptorId: descriptor.id,
+    producerId,
+    consumerId,
+    state: agreementApi.AgreementState.Values.ACTIVE,
+    verifiedAttributes: [],
+    certifiedAttributes: [],
+    certifiedDiscreteAttributes: [],
+    declaredAttributes: [],
+    consumerDocuments: [],
+    stamps: {},
+    createdAt: new Date().toISOString(),
+  };
+
+  const mockPurposeId = generateId<PurposeId>();
+  const basePurpose: purposeApi.Purpose = {
+    id: mockPurposeId,
+    eserviceId: eservice.id,
+    consumerId,
+    title: "purpose",
+    description: "desc",
+    isFreeOfCharge: false,
+    createdAt: new Date().toISOString(),
+    versions: [],
+    reviewerWorkflow: {
+      reviewMode:
+        purposeApi.RiskAnalysisReviewMode.Values.REVIEWER_WRITES_REVIEWER_SIGNS,
+      reviewerIds: [reviewerId],
+      signingState: purposeApi.RiskAnalysisSigningState.Values.ASSIGNED,
+    },
+  };
+
+  const mockGetPurpose = vi.fn();
+  const mockGetEServiceById = vi.fn();
+  const mockGetTenant = vi.fn();
+  const mockGetAgreements = vi.fn();
+  const mockGetUserInfoUsingGET = vi.fn();
+
+  const mockTenantProcessClient = {
+    tenant: { getTenant: mockGetTenant },
+  } as unknown as TenantProcessClient;
+
+  const mockAuthorizationClient = {
+    client: { getClientsWithKeys: vi.fn().mockResolvedValue({ results: [] }) },
+  } as unknown as AuthorizationProcessClient;
+
+  const mockDelegationProcessClient = {
+    delegation: {},
+  } as unknown as DelegationProcessClient;
+
+  const purposeService = purposeServiceBuilder(
+    {
+      purposeProcessClient: { getPurpose: mockGetPurpose },
+      purposeTemplateProcessClient: { getPurposeTemplate: vi.fn() },
+      catalogProcessClient: { getEServiceById: mockGetEServiceById },
+      tenantProcessClient: mockTenantProcessClient,
+      agreementProcessClient: { getAgreements: mockGetAgreements },
+      authorizationClient: mockAuthorizationClient,
+      delegationProcessClient: mockDelegationProcessClient,
+      selfcareV2UserClient: { getUserInfoUsingGET: mockGetUserInfoUsingGET },
+      inAppNotificationManagerClient: {
+        filterUnreadNotifications: vi.fn().mockResolvedValue([]),
+      },
+    } as unknown as PagoPAInteropBeClients,
+    fileManager
+  );
+
+  beforeEach(() => {
+    mockGetPurpose.mockReset();
+    mockGetEServiceById.mockReset();
+    mockGetAgreements.mockReset();
+    mockGetUserInfoUsingGET.mockReset();
+
+    mockGetPurpose.mockResolvedValue(basePurpose);
+    mockGetEServiceById.mockResolvedValue(eservice);
+    mockGetTenant.mockImplementation(
+      ({ params }: { params: { id: string } }) =>
+        params.id === consumerId ? consumer : producer
+    );
+    mockGetAgreements.mockResolvedValue({ results: [agreement] });
+  });
+
+  it("should enrich reviewerWorkflow with reviewers when requester is the consumer", async () => {
+    const mockUserInfo = { id: reviewerId, name: "Name", surname: "Surname" };
+    mockGetUserInfoUsingGET.mockResolvedValue(mockUserInfo);
+
+    const authData: UIAuthData = {
+      ...getMockAuthData(),
+      organizationId: consumerId,
+    };
+    const ctx = getBffMockContext(getMockContext({ authData }));
+
+    const result = await purposeService.getPurpose(mockPurposeId, ctx);
+
+    expect(result.reviewerWorkflow?.reviewers).toEqual([
+      { userId: reviewerId, name: "Name", familyName: "Surname" },
+    ]);
+    expect(mockGetUserInfoUsingGET).toHaveBeenCalledOnce();
+    expect(mockGetUserInfoUsingGET).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { id: reviewerId } })
+    );
+  });
+
+  it.each([userRole.SECURITY_ROLE, userRole.ADMIN_ROLE, userRole.VIEWER_ROLE])(
+    "should NOT include reviewers in reviewerWorkflow when requester is the producer (role: %s)",
+    async (role) => {
+      const authData: UIAuthData = {
+        ...getMockAuthData(undefined, undefined, [role]),
+        organizationId: producerId,
+      };
+      const ctx = getBffMockContext(getMockContext({ authData }));
+
+      const result = await purposeService.getPurpose(mockPurposeId, ctx);
+
+      expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
+      expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(
+    Object.values(userRole).filter(
+      (role) => role !== userRole.ADMIN_ROLE && role !== userRole.VIEWER_ROLE
+    )
+  )(
+    "should NOT include reviewers when requester is the consumer with role: %s",
+    async (role) => {
+      const authData: UIAuthData = {
+        ...getMockAuthData(undefined, undefined, [role]),
+        organizationId: consumerId,
+      };
+      const ctx = getBffMockContext(getMockContext({ authData }));
+
+      const result = await purposeService.getPurpose(mockPurposeId, ctx);
+
+      expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
+      expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
+    }
+  );
+
+  it("should return empty reviewers array when reviewerIds is empty (consumer)", async () => {
+    mockGetPurpose.mockResolvedValue({
+      ...basePurpose,
+      reviewerWorkflow: { ...basePurpose.reviewerWorkflow!, reviewerIds: [] },
+    });
+
+    const authData: UIAuthData = {
+      ...getMockAuthData(),
+      organizationId: consumerId,
+    };
+    const ctx = getBffMockContext(getMockContext({ authData }));
+
+    const result = await purposeService.getPurpose(mockPurposeId, ctx);
+
+    expect(result.reviewerWorkflow?.reviewers).toEqual([]);
+    expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
+  });
+
+  it("should return undefined reviewerWorkflow when purpose has no reviewerWorkflow", async () => {
+    mockGetPurpose.mockResolvedValue({
+      ...basePurpose,
+      reviewerWorkflow: undefined,
+    });
+
+    const authData: UIAuthData = {
+      ...getMockAuthData(),
+      organizationId: consumerId,
+    };
+    const ctx = getBffMockContext(getMockContext({ authData }));
+
+    const result = await purposeService.getPurpose(mockPurposeId, ctx);
+
+    expect(result.reviewerWorkflow).toBeUndefined();
+    expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
+  });
+});
