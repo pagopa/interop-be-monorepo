@@ -17,6 +17,7 @@ import {
   archivingScope,
   AsyncExchangeProperties,
   AttributeId,
+  Delegation,
   delegationKind,
   delegationState,
   Descriptor,
@@ -50,6 +51,7 @@ import {
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
   eserviceDescriptorWithActiveOrPendingDelegation,
+  eserviceArchivingWithActiveOrPendingDelegation,
   notValidDescriptorState,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
@@ -225,15 +227,25 @@ export function assertRequesterIsProducer(
   }
 }
 
-export async function assertNoExistingProducerDelegationInActiveOrPendingState(
+async function getActiveOrPendingProducerDelegation(
   eserviceId: EServiceId,
   readModelService: ReadModelServiceSQL
-): Promise<void> {
-  const producerDelegation = await readModelService.getLatestDelegation({
+): Promise<Delegation | undefined> {
+  return readModelService.getLatestDelegation({
     eserviceId,
     kind: delegationKind.delegatedProducer,
     states: [delegationState.active, delegationState.waitingForApproval],
   });
+}
+
+export async function assertNoExistingProducerDelegationInActiveOrPendingState(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
 
   if (producerDelegation) {
     throw eserviceWithActiveOrPendingDelegation(
@@ -248,16 +260,32 @@ export async function assertNoExistingProducerDelegationForDescriptorArchiving(
   descriptorId: DescriptorId,
   readModelService: ReadModelServiceSQL
 ): Promise<void> {
-  const producerDelegation = await readModelService.getLatestDelegation({
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
     eserviceId,
-    kind: delegationKind.delegatedProducer,
-    states: [delegationState.active, delegationState.waitingForApproval],
-  });
+    readModelService
+  );
 
   if (producerDelegation) {
     throw eserviceDescriptorWithActiveOrPendingDelegation(
       eserviceId,
       descriptorId,
+      producerDelegation.id
+    );
+  }
+}
+
+export async function assertNoExistingProducerDelegationForEServiceArchiving(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
+
+  if (producerDelegation) {
+    throw eserviceArchivingWithActiveOrPendingDelegation(
+      eserviceId,
       producerDelegation.id
     );
   }
