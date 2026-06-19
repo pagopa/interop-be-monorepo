@@ -23,6 +23,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { userRole } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,
@@ -76,14 +77,31 @@ describe("assignRiskAnalysisReviewer", () => {
 
     mockSelfcareV2ClientCall([mockSelfCareUser]);
 
+    const ctx = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId),
+    });
+
     await purposeService.assignRiskAnalysisReviewer(
       mockPurpose.id,
       {
         reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerIds,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      ctx
     );
+
+    expect(
+      selfcareV2Client.getInstitutionUsersByProductUsingGET
+    ).toHaveBeenCalledWith({
+      params: { institutionId: mockTenant.selfcareId },
+      queries: {
+        userId: reviewerIds[0],
+        productRoles: userRole.REVIEWER_ROLE,
+      },
+      headers: {
+        "X-Correlation-Id": ctx.correlationId,
+      },
+    });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -137,14 +155,31 @@ describe("assignRiskAnalysisReviewer", () => {
 
     mockSelfcareV2ClientCall([mockSelfCareUser]);
 
+    const ctx = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId),
+    });
+
     await purposeService.assignRiskAnalysisReviewer(
       mockPurpose.id,
       {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      ctx
     );
+
+    expect(
+      selfcareV2Client.getInstitutionUsersByProductUsingGET
+    ).toHaveBeenCalledWith({
+      params: { institutionId: mockTenant.selfcareId },
+      queries: {
+        userId: reviewerIds[0],
+        productRoles: userRole.REVIEWER_ROLE,
+      },
+      headers: {
+        "X-Correlation-Id": ctx.correlationId,
+      },
+    });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
