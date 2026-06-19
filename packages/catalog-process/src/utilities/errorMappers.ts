@@ -809,7 +809,10 @@ export const updateEServiceArchivingStatusErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eserviceWithActiveOrPendingDelegation", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eserviceArchivingWithActiveOrPendingDelegation",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
