@@ -12,6 +12,14 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 
+const escapeHtml = (value: string): string =>
+  value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
 export const inAppTemplates = {
   // agreements - erogazione
   agreementSubmittedToProducer: (
@@ -497,31 +505,45 @@ export const inAppTemplates = {
   eserviceArchivingScheduledReminderToProducer: (
     eserviceName: string,
     archivableOn: Date | undefined
-  ): string =>
-    `Il tuo e-service "${eserviceName}" ${
+  ): string => {
+    const escapedEserviceName = escapeHtml(eserviceName);
+
+    return `Il tuo e-service "${escapedEserviceName}" ${
       archivableOn
         ? `sarà archiviato il giorno ${dateAtRomeZone(archivableOn)}.`
         : ""
-    }.`,
+    }.`;
+  },
   eserviceArchivingScheduledReminderToConsumer: (
     eserviceName: string,
     archivableOn: Date | undefined
-  ): string =>
-    `L'e-service "${eserviceName}" ${
+  ): string => {
+    const escapedEserviceName = escapeHtml(eserviceName);
+
+    return `L'e-service "${escapedEserviceName}" ${
       archivableOn
         ? `sarà archiviato il giorno ${dateAtRomeZone(archivableOn)}. Dopo questa data non potrai più scambiare dati con l’e-service.`
         : ""
-    }.`,
+    }.`;
+  },
   eserviceDescriptorArchivingScheduledReminderToProducer: (
     eserviceName: string,
     descriptorVersion: string,
     archivableOn: Date | undefined
-  ): string =>
-    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" sarà archiviata il giorno ${archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""}.`,
+  ): string => {
+    const escapedEserviceName = escapeHtml(eserviceName);
+    const escapedDescriptorVersion = escapeHtml(descriptorVersion);
+
+    return `La versione ${escapedDescriptorVersion} dell'e-service "${escapedEserviceName}" sarà archiviata il giorno ${archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""}.`;
+  },
   eserviceDescriptorArchivingScheduledReminderToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
     archivableOn: Date | undefined
-  ): string =>
-    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" sarà archiviata il giorno ${archivableOn ? ` (${dateAtRomeZone(archivableOn)}). Dopo questa data non potrai più scambiare dati con l’e-service.` : ""}.`,
+  ): string => {
+    const escapedEserviceName = escapeHtml(eserviceName);
+    const escapedDescriptorVersion = escapeHtml(descriptorVersion);
+
+    return `La versione ${escapedDescriptorVersion} dell'e-service "${escapedEserviceName}" sarà archiviata il giorno ${archivableOn ? ` (${dateAtRomeZone(archivableOn)}). Dopo questa data non potrai più scambiare dati con l’e-service.` : ""}.`;
+  },
 };
