@@ -18,7 +18,7 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { handleEServiceArchivingCanceledToProducer } from "../src/handlers/eservices/handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceArchivingCanceledToProducer } from "../src/handlers/eservices/handleEserviceArchivingCanceledToProducer.js";
 import {
   addOneEService,
   addOneTenant,
@@ -70,7 +70,7 @@ describe("handleEserviceArchivingCanceledToProducer", () => {
 
   it("throws missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-      handleEServiceArchivingCanceledToProducer({
+      handleEserviceArchivingCanceledToProducer({
         eserviceV2Msg: undefined,
         logger,
         templateService,
@@ -83,7 +83,7 @@ describe("handleEserviceArchivingCanceledToProducer", () => {
   });
 
   it("emits one email per consumer user with the expected subject", async () => {
-    const messages = await handleEServiceArchivingCanceledToProducer({
+    const messages = await handleEserviceArchivingCanceledToProducer({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
       templateService,

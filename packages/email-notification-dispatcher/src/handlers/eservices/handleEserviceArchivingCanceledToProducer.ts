@@ -18,7 +18,7 @@ import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToProducer";
 
-export async function handleEServiceArchivingCanceledToProducer(
+export async function handleEserviceArchivingCanceledToProducer(
   data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -53,7 +53,7 @@ export async function handleEServiceArchivingCanceledToProducer(
 
   if (targets.length === 0) {
     logger.info(
-      `No producer users with email notifications enabled for handleEServiceArchivingCanceledToProducer - entityId: ${eservice.id}/${descriptor.id}`
+      `No producer users with email notifications enabled for handleEserviceArchivingCanceledToProducer - entityId: ${eservice.id}/${descriptor.id}`
     );
     return [];
   }
