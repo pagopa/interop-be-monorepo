@@ -90,7 +90,7 @@ describe("handleEserviceArchivingCanceledToProducer", () => {
     expect(notifications[0]).toEqual({
       userId,
       tenantId: producerTenant.id,
-      notificationType: "eserviceStateChangedToConsumer",
+      notificationType: "eserviceStateChangedToProducer",
       entityId: EServiceIdDescriptorId.parse(
         `${eservice.id}/${archivingDescriptor.id}`
       ),
