@@ -119,7 +119,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
 
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.fixEServiceRiskAnalysisTenantKind(
         eservice.id,
         riskAnalysisToFix.id,
@@ -132,7 +132,7 @@ describe("fixEServiceRiskAnalysisTenantKind", () => {
     const unknownEServiceId = generateId<EServiceId>();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
-    expect(
+    await expect(
       catalogService.fixEServiceRiskAnalysisTenantKind(
         unknownEServiceId,
         riskAnalysisId,
