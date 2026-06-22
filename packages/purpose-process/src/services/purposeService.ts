@@ -100,6 +100,7 @@ import {
   reviewerWorkflowNotInSubmittedState,
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
+  reviewerWorkflowNotInSignedState,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -168,6 +169,7 @@ import {
   getUpdatedQuotas,
   assertRiskAnalysisTenantKindMatch,
   assertRequesterIsConsumer,
+  assertRiskAnalysisFormEditableInCurrentReviewMode,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -1555,6 +1557,16 @@ export function purposeServiceBuilder(
         }
       }
 
+      if (isFeatureFlagEnabled(config, "featureFlagNewOperators")) {
+        if (
+          purpose.data.reviewerWorkflow &&
+          purpose.data.reviewerWorkflow.signingState !==
+            riskAnalysisSigningState.signed
+        ) {
+          throw reviewerWorkflowNotInSignedState(purposeId);
+        }
+      }
+
       const purposeOwnership = await getOrganizationRole({
         purpose: purpose.data,
         producerId: eservice.producerId,
@@ -2493,6 +2505,7 @@ const archiveActiveAndSuspendedPurposeVersions = (
 export type UpdatePurposeReturn = WithMetadata<{
   purpose: Purpose;
 }>;
+
 const performUpdatePurpose = async (
   purposeId: PurposeId,
   modeAndUpdateContent:
@@ -2565,6 +2578,21 @@ const performUpdatePurpose = async (
     purpose.data.consumerId,
     readModelService
   );
+
+  if (
+    mode === eserviceMode.deliver &&
+    isFeatureFlagEnabled(config, "featureFlagNewOperators") &&
+    purpose.data.reviewerWorkflow &&
+    (riskAnalysisForm || purpose.data.riskAnalysisForm)
+  ) {
+    // Validate form changes (add, update, or removal) during active reviewer workflow
+    assertRiskAnalysisFormEditableInCurrentReviewMode(
+      purposeId,
+      riskAnalysisForm,
+      purpose.data.riskAnalysisForm,
+      purpose.data.reviewerWorkflow
+    );
+  }
 
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm

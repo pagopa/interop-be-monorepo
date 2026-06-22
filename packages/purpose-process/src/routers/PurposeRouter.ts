@@ -244,7 +244,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE, REVIEWER_ROLE]);
 
         const result = await purposeService.getRemainingDailyCalls({
           purposeId: unsafeBrandId(req.params.purposeId),
@@ -824,6 +824,7 @@ const purposeRouter = (
           API_ROLE,
           SECURITY_ROLE,
           REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const riskAnalysisConfiguration =

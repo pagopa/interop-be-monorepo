@@ -108,7 +108,13 @@ describe("handlePurposeEvent test", async () => {
                   "PurposeAdded",
                   "DraftPurposeUpdated",
                   "DraftPurposeDeleted",
-                  "PurposeCloned"
+                  "PurposeCloned",
+                  "PurposeRiskAnalysisWorkflowCreated",
+                  "PurposeRiskAnalysisAssigned",
+                  "PurposeRiskAnalysisSubmitted",
+                  "PurposeRiskAnalysisSigned",
+                  "PurposeRiskAnalysisRejected",
+                  "PurposeRiskAnalysisFormEdited"
                 ),
                 () => [
                   {
@@ -198,13 +204,7 @@ describe("handlePurposeEvent test", async () => {
                 P.union(
                   // Ignored events
                   "RiskAnalysisDocumentGenerated",
-                  "MaintenancePurposeRiskAnalysisSetTenantKind",
-                  "PurposeRiskAnalysisWorkflowCreated",
-                  "PurposeRiskAnalysisAssigned",
-                  "PurposeRiskAnalysisSubmitted",
-                  "PurposeRiskAnalysisSigned",
-                  "PurposeRiskAnalysisRejected",
-                  "PurposeRiskAnalysisFormEdited"
+                  "MaintenancePurposeRiskAnalysisSetTenantKind"
                 ),
                 () => [
                   {
