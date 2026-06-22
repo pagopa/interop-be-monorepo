@@ -1,9 +1,11 @@
 import { purposeApi } from "pagopa-interop-api-clients";
+import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   Ownership,
   ownership,
-  riskAnalysisFormToRiskAnalysisFormToValidate,
+  RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
@@ -23,19 +25,22 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   purposeVersionState,
-  RiskAnalysisForm,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
   TenantId,
   tenantKind,
   TenantKind,
-  tenantAttributeType,
+  RiskAnalysisFormId,
+  PurposeId,
+  ReviewerWorkflow,
+  riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
+  invalidFreeOfChargeReason,
   invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
@@ -43,7 +48,9 @@ import {
   purposeNotInDraftState,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
+  riskAnalysisFormCannotBeUpdated,
   riskAnalysisMissingExpectedFieldError,
+  riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
   riskAnalysisVersionMismatch,
   tenantIsNotTheConsumer,
@@ -54,6 +61,7 @@ import {
   tenantNotAllowed,
   tenantNotFound,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
 import {
   retrieveActiveAgreement,
@@ -61,24 +69,33 @@ import {
 } from "./purposeService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
-export const isRiskAnalysisFormValid = (
-  riskAnalysisForm: RiskAnalysisForm | undefined,
-  schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
-  dateForExpirationValidation: Date,
-  personalDataInEService: boolean | undefined
-): boolean => {
-  if (riskAnalysisForm === undefined) {
-    return false;
-  } else {
-    return (
-      validateRiskAnalysis(
-        riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
-        schemaOnlyValidation,
-        tenantKind,
-        dateForExpirationValidation,
-        personalDataInEService
-      ).type === "valid"
+export const assertRiskAnalysisTenantKindMatch = ({
+  actualKind,
+  currentTenantKind,
+  riskAnalysisFormId,
+}: {
+  actualKind: TenantKind | undefined;
+  currentTenantKind: TenantKind;
+  riskAnalysisFormId: RiskAnalysisFormId;
+}): void => {
+  // TODO after the fix
+  // if (actualKind === undefined) {
+  //   throw missingTenantKindError();
+  // }
+
+  const mapKindToKindForRA = (kind: TenantKind): TenantKind =>
+    match(kind)
+      .with(tenantKind.PA, () => tenantKind.PA)
+      .otherwise(() => tenantKind.PRIVATE);
+
+  if (
+    actualKind &&
+    mapKindToKindForRA(actualKind) !== mapKindToKindForRA(currentTenantKind)
+  ) {
+    throw riskAnalysisTenantKindMismatch(
+      actualKind,
+      currentTenantKind,
+      riskAnalysisFormId
     );
   }
 };
@@ -118,9 +135,13 @@ export const assertConsistentFreeOfCharge = (
   if (isFreeOfCharge && !freeOfChargeReason) {
     throw missingFreeOfChargeReason();
   }
+
+  if (!isFreeOfCharge && typeof freeOfChargeReason === "string") {
+    throw invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason);
+  }
 };
 
-const assertRequesterIsConsumer = (
+export const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
   authData: Pick<UIAuthData, "organizationId">
 ): void => {
@@ -132,20 +153,20 @@ const assertRequesterIsConsumer = (
 export function validateRiskAnalysisOrThrow({
   riskAnalysisForm,
   schemaOnlyValidation,
-  tenantKind,
+  fallbackTenantKind,
   dateForExpirationValidation,
   personalDataInEService,
 }: {
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed;
+  riskAnalysisForm: RiskAnalysisFormToValidate;
   schemaOnlyValidation: boolean;
-  tenantKind: TenantKind;
+  fallbackTenantKind: TenantKind;
   dateForExpirationValidation: Date;
   personalDataInEService: boolean | undefined;
 }): RiskAnalysisValidatedForm {
   const result = validateRiskAnalysis(
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService
   );
@@ -158,9 +179,9 @@ export function validateRiskAnalysisOrThrow({
 }
 
 export function validateAndTransformRiskAnalysis(
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
+  fallbackTenantKind: TenantKind,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): PurposeRiskAnalysisForm | undefined {
@@ -170,7 +191,7 @@ export function validateAndTransformRiskAnalysis(
   const validatedForm = validateRiskAnalysisOrThrow({
     riskAnalysisForm,
     schemaOnlyValidation,
-    tenantKind,
+    fallbackTenantKind,
     dateForExpirationValidation,
     personalDataInEService,
   });
@@ -312,21 +333,21 @@ export async function getUpdatedQuotas(
     throw tenantNotFound(consumerId);
   }
 
-  const consumerCertifiedAttributesIds = new Set(
-    tenant.attributes
-      .filter(
-        (a) =>
-          a.type === tenantAttributeType.CERTIFIED && !a.revocationTimestamp
-      )
-      .map((a) => a.id)
+  const certifiedDiscreteEnabled = isFeatureFlagEnabled(
+    config,
+    "featureFlagAttributeCertifiedDiscrete"
   );
 
   const maxDailyCallsPerConsumer =
     currentDescriptor.attributes.certified.flat().reduce((max, current) => {
-      if (!consumerCertifiedAttributesIds.has(current.id)) {
+      if (!current.dailyCallsPerConsumer) {
         return max;
       }
-      if (!current.dailyCallsPerConsumer) {
+      if (
+        !matchesCertifiedDescriptorAttribute(current, tenant.attributes, {
+          certifiedDiscreteEnabled,
+        })
+      ) {
         return max;
       }
       return Math.max(max, current.dailyCallsPerConsumer);
@@ -763,7 +784,7 @@ function buildAnswersSeed(
 
 export function validateRiskAnalysisAgainstTemplateOrThrow(
   purposeTemplate: PurposeTemplate,
-  riskAnalysisForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  riskAnalysisForm: RiskAnalysisFormToValidate | undefined,
   tenantKind: TenantKind,
   createdAt: Date,
   eservicePersonalData: boolean | undefined
@@ -787,9 +808,10 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     riskAnalysisForm
   );
 
-  const formToValidate: purposeApi.RiskAnalysisFormSeed = {
+  const formToValidate: RiskAnalysisFormToValidate = {
     version: purposeTemplate.purposeRiskAnalysisForm.version,
     answers: answersToSeed,
+    tenantKind,
   };
 
   return validateAndTransformRiskAnalysis(
@@ -799,4 +821,69 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     createdAt,
     eservicePersonalData
   );
+}
+
+export function assertRiskAnalysisFormEditableInCurrentReviewMode(
+  purposeId: PurposeId,
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined,
+  reviewerWorkflow: ReviewerWorkflow
+): void {
+  if (
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.draft &&
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.rejected &&
+    riskAnalysisFormInputDiffersFromPrevious(inputForm, existingForm)
+  ) {
+    throw riskAnalysisFormCannotBeUpdated(purposeId);
+  }
+}
+
+function riskAnalysisFormInputDiffersFromPrevious(
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined
+): boolean {
+  // If no existing form and input form exists, adding one counts as a change
+  if (!existingForm && inputForm) {
+    return true;
+  }
+
+  // If input form is undefined, the existing form remains unchanged
+  if (!inputForm) {
+    return false;
+  }
+
+  // Both exist - compare them after normalizing to same structure
+  if (inputForm && existingForm) {
+    if (inputForm.version !== existingForm.version) {
+      return true;
+    }
+
+    // Normalize existing form to match input form structure
+    const existingAnswers = {
+      ...Object.fromEntries(
+        existingForm.singleAnswers.map(({ key, value }) => [
+          key,
+          value ? [value] : [],
+        ])
+      ),
+      ...Object.fromEntries(
+        existingForm.multiAnswers.map(({ key, values }) => [key, values])
+      ),
+    };
+
+    // Sort both structures by key to make comparison order-independent
+    const sortedInputAnswers = Object.fromEntries(
+      Object.entries(inputForm.answers).sort(([a], [b]) => a.localeCompare(b))
+    );
+    const sortedExistingAnswers = Object.fromEntries(
+      Object.entries(existingAnswers).sort(([a], [b]) => a.localeCompare(b))
+    );
+
+    return (
+      JSON.stringify(sortedInputAnswers) !==
+      JSON.stringify(sortedExistingAnswers)
+    );
+  }
+
+  return false;
 }

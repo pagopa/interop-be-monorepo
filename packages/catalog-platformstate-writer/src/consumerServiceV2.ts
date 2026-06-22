@@ -7,14 +7,15 @@ import {
   EServiceEventEnvelopeV2,
   EServiceV2,
   fromEServiceV2,
+  genericInternalError,
   makeGSIPKEServiceIdDescriptorId,
   makePlatformStatesEServiceDescriptorPK,
   missingKafkaMessageDataError,
   PlatformStatesCatalogEntry,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
+import { match, P } from "ts-pattern";
+import { isFeatureFlagEnabled, Logger } from "pagopa-interop-commons";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -26,12 +27,18 @@ import {
   updateDescriptorVoucherLifespanInTokenGenerationStatesTable,
   upsertPlatformStatesCatalogEntry,
 } from "./utils.js";
+import { config } from "./config/config.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,
   dynamoDBClient: DynamoDBClient,
   logger: Logger
 ): Promise<void> {
+  const isAsyncExchangeEnabled = isFeatureFlagEnabled(
+    config,
+    "featureFlagAsyncExchange"
+  );
+
   await match(message)
     .with(
       { type: "EServiceDescriptorPublished" },
@@ -72,6 +79,12 @@ export async function handleMessageV2(
               state: descriptorStateToItemState(descriptor.state),
               descriptorAudience: descriptor.audience,
               descriptorVoucherLifespan: descriptor.voucherLifespan,
+              ...(isAsyncExchangeEnabled
+                ? {
+                    asyncExchange: eservice.asyncExchange,
+                    asyncExchangeProperties: descriptor.asyncExchangeProperties,
+                  }
+                : {}),
               version: msg.version,
               updatedAt: new Date().toISOString(),
             };
@@ -185,30 +198,117 @@ export async function handleMessageV2(
         }
       }
     )
-    .with({ type: "EServiceDescriptorArchived" }, async (msg) => {
+    .with({ type: "MaintenanceEServiceDescriptorUnarchived" }, async (msg) => {
       const { eservice, descriptor } = parseEServiceAndDescriptor(
         msg.data.eservice,
-        unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+        unsafeBrandId(msg.data.descriptorId),
+        message.type
+      );
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
+      const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
+
+      if (catalogEntry && catalogEntry.version > msg.version) {
+        logger.info(
+          `Skipping processing of entry ${primaryKey}. Reason: a more recent entry already exists`
+        );
+
+        return Promise.resolve();
+      }
+
+      const restoredCatalogEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: descriptorStateToItemState(descriptor.state),
+        descriptorAudience: descriptor.audience,
+        descriptorVoucherLifespan: descriptor.voucherLifespan,
+        ...(isAsyncExchangeEnabled
+          ? {
+              asyncExchange: eservice.asyncExchange,
+              asyncExchangeProperties: descriptor.asyncExchangeProperties,
+            }
+          : {}),
+        version: msg.version,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await upsertPlatformStatesCatalogEntry(
+        restoredCatalogEntry,
+        dynamoDBClient,
+        logger
+      );
+
+      // token-generation-states
+      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+        eserviceId: eservice.id,
+        descriptorId: descriptor.id,
+      });
+      await updateDescriptorInfoInTokenGenerationStatesTable(
+        eserviceId_descriptorId,
+        descriptorStateToItemState(descriptor.state),
+        descriptor.voucherLifespan,
+        descriptor.audience,
+        dynamoDBClient,
+        logger
+      );
+    })
+    .with(
+      { type: "EServiceDescriptorArchived" },
+      { type: "EServiceDescriptorArchivingCompleted" },
+      async (msg) => {
+        const { eservice, descriptor } = parseEServiceAndDescriptor(
+          msg.data.eservice,
+          unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+          msg.type
+        );
+
+        const primaryKey = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
+        });
+        await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
+
+        // token-generation-states
+        const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
+        const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+          eserviceId: eservice.id,
+          descriptorId,
+        });
+        await updateDescriptorStateInTokenGenerationStatesTable(
+          eserviceId_descriptorId,
+          descriptorStateToItemState(descriptor.state),
+          dynamoDBClient,
+          logger
+        );
+      }
+    )
+    .with({ type: "EServiceArchivingCompleted" }, async (msg) => {
+      const eservice = parseEServiceWithoutDescriptor(
+        msg.data.eservice,
         msg.type
       );
 
-      const primaryKey = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice.id,
-        descriptorId: unsafeBrandId<DescriptorId>(msg.data.descriptorId),
-      });
-      await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
+      await Promise.all(
+        eservice.descriptors.map(async (descriptor) => {
+          const primaryKey = makePlatformStatesEServiceDescriptorPK({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          });
+          await deleteCatalogEntry(primaryKey, dynamoDBClient, logger);
 
-      // token-generation-states
-      const descriptorId = unsafeBrandId<DescriptorId>(msg.data.descriptorId);
-      const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
-        eserviceId: eservice.id,
-        descriptorId,
-      });
-      await updateDescriptorStateInTokenGenerationStatesTable(
-        eserviceId_descriptorId,
-        descriptorStateToItemState(descriptor.state),
-        dynamoDBClient,
-        logger
+          // token-generation-states
+          const eserviceId_descriptorId = makeGSIPKEServiceIdDescriptorId({
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          });
+          await updateDescriptorStateInTokenGenerationStatesTable(
+            eserviceId_descriptorId,
+            descriptorStateToItemState(descriptor.state),
+            dynamoDBClient,
+            logger
+          );
+        })
       );
     })
     .with(
@@ -269,44 +369,57 @@ export async function handleMessageV2(
       }
     )
     .with(
-      { type: "EServiceDeleted" },
-      { type: "EServiceAdded" },
-      { type: "DraftEServiceUpdated" },
-      { type: "EServiceCloned" },
-      { type: "EServiceDescriptorAdded" },
-      { type: "EServiceDraftDescriptorDeleted" },
-      { type: "EServiceDraftDescriptorUpdated" },
-      { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
-      { type: "EServiceDescriptorInterfaceAdded" },
-      { type: "EServiceDescriptorDocumentAdded" },
-      { type: "EServiceDescriptorInterfaceUpdated" },
-      { type: "EServiceDescriptorDocumentUpdated" },
-      { type: "EServiceDescriptorInterfaceDeleted" },
-      { type: "EServiceDescriptorDocumentDeleted" },
-      { type: "EServiceRiskAnalysisAdded" },
-      { type: "EServiceRiskAnalysisUpdated" },
-      { type: "EServiceRiskAnalysisDeleted" },
-      { type: "EServiceDescriptionUpdated" },
-      { type: "EServiceIsConsumerDelegableEnabled" },
-      { type: "EServiceIsConsumerDelegableDisabled" },
-      { type: "EServiceIsClientAccessDelegableEnabled" },
-      { type: "EServiceIsClientAccessDelegableDisabled" },
-      { type: "EServiceDescriptorRejectedByDelegator" },
-      { type: "EServiceDescriptorSubmittedByDelegate" },
-      { type: "EServiceDescriptorAttributesUpdated" },
-      { type: "EServiceNameUpdated" },
-      { type: "EServiceNameUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptionUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptorDocumentAddedByTemplateUpdate" },
-      { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" },
-      { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" },
-      { type: "EServiceSignalHubEnabled" },
-      { type: "EServiceSignalHubDisabled" },
-      { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
-      { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
-      { type: "EServiceInstanceLabelUpdated" },
-      { type: "MaintenanceEServicePersonalDataFlagReset" },
+      {
+        type: P.union(
+          "EServiceDeleted",
+          "EServiceAdded",
+          "DraftEServiceUpdated",
+          "EServiceCloned",
+          "EServiceDescriptorAdded",
+          "EServiceDraftDescriptorDeleted",
+          "EServiceDraftDescriptorUpdated",
+          "EServiceDescriptorAgreementApprovalPolicyUpdated",
+          "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorDocumentAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorDocumentUpdated",
+          "EServiceDescriptorInterfaceDeleted",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceRiskAnalysisAdded",
+          "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
+          "EServiceRiskAnalysisDeleted",
+          "EServiceDescriptionUpdated",
+          "EServiceIsConsumerDelegableEnabled",
+          "EServiceIsConsumerDelegableDisabled",
+          "EServiceIsClientAccessDelegableEnabled",
+          "EServiceIsClientAccessDelegableDisabled",
+          "EServiceDescriptorRejectedByDelegator",
+          "EServiceDescriptorSubmittedByDelegate",
+          "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+          "EServiceNameUpdated",
+          "EServiceNameUpdatedByTemplateUpdate",
+          "EServiceDescriptionUpdatedByTemplateUpdate",
+          "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentAddedByTemplateUpdate",
+          "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
+          "EServiceDescriptorDocumentDeletedByTemplateUpdate",
+          "EServiceSignalHubEnabled",
+          "EServiceSignalHubDisabled",
+          "EServicePersonalDataFlagUpdatedAfterPublication",
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+          "EServiceInstanceLabelUpdated",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "MaintenanceEServicePersonalDataFlagReset"
+        ),
+      },
       () => Promise.resolve()
     )
     .exhaustive();
@@ -325,7 +438,19 @@ const parseEServiceAndDescriptor = (
 
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
   if (!descriptor) {
-    throw missingKafkaMessageDataError("descriptor", eventType);
+    throw genericInternalError(
+      `Descriptor ${descriptorId} not found in e-service ${eservice.id} while processing event ${eventType}`
+    );
   }
   return { eservice, descriptor };
+};
+
+const parseEServiceWithoutDescriptor = (
+  eserviceV2: EServiceV2 | undefined,
+  eventType: string
+): EService => {
+  if (!eserviceV2) {
+    throw missingKafkaMessageDataError("eservice", eventType);
+  }
+  return fromEServiceV2(eserviceV2);
 };

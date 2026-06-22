@@ -74,6 +74,7 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
 
   beforeEach(() => {
     mockGetPurposeTemplateEServices.mockClear();
+    mockGetEServices.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -109,5 +110,29 @@ describe("getPurposeTemplateEServiceDescriptors", () => {
         producerIds: [],
       } satisfies m2mGatewayApi.GetPurposeTemplateEServicesQueryParams,
     });
+  });
+
+  it("Should short-circuit and not invoke the enrichment client when there are no links", async () => {
+    const purposeTemplateId = generateId<PurposeTemplateId>();
+    mockGetPurposeTemplateEServices.mockResolvedValueOnce({
+      data: { results: [], totalCount: 0 },
+      metadata: undefined,
+    });
+
+    const result = await purposeTemplateService.getPurposeTemplateEServices(
+      purposeTemplateId,
+      mockParams,
+      getMockM2MAdminAppContext()
+    );
+
+    expect(result).toStrictEqual({
+      pagination: {
+        offset: mockParams.offset,
+        limit: mockParams.limit,
+        totalCount: 0,
+      },
+      results: [],
+    });
+    expect(mockGetEServices).toHaveBeenCalledTimes(0);
   });
 });
