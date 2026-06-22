@@ -27551,6 +27551,8 @@ components:
           $ref: "#/components/schemas/AsyncExchangeProperties"
         asyncExchangeCallbackInterface:
           $ref: "#/components/schemas/EServiceDoc"
+        templateRef:
+          $ref: "#/components/schemas/EServiceTemplateRef"
     Client:
       description: Models Client details
       type: object
