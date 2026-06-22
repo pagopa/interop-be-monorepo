@@ -480,6 +480,30 @@ describe("getCatalogEServiceDescriptor", () => {
     ).not.toThrow();
   });
 
+  it("should throw if the eservice is derived from a template but the descriptor has no templateVersionRef", async () => {
+    const templateId = generateId();
+
+    vi.spyOn(mockCatalogProcessClient, "getEServiceById").mockResolvedValueOnce(
+      {
+        ...eService,
+        templateId,
+        descriptors: [eServiceDescriptor],
+      }
+    );
+    mockGetEServiceTemplateById.mockResolvedValueOnce({
+      id: templateId,
+      name: "mockTemplateName",
+    });
+
+    await expect(
+      catalogService.getCatalogEServiceDescriptor(
+        eServiceId,
+        mockDescriptorId,
+        bffMockContext
+      )
+    ).rejects.toThrowError();
+  });
+
   it("should throw eserviceDescriptorNotFound if descriptorId cannot be found in eservice's descriptors", async () => {
     vi.spyOn(mockCatalogProcessClient, "getEServiceById").mockResolvedValueOnce(
       {
