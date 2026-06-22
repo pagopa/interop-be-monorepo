@@ -10808,6 +10808,12 @@ components:
             - PURPOSE_CLONED
             - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
             - RISK_ANALYSIS_DOCUMENT_GENERATED
+            - PURPOSE_RISK_ANALYSIS_WORKFLOW_CREATED
+            - PURPOSE_RISK_ANALYSIS_ASSIGNED
+            - PURPOSE_RISK_ANALYSIS_SUBMITTED
+            - PURPOSE_RISK_ANALYSIS_SIGNED
+            - PURPOSE_RISK_ANALYSIS_REJECTED
+            - PURPOSE_RISK_ANALYSIS_FORM_EDITED
         eventTimestamp:
           type: string
           format: date-time
