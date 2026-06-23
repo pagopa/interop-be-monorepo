@@ -499,7 +499,15 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       data: { id: generateId() },
       metadata: { version: 1 },
     });
-    readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
+    readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([
+      {
+        data: {
+          id: generateId(),
+          remoteIds: [{ origin: ISTAT_ATTRIBUTE_SEED.origin, value: "001002" }],
+        },
+        metadata: { version: 1 },
+      },
+    ]);
     readModelQueriesMock.getAllIstatRemoteIds.mockResolvedValue([
       "001001",
       "001002",
