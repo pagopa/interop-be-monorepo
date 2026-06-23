@@ -127,11 +127,11 @@ export const inAppTemplates = {
       eserviceName
     } è al momento sospesa. L'archiviazione avverrà il giorno ${dateAtRomeZone(
       archivableOn
-    )}.${
+    )}${
       newVersionAvailable
-        ? " È disponibile una nuova versione per continuare a scambiare dati con l'e-service."
+        ? ". È disponibile una nuova versione per continuare a scambiare dati con l'e-service"
         : ""
-    }`,
+    }.`,
   eserviceArchivingDescriptorSuspendedToProducer: (
     eserviceName: string,
     version: string,
@@ -443,11 +443,11 @@ export const inAppTemplates = {
     eserviceVersion: string,
     archivableOn: Date | undefined
   ): string =>
-    `La versione ${eserviceVersion} dell'e-service ${eserviceName} è in fase di archiviazione ma è ancora attiva.${
+    `La versione ${eserviceVersion} dell'e-service ${eserviceName} è in fase di archiviazione ma è ancora attiva${
       archivableOn
-        ? ` L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}. È disponibile una nuova versione.`
+        ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}. È disponibile una nuova versione`
         : ""
-    }`,
+    }.`,
   eserviceArchivingStartedEserviceToConsumer: (
     eserviceName: string,
     archivableOn: Date | undefined
@@ -464,7 +464,7 @@ export const inAppTemplates = {
   ): string =>
     `La versione ${descriptorVersion} dell'e-service "${eserviceName}" ${
       archivableOn
-        ? `è stata archiviata il giorno ${dateAtRomeZone(archivableOn)}. Per continuare a scambiare dati con l’e-service, passa alla nuova versione.`
+        ? `è stata archiviata il giorno ${dateAtRomeZone(archivableOn)}. Per continuare a scambiare dati con l’e-service, passa alla nuova versione`
         : ""
     }.`,
   eserviceArchivingCompletedEserviceToConsumer: (
@@ -496,18 +496,18 @@ export const inAppTemplates = {
     eserviceName: string,
     archivableOn: Date | undefined
   ): string =>
-    `Il tuo e-service "${eserviceName}" ${
+    `Il tuo e-service ${eserviceName} ${
       archivableOn
-        ? `sarà archiviato il giorno ${dateAtRomeZone(archivableOn)}.`
+        ? `sarà archiviato il giorno ${dateAtRomeZone(archivableOn)}`
         : ""
     }.`,
   eserviceArchivingScheduledReminderToConsumer: (
     eserviceName: string,
     archivableOn: Date | undefined
   ): string =>
-    `L'e-service "${eserviceName}" ${
+    `L'e-service ${eserviceName} ${
       archivableOn
-        ? `sarà archiviato il giorno ${dateAtRomeZone(archivableOn)}. Dopo questa data non potrai più scambiare dati con l’e-service.`
+        ? `sarà archiviato il giorno ${dateAtRomeZone(archivableOn)}. Dopo questa data non potrai più scambiare dati con l’e-service`
         : ""
     }.`,
   eserviceDescriptorArchivingScheduledReminderToProducer: (
@@ -515,11 +515,11 @@ export const inAppTemplates = {
     descriptorVersion: string,
     archivableOn: Date | undefined
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" sarà archiviata il giorno ${archivableOn ? ` (${dateAtRomeZone(archivableOn)})` : ""}.`,
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} sarà archiviata il giorno ${archivableOn ? ` ${dateAtRomeZone(archivableOn)}` : ""}.`,
   eserviceDescriptorArchivingScheduledReminderToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
     archivableOn: Date | undefined
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" sarà archiviata il giorno ${archivableOn ? ` (${dateAtRomeZone(archivableOn)}). Dopo questa data non potrai più scambiare dati con l’e-service.` : ""}.`,
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} sarà archiviata il giorno ${archivableOn ? ` ${dateAtRomeZone(archivableOn)}. Dopo questa data non potrai più scambiare dati con l’e-service` : ""}.`,
 };
