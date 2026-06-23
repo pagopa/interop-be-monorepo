@@ -551,6 +551,9 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.anything(),
       expect.anything()
     );
+    expect(
+      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute
+    ).not.toHaveBeenCalled();
 
     expect(warnSpy).toHaveBeenCalledWith(
       expect.stringContaining("Value 'Totale' for municipality 001002")
