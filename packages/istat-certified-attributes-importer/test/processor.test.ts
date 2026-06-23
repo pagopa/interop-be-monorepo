@@ -157,11 +157,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 3, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       ISTAT_ATTRIBUTE_SEED.origin,
       "015146",
@@ -169,11 +169,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       ISTAT_ATTRIBUTE_SEED.code,
       1350000,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       ISTAT_ATTRIBUTE_SEED.origin,
       "090001",
@@ -181,11 +181,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       ISTAT_ATTRIBUTE_SEED.code,
       2800000,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       ISTAT_ATTRIBUTE_SEED.origin,
       "028001",
@@ -193,29 +193,29 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       ISTAT_ATTRIBUTE_SEED.code,
       227,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
 
     expect(
-      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute,
+      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       "ISTAT",
       "999999",
       ISTAT_ATTRIBUTE_SEED.origin,
       ISTAT_ATTRIBUTE_SEED.code,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
 
     expect(
-      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute,
+      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute
     ).not.toHaveBeenCalledWith(
       expect.any(String),
       "015146",
       expect.any(String),
       expect.any(String),
       expect.any(Object),
-      expect.any(Object),
+      expect.any(Object)
     );
   });
   it("should exclusively process rows where Età is 999 and ignore specific ages", async () => {
@@ -228,7 +228,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
   "001002";"Roma";999;200;200;400`;
 
     istatClientMock.downloadNationalDataset.mockResolvedValueOnce(
-      specificAgesCsv,
+      specificAgesCsv
     );
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
       data: { id: generateId() },
@@ -237,7 +237,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
 
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
-      internalAssignCertifiedDiscreteAttributeMock,
+      internalAssignCertifiedDiscreteAttributeMock
     );
 
     await importAttributes(
@@ -249,15 +249,15 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledTimes(2);
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       ISTAT_ATTRIBUTE_SEED.origin,
       "001001",
@@ -265,11 +265,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       ISTAT_ATTRIBUTE_SEED.code,
       100,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       ISTAT_ATTRIBUTE_SEED.origin,
       "001002",
@@ -277,7 +277,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       ISTAT_ATTRIBUTE_SEED.code,
       400,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
   });
   it("should create attribute if missing and assign values", async () => {
@@ -289,10 +289,10 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       });
 
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
-      internalAssignCertifiedDiscreteAttributeMock,
+      internalAssignCertifiedDiscreteAttributeMock
     );
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockImplementation(
-      getTenantsWithDiscreteAttributeMock,
+      getTenantsWithDiscreteAttributeMock
     );
 
     await importAttributes(
@@ -304,14 +304,14 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 2, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      attributeProcessMock.createInternalCertifiedDiscreteAttribute,
+      attributeProcessMock.createInternalCertifiedDiscreteAttribute
     ).toBeCalledTimes(1);
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalled();
   });
   it("should process municipalities in chunks successfully", async () => {
@@ -321,10 +321,10 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     });
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([]);
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
-      internalAssignCertifiedDiscreteAttributeMock,
+      internalAssignCertifiedDiscreteAttributeMock
     );
     const fakeIds = Array.from({ length: 1200 }, (_, i) =>
-      String(i).padStart(6, "0"),
+      String(i).padStart(6, "0")
     );
     readModelQueriesMock.getAllIstatRemoteIds.mockResolvedValue(fakeIds);
     const largePopulationMap = new Map<string, number>();
@@ -336,7 +336,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     for (let i = 0; i < 1200; i++) {
       hugeCsv += `"${String(i).padStart(
         6,
-        "0",
+        "0"
       )}";"Comune ${i}";999;50;50;100\n`;
     }
 
@@ -351,11 +351,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledTimes(1200);
   });
   it("should attempt an update if an assignment conflict (409) occurs", async () => {
@@ -369,7 +369,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     axiosError.response = { status: 409 };
 
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockRejectedValueOnce(
-      axiosError,
+      axiosError
     );
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute
       .mockRejectedValueOnce({
@@ -383,7 +383,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     tenantProcessMock.internalUpdateCertifiedDiscreteAttribute.mockResolvedValue(
       {
         version: 1,
-      },
+      }
     );
 
     const csvContent = `"Popolazione residente per età e sesso"
@@ -401,15 +401,15 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalled();
 
     expect(
-      tenantProcessMock.internalUpdateCertifiedDiscreteAttribute,
+      tenantProcessMock.internalUpdateCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       ISTAT_ATTRIBUTE_SEED.origin,
       "001001",
@@ -417,7 +417,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       ISTAT_ATTRIBUTE_SEED.code,
       100,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
   });
   it("should skip assignment if the tenant is not found in the read model", async () => {
@@ -432,7 +432,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     readModelQueriesMock.getAllIstatRemoteIds.mockResolvedValue(["001001"]);
 
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
-      internalAssignCertifiedDiscreteAttributeMock,
+      internalAssignCertifiedDiscreteAttributeMock
     );
 
     const csvContent = `"Popolazione residente per età e sesso"
@@ -451,15 +451,15 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledTimes(1);
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       ISTAT_ATTRIBUTE_SEED.origin,
       "001001",
@@ -467,11 +467,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.anything(),
       100,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).not.toHaveBeenCalledWith(
       expect.anything(),
       "001002",
@@ -479,16 +479,16 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.anything(),
       expect.anything(),
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
     expect(debugSpy).toHaveBeenCalledWith(
-      "Tenant with remoteId: 001002 not found in DB. Skipping.",
+      "Tenant with remoteId: 001002 not found in DB. Skipping."
     );
 
     expect(infoSpy).toHaveBeenCalledWith(
       expect.stringContaining(
-        "Process complete. Processed: 2, Success: 1, Updated: 0, Skipped: 1, Revoked: 0, Error: 0",
-      ),
+        "Process complete. Processed: 2, Success: 1, Updated: 0, Skipped: 1, Revoked: 0, Error: 0"
+      )
     );
   });
   it("should skip municipality and increment errors if 'Totale' in CSV is not a valid number", async () => {
@@ -506,7 +506,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     ]);
 
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
-      internalAssignCertifiedDiscreteAttributeMock,
+      internalAssignCertifiedDiscreteAttributeMock
     );
 
     const csvContent = `"Popolazione residente per età e sesso"
@@ -525,11 +525,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       ISTAT_ATTRIBUTE_SEED.origin,
       "001001",
@@ -537,11 +537,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.anything(),
       100,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).not.toHaveBeenCalledWith(
       expect.anything(),
       "001002",
@@ -549,11 +549,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       expect.anything(),
       expect.anything(),
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
 
     expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("Value 'Totale' for municipality 001002"),
+      expect.stringContaining("Value 'Totale' for municipality 001002")
     );
 
     expect(infoSpy).toHaveBeenCalledWith(expect.stringContaining("Error: 1"));
@@ -564,7 +564,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       metadata: { version: 1 },
     });
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
-      internalAssignCertifiedDiscreteAttributeMock,
+      internalAssignCertifiedDiscreteAttributeMock
     );
 
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValueOnce([
@@ -579,7 +579,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     ]);
 
     tenantProcessMock.internalRevokeCertifiedDiscreteAttribute.mockImplementation(
-      internalRevokeCertifiedDiscreteAttributeMock,
+      internalRevokeCertifiedDiscreteAttributeMock
     );
 
     await importAttributes(
@@ -591,18 +591,18 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute,
+      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       "ISTAT",
       "999999",
       ISTAT_ATTRIBUTE_SEED.origin,
       ISTAT_ATTRIBUTE_SEED.code,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
   });
   it("should throw a timeout error if attribute polling max retries are reached", async () => {
@@ -618,12 +618,12 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
         { defaultPollingMaxRetries: 2, defaultPollingRetryDelay: 1 },
         csvChunkSize,
         genericLogger,
-        generateId(),
-      ),
+        generateId()
+      )
     ).rejects.toThrowError();
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).not.toHaveBeenCalled();
   });
   it("should continue processing other municipalities if one assignment fails", async () => {
@@ -656,11 +656,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalAssignCertifiedDiscreteAttribute,
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
     ).toHaveBeenCalledTimes(8);
   });
   it("should revoke a tenant if it possesses the attribute but lacks a valid ISTAT remoteId", async () => {
@@ -669,7 +669,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       metadata: { version: 1 },
     });
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
-      internalAssignCertifiedDiscreteAttributeMock,
+      internalAssignCertifiedDiscreteAttributeMock
     );
 
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValueOnce([
@@ -683,7 +683,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     ]);
 
     tenantProcessMock.internalRevokeCertifiedDiscreteAttribute.mockImplementation(
-      internalRevokeCertifiedDiscreteAttributeMock,
+      internalRevokeCertifiedDiscreteAttributeMock
     );
 
     await importAttributes(
@@ -695,18 +695,18 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute,
+      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute
     ).toHaveBeenCalledWith(
       "ISTAT",
       "12342",
       ISTAT_ATTRIBUTE_SEED.origin,
       ISTAT_ATTRIBUTE_SEED.code,
       expect.anything(),
-      expect.anything(),
+      expect.anything()
     );
   });
   it("should skip revocation and count an error when a tenant has no ISTAT remoteId", async () => {
@@ -716,7 +716,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       metadata: { version: 1 },
     });
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
-      internalAssignCertifiedDiscreteAttributeMock,
+      internalAssignCertifiedDiscreteAttributeMock
     );
 
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValueOnce([
@@ -731,7 +731,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
     ]);
 
     tenantProcessMock.internalRevokeCertifiedDiscreteAttribute.mockImplementation(
-      internalRevokeCertifiedDiscreteAttributeMock,
+      internalRevokeCertifiedDiscreteAttributeMock
     );
 
     await importAttributes(
@@ -743,15 +743,15 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute,
+      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute
     ).not.toHaveBeenCalled();
 
     expect(warnSpy).toHaveBeenCalledWith(
-      "istatRemoteId not found for tenant: tenant-without-istat-remoteid",
+      "istatRemoteId not found for tenant: tenant-without-istat-remoteid"
     );
   });
   it("should continue revoking other tenants if one revocation fails", async () => {
@@ -760,7 +760,7 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       metadata: { version: 1 },
     });
     tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
-      internalAssignCertifiedDiscreteAttributeMock,
+      internalAssignCertifiedDiscreteAttributeMock
     );
 
     readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValueOnce([
@@ -795,11 +795,11 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
       { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
       csvChunkSize,
       genericLogger,
-      generateId(),
+      generateId()
     );
 
     expect(
-      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute,
+      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute
     ).toHaveBeenCalledTimes(2);
   });
 });
