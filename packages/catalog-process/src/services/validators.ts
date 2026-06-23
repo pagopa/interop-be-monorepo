@@ -581,6 +581,7 @@ export function hasRoleToAccessInactiveDescriptors(
       userRole.ADMIN_ROLE,
       userRole.API_ROLE,
       userRole.SUPPORT_ROLE,
+      userRole.VIEWER_ROLE,
     ]) ||
     hasAtLeastOneSystemRole(authData, [
       systemRole.M2M_ADMIN_ROLE,
