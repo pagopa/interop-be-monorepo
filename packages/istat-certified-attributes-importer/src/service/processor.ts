@@ -61,8 +61,7 @@ export async function importAttributes(
 
   const populationByMunicipality = await downloadAndAggregateData(
     istatClient,
-    logger,
-    stats
+    logger
   );
   logger.info(
     `Found ${populationByMunicipality.size} municipalities on ISTAT file.`
@@ -84,6 +83,14 @@ export async function importAttributes(
       chunk.map(async ([municipalityCode, totalCount]) => {
         stats.processed++;
         try {
+          if (isNaN(totalCount)) {
+            logger.warn(
+              `Value 'Totale' for municipality ${municipalityCode} is not a Number: ${totalCount}`
+            );
+            stats.errors++;
+            return;
+          }
+
           try {
             if (!validIstatCodes.has(municipalityCode)) {
               logger.debug(
@@ -150,8 +157,7 @@ export async function importAttributes(
 
 async function downloadAndAggregateData(
   istatClient: IstatClient,
-  logger: Logger,
-  stats: JobStats
+  logger: Logger
 ): Promise<Map<string, number>> {
   const fileContent = await istatClient.downloadNationalDataset(logger);
   const populationMap = new Map<string, number>();
@@ -171,16 +177,8 @@ async function downloadAndAggregateData(
     if (Number(row["Età"]) === SUMMARY_AGE_CODE) {
       const codiceComune = row["Codice comune"];
       const totale = Number(row["Totale"]);
-
       if (codiceComune) {
-        if (!isNaN(totale)) {
-          populationMap.set(codiceComune, totale);
-        } else {
-          logger.warn(
-            `Value 'Totale' for municipality ${codiceComune} is not a Number: ${row["Totale"]}`
-          );
-          stats.errors++;
-        }
+        populationMap.set(codiceComune, totale);
       }
     }
   }
