@@ -7,7 +7,6 @@ import {
 } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import {
-  archivingScope,
   CorrelationId,
   Descriptor,
   descriptorState,
@@ -31,19 +30,14 @@ describe("handleEserviceArchivingCanceledToProducer", () => {
   const producerId = generateId<TenantId>();
   const producerTenant = { ...getMockTenant(producerId), name: "Producer T" };
 
-  const archivingDescriptor: Descriptor = {
-    ...getMockDescriptor(descriptorState.archiving),
-    archivingSchedule: {
-      archivableOn: new Date("2026-12-31T00:00:00.000Z"),
-      startedAt: new Date("2026-05-14T00:00:00.000Z"),
-      scope: archivingScope.eservice,
-    },
+  const descriptor: Descriptor = {
+    ...getMockDescriptor(descriptorState.published),
   };
   const eservice: EService = {
     ...getMockEService(),
     name: "Test E-service",
     producerId,
-    descriptors: [archivingDescriptor],
+    descriptors: [descriptor],
   };
   const users = [
     getMockUser(producerTenant.id),
