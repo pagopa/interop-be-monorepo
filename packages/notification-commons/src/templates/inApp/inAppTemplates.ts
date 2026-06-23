@@ -428,16 +428,16 @@ export const inAppTemplates = {
     descriptorVersion: string,
     archivableOn: Date | undefined
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" è stata archiviata il giorno ${archivableOn ? dateAtRomeZone(archivableOn) : ""}. Da ora non è più attiva e i fruitori non potranno più scambiare dati.`,
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} è stata archiviata il giorno ${archivableOn ? dateAtRomeZone(archivableOn) : ""}. Da ora non è più attiva e i fruitori non potranno più scambiare dati.`,
   eserviceArchivingCompletedEserviceToProducer: (
     eserviceName: string
   ): string =>
-    `l'e-service "${eserviceName}" è stato archiviato e non è più attivo. È stato rimosso dal catalogo e i fruitori non potranno più inviare richieste di fruizione o scambiare dati.`,
+    `l'e-service ${eserviceName} è stato archiviato e non è più attivo. È stato rimosso dal catalogo e i fruitori non potranno più inviare richieste di fruizione o scambiare dati.`,
   eserviceArchivingDescriptorArchivedToProducer: (
     eserviceName: string,
     descriptorVersion: string
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" è stata archiviata il giorno ${dateAtRomeZone(new Date())} perché senza fruitori. Da ora non è più attiva.`,
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} è stata archiviata il giorno ${dateAtRomeZone(new Date())} perché senza fruitori. Da ora non è più attiva.`,
   eserviceArchivingStartedDescriptorToConsumer: (
     eserviceName: string,
     eserviceVersion: string,
@@ -462,18 +462,18 @@ export const inAppTemplates = {
     descriptorVersion: string,
     archivableOn: Date | undefined
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" ${
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName}${
       archivableOn
-        ? `è stata archiviata il giorno ${dateAtRomeZone(archivableOn)}. Per continuare a scambiare dati con l’e-service, passa alla nuova versione`
+        ? ` è stata archiviata il giorno ${dateAtRomeZone(archivableOn)}. Per continuare a scambiare dati con l’e-service, passa alla nuova versione`
         : ""
     }.`,
   eserviceArchivingCompletedEserviceToConsumer: (
     eserviceName: string,
     archivableOn: Date | undefined
   ): string =>
-    `L'e-service "${eserviceName}" ${
+    `L'e-service ${eserviceName}${
       archivableOn
-        ? `è stato archiviato definitivamente il giorno ${dateAtRomeZone(archivableOn)} e non può più essere utilizzato.`
+        ? ` è stato archiviato definitivamente il giorno ${dateAtRomeZone(archivableOn)} e non può più essere utilizzato`
         : ""
     }.`,
   eserviceArchivingCanceledDescriptorToConsumer: (
