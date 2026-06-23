@@ -83,7 +83,7 @@ export async function importAttributes(
       chunk.map(async ([municipalityCode, totalCount]) => {
         stats.processed++;
         try {
-          if (isNaN(totalCount)) {
+          if (Number.isNaN(totalCount)) {
             logger.warn(
               `Value 'Totale' for municipality ${municipalityCode} is not a Number: ${totalCount}`
             );
