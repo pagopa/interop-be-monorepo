@@ -36,7 +36,7 @@ describe("handleEserviceArchivingCanceledToProducer", () => {
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
-      scope: archivingScope.descriptor,
+      scope: archivingScope.eservice,
     },
   };
   const eservice: EService = {
@@ -82,7 +82,7 @@ describe("handleEserviceArchivingCanceledToProducer", () => {
     );
   });
 
-  it("emits one email per consumer user with the expected subject", async () => {
+  it("emits one email per producer user with the expected subject", async () => {
     const messages = await handleEserviceArchivingCanceledToProducer({
       eserviceV2Msg: toEServiceV2(eservice),
       logger,
