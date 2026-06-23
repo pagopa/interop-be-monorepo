@@ -515,11 +515,11 @@ export const inAppTemplates = {
     descriptorVersion: string,
     archivableOn: Date | undefined
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service ${eserviceName} sarà archiviata il giorno ${archivableOn ? ` ${dateAtRomeZone(archivableOn)}` : ""}.`,
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} sarà archiviata il giorno ${archivableOn ? `${dateAtRomeZone(archivableOn)}` : ""}.`,
   eserviceDescriptorArchivingScheduledReminderToConsumer: (
     eserviceName: string,
     descriptorVersion: string,
     archivableOn: Date | undefined
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service ${eserviceName} sarà archiviata il giorno ${archivableOn ? ` ${dateAtRomeZone(archivableOn)}. Dopo questa data non potrai più scambiare dati con l’e-service` : ""}.`,
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} sarà archiviata il giorno ${archivableOn ? `${dateAtRomeZone(archivableOn)}. Dopo questa data non potrai più scambiare dati con l’e-service` : ""}.`,
 };
