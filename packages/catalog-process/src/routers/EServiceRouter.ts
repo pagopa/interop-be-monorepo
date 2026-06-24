@@ -421,6 +421,7 @@ const eservicesRouter = (
             M2M_ROLE,
             M2M_ADMIN_ROLE,
             VIEWER_ROLE,
+            REVIEWER_ROLE,
           ]);
 
           const { eServiceId, descriptorId, documentId } = req.params;
