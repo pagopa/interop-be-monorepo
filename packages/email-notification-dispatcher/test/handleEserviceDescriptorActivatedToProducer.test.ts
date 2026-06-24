@@ -67,10 +67,10 @@ describe("handleEserviceDescriptorActivatedToProducer", () => {
   const { logger } = getMockContext({});
 
   const expectedDescriptorMessageBody =
-    /<p>La versione \d+ dell'e-service "[^"]+" è di nuovo attiva\. I fruitori potranno nuovamente scambiare dati con questa versione\.<\/p>[\s\n]*<p>La versione è in fase di archiviazione e sarà archiviata definitivamente il giorno \d{2}\/\d{2}\/\d{4}\.<\/p>/;
+    /<p>\s*La versione <strong>\d+<\/strong> dell'e-service <strong>\s*[^<]+\s*<\/strong> è di nuovo attiva\. I fruitori potranno nuovamente scambiare dati con questa versione\.\s*La versione è in fase di archiviazione e sarà archiviata definitivamente il giorno <strong>\d{2}\/\d{2}\/\d{4}<\/strong>\.\s*<\/p>/;
 
   const expectedEserviceMessageBody =
-    /<p>La versione \d+ dell'e-service "[^"]+" è di nuovo attiva\. I fruitori potranno nuovamente scambiare dati con questa versione\.<\/p>[\s\n]*<p>L'e-service è in fase di archiviazione e sarà archiviato definitivamente il giorno \d{2}\/\d{2}\/\d{4}\.<\/p>/;
+    /<p>\s*La versione <strong>\d+<\/strong> dell'e-service <strong>\s*[^<]+\s*<\/strong> è di nuovo attiva\. I fruitori potranno nuovamente scambiare dati con questa versione\.\s*L'e-service è in fase di archiviazione e sarà archiviato definitivamente il giorno <strong>\d{2}\/\d{2}\/\d{4}<\/strong>\.\s*<\/p>/;
 
   beforeEach(async () => {
     await addOneEService(eservice);
