@@ -13,6 +13,7 @@ import {
   RiskAnalysisId,
   TenantId,
   TenantKind,
+  UserId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
@@ -74,8 +75,10 @@ const errorCodes = {
   reviewerWorkflowNotEditable: "0054",
   reviewerWorkflowNotInSignedState: "0055",
   riskAnalysisFormCannotBeUpdated: "0056",
-  reviewerWorkflowNotAllowedForDelegatedPurpose: "0057",
-  reviewerWorkflowNotAllowedForReceiveMode: "0058",
+  userWithoutReviewerPrivileges: "0057",
+  missingSelfcareId: "0058",
+  reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
+  reviewerWorkflowNotAllowedForReceiveMode: "0060",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -666,6 +669,25 @@ export function riskAnalysisFormCannotBeUpdated(
     detail: `Risk analysis form of purpose ${purposeId} cannot be updated because a reviewer workflow is active`,
     code: "riskAnalysisFormCannotBeUpdated",
     title: "Risk analysis form cannot be updated",
+  });
+}
+
+export function userWithoutReviewerPrivileges(
+  consumerId: TenantId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} does not have reviewer privileges for tenant ${consumerId}`,
+    code: "userWithoutReviewerPrivileges",
+    title: "User without reviewer privileges",
+  });
+}
+
+export function missingSelfcareId(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} does not have a selfcare ID`,
+    code: "missingSelfcareId",
+    title: "Missing selfcare ID",
   });
 }
 

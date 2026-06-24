@@ -6,6 +6,7 @@ import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
+  getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -25,21 +26,45 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { userRole } from "pagopa-interop-commons";
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
   multipleReviewersNotAllowed,
+  userWithoutReviewerPrivileges,
+  missingSelfcareId,
   purposeFromTemplateCannotBeModified,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
+  addOneTenant,
   addOneEService,
   readLastPurposeEvent,
   purposeService,
+  selfcareV2Client,
 } from "../integrationUtils.js";
+
+const mockSelfCareUser: selfcareV2ClientApi.UserResource = {
+  id: generateId(),
+  name: "test",
+  roles: [],
+  email: "test@test.it",
+  surname: "surname_test",
+};
+
+function mockSelfcareV2ClientCall(
+  value: Awaited<
+    ReturnType<typeof selfcareV2Client.getInstitutionUsersByProductUsingGET>
+  >
+): void {
+  selfcareV2Client.getInstitutionUsersByProductUsingGET = vi.fn(
+    async () => value
+  );
+}
 
 describe("assignRiskAnalysisReviewer", () => {
   it("should write on event-store for ReviewerWritesReviewerSigns mode (PurposeRiskAnalysisAssigned)", async () => {
@@ -47,13 +72,22 @@ describe("assignRiskAnalysisReviewer", () => {
     vi.setSystemTime(new Date());
 
     const mockPurposeVersion = getMockPurposeVersion();
+    const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
       ...getMockPurpose([mockPurposeVersion]),
+      consumerId: mockTenant.id,
     };
 
+    await addOneTenant(mockTenant);
     await addOnePurpose(mockPurpose);
 
     const reviewerIds = [generateId()];
+
+    mockSelfcareV2ClientCall([mockSelfCareUser]);
+
+    const ctx = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId),
+    });
 
     await purposeService.assignRiskAnalysisReviewer(
       mockPurpose.id,
@@ -61,8 +95,21 @@ describe("assignRiskAnalysisReviewer", () => {
         reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerIds,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      ctx
     );
+
+    expect(
+      selfcareV2Client.getInstitutionUsersByProductUsingGET
+    ).toHaveBeenCalledWith({
+      params: { institutionId: mockTenant.selfcareId },
+      queries: {
+        userId: reviewerIds[0],
+        productRoles: userRole.REVIEWER_ROLE,
+      },
+      headers: {
+        "X-Correlation-Id": ctx.correlationId,
+      },
+    });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -103,13 +150,22 @@ describe("assignRiskAnalysisReviewer", () => {
     vi.setSystemTime(new Date());
 
     const mockPurposeVersion = getMockPurposeVersion();
+    const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
       ...getMockPurpose([mockPurposeVersion]),
+      consumerId: mockTenant.id,
     };
 
+    await addOneTenant(mockTenant);
     await addOnePurpose(mockPurpose);
 
     const reviewerIds = [generateId<UserId>()];
+
+    mockSelfcareV2ClientCall([mockSelfCareUser]);
+
+    const ctx = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId),
+    });
 
     await purposeService.assignRiskAnalysisReviewer(
       mockPurpose.id,
@@ -117,8 +173,21 @@ describe("assignRiskAnalysisReviewer", () => {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      ctx
     );
+
+    expect(
+      selfcareV2Client.getInstitutionUsersByProductUsingGET
+    ).toHaveBeenCalledWith({
+      params: { institutionId: mockTenant.selfcareId },
+      queries: {
+        userId: reviewerIds[0],
+        productRoles: userRole.REVIEWER_ROLE,
+      },
+      headers: {
+        "X-Correlation-Id": ctx.correlationId,
+      },
+    });
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
@@ -232,6 +301,56 @@ describe("assignRiskAnalysisReviewer", () => {
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(multipleReviewersNotAllowed(mockPurpose.id));
+  });
+
+  it("should throw missingSelfcareId if the consumer tenant has no selfcareId", async () => {
+    const mockTenant = { ...getMockTenant(), selfcareId: undefined };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      consumerId: mockTenant.id,
+    };
+
+    await addOneTenant(mockTenant);
+    await addOnePurpose(mockPurpose);
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      )
+    ).rejects.toThrowError(missingSelfcareId(mockTenant.id));
+  });
+
+  it("should throw userWithoutReviewerPrivileges if the reviewer is not a reviewer in selfcare", async () => {
+    const mockTenant = getMockTenant();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      consumerId: mockTenant.id,
+    };
+
+    await addOneTenant(mockTenant);
+    await addOnePurpose(mockPurpose);
+
+    const reviewerId = generateId<UserId>();
+
+    mockSelfcareV2ClientCall([]);
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [reviewerId],
+        },
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      )
+    ).rejects.toThrowError(
+      userWithoutReviewerPrivileges(mockTenant.id, reviewerId)
+    );
   });
 
   it("should throw purposeFromTemplateCannotBeModified if the purpose is from a template", async () => {
