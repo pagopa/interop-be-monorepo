@@ -9,6 +9,7 @@ import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNe
 import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
 import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
 import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
+import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelope,
@@ -111,8 +112,21 @@ export async function handleEServiceEvent(
           "EServiceArchivingCanceled"
         ),
       },
-      (msg) =>
-        handleEserviceArchivingCanceledToConsumer(msg, logger, readModelService)
+      async (msg) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingCanceledToProducer(
+            msg,
+            logger,
+            readModelService
+          ),
+          handleEserviceArchivingCanceledToConsumer(
+            msg,
+            logger,
+            readModelService
+          ),
+        ]);
+        return [...prod, ...cons];
+      }
     )
     .with(
       {
