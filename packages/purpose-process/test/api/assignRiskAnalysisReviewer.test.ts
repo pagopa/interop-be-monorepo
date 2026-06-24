@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Purpose, PurposeId, PurposeTemplateId, generateId } from "pagopa-interop-models";
+import {
+  Purpose,
+  PurposeId,
+  PurposeTemplateId,
+  generateId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockPurpose,
@@ -80,7 +85,10 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     { error: reviewerWorkflowConflict(mockPurpose.id), expectedStatus: 409 },
     { error: multipleReviewersNotAllowed(mockPurpose.id), expectedStatus: 400 },
-    { error: userWithoutReviewerPrivileges(generateId(), generateId()), expectedStatus: 400 },
+    {
+      error: userWithoutReviewerPrivileges(generateId(), generateId()),
+      expectedStatus: 400,
+    },
     {
       error: purposeFromTemplateCannotBeModified(
         mockPurpose.id,
