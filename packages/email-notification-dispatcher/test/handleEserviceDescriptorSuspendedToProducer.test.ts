@@ -67,10 +67,10 @@ describe("handleEserviceDescriptorSuspendedToProducer", () => {
   const { logger } = getMockContext({});
 
   const expectedDescriptorMessageBody =
-    /<p>La versione \d+ dell'e-service "[^"]+" è al momento sospesa. I fruitori non potranno più scambiare dati con questa versione.<\/p>[\s\n]+<p>La versione è in fase di archiviazione e sarà archiviata definitivamente il giorno \d{2}\/\d{2}\/\d{4}./;
+    /<p>La versione \d+ dell'e-service "[^"]+" è al momento sospesa\. I fruitori non potranno più scambiare dati con questa versione\.<\/p>[\s\n]*<p>La versione è in fase di archiviazione e sarà archiviata definitivamente il giorno \d{2}\/\d{2}\/\d{4}\./;
 
   const expectedEserviceMessageBody =
-    /<p>La versione \d+ dell'e-service "[^"]+" è al momento sospesa. I fruitori non potranno più scambiare dati con questa versione.<\/p>[\s\n]+<p>L'e-service è in fase di archiviazione e sarà archiviato definitivamente il giorno \d{2}\/\d{2}\/\d{4}./;
+    /<p>La versione \d+ dell'e-service "[^"]+" è al momento sospesa\. I fruitori non potranno più scambiare dati con questa versione\.<\/p>[\s\n]*<p>L'e-service è in fase di archiviazione e sarà archiviato definitivamente il giorno \d{2}\/\d{2}\/\d{4}\./;
 
   beforeEach(async () => {
     await addOneEService(eservice);
