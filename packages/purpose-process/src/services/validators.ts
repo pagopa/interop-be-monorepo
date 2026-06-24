@@ -284,35 +284,11 @@ export async function getUpdatedQuotas(
   consumerId: TenantId,
   readModelService: ReadModelServiceSQL
 ): Promise<UpdatedQuotas> {
-  const allPurposes = await readModelService.getAllPurposes({
-    eservicesIds: [eservice.id],
-    states: [purposeVersionState.active],
-    excludeDraft: true,
-  });
-
-  const consumerPurposes = allPurposes.filter(
-    (p) => p.consumerId === consumerId
-  );
-
-  const agreement = await retrieveActiveAgreement(
-    eservice.id,
-    consumerId,
-    readModelService
-  );
-
-  const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
-    purposes
-      .flatMap((p) => p.versions)
-      .filter((v) => v.state === purposeVersionState.active);
-
-  const consumerActiveVersions = getActiveVersions(consumerPurposes);
-  const allPurposesActiveVersions = getActiveVersions(allPurposes);
-
-  const aggregateDailyCalls = (versions: PurposeVersion[]): number =>
-    versions.reduce((acc, v) => acc + v.dailyCalls, 0);
-
-  const consumerLoadRequestsSum = aggregateDailyCalls(consumerActiveVersions);
-  const allPurposesRequestsSum = aggregateDailyCalls(allPurposesActiveVersions);
+  const [{ consumerDailyCalls, totalDailyCalls }, agreement] =
+    await Promise.all([
+      readModelService.getActiveVersionsDailyCalls(eservice.id, consumerId),
+      retrieveActiveAgreement(eservice.id, consumerId, readModelService),
+    ]);
 
   const currentDescriptor = eservice.descriptors.find(
     (d) => d.id === agreement.descriptorId
@@ -350,8 +326,8 @@ export async function getUpdatedQuotas(
   const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
 
   return {
-    currentConsumerCalls: consumerLoadRequestsSum,
-    currentTotalCalls: allPurposesRequestsSum,
+    currentConsumerCalls: consumerDailyCalls,
+    currentTotalCalls: totalDailyCalls,
     maxDailyCallsPerConsumer,
     maxDailyCallsTotal,
   };
