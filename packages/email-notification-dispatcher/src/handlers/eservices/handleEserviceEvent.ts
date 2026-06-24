@@ -24,6 +24,8 @@ import { handleEserviceArchivingCompletedToConsumer } from "./handleEserviceArch
 import { handleEserviceDescriptorArchivedToProducer } from "./handleEserviceDescriptorArchivedToProducer.js";
 import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
 import { handleEserviceDescriptorArchivingCanceledToConsumer } from "./handleEserviceDescriptorArchivingCanceledToConsumer.js";
+import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceDescriptorArchivingCanceledToProducer } from "./handleEserviceDescriptorArchivingCanceledToProducer.js";
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEvent>
@@ -262,28 +264,49 @@ export async function handleEServiceEvent(
     )
     .with(
       { type: "EServiceArchivingCanceled" },
-      // per the notification mapping, archiving cancellation is notified only
-      // to consumers (the producer initiated the cancellation)
-      async ({ data: { eservice } }) =>
-        handleEserviceArchivingCanceledToConsumer({
-          eserviceV2Msg: eservice,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+      async ({ data: { eservice } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingCanceledToProducer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceArchivingCanceledToConsumer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
     )
     .with(
       { type: "EServiceDescriptorArchivingCanceled" },
-      async ({ data: { eservice, descriptorId } }) =>
-        handleEserviceDescriptorArchivingCanceledToConsumer({
-          eserviceV2Msg: eservice,
-          descriptorId,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceDescriptorArchivingCanceledToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceDescriptorArchivingCanceledToConsumer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
     )
     .with(
       {
