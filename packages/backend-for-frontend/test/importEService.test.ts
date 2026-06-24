@@ -188,11 +188,24 @@ describe("importEService", () => {
 
     it("should import eService when the zip has a root folder whose name differs from the file name", async () => {
       const rootFolderName = "myRoot";
+      const docPath = "documents/doc1.pdf";
+
+      const configurationWithDoc = {
+        ...configuration,
+        descriptor: {
+          ...configuration.descriptor,
+          docs: [{ path: docPath, prettyName: "doc1 prettyName" }],
+        },
+      };
 
       const zipWithRootFolder = new AdmZip();
       zipWithRootFolder.addFile(
         `${rootFolderName}/${jsonFilename}`,
-        Buffer.from(JSON.stringify(configuration))
+        Buffer.from(JSON.stringify(configurationWithDoc))
+      );
+      zipWithRootFolder.addFile(
+        `${rootFolderName}/${docPath}`,
+        Buffer.from("doc content")
       );
 
       const renamedFileResource: bffApi.FileResource = {
