@@ -371,6 +371,12 @@ export const assignRiskAnalysisReviewerErrorMapper = (
     .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
     .with("multipleReviewersNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "purposeFromTemplateCannotBeModified",
+      "reviewerWorkflowNotAllowedForDelegatedPurpose",
+      "reviewerWorkflowNotAllowedForReceiveMode",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

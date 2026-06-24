@@ -101,6 +101,8 @@ import {
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotInSignedState,
+  reviewerWorkflowNotAllowedForDelegatedPurpose,
+  reviewerWorkflowNotAllowedForReceiveMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -547,6 +549,21 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertRequesterIsConsumer(purpose.data, authData);
+
+      assertPurposeIsNotFromTemplate(purpose.data);
+
+      if (purpose.data.delegationId !== undefined) {
+        throw reviewerWorkflowNotAllowedForDelegatedPurpose(purposeId);
+      }
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      if (eservice.mode === eserviceMode.receive) {
+        throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
+      }
 
       if (purpose.data.reviewerWorkflow !== undefined) {
         throw reviewerWorkflowConflict(purposeId);

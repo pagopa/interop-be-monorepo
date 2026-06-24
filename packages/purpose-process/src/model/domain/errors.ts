@@ -74,6 +74,8 @@ const errorCodes = {
   reviewerWorkflowNotEditable: "0054",
   reviewerWorkflowNotInSignedState: "0055",
   riskAnalysisFormCannotBeUpdated: "0056",
+  reviewerWorkflowNotAllowedForDelegatedPurpose: "0057",
+  reviewerWorkflowNotAllowedForReceiveMode: "0058",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -664,5 +666,25 @@ export function riskAnalysisFormCannotBeUpdated(
     detail: `Risk analysis form of purpose ${purposeId} cannot be updated because a reviewer workflow is active`,
     code: "riskAnalysisFormCannotBeUpdated",
     title: "Risk analysis form cannot be updated",
+  });
+}
+
+export function reviewerWorkflowNotAllowedForDelegatedPurpose(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Reviewer workflow is not allowed for purpose ${purposeId} because it has an active delegation`,
+    code: "reviewerWorkflowNotAllowedForDelegatedPurpose",
+    title: "Reviewer workflow not allowed for delegated purpose",
+  });
+}
+
+export function reviewerWorkflowNotAllowedForReceiveMode(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Reviewer workflow is not allowed for purpose ${purposeId} because the eservice is in receive mode`,
+    code: "reviewerWorkflowNotAllowedForReceiveMode",
+    title: "Reviewer workflow not allowed for receive mode",
   });
 }
