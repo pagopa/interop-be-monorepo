@@ -72,12 +72,15 @@ describe("assignRiskAnalysisReviewer", () => {
     vi.setSystemTime(new Date());
 
     const mockPurposeVersion = getMockPurposeVersion();
+    const mockEService = getMockEService();
     const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
       ...getMockPurpose([mockPurposeVersion]),
+      eserviceId: mockEService.id,
       consumerId: mockTenant.id,
     };
 
+    await addOneEService(mockEService);
     await addOneTenant(mockTenant);
     await addOnePurpose(mockPurpose);
 
@@ -150,12 +153,15 @@ describe("assignRiskAnalysisReviewer", () => {
     vi.setSystemTime(new Date());
 
     const mockPurposeVersion = getMockPurposeVersion();
+    const mockEService = getMockEService();
     const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
       ...getMockPurpose([mockPurposeVersion]),
+      eserviceId: mockEService.id,
       consumerId: mockTenant.id,
     };
 
+    await addOneEService(mockEService);
     await addOneTenant(mockTenant);
     await addOnePurpose(mockPurpose);
 
@@ -260,8 +266,10 @@ describe("assignRiskAnalysisReviewer", () => {
   });
 
   it("should throw reviewerWorkflowConflict if the purpose already has a reviewer workflow", async () => {
+    const mockEService = getMockEService();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      eserviceId: mockEService.id,
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds: [unsafeBrandId(generateId())],
@@ -270,6 +278,7 @@ describe("assignRiskAnalysisReviewer", () => {
       },
     };
 
+    await addOneEService(mockEService);
     await addOnePurpose(mockPurpose);
 
     expect(
@@ -285,10 +294,13 @@ describe("assignRiskAnalysisReviewer", () => {
   });
 
   it("should throw multipleReviewersNotAllowed if more than one reviewer are provided", async () => {
+    const mockEService = getMockEService();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      eserviceId: mockEService.id,
     };
 
+    await addOneEService(mockEService);
     await addOnePurpose(mockPurpose);
 
     expect(
@@ -304,12 +316,15 @@ describe("assignRiskAnalysisReviewer", () => {
   });
 
   it("should throw missingSelfcareId if the consumer tenant has no selfcareId", async () => {
+    const mockEService = getMockEService();
     const mockTenant = { ...getMockTenant(), selfcareId: undefined };
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      eserviceId: mockEService.id,
       consumerId: mockTenant.id,
     };
 
+    await addOneEService(mockEService);
     await addOneTenant(mockTenant);
     await addOnePurpose(mockPurpose);
 
@@ -326,12 +341,15 @@ describe("assignRiskAnalysisReviewer", () => {
   });
 
   it("should throw userWithoutReviewerPrivileges if the reviewer is not a reviewer in selfcare", async () => {
+    const mockEService = getMockEService();
     const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      eserviceId: mockEService.id,
       consumerId: mockTenant.id,
     };
 
+    await addOneEService(mockEService);
     await addOneTenant(mockTenant);
     await addOnePurpose(mockPurpose);
 
