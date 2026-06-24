@@ -2,6 +2,7 @@
 import {
   getMockPurposeVersion,
   getMockPurpose,
+  getMockEService,
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
@@ -13,9 +14,12 @@ import {
   PurposeRiskAnalysisAssignedV2,
   toPurposeV2,
   PurposeId,
+  PurposeTemplateId,
+  DelegationId,
   riskAnalysisReviewMode,
   RiskAnalysisSigningState,
   ReviewerWorkflow,
+  eserviceMode,
   unsafeBrandId,
   TenantId,
   UserId,
@@ -26,9 +30,13 @@ import {
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
   multipleReviewersNotAllowed,
+  purposeFromTemplateCannotBeModified,
+  reviewerWorkflowNotAllowedForDelegatedPurpose,
+  reviewerWorkflowNotAllowedForReceiveMode,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
+  addOneEService,
   readLastPurposeEvent,
   purposeService,
 } from "../integrationUtils.js";
@@ -224,5 +232,77 @@ describe("assignRiskAnalysisReviewer", () => {
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(multipleReviewersNotAllowed(mockPurpose.id));
+  });
+
+  it("should throw purposeFromTemplateCannotBeModified if the purpose is from a template", async () => {
+    const purposeTemplateId = generateId<PurposeTemplateId>();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      purposeTemplateId,
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      )
+    ).rejects.toThrowError(
+      purposeFromTemplateCannotBeModified(mockPurpose.id, purposeTemplateId)
+    );
+  });
+
+  it("should throw reviewerWorkflowNotAllowedForDelegatedPurpose if the purpose has an active delegation", async () => {
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      delegationId: generateId<DelegationId>(),
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      )
+    ).rejects.toThrowError(
+      reviewerWorkflowNotAllowedForDelegatedPurpose(mockPurpose.id)
+    );
+  });
+
+  it("should throw reviewerWorkflowNotAllowedForReceiveMode if the eservice is in receive mode", async () => {
+    const mockEService = {
+      ...getMockEService(),
+      mode: eserviceMode.receive,
+    };
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      eserviceId: mockEService.id,
+    };
+
+    await addOnePurpose(mockPurpose);
+    await addOneEService(mockEService);
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      )
+    ).rejects.toThrowError(
+      reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id)
+    );
   });
 });
