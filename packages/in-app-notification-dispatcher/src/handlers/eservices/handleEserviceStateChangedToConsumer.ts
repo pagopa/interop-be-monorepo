@@ -223,7 +223,7 @@ function getBodyAndDescriptorId(
               eservice.name,
               descriptor?.version,
               archivingSchedule.archivableOn,
-              archivingSchedule.scope === archivingScope.descriptor
+              archivingSchedule.scope === archivingScope.eservice
             ),
             descriptorId,
           };

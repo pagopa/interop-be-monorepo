@@ -419,7 +419,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
           eserviceWithArchivingSchedule.descriptors[0].version,
           eserviceWithArchivingSchedule.descriptors[0]!.archivingSchedule!
             .archivableOn!,
-          true
+          false
         ),
     },
     {
@@ -436,7 +436,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
           archivingEservice.name,
           archivingEservice.descriptors[0].version,
           archivingEservice.descriptors[0]!.archivingSchedule!.archivableOn!,
-          false
+          true
         ),
     },
     {
