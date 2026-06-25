@@ -17,6 +17,7 @@ import {
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   randomArrayItem,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   eserviceTemplateNotFound,
@@ -87,8 +88,10 @@ describe("fixEServiceTemplateRiskAnalysisTenantKind", () => {
       riskAnalysis: [riskAnalysisOther, fixedRiskAnalysis],
     };
 
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(expectedTemplate)
+    expect(
+      sortRiskAnalysisCollections(writtenPayload.eserviceTemplate)
+    ).toEqual(
+      sortRiskAnalysisCollections(toEServiceTemplateV2(expectedTemplate))
     );
   });
 
