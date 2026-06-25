@@ -14,26 +14,29 @@ import {
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  archivingScope,
   AsyncExchangeProperties,
+  delegationKind,
+  delegationState,
   Descriptor,
   DescriptorId,
+  descriptorState,
+  DescriptorState,
   EService,
   EServiceId,
+  eserviceMode,
+  EServiceTemplateId,
+  getEServiceAttributeDiscreteConfig,
+  operationForbidden,
+  RiskAnalysisId,
+  technology,
   Technology,
   Tenant,
   TenantId,
-  delegationKind,
-  delegationState,
-  descriptorState,
-  eserviceMode,
-  operationForbidden,
-  technology,
-  EServiceTemplateId,
-  RiskAnalysisId,
-  type EServiceAttribute,
-  type EserviceAttributes,
-  TenantKind,
   tenantKind,
+  TenantKind,
+  type EserviceAttributes,
+  type EServiceCertifiedAttribute,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -61,9 +64,20 @@ import {
   asyncExchangeBulkNotAllowedForSoap,
   riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
+  eserviceInArchivingOrArchivedState,
+  descriptorArchivingNotCancelableByScope,
+  notValidEServiceState,
+  descriptorAlreadyArchived,
   eserviceInDraftState,
+  eserviceNotInArchiving,
+  eServiceAlreadyArchived,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import {
+  getLatestActiveDescriptor,
+  getLatestDescriptor,
+} from "../utilities/versionGenerator.js";
 import { catalogApi } from "pagopa-interop-api-clients";
 
 export function descriptorStatesNotAllowingDocumentOperations(
@@ -75,6 +89,8 @@ export function descriptorStatesNotAllowingDocumentOperations(
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
       () => false
     )
     .with(
@@ -101,6 +117,9 @@ function isNotActiveDescriptor(descriptor: Descriptor): boolean {
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+
       () => false
     )
     .exhaustive();
@@ -116,12 +135,52 @@ function isDescriptorUpdatableAfterPublish(descriptor: Descriptor): boolean {
       descriptorState.deprecated,
       descriptorState.published,
       descriptorState.suspended,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
       () => true
     )
     .with(
       descriptorState.draft,
       descriptorState.waitingForApproval,
       descriptorState.archived,
+      () => false
+    )
+    .exhaustive();
+}
+
+function isEserviceArchivable(eservice: EService): boolean {
+  const latestActiveDescriptor = getLatestActiveDescriptor(eservice);
+  return match(latestActiveDescriptor.state)
+    .with(descriptorState.published, descriptorState.suspended, () => true)
+    .with(
+      descriptorState.deprecated,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+      descriptorState.draft,
+      () => false
+    )
+    .exhaustive();
+}
+
+function isDescriptorArchivable(
+  descriptor: Descriptor,
+  eservice: EService
+): boolean {
+  const latestDescriptor = getLatestDescriptor(eservice);
+  const isLatest = latestDescriptor.id === descriptor.id;
+
+  return match(descriptor.state)
+    .with(descriptorState.deprecated, () => true)
+    .with(descriptorState.suspended, () => !isLatest)
+    .with(
+      descriptorState.draft,
+      descriptorState.published,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
       () => false
     )
     .exhaustive();
@@ -330,6 +389,8 @@ export function assertInterfaceDeletableDescriptorState(
       descriptorState.published,
       descriptorState.suspended,
       descriptorState.waitingForApproval,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
       () => {
         throw notValidDescriptorState(descriptor.id, descriptor.state);
       }
@@ -347,6 +408,8 @@ export function assertDocumentDeletableDescriptorState(
       descriptorState.published,
       descriptorState.suspended,
       descriptorState.waitingForApproval,
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
       () => void 0
     )
     .with(descriptorState.archived, () => {
@@ -423,7 +486,7 @@ export function assertDescriptorUpdatableAfterPublish(
   descriptor: Descriptor
 ): void {
   if (!isDescriptorUpdatableAfterPublish(descriptor)) {
-    throw notValidDescriptorState(descriptor.id, descriptor.state.toString());
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
   }
 }
 
@@ -509,9 +572,27 @@ export function assertDailyCallsForCertifiedAttributesOnly(
 ): void {
   const attributesToCheck = [attributes.declared, attributes.verified].flat(2);
   for (const attribute of attributesToCheck) {
-    if (attribute.dailyCallsPerConsumer !== undefined) {
+    if (
+      "dailyCallsPerConsumer" in attribute &&
+      attribute.dailyCallsPerConsumer !== undefined
+    ) {
       throw attributeDailyCallsNotAllowed(attribute.id);
     }
+  }
+}
+
+export function assertDiscreteConfigForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const invalidAttribute = [attributes.declared, attributes.verified]
+    .flat(2)
+    .find(
+      (attribute) =>
+        "discreteConfig" in attribute && attribute.discreteConfig !== undefined
+    );
+
+  if (invalidAttribute) {
+    throw attributeDiscreteConfigNotAllowed(invalidAttribute.id);
   }
 }
 
@@ -548,7 +629,7 @@ export function assertTemplateInstanceAttributeStructureUnchanged(
 function assertAttributeGroupsUnchanged(
   eserviceId: EServiceId,
   templateId: EServiceTemplateId,
-  descriptorGroups: EServiceAttribute[][],
+  descriptorGroups: EServiceCertifiedAttribute[][],
   seedGroups: catalogApi.AttributeSeed[][]
 ): void {
   if (descriptorGroups.length !== seedGroups.length) {
@@ -573,10 +654,19 @@ function assertAttributeGroupsUnchanged(
         (attr) => attr.id === descriptorAttr.id
       );
 
+      const descriptorDiscreteConfig =
+        getEServiceAttributeDiscreteConfig(descriptorAttr);
+
       if (
         !seedAttr ||
         seedAttr.explicitAttributeVerification !==
-          descriptorAttr.explicitAttributeVerification
+          descriptorAttr.explicitAttributeVerification ||
+        seedAttr.discreteConfig?.threshold !==
+          descriptorDiscreteConfig?.threshold ||
+        seedAttr.discreteConfig?.comparator !==
+          descriptorDiscreteConfig?.comparator ||
+        Boolean(seedAttr.discreteConfig) !==
+          (descriptorDiscreteConfig !== undefined)
       ) {
         throw templateInstanceNotAllowed(eserviceId, templateId);
       }
@@ -597,5 +687,134 @@ export function assertAttributeDailyCallsConsistentWithTotal(
         throw inconsistentDailyCalls();
       }
     }
+  }
+}
+
+export function assertDescriptorArchivable(
+  descriptor: Descriptor,
+  eservice: EService
+): void {
+  if (!isDescriptorArchivable(descriptor, eservice)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertEServiceArchivable(eservice: EService): void {
+  if (!isEserviceArchivable(eservice)) {
+    throw notValidEServiceState(eservice.id);
+  }
+}
+
+export function assertDescriptorInRequiredStates(
+  descriptor: Descriptor,
+  states: DescriptorState[]
+): void {
+  if (!states.includes(descriptor.state)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertEserviceIsNotInArchivingOrArchivedState(
+  eservice: EService
+): void {
+  const latestActiveDescriptor = [...eservice.descriptors]
+    .sort(
+      (a, b) => Number.parseInt(a.version, 10) - Number.parseInt(b.version, 10)
+    )
+    .filter(isActiveDescriptor)
+    .at(-1);
+  if (
+    latestActiveDescriptor &&
+    match(latestActiveDescriptor.state)
+      .with(
+        descriptorState.archived,
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+        () => true
+      )
+      .with(
+        descriptorState.draft,
+        descriptorState.deprecated,
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.waitingForApproval,
+        () => false
+      )
+      .exhaustive()
+  ) {
+    throw eserviceInArchivingOrArchivedState(eservice.id);
+  }
+}
+
+function isDescriptorCancelArchivable(
+  descriptor: Descriptor,
+  latestDescriptor: Descriptor
+): boolean {
+  const isLatest = latestDescriptor.id === descriptor.id;
+
+  return match(descriptor.state)
+    .with(
+      descriptorState.archiving,
+      descriptorState.archivingSuspended,
+      () => !isLatest
+    )
+    .with(
+      descriptorState.draft,
+      descriptorState.published,
+      descriptorState.waitingForApproval,
+      descriptorState.archived,
+      descriptorState.deprecated,
+      descriptorState.suspended,
+      () => false
+    )
+    .exhaustive();
+}
+
+export function assertDescriptorCancelArchivable(
+  descriptor: Descriptor,
+  latestDescriptor: Descriptor
+): void {
+  if (!isDescriptorCancelArchivable(descriptor, latestDescriptor)) {
+    throw notValidDescriptorState(descriptor.id, descriptor.state);
+  }
+}
+
+export function assertDescriptorArchivingIsNotEserviceScoped(
+  descriptor: Descriptor
+): void {
+  if (descriptor.archivingSchedule?.scope === archivingScope.eservice) {
+    throw descriptorArchivingNotCancelableByScope(descriptor.id);
+  }
+}
+
+export function assertDescriptorIsNotAlreadyArchived(
+  descriptor: Descriptor
+): void {
+  if (descriptor.state === descriptorState.archived) {
+    throw descriptorAlreadyArchived(descriptor.id);
+  }
+}
+
+export function assertEServiceIsInArchiving(eservice: EService): void {
+  const hasEServiceScopeArchiving =
+    getLatestDescriptor(eservice).archivingSchedule?.scope ===
+    archivingScope.eservice;
+
+  const hasDescriptorInWrongState = eservice.descriptors.some(
+    (d) =>
+      d.state !== descriptorState.archiving &&
+      d.state !== descriptorState.archivingSuspended &&
+      d.state !== descriptorState.archived
+  );
+
+  if (!hasEServiceScopeArchiving || hasDescriptorInWrongState) {
+    throw eserviceNotInArchiving(eservice.id);
+  }
+}
+
+export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
+  const latestDescriptor = getLatestDescriptor(eservice);
+  if (latestDescriptor.state === descriptorState.archived) {
+    throw eServiceAlreadyArchived(eservice.id);
   }
 }

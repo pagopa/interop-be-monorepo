@@ -7,15 +7,14 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  DelegationHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { DelegationHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
@@ -45,7 +44,7 @@ export async function handleProducerDelegationSubmitted(
     retrieveHTMLTemplate(
       eventMailTemplateType.producerDelegationSubmittedMailTemplate
     ),
-    retrieveEService(delegation.eserviceId, readModelService),
+    retrieveEservice(delegation.eserviceId, readModelService),
     retrieveTenant(delegation.delegatorId, readModelService),
     retrieveTenant(delegation.delegateId, readModelService),
   ]);

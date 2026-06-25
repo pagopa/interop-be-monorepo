@@ -4,6 +4,7 @@ import {
   AttributeId,
   DelegationId,
   DescriptorId,
+  DescriptorState,
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
@@ -72,6 +73,13 @@ const errorCodes = {
   missingAsyncExchangeCallbackInterface: "0056",
   templateVersionMissingAsyncExchangeProperties: "0057",
   riskAnalysisTenantKindMismatch: "0058",
+  eserviceInArchivingOrArchivedState: "0059",
+  descriptorArchivingNotCancelableByScope: "0060",
+  descriptorAlreadyArchived: "0061",
+  notValidEServiceState: "0062",
+  eserviceNotInArchiving: "0063",
+  eServiceAlreadyArchived: "0064",
+  attributeDiscreteConfigNotAllowed: "0065",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -143,12 +151,22 @@ export function eServiceDocumentNotFound(
 
 export function notValidDescriptorState(
   descriptorId: DescriptorId,
-  descriptorStatus: string
+  descriptorStatus: DescriptorState
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} is in an invalid state ${descriptorStatus} for this operation`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
+  });
+}
+
+export function notValidEServiceState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in an invalid state for this operation`,
+    code: "notValidEServiceState",
+    title: "Not valid EService",
   });
 }
 
@@ -266,9 +284,7 @@ export function riskAnalysisValidationFailed(
   issues: RiskAnalysisValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis validation failed. Reasons: [${issues
-      .map((i) => i.detail)
-      .join(", ")}]`,
+    detail: `Risk analysis validation failed. Reasons: [${issues.map((i) => i.detail).join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
   });
@@ -654,6 +670,16 @@ export function attributeDailyCallsNotAllowed(
   });
 }
 
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
+  });
+}
+
 export function certifiedAttributeGroupNotFoundInSeed(
   eserviceId: EServiceId,
   descriptorId: DescriptorId
@@ -662,5 +688,54 @@ export function certifiedAttributeGroupNotFoundInSeed(
     detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
     code: "certifiedAttributeGroupNotFoundInSeed",
     title: "Certified attribute group not found in seed",
+  });
+}
+
+export function eserviceInArchivingOrArchivedState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `You can't create a new version, because the EService ${eserviceId} is in archiving or archived state`,
+    code: "eserviceInArchivingOrArchivedState",
+    title: "EService in archiving or archived state",
+  });
+}
+
+export function descriptorArchivingNotCancelableByScope(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} archiving cannot be canceled because it was scheduled at eservice scope`,
+    code: "descriptorArchivingNotCancelableByScope",
+    title: "Descriptor archiving not cancelable by scope",
+  });
+}
+export function descriptorAlreadyArchived(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} is already archived`,
+    code: "descriptorAlreadyArchived",
+    title: "Descriptor already archived",
+  });
+}
+
+export function eserviceNotInArchiving(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not have an ongoing global archiving orchestration`,
+    code: "eserviceNotInArchiving",
+    title: "EService not in archiving",
+  });
+}
+
+export function eServiceAlreadyArchived(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is already archived`,
+    code: "eServiceAlreadyArchived",
+    title: "EService already archived",
   });
 }

@@ -121,8 +121,8 @@ catalogs:
       specifier: 4.0.1
       version: 4.0.1
     axios:
-      specifier: 1.15.2
-      version: 1.15.2
+      specifier: 1.16.0
+      version: 1.16.0
     camelcase-keys:
       specifier: 9.1.3
       version: 9.1.3
@@ -329,6 +329,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'
@@ -346,8 +349,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.7.0
-        version: 1.7.0
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -442,13 +445,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -652,10 +655,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -713,13 +716,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -924,13 +927,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1064,7 +1067,7 @@ importers:
         version: 7.0.1
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -1165,13 +1168,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1250,13 +1253,13 @@ importers:
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1335,16 +1338,16 @@ importers:
         version: 0.9.10
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
         specifier: 'catalog:'
         version: 0.5.16
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1434,8 +1437,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.19
-        version: 1.8.19
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1530,13 +1533,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1954,16 +1957,16 @@ importers:
         version: 1.4.13
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
         specifier: 'catalog:'
         version: 0.5.16
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       connection-string:
         specifier: 'catalog:'
         version: 4.4.0
@@ -2096,7 +2099,7 @@ importers:
         version: 4.0.1
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2351,8 +2354,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.7.0
-        version: 1.7.0
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2395,10 +2398,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2884,6 +2887,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
       pagopa-interop-readmodel:
         specifier: workspace:*
         version: link:../readmodel
@@ -2906,9 +2912,70 @@ importers:
       '@types/pg':
         specifier: 'catalog:'
         version: 8.11.11
-      cpx2:
+      eslint:
         specifier: 'catalog:'
-        version: 7.0.2
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/email-scheduled-notification-dispatcher:
+    dependencies:
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -2987,10 +3054,10 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3034,6 +3101,67 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/eservice-descriptors-scheduled-archiver:
+    dependencies:
+      '@zodios/core':
+        specifier: 'catalog:'
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
+      axios:
+        specifier: 'catalog:'
+        version: 1.16.0
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      p-limit:
+        specifier: 'catalog:'
+        version: 6.2.0
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
       pagopa-interop-eslint-config:
         specifier: workspace:*
         version: link:../eslint-config
@@ -3108,8 +3236,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.8
-        version: 1.8.8
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3152,13 +3280,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3298,7 +3426,7 @@ importers:
         version: 7.0.1
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3458,6 +3586,9 @@ importers:
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
       pagopa-interop-readmodel:
         specifier: workspace:*
         version: link:../readmodel
@@ -3503,13 +3634,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3578,11 +3709,78 @@ importers:
         specifier: 'catalog:'
         version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
+  packages/in-app-scheduled-notification-dispatcher:
+    dependencies:
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-in-app-notification-db-models:
+        specifier: workspace:*
+        version: link:../in-app-notification-db-models
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
   packages/ipa-certified-attributes-importer:
     dependencies:
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3633,6 +3831,67 @@ importers:
         specifier: 'catalog:'
         version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
+  packages/istat-certified-attributes-importer:
+    dependencies:
+      adm-zip:
+        specifier: 'catalog:'
+        version: 0.5.16
+      axios:
+        specifier: 'catalog:'
+        version: 1.16.0
+      csv:
+        specifier: 'catalog:'
+        version: 6.3.11
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-api-clients:
+        specifier: workspace:*
+        version: link:../api-clients
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/adm-zip':
+        specifier: 'catalog:'
+        version: 0.5.7
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
   packages/ivass-certified-attributes-importer:
     dependencies:
       adm-zip:
@@ -3640,7 +3899,7 @@ importers:
         version: 0.5.16
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       csv:
         specifier: 'catalog:'
         version: 6.3.11
@@ -4004,13 +4263,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4086,13 +4345,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4165,13 +4424,13 @@ importers:
         version: 3.840.0
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4259,7 +4518,7 @@ importers:
         version: 2.9.4
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
@@ -4289,17 +4548,60 @@ importers:
         specifier: 'catalog:'
         version: 5.4.5
 
+  packages/notification-commons:
+    dependencies:
+      cpx2:
+        specifier: 'catalog:'
+        version: 7.0.2
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
   packages/notification-config-process:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4461,7 +4763,7 @@ importers:
         version: 6.4.17
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       cpx2:
         specifier: 'catalog:'
         version: 7.0.2
@@ -4488,7 +4790,7 @@ importers:
     dependencies:
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4540,7 +4842,7 @@ importers:
     dependencies:
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -4668,7 +4970,7 @@ importers:
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       domhandler:
         specifier: 'catalog:'
         version: 5.0.3
@@ -5013,8 +5315,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.1
-        version: 1.8.1
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5109,13 +5411,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5125,6 +5427,9 @@ importers:
       express:
         specifier: 'catalog:'
         version: 4.20.0
+      pagopa-interop-agreement-lifecycle:
+        specifier: workspace:*
+        version: link:../agreement-lifecycle
       pagopa-interop-api-clients:
         specifier: workspace:*
         version: link:../api-clients
@@ -5251,8 +5556,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.10
-        version: 1.8.10
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5295,13 +5600,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5531,6 +5836,284 @@ importers:
       pagopa-interop-readmodel-models:
         specifier: workspace:*
         version: link:../readmodel-models
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/scheduled-email-notification-dispatcher:
+    dependencies:
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/scheduled-in-app-notification-dispatcher:
+    dependencies:
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-in-app-notification-db-models:
+        specifier: workspace:*
+        version: link:../in-app-notification-db-models
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-notification-commons:
+        specifier: workspace:*
+        version: link:../notification-commons
+      pagopa-interop-readmodel:
+        specifier: workspace:*
+        version: link:../readmodel
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/scheduled-notification-cleaner:
+    dependencies:
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-readmodel-models:
+        specifier: workspace:*
+        version: link:../readmodel-models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/scheduled-notification-db-models:
+    dependencies:
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      '@types/pg':
+        specifier: 'catalog:'
+        version: 8.11.11
+      drizzle-kit:
+        specifier: 'catalog:'
+        version: 0.30.4
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+
+  packages/scheduled-notification-scheduler:
+    dependencies:
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
+      date-fns-tz:
+        specifier: 'catalog:'
+        version: 3.2.0(date-fns@4.1.0)
+      dotenv-flow:
+        specifier: 'catalog:'
+        version: 4.1.0
+      drizzle-orm:
+        specifier: 'catalog:'
+        version: 0.45.2(@types/pg@8.11.11)(pg@8.13.1)
+      kafka-iam-auth:
+        specifier: workspace:*
+        version: link:../kafka-iam-auth
+      kafkajs:
+        specifier: 'catalog:'
+        version: 2.2.4
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      pagopa-interop-scheduled-notification-db-models:
+        specifier: workspace:*
+        version: link:../scheduled-notification-db-models
+      pg:
+        specifier: 'catalog:'
+        version: 8.13.1
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
       zod:
         specifier: 'catalog:'
         version: 3.23.8
@@ -5805,8 +6388,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.19
-        version: 1.8.19
+        specifier: 1.8.21
+        version: 1.8.21
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5849,13 +6432,13 @@ importers:
     dependencies:
       '@zodios/core':
         specifier: 'catalog:'
-        version: 10.9.6(axios@1.15.2)(zod@3.23.8)
+        version: 10.9.6(axios@1.16.0)(zod@3.23.8)
       '@zodios/express':
         specifier: 'catalog:'
-        version: 10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
+        version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       axios:
         specifier: 'catalog:'
-        version: 1.15.2
+        version: 1.16.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7468,20 +8051,8 @@ packages:
     peerDependencies:
       eslint: ^9.39.2
 
-  '@pagopa/interop-outbound-models@1.7.0':
-    resolution: {integrity: sha512-Y6Nf2ZyN8qFftmG0pBIctrFKQ/oC/a8IlKBlD03qNxYilB0ok7AB08QVpngEYcc7D3zlxhSDH35EVrRcjDj7gw==}
-
-  '@pagopa/interop-outbound-models@1.8.1':
-    resolution: {integrity: sha512-WOxbvxvc03fKYn/I1cxucbhvak+h5NFGFAu3ESV/3Y15mDWDEO4ZZz+Ybm+v4dxb54OuOQME8JSVot9tExr+pQ==}
-
-  '@pagopa/interop-outbound-models@1.8.10':
-    resolution: {integrity: sha512-amx3SsrQG06QmV1uS5uchpjs8midHoY8T4mvly6sBKCDIfgUto5M/JH+6O2PqoO6FGMSponOTfKWO5O/y5X75w==}
-
-  '@pagopa/interop-outbound-models@1.8.19':
-    resolution: {integrity: sha512-XbyzI0SFMMZy7W0oDXU4nGj2iJRhizfb8NBFfnQcqp6vl2dgIexQHhR7tSmJvG2Re+9Y4KyHhuKGggBRXI+F6g==}
-
-  '@pagopa/interop-outbound-models@1.8.8':
-    resolution: {integrity: sha512-Qzmle24iM/Kf44zf9Tmq/Bft1NECHVT4QoNGcRTeq2+QQW0d7np247iriz8xd46G2AoOBkXju13cNDFHlr/nMg==}
+  '@pagopa/interop-outbound-models@1.8.21':
+    resolution: {integrity: sha512-lm12PsMlznGZoswIuab8cNnHXy6oHamTEPLm5XquT6QVjuuKvxZZOoDC92Lp9e9Y9asX2Oo4TJKKKP3A/pyuEg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -8690,8 +9261,8 @@ packages:
   aws-sdk-client-mock@4.0.1:
     resolution: {integrity: sha512-yD2mmgy73Xce097G5hIpr1k7j50qzvJ49/+6osGZiCyk4m6cwhb+2x7kKFY1gEMwTzaS8+m8fXv9SB29SkRYyQ==}
 
-  axios@1.15.2:
-    resolution: {integrity: sha512-wLrXxPtcrPTsNlJmKjkPnNPK2Ihe0hn0wGSaTEiHRPxwjvJwT3hKmXF4dpqxmPO9SoNb2FsYXj/xEo0gHN+D5A==}
+  axios@1.16.0:
+    resolution: {integrity: sha512-6hp5CwvTPlN2A31g5dxnwAX0orzM7pmCRDLnZSX772mv8WDqICwFjowHuPs04Mc8deIld1+ejhtaMn5vp6b+1w==}
 
   b4a@1.6.6:
     resolution: {integrity: sha512-5Tk1HLk6b6ctmjIkAcU/Ujv/1WqiDl0F0JdRCR80VsOcUlHcu7pWeWRlOqQLHfDEsVx9YH/aif5AG4ehoCtTmg==}
@@ -9682,8 +10253,8 @@ packages:
   fn.name@1.1.0:
     resolution: {integrity: sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==}
 
-  follow-redirects@1.15.11:
-    resolution: {integrity: sha512-deG2P0JfjrTxl50XGCDyfI97ZGVCxIpfKYmfyrQ54n5FO/0gfIES8C/Psl6kWVDolizcaaxZJnTS0QSMxvnsBQ==}
+  follow-redirects@1.16.0:
+    resolution: {integrity: sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -13973,31 +14544,7 @@ snapshots:
       - supports-color
       - vitest
 
-  '@pagopa/interop-outbound-models@1.7.0':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.1':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.10':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.19':
-    dependencies:
-      '@protobuf-ts/runtime': 2.9.4
-      ts-pattern: 5.2.0
-      zod: 3.23.8
-
-  '@pagopa/interop-outbound-models@1.8.8':
+  '@pagopa/interop-outbound-models@1.8.21':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
@@ -15482,14 +16029,14 @@ snapshots:
 
   '@xmldom/xmldom@0.9.10': {}
 
-  '@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8)':
+  '@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8)':
     dependencies:
-      axios: 1.15.2
+      axios: 1.16.0
       zod: 3.23.8
 
-  '@zodios/express@10.6.1(@zodios/core@10.9.6(axios@1.15.2)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)':
+  '@zodios/express@10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)':
     dependencies:
-      '@zodios/core': 10.9.6(axios@1.15.2)(zod@3.23.8)
+      '@zodios/core': 10.9.6(axios@1.16.0)(zod@3.23.8)
       express: 4.20.0
       zod: 3.23.8
 
@@ -15691,9 +16238,9 @@ snapshots:
       sinon: 16.1.3
       tslib: 2.8.1
 
-  axios@1.15.2:
+  axios@1.16.0:
     dependencies:
-      follow-redirects: 1.15.11
+      follow-redirects: 1.16.0
       form-data: 4.0.5
       proxy-from-env: 2.1.0
     transitivePeerDependencies:
@@ -16825,7 +17372,7 @@ snapshots:
 
   fn.name@1.1.0: {}
 
-  follow-redirects@1.15.11: {}
+  follow-redirects@1.16.0: {}
 
   for-each@0.3.5:
     dependencies:
@@ -17697,8 +18244,8 @@ snapshots:
     dependencies:
       '@apidevtools/swagger-parser': 10.1.1(openapi-types@12.1.3)
       '@liuli-util/fs-extra': 0.1.0
-      '@zodios/core': 10.9.6(axios@1.15.2)(zod@3.23.8)
-      axios: 1.15.2
+      '@zodios/core': 10.9.6(axios@1.16.0)(zod@3.23.8)
+      axios: 1.16.0
       cac: 6.7.14
       handlebars: 4.7.9
       openapi-types: 12.1.3

@@ -359,9 +359,7 @@ describe("update descriptor certified attribute", () => {
           { dailyCallsPerConsumer: 100 },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
-      ).rejects.toThrowError(
-        notValidDescriptorState(descriptor.id, state.toString())
-      );
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
 

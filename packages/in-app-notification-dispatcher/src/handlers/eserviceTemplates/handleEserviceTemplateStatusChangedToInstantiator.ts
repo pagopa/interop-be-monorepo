@@ -10,12 +10,12 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   retrieveLatestDescriptor,
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 export async function handleEserviceTemplateStatusChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,

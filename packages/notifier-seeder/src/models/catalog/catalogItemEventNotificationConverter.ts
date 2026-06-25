@@ -141,6 +141,10 @@ export const toCatalogItemEventNotification = (
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
+      // FIXME these events will be managed with "WORK ITEM 10"
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingCanceled" },
+      { type: "EServiceArchivingCompleted" },
       { type: "MaintenanceEServicePersonalDataFlagReset" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
@@ -168,6 +172,11 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorAttributesUpdated" },
       { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
       { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
+      // FIXME these events will be managed with "WORK ITEM 10"
+      { type: "EServiceDescriptorArchivingScheduled" },
+      { type: "EServiceDescriptorArchivingCanceled" },
+      { type: "EServiceDescriptorArchivingCompleted" },
+      { type: "MaintenanceEServiceDescriptorUnarchived" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(

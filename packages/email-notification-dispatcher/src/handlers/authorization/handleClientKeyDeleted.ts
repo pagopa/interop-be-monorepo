@@ -11,12 +11,11 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  ClientKeyHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { ClientKeyHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 export async function handleClientKeyDeleted(

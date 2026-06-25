@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import {
   EService,
   Purpose,
@@ -7,6 +7,11 @@ import {
   tenantKind,
   eserviceMode,
   tenantAttributeType,
+  attributeCertifiedDiscreteComparator,
+  AttributeCertifiedDiscreteComparator,
+  CertifiedDiscreteTenantAttribute,
+  EServiceAttributeCertified,
+  EServiceAttributeCertifiedDiscrete,
   EServiceId,
   DescriptorId,
   TenantId,
@@ -25,6 +30,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
 import { retrieveActiveAgreement } from "../../src/services/purposeService.js";
+import { config } from "../../src/config/config.js";
 
 vi.mock("../../src/services/purposeService.js", () => ({
   retrieveActiveAgreement: vi.fn(),
@@ -109,6 +115,7 @@ describe("isOverQuota", () => {
     state: "Active",
     verifiedAttributes: [],
     certifiedAttributes: [],
+    certifiedDiscreteAttributes: [],
     declaredAttributes: [],
     suspendedByConsumer: undefined,
     suspendedByProducer: undefined,
@@ -334,6 +341,7 @@ describe("getUpdatedQuotas", () => {
     state: "Active",
     verifiedAttributes: [],
     certifiedAttributes: [],
+    certifiedDiscreteAttributes: [],
     declaredAttributes: [],
     suspendedByConsumer: undefined,
     suspendedByProducer: undefined,
@@ -487,5 +495,427 @@ describe("getUpdatedQuotas", () => {
     await expect(
       getUpdatedQuotas(eservice, consumerId, mockReadModelService)
     ).rejects.toThrow(tenantNotFound(consumerId));
+  });
+});
+
+describe("getUpdatedQuotas - certified discrete attributes", () => {
+  const eserviceId = "eservice-id" as EServiceId;
+  const consumerId = "consumer-id" as TenantId;
+  const descriptorId = "descriptor-id" as DescriptorId;
+  const producerId = "producer-id" as TenantId;
+  const agreementId = "agreement-id";
+  const discreteAttributeId = "discrete-attribute-id" as AttributeId;
+  const plainAttributeId = "plain-attribute-id" as AttributeId;
+
+  const DESCRIPTOR_DEFAULT_PER_CONSUMER = 100;
+  const DESCRIPTOR_TOTAL = 1000;
+
+  const buildEService = (
+    certified: Array<
+      Array<EServiceAttributeCertified | EServiceAttributeCertifiedDiscrete>
+    >
+  ): EService => ({
+    id: eserviceId,
+    producerId,
+    name: "eservice name",
+    description: "eservice description",
+    technology: "Rest",
+    mode: eserviceMode.deliver,
+    attributes: { certified: [], declared: [], verified: [] },
+    descriptors: [
+      {
+        id: descriptorId,
+        version: "1",
+        docs: [],
+        state: "Published",
+        audience: [],
+        voucherLifespan: 0,
+        dailyCallsPerConsumer: DESCRIPTOR_DEFAULT_PER_CONSUMER,
+        dailyCallsTotal: DESCRIPTOR_TOTAL,
+        interface: undefined,
+        agreementApprovalPolicy: "Automatic",
+        serverUrls: [],
+        attributes: {
+          certified,
+          declared: [],
+          verified: [],
+        },
+        createdAt: new Date(),
+      },
+    ],
+    createdAt: new Date(),
+    riskAnalysis: [],
+  });
+
+  const discreteDescriptorAttribute = (
+    threshold: number,
+    comparator: AttributeCertifiedDiscreteComparator,
+    dailyCallsPerConsumer: number | undefined,
+    id: AttributeId = discreteAttributeId
+  ): EServiceAttributeCertifiedDiscrete => ({
+    id,
+    explicitAttributeVerification: false,
+    ...(dailyCallsPerConsumer !== undefined ? { dailyCallsPerConsumer } : {}),
+    discreteConfig: { threshold, comparator },
+  });
+
+  const discreteTenantAttribute = (
+    discreteValue: number,
+    revoked = false,
+    id: AttributeId = discreteAttributeId
+  ): CertifiedDiscreteTenantAttribute => ({
+    id,
+    type: tenantAttributeType.CERTIFIED_DISCRETE,
+    assignmentTimestamp: new Date(),
+    revocationTimestamp: revoked ? new Date() : undefined,
+    discreteValue,
+  });
+
+  const agreement: Agreement = {
+    id: unsafeBrandId(agreementId),
+    eserviceId,
+    descriptorId,
+    producerId,
+    consumerId,
+    state: "Active",
+    verifiedAttributes: [],
+    certifiedAttributes: [],
+    certifiedDiscreteAttributes: [],
+    declaredAttributes: [],
+    suspendedByConsumer: undefined,
+    suspendedByProducer: undefined,
+    suspendedByPlatform: undefined,
+    createdAt: new Date(),
+    updatedAt: undefined,
+    consumerDocuments: [],
+    stamps: {
+      submission: undefined,
+      activation: undefined,
+      rejection: undefined,
+      suspensionByProducer: undefined,
+      suspensionByConsumer: undefined,
+      upgrade: undefined,
+      archiving: undefined,
+    },
+    contract: undefined,
+  };
+
+  const tenantWith = (attributes: Tenant["attributes"]): Tenant => ({
+    id: consumerId,
+    kind: tenantKind.PA,
+    selfcareId: "selfcare-id",
+    externalId: { origin: "origin", value: "value" },
+    features: [],
+    attributes,
+    createdAt: new Date(),
+    name: "tenant name",
+    mails: [],
+  });
+
+  const runWith = async (
+    eservice: EService,
+    tenant: Tenant
+  ): Promise<Awaited<ReturnType<typeof getUpdatedQuotas>>> => {
+    (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
+    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
+    (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
+    return getUpdatedQuotas(eservice, consumerId, mockReadModelService);
+  };
+
+  beforeEach(() => {
+    vi.resetAllMocks();
+    config.featureFlagAttributeCertifiedDiscrete = true;
+  });
+
+  afterEach(() => {
+    config.featureFlagAttributeCertifiedDiscrete = false;
+  });
+
+  it("applies the differentiated quota when the discrete value satisfies the threshold", async () => {
+    const eservice = buildEService([
+      [
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          200
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([discreteTenantAttribute(1500)]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(200);
+  });
+
+  it("applies the differentiated quota even when it is lower than the descriptor default", async () => {
+    const eservice = buildEService([
+      [
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          50
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([discreteTenantAttribute(1500)]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(50);
+  });
+
+  it("falls back to the descriptor default when the discrete value does NOT satisfy the threshold", async () => {
+    const eservice = buildEService([
+      [
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          200
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([discreteTenantAttribute(500)]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(
+      DESCRIPTOR_DEFAULT_PER_CONSUMER
+    );
+  });
+
+  it("falls back to the descriptor default when the consumer does not hold the discrete attribute", async () => {
+    const eservice = buildEService([
+      [
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          200
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(
+      DESCRIPTOR_DEFAULT_PER_CONSUMER
+    );
+  });
+
+  it("ignores a revoked discrete attribute even if its value would satisfy the threshold", async () => {
+    const eservice = buildEService([
+      [
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          200
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([discreteTenantAttribute(1500, true)]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(
+      DESCRIPTOR_DEFAULT_PER_CONSUMER
+    );
+  });
+
+  it("ignores a discrete attribute that has no differentiated quota even when satisfied", async () => {
+    const eservice = buildEService([
+      [
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          undefined
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([discreteTenantAttribute(1500)]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(
+      DESCRIPTOR_DEFAULT_PER_CONSUMER
+    );
+  });
+
+  describe.each<{
+    comparator: AttributeCertifiedDiscreteComparator;
+    pass: number;
+    fail: number;
+  }>([
+    {
+      comparator: attributeCertifiedDiscreteComparator.GT,
+      pass: 1001,
+      fail: 1000,
+    },
+    {
+      comparator: attributeCertifiedDiscreteComparator.LT,
+      pass: 999,
+      fail: 1000,
+    },
+    {
+      comparator: attributeCertifiedDiscreteComparator.EQ,
+      pass: 1000,
+      fail: 999,
+    },
+    {
+      comparator: attributeCertifiedDiscreteComparator.GTE,
+      pass: 1000,
+      fail: 999,
+    },
+    {
+      comparator: attributeCertifiedDiscreteComparator.LTE,
+      pass: 1000,
+      fail: 1001,
+    },
+    {
+      comparator: attributeCertifiedDiscreteComparator.NE,
+      pass: 999,
+      fail: 1000,
+    },
+  ])("comparator $comparator", ({ comparator, pass, fail }) => {
+    it(`applies the differentiated quota when value satisfies ${comparator}`, async () => {
+      const eservice = buildEService([
+        [discreteDescriptorAttribute(1000, comparator, 200)],
+      ]);
+      const tenant = tenantWith([discreteTenantAttribute(pass)]);
+
+      const result = await runWith(eservice, tenant);
+
+      expect(result.maxDailyCallsPerConsumer).toBe(200);
+    });
+
+    it(`falls back to default when value does not satisfy ${comparator}`, async () => {
+      const eservice = buildEService([
+        [discreteDescriptorAttribute(1000, comparator, 200)],
+      ]);
+      const tenant = tenantWith([discreteTenantAttribute(fail)]);
+
+      const result = await runWith(eservice, tenant);
+
+      expect(result.maxDailyCallsPerConsumer).toBe(
+        DESCRIPTOR_DEFAULT_PER_CONSUMER
+      );
+    });
+  });
+
+  it("picks the highest differentiated quota across multiple satisfied discrete attributes", async () => {
+    const secondAttributeId = "discrete-attribute-id-2" as AttributeId;
+    const eservice = buildEService([
+      [
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          200,
+          discreteAttributeId
+        ),
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          500,
+          secondAttributeId
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([
+      discreteTenantAttribute(1500, false, discreteAttributeId),
+      discreteTenantAttribute(1500, false, secondAttributeId),
+    ]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(500);
+  });
+
+  it("combines plain certified and discrete certified attributes, taking the max satisfied quota", async () => {
+    const eservice = buildEService([
+      [
+        {
+          id: plainAttributeId,
+          explicitAttributeVerification: false,
+          dailyCallsPerConsumer: 300,
+        },
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          200
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([
+      {
+        id: plainAttributeId,
+        type: tenantAttributeType.CERTIFIED,
+        assignmentTimestamp: new Date(),
+        revocationTimestamp: undefined,
+      },
+      discreteTenantAttribute(1500),
+    ]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(300);
+  });
+
+  it("ignores discrete descriptor attributes when the feature flag is disabled", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = false;
+
+    const eservice = buildEService([
+      [
+        discreteDescriptorAttribute(
+          1000,
+          attributeCertifiedDiscreteComparator.GTE,
+          200
+        ),
+      ],
+    ]);
+    const tenant = tenantWith([discreteTenantAttribute(1500)]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(
+      DESCRIPTOR_DEFAULT_PER_CONSUMER
+    );
+  });
+
+  it("does not apply a plain certified quota to a discrete-only tenant attribute when the flag is disabled", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = false;
+
+    const eservice = buildEService([
+      [
+        {
+          id: discreteAttributeId,
+          explicitAttributeVerification: false,
+          dailyCallsPerConsumer: 200,
+        },
+      ],
+    ]);
+    const tenant = tenantWith([discreteTenantAttribute(1500)]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(
+      DESCRIPTOR_DEFAULT_PER_CONSUMER
+    );
+  });
+
+  it("applies a plain certified quota to a discrete tenant attribute when the flag is enabled", async () => {
+    const eservice = buildEService([
+      [
+        {
+          id: discreteAttributeId,
+          explicitAttributeVerification: false,
+          dailyCallsPerConsumer: 200,
+        },
+      ],
+    ]);
+    const tenant = tenantWith([discreteTenantAttribute(1500)]);
+
+    const result = await runWith(eservice, tenant);
+
+    expect(result.maxDailyCallsPerConsumer).toBe(200);
   });
 });
