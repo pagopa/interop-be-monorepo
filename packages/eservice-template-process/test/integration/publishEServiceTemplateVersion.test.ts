@@ -35,6 +35,7 @@ import {
   notValidEServiceTemplateVersionState,
   riskAnalysisValidationFailed,
   missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
 } from "../../src/model/domain/errors.js";
 import {
   eserviceTemplateService,
@@ -487,6 +488,49 @@ describe("publishEServiceTemplateVersion", () => {
     );
   });
 
+  it("should throw missingAsyncExchangeCallbackInterface if asyncExchange is true but asyncExchangeCallbackInterface is undefined", async () => {
+    const eserviceTemplateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      interface: getMockDocument(),
+      state: descriptorState.draft,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+      asyncExchange: true,
+      personalData: false,
+    };
+
+    await addOneTenant({
+      ...getMockTenant(eserviceTemplate.creatorId),
+      kind: tenantKind.PA,
+    });
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.publishEServiceTemplateVersion(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id,
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      missingAsyncExchangeCallbackInterface(
+        eserviceTemplate.id,
+        eserviceTemplateVersion.id
+      )
+    );
+  });
+
   it("should succeed publishing when asyncExchange is true and asyncExchangeProperties is valid", async () => {
     const eserviceTemplateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
@@ -499,6 +543,7 @@ describe("publishEServiceTemplateVersion", () => {
         bulk: false,
         maxResultSet: 1000,
       },
+      asyncExchangeCallbackInterface: getMockDocument(),
     };
 
     const eserviceTemplate: EServiceTemplate = {

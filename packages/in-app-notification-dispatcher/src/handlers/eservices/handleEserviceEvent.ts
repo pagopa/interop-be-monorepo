@@ -5,6 +5,9 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
 import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
+import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
+import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
+import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelope,
@@ -67,7 +70,34 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
-          "EServiceDescriptorArchived",
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceArchivingScheduled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingCompleted",
+          "EServiceDescriptorArchived"
+        ),
+      },
+      async (msg) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingToProducer(msg, logger, readModelService),
+          handleEserviceArchivingToConsumer(msg, logger, readModelService),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceArchivingCanceled"
+        ),
+      },
+      (msg) =>
+        handleEserviceArchivingCanceledToConsumer(msg, logger, readModelService)
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
@@ -97,7 +127,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
-          "MaintenanceEServicePersonalDataFlagReset"
+          "MaintenanceEServicePersonalDataFlagReset",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {

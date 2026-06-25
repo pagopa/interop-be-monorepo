@@ -17,13 +17,19 @@ import {
   stringToDate,
   EServiceTemplateVersionRef,
   AttributeKind,
+  AttributeId,
   RiskAnalysisAnswerKind,
   EServiceId,
   EServiceTemplateId,
   RiskAnalysisForm,
+  AttributeCertifiedDiscreteComparator,
+  EServiceAttributeCertified,
+  EServiceAttributeCertifiedDiscrete,
+  ArchivingScope,
   TenantKind,
 } from "pagopa-interop-models";
 import {
+  EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
@@ -64,6 +70,7 @@ export const aggregateDescriptor = ({
   attributesSQL,
   rejectionReasonsSQL,
   templateVersionRefSQL,
+  archivingScheduleSQL,
   asyncExchangePropertiesSQL,
 }: {
   descriptorSQL: EServiceDescriptorSQL;
@@ -72,6 +79,7 @@ export const aggregateDescriptor = ({
   attributesSQL: EServiceDescriptorAttributeSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefSQL: EServiceDescriptorTemplateVersionRefSQL | undefined;
+  archivingScheduleSQL: EServiceDescriptorArchivingScheduleSQL | undefined;
   asyncExchangePropertiesSQL:
     | EServiceDescriptorAsyncExchangePropertiesSQL
     | undefined;
@@ -97,10 +105,14 @@ export const aggregateDescriptor = ({
     .reduce(
       (acc, attributeSQL) =>
         match(AttributeKind.parse(attributeSQL.kind))
-          .with(attributeKind.certified, () => ({
-            ...acc,
-            certified: [...acc.certified, attributeSQL],
-          }))
+          .with(
+            attributeKind.certified,
+            attributeKind.certifiedDiscrete,
+            () => ({
+              ...acc,
+              certified: [...acc.certified, attributeSQL],
+            })
+          )
           .with(attributeKind.declared, () => ({
             ...acc,
             declared: [...acc.declared, attributeSQL],
@@ -216,6 +228,15 @@ export const aggregateDescriptor = ({
       : {}),
     ...(rejectionReasons ? { rejectionReasons } : {}),
     ...(templateVersionRef ? { templateVersionRef } : {}),
+    ...(archivingScheduleSQL
+      ? {
+          archivingSchedule: {
+            scope: ArchivingScope.parse(archivingScheduleSQL.scope),
+            archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
+            startedAt: stringToDate(archivingScheduleSQL.startedAt),
+          },
+        }
+      : {}),
   };
 };
 
@@ -229,6 +250,7 @@ export const aggregateEservice = ({
   documentsSQL,
   rejectionReasonsSQL,
   templateVersionRefsSQL,
+  archivingSchedulesSQL,
   asyncExchangePropertiesSQL,
 }: EServiceItemsSQL): WithMetadata<EService> => {
   const interfacesSQLByDescriptorId = interfacesSQL.reduce((acc, i) => {
@@ -257,6 +279,13 @@ export const aggregateEservice = ({
     },
     new Map<string, EServiceDescriptorTemplateVersionRefSQL>()
   );
+  const archivingSchedulesSQLByDescriptorId = archivingSchedulesSQL.reduce(
+    (acc, a) => {
+      acc.set(a.descriptorId, a);
+      return acc;
+    },
+    new Map<string, EServiceDescriptorArchivingScheduleSQL>()
+  );
   const asyncExchangePropertiesSQLByDescriptorId =
     asyncExchangePropertiesSQL.reduce((acc, a) => {
       acc.set(a.descriptorId, a);
@@ -273,6 +302,9 @@ export const aggregateEservice = ({
         rejectionReasonsSQL:
           rejectionReasonsSQLByDescriptorId.get(descriptorSQL.id) || [],
         templateVersionRefSQL: templateVersionRefsSQLByDescriptorId.get(
+          descriptorSQL.id
+        ),
+        archivingScheduleSQL: archivingSchedulesSQLByDescriptorId.get(
           descriptorSQL.id
         ),
         asyncExchangePropertiesSQL:
@@ -327,6 +359,9 @@ export const aggregateEservice = ({
     ...(eserviceSQL.instanceLabel !== null
       ? { instanceLabel: eserviceSQL.instanceLabel }
       : {}),
+    ...(eserviceSQL.archivingReason !== null
+      ? { archivingReason: eserviceSQL.archivingReason }
+      : {}),
     ...(eserviceSQL.asyncExchange !== null
       ? { asyncExchange: eserviceSQL.asyncExchange }
       : {}),
@@ -347,6 +382,7 @@ export const aggregateEserviceArray = ({
   documentsSQL,
   rejectionReasonsSQL,
   templateVersionRefsSQL,
+  archivingSchedulesSQL,
   asyncExchangePropertiesSQL,
 }: {
   eservicesSQL: EServiceSQL[];
@@ -358,6 +394,7 @@ export const aggregateEserviceArray = ({
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+  archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
   asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
 }): Array<WithMetadata<EService>> => {
   const riskAnalysesSQLByEServiceId =
@@ -374,6 +411,9 @@ export const aggregateEserviceArray = ({
     createEServiceSQLPropertyMap(rejectionReasonsSQL);
   const templateVersionRefsSQLByEServiceId = createEServiceSQLPropertyMap(
     templateVersionRefsSQL
+  );
+  const archivingSchedulesSQLByEServiceId = createEServiceSQLPropertyMap(
+    archivingSchedulesSQL
   );
   const asyncExchangePropertiesSQLByEServiceId = createEServiceSQLPropertyMap(
     asyncExchangePropertiesSQL
@@ -394,6 +434,8 @@ export const aggregateEserviceArray = ({
         rejectionReasonsSQLByEServiceId.get(eserviceId) || [],
       templateVersionRefsSQL:
         templateVersionRefsSQLByEServiceId.get(eserviceId) || [],
+      archivingSchedulesSQL:
+        archivingSchedulesSQLByEServiceId.get(eserviceId) || [],
       asyncExchangePropertiesSQL:
         asyncExchangePropertiesSQLByEServiceId.get(eserviceId) || [],
     });
@@ -410,6 +452,7 @@ const createEServiceSQLPropertyMap = <
     | EServiceDescriptorAttributeSQL
     | EServiceDescriptorRejectionReasonSQL
     | EServiceDescriptorTemplateVersionRefSQL
+    | EServiceDescriptorArchivingScheduleSQL
     | EServiceDescriptorAsyncExchangePropertiesSQL,
 >(
   items: T[]
@@ -487,13 +530,38 @@ export const aggregateRiskAnalysis = (
 
 export const attributesSQLtoAttributes = (
   attributesSQL: EServiceDescriptorAttributeSQL[]
-): EServiceAttribute[][] => {
-  const attributesMap = new Map<number, EServiceAttribute[]>();
+): Array<
+  Array<
+    | EServiceAttribute
+    | EServiceAttributeCertified
+    | EServiceAttributeCertifiedDiscrete
+  >
+> => {
+  const attributesMap = new Map<
+    number,
+    Array<
+      | EServiceAttribute
+      | EServiceAttributeCertified
+      | EServiceAttributeCertifiedDiscrete
+    >
+  >();
   attributesSQL.forEach((current) => {
-    const currentAttribute: EServiceAttribute = {
-      id: unsafeBrandId(current.attributeId),
+    const currentAttribute = {
+      id: unsafeBrandId<AttributeId>(current.attributeId),
       explicitAttributeVerification: current.explicitAttributeVerification,
-      dailyCallsPerConsumer: current.dailyCallsPerConsumer ?? undefined,
+      ...(current.dailyCallsPerConsumer != null
+        ? { dailyCallsPerConsumer: current.dailyCallsPerConsumer }
+        : undefined),
+      ...(current.threshold != null && current.comparator != null
+        ? {
+            discreteConfig: {
+              threshold: current.threshold,
+              comparator: AttributeCertifiedDiscreteComparator.parse(
+                current.comparator
+              ),
+            },
+          }
+        : undefined),
     };
     const group = attributesMap.get(current.groupId);
     if (group) {
@@ -517,6 +585,7 @@ export const toEServiceAggregator = (
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
+    archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
     asyncExchangeProperties: EServiceDescriptorAsyncExchangePropertiesSQL | null;
   }>
 ): EServiceItemsSQL => {
@@ -530,6 +599,7 @@ export const toEServiceAggregator = (
     attributesSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
   } = toEServiceAggregatorArray(queryRes);
 
@@ -545,6 +615,7 @@ export const toEServiceAggregator = (
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
   };
 };
@@ -560,6 +631,7 @@ export const toEServiceAggregatorArray = (
     riskAnalysis: EServiceRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceRiskAnalysisAnswerSQL | null;
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
+    archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
     asyncExchangeProperties: EServiceDescriptorAsyncExchangePropertiesSQL | null;
   }>
 ): {
@@ -572,6 +644,7 @@ export const toEServiceAggregatorArray = (
   documentsSQL: EServiceDescriptorDocumentSQL[];
   rejectionReasonsSQL: EServiceDescriptorRejectionReasonSQL[];
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
+  archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
   asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
 } => {
   const eserviceIdSet = new Set<string>();
@@ -601,6 +674,8 @@ export const toEServiceAggregatorArray = (
   const templateVersionRefIdSet = new Set<string>();
   const templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[] = [];
 
+  const archivingScheduleIdSet = new Set<string>();
+  const archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[] = [];
   const asyncExchangeIdSet = new Set<string>();
   const asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[] =
     [];
@@ -688,6 +763,22 @@ export const toEServiceAggregatorArray = (
         templateVersionRefsSQL.push(templateVersionRefSQL);
       }
 
+      const archivingScheduleSQL = row.archivingSchedule;
+      const archivingSchedulePK = archivingScheduleSQL
+        ? makeUniqueKey([
+            archivingScheduleSQL.eserviceId,
+            archivingScheduleSQL.descriptorId,
+          ])
+        : undefined;
+      if (
+        archivingScheduleSQL &&
+        archivingSchedulePK &&
+        !archivingScheduleIdSet.has(archivingSchedulePK)
+      ) {
+        archivingScheduleIdSet.add(archivingSchedulePK);
+        // eslint-disable-next-line functional/immutable-data
+        archivingSchedulesSQL.push(archivingScheduleSQL);
+      }
       const asyncExchangeRowSQL = row.asyncExchangeProperties;
       if (
         asyncExchangeRowSQL &&
@@ -739,6 +830,7 @@ export const toEServiceAggregatorArray = (
     riskAnalysisAnswersSQL,
     rejectionReasonsSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
   };
 };

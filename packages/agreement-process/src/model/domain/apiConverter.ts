@@ -87,6 +87,7 @@ export const agreementToApiAgreement = (
   state: agreementStateToApiAgreementState(agreement.state),
   verifiedAttributes: agreement.verifiedAttributes,
   certifiedAttributes: agreement.certifiedAttributes,
+  certifiedDiscreteAttributes: agreement.certifiedDiscreteAttributes,
   declaredAttributes: agreement.declaredAttributes,
   suspendedByConsumer: agreement.suspendedByConsumer,
   suspendedByProducer: agreement.suspendedByProducer,
@@ -173,6 +174,7 @@ const fromApiTenantAttribute = (
         certified: P.not(P.nullish),
         verified: P.optional(P.nullish),
         declared: P.optional(P.nullish),
+        certifiedDiscrete: P.optional(P.nullish),
       },
       ({ certified }) => ({
         type: tenantAttributeType.CERTIFIED,
@@ -188,6 +190,7 @@ const fromApiTenantAttribute = (
         verified: P.not(P.nullish),
         certified: P.optional(P.nullish),
         declared: P.optional(P.nullish),
+        certifiedDiscrete: P.optional(P.nullish),
       },
       ({ verified }) => ({
         type: tenantAttributeType.VERIFIED,
@@ -202,6 +205,7 @@ const fromApiTenantAttribute = (
         declared: P.not(P.nullish),
         certified: P.optional(P.nullish),
         verified: P.optional(P.nullish),
+        certifiedDiscrete: P.optional(P.nullish),
       },
       ({ declared }) => ({
         type: tenantAttributeType.DECLARED,
@@ -213,6 +217,23 @@ const fromApiTenantAttribute = (
         delegationId: declared.delegationId
           ? unsafeBrandId<DelegationId>(declared.delegationId)
           : undefined,
+      })
+    )
+    .with(
+      {
+        certifiedDiscrete: P.not(P.nullish),
+        certified: P.optional(P.nullish),
+        verified: P.optional(P.nullish),
+        declared: P.optional(P.nullish),
+      },
+      ({ certifiedDiscrete }) => ({
+        type: tenantAttributeType.CERTIFIED_DISCRETE,
+        id: unsafeBrandId<AttributeId>(certifiedDiscrete.id),
+        assignmentTimestamp: new Date(certifiedDiscrete.assignmentTimestamp),
+        revocationTimestamp: certifiedDiscrete.revocationTimestamp
+          ? new Date(certifiedDiscrete.revocationTimestamp)
+          : undefined,
+        discreteValue: certifiedDiscrete.discreteValue,
       })
     )
     .otherwise(() => {

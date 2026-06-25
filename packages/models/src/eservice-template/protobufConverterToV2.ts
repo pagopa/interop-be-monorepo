@@ -8,6 +8,7 @@ import {
 } from "../gen/v2/eservice-template/eservice-template.js";
 import {
   toDocumentV2,
+  toCertifiedDiscreteConfigV2,
   toEServiceAttributeV2,
   toEServiceModeV2,
   toRiskAnalysisFormV2,
@@ -23,8 +24,30 @@ import {
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
+  EServiceTemplateAttribute,
+  EServiceTemplateAttributeCertifiedDiscrete,
 } from "./eserviceTemplate.js";
 import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
+
+const toEServiceTemplateAttributeValueV2 = (
+  attribute:
+    | EServiceTemplateAttribute
+    | EServiceTemplateAttributeCertifiedDiscrete
+) => ({
+  id: attribute.id,
+  explicitAttributeVerification: attribute.explicitAttributeVerification,
+  ...("discreteConfig" in attribute
+    ? {
+        discreteConfig: toCertifiedDiscreteConfigV2(attribute.discreteConfig),
+      }
+    : undefined),
+});
+
+const toEServiceTemplateAttributeGroupV2 = (
+  attributes: Array<
+    EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+  >
+) => ({ values: attributes.map(toEServiceTemplateAttributeValueV2) });
 
 const toAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicy
@@ -78,7 +101,9 @@ export const toEServiceTemplateVersionV2 = (
   ...input,
   version: BigInt(input.version),
   attributes: {
-    certified: input.attributes.certified.map(toEServiceAttributeV2),
+    certified: input.attributes.certified.map(
+      toEServiceTemplateAttributeGroupV2
+    ),
     declared: input.attributes.declared.map(toEServiceAttributeV2),
     verified: input.attributes.verified.map(toEServiceAttributeV2),
   },
