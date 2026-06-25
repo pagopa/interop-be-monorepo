@@ -29,6 +29,7 @@ import {
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegate,
   purposeTemplateNotFound,
+  reviewerWorkflowNotInSignedState,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", () => {
@@ -91,6 +92,10 @@ describe("API POST /purposes/{purposeId}/versions/{versionId}/activate test", ()
       expectedStatus: 400,
     },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
+    {
+      error: reviewerWorkflowNotInSignedState(mockPurpose.id),
+      expectedStatus: 400,
+    },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     { error: tenantIsNotTheProducer(generateId()), expectedStatus: 403 },
     { error: tenantNotAllowed(generateId()), expectedStatus: 403 },

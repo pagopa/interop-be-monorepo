@@ -1247,7 +1247,13 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       logger.info(`Archiving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
+
       assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      await assertNoExistingProducerDelegationInActiveOrPendingState(
+        eserviceId,
+        readModelService
+      );
 
       assertEServiceArchivable(eservice.data);
 
@@ -2449,6 +2455,11 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      await assertNoExistingProducerDelegationInActiveOrPendingState(
+        eserviceId,
+        readModelService
+      );
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
@@ -5198,9 +5209,13 @@ async function updateDraftEService(
     await Promise.all(
       eservice.data.descriptors.map(async (d) => {
         if (d.interface !== undefined) {
-          return await fileManager.delete(
+          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
+        }
+
+        if (d.asyncExchangeCallbackInterface !== undefined) {
+          await fileManager.delete(
             config.s3Bucket,
-            d.interface.path,
+            d.asyncExchangeCallbackInterface.path,
             logger
           );
         }
@@ -5280,6 +5295,7 @@ async function updateDraftEService(
       ? eservice.data.descriptors.map((d) => ({
           ...d,
           interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
           serverUrls: [],
         }))
       : eservice.data.descriptors,

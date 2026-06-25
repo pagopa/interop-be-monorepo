@@ -99,7 +99,8 @@ export type GetPurposeTemplateEServiceTemplatesFilters = {
 
 const getPurposeTemplatesFilters = (
   filters: GetPurposeTemplatesFilters,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+  resolvedEServiceTemplateIds: EServiceTemplateId[]
 ): SQL | undefined => {
   const {
     purposeTitle,
@@ -123,13 +124,23 @@ const getPurposeTemplatesFilters = (
       ? inArray(purposeTemplateInReadmodelPurposeTemplate.creatorId, creatorIds)
       : undefined;
 
-  const eserviceIdsFilter =
+  const concreteEserviceMatch =
     eserviceIds.length > 0
       ? inArray(
           purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
           eserviceIds
         )
       : undefined;
+
+  const templateEserviceMatch =
+    resolvedEServiceTemplateIds.length > 0
+      ? inArray(
+          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+          resolvedEServiceTemplateIds
+        )
+      : undefined;
+
+  const eserviceIdsFilter = or(concreteEserviceMatch, templateEserviceMatch);
 
   const statesFilter =
     states.length > 0
@@ -258,6 +269,22 @@ export function readModelServiceBuilderSQL({
       { limit, offset }: { limit: number; offset: number },
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<PurposeTemplate>> {
+      const resolvedEServiceTemplateIds: EServiceTemplateId[] =
+        filters.eserviceIds.length > 0
+          ? (
+              await Promise.all(
+                filters.eserviceIds.map((id) =>
+                  catalogReadModelServiceSQL.getEServiceById(id)
+                )
+              )
+            )
+              .map((e) => e?.data.templateId)
+              .filter(
+                (templateId): templateId is EServiceTemplateId =>
+                  templateId !== undefined
+              )
+          : [];
+
       const subquery = readModelDB
         .select(
           withTotalCount({
@@ -273,13 +300,26 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
+          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateInReadmodelPurposeTemplate.id,
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId
+          )
+        )
+        .leftJoin(
           purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
           eq(
             purposeTemplateInReadmodelPurposeTemplate.id,
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
           )
         )
-        .where(getPurposeTemplatesFilters(filters, authData))
+        .where(
+          getPurposeTemplatesFilters(
+            filters,
+            authData,
+            resolvedEServiceTemplateIds
+          )
+        )
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
         .orderBy(
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)

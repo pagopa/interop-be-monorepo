@@ -88,6 +88,9 @@ export async function handleMessageV2({
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisAssigned" },
       { type: "PurposeRiskAnalysisSubmitted" },
+      { type: "PurposeRiskAnalysisSigned" },
+      { type: "PurposeRiskAnalysisRejected" },
+      { type: "PurposeRiskAnalysisFormEdited" },
       () => Promise.resolve()
     )
     .exhaustive();
