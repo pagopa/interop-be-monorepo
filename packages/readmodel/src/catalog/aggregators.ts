@@ -548,7 +548,6 @@ export const attributesSQLtoAttributes = (
   attributesSQL.forEach((current) => {
     const currentAttribute = {
       id: unsafeBrandId<AttributeId>(current.attributeId),
-      explicitAttributeVerification: current.explicitAttributeVerification,
       ...(current.dailyCallsPerConsumer != null
         ? { dailyCallsPerConsumer: current.dailyCallsPerConsumer }
         : undefined),

@@ -27,32 +27,26 @@ import { toM2MGatewayApiVerifiedAttribute } from "../../../src/api/attributeApiC
 describe("getEserviceTemplateVersionVerifiedAttributes", () => {
   const attribute1: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute2: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute3: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute4: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute5: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute6: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
   const bulkAttribute1: attributeRegistryApi.Attribute = {
     code: "code1",
@@ -239,7 +233,6 @@ describe("getEserviceTemplateVersionVerifiedAttributes", () => {
             [
               {
                 id: MISSING_ATTRIBUTE_ID,
-                explicitAttributeVerification: false,
               },
             ],
           ],

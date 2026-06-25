@@ -36,17 +36,14 @@ import { config } from "../../../src/config/config.js";
 describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
   const attribute1: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute2: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute3: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const bulkAttribute1: attributeRegistryApi.Attribute = {
@@ -104,7 +101,6 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
         [attribute1, attribute2, attribute3],
         seed.attributeIds.map((id) => ({
           id,
-          explicitAttributeVerification: false,
         })),
       ],
       verified: [],
@@ -323,7 +319,6 @@ describe("createEServiceTemplateVersionDeclaredAttributesGroup", () => {
             [
               {
                 id: MISSING_ATTRIBUTE_ID,
-                explicitAttributeVerification: false,
               },
             ],
           ],

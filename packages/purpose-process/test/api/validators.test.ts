@@ -238,7 +238,6 @@ describe("isOverQuota", () => {
               [
                 {
                   id: attributeId,
-                  explicitAttributeVerification: false,
                   dailyCallsPerConsumer: 200,
                 },
               ],
@@ -422,7 +421,6 @@ describe("getUpdatedQuotas", () => {
               [
                 {
                   id: attributeId,
-                  explicitAttributeVerification: false,
                   dailyCallsPerConsumer: 200,
                 },
               ],

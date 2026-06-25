@@ -514,7 +514,6 @@ export function getMockedApiEserviceTemplateVersion({
 export function getMockedApiEServiceAttribute(): catalogApi.Attribute {
   return {
     id: generateId(),
-    explicitAttributeVerification: generateMock(z.boolean()),
   };
 }
 

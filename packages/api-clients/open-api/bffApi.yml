@@ -30025,8 +30025,6 @@ components:
           type: string
         description:
           type: string
-        explicitAttributeVerification:
-          type: boolean
         kind:
           $ref: "#/components/schemas/AttributeKind"
         dailyCallsPerConsumer:
@@ -30040,7 +30038,6 @@ components:
         - id
         - name
         - description
-        - explicitAttributeVerification
         - kind
     DescriptorAttributesSeed:
       type: object
@@ -30075,8 +30072,6 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
         dailyCallsPerConsumer:
           type: integer
           format: int32
@@ -30086,7 +30081,6 @@ components:
           $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
-        - explicitAttributeVerification
     AttributeCertifiedDiscreteComparator:
       type: string
       enum:
@@ -31648,13 +31642,9 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
         discreteConfig:
           $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
-        - id
-        - explicitAttributeVerification
     EServiceTemplatePersonalDataFlagUpdateSeed:
       type: object
       additionalProperties: false

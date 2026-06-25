@@ -400,11 +400,9 @@ describe("update descriptor", () => {
           [
             {
               id: mockCertifiedAttribute1.id,
-              explicitAttributeVerification: false,
             },
             {
               id: mockCertifiedAttribute2.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -425,12 +423,10 @@ describe("update descriptor", () => {
         [
           {
             id: mockCertifiedAttribute1.id,
-            explicitAttributeVerification: false,
             dailyCallsPerConsumer: 500,
           },
           {
             id: mockCertifiedAttribute2.id,
-            explicitAttributeVerification: false,
             dailyCallsPerConsumer: 300,
           },
         ],
@@ -510,7 +506,6 @@ describe("update descriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -536,7 +531,6 @@ describe("update descriptor", () => {
             [
               {
                 id: certifiedAttribute.id,
-                explicitAttributeVerification: false,
               },
             ],
           ],
@@ -569,7 +563,6 @@ describe("update descriptor", () => {
               [
                 {
                   id: certifiedAttribute.id,
-                  explicitAttributeVerification: false,
                 },
               ],
             ],
@@ -603,7 +596,6 @@ describe("update descriptor", () => {
           [
             {
               id: mockCertifiedAttribute1.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -624,11 +616,9 @@ describe("update descriptor", () => {
         [
           {
             id: mockCertifiedAttribute1.id,
-            explicitAttributeVerification: false,
           },
           {
             id: mockCertifiedAttribute2.id,
-            explicitAttributeVerification: false,
           },
         ],
       ],
@@ -743,7 +733,6 @@ describe("update descriptor", () => {
           [
             {
               id: mockCertifiedAttribute1.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -764,7 +753,6 @@ describe("update descriptor", () => {
         [
           {
             id: mockCertifiedAttribute1.id,
-            explicitAttributeVerification: false,
             dailyCallsPerConsumer: 2000,
           },
         ],
@@ -808,7 +796,6 @@ describe("update descriptor", () => {
           [
             {
               id: mockDeclaredAttribute.id,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -829,7 +816,6 @@ describe("update descriptor", () => {
         [
           {
             id: mockDeclaredAttribute.id,
-            explicitAttributeVerification: false,
             dailyCallsPerConsumer: 100,
           },
         ],
@@ -872,7 +858,6 @@ describe("update descriptor", () => {
           [
             {
               id: certifiedAttribute.id,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],

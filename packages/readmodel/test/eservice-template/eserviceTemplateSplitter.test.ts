@@ -154,8 +154,6 @@ describe("E-service template splitter", () => {
       attributeId: certifiedAttribute.id,
       versionId: version.id,
       groupId: 0,
-      explicitAttributeVerification:
-        certifiedAttribute.explicitAttributeVerification,
       threshold: null,
       comparator: null,
     };

@@ -517,7 +517,6 @@ export const templateAttributesSQLtoTemplateAttributes = (
   attributesSQL.forEach((current) => {
     const currentAttribute = {
       id: unsafeBrandId<AttributeId>(current.attributeId),
-      explicitAttributeVerification: current.explicitAttributeVerification,
       ...(current.threshold != null && current.comparator != null
         ? {
             discreteConfig: {

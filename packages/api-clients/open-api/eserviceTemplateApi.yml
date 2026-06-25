@@ -1906,13 +1906,11 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
+
         discreteConfig:
           $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
-        - explicitAttributeVerification
     AttributeCertifiedDiscreteComparator:
       type: string
       enum:
@@ -2272,13 +2270,10 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
         discreteConfig:
           $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
-        - explicitAttributeVerification
     Attributes:
       additionalProperties: false
       properties:

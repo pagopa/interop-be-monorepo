@@ -43,7 +43,7 @@ message EServiceRiskAnalysisMultiAnswerV1 {
 
 message EServiceAttributeValueV1 {
   required string id = 1;
-  required bool explicitAttributeVerification = 2;
+  reserved 2;
 }
 
 message EServiceAttributeV1 {

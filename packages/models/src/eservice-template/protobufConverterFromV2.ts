@@ -34,7 +34,6 @@ const fromEServiceTemplateAttributeGroupV2 = (
   input.values.map((attribute) => {
     const common: EServiceTemplateAttribute = {
       id: unsafeBrandId(attribute.id),
-      explicitAttributeVerification: attribute.explicitAttributeVerification,
     };
     return attribute.discreteConfig != null
       ? {

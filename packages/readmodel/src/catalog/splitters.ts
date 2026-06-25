@@ -169,7 +169,6 @@ const attributeToAttributeSQL = ({
   metadataVersion: version,
   attributeId: attribute.id,
   descriptorId,
-  explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind:
     kind === attributeKind.certified && "discreteConfig" in attribute
       ? attributeKind.certifiedDiscrete

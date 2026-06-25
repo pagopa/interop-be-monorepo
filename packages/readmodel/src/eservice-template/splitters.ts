@@ -143,7 +143,6 @@ const templateAttributeToTemplateAttributeSQL = ({
   metadataVersion,
   attributeId: attribute.id,
   versionId: eserviceTemplateVersionId,
-  explicitAttributeVerification: attribute.explicitAttributeVerification,
   kind:
     kind === attributeKind.certified && "discreteConfig" in attribute
       ? attributeKind.certifiedDiscrete

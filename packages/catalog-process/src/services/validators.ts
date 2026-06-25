@@ -659,8 +659,6 @@ function assertAttributeGroupsUnchanged(
 
       if (
         !seedAttr ||
-        seedAttr.explicitAttributeVerification !==
-          descriptorAttr.explicitAttributeVerification ||
         seedAttr.discreteConfig?.threshold !==
           descriptorDiscreteConfig?.threshold ||
         seedAttr.discreteConfig?.comparator !==

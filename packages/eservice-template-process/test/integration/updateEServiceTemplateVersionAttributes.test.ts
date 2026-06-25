@@ -53,11 +53,9 @@ describe("updateEServiceTemplateVersionAttributes", () => {
     [
       {
         id: mockCertifiedAttribute1.id,
-        explicitAttributeVerification: false,
       },
       {
         id: mockCertifiedAttribute2.id,
-        explicitAttributeVerification: false,
       },
     ],
   ];
@@ -66,13 +64,11 @@ describe("updateEServiceTemplateVersionAttributes", () => {
     [
       {
         id: mockVerifiedAttribute1.id,
-        explicitAttributeVerification: false,
       },
     ],
     [
       {
         id: mockVerifiedAttribute2.id,
-        explicitAttributeVerification: false,
       },
     ],
   ];
@@ -83,7 +79,6 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         ...validMockVersionCertifiedAttributes[0],
         {
           id: mockCertifiedAttribute3.id,
-          explicitAttributeVerification: false,
         },
       ],
     ],
@@ -92,7 +87,6 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         ...validMockVersionVerifiedAttributes[0],
         {
           id: mockVerifiedAttribute3.id,
-          explicitAttributeVerification: false,
         },
       ],
       validMockVersionVerifiedAttributes[1],
@@ -259,7 +253,6 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           [
             {
               id: notExistingAttributeId,
-              explicitAttributeVerification: false,
             },
           ],
         ],
@@ -283,7 +276,6 @@ describe("updateEServiceTemplateVersionAttributes", () => {
             [
               {
                 id: notExistingAttributeId,
-                explicitAttributeVerification: false,
               },
             ],
           ],
@@ -426,7 +418,6 @@ describe("updateEServiceTemplateVersionAttributes", () => {
             [
               {
                 id: mockVerifiedAttribute3.id,
-                explicitAttributeVerification: false,
               },
             ],
           ],
@@ -472,13 +463,11 @@ describe("updateEServiceTemplateVersionAttributes", () => {
             [
               {
                 id: mockVerifiedAttribute1.id,
-                explicitAttributeVerification: false,
               },
             ],
             [
               {
                 id: mockVerifiedAttribute3.id,
-                explicitAttributeVerification: false,
               },
             ],
           ],

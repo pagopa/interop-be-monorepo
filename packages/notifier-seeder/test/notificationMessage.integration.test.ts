@@ -63,7 +63,6 @@ const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
       certified: [
         [
           {
-            explicitAttributeVerification: true,
             id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
           },
         ],
@@ -71,7 +70,6 @@ const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
       declared: [
         [
           {
-            explicitAttributeVerification: true,
             id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
           },
         ],
@@ -79,7 +77,6 @@ const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
       verified: [
         [
           {
-            explicitAttributeVerification: true,
             id: unsafeBrandId("cbddada9-ad22-42c9-bb1d-9a832e34179e"),
           },
         ],

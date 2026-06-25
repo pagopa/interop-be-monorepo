@@ -35,7 +35,6 @@ const toEServiceTemplateAttributeValueV2 = (
     | EServiceTemplateAttributeCertifiedDiscrete
 ) => ({
   id: attribute.id,
-  explicitAttributeVerification: attribute.explicitAttributeVerification,
   ...("discreteConfig" in attribute
     ? {
         discreteConfig: toCertifiedDiscreteConfigV2(attribute.discreteConfig),

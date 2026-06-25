@@ -50,7 +50,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     ...buildCreateDescriptorSeed(mockDescriptor),
     attributes: {
       certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
+      declared: [[{ id: attribute.id }]],
       verified: [],
     },
   };
@@ -63,7 +63,7 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     serverUrls: [],
     attributes: {
       certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
+      declared: [[{ id: attribute.id }]],
       verified: [],
     },
   };
@@ -233,7 +233,6 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
             [
               {
                 id: attribute.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: 0,
               },
             ],
@@ -252,7 +251,6 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
             [
               {
                 id: attribute.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: -10,
               },
             ],
@@ -271,7 +269,6 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
             [
               {
                 id: attribute.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: "invalid",
               },
             ],
@@ -290,7 +287,6 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
             [
               {
                 id: attribute.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: 3.14,
               },
             ],
@@ -309,7 +305,6 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
             [
               {
                 id: attribute.id,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: null,
               },
             ],
