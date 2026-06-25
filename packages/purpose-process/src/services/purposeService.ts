@@ -1,6 +1,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  purposeApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
 import {
   AppContext,
   AuthData,
@@ -151,6 +154,8 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
+  assertTenantHasSelfcareId,
+  assertUserSelfcareReviewerPrivileges,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -169,6 +174,7 @@ import {
   getUpdatedQuotas,
   assertRiskAnalysisTenantKindMatch,
   assertRequesterIsConsumer,
+  assertRiskAnalysisFormEditableInCurrentReviewMode,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -338,7 +344,8 @@ async function retrievePublishedPurposeTemplate(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
 
@@ -557,6 +564,24 @@ export function purposeServiceBuilder(
       if (seed.reviewerIds.length > 1) {
         throw multipleReviewersNotAllowed(purposeId);
       }
+
+      const consumer = await retrieveTenant(
+        purpose.data.consumerId,
+        readModelService
+      );
+      assertTenantHasSelfcareId(consumer);
+
+      await Promise.all(
+        seed.reviewerIds.map((reviewerId) =>
+          assertUserSelfcareReviewerPrivileges({
+            selfcareId: consumer.selfcareId,
+            consumerId: purpose.data.consumerId,
+            selfcareV2InstitutionClient,
+            userIdToCheck: unsafeBrandId(reviewerId),
+            correlationId,
+          })
+        )
+      );
 
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
@@ -2504,6 +2529,7 @@ const archiveActiveAndSuspendedPurposeVersions = (
 export type UpdatePurposeReturn = WithMetadata<{
   purpose: Purpose;
 }>;
+
 const performUpdatePurpose = async (
   purposeId: PurposeId,
   modeAndUpdateContent:
@@ -2576,6 +2602,21 @@ const performUpdatePurpose = async (
     purpose.data.consumerId,
     readModelService
   );
+
+  if (
+    mode === eserviceMode.deliver &&
+    isFeatureFlagEnabled(config, "featureFlagNewOperators") &&
+    purpose.data.reviewerWorkflow &&
+    (riskAnalysisForm || purpose.data.riskAnalysisForm)
+  ) {
+    // Validate form changes (add, update, or removal) during active reviewer workflow
+    assertRiskAnalysisFormEditableInCurrentReviewMode(
+      purposeId,
+      riskAnalysisForm,
+      purpose.data.riskAnalysisForm,
+      purpose.data.reviewerWorkflow
+    );
+  }
 
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
