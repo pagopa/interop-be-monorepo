@@ -22,6 +22,7 @@ import {
   operationForbidden,
   delegationState,
   delegationKind,
+  technology,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeEach } from "vitest";
 import {
@@ -31,7 +32,9 @@ import {
   inconsistentDailyCalls,
   attributeNotFound,
   templateInstanceNotAllowed,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
+import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   addOneAttribute,
@@ -432,6 +435,178 @@ describe("updateDraftDescriptor", () => {
     ).rejects.toThrowError(
       templateInstanceNotAllowed(eservice.id, template.id)
     );
+  });
+
+  it("should update async exchange descriptor fields when flag ON and asyncExchange true", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+    await addOneEService(eservice);
+
+    const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: true,
+        maxResultSet: 1000,
+      },
+    };
+
+    const result = await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      updateSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const updatedDescriptor = result.data.descriptors.find(
+      (d) => d.id === descriptor.id
+    )!;
+
+    expect(updatedDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(
+      updatedDescriptor.asyncExchangeProperties?.resourceAvailableTime
+    ).toBe(7200);
+    expect(updatedDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(updatedDescriptor.asyncExchangeProperties?.bulk).toBe(true);
+    expect(updatedDescriptor.asyncExchangeProperties?.maxResultSet).toBe(1000);
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: (await readLastEserviceEvent(eservice.id)).data,
+    });
+    const protoDescriptor = writtenPayload.eservice!.descriptors.find(
+      (d) => d.id === descriptor.id
+    )!;
+    expect(protoDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(protoDescriptor.asyncExchangeProperties?.resourceAvailableTime).toBe(
+      7200
+    );
+    expect(protoDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(protoDescriptor.asyncExchangeProperties?.bulk).toBe(true);
+    expect(protoDescriptor.asyncExchangeProperties?.maxResultSet).toBe(1000);
+  });
+
+  it("should reject descriptor update when technology is SOAP and async exchange bulk is true", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+      technology: technology.soap,
+    };
+    await addOneEService(eservice);
+
+    const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: true,
+        maxResultSet: 1000,
+      },
+    };
+
+    await expect(
+      catalogService.updateDraftDescriptor(
+        eservice.id,
+        descriptor.id,
+        updateSeed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
+    );
+  });
+
+  it("should not update async exchange descriptor fields when flag ON but asyncExchange false", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: false,
+    };
+    await addOneEService(eservice);
+
+    const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+
+    const result = await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      updateSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const updatedDescriptor = result.data.descriptors.find(
+      (d) => d.id === descriptor.id
+    )!;
+
+    expect(updatedDescriptor.asyncExchangeProperties).toBeUndefined();
+  });
+
+  it("should not update async exchange descriptor fields when flag OFF", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+    await addOneEService(eservice);
+
+    const updateSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: false,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+
+    const result = await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      updateSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const updatedDescriptor = result.data.descriptors.find(
+      (d) => d.id === descriptor.id
+    )!;
+
+    expect(updatedDescriptor.asyncExchangeProperties).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
   });
 
   it("should preserve dailyCalls on certified attributes when updating other descriptor fields", async () => {

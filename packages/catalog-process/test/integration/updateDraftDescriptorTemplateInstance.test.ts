@@ -5,15 +5,20 @@ import {
   getMockContext,
   getMockDelegation,
   getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
   getMockAuthData,
   getMockDescriptor,
   getMockEService,
   getMockDocument,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
   EService,
+  EServiceTemplate,
+  EServiceTemplateVersion,
+  eserviceTemplateVersionState,
   Attribute,
   generateId,
   EServiceDraftDescriptorUpdatedV2,
@@ -23,6 +28,8 @@ import {
   delegationKind,
   AttributeId,
   unsafeBrandId,
+  attributeKind,
+  attributeCertifiedDiscreteComparator,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -32,6 +39,8 @@ import {
   inconsistentDailyCalls,
   eServiceNotAnInstance,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
+  templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -42,6 +51,7 @@ import {
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
 import { buildUpdateDescriptorSeed } from "../mockUtils.js";
+import { config } from "../../src/config/config.js";
 
 describe("update draft descriptor instance", () => {
   const mockDescriptor = getMockDescriptor();
@@ -389,6 +399,167 @@ describe("update draft descriptor instance", () => {
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
   });
 
+  it("should update editable asyncExchangeProperties fields while preserving locked fields", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const template: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [publishedVersion],
+      asyncExchange: true,
+    };
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateId: template.id,
+      asyncExchange: true,
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
+
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed =
+      {
+        ...buildUpdateDescriptorSeed(descriptor),
+        asyncExchangeProperties: {
+          responseTime: 1800,
+          resourceAvailableTime: 3600,
+          maxResultSet: 500,
+        },
+      };
+
+    await catalogService.updateDraftDescriptorTemplateInstance(
+      eservice.id,
+      descriptor.id,
+      expectedDescriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const updatedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          asyncExchangeProperties: {
+            responseTime: 1800,
+            resourceAvailableTime: 3600,
+            confirmation: true,
+            bulk: false,
+            maxResultSet: 500,
+          },
+        },
+      ],
+    };
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+  });
+
+  it("should not update asyncExchangeProperties when asyncExchange is false", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const template: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [publishedVersion],
+      asyncExchange: false,
+    };
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateId: template.id,
+      asyncExchange: false,
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
+
+    const expectedDescriptorSeed: catalogApi.UpdateEServiceDescriptorTemplateInstanceSeed =
+      {
+        ...buildUpdateDescriptorSeed(descriptor),
+        asyncExchangeProperties: {
+          responseTime: 1800,
+          resourceAvailableTime: 3600,
+          maxResultSet: 500,
+        },
+      };
+
+    await catalogService.updateDraftDescriptorTemplateInstance(
+      eservice.id,
+      descriptor.id,
+      expectedDescriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: writtenEvent.data,
+    });
+
+    const updatedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          asyncExchangeProperties: {
+            responseTime: 3600,
+            resourceAvailableTime: 7200,
+            confirmation: true,
+            bulk: false,
+            maxResultSet: 1000,
+          },
+        },
+      ],
+    };
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+  });
   it("should update draft descriptor with attribute-level dailyCallsPerConsumer on certified attributes", async () => {
     const template = getMockEServiceTemplate();
 
@@ -808,5 +979,168 @@ describe("update draft descriptor instance", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
+  it.each([attributeKind.declared, attributeKind.verified])(
+    "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
+    async (kind) => {
+      const template = getMockEServiceTemplate();
+
+      const nonCertifiedAttribute = getMockAttribute(kind);
+
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.draft,
+        dailyCallsPerConsumer: 1,
+        dailyCallsTotal: 1000,
+        attributes: {
+          certified: [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                    },
+                  ],
+                ]
+              : [],
+        },
+      };
+
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+        name: `${template.name} test`,
+        templateId: template.id,
+      };
+
+      await addOneEServiceTemplate(template);
+      await addOneAttribute(nonCertifiedAttribute);
+      await addOneEService(eservice);
+
+      const attributesWithDiscreteConfigOnNonCertified: catalogApi.AttributesSeed =
+        {
+          certified: [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+        };
+
+      await expect(
+        catalogService.updateDraftDescriptorTemplateInstance(
+          eservice.id,
+          descriptor.id,
+          {
+            ...buildUpdateDescriptorSeed(descriptor),
+            attributes: attributesWithDiscreteConfigOnNonCertified,
+          },
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        attributeDiscreteConfigNotAllowed(nonCertifiedAttribute.id)
+      );
+    }
+  );
+
+  it("should throw templateInstanceNotAllowed when changing inherited discreteConfig", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+    const template = getMockEServiceTemplate();
+    const certifiedDiscreteAttribute = getMockAttribute(
+      attributeKind.certifiedDiscrete
+    );
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      attributes: {
+        certified: [
+          [
+            {
+              id: certifiedDiscreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: {
+                threshold: 10,
+                comparator: attributeCertifiedDiscreteComparator.GTE,
+              },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      name: `${template.name} test`,
+      templateId: template.id,
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneAttribute(certifiedDiscreteAttribute);
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.updateDraftDescriptorTemplateInstance(
+        eservice.id,
+        descriptor.id,
+        {
+          ...buildUpdateDescriptorSeed(descriptor),
+          attributes: {
+            certified: [
+              [
+                {
+                  id: certifiedDiscreteAttribute.id,
+                  explicitAttributeVerification: false,
+                  discreteConfig: {
+                    threshold: 20,
+                    comparator: attributeCertifiedDiscreteComparator.GTE,
+                  },
+                },
+              ],
+            ],
+            declared: [],
+            verified: [],
+          },
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      templateInstanceNotAllowed(eservice.id, template.id)
+    );
   });
 });

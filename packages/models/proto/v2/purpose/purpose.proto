@@ -21,6 +21,7 @@ message PurposeV2 {
   optional string freeOfChargeReason = 14;
   optional string delegationId = 15;
   optional string purposeTemplateId = 16;
+  optional ReviewerWorkflowV2 reviewerWorkflow = 17;
 }
 
 message PurposeVersionV2 {
@@ -68,4 +69,26 @@ message PurposeVersionSignedDocumentV2 {
  string path = 3;
  int64 createdAt = 4;
  optional int64 signedAt = 5;
+}
+
+enum RiskAnalysisReviewModeV2 {
+  REVIEWER_WRITES_REVIEWER_SIGNS = 0;
+  ADMIN_WRITES_REVIEWER_SIGNS = 1;
+}
+
+enum RiskAnalysisSigningStateV2 {
+  RISK_ANALYSIS_DRAFT = 0;
+  RISK_ANALYSIS_ASSIGNED = 1;
+  RISK_ANALYSIS_SUBMITTED = 2;
+  RISK_ANALYSIS_SIGNED = 3;
+  RISK_ANALYSIS_REJECTED = 4;
+}
+
+message ReviewerWorkflowV2 {
+  RiskAnalysisReviewModeV2 reviewMode = 1;
+  repeated string reviewerIds = 2;
+  RiskAnalysisSigningStateV2 signingState = 3;
+  optional string signedBy = 4;
+  optional string rejectionReason = 5;
+  optional int64 sentToReviewerAt = 6;
 }

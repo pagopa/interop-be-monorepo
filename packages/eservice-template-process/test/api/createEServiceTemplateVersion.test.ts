@@ -21,6 +21,7 @@ import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import { buildCreateVersionSeed } from "../mockUtils.js";
 import {
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   draftEServiceTemplateVersionAlreadyExists,
@@ -148,6 +149,10 @@ describe("API POST /templates/:templateId/versions", () => {
     },
     {
       error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

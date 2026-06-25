@@ -5,6 +5,7 @@ import {
   attributeKind,
   Descriptor,
   DescriptorId,
+  DescriptorState,
   descriptorState,
   EService,
   EServiceId,
@@ -23,6 +24,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
@@ -199,11 +201,15 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       expectedStatus: 400,
     },
     {
-      error: notValidDescriptorState(generateId(), ""),
+      error: notValidDescriptorState(generateId(), "" as DescriptorState),
       expectedStatus: 400,
     },
     {
       error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
     {

@@ -17,6 +17,7 @@ import {
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import type {
+  AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
@@ -28,6 +29,7 @@ import * as delegationService from "../src/services/delegationService.js";
 import * as agreementService from "../src/services/agreementService.js";
 import * as catalogApiConverter from "../src/api/catalogApiConverter.js";
 import { fileManager, getBffMockContext } from "./utils.js";
+import { getMockCatalogApiEServiceDoc, toApiEServiceDoc } from "./mockUtils.js";
 
 describe("getCatalogEServiceDescriptor", () => {
   const eServiceId: EServiceId = generateId<EServiceId>();
@@ -37,10 +39,12 @@ describe("getCatalogEServiceDescriptor", () => {
 
   const declaredAttributeId = generateId<AttributeId>();
   const certifiedAttributeId = generateId<AttributeId>();
+  const certifiedDiscreteAttributeId = generateId<AttributeId>();
   const verifiedAttributeId = generateId<AttributeId>();
 
   const declaredAttributeName = "mockDeclaredAttributeName";
   const certifiedAttributeName = "mockCertifiedAttributeName";
+  const certifiedDiscreteAttributeName = "mockCertifiedDiscreteAttributeName";
   const verifiedAttributeName = "mockVerifiedAttributeName";
 
   const attributeDescription = "mockDescription";
@@ -69,6 +73,14 @@ describe("getCatalogEServiceDescriptor", () => {
           {
             id: certifiedAttributeId,
             dailyCallsPerConsumer: certifiedAttributeDailyCallsPerConsumer,
+          },
+          {
+            id: certifiedDiscreteAttributeId,
+            explicitAttributeVerification: false,
+            discreteConfig: {
+              threshold: 1000,
+              comparator: "GTE",
+            },
           },
         ],
       ],
@@ -123,6 +135,8 @@ describe("getCatalogEServiceDescriptor", () => {
     isSignalHubEnabled: eService.isSignalHubEnabled,
     isConsumerDelegable: eService.isConsumerDelegable,
     isClientAccessDelegable: eService.isClientAccessDelegable,
+    hasProducerKeychain: false,
+    hasProducerKeychainKeys: false,
   };
 
   const expectedResult: bffApi.CatalogEServiceDescriptor = {
@@ -143,6 +157,18 @@ describe("getCatalogEServiceDescriptor", () => {
             id: certifiedAttributeId,
             name: certifiedAttributeName,
             dailyCallsPerConsumer: certifiedAttributeDailyCallsPerConsumer,
+            kind: "CERTIFIED",
+          },
+          {
+            description: attributeDescription,
+            explicitAttributeVerification: false,
+            id: certifiedDiscreteAttributeId,
+            name: certifiedDiscreteAttributeName,
+            discreteConfig: {
+              threshold: 1000,
+              comparator: "GTE",
+            },
+            kind: "CERTIFIED_DISCRETE",
           },
         ],
       ],
@@ -152,6 +178,7 @@ describe("getCatalogEServiceDescriptor", () => {
             description: attributeDescription,
             id: declaredAttributeId,
             name: declaredAttributeName,
+            kind: "DECLARED",
           },
         ],
       ],
@@ -161,6 +188,7 @@ describe("getCatalogEServiceDescriptor", () => {
             description: attributeDescription,
             id: verifiedAttributeId,
             name: verifiedAttributeName,
+            kind: "VERIFIED",
           },
         ],
       ],
@@ -199,6 +227,17 @@ describe("getCatalogEServiceDescriptor", () => {
     }),
   } as unknown as attributeRegistryApi.AttributeProcessClient;
 
+  const mockProducerKeychainEServiceFlags = vi.fn().mockResolvedValue({
+    hasProducerKeychain: false,
+    hasProducerKeychainKeys: false,
+  });
+
+  const mockAuthorizationClient = {
+    producerKeychain: {
+      getProducerKeychainEServiceFlags: mockProducerKeychainEServiceFlags,
+    },
+  } as unknown as AuthorizationProcessClient;
+
   const mockDelegationProcessClient = {
     producer: {},
     consumer: {},
@@ -217,14 +256,21 @@ describe("getCatalogEServiceDescriptor", () => {
       id: certifiedAttributeId,
       name: certifiedAttributeName,
       description: "mockDescription",
-      kind: "VERIFIED",
+      kind: "CERTIFIED",
       creationTime: new Date().toTimeString(),
     },
     {
       id: declaredAttributeId,
       name: declaredAttributeName,
       description: attributeDescription,
-      kind: "VERIFIED",
+      kind: "DECLARED",
+      creationTime: new Date().toTimeString(),
+    },
+    {
+      id: certifiedDiscreteAttributeId,
+      name: certifiedDiscreteAttributeName,
+      description: attributeDescription,
+      kind: "CERTIFIED_DISCRETE",
       creationTime: new Date().toTimeString(),
     },
     {
@@ -251,6 +297,7 @@ describe("getCatalogEServiceDescriptor", () => {
       state: "ACTIVE",
       verifiedAttributes: [],
       certifiedAttributes: [],
+      certifiedDiscreteAttributes: [],
       declaredAttributes: [],
       consumerDocuments: [],
       createdAt: "2023-01-01T00:00:00.000Z",
@@ -273,6 +320,7 @@ describe("getCatalogEServiceDescriptor", () => {
     mockTenantProcessClient,
     mockAgreementProcessClient,
     mockAttributeProcessClient,
+    mockAuthorizationClient,
     mockDelegationProcessClient,
     mockEServiceTemplateProcessClient,
     mockInAppNotificationManagerClient,
@@ -292,8 +340,83 @@ describe("getCatalogEServiceDescriptor", () => {
     expect(attributeService.getAllBulkAttributes).toHaveBeenCalledWith(
       mockAttributeProcessClient,
       bffMockContext.headers,
-      [certifiedAttributeId, declaredAttributeId, verifiedAttributeId]
+      [
+        certifiedAttributeId,
+        certifiedDiscreteAttributeId,
+        declaredAttributeId,
+        verifiedAttributeId,
+      ]
     );
+  });
+
+  it("should expose producer keychain flags on the catalog descriptor eservice", async () => {
+    mockProducerKeychainEServiceFlags.mockResolvedValueOnce({
+      hasProducerKeychain: true,
+      hasProducerKeychainKeys: true,
+    });
+    vi.mocked(
+      catalogApiConverter.toBffCatalogDescriptorEService
+    ).mockResolvedValueOnce({
+      ...catalogDescriptorEService,
+      hasProducerKeychain: true,
+      hasProducerKeychainKeys: true,
+    });
+
+    const result = await catalogService.getCatalogEServiceDescriptor(
+      eServiceId,
+      mockDescriptorId,
+      bffMockContext
+    );
+
+    expect(result.eservice.hasProducerKeychain).toBe(true);
+    expect(result.eservice.hasProducerKeychainKeys).toBe(true);
+    expect(mockProducerKeychainEServiceFlags).toHaveBeenCalledWith({
+      headers: bffMockContext.headers,
+      params: { eserviceId: eServiceId },
+      queries: {
+        producerId: eService.producerId,
+      },
+    });
+    expect(
+      catalogApiConverter.toBffCatalogDescriptorEService
+    ).toHaveBeenCalledWith(
+      eService,
+      eServiceDescriptor,
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      true,
+      true
+    );
+  });
+
+  it("should convert the async exchange callback interface to the BFF document shape", async () => {
+    const asyncExchangeCallbackInterface = getMockCatalogApiEServiceDoc();
+    vi.spyOn(mockCatalogProcessClient, "getEServiceById").mockResolvedValueOnce(
+      {
+        ...eService,
+        descriptors: [
+          {
+            ...eServiceDescriptor,
+            asyncExchangeCallbackInterface,
+          },
+        ],
+      }
+    );
+
+    const result = await catalogService.getCatalogEServiceDescriptor(
+      eServiceId,
+      mockDescriptorId,
+      bffMockContext
+    );
+
+    expect(result.asyncExchangeCallbackInterface).toEqual(
+      toApiEServiceDoc(asyncExchangeCallbackInterface)
+    );
+    expect(() =>
+      bffApi.EServiceDoc.parse(result.asyncExchangeCallbackInterface)
+    ).not.toThrow();
   });
 
   it("should throw eserviceDescriptorNotFound if descriptorId cannot be found in eservice's descriptors", async () => {

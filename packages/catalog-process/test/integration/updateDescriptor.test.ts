@@ -27,6 +27,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
 import {
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
@@ -679,6 +680,95 @@ describe("update descriptor", () => {
         )
       ).rejects.toThrowError(
         attributeDailyCallsNotAllowed(nonCertifiedAttribute.id)
+      );
+    }
+  );
+
+  it.each([attributeKind.declared, attributeKind.verified])(
+    "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
+    async (kind) => {
+      const nonCertifiedAttribute = getMockAttribute(kind);
+      await addOneAttribute(nonCertifiedAttribute);
+
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        state: descriptorState.published,
+        interface: mockDocument,
+        publishedAt: new Date(),
+        attributes: {
+          certified: [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                    },
+                  ],
+                ]
+              : [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                    },
+                  ],
+                ]
+              : [],
+        },
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      const seed: catalogApi.UpdateEServiceDescriptorQuotasSeed = {
+        voucherLifespan: 1000,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        attributes: {
+          certified: [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                      discreteConfig: { threshold: 1, comparator: "GT" },
+                    },
+                  ],
+                ]
+              : [],
+        },
+      };
+
+      await expect(
+        catalogService.updateDescriptor(
+          eservice.id,
+          descriptor.id,
+          seed,
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        attributeDiscreteConfigNotAllowed(nonCertifiedAttribute.id)
       );
     }
   );

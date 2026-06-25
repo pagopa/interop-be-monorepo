@@ -13,14 +13,15 @@ import {
   EServiceId,
   PurposeId,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
-import { handleClientAddedRemovedToProducer } from "../src/handlers/authorizations/handleClientAddedRemovedToProducer.js";
 import {
+  getNotificationRecipients,
   tenantNotFound,
   eserviceNotFound,
   purposeNotFound,
-} from "../src/models/errors.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+import { handleClientAddedRemovedToProducer } from "../src/handlers/authorizations/handleClientAddedRemovedToProducer.js";
+
 import {
   addOneEService,
   addOnePurpose,

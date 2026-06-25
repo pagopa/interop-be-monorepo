@@ -104,9 +104,7 @@ describe("createReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(consumer.id) })
       );
 
-    const purpose = createReversePurposeResponse.data.purpose;
-    const isRiskAnalysisValid =
-      createReversePurposeResponse.data.isRiskAnalysisValid;
+    const purpose = createReversePurposeResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -152,7 +150,6 @@ describe("createReversePurpose", () => {
     }).toEqual({
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
-    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
@@ -220,9 +217,7 @@ describe("createReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(delegateTenant.id) })
       );
 
-    const purpose = createReversePurposeResponse.data.purpose;
-    const isRiskAnalysisValid =
-      createReversePurposeResponse.data.isRiskAnalysisValid;
+    const purpose = createReversePurposeResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -269,7 +264,6 @@ describe("createReversePurpose", () => {
     }).toEqual({
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
-    expect(isRiskAnalysisValid).toEqual(true);
 
     vi.useRealTimers();
   });
@@ -366,9 +360,7 @@ describe("createReversePurpose", () => {
         getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
       );
 
-    const purpose = createReversePurposeResponse.data.purpose;
-    const isRiskAnalysisValid =
-      createReversePurposeResponse.data.isRiskAnalysisValid;
+    const purpose = createReversePurposeResponse.data;
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
 
@@ -410,10 +402,7 @@ describe("createReversePurpose", () => {
     };
 
     expect(createReversePurposeResponse).toEqual({
-      data: {
-        purpose: expectedPurpose,
-        isRiskAnalysisValid,
-      },
+      data: expectedPurpose,
       metadata: { version: 0 },
     });
     expect({
@@ -833,17 +822,16 @@ describe("createReversePurpose", () => {
         reversePurposeSeed,
         getMockContext({ authData: getMockAuthData(consumer.id) })
       )
-    ).resolves.toMatchObject({
-      data: {
-        purpose: expect.objectContaining({
+    ).resolves.toMatchObject(
+      expect.objectContaining({
+        data: expect.objectContaining({
           eserviceId: mockEService.id,
           consumerId: consumer.id,
           riskAnalysisForm: expect.objectContaining({
             riskAnalysisId: mockRiskAnalysis.id,
           }),
         }),
-        isRiskAnalysisValid: true,
-      },
-    });
+      })
+    );
   });
 });

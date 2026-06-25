@@ -120,6 +120,8 @@ export async function handlePurposeTemplateDocument(
           "PurposeTemplateDraftDeleted",
           "PurposeTemplateDraftUpdated",
           "PurposeTemplateEServiceLinked",
+          "PurposeTemplateEServiceTemplateLinked",
+          "PurposeTemplateEServiceTemplateUnlinked",
           "PurposeTemplateEServiceUnlinked",
           "PurposeTemplateSuspended",
           "PurposeTemplateUnsuspended",

@@ -22,6 +22,7 @@ import {
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
 import {
+  attributeDiscreteConfigNotAllowed,
   attributeNotFound,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
@@ -481,6 +482,108 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id
       )
+    );
+  });
+  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is on declared attribute", async () => {
+    const mockEServiceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+          attributes: {
+            certified: [],
+            declared: [
+              [
+                {
+                  id: mockDeclaredAttribute1.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+            verified: [],
+          },
+        },
+      ],
+    };
+    await addOneEServiceTemplate(mockEServiceTemplate);
+
+    const seed: eserviceTemplateApi.AttributesSeed = {
+      certified: [],
+      declared: [
+        [
+          {
+            id: mockDeclaredAttribute1.id,
+            explicitAttributeVerification: false,
+            discreteConfig: { threshold: 1, comparator: "GT" },
+          },
+        ],
+      ],
+      verified: [],
+    };
+
+    await expect(
+      eserviceTemplateService.updateEServiceTemplateVersionAttributes(
+        mockEServiceTemplate.id,
+        mockEServiceTemplate.versions[0].id,
+        seed,
+        getMockContext({
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      attributeDiscreteConfigNotAllowed(mockDeclaredAttribute1.id)
+    );
+  });
+  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is on verified attribute", async () => {
+    const mockEServiceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+          attributes: {
+            certified: [],
+            declared: [],
+            verified: [
+              [
+                {
+                  id: mockVerifiedAttribute1.id,
+                  explicitAttributeVerification: false,
+                },
+              ],
+            ],
+          },
+        },
+      ],
+    };
+    await addOneEServiceTemplate(mockEServiceTemplate);
+
+    const seed: eserviceTemplateApi.AttributesSeed = {
+      certified: [],
+      declared: [],
+      verified: [
+        [
+          {
+            id: mockVerifiedAttribute1.id,
+            explicitAttributeVerification: false,
+            discreteConfig: { threshold: 1, comparator: "GT" },
+          },
+        ],
+      ],
+    };
+
+    await expect(
+      eserviceTemplateService.updateEServiceTemplateVersionAttributes(
+        mockEServiceTemplate.id,
+        mockEServiceTemplate.versions[0].id,
+        seed,
+        getMockContext({
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      attributeDiscreteConfigNotAllowed(mockVerifiedAttribute1.id)
     );
   });
 });

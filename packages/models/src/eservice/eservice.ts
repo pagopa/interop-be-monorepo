@@ -24,6 +24,8 @@ export const descriptorState = {
   suspended: "Suspended",
   archived: "Archived",
   waitingForApproval: "WaitingForApproval",
+  archiving: "Archiving",
+  archivingSuspended: "ArchivingSuspended",
 } as const;
 export const DescriptorState = z.enum([
   Object.values(descriptorState)[0],
@@ -43,12 +45,63 @@ export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 
 export const EServiceAttribute = z.object({
   id: AttributeId,
-  dailyCallsPerConsumer: z.number().int().min(1).max(1000000000).optional(),
 });
 export type EServiceAttribute = z.infer<typeof EServiceAttribute>;
 
+export const EServiceAttributeCertified = EServiceAttribute.extend({
+  dailyCallsPerConsumer: z.number().int().min(1).max(1000000000).optional(),
+});
+export type EServiceAttributeCertified = z.infer<
+  typeof EServiceAttributeCertified
+>;
+
+export const attributeCertifiedDiscreteComparator = {
+  GT: "GT",
+  LT: "LT",
+  EQ: "EQ",
+  GTE: "GTE",
+  LTE: "LTE",
+  NE: "NE",
+} as const;
+export const AttributeCertifiedDiscreteComparator = z.enum([
+  Object.values(attributeCertifiedDiscreteComparator)[0],
+  ...Object.values(attributeCertifiedDiscreteComparator).slice(1),
+]);
+export type AttributeCertifiedDiscreteComparator = z.infer<
+  typeof AttributeCertifiedDiscreteComparator
+>;
+
+export const EServiceAttributeCertifiedDiscreteConfig = z.object({
+  threshold: z.number().int().min(1).max(1000000000),
+  comparator: AttributeCertifiedDiscreteComparator,
+});
+export type EServiceAttributeCertifiedDiscreteConfig = z.infer<
+  typeof EServiceAttributeCertifiedDiscreteConfig
+>;
+
+export const EServiceAttributeCertifiedDiscrete =
+  EServiceAttributeCertified.extend({
+    discreteConfig: EServiceAttributeCertifiedDiscreteConfig,
+  });
+export type EServiceAttributeCertifiedDiscrete = z.infer<
+  typeof EServiceAttributeCertifiedDiscrete
+>;
+export type EServiceCertifiedAttribute =
+  | EServiceAttribute
+  | EServiceAttributeCertified
+  | EServiceAttributeCertifiedDiscrete;
+
+export const getEServiceAttributeDiscreteConfig = (
+  attribute: EServiceCertifiedAttribute
+): EServiceAttributeCertifiedDiscreteConfig | undefined =>
+  "discreteConfig" in attribute ? attribute.discreteConfig : undefined;
+
 export const EServiceAttributes = z.object({
-  certified: z.array(z.array(EServiceAttribute)),
+  certified: z.array(
+    z.array(
+      z.union([EServiceAttributeCertifiedDiscrete, EServiceAttributeCertified])
+    )
+  ),
   declared: z.array(z.array(EServiceAttribute)),
   verified: z.array(z.array(EServiceAttribute)),
 });
@@ -93,6 +146,32 @@ export type EServiceTemplateVersionRef = z.infer<
   typeof EServiceTemplateVersionRef
 >;
 
+export const archivingScope = {
+  eservice: "EService",
+  descriptor: "Descriptor",
+} as const;
+export const ArchivingScope = z.enum([
+  Object.values(archivingScope)[0],
+  ...Object.values(archivingScope).slice(1),
+]);
+export type ArchivingScope = z.infer<typeof ArchivingScope>;
+
+export const ArchivingSchedule = z.object({
+  archivableOn: z.coerce.date(),
+  startedAt: z.coerce.date(),
+  scope: ArchivingScope,
+});
+
+export type ArchivingSchedule = z.infer<typeof ArchivingSchedule>;
+export const AsyncExchangeProperties = z.object({
+  responseTime: z.number().int(),
+  resourceAvailableTime: z.number().int(),
+  confirmation: z.boolean(),
+  bulk: z.boolean(),
+  maxResultSet: z.number().int(),
+});
+export type AsyncExchangeProperties = z.infer<typeof AsyncExchangeProperties>;
+
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
@@ -114,6 +193,9 @@ export const Descriptor = z.object({
   attributes: EServiceAttributes,
   rejectionReasons: z.array(DescriptorRejectionReason).optional(),
   templateVersionRef: EServiceTemplateVersionRef.optional(),
+  archivingSchedule: ArchivingSchedule.optional(),
+  asyncExchangeCallbackInterface: Document.optional(),
+  asyncExchangeProperties: AsyncExchangeProperties.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -144,6 +226,8 @@ export const EService = z.object({
   templateId: EServiceTemplateId.optional(),
   personalData: z.boolean().optional(),
   instanceLabel: z.string().optional(),
+  archivingReason: z.string().optional(),
+  asyncExchange: z.boolean().optional(),
 });
 
 export type EService = z.infer<typeof EService>;
