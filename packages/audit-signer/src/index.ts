@@ -40,12 +40,12 @@ const handler = async (messagePayload: Message): Promise<void> => {
 
 await queueManager.runConsumer(
   handler,
-  logger({ serviceName: config.serviceName }),
+  logger({ serviceName: "audit-signer" }),
   {
     queueUrl: config.consumerQueueUrl,
     maxNumberOfMessages: config.maxNumberOfMessages,
     waitTimeSeconds: config.waitTimeSeconds,
     visibilityTimeout: config.visibilityTimeout,
-    serviceName: config.serviceName,
+    serviceName: "audit-signer",
   }
 );

@@ -17,7 +17,6 @@ import {
   fromTenantKindV2,
   toTenantV2,
   TenantDeclaredAttributeAssignedV2,
-  Attribute,
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
@@ -36,10 +35,7 @@ import {
 } from "../integrationUtils.js";
 
 describe("addDeclaredAttribute", async () => {
-  const declaredAttribute: Attribute = {
-    ...getMockAttribute(),
-    kind: attributeKind.declared,
-  };
+  const declaredAttribute = getMockAttribute(attributeKind.declared);
 
   beforeAll(async () => {
     vi.useFakeTimers();

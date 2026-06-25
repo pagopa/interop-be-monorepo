@@ -5,7 +5,7 @@ import axios from "axios";
 import { z } from "zod";
 import { match } from "ts-pattern";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
-import { config } from "../config/config.js";
+import type { OpenDataConfig } from "../config/openDataConfig.js";
 
 type Classification = "Agency" | "AOO" | "UO";
 
@@ -19,6 +19,7 @@ export type Institution = {
   origin: string;
   kind: string;
   classification: Classification;
+  istatCode?: string;
 };
 
 export type Category = {
@@ -41,6 +42,7 @@ const institutionsFields = [
   "Tipologia",
   "Codice_uni_aoo",
   "Codice_uni_uo",
+  "Codice_comune_ISTAT",
 ] as const;
 type InstitutionsFields = (typeof institutionsFields)[number];
 
@@ -74,8 +76,10 @@ function isCategoryField(field: string): field is CategoriesFields {
   return (categoriesFields as readonly string[]).includes(field);
 }
 
-export async function getAllCategories(): Promise<Category[]> {
-  const response = await axios.get(config.institutionsCategoriesUrl);
+export async function getAllCategories(
+  openDataConfig: OpenDataConfig
+): Promise<Category[]> {
+  const response = await axios.get(openDataConfig.institutionsCategoriesUrl);
   const responseFields = response.data.fields as Array<{ id: string }>;
   const responseRecords = response.data.records as Array<any>;
 
@@ -123,12 +127,13 @@ function isInstitutionsField(field: string): field is InstitutionsFields {
 
 export async function getAllInstitutions(
   institutionKind: InstitutionKind,
-  institutionsDetails: Map<string, { category: string; kind: string }>
+  institutionsDetails: Map<string, { category: string; kind: string }>,
+  openDataConfig: OpenDataConfig
 ): Promise<Institution[]> {
   const url = match(institutionKind)
-    .with("Agency", () => config.institutionsUrl)
-    .with("AOO", () => config.aooUrl)
-    .with("UO", () => config.uoUrl)
+    .with("Agency", () => openDataConfig.institutionsUrl)
+    .with("AOO", () => openDataConfig.aooUrl)
+    .with("UO", () => openDataConfig.uoUrl)
     .exhaustive();
 
   const response = await axios.get(url);
@@ -185,7 +190,6 @@ export async function getAllInstitutions(
       .with("AOO", () => {
         const aoo = extractor("Denominazione_aoo", z.string());
         const agency = extractor("Denominazione_ente", z.string());
-
         if (!aoo || !agency) {
           return undefined;
         }
@@ -220,6 +224,8 @@ export async function getAllInstitutions(
       return accumulator;
     }
 
+    const istatCode = extractor("Codice_comune_ISTAT", z.string());
+
     // eslint-disable-next-line functional/immutable-data
     accumulator.push({
       id: taxCode,
@@ -228,6 +234,7 @@ export async function getAllInstitutions(
       description,
       origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
       kind,
+      istatCode,
       classification: match<InstitutionKind, Classification>(institutionKind)
         .with("Agency", () => "Agency")
         .with("AOO", () => "AOO")

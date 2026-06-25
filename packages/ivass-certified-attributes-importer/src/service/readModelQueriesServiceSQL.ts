@@ -78,6 +78,8 @@ export function readModelQueriesBuilderSQL(
             verifiedAttribute: null,
             verifier: null,
             revoker: null,
+            certifiedDiscreteAttribute: null,
+            remoteId: null,
           }))
         )
       );
@@ -131,6 +133,8 @@ export function readModelQueriesBuilderSQL(
             verifiedAttribute: null,
             verifier: null,
             revoker: null,
+            certifiedDiscreteAttribute: null,
+            remoteId: null,
           }))
         )
       );
@@ -148,6 +152,14 @@ export function readModelQueriesBuilderSQL(
       }
 
       return tenantWithMetadata.data;
+    },
+
+    async getTenantByIdWithMetadata(
+      tenantId: string
+    ): Promise<WithMetadata<Tenant> | undefined> {
+      return tenantReadModelService.getTenantById(
+        unsafeBrandId<TenantId>(tenantId)
+      );
     },
 
     async getAttributeByExternalId(

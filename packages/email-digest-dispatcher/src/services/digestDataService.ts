@@ -339,5 +339,3 @@ export function digestDataServiceBuilder(
     },
   };
 }
-
-export type DigestDataService = ReturnType<typeof digestDataServiceBuilder>;

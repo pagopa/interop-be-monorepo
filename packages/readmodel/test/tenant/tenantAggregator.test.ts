@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
+  getMockCertifiedDiscreteTenantAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockTenant,
   getMockTenantMail,
+  getMockTenantRemoteId,
   getMockVerifiedTenantAttribute,
 } from "pagopa-interop-commons-test";
 import {
+  CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   DelegationId,
@@ -19,6 +22,7 @@ import {
   tenantFeatureType,
   tenantKind,
   TenantMail,
+  TenantRemoteId,
   TenantRevoker,
   tenantUnitType,
   TenantVerifier,
@@ -70,6 +74,19 @@ describe("Tenant aggregators", () => {
       assignmentTimestamp: new Date(),
     };
 
+    const tenantCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
+      ...getMockCertifiedDiscreteTenantAttribute(),
+      assignmentTimestamp: new Date(),
+      revocationTimestamp: new Date(),
+      discreteValue: 1234,
+    };
+
+    const tenantRemoteId: TenantRemoteId = {
+      ...getMockTenantRemoteId(),
+      origin: "ISTAT",
+      value: "codice-001",
+    };
+
     const tenantFeatureCertifier: TenantFeatureCertifier = {
       type: tenantFeatureType.persistentCertifier,
       certifierId: generateId(),
@@ -96,11 +113,13 @@ describe("Tenant aggregators", () => {
       selfcareId,
       kind: tenantKind.PA,
       subUnitType: tenantUnitType.AOO,
+      selfcareInstitutionType: "SCP",
       externalId,
       updatedAt: new Date(),
       mails: [tenantMail],
       attributes: [
         tenantCertifiedAttribute,
+        tenantCertifiedDiscreteAttribute,
         tenantDeclaredAttribute,
         tenantVerifiedAttribute,
       ],
@@ -109,6 +128,7 @@ describe("Tenant aggregators", () => {
         TenantFeatureDelegatedConsumer,
         TenantFeatureDelegatedProducer,
       ],
+      remoteIds: [tenantRemoteId],
     };
 
     const {
@@ -120,6 +140,8 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      certifiedDiscreteAttributesSQL,
+      remoteIdsSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
     const aggregatedTenant = aggregateTenant({
@@ -131,6 +153,8 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      certifiedDiscreteAttributesSQL,
+      remoteIdsSQL,
     });
 
     expect(aggregatedTenant).toStrictEqual({
@@ -197,6 +221,7 @@ describe("Tenant aggregators", () => {
       ...getMockTenant(),
       selfcareId,
       externalId,
+      selfcareInstitutionType: "SCP",
       mails: [tenantMail],
       attributes: [
         tenantCertifiedAttribute,
@@ -219,6 +244,8 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      certifiedDiscreteAttributesSQL,
+      remoteIdsSQL,
     } = splitTenantIntoObjectsSQL(tenant, 1);
 
     const aggregatedTenant = aggregateTenant({
@@ -230,6 +257,8 @@ describe("Tenant aggregators", () => {
       verifiedAttributeVerifiersSQL,
       verifiedAttributeRevokersSQL,
       featuresSQL,
+      certifiedDiscreteAttributesSQL,
+      remoteIdsSQL,
     });
 
     expect(aggregatedTenant).toStrictEqual({

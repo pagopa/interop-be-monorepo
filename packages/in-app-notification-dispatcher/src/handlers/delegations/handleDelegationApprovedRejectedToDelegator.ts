@@ -6,14 +6,14 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveEservice,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
-export type DelegationApprovedRejectedToDelegatorEventType =
+type DelegationApprovedRejectedToDelegatorEventType =
   | "ProducerDelegationApproved"
   | "ConsumerDelegationApproved"
   | "ProducerDelegationRejected"
@@ -29,7 +29,7 @@ export async function handleDelegationApprovedRejectedToDelegator(
     throw missingKafkaMessageDataError("delegation", eventType);
   }
   logger.info(
-    `Handle delegation approved/rejected in-app notification for delegation ${delegationV2Msg.id}`
+    `Sending in-app notification for handleDelegationApprovedRejectedToDelegator - entityId: ${delegationV2Msg.id}, eventType: ${eventType}`
   );
 
   const delegation = fromDelegationV2(delegationV2Msg);
@@ -47,7 +47,7 @@ export async function handleDelegationApprovedRejectedToDelegator(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for delegation ${delegationV2Msg.id}`
+      `No users with notifications enabled for handleDelegationApprovedRejectedToDelegator - entityId: ${delegation.id}, eventType: ${eventType}`
     );
     return [];
   }

@@ -1,9 +1,9 @@
 import { AxiosError, AxiosResponse } from "axios";
 import { afterEach, expect, inject } from "vitest";
+import { WithMaybeMetadata } from "pagopa-interop-api-clients";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
-import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
 import { attributeServiceBuilder } from "../src/services/attributeService.js";
@@ -73,8 +73,7 @@ export function expectApiClientGetToHaveBeenCalledWith({
   params,
   queries,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockGet: (...args: any[]) => any;
+  mockGet: (...args: never[]) => unknown;
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
 }): void {
@@ -96,8 +95,7 @@ export function expectApiClientGetToHaveBeenNthCalledWith({
   queries,
 }: {
   nthCall: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockGet: (...args: any[]) => any;
+  mockGet: (...args: never[]) => unknown;
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;
 }): void {
@@ -118,8 +116,7 @@ export function expectApiClientPostToHaveBeenCalledWith({
   params,
   queries,
 }: {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  mockPost: (...args: any[]) => any;
+  mockPost: (...args: never[]) => unknown;
   body?: Record<string, unknown> | unknown[];
   params?: Record<string, unknown>;
   queries?: Record<string, unknown>;

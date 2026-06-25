@@ -6,12 +6,12 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { activeProducerDelegationNotFound } from "../../models/errors.js";
+  activeProducerDelegationNotFound,
+} from "pagopa-interop-notification-commons";
 
 export async function handleEserviceNewVersionSubmittedToDelegator(
   eserviceV2Msg: EServiceV2 | undefined,
@@ -25,7 +25,7 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
     );
   }
   logger.info(
-    `Handle eservice new version submitted in-app notification for eservice ${eserviceV2Msg.id}`
+    `Sending in-app notification for handleEserviceNewVersionSubmittedToDelegator - entityId: ${eserviceV2Msg.id}, eventType: EServiceDescriptorSubmittedByDelegate`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg);
@@ -48,7 +48,7 @@ export async function handleEserviceNewVersionSubmittedToDelegator(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for eservice ${eserviceV2Msg.id}`
+      `No users with notifications enabled for handleEserviceNewVersionSubmittedToDelegator - entityId: ${eservice.id}, eventType: EServiceDescriptorSubmittedByDelegate`
     );
     return [];
   }

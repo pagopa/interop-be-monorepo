@@ -6,8 +6,10 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { EserviceSchema } from "../catalog/eservice.js";
 import { EserviceDescriptorSchema } from "../catalog/eserviceDescriptor.js";
@@ -16,8 +18,10 @@ import { EserviceDescriptorDocumentSchema } from "../catalog/eserviceDescriptorD
 import { EserviceDescriptorInterfaceSchema } from "../catalog/eserviceDescriptorInterface.js";
 import { EserviceDescriptorRejectionReasonSchema } from "../catalog/eserviceDescriptorRejection.js";
 import { EserviceDescriptorTemplateVersionRefSchema } from "../catalog/eserviceDescriptorTemplateVersionRef.js";
+import { EserviceDescriptorAsyncExchangePropertiesSchema } from "../catalog/eserviceDescriptorAsyncExchangeProperties.js";
 import { EserviceRiskAnalysisSchema } from "../catalog/eserviceRiskAnalysis.js";
 import { EserviceRiskAnalysisAnswerSchema } from "../catalog/eserviceRiskAnalysisAnswer.js";
+import { EserviceDescriptorArchivingSchema } from "../catalog/eserviceDescriptorArchiving.js";
 
 export const CatalogDbTableConfig = {
   eservice: EserviceSchema,
@@ -28,8 +32,11 @@ export const CatalogDbTableConfig = {
   eservice_descriptor_rejection_reason: EserviceDescriptorRejectionReasonSchema,
   eservice_descriptor_template_version_ref:
     EserviceDescriptorTemplateVersionRefSchema,
+  eservice_descriptor_async_exchange_properties:
+    EserviceDescriptorAsyncExchangePropertiesSchema,
   eservice_risk_analysis: EserviceRiskAnalysisSchema,
   eservice_risk_analysis_answer: EserviceRiskAnalysisAnswerSchema,
+  eservice_descriptor_archiving_schedule: EserviceDescriptorArchivingSchema,
 } as const;
 export type CatalogDbTableConfig = typeof CatalogDbTableConfig;
 
@@ -43,8 +50,12 @@ export const CatalogDbTableReadModel = {
     eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eservice_descriptor_template_version_ref:
     eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eservice_descriptor_async_exchange_properties:
+    eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eservice_risk_analysis: eserviceRiskAnalysisInReadmodelCatalog,
   eservice_risk_analysis_answer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eservice_descriptor_archiving_schedule:
+    eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } as const;
 export type CatalogDbTableReadModel = typeof CatalogDbTableReadModel;
 

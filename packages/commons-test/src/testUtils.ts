@@ -80,6 +80,14 @@ import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
+  EServiceTemplateAttribute,
+  CertifiedDiscreteTenantAttribute,
+  TenantRemoteId,
+  EServiceAttributeCertifiedDiscrete,
+  EServiceTemplateAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscreteConfig,
+  attributeCertifiedDiscreteComparator,
+  tenantAttributeType,
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
@@ -124,6 +132,7 @@ import {
   PurposeVersionSignedDocument,
   DelegationSignedContractDocument,
   SelfcareId,
+  archivingScope,
 } from "pagopa-interop-models";
 import {
   AppContext,
@@ -191,6 +200,19 @@ export const getTenantOneCertifierFeature = (
   return certifiedFeatures[0];
 };
 
+export const getMockDescriptorArchiving = (
+  descriptorId: DescriptorId = generateId<DescriptorId>()
+): Descriptor => ({
+  ...getMockDescriptor(descriptorState.archiving),
+  id: descriptorId,
+  state: descriptorState.archiving,
+  archivingSchedule: {
+    scope: archivingScope.descriptor,
+    startedAt: new Date(),
+    archivableOn: new Date(new Date().setUTCDate(new Date().getUTCDate() + 30)),
+  },
+});
+
 export const getMockDescriptorPublished = (
   descriptorId: DescriptorId = generateId<DescriptorId>(),
   certifiedAttributes: EServiceAttribute[][] = [],
@@ -215,6 +237,13 @@ export const getMockEServiceAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
+  id: attributeId,
+});
+
+export const getMockEServiceTemplateAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceTemplateAttribute => ({
+  ...generateMock(EServiceTemplateAttribute),
   id: attributeId,
 });
 
@@ -268,6 +297,44 @@ export const getMockDeclaredTenantAttribute = (
 ): DeclaredTenantAttribute => ({
   ...generateMock(DeclaredTenantAttribute),
   id: attributeId,
+});
+
+export const getMockCertifiedDiscreteTenantAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): CertifiedDiscreteTenantAttribute => ({
+  id: attributeId,
+  type: tenantAttributeType.CERTIFIED_DISCRETE,
+  assignmentTimestamp: new Date(),
+  revocationTimestamp: undefined,
+  discreteValue: 42,
+});
+
+export const getMockTenantRemoteId = (): TenantRemoteId => ({
+  origin: "ISTAT",
+  value: generateId(),
+  assignmentTimestamp: new Date(),
+});
+
+export const getMockEServiceAttributeCertifiedDiscreteConfig =
+  (): EServiceAttributeCertifiedDiscreteConfig => ({
+    threshold: 1000,
+    comparator: attributeCertifiedDiscreteComparator.GTE,
+  });
+
+export const getMockEServiceAttributeCertifiedDiscrete = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceAttributeCertifiedDiscrete => ({
+  id: attributeId,
+  explicitAttributeVerification: false,
+  discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
+});
+
+export const getMockEServiceTemplateAttributeCertifiedDiscrete = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceTemplateAttributeCertifiedDiscrete => ({
+  id: attributeId,
+  explicitAttributeVerification: false,
+  discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
 });
 
 export const getMockTenant = (
@@ -325,15 +392,34 @@ export const getMockAgreement = (
   eserviceId,
   consumerId,
   state,
+  certifiedDiscreteAttributes: [],
   stamps: getMockAgreementStamps(),
 });
 
 export const getMockAttribute = (
   kind: AttributeKind = attributeKind.certified,
   id: AttributeId = generateId()
+): Attribute => {
+  if (kind === attributeKind.certified) {
+    return getMockCertifiedAttribute(kind, id);
+  }
+  return {
+    id,
+    name: generateMock(z.string()),
+    kind,
+    description: "attribute description",
+    creationTime: new Date(),
+  };
+};
+
+export const getMockCertifiedAttribute = (
+  kind: AttributeKind = attributeKind.certified,
+  id: AttributeId = generateId()
 ): Attribute => ({
   id,
-  name: "attribute name",
+  name: `${generateMock(z.string())}-${generateId()}`,
+  code: generateId(),
+  origin: generateId(),
   kind,
   description: "attribute description",
   creationTime: new Date(),
@@ -805,7 +891,7 @@ export const getMockClientAssertion = async (props?: {
 
   const headers: jose.JWTHeaderParameters = {
     alg: algorithm.RS256,
-    kid: "kid",
+    kid: "23j6WZbSbFiX_By98MBDgjnL3ZPkJJU83euQxrZxVsA",
     ...props?.customHeader,
   };
 
@@ -1074,6 +1160,11 @@ export const sortAgreement = <
             sortBy<AgreementAttribute>((att) => att.id)
           )
         : [],
+      certifiedDiscreteAttributes: agreement.certifiedDiscreteAttributes
+        ? [...agreement.certifiedDiscreteAttributes].sort(
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
+        : [],
       declaredAttributes: agreement.declaredAttributes
         ? [...agreement.declaredAttributes].sort(
             sortBy<AgreementAttribute>((att) => att.id)
@@ -1245,6 +1336,11 @@ export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
     : [],
   certifiedAttributes: agreement?.certifiedAttributes
     ? [...agreement.certifiedAttributes].sort(
+        sortBy<CertifiedAttributeV2>((att) => att.id)
+      )
+    : [],
+  certifiedDiscreteAttributes: agreement?.certifiedDiscreteAttributes
+    ? [...agreement.certifiedDiscreteAttributes].sort(
         sortBy<CertifiedAttributeV2>((att) => att.id)
       )
     : [],

@@ -77,7 +77,9 @@ describe("addCertifierId", async () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
+    expect(writtenPayload).toEqual({
+      tenant: toTenantV2(expectedTenant),
+    });
     expect(returnedTenant).toEqual(expectedTenant);
   });
   it("Should throw tenantNotFound when tenant doesn't exist", async () => {

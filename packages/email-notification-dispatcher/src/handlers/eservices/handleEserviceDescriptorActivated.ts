@@ -11,14 +11,13 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  EServiceDescriptorHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+  descriptorNotFound,
+} from "pagopa-interop-notification-commons";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
-import { descriptorNotFound } from "../../models/errors.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -78,7 +77,7 @@ export async function handleEserviceDescriptorActivated(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found. Eservice ${eservice.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleEserviceDescriptorActivated - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }

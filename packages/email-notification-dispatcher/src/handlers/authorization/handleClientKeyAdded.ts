@@ -11,13 +11,12 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  ClientKeyHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
-import { clientKeyNotFound } from "../../models/errors.js";
+  clientKeyNotFound,
+} from "pagopa-interop-notification-commons";
+import { ClientKeyHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 export async function handleClientKeyAdded(
@@ -67,7 +66,7 @@ export async function handleClientKeyAdded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Client ${client.id}, key ${kid}, no emails to dispatch.`
+      `No users with email notifications enabled for handleClientKeyAdded - entityId: ${client.id}, eventType: ${notificationType}`
     );
     return [];
   }

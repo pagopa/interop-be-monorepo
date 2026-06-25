@@ -5,6 +5,8 @@ import {
   attributeRegistryApi,
 } from "pagopa-interop-api-clients";
 import { isDefined, removeDuplicateObjectsById } from "pagopa-interop-commons";
+import { genericInternalError } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import {
   verifiedAttributeToAttributeValidityState,
   certifiedAttributeToAttributeValidityState,
@@ -52,6 +54,13 @@ export function toApiGatewayAttribute(
   return {
     id: attribute.id,
     name: attribute.name,
-    kind: attribute.kind,
+    kind: match(attribute.kind)
+      .with("CERTIFIED", "DECLARED", "VERIFIED", (kind) => kind)
+      .with("CERTIFIED_DISCRETE", () => {
+        throw genericInternalError(
+          `Unsupported attribute kind ${attribute.kind} for api-gateway`
+        );
+      })
+      .exhaustive(),
   };
 }

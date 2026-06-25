@@ -64,7 +64,7 @@ export type DigestUser = {
   userRoles: UserRole[];
 };
 
-export type TenantData = {
+type TenantData = {
   name: string;
   selfcareId: string | null;
 };

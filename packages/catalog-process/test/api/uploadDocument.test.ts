@@ -9,6 +9,7 @@ import {
   EServiceId,
   generateId,
   operationForbidden,
+  featureFlagNotEnabled,
 } from "pagopa-interop-models";
 import {
   generateToken,
@@ -23,6 +24,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { buildInterfaceSeed } from "../mockUtils.js";
 import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
 import {
+  asyncExchangeCallbackInterfaceAlreadyExists,
   checksumDuplicate,
   documentPrettyNameDuplicate,
   eServiceDescriptorNotFound,
@@ -30,6 +32,7 @@ import {
   interfaceAlreadyExists,
   notValidDescriptorState,
   templateInstanceNotAllowed,
+  asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents authorization test", () => {
@@ -115,7 +118,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: operationForbidden,
@@ -132,6 +135,18 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents autho
     {
       error: checksumDuplicate(mockEService.id, descriptor.id),
       expectedStatus: 409,
+    },
+    {
+      error: asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id),
+      expectedStatus: 409,
+    },
+    {
+      error: asyncExchangeBulkNotAllowedForSoap(mockEService.id, descriptor.id),
+      expectedStatus: 400,
+    },
+    {
+      error: featureFlagNotEnabled("featureFlagAsyncExchange"),
+      expectedStatus: 501,
     },
   ])(
     "Should return $expectedStatus for $error.code",

@@ -1,5 +1,5 @@
 import { uuid, timestamp, primaryKey } from "drizzle-orm/pg-core";
-import { InferInsertModel, InferSelectModel } from "drizzle-orm";
+import { InferInsertModel } from "drizzle-orm";
 import { digestTrackingSchema } from "./digestTrackingSchema.js";
 
 export const digestEmailSent = digestTrackingSchema.table(
@@ -13,4 +13,3 @@ export const digestEmailSent = digestTrackingSchema.table(
 );
 
 export type DigestEmailSentInsert = InferInsertModel<typeof digestEmailSent>;
-export type DigestEmailSentSelect = InferSelectModel<typeof digestEmailSent>;

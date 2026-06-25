@@ -36,14 +36,12 @@ describe("API GET /tenants/attributes/certified test", () => {
   };
 
   const certifiedAttribute1: Attribute = {
-    ...getMockAttribute(),
-    kind: attributeKind.certified,
+    ...getMockAttribute(attributeKind.certified),
     origin: certifierId,
     id: tenantCertifiedAttribute1.id,
   };
   const certifiedAttribute2: Attribute = {
-    ...getMockAttribute(),
-    kind: attributeKind.certified,
+    ...getMockAttribute(attributeKind.certified),
     origin: certifierId,
     id: tenantCertifiedAttribute2.id,
   };
@@ -81,6 +79,7 @@ describe("API GET /tenants/attributes/certified test", () => {
     authRole.ADMIN_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   const makeRequest = async (

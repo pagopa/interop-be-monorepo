@@ -8,6 +8,7 @@ import {
 import { tenantReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   AttributeId,
+  CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   DelegationId,
@@ -78,6 +79,14 @@ export const getCustomMockCertifiedTenantAttribute =
     type: tenantAttributeType.CERTIFIED,
     id: generateId(),
     assignmentTimestamp: new Date(),
+  });
+
+export const getCustomMockCertifiedDiscreteTenantAttribute =
+  (): CertifiedDiscreteTenantAttribute => ({
+    type: tenantAttributeType.CERTIFIED_DISCRETE,
+    id: generateId(),
+    assignmentTimestamp: new Date(),
+    discreteValue: 42,
   });
 
 export const initMockTenant = ({
@@ -212,6 +221,7 @@ export const initMockTenant = ({
     updatedAt: new Date(),
     onboardedAt: new Date(),
     subUnitType: tenantUnitType.AOO,
+    selfcareInstitutionType: "SCP",
   };
   const tenantFeatures = [
     tenantFeatureDelegatedProducer,

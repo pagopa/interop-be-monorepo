@@ -11,17 +11,18 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 type EServiceStateChangedEventType =
   | "EServiceNameUpdated"
   | "EServiceDescriptionUpdated"
   | "EServiceDescriptorAttributesUpdated"
+  | "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated"
   | "EServiceDescriptorPublished"
   | "EServiceDescriptorSuspended"
   | "EServiceDescriptorActivated"
@@ -33,7 +34,13 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
   | "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
   | "EServiceDescriptorDocumentAddedByTemplateUpdate"
-  | "EServiceDescriptorDocumentUpdatedByTemplateUpdate";
+  | "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+  | "EServiceDescriptorArchivingScheduled"
+  | "EServiceDescriptorArchivingCanceled"
+  | "EServiceDescriptorArchivingCompleted"
+  | "EServiceArchivingScheduled"
+  | "EServiceArchivingCanceled"
+  | "EServiceArchivingCompleted";
 
 type EServiceStateChangedEvent = Extract<
   EServiceEventV2,
@@ -49,7 +56,7 @@ export async function handleEserviceStateChangedToConsumer(
     throw missingKafkaMessageDataError("eservice", eserviceV2Msg.type);
   }
   logger.info(
-    `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceV2Msg.data.eservice.id} eventType ${eserviceV2Msg.type}`
+    `Sending in-app notification for handleEserviceStateChangedToConsumer - entityId: ${eserviceV2Msg.data.eservice.id}, eventType: ${eserviceV2Msg.type}`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg.data.eservice);
@@ -150,6 +157,7 @@ function getBodyAndDescriptorId(
       {
         type: P.union(
           "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
         ),
       },
@@ -249,6 +257,23 @@ function getBodyAndDescriptorId(
           descriptorId,
         };
       }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceArchivingCompleted"
+        ),
+      },
+      () => ({
+        // FIXME these events will be managed with "WORK ITEM 10"
+        body: "",
+        descriptorId: undefined,
+      })
     )
     .exhaustive();
 }

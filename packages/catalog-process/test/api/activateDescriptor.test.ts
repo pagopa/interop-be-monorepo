@@ -100,7 +100,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/activate author
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptorState.published),
-      expectedStatus: 409,
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

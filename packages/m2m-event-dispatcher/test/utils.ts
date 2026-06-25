@@ -1,4 +1,3 @@
-import { randomInt } from "crypto";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
@@ -13,6 +12,7 @@ import {
   producerKeyInM2MEvent,
   producerKeychainInM2MEvent,
   purposeInM2MEvent,
+  purposeTemplateInM2MEvent,
   tenantInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
 import { afterEach, inject } from "vitest";
@@ -30,6 +30,7 @@ import {
   ProducerKeyM2MEvent,
   ProducerKeychainM2MEvent,
   PurposeM2MEvent,
+  PurposeTemplateM2MEvent,
   TenantM2MEvent,
 } from "pagopa-interop-models";
 import {
@@ -66,9 +67,12 @@ export const testReadModelService = readModelServiceBuilderSQL({
   catalogReadModelServiceSQL: catalogReadModelServiceBuilder(readModelDB),
 });
 
+// eslint-disable-next-line functional/no-let
+let mockEventEnvelopeVersion = 0;
+
 export const getMockEventEnvelopeCommons = () => ({
   sequence_num: 1,
-  version: randomInt(1, 1000),
+  version: ++mockEventEnvelopeVersion,
   event_version: 2,
   log_date: new Date(),
 });
@@ -244,8 +248,43 @@ export async function retrieveLastProducerDelegationM2MEvent(): Promise<Producer
   return (await retrieveAllProducerDelegationM2MEvents({ limit: 1 }))[0];
 }
 
-export async function retrieveLastEServiceTemplateM2MEvent(): Promise<EServiceTemplateM2MEvent> {
-  return (await retrieveAllEServiceTemplateM2MEvents({ limit: 1 }))[0];
+export async function retrieveEServiceTemplateM2MEventByTemplateIdAndVersionId(
+  eserviceTemplateId: string,
+  eserviceTemplateVersionId: string | undefined
+): Promise<EServiceTemplateM2MEvent | undefined> {
+  const conditions = [
+    eq(eserviceTemplateInM2MEvent.eserviceTemplateId, eserviceTemplateId),
+  ];
+
+  if (eserviceTemplateVersionId === undefined) {
+    conditions.push(
+      isNull(eserviceTemplateInM2MEvent.eserviceTemplateVersionId)
+    );
+  } else {
+    conditions.push(
+      eq(
+        eserviceTemplateInM2MEvent.eserviceTemplateVersionId,
+        eserviceTemplateVersionId
+      )
+    );
+  }
+
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(eserviceTemplateInM2MEvent)
+    .where(and(...conditions))
+    .orderBy(desc(eserviceTemplateInM2MEvent.id))
+    .limit(1);
+
+  if (sqlEvents.length === 0) {
+    return undefined;
+  }
+
+  return EServiceTemplateM2MEvent.parse({
+    ...sqlEvents[0],
+    eserviceTemplateVersionId:
+      sqlEvents[0].eserviceTemplateVersionId ?? undefined,
+  });
 }
 
 export async function retrieveAllEServiceTemplateM2MEvents({
@@ -355,4 +394,22 @@ export async function retrieveAllTenantM2MEvents({
     .orderBy(desc(tenantInM2MEvent.id));
 
   return sqlEvents.map((e) => TenantM2MEvent.parse(e));
+}
+
+async function retrieveAllPurposeTemplateM2MEvents({
+  limit,
+}: {
+  limit: number;
+}): Promise<PurposeTemplateM2MEvent[]> {
+  const sqlEvents = await m2mEventDB
+    .select()
+    .from(purposeTemplateInM2MEvent)
+    .limit(limit)
+    .orderBy(desc(purposeTemplateInM2MEvent.id));
+
+  return sqlEvents.map((e) => PurposeTemplateM2MEvent.parse(e));
+}
+
+export async function retrieveLastPurposeTemplateM2MEvent(): Promise<PurposeTemplateM2MEvent> {
+  return (await retrieveAllPurposeTemplateM2MEvents({ limit: 1 }))[0];
 }

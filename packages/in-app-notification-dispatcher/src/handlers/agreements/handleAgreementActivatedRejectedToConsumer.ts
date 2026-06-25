@@ -10,9 +10,9 @@ import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { retrieveEservice } from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  retrieveEservice,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 
 export async function handleAgreementActivatedRejectedToConsumer(
   agreementV2Msg: AgreementV2 | undefined,
@@ -24,7 +24,7 @@ export async function handleAgreementActivatedRejectedToConsumer(
     throw missingKafkaMessageDataError("agreement", eventType);
   }
   logger.info(
-    `Handle agreement activated/rejected in-app notification for ${eventType} agreement ${agreementV2Msg.id}`
+    `Sending in-app notification for handleAgreementActivatedRejectedToConsumer - entityId: ${agreementV2Msg.id}, eventType: ${eventType}`
   );
 
   const agreement = fromAgreementV2(agreementV2Msg);
@@ -38,7 +38,7 @@ export async function handleAgreementActivatedRejectedToConsumer(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${eventType} agreement ${agreement.id}`
+      `No users with notifications enabled for handleAgreementActivatedRejectedToConsumer - entityId: ${agreement.id}, eventType: ${eventType}`
     );
     return [];
   }

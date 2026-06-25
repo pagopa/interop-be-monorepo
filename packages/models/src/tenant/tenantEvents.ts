@@ -14,6 +14,9 @@ import {
   TenantOnboardDetailsUpdatedV2,
   TenantCertifiedAttributeAssignedV2,
   TenantCertifiedAttributeRevokedV2,
+  TenantCertifiedDiscreteAttributeAssignedV2,
+  TenantCertifiedDiscreteAttributeRevokedV2,
+  TenantCertifiedDiscreteAttributeUpdatedV2,
   TenantDeclaredAttributeAssignedV2,
   TenantDeclaredAttributeRevokedV2,
   TenantVerifiedAttributeAssignedV2,
@@ -30,6 +33,8 @@ import {
   MaintenanceTenantUpdatedV2,
   TenantDelegatedConsumerFeatureAddedV2,
   TenantDelegatedConsumerFeatureRemovedV2,
+  TenantRemoteIdAssignedV2,
+  MaintenanceTenantRemoteIdDeletedV2,
 } from "../gen/v2/tenant/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 import { EventEnvelope } from "../events/events.js";
@@ -81,6 +86,15 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     .with({ type: "TenantCertifiedAttributeRevoked" }, ({ data }) =>
       TenantCertifiedAttributeRevokedV2.toBinary(data)
     )
+    .with({ type: "TenantCertifiedDiscreteAttributeAssigned" }, ({ data }) =>
+      TenantCertifiedDiscreteAttributeAssignedV2.toBinary(data)
+    )
+    .with({ type: "TenantCertifiedDiscreteAttributeRevoked" }, ({ data }) =>
+      TenantCertifiedDiscreteAttributeRevokedV2.toBinary(data)
+    )
+    .with({ type: "TenantCertifiedDiscreteAttributeUpdated" }, ({ data }) =>
+      TenantCertifiedDiscreteAttributeUpdatedV2.toBinary(data)
+    )
     .with({ type: "TenantDeclaredAttributeAssigned" }, ({ data }) =>
       TenantDeclaredAttributeAssignedV2.toBinary(data)
     )
@@ -128,6 +142,12 @@ export function tenantEventToBinaryDataV2(event: TenantEventV2): Uint8Array {
     )
     .with({ type: "TenantDelegatedConsumerFeatureRemoved" }, ({ data }) =>
       TenantDelegatedConsumerFeatureRemovedV2.toBinary(data)
+    )
+    .with({ type: "TenantRemoteIdAssigned" }, ({ data }) =>
+      TenantRemoteIdAssignedV2.toBinary(data)
+    )
+    .with({ type: "MaintenanceTenantRemoteIdDeleted" }, ({ data }) =>
+      MaintenanceTenantRemoteIdDeletedV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -192,6 +212,21 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("TenantCertifiedAttributeRevoked"),
     data: protobufDecoder(TenantCertifiedAttributeRevokedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantCertifiedDiscreteAttributeAssigned"),
+    data: protobufDecoder(TenantCertifiedDiscreteAttributeAssignedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantCertifiedDiscreteAttributeRevoked"),
+    data: protobufDecoder(TenantCertifiedDiscreteAttributeRevokedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantCertifiedDiscreteAttributeUpdated"),
+    data: protobufDecoder(TenantCertifiedDiscreteAttributeUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -272,6 +307,16 @@ export const TenantEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("TenantDelegatedConsumerFeatureRemoved"),
     data: protobufDecoder(TenantDelegatedConsumerFeatureRemovedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("TenantRemoteIdAssigned"),
+    data: protobufDecoder(TenantRemoteIdAssignedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("MaintenanceTenantRemoteIdDeleted"),
+    data: protobufDecoder(MaintenanceTenantRemoteIdDeletedV2),
   }),
 ]);
 

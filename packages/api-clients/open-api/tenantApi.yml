@@ -155,6 +155,127 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDiscreteAttributes/origin/{aOrigin}/externalId/{aExternalId}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tOrigin
+        in: path
+        description: The origin of the tenant
+        required: true
+        schema:
+          type: string
+      - name: tRemoteId
+        in: path
+        description: The remoteId of the tenant
+        required: true
+        schema:
+          type: string
+      - name: aOrigin
+        in: path
+        description: The origin of the attribute certifier
+        required: true
+        schema:
+          type: string
+      - name: aExternalId
+        in: path
+        description: The externalId (code) of the attribute
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - internal
+      operationId: internalAssignCertifiedDiscreteAttribute
+      description: Assigns a Certified discrete attribute with a numeric value using the Tenant's remoteId
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                value:
+                  type: integer
+                  format: int32
+                  description: The discrete numeric value to assign (e.g., the total population)
+              required:
+                - value
+      responses:
+        "204":
+          description: Updated Tenant
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant or Attribute Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Attribute already assigned to Tenant
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    put:
+      tags:
+        - internal
+      operationId: internalUpdateCertifiedDiscreteAttribute
+      description: Updates an already assigned Certified discrete attribute with a new numeric value
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              properties:
+                value:
+                  type: integer
+                  format: int32
+                  description: The new discrete numeric value to assign (e.g., the updated total population)
+              required:
+                - value
+      responses:
+        "204":
+          description: Updated Tenant
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant or Attribute Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    delete:
+      tags:
+        - internal
+      operationId: internalRevokeCertifiedDiscreteAttribute
+      description: Revokes a Certified discrete attribute to the requesting Tenant
+      responses:
+        "204":
+          description: Updated Tenant
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Attribute Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /m2m/tenants:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1062,7 +1183,8 @@ paths:
         - tenant
       summary: Updates a tenant
       operationId: maintenanceTenantUpdate
-      description: Updates the specified tenant by its ID
+      description: >-
+        Updates the specified tenant by its ID. Optional fields (e.g. features) are merged with the existing tenant: if provided, they overwrite the current value; if omitted, the current value is preserved.
       responses:
         "204":
           description: Tenant Updated
@@ -1106,6 +1228,49 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Tenant"
+        "404":
+          description: Tenant not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /maintenance/tenants/{tenantId}/remoteIds/{origin}:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: the tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: origin
+        in: path
+        description: the origin of the remote id to delete
+        required: true
+        schema:
+          type: string
+    delete:
+      tags:
+        - tenant
+      summary: Deletes a remote id from a tenant
+      description: Deletes the remote id with the specified origin from a tenant
+      operationId: maintenanceTenantDeleteRemoteId
+      responses:
+        "204":
+          description: Remote id successfully deleted
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "404":
           description: Tenant not found
           content:
@@ -1335,6 +1500,12 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        remoteIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantRemoteId"
+        selfcareInstitutionType:
+          type: string
       required:
         - id
         - certifier
@@ -1460,6 +1631,8 @@ components:
           $ref: "#/components/schemas/CertifiedTenantAttribute"
         verified:
           $ref: "#/components/schemas/VerifiedTenantAttribute"
+        certifiedDiscrete:
+          $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
     DeclaredTenantAttribute:
       type: object
       additionalProperties: false
@@ -1495,6 +1668,28 @@ components:
       required:
         - id
         - assignmentTimestamp
+    CertifiedDiscreteTenantAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        assignmentTimestamp:
+          type: string
+          format: date-time
+        revocationTimestamp:
+          type: string
+          format: date-time
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - assignmentTimestamp
+        - discreteValue
     VerifiedTenantAttribute:
       type: object
       additionalProperties: false
@@ -1629,6 +1824,21 @@ components:
       required:
         - results
         - totalCount
+    TenantRemoteId:
+      type: object
+      additionalProperties: false
+      properties:
+        origin:
+          type: string
+        value:
+          type: string
+        assignmentTimestamp:
+          type: string
+          format: date-time
+      required:
+        - origin
+        - value
+        - assignmentTimestamp
     InternalTenantSeed:
       description: Tenant Seed model
       type: object
@@ -1644,6 +1854,10 @@ components:
           type: string
           minLength: 1
           maxLength: 1000
+        remoteIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantRemoteId"
       required:
         - externalId
         - certifiedAttributes
@@ -1687,6 +1901,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        selfcareInstitutionType:
+          type: string
       required:
         - externalId
         - selfcareId
@@ -1802,6 +2018,12 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantUnitType"
+        selfcareInstitutionType:
+          type: string
+        features:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantFeature"
       required:
         - selfcareId
         - externalId

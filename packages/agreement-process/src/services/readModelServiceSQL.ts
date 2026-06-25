@@ -1,4 +1,4 @@
-import { ilike, inArray, or, and, eq, SQL, asc } from "drizzle-orm";
+import { inArray, or, and, eq, SQL, asc } from "drizzle-orm";
 import {
   Agreement,
   AttributeId,
@@ -47,7 +47,8 @@ import {
   agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
 import {
-  escapeRegExp,
+  ilikeEscaped,
+  escapeSqlLike,
   createListResult,
   ascLower,
   withTotalCount,
@@ -311,7 +312,7 @@ const getNameFilter = (
   comparisonName: string | undefined
 ): SQL | undefined =>
   comparisonName !== undefined
-    ? ilike(column, `%${escapeRegExp(comparisonName)}%`)
+    ? ilikeEscaped(column, `%${escapeSqlLike(comparisonName)}%`)
     : undefined;
 
 const getAgreementsFilters = <

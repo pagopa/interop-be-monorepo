@@ -9,13 +9,12 @@ import {
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  ProducerKeychainEServiceHandlerParams,
-} from "../handlerCommons.js";
-import { eServiceNotFound } from "../../models/errors.js";
+  eserviceNotFound,
+} from "pagopa-interop-notification-commons";
+import { ProducerKeychainEServiceHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
@@ -34,7 +33,7 @@ export async function handleProducerKeychainEserviceAdded(
   const eservice = await readModelService.getEServiceById(eserviceId);
 
   if (eservice === undefined) {
-    throw eServiceNotFound(eserviceId);
+    throw eserviceNotFound(eserviceId);
   }
 
   const [htmlTemplate, agreements, descriptor, producer] = await Promise.all([
@@ -67,7 +66,7 @@ export async function handleProducerKeychainEserviceAdded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found. Eservice ${eservice.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerKeychainEserviceAdded - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }

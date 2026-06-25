@@ -10,6 +10,7 @@ import { handleTenantCertifiedAttributeAssigned } from "./handleTenantCertifiedA
 import { handleTenantCertifiedAttributeRevoked } from "./handleTenantCertifiedAttributeRevoked.js";
 import { handleTenantVerifiedAttributeAssigned } from "./handleTenantVerifiedAttributeAssigned.js";
 import { handleTenantVerifiedAttributeRevoked } from "./handleTenantVerifiedAttributeRevoked.js";
+import { handleTenantCertifiedAttributeUpdated } from "./handleTenantCertifiedAttributeUpdated.js";
 
 export async function handleTenantEvent(
   params: HandlerParams<typeof TenantEvent>
@@ -28,6 +29,7 @@ export async function handleTenantEvent(
     })
     .with(
       { type: "TenantCertifiedAttributeAssigned" },
+      { type: "TenantCertifiedDiscreteAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedAttributeAssigned({
           tenantV2Msg: tenant,
@@ -40,8 +42,21 @@ export async function handleTenantEvent(
     )
     .with(
       { type: "TenantCertifiedAttributeRevoked" },
+      { type: "TenantCertifiedDiscreteAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedAttributeRevoked({
+          tenantV2Msg: tenant,
+          attributeId: unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "TenantCertifiedDiscreteAttributeUpdated" },
+      ({ data: { tenant, attributeId } }) =>
+        handleTenantCertifiedAttributeUpdated({
           tenantV2Msg: tenant,
           attributeId: unsafeBrandId<AttributeId>(attributeId),
           logger,
@@ -92,12 +107,14 @@ export async function handleTenantEvent(
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted"
         ),
       },
       () => {
         logger.info(
-          `No need to send an email notification for ${decodedMessage.type} message`
+          `Skipping email notification for event ${decodedMessage.type}`
         );
         return [];
       }

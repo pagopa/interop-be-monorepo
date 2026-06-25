@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import {
+  getMockCertifiedDiscreteTenantAttribute,
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
   getMockTenant,
   getMockTenantMail,
+  getMockTenantRemoteId,
   getMockVerifiedTenantAttribute,
 } from "pagopa-interop-commons-test";
 import {
+  CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   DelegationId,
@@ -20,6 +23,7 @@ import {
   tenantFeatureType,
   tenantKind,
   TenantMail,
+  TenantRemoteId,
   TenantRevoker,
   tenantUnitType,
   TenantVerifier,
@@ -28,9 +32,11 @@ import {
 import { describe, it, expect } from "vitest";
 import {
   TenantCertifiedAttributeSQL,
+  TenantCertifiedDiscreteAttributeSQL,
   TenantDeclaredAttributeSQL,
   TenantFeatureSQL,
   TenantMailSQL,
+  TenantRemoteIdSQL,
   TenantSQL,
   TenantVerifiedAttributeRevokerSQL,
   TenantVerifiedAttributeSQL,
@@ -80,6 +86,18 @@ describe("Tenant splitters", () => {
         revokedBy: [tenantRevoker],
         assignmentTimestamp: new Date(),
       };
+      const tenantCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+        {
+          ...getMockCertifiedDiscreteTenantAttribute(),
+          assignmentTimestamp: new Date(),
+          revocationTimestamp: new Date(),
+          discreteValue: 42,
+        };
+      const tenantRemoteId: TenantRemoteId = {
+        ...getMockTenantRemoteId(),
+        origin: "ISTAT",
+        value: "istat-code",
+      };
 
       const tenantFeatureCertifier: TenantFeatureCertifier = {
         type: tenantFeatureType.persistentCertifier,
@@ -112,6 +130,7 @@ describe("Tenant splitters", () => {
         mails: [tenantMail],
         attributes: [
           tenantCertifiedAttribute,
+          tenantCertifiedDiscreteAttribute,
           tenantDeclaredAttribute,
           tenantVerifiedAttribute,
         ],
@@ -120,6 +139,7 @@ describe("Tenant splitters", () => {
           tenantFeatureDelegatedConsumer,
           tenantFeatureDelegatedProducer,
         ],
+        remoteIds: [tenantRemoteId],
       };
 
       const {
@@ -131,6 +151,8 @@ describe("Tenant splitters", () => {
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        certifiedDiscreteAttributesSQL,
+        remoteIdsSQL,
       } = splitTenantIntoObjectsSQL(tenant, 1);
 
       const expectedTenantSQL: TenantSQL = {
@@ -145,6 +167,7 @@ describe("Tenant splitters", () => {
         subUnitType: tenantUnitType.AOO,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
+        selfcareInstitutionType: tenant.selfcareInstitutionType || null,
       };
 
       const expectedTenantMailSQL: TenantMailSQL = {
@@ -166,6 +189,17 @@ describe("Tenant splitters", () => {
         revocationTimestamp:
           tenantCertifiedAttribute.revocationTimestamp!.toISOString(),
       };
+      const expectedTenantCertifiedDiscreteAttributeSQL: TenantCertifiedDiscreteAttributeSQL =
+        {
+          metadataVersion: 1,
+          tenantId: tenant.id,
+          attributeId: tenantCertifiedDiscreteAttribute.id,
+          assignmentTimestamp:
+            tenantCertifiedDiscreteAttribute.assignmentTimestamp.toISOString(),
+          revocationTimestamp:
+            tenantCertifiedDiscreteAttribute.revocationTimestamp!.toISOString(),
+          discreteValue: tenantCertifiedDiscreteAttribute.discreteValue,
+        };
 
       const expectedTenantDeclaredAttributeSQL: TenantDeclaredAttributeSQL = {
         tenantId: tenant.id,
@@ -232,11 +266,21 @@ describe("Tenant splitters", () => {
         availabilityTimestamp:
           tenantFeatureDelegatedProducer.availabilityTimestamp.toISOString(),
       };
+      const expectedTenantRemoteIdSQL: TenantRemoteIdSQL = {
+        tenantId: tenant.id,
+        metadataVersion: 1,
+        origin: tenantRemoteId.origin,
+        value: tenantRemoteId.value,
+        assignmentTimestamp: tenantRemoteId.assignmentTimestamp.toISOString(),
+      };
 
       expect(tenantSQL).toStrictEqual(expectedTenantSQL);
       expect(mailsSQL).toStrictEqual([expectedTenantMailSQL]);
       expect(certifiedAttributesSQL).toStrictEqual([
         expectedTenantCertifiedAttributeSQL,
+      ]);
+      expect(certifiedDiscreteAttributesSQL).toStrictEqual([
+        expectedTenantCertifiedDiscreteAttributeSQL,
       ]);
       expect(declaredAttributesSQL).toStrictEqual([
         expectedTenantDeclaredAttributeSQL,
@@ -257,6 +301,7 @@ describe("Tenant splitters", () => {
           expectedTenantFeatureDelegatedProducerSQL,
         ])
       );
+      expect(remoteIdsSQL).toStrictEqual([expectedTenantRemoteIdSQL]);
     });
     it("should convert undefined into null", () => {
       const tenantMail: TenantMail = {
@@ -363,6 +408,7 @@ describe("Tenant splitters", () => {
         subUnitType: null,
         externalIdOrigin: externalId.origin,
         externalIdValue: externalId.value,
+        selfcareInstitutionType: tenant.selfcareInstitutionType || null,
       };
 
       const expectedTenantMailSQL: TenantMailSQL = {
