@@ -252,8 +252,10 @@ describe("getCatalogEServiceDescriptor", () => {
     },
   } as unknown as DelegationProcessClient;
 
-  const mockEServiceTemplateProcessClient =
-    {} as unknown as eserviceTemplateApi.EServiceTemplateProcessClient;
+  const mockGetEServiceTemplateById = vi.fn();
+  const mockEServiceTemplateProcessClient = {
+    getEServiceTemplateById: mockGetEServiceTemplateById,
+  } as unknown as eserviceTemplateApi.EServiceTemplateProcessClient;
 
   const mockInAppNotificationManagerClient =
     {} as unknown as inAppNotificationApi.InAppNotificationManagerClient;
@@ -423,6 +425,83 @@ describe("getCatalogEServiceDescriptor", () => {
     expect(() =>
       bffApi.EServiceDoc.parse(result.asyncExchangeCallbackInterface)
     ).not.toThrow();
+  });
+
+  it("should not expose templateRef when the eservice is not derived from a template", async () => {
+    const result = await catalogService.getCatalogEServiceDescriptor(
+      eServiceId,
+      mockDescriptorId,
+      bffMockContext
+    );
+
+    expect(result.templateRef).toBeUndefined();
+    expect(mockGetEServiceTemplateById).not.toHaveBeenCalled();
+  });
+
+  it("should expose templateRef when the eservice is derived from a template", async () => {
+    const templateId = generateId();
+    const templateVersionId = generateId();
+    const templateName = "mockTemplateName";
+
+    vi.spyOn(mockCatalogProcessClient, "getEServiceById").mockResolvedValueOnce(
+      {
+        ...eService,
+        templateId,
+        descriptors: [
+          {
+            ...eServiceDescriptor,
+            templateVersionRef: { id: templateVersionId },
+          },
+        ],
+      }
+    );
+    mockGetEServiceTemplateById.mockResolvedValueOnce({
+      id: templateId,
+      name: templateName,
+    });
+
+    const result = await catalogService.getCatalogEServiceDescriptor(
+      eServiceId,
+      mockDescriptorId,
+      bffMockContext
+    );
+
+    expect(result.templateRef).toEqual({
+      templateId,
+      templateName,
+      templateVersionId,
+    });
+    expect(mockGetEServiceTemplateById).toHaveBeenCalledWith({
+      headers: bffMockContext.headers,
+      params: { templateId },
+    });
+    expect(() =>
+      bffApi.EServiceTemplateRef.parse(result.templateRef)
+    ).not.toThrow();
+  });
+
+  it("should throw if the eservice is derived from a template but the descriptor has no templateVersionRef", async () => {
+    const templateId = generateId();
+
+    vi.spyOn(mockCatalogProcessClient, "getEServiceById").mockResolvedValueOnce(
+      {
+        ...eService,
+        templateId,
+        descriptors: [eServiceDescriptor],
+      }
+    );
+    mockGetEServiceTemplateById.mockResolvedValueOnce({
+      id: templateId,
+      name: "mockTemplateName",
+    });
+
+    await expect(
+      catalogService.getCatalogEServiceDescriptor(
+        eServiceId,
+        mockDescriptorId,
+        bffMockContext
+      )
+    ).rejects.toThrowError();
   });
 
   it("should throw eserviceDescriptorNotFound if descriptorId cannot be found in eservice's descriptors", async () => {

@@ -235,6 +235,7 @@ export const getMockBffApiCatalogEServiceDescriptor =
       z.string().datetime({ offset: true }).optional()
     ),
     archivedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    templateRef: generateMock(bffApi.EServiceTemplateRef.optional()),
   });
 
 export const getMockBffApiCreatedEServiceDescriptor = (
