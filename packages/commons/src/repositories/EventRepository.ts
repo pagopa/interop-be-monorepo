@@ -1,4 +1,9 @@
-import { CorrelationId, genericInternalError } from "pagopa-interop-models";
+import {
+  CorrelationId,
+  eventConflictError,
+  genericInternalError,
+  PG_DUPLICATE_KEY_ERROR,
+} from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
 import { ITask } from "pg-promise";
@@ -87,7 +92,17 @@ async function internalCreateEvent<T extends Event>(
       async (t) => await insertEventInTransaction(t, toBinaryData, createEvent)
     );
   } catch (error) {
-    throw genericInternalError(`Error creating event: ${error}`);
+    const e = error as { code?: string };
+
+    if (e?.code && e.code === PG_DUPLICATE_KEY_ERROR) {
+      throw eventConflictError(
+        createEvent.correlationId,
+        createEvent?.streamId,
+        createEvent?.version
+      );
+    }
+
+    throw genericInternalError(`Error creating multiple events: ${error}`);
   }
 }
 
@@ -99,6 +114,7 @@ async function internalCreateEvents<T extends Event>(
   const createdEvents: CreatedEvent[] = [];
   const latestNewVersions = new Map<string, number>();
 
+  let lastProcessedItemIndex = 0;
   try {
     await db.tx(async (t) => {
       for (const createEvent of createEvents) {
@@ -111,6 +127,8 @@ async function internalCreateEvents<T extends Event>(
         createdEvents.push(createdEvent);
 
         latestNewVersions.set(createdEvent.streamId, createdEvent.newVersion);
+
+        lastProcessedItemIndex++;
       }
     });
 
@@ -119,6 +137,17 @@ async function internalCreateEvents<T extends Event>(
       latestNewVersions,
     };
   } catch (error) {
+    const e = error as { code?: string };
+
+    if (e?.code && e.code === PG_DUPLICATE_KEY_ERROR) {
+      const lastEvent = createEvents[lastProcessedItemIndex];
+      throw eventConflictError(
+        lastEvent.correlationId,
+        lastEvent.streamId,
+        lastEvent.version
+      );
+    }
+
     throw genericInternalError(`Error creating multiple events: ${error}`);
   }
 }
