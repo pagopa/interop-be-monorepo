@@ -153,7 +153,6 @@ export const fromEServiceAttributeCertifiedV2 = (
   input.values.map((attribute) => {
     const common: EServiceAttributeCertified = {
       id: unsafeBrandId(attribute.id),
-      explicitAttributeVerification: attribute.explicitAttributeVerification,
       dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
     };
     return attribute.discreteConfig != null
