@@ -1,4 +1,7 @@
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  purposeApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
 import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
   isFeatureFlagEnabled,
@@ -9,9 +12,11 @@ import {
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
+  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   Delegation,
   DelegationId,
   delegationKind,
@@ -27,10 +32,15 @@ import {
   purposeVersionState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
+  Tenant,
   TenantId,
   tenantKind,
   TenantKind,
   RiskAnalysisFormId,
+  PurposeId,
+  ReviewerWorkflow,
+  riskAnalysisSigningState,
+  UserId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -41,10 +51,12 @@ import {
   invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
+  missingSelfcareId,
   purposeFromTemplateCannotBeModified,
   purposeNotInDraftState,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
+  riskAnalysisFormCannotBeUpdated,
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
@@ -56,6 +68,7 @@ import {
   tenantIsNotTheProducer,
   tenantNotAllowed,
   tenantNotFound,
+  userWithoutReviewerPrivileges,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
@@ -818,3 +831,105 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     eservicePersonalData
   );
 }
+
+export function assertRiskAnalysisFormEditableInCurrentReviewMode(
+  purposeId: PurposeId,
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined,
+  reviewerWorkflow: ReviewerWorkflow
+): void {
+  if (
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.draft &&
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.rejected &&
+    riskAnalysisFormInputDiffersFromPrevious(inputForm, existingForm)
+  ) {
+    throw riskAnalysisFormCannotBeUpdated(purposeId);
+  }
+}
+
+function riskAnalysisFormInputDiffersFromPrevious(
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined
+): boolean {
+  // If no existing form and input form exists, adding one counts as a change
+  if (!existingForm && inputForm) {
+    return true;
+  }
+
+  // If input form is undefined, the existing form remains unchanged
+  if (!inputForm) {
+    return false;
+  }
+
+  // Both exist - compare them after normalizing to same structure
+  if (inputForm && existingForm) {
+    if (inputForm.version !== existingForm.version) {
+      return true;
+    }
+
+    // Normalize existing form to match input form structure
+    const existingAnswers = {
+      ...Object.fromEntries(
+        existingForm.singleAnswers.map(({ key, value }) => [
+          key,
+          value ? [value] : [],
+        ])
+      ),
+      ...Object.fromEntries(
+        existingForm.multiAnswers.map(({ key, values }) => [key, values])
+      ),
+    };
+
+    // Sort both structures by key to make comparison order-independent
+    const sortedInputAnswers = Object.fromEntries(
+      Object.entries(inputForm.answers).sort(([a], [b]) => a.localeCompare(b))
+    );
+    const sortedExistingAnswers = Object.fromEntries(
+      Object.entries(existingAnswers).sort(([a], [b]) => a.localeCompare(b))
+    );
+
+    return (
+      JSON.stringify(sortedInputAnswers) !==
+      JSON.stringify(sortedExistingAnswers)
+    );
+  }
+
+  return false;
+}
+
+export function assertTenantHasSelfcareId(
+  tenant: Tenant
+): asserts tenant is Tenant & { selfcareId: string } {
+  if (!tenant.selfcareId) {
+    throw missingSelfcareId(tenant.id);
+  }
+}
+
+export const assertUserSelfcareReviewerPrivileges = async ({
+  selfcareId,
+  consumerId,
+  selfcareV2InstitutionClient,
+  userIdToCheck,
+  correlationId,
+}: {
+  selfcareId: string;
+  consumerId: TenantId;
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
+  userIdToCheck: UserId;
+  correlationId: CorrelationId;
+}): Promise<void> => {
+  const users =
+    await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
+      params: { institutionId: selfcareId },
+      queries: {
+        userId: userIdToCheck,
+        productRoles: userRole.REVIEWER_ROLE,
+      },
+      headers: {
+        "X-Correlation-Id": correlationId,
+      },
+    });
+  if (users.length === 0) {
+    throw userWithoutReviewerPrivileges(consumerId, userIdToCheck);
+  }
+};
