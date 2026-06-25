@@ -239,6 +239,11 @@ export const inAppTemplates = {
   },
   templateStatusChangedToProducer: (templateName: string): string =>
     `È stato sospeso il tuo template "${templateName}".`,
+  newEserviceTemplateVersionToProducer: (
+    eserviceTemplateVersion: string,
+    eserviceTemplateName: string
+  ): string =>
+    `È stata pubblicata una nuova versione ${eserviceTemplateVersion} del tuo template "${eserviceTemplateName}".`,
   newEserviceTemplateVersionToInstantiator: (
     creatorName: string,
     eserviceTemplateVersion: string,
