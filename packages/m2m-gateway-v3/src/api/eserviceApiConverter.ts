@@ -41,6 +41,7 @@ export function toM2MGatewayApiEService(
     personalData: eservice.personalData,
     archivingReason: eservice.archivingReason,
     asyncExchange: eservice.asyncExchange,
+    instanceLabel: eservice.instanceLabel,
   };
 }
 
