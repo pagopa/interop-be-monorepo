@@ -71,10 +71,9 @@ async function processMessage(
     const { fileKind } = signature;
 
     if (!(fileKind in FILE_KIND_CONFIG)) {
-      logger.warn(
-        `Skipping non-processable message: unknown fileKind '${fileKind}' for fileKey ${fileKey} (message ${id})`
+      throw genericInternalError(
+        `Unknown fileKind '${fileKind}' for fileKey ${fileKey} (message ${id})`
       );
-      return;
     }
     const signatureFileKind = FileKindSchema.parse(fileKind);
     const fileRef = await safeStorageService.getFile(fileKey, false, logger);

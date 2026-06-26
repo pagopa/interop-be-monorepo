@@ -409,7 +409,7 @@ describe("sqsMessageHandler", () => {
     expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
   });
 
-  it("should skip (resolve without throwing) and not call other services when the fileKind is unknown", async () => {
+  it("should throw an InternalError (so the message is retried) when the fileKind is unknown", async () => {
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
@@ -448,7 +448,7 @@ describe("sqsMessageHandler", () => {
       fileName: "document.pdf",
     });
 
-    await expect(
+    const rejection = expect(
       sqsMessageHandler(
         sqsMessagePayload,
         mockFileManager as FileManager,
@@ -456,7 +456,10 @@ describe("sqsMessageHandler", () => {
         mockSafeStorageService,
         mockRefreshableToken
       )
-    ).resolves.toBeUndefined();
+    ).rejects;
+
+    await rejection.toThrow(InternalError);
+    await rejection.toThrow(sqsMessageBody.detail.key);
 
     expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
     expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
