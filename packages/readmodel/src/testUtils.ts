@@ -66,6 +66,7 @@ import {
   riskAnalysisReviewerInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
+  purposeVersionSignedDocumentInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
   tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
@@ -732,7 +733,7 @@ export const upsertPurpose = async (
     }
     for (const versionSignedDocumentSQL of versionSignedDocumentsSQL) {
       await tx
-        .insert(purposeVersionDocumentInReadmodelPurpose)
+        .insert(purposeVersionSignedDocumentInReadmodelPurpose)
         .values(versionSignedDocumentSQL);
     }
 
