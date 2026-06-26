@@ -92,7 +92,7 @@ export async function handleEserviceArchivingScheduledToConsumer(
             eserviceName: eservice.name,
             producerName: producer.name,
             archivableOn,
-            ctaLabel: `Visualizza e-service`,
+            ctaLabel: `Accedi a PDND`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),
