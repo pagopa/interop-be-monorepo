@@ -8,6 +8,7 @@ import {
   Delegation,
   DelegationId,
   delegationKind,
+  delegationState,
   generateId,
   TenantId,
 } from "pagopa-interop-models";
@@ -92,11 +93,9 @@ describe("API POST /consumer/delegations/:delegationId/reject test", () => {
       expectedStatus: 404,
     },
     {
-      error: incorrectState(
-        mockDelegation.id,
-        "Rejected",
-        "WaitingForApproval"
-      ),
+      error: incorrectState(mockDelegation.id, "Rejected", [
+        delegationState.waitingForApproval,
+      ]),
       expectedStatus: 409,
     },
   ])(
