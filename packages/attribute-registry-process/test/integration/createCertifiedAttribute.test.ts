@@ -78,7 +78,9 @@ describe("certified attribute creation", () => {
       creationTime: new Date(writtenPayload.attribute!.creationTime),
       origin: getTenantOneCertifierFeature(tenant).certifierId,
     };
-    expect(writtenPayload.attribute).toEqual(toAttributeV1(expectedAttribute));
+    expect(writtenPayload).toEqual({
+      attribute: toAttributeV1(expectedAttribute),
+    });
     expect(createAttributeResponse).toEqual({
       data: expectedAttribute,
       metadata: { version: 0 },

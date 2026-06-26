@@ -15,9 +15,12 @@ import {
   TenantId,
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  getNotificationRecipients,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 import { handleNewEserviceTemplateVersionToInstantiator } from "../src/handlers/eserviceTemplates/handleNewEserviceTemplateVersionToInstantiator.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+
 import {
   addOneEService,
   addOneEServiceTemplate,

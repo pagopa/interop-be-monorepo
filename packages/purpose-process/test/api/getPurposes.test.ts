@@ -40,9 +40,7 @@ describe("API GET /purposes test", () => {
   };
 
   const apiResponse = purposeApi.Purposes.parse({
-    results: purposes.results.map((purpose) =>
-      purposeToApiPurpose(purpose, false)
-    ),
+    results: purposes.results.map((purpose) => purposeToApiPurpose(purpose)),
     totalCount: purposes.totalCount,
   });
 
@@ -67,6 +65,8 @@ describe("API GET /purposes test", () => {
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.REVIEWER_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

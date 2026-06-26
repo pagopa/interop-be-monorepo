@@ -71,6 +71,9 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionInterfaceAdded",
           "EServiceTemplateVersionInterfaceDeleted",
           "EServiceTemplateVersionInterfaceUpdated",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
           "EServiceTemplateVersionPublished",
           "EServiceTemplateVersionQuotasUpdated"
         ),
@@ -89,6 +92,14 @@ export async function handleEServiceTemplateEvent(
 
         await m2mEventWriterService.insertEServiceTemplateM2MEvent(
           toEServiceTemplateM2MEventSQL(m2mEvent)
+        );
+      }
+    )
+    .with(
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
+      () => {
+        logger.info(
+          `Skipping M2M event creation for ${decodedMessage.type} message`
         );
       }
     )

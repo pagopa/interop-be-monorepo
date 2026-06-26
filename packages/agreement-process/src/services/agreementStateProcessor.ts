@@ -1,4 +1,8 @@
-import { CreateEvent, Logger } from "pagopa-interop-commons";
+import {
+  CreateEvent,
+  isFeatureFlagEnabled,
+  Logger,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEvent,
@@ -18,6 +22,7 @@ import { P, match } from "ts-pattern";
 import {
   certifiedAttributesSatisfied,
   declaredAttributesSatisfied,
+  evaluateCertifiedAttributesSuspension,
   verifiedAttributesSatisfied,
 } from "pagopa-interop-agreement-lifecycle";
 import {
@@ -26,6 +31,7 @@ import {
   toCreateEventAgreementSuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByPlatform,
 } from "../model/domain/toEvent.js";
+import { config } from "../config/config.js";
 import { retrieveEService } from "./agreementService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -47,7 +53,14 @@ const nextStateFromDraft = (
   if (agreement.consumerId === agreement.producerId) {
     return active;
   }
-  if (!certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
+  if (
+    !certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
+    })
+  ) {
     return missingCertifiedAttributes;
   }
 
@@ -73,7 +86,14 @@ const nextStateFromPending = (
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant
 ): AgreementState => {
-  if (!certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
+  if (
+    !certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
+    })
+  ) {
     return missingCertifiedAttributes;
   }
   if (!declaredAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
@@ -100,7 +120,12 @@ const nextStateFromActiveOrSuspended = (
     return active;
   }
   if (
-    certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes) &&
+    certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
+    }) &&
     declaredAttributesSatisfied(descriptor.attributes, tenant.attributes) &&
     verifiedAttributesSatisfied(
       agreement.producerId,
@@ -117,7 +142,14 @@ const nextStateFromMissingCertifiedAttributes = (
   descriptor: Descriptor,
   tenant: Tenant | CompactTenant
 ): AgreementState => {
-  if (certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes)) {
+  if (
+    certifiedAttributesSatisfied(descriptor.attributes, tenant.attributes, {
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
+    })
+  ) {
     return draft;
   }
   return missingCertifiedAttributes;
@@ -259,13 +291,26 @@ function updateAgreementState(
     newSuspendedByPlatform !== agreement.data.suspendedByPlatform
   ) {
     return match([finalState, newSuspendedByPlatform])
-      .with([agreementState.suspended, true], () =>
-        toCreateEventAgreementSuspendedByPlatform(
+      .with([agreementState.suspended, true], () => {
+        const attributesFailure = evaluateCertifiedAttributesSuspension(
+          descriptor.attributes,
+          consumer.attributes,
+          {
+            certifiedDiscreteEnabled: isFeatureFlagEnabled(
+              config,
+              "featureFlagAttributeCertifiedDiscrete"
+            ),
+          }
+        );
+
+        return toCreateEventAgreementSuspendedByPlatform(
           updatedAgreement,
           agreement.metadata.version,
-          correlationId
-        )
-      )
+          correlationId,
+          attributesFailure.suspensionReason,
+          attributesFailure.discreteAttributeFailure
+        );
+      })
       .with(
         [agreementState.suspended, false],
         [agreementState.active, P._],

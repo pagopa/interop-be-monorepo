@@ -11,6 +11,7 @@ const {
   HTTP_STATUS_UNAUTHORIZED,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
+  HTTP_STATUS_PAYLOAD_TOO_LARGE,
   HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_IMPLEMENTED,
@@ -310,6 +311,7 @@ export const commonErrorCodes = {
   badDPoPToken: "10028",
   keyTypeNotAllowed: "10029",
   invalidJWKClaim: "10030",
+  contentTooLargeError: "10031",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -486,6 +488,7 @@ export function pdfGenerationError(
 const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
     .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
+    .with("contentTooLargeError", () => HTTP_STATUS_PAYLOAD_TOO_LARGE)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
       "unauthorizedError",
@@ -530,6 +533,18 @@ export function badRequestError(
     detail,
     code: "badRequestError",
     title: "Bad request",
+    errors,
+  });
+}
+
+export function contentTooLargeError(
+  detail: string,
+  errors?: Error[]
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail,
+    code: "contentTooLargeError",
+    title: "Content too large",
     errors,
   });
 }
@@ -590,7 +605,7 @@ export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
 });
 
 export const badDPoPToken: ApiError<CommonErrorCodes> = new ApiError({
-  detail: `Bad DPoP Token format in Authorization header`,
+  detail: `Bad Authorization header: expected scheme "DPoP" with a valid token`,
   code: "badDPoPToken",
   title: "Bad DPoP Token format",
 });

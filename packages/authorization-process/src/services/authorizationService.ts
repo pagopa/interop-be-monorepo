@@ -101,6 +101,7 @@ import {
 } from "../model/domain/apiConverter.js";
 import {
   GetClientsFilters,
+  ProducerKeychainEServiceFlags,
   GetProducerKeychainsFilters,
 } from "./readModelService.js";
 import {
@@ -118,6 +119,7 @@ import {
   assertClientIsAPI,
   assertAdminInClient,
   assertTenantHasSelfcareId,
+  assertMembersAreUnique,
 } from "./validators.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -265,6 +267,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      assertMembersAreUnique(clientSeed.members);
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -299,6 +304,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      assertMembersAreUnique(clientSeed.members);
+
       const client: Client = {
         id: generateId(),
         consumerId: authData.organizationId,
@@ -1004,6 +1012,8 @@ export function authorizationServiceBuilder(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
 
+      assertMembersAreUnique(producerKeychainSeed.members);
+
       const producerKeychain: ProducerKeychain = {
         id: generateId(),
         producerId: authData.organizationId,
@@ -1086,6 +1096,27 @@ export function authorizationServiceBuilder(
           offset,
           limit,
         }
+      );
+    },
+    async getProducerKeychainEServiceFlags(
+      {
+        producerId,
+        eserviceId,
+      }: {
+        producerId: TenantId;
+        eserviceId: EServiceId;
+      },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ProducerKeychainEServiceFlags> {
+      logger.info(
+        `Retrieving producer keychain flags for producerId ${producerId} and eserviceId ${eserviceId}`
+      );
+
+      return await readModelService.getProducerKeychainEServiceFlags(
+        producerId,
+        eserviceId
       );
     },
     async getProducerKeychainById(

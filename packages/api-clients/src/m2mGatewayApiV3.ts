@@ -202,6 +202,12 @@ export type GetPurposeTemplateEServicesQueryParams = QueryParametersByAlias<
   "getPurposeTemplateEServices"
 >;
 
+export type GetPurposeTemplateEServiceTemplatesQueryParams =
+  QueryParametersByAlias<
+    PurposeTemplateApi,
+    "getPurposeTemplateEServiceTemplates"
+  >;
+
 export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
   QueryParametersByAlias<
     PurposeTemplateApi,
@@ -211,6 +217,11 @@ export type GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =
 export type GetEventManagerPurposesQueryParams = QueryParametersByAlias<
   EventManagerApi,
   "getPurposeEvents"
+>;
+
+export type GetEventManagerPurposeTemplatesQueryParams = QueryParametersByAlias<
+  EventManagerApi,
+  "getPurposeTemplateEvents"
 >;
 
 export type GetEventManagerTenantEventsQueryParams = QueryParametersByAlias<

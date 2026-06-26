@@ -7,8 +7,8 @@ import {
   retrieveEservice,
   retrievePurpose,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 
 export async function handleClientAddedRemovedToProducer(
   purposeId: string,

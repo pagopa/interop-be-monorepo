@@ -12,10 +12,10 @@ import {
 import { match, P } from "ts-pattern";
 import {
   getInteropHeaders,
-  getIpaCode,
   Logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
+import { getIpaCode } from "../pdf-generator/pdfGenerator.js";
 import { purposeApi } from "pagopa-interop-api-clients";
 import {
   retrieveEService,
@@ -164,7 +164,14 @@ export async function handlePurposeMessageV2(
           "PurposeArchived",
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisDocumentGenerated",
-          "RiskAnalysisSignedDocumentGenerated"
+          "RiskAnalysisSignedDocumentGenerated",
+          "MaintenancePurposeRiskAnalysisSetTenantKind",
+          "PurposeRiskAnalysisWorkflowCreated",
+          "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => Promise.resolve()

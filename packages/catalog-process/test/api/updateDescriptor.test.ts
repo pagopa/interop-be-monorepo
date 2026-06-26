@@ -22,6 +22,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   eServiceDescriptorNotFound,
   eServiceNotFound,
   inconsistentDailyCalls,
@@ -124,6 +125,10 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/update test", 
     },
     {
       error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

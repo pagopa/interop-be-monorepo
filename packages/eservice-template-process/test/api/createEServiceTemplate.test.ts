@@ -16,6 +16,7 @@ import {
   eserviceTemplateDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
+  asyncExchangeReceiveTemplateNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /templates", () => {
@@ -132,6 +133,10 @@ describe("API POST /templates", () => {
     },
     {
       error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: asyncExchangeReceiveTemplateNotAllowed(),
       expectedStatus: 400,
     },
   ])(

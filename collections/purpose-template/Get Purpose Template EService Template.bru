@@ -1,0 +1,21 @@
+meta {
+  name: Get Purpose Template EService Template
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{host-purpose-template}}/purposeTemplates/:purposeTemplateId/eserviceTemplates/:eserviceTemplateId
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeTemplateId: {{purposeTemplateId}}
+  eserviceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
