@@ -271,7 +271,7 @@ export const sqsMessageHandler = async (
 
     if (!parsed.success) {
       logInstance.warn(
-        `Skipping non-processable message: invalid SQS payload: ${parsed.error.message}`
+        `Skipping non-processable message: invalid SQS payload: ${parsed.error.message}. Body: ${messagePayload.Body}`
       );
       return;
     }
