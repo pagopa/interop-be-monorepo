@@ -14,6 +14,7 @@ import {
   EServiceId,
   delegationKind,
   delegationState,
+  agreementState,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 import { CompactEService } from "../../src/model/domain/models.js";
@@ -180,6 +181,7 @@ describe("get agreements eservices", () => {
         eserviceName: undefined,
         consumerIds: [],
         producerIds: [],
+        agreementStates: [],
       },
       10,
       0,
@@ -196,6 +198,7 @@ describe("get agreements eservices", () => {
         eserviceName: undefined,
         consumerIds: [],
         producerIds: [],
+        agreementStates: [],
       },
       10,
       0,
@@ -212,6 +215,7 @@ describe("get agreements eservices", () => {
         eserviceName: undefined,
         consumerIds: [],
         producerIds: [],
+        agreementStates: [],
       },
       10,
       0,
@@ -231,6 +235,7 @@ describe("get agreements eservices", () => {
           eserviceName: undefined,
           consumerIds: [],
           producerIds: [],
+          agreementStates: [],
         },
         10,
         0,
@@ -249,6 +254,7 @@ describe("get agreements eservices", () => {
           eserviceName: undefined,
           consumerIds: [],
           producerIds: [],
+          agreementStates: [],
         },
         10,
         0,
@@ -265,6 +271,7 @@ describe("get agreements eservices", () => {
           eserviceName: undefined,
           consumerIds: [],
           producerIds: [],
+          agreementStates: [],
         },
         10,
         0,
@@ -282,6 +289,7 @@ describe("get agreements eservices", () => {
         eserviceName: "Foo",
         consumerIds: [],
         producerIds: [],
+        agreementStates: [],
       },
       10,
       0,
@@ -300,6 +308,7 @@ describe("get agreements eservices", () => {
         eserviceName: undefined,
         consumerIds: [delegateConsumer1.id, tenant2.id],
         producerIds: [],
+        agreementStates: [],
       },
       10,
       0,
@@ -318,6 +327,7 @@ describe("get agreements eservices", () => {
         eserviceName: undefined,
         producerIds: [tenant1.id],
         consumerIds: [],
+        agreementStates: [],
       },
       10,
       0,
@@ -336,6 +346,7 @@ describe("get agreements eservices", () => {
         eserviceName: "Foo",
         consumerIds: [tenant2.id],
         producerIds: [tenant1.id],
+        agreementStates: [],
       },
       10,
       0,
@@ -354,6 +365,7 @@ describe("get agreements eservices", () => {
         eserviceName: undefined,
         consumerIds: [],
         producerIds: [],
+        agreementStates: [],
       },
       2,
       0,
@@ -372,6 +384,7 @@ describe("get agreements eservices", () => {
         eserviceName: undefined,
         consumerIds: [],
         producerIds: [],
+        agreementStates: [],
       },
       2,
       1,
@@ -390,6 +403,7 @@ describe("get agreements eservices", () => {
         eserviceName: "Not existing name",
         consumerIds: [],
         producerIds: [],
+        agreementStates: [],
       },
       10,
       0,
@@ -405,6 +419,7 @@ describe("get agreements eservices", () => {
         eserviceName: undefined,
         producerIds: [delegateProducer1.id],
         consumerIds: [],
+        agreementStates: [],
       },
       10,
       0,
@@ -423,6 +438,7 @@ describe("get agreements eservices", () => {
         eserviceName: undefined,
         producerIds: [],
         consumerIds: [delegateConsumer1.id],
+        agreementStates: [],
       },
       10,
       0,
@@ -432,6 +448,128 @@ describe("get agreements eservices", () => {
     expectGenericSinglePageListResult(
       eservices,
       [eservice3, eservice4].map(toCompactEService)
+    );
+  });
+});
+
+describe("get agreements eservices with agreementStates filter", () => {
+  const toCompactEService = (eservice: EService): CompactEService => ({
+    id: eservice.id,
+    name: eservice.name,
+  });
+
+  it("should not return eservices whose agreements are all in a state excluded by the filter", async () => {
+    const producer = getMockTenant();
+    const consumer = getMockTenant();
+
+    const eserviceWithOnlyDraft = {
+      ...getMockEService(generateId<EServiceId>(), producer.id),
+      name: "EService Draft Only",
+    };
+    const eserviceWithActive = {
+      ...getMockEService(generateId<EServiceId>(), producer.id),
+      name: "EService Active",
+    };
+
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneEService(eserviceWithOnlyDraft);
+    await addOneEService(eserviceWithActive);
+
+    await addOneAgreement({
+      ...getMockAgreement(eserviceWithOnlyDraft.id),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      state: agreementState.draft,
+    });
+    await addOneAgreement({
+      ...getMockAgreement(eserviceWithActive.id),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      state: agreementState.active,
+    });
+
+    const nonDraftStates = [
+      agreementState.active,
+      agreementState.archived,
+      agreementState.pending,
+      agreementState.suspended,
+      agreementState.rejected,
+    ];
+
+    const filtered = await agreementService.getAgreementsEServices(
+      {
+        eserviceName: undefined,
+        consumerIds: [],
+        producerIds: [producer.id],
+        agreementStates: nonDraftStates,
+      },
+      10,
+      0,
+      getMockContext({ authData: getMockAuthData(producer.id) })
+    );
+    expectGenericSinglePageListResult(
+      filtered,
+      [eserviceWithActive].map(toCompactEService)
+    );
+
+    const unfiltered = await agreementService.getAgreementsEServices(
+      {
+        eserviceName: undefined,
+        consumerIds: [],
+        producerIds: [producer.id],
+        agreementStates: [],
+      },
+      10,
+      0,
+      getMockContext({ authData: getMockAuthData(producer.id) })
+    );
+    expectGenericSinglePageListResult(
+      unfiltered,
+      [eserviceWithActive, eserviceWithOnlyDraft].map(toCompactEService)
+    );
+  });
+
+  it("should return an eservice when at least one of its agreements matches the filter", async () => {
+    const producer = getMockTenant();
+    const consumer = getMockTenant();
+
+    const eservice = {
+      ...getMockEService(generateId<EServiceId>(), producer.id),
+      name: "EService Mixed States",
+    };
+
+    await addOneTenant(producer);
+    await addOneTenant(consumer);
+    await addOneEService(eservice);
+
+    await addOneAgreement({
+      ...getMockAgreement(eservice.id),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      state: agreementState.draft,
+    });
+    await addOneAgreement({
+      ...getMockAgreement(eservice.id),
+      producerId: producer.id,
+      consumerId: consumer.id,
+      state: agreementState.active,
+    });
+
+    const result = await agreementService.getAgreementsEServices(
+      {
+        eserviceName: undefined,
+        consumerIds: [],
+        producerIds: [producer.id],
+        agreementStates: [agreementState.active],
+      },
+      10,
+      0,
+      getMockContext({ authData: getMockAuthData(producer.id) })
+    );
+    expectGenericSinglePageListResult(
+      result,
+      [eservice].map(toCompactEService)
     );
   });
 });

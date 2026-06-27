@@ -65,6 +65,7 @@ type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
   consumerIds: TenantId[];
   producerIds: TenantId[];
+  agreementStates: AgreementState[];
 };
 
 async function filterAgreementsUpgradeable(
@@ -739,7 +740,8 @@ export function readModelServiceBuilderSQL(
       limit: number,
       offset: number
     ): Promise<ListResult<CompactEService>> {
-      const { consumerIds, producerIds, eserviceName } = filters;
+      const { consumerIds, producerIds, eserviceName, agreementStates } =
+        filters;
       const withDelegationFilter = true;
 
       const resultSet = await addDelegationJoins(
@@ -763,7 +765,8 @@ export function readModelServiceBuilderSQL(
               getNameFilter(eserviceInReadmodelCatalog.name, eserviceName),
               getProducerIdsFilter(producerIds, withDelegationFilter),
               getConsumerIdsFilter(consumerIds, false),
-              getVisibilityFilter(requesterId)
+              getVisibilityFilter(requesterId),
+              getAgreementStatesFilter(agreementStates)
             )
           )
           .groupBy(eserviceInReadmodelCatalog.id)
