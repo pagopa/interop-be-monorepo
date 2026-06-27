@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   FileManager,
+  validateRestInterfaceRoundTrip,
   verifyAndCreateDocument,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -598,6 +599,15 @@ export function eserviceTemplateServiceBuilder(
       retrieveEServiceTemplateVersion(eserviceTemplate, templateVersionId);
 
       const documentId = randomUUID();
+
+      if (
+        doc.kind === eserviceTemplateApi.EServiceDocumentKind.enum.INTERFACE
+      ) {
+        await validateRestInterfaceRoundTrip(doc.doc, {
+          id: eserviceTemplate.id,
+          isEserviceTemplate: true,
+        });
+      }
 
       await verifyAndCreateDocument(
         fileManager,
