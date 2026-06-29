@@ -129,7 +129,7 @@ export const inAppTemplates = {
       archivableOn
     )}${
       newVersionAvailable
-        ? ". È disponibile una nuova versione per continuare a scambiare dati con l'e-service"
+        ? ". È disponibile una nuova versione"
         : ""
     }.`,
   eserviceArchivingDescriptorSuspendedToProducer: (
@@ -157,7 +157,7 @@ export const inAppTemplates = {
   ): string =>
     `La versione ${version ?? ""} dell'e-service ${
       eserviceName
-    } è di nuovo attiva. ${isEserviceArchiving ? "L'e-service sarà archiviato" : "Sarà archiviata"} il giorno ${dateAtRomeZone(archivableOn)}.`,
+    } è di nuovo attiva. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}${isEserviceArchiving ? "" : ". È disponibile una nuova versione"}.`,
   eserviceArchivingDescriptorActivatedToProducer: (
     eserviceName: string,
     version: string,
@@ -485,11 +485,11 @@ export const inAppTemplates = {
     eserviceName: string,
     descriptorVersion: string
   ): string =>
-    `La versione ${descriptorVersion} dell'e-service "${eserviceName}" non è più in fase di archiviazione.`,
+    `La versione ${descriptorVersion} dell'e-service ${eserviceName} non è più in fase di archiviazione.`,
   eserviceArchivingCanceledEserviceToConsumer: (eserviceName: string): string =>
     `L'e-service ${eserviceName} non è più in fase di archiviazione.`,
   eserviceArchivingCanceledEserviceToProducer: (eserviceName: string): string =>
-    `L'e-service "${eserviceName}" non è più in fase di archiviazione.`,
+    `L'e-service ${eserviceName} non è più in fase di archiviazione.`,
   asyncEserviceWithoutKeychainToProducer: (eserviceName: string): string =>
     `All'e-service asincrono "${eserviceName}" non è collegato nessun portachiavi. Per scambiare i dati in modalità asincrona con i fruitori, è necessario collegare almeno un portachiavi con una chiave.`,
   producerKeychainNoKeysForAsyncEserviceToProducerUsers: (
