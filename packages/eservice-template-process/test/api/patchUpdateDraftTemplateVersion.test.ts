@@ -47,24 +47,24 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
   );
 
   const versionSeed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed =
-  {
-    voucherLifespan: 1000,
-    dailyCallsPerConsumer: 100,
-    dailyCallsTotal: 200,
-    agreementApprovalPolicy: "AUTOMATIC",
-    description: "new description",
-    attributes: {
-      certified: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-      ],
-      declared: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-      ],
-      verified: [
-        [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
-      ],
-    },
-  };
+    {
+      voucherLifespan: 1000,
+      dailyCallsPerConsumer: 100,
+      dailyCallsTotal: 200,
+      agreementApprovalPolicy: "AUTOMATIC",
+      description: "new description",
+      attributes: {
+        certified: [
+          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        ],
+        declared: [
+          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        ],
+        verified: [
+          [{ id: getMockAttribute().id, explicitAttributeVerification: false }],
+        ],
+      },
+    };
 
   eserviceTemplateService.patchUpdateDraftTemplateVersion = vi
     .fn()

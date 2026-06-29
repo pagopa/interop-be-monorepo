@@ -312,15 +312,15 @@ async function parseAndCheckAttributesOfKind(
   const attributes =
     kind === attributeKind.certified
       ? [
-        ...(await readModelService.getAttributesByIds(
-          attributesSeedIds,
-          attributeKind.certified
-        )),
-        ...(await readModelService.getAttributesByIds(
-          attributesSeedIds,
-          attributeKind.certifiedDiscrete
-        )),
-      ]
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
       : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
@@ -593,16 +593,16 @@ export function eserviceTemplateServiceBuilder(
         versions: eserviceTemplate.data.versions.map((v) =>
           v.id === eserviceTemplateVersionId
             ? {
-              ...v,
-              state: eserviceTemplateVersionState.published,
-              publishedAt: new Date(),
-            }
+                ...v,
+                state: eserviceTemplateVersionState.published,
+                publishedAt: new Date(),
+              }
             : eserviceTemplateVersion.version > v.version
               ? {
-                ...v,
-                state: eserviceTemplateVersionState.deprecated,
-                deprecatedAt: new Date(),
-              }
+                  ...v,
+                  state: eserviceTemplateVersionState.deprecated,
+                  deprecatedAt: new Date(),
+                }
               : v
         ),
       };
@@ -861,7 +861,7 @@ export function eserviceTemplateServiceBuilder(
 
       if (
         eserviceTemplateVersion.state !==
-        eserviceTemplateVersionState.published &&
+          eserviceTemplateVersionState.published &&
         eserviceTemplateVersion.state !== eserviceTemplateVersionState.suspended
       ) {
         throw notValidEServiceTemplateVersionState(
@@ -1416,8 +1416,8 @@ export function eserviceTemplateServiceBuilder(
         dailyCallsTotal: seed.version.dailyCallsTotal,
         agreementApprovalPolicy: seed.version.agreementApprovalPolicy
           ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.version.agreementApprovalPolicy
-          )
+              seed.version.agreementApprovalPolicy
+            )
           : undefined,
         publishedAt: undefined,
         suspendedAt: undefined,
@@ -1548,8 +1548,8 @@ export function eserviceTemplateServiceBuilder(
         dailyCallsTotal: seed.dailyCallsTotal,
         agreementApprovalPolicy: seed.agreementApprovalPolicy
           ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          )
+              seed.agreementApprovalPolicy
+            )
           : undefined,
         publishedAt: undefined,
         suspendedAt: undefined,
@@ -1689,8 +1689,10 @@ export function eserviceTemplateServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Document>> {
       logger.info(
-        `Creating EService Document ${document.documentId.toString()} of kind ${document.kind
-        }, name ${document.fileName}, path ${document.filePath
+        `Creating EService Document ${document.documentId.toString()} of kind ${
+          document.kind
+        }, name ${document.fileName}, path ${
+          document.filePath
         } for EService Template ${eserviceTemplateId} and Version ${eserviceTemplateVersionId}`
       );
 
@@ -1777,29 +1779,20 @@ export function eserviceTemplateServiceBuilder(
           (v: EServiceTemplateVersion) =>
             v.id === eserviceTemplateVersionId
               ? {
-                ...v,
-                interface: isInterface ? newDocument : v.interface,
-                docs: isDocument ? [...v.docs, newDocument] : v.docs,
-                asyncExchangeCallbackInterface:
-                  isAsyncExchangeCallbackInterface
-                    ? newDocument
-                    : v.asyncExchangeCallbackInterface,
-              }
+                  ...v,
+                  interface: isInterface ? newDocument : v.interface,
+                  docs: isDocument ? [...v.docs, newDocument] : v.docs,
+                  asyncExchangeCallbackInterface:
+                    isAsyncExchangeCallbackInterface
+                      ? newDocument
+                      : v.asyncExchangeCallbackInterface,
+                }
               : v
         ),
       };
 
       const event = isInterface
         ? toCreateEventEServiceTemplateVersionInterfaceAdded(
-          eserviceTemplateId,
-          eserviceTemplate.metadata.version,
-          eserviceTemplateVersionId,
-          unsafeBrandId(document.documentId),
-          updatedEServiceTemplate,
-          correlationId
-        )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded(
             eserviceTemplateId,
             eserviceTemplate.metadata.version,
             eserviceTemplateVersionId,
@@ -1807,14 +1800,23 @@ export function eserviceTemplateServiceBuilder(
             updatedEServiceTemplate,
             correlationId
           )
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              unsafeBrandId(document.documentId),
+              updatedEServiceTemplate,
+              correlationId
+            )
           : toCreateEventEServiceTemplateVersionDocumentAdded(
-            eserviceTemplateId,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            unsafeBrandId(document.documentId),
-            updatedEServiceTemplate,
-            correlationId
-          );
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              unsafeBrandId(document.documentId),
+              updatedEServiceTemplate,
+              correlationId
+            );
 
       const createdEvent = await repository.createEvent(event);
 
@@ -1925,7 +1927,7 @@ export function eserviceTemplateServiceBuilder(
           (d) =>
             d.id !== documentId &&
             d.prettyName.toLowerCase() ===
-            apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
+              apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
         )
       ) {
         throw documentPrettyNameDuplicate(
@@ -1945,31 +1947,22 @@ export function eserviceTemplateServiceBuilder(
           (v: EServiceTemplateVersion) =>
             v.id === eserviceTemplateVersionId
               ? {
-                ...v,
-                interface: isInterface ? updatedDocument : v.interface,
-                docs: v.docs.map((doc) =>
-                  doc.id === documentId ? updatedDocument : doc
-                ),
-                asyncExchangeCallbackInterface:
-                  isAsyncExchangeCallbackInterface
-                    ? updatedDocument
-                    : v.asyncExchangeCallbackInterface,
-              }
+                  ...v,
+                  interface: isInterface ? updatedDocument : v.interface,
+                  docs: v.docs.map((doc) =>
+                    doc.id === documentId ? updatedDocument : doc
+                  ),
+                  asyncExchangeCallbackInterface:
+                    isAsyncExchangeCallbackInterface
+                      ? updatedDocument
+                      : v.asyncExchangeCallbackInterface,
+                }
               : v
         ),
       };
 
       const event = isInterface
         ? toCreateEventEServiceTemplateVersionInterfaceUpdated(
-          eserviceTemplateId,
-          eserviceTemplate.metadata.version,
-          eserviceTemplateVersionId,
-          documentId,
-          newEserviceTemplate,
-          correlationId
-        )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated(
             eserviceTemplateId,
             eserviceTemplate.metadata.version,
             eserviceTemplateVersionId,
@@ -1977,14 +1970,23 @@ export function eserviceTemplateServiceBuilder(
             newEserviceTemplate,
             correlationId
           )
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated(
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              newEserviceTemplate,
+              correlationId
+            )
           : toCreateEventEServiceTemplateVersionDocumentUpdated(
-            eserviceTemplateId,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            documentId,
-            newEserviceTemplate,
-            correlationId
-          );
+              eserviceTemplateId,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              newEserviceTemplate,
+              correlationId
+            );
 
       await repository.createEvent(event);
       return updatedDocument;
@@ -2057,15 +2059,6 @@ export function eserviceTemplateServiceBuilder(
 
       const event = isInterface
         ? toCreateEventEServiceTemplateVersionInterfaceDeleted(
-          eserviceTemplate.data.id,
-          eserviceTemplate.metadata.version,
-          eserviceTemplateVersionId,
-          documentId,
-          updatedEServiceTemplate,
-          correlationId
-        )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted(
             eserviceTemplate.data.id,
             eserviceTemplate.metadata.version,
             eserviceTemplateVersionId,
@@ -2073,14 +2066,23 @@ export function eserviceTemplateServiceBuilder(
             updatedEServiceTemplate,
             correlationId
           )
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted(
+              eserviceTemplate.data.id,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              updatedEServiceTemplate,
+              correlationId
+            )
           : toCreateEventEServiceTemplateVersionDocumentDeleted(
-            eserviceTemplate.data.id,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            documentId,
-            updatedEServiceTemplate,
-            correlationId
-          );
+              eserviceTemplate.data.id,
+              eserviceTemplate.metadata.version,
+              eserviceTemplateVersionId,
+              documentId,
+              updatedEServiceTemplate,
+              correlationId
+            );
 
       const createdEvent = await repository.createEvent(event);
 
@@ -2235,13 +2237,13 @@ async function updateDraftEServiceTemplate(
   eserviceTemplateId: EServiceTemplateId,
   typeAndSeed:
     | {
-      type: "post";
-      seed: eserviceTemplateApi.UpdateEServiceTemplateSeed;
-    }
+        type: "post";
+        seed: eserviceTemplateApi.UpdateEServiceTemplateSeed;
+      }
     | {
-      type: "patch";
-      seed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed;
-    },
+        type: "patch";
+        seed: eserviceTemplateApi.PatchUpdateEServiceTemplateSeed;
+      },
   readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
@@ -2352,10 +2354,10 @@ async function updateDraftEServiceTemplate(
     riskAnalysis: checkedRiskAnalysis,
     versions: interfaceHasToBeDeleted
       ? eserviceTemplate.data.versions.map((d) => ({
-        ...d,
-        interface: undefined,
-        asyncExchangeCallbackInterface: undefined,
-      }))
+          ...d,
+          interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
+        }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
     ...(isFeatureFlagEnabled(config, "featureFlagAsyncExchange")
@@ -2391,13 +2393,13 @@ async function updateDraftEServiceTemplateVersion(
   eserviceTemplateVersionId: EServiceTemplateVersionId,
   updateSeed:
     | {
-      type: "post";
-      seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed;
-    }
+        type: "post";
+        seed: eserviceTemplateApi.UpdateEServiceTemplateVersionSeed;
+      }
     | {
-      type: "patch";
-      seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed;
-    },
+        type: "patch";
+        seed: eserviceTemplateApi.PatchUpdateEServiceTemplateVersionSeed;
+      },
   readModelService: ReadModelServiceSQL,
   repository: ReturnType<typeof eventRepository<EServiceTemplateEvent>>,
   {
@@ -2474,8 +2476,8 @@ async function updateDraftEServiceTemplateVersion(
     .with({ type: "post" }, ({ seed }) =>
       seed.agreementApprovalPolicy
         ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-          seed.agreementApprovalPolicy
-        )
+            seed.agreementApprovalPolicy
+          )
         : undefined
     )
     .with({ type: "patch" }, ({ seed }) =>
@@ -2484,8 +2486,8 @@ async function updateDraftEServiceTemplateVersion(
         : seed.agreementApprovalPolicy === undefined
           ? eserviceTemplateVersion.agreementApprovalPolicy
           : apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            seed.agreementApprovalPolicy
-          )
+              seed.agreementApprovalPolicy
+            )
     )
     .exhaustive();
 
@@ -2496,17 +2498,17 @@ async function updateDraftEServiceTemplateVersion(
 
   const parsedAttributes = attributes
     ? await parseAndCheckAttributes(
-      {
-        declared:
-          attributes.declared ?? eserviceTemplateVersion.attributes.declared,
-        certified:
-          attributes.certified ??
-          eserviceTemplateVersion.attributes.certified,
-        verified:
-          attributes.verified ?? eserviceTemplateVersion.attributes.verified,
-      },
-      readModelService
-    )
+        {
+          declared:
+            attributes.declared ?? eserviceTemplateVersion.attributes.declared,
+          certified:
+            attributes.certified ??
+            eserviceTemplateVersion.attributes.certified,
+          verified:
+            attributes.verified ?? eserviceTemplateVersion.attributes.verified,
+        },
+        readModelService
+      )
     : eserviceTemplateVersion.attributes;
 
   if (attributes) {
@@ -2519,19 +2521,19 @@ async function updateDraftEServiceTemplateVersion(
 
   const updatedAsyncExchangeProperties = asyncExchangeEnabled
     ? match(updateSeed)
-      .with(
-        { type: "post" },
-        ({ seed }) =>
-          seed.asyncExchangeProperties ??
-          eserviceTemplateVersion.asyncExchangeProperties
-      )
-      .with({ type: "patch" }, ({ seed }) =>
-        resolvePatchValue(
-          seed.asyncExchangeProperties,
-          eserviceTemplateVersion.asyncExchangeProperties
+        .with(
+          { type: "post" },
+          ({ seed }) =>
+            seed.asyncExchangeProperties ??
+            eserviceTemplateVersion.asyncExchangeProperties
         )
-      )
-      .exhaustive()
+        .with({ type: "patch" }, ({ seed }) =>
+          resolvePatchValue(
+            seed.asyncExchangeProperties,
+            eserviceTemplateVersion.asyncExchangeProperties
+          )
+        )
+        .exhaustive()
     : eserviceTemplateVersion.asyncExchangeProperties;
 
   if (
