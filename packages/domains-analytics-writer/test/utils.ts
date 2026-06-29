@@ -58,6 +58,7 @@ export const catalogTables: CatalogDbTable[] = [
   CatalogDbTable.eservice_descriptor_attribute,
   CatalogDbTable.eservice_risk_analysis,
   CatalogDbTable.eservice_risk_analysis_answer,
+  CatalogDbTable.eservice_descriptor_archiving_schedule,
   CatalogDbTable.eservice_descriptor_async_exchange_properties,
 ];
 
@@ -96,6 +97,8 @@ export const tenantTables: TenantDbTable[] = [
   TenantDbTable.tenant_verified_attribute,
   TenantDbTable.tenant_verified_attribute_revoker,
   TenantDbTable.tenant_verified_attribute_verifier,
+  TenantDbTable.tenant_remote_id,
+  TenantDbTable.tenant_certified_discrete_attribute,
 ];
 
 export const eserviceTemplateTables: EserviceTemplateDbTable[] = [

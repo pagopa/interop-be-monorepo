@@ -51,6 +51,7 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/verifier
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   const unauthorizedRoles: AuthRole[] = [

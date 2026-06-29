@@ -182,7 +182,7 @@ const enhanceProducerEService = (
   eserviceTemplates: eserviceTemplateApi.EServiceTemplate[],
   hasNotifications: boolean
 ): bffApi.ProducerEService => {
-  const activeDescriptor = getLatestActiveDescriptor(eservice);
+  const activeDescriptor = getLatestActiveDescriptor(eservice, true);
   const draftDescriptor = eservice.descriptors.find(isInvalidDescriptor);
 
   const isRequesterDelegateProducer = requesterId !== eservice.producerId;
@@ -538,6 +538,7 @@ export function catalogServiceBuilder(
                 },
               }
             : undefined,
+        archivingSchedule: descriptor.archivingSchedule,
       };
     },
     getProducerEServiceDetails: async (
@@ -735,6 +736,19 @@ export function catalogServiceBuilder(
     ): Promise<void> => {
       logger.info(`Deleting EService ${eServiceId}`);
       await catalogProcessClient.deleteEService(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
+    scheduleArchiveEService: async (
+      eServiceId: EServiceId,
+      archiveReason: bffApi.EServiceArchivingReasonSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(`Scheduling archive for EService ${eServiceId}`);
+      await catalogProcessClient.scheduleEServiceArchiving(archiveReason, {
         headers,
         params: {
           eServiceId,
@@ -1006,6 +1020,7 @@ export function catalogServiceBuilder(
           hasProducerKeychain,
           hasProducerKeychainKeys
         ),
+        archivingSchedule: descriptor.archivingSchedule,
       };
     },
     getEServiceConsumers: async (
@@ -1367,6 +1382,56 @@ export function catalogServiceBuilder(
         params: {
           eServiceId,
           descriptorId,
+        },
+      });
+    },
+
+    scheduleArchiveEserviceDescriptor: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Scheduling descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.scheduleEServiceDescriptorArchiving(
+        undefined,
+        {
+          headers,
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+        }
+      );
+    },
+
+    cancelEServiceDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Schedule interruption for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.cancelEServiceDescriptorArchiving(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+
+    cancelEServiceArchiving: async (
+      eServiceId: EServiceId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(`Canceling archiving for EService ${eServiceId}`);
+      await catalogProcessClient.cancelScheduleArchiveEservice(undefined, {
+        headers,
+        params: {
+          eServiceId,
         },
       });
     },

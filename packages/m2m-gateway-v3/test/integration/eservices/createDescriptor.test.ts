@@ -80,6 +80,7 @@ describe("createDescriptor", () => {
       publishedAt: mockDescriptor.publishedAt,
       suspendedAt: mockDescriptor.suspendedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockDescriptor.archivingSchedule,
       asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
     };
 

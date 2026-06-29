@@ -6,8 +6,10 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { getNotificationRecipients } from "../handlerCommons.js";
+import {
+  getNotificationRecipients,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 
 type ProducerKeychainKeyDeletedEvent = Extract<
   AuthorizationEventEnvelopeV2,

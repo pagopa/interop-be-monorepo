@@ -1,6 +1,8 @@
 import { P, match } from "ts-pattern";
 import {
   AgreementApprovalPolicyV2,
+  AttributeCertifiedDiscreteComparatorV2,
+  ArchivingScopeV2,
   DescriptorRejectionReasonV2,
   EServiceAttributeV2,
   EServiceDescriptorStateV2,
@@ -19,18 +21,25 @@ import {
 import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
+  AttributeCertifiedDiscreteComparator,
+  ArchivingScope,
   Descriptor,
   DescriptorRejectionReason,
   DescriptorState,
   Document,
   EService,
   EServiceAttribute,
+  EServiceAttributeCertified,
   EServiceMode,
+  EServiceAttributeCertifiedDiscrete,
   Technology,
   agreementApprovalPolicy,
+  attributeCertifiedDiscreteComparator,
+  archivingScope,
   descriptorState,
   eserviceMode,
   technology,
+  type EServiceAttributeCertifiedDiscreteConfig,
 } from "./eservice.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
@@ -65,6 +74,11 @@ export const toEServiceDescriptorStateV2 = (
       descriptorState.waitingForApproval,
       () => EServiceDescriptorStateV2.WAITING_FOR_APPROVAL
     )
+    .with(descriptorState.archiving, () => EServiceDescriptorStateV2.ARCHIVING)
+    .with(
+      descriptorState.archivingSuspended,
+      () => EServiceDescriptorStateV2.ARCHIVING_SUSPENDED
+    )
     .exhaustive();
 
 export const toEServiceTechnologyV2 = (
@@ -87,7 +101,58 @@ export const toEServiceAttributeV2 = (
   values: input.map((i) => ({
     id: i.id,
     explicitAttributeVerification: i.explicitAttributeVerification,
-    dailyCallsPerConsumer: i.dailyCallsPerConsumer,
+  })),
+});
+
+export const toAttributeCertifiedDiscreteComparatorV2 = (
+  input: AttributeCertifiedDiscreteComparator
+): AttributeCertifiedDiscreteComparatorV2 =>
+  match(input)
+    .with(
+      attributeCertifiedDiscreteComparator.GT,
+      () => AttributeCertifiedDiscreteComparatorV2.GT
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.LT,
+      () => AttributeCertifiedDiscreteComparatorV2.LT
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.EQ,
+      () => AttributeCertifiedDiscreteComparatorV2.EQ
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.GTE,
+      () => AttributeCertifiedDiscreteComparatorV2.GTE
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.LTE,
+      () => AttributeCertifiedDiscreteComparatorV2.LTE
+    )
+    .with(
+      attributeCertifiedDiscreteComparator.NE,
+      () => AttributeCertifiedDiscreteComparatorV2.NE
+    )
+    .exhaustive();
+
+export const toCertifiedDiscreteConfigV2 = (
+  items: EServiceAttributeCertifiedDiscreteConfig
+) => ({
+  threshold: items.threshold,
+  comparator: toAttributeCertifiedDiscreteComparatorV2(items.comparator),
+});
+
+export const toEServiceAttributeCertifiedV2 = (
+  input: (EServiceAttributeCertified | EServiceAttributeCertifiedDiscrete)[]
+): EServiceAttributeV2 => ({
+  values: input.map((attribute) => ({
+    id: attribute.id,
+    explicitAttributeVerification: attribute.explicitAttributeVerification,
+    dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
+    ...("discreteConfig" in attribute
+      ? {
+          discreteConfig: toCertifiedDiscreteConfigV2(attribute.discreteConfig),
+        }
+      : undefined),
   })),
 });
 
@@ -103,11 +168,19 @@ export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
   uploadDate: input.uploadDate.toISOString(),
 });
 
+export const toEServiceDescriptorArchivingScopeV2 = (
+  input: ArchivingScope
+): ArchivingScopeV2 =>
+  match(input)
+    .with(archivingScope.eservice, () => ArchivingScopeV2.ESERVICE)
+    .with(archivingScope.descriptor, () => ArchivingScopeV2.DESCRIPTOR)
+    .exhaustive();
+
 export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   ...input,
   version: BigInt(input.version),
   attributes: {
-    certified: input.attributes.certified.map(toEServiceAttributeV2),
+    certified: input.attributes.certified.map(toEServiceAttributeCertifiedV2),
     declared: input.attributes.declared.map(toEServiceAttributeV2),
     verified: input.attributes.verified.map(toEServiceAttributeV2),
   },
@@ -125,6 +198,15 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   archivedAt: dateToBigInt(input.archivedAt),
   rejectionReasons:
     input.rejectionReasons?.map(toDescriptorRejectedReasonV2) ?? [],
+  archivingSchedule: input.archivingSchedule
+    ? {
+        archivableOn: dateToBigInt(input.archivingSchedule.archivableOn),
+        startedAt: dateToBigInt(input.archivingSchedule.startedAt),
+        scope: toEServiceDescriptorArchivingScopeV2(
+          input.archivingSchedule.scope
+        ),
+      }
+    : undefined,
   asyncExchangeCallbackInterface: input.asyncExchangeCallbackInterface
     ? toDocumentV2(input.asyncExchangeCallbackInterface)
     : undefined,
