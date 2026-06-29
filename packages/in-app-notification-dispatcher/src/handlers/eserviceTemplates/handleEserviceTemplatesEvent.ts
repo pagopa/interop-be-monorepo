@@ -7,6 +7,7 @@ import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleTemplateStatusChangedToProducer } from "./handleTemplateStatusChangedToProducer.js";
 import { handleNewEserviceTemplateVersionToInstantiator } from "./handleNewEserviceTemplateVersionToInstantiator.js";
+import { handleNewEserviceTemplateVersionToProducer } from "./handleNewEserviceTemplateVersionToProducer.js";
 import { handleEserviceTemplateNameChangedToInstantiator } from "./handleEserviceTemplateNameChangedToInstantiator.js";
 import { handleEserviceTemplateStatusChangedToInstantiator } from "./handleEserviceTemplateStatusChangedToInstantiator.js";
 
@@ -41,13 +42,22 @@ export async function handleEServiceTemplateEvent(
       {
         type: "EServiceTemplateVersionPublished",
       },
-      ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) =>
-        handleNewEserviceTemplateVersionToInstantiator(
+      async ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) => [
+        // Instantiators == tenants that have instantiated an e-service from the template
+        ...(await handleNewEserviceTemplateVersionToInstantiator(
           eserviceTemplate,
           eserviceTemplateVersionId,
           logger,
           readModelService
-        )
+        )),
+        // Producer == creator of the template
+        ...(await handleNewEserviceTemplateVersionToProducer(
+          eserviceTemplate,
+          eserviceTemplateVersionId,
+          logger,
+          readModelService
+        )),
+      ]
     )
     .with(
       {
