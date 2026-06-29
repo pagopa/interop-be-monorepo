@@ -9,22 +9,22 @@ import {
   eventMailTemplateType,
   retrieveEservice,
   retrieveHTMLTemplate,
-  retrieveLatestDescriptor,
   retrieveTenant,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { PurposeHandlerParams } from "../../models/handlerParams.js";
+import { PurposeVersionHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 
 export async function handlePurposeVersionActivatedOtherVersion(
-  data: PurposeHandlerParams
+  data: PurposeVersionHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     purposeV2Msg,
+    purposeVersionId,
     readModelService,
     logger,
     templateService,
@@ -44,14 +44,23 @@ export async function handlePurposeVersionActivatedOtherVersion(
     return [];
   }
 
+  const activatedVersion = purpose.versions.find(
+    (version) => version.id === purposeVersionId
+  );
+
+  if (!activatedVersion) {
+    logger.error(
+      `No version found in purpose ${purpose.id} with id ${purposeVersionId}`
+    );
+    return [];
+  }
+
   const [htmlTemplate, eservice] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeQuotaAdjustmentResponseMailTemplate
     ),
     retrieveEservice(purpose.eserviceId, readModelService),
   ]);
-
-  const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
 
   const [consumer, producer] = await Promise.all([
     retrieveTenant(purpose.consumerId, readModelService),
@@ -85,7 +94,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
         producerName: producer.name,
         purposeTitle: purpose.title,
         eserviceName: eservice.name,
-        dailyCalls: dailyCallsPerConsumer,
+        dailyCalls: activatedVersion.dailyCalls,
         isAccepted: true,
         ctaLabel: `Visualizza finalità`,
         selfcareId: consumer.selfcareId,
