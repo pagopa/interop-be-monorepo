@@ -127,11 +127,7 @@ export const inAppTemplates = {
       eserviceName
     } è al momento sospesa. L'archiviazione avverrà il giorno ${dateAtRomeZone(
       archivableOn
-    )}${
-      newVersionAvailable
-        ? ". È disponibile una nuova versione"
-        : ""
-    }.`,
+    )}${newVersionAvailable ? ". È disponibile una nuova versione" : ""}.`,
   eserviceArchivingDescriptorSuspendedToProducer: (
     eserviceName: string,
     version: string,
