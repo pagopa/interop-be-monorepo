@@ -15,6 +15,12 @@ type CatalogProcessErrorCodes =
   | "eServiceDescriptorNotFound"
   | "certifiedAttributeGroupNotFoundInSeed"
   | "notValidDescriptor"
+  | "documentPrettyNameDuplicate"
+  | "interfaceAlreadyExists"
+  | "asyncExchangeCallbackInterfaceAlreadyExists"
+  | "checksumDuplicate"
+  | "eServiceAsyncExchangeNotEnabled"
+  | "asyncExchangeBulkNotAllowedForSoap"
   | "templateInstanceNotAllowed"
   | "inconsistentDailyCalls"
   | "unchangedAttributes"
@@ -207,13 +213,34 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
 ): number =>
   match(error.code)
     .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
       "openapiVersionNotRecognized",
+      "eServiceAsyncExchangeNotEnabled",
+      "asyncExchangeBulkNotAllowedForSoap",
+      "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with(
+      "notValidDescriptor",
+      "documentPrettyNameDuplicate",
+      "interfaceAlreadyExists",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
+      "checksumDuplicate",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    uploadEServiceDescriptorInterfaceErrorMapper(error);
 
 export const deleteEServiceDescriptorInterfaceErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -225,6 +252,16 @@ export const deleteEServiceDescriptorInterfaceErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    match(error.code)
+      .with(
+        "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+        "eserviceDescriptorNotFound",
+        () => HTTP_STATUS_NOT_FOUND
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const assignTenantDeclaredAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
