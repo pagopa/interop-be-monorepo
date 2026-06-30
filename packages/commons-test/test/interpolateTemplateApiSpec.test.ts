@@ -51,10 +51,6 @@ describe("interpolateTemplateApiSpec", async () => {
     });
 
     const wsdlFile: string = await readFileContent("interface-test.wsdl");
-    const expectedFileContent: string = await readFileContent(
-      "interface-test-expected.wsdl"
-    );
-
     const interfaceFileInfoWsdl = {
       id: generateId(),
       name: "wsdl",
@@ -66,7 +62,7 @@ describe("interpolateTemplateApiSpec", async () => {
       eservice,
       wsdlFile,
       interfaceFileInfoWsdl,
-      serverUrls,
+      ["http://server1.example.com"],
       undefined
     );
 
@@ -75,21 +71,12 @@ describe("interpolateTemplateApiSpec", async () => {
     expect(interpolatedFile.type).toBe(interfaceFileInfoWsdl.contentType);
 
     const fileContent = await interpolatedFile.text();
+    const expectedFileContent = wsdlFile.replace(
+      'location="https://host.com/TestWS/v1"',
+      'location="http://server1.example.com"'
+    );
 
-    const normalizedFileContent = fileContent
-      .replace(/\t/g, "") // Remove tabs
-      .replace(/\n/g, "") // Remove newlines
-      .replace(/\s+/g, " ") // Replace multiple spaces with a single space
-      .trim(); // Remove leading and trailing spaces
-
-    const normalizedExpectedContent = expectedFileContent
-      .toString()
-      .replace(/\t/g, "")
-      .replace(/\n/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    expect(normalizedFileContent).toBe(normalizedExpectedContent);
+    expect(fileContent).toBe(expectedFileContent);
   });
   it("should throw invalidInterfaceData error for unsupported file type", async () => {
     const interfaceFileInfo = {
