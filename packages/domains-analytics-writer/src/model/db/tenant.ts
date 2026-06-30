@@ -7,6 +7,8 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { TenantSchema, TenantSelfcareIdSchema } from "../tenant/tenant.js";
 import { TenantCertifiedAttributeSchema } from "../tenant/tenantCertifiedAttribute.js";
@@ -16,6 +18,8 @@ import { TenantMailSchema } from "../tenant/tenantMail.js";
 import { TenantVerifiedAttributeSchema } from "../tenant/tenantVerifiedAttribute.js";
 import { TenantVerifiedAttributeRevokerSchema } from "../tenant/tenantVerifiedAttributeRevoker.js";
 import { TenantVerifiedAttributeVerifierSchema } from "../tenant/tenantVerifiedAttributeVerifier.js";
+import { TenantRemoteIdSchema } from "../tenant/tenantRemoteId.js";
+import { TenantCertifiedDiscreteAttributeSchema } from "../tenant/tenantCertifiedDiscreteAttribute.js";
 
 export const TenantDbPartialTableConfig = {
   tenant_self_care_id: TenantSelfcareIdSchema,
@@ -42,6 +46,8 @@ export const TenantDbTableConfig = {
   tenant_verified_attribute_verifier: TenantVerifiedAttributeVerifierSchema,
   tenant_verified_attribute_revoker: TenantVerifiedAttributeRevokerSchema,
   tenant_feature: TenantFeatureSchema,
+  tenant_remote_id: TenantRemoteIdSchema,
+  tenant_certified_discrete_attribute: TenantCertifiedDiscreteAttributeSchema,
 } as const;
 export type TenantDbTableConfig = typeof TenantDbTableConfig;
 
@@ -56,6 +62,9 @@ export const TenantDbTableReadModel = {
   tenant_verified_attribute_revoker:
     tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenant_feature: tenantFeatureInReadmodelTenant,
+  tenant_remote_id: tenantRemoteIdInReadmodelTenant,
+  tenant_certified_discrete_attribute:
+    tenantCertifiedDiscreteAttributeInReadmodelTenant,
 } as const;
 export type TenantDbTableReadModel = typeof TenantDbTableReadModel;
 

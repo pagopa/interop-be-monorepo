@@ -23,16 +23,15 @@ describe("API POST /purposes/{purposeId}/clone test", () => {
     eserviceId: mockEService.id,
   };
   const mockPurpose: Purpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
+    purposeToApiPurpose(mockPurpose)
   );
 
   beforeEach(() => {
     purposeService.clonePurpose = vi
       .fn()
-      .mockResolvedValue({ purpose: mockPurpose, isRiskAnalysisValid });
+      .mockResolvedValue({ purpose: mockPurpose });
   });
 
   const makeRequest = async (
