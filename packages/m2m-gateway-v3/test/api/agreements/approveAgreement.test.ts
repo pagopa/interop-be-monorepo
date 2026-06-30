@@ -7,7 +7,11 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { generateId, pollingMaxRetriesExceeded, unsafeBrandId } from "pagopa-interop-models";
+import {
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -16,7 +20,6 @@ import {
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 import { config } from "../../../src/config/config.js";
-import { BRAND } from "zod";
 
 describe("POST /agreements/:agreementId/approve router test", () => {
   const mockApiAgreement = getMockedApiAgreement({
