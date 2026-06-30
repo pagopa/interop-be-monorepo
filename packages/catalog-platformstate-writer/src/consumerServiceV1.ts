@@ -160,13 +160,19 @@ export async function handleMessageV1(
             logger
           );
         })
-        .with(descriptorState.draft, descriptorState.waitingForApproval, () => {
-          logger.info(
-            `Skipping processing of entry ${eserviceDescriptorPK}. Reason: state ${descriptor.state}`
-          );
+        .with(
+          descriptorState.draft,
+          descriptorState.waitingForApproval,
+          descriptorState.archiving,
+          descriptorState.archivingSuspended,
+          () => {
+            logger.info(
+              `Skipping processing of entry ${eserviceDescriptorPK}. Reason: state ${descriptor.state}`
+            );
 
-          return Promise.resolve();
-        })
+            return Promise.resolve();
+          }
+        )
         .exhaustive();
     })
     .with(

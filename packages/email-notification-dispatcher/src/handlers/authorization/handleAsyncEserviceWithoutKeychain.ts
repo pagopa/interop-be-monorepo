@@ -5,18 +5,15 @@ import {
   ProducerKeychainId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { retrieveEService, retrieveTenant } from "../../services/utils.js";
+import { ProducerKeychainEServiceHandlerParams } from "../../models/handlerParams.js";
+import { config } from "../../config/config.js";
 import {
   eventMailTemplateType,
-  retrieveEService,
-  retrieveHTMLTemplate,
-  retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  ProducerKeychainEServiceHandlerParams,
-} from "../handlerCommons.js";
-import { config } from "../../config/config.js";
+  retrieveHTMLTemplate,
+} from "pagopa-interop-notification-commons";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";

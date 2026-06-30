@@ -4,10 +4,13 @@ import {
   getMockDocument,
   getMockEService,
   getMockEServiceAttribute,
+  getMockEServiceAttributeCertifiedDiscrete,
   getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
+  ArchivingSchedule,
+  archivingScope,
   attributeKind,
   Descriptor,
   EService,
@@ -18,6 +21,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 import {
+  EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAsyncExchangePropertiesSQL,
   EServiceDescriptorAttributeSQL,
   EServiceDescriptorDocumentSQL,
@@ -35,6 +39,8 @@ import { generateEServiceRiskAnalysisAnswersSQL } from "./eserviceUtils.js";
 describe("E-service splitter", () => {
   it("should convert a complete e-service into e-service SQL objects", () => {
     const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedDiscreteAttribute =
+      getMockEServiceAttributeCertifiedDiscrete();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const rejectionReason = getMockDescriptorRejectionReason();
@@ -50,6 +56,11 @@ describe("E-service splitter", () => {
     const templateId: EServiceTemplateId = generateId();
     const personalData = true;
     const instanceLabel = "instance 001";
+    const archivingSchedule: ArchivingSchedule = {
+      scope: archivingScope.descriptor,
+      archivableOn: new Date(),
+      startedAt: new Date(),
+    };
     const asyncExchangeFlag = true;
 
     const templateVersionRef: EServiceTemplateVersionRef = {
@@ -65,7 +76,7 @@ describe("E-service splitter", () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       attributes: {
-        certified: [[certifiedAttribute]],
+        certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
         declared: [],
         verified: [],
       },
@@ -79,6 +90,7 @@ describe("E-service splitter", () => {
       archivedAt,
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       templateVersionRef,
+      archivingSchedule,
       asyncExchangeProperties: {
         responseTime: 3600,
         resourceAvailableTime: 7200,
@@ -98,6 +110,7 @@ describe("E-service splitter", () => {
       templateId,
       personalData,
       instanceLabel,
+      archivingReason: "archiving reason",
       asyncExchange: asyncExchangeFlag,
     };
 
@@ -111,6 +124,7 @@ describe("E-service splitter", () => {
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      archivingSchedulesSQL,
       asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
@@ -129,6 +143,7 @@ describe("E-service splitter", () => {
       templateId,
       personalData,
       instanceLabel,
+      archivingReason: eservice.archivingReason ?? null,
       asyncExchange: asyncExchangeFlag,
     };
 
@@ -202,8 +217,25 @@ describe("E-service splitter", () => {
       groupId: 0,
       explicitAttributeVerification:
         certifiedAttribute.explicitAttributeVerification,
-      dailyCallsPerConsumer: certifiedAttribute.dailyCallsPerConsumer ?? null,
+      dailyCallsPerConsumer: null,
+      threshold: null,
+      comparator: null,
     };
+
+    const expectedCertifiedDiscreteAttributeSQL: EServiceDescriptorAttributeSQL =
+      {
+        metadataVersion: 1,
+        eserviceId: eservice.id,
+        kind: attributeKind.certifiedDiscrete,
+        attributeId: certifiedDiscreteAttribute.id,
+        descriptorId: descriptor.id,
+        groupId: 0,
+        explicitAttributeVerification:
+          certifiedDiscreteAttribute.explicitAttributeVerification,
+        dailyCallsPerConsumer: null,
+        threshold: certifiedDiscreteAttribute.discreteConfig.threshold,
+        comparator: certifiedDiscreteAttribute.discreteConfig.comparator,
+      };
 
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {
       ...doc,
@@ -244,6 +276,19 @@ describe("E-service splitter", () => {
         descriptorId: descriptor.id,
       };
 
+    const expectedDescriptorArchivingScheduleSQL: EServiceDescriptorArchivingScheduleSQL | null =
+      descriptor.archivingSchedule === undefined
+        ? null
+        : {
+            eserviceId: eservice.id,
+            metadataVersion: 1,
+            descriptorId: descriptor.id,
+            scope: descriptor.archivingSchedule.scope,
+            archivableOn:
+              descriptor.archivingSchedule.archivableOn.toISOString(),
+            startedAt: descriptor.archivingSchedule.startedAt.toISOString(),
+          };
+
     expect(eserviceSQL).toStrictEqual(expectedEServiceSQL);
     expect(riskAnalysesSQL).toStrictEqual(
       expect.arrayContaining([
@@ -255,13 +300,26 @@ describe("E-service splitter", () => {
       expectedRiskAnalysisAnswersSQL
     );
     expect(descriptorsSQL).toStrictEqual([expectedDescriptorSQL]);
-    expect(attributesSQL).toStrictEqual([expectedAttributeSQL]);
+    expect(attributesSQL).toStrictEqual(
+      expect.arrayContaining([
+        expectedAttributeSQL,
+        expectedCertifiedDiscreteAttributeSQL,
+      ])
+    );
+    expect(attributesSQL).toHaveLength(2);
     expect(interfacesSQL).toStrictEqual([expectedInterfaceDocSQL]);
     expect(documentsSQL).toStrictEqual(
       expect.arrayContaining([expectedDocumentSQL])
     );
     expect(rejectionReasonsSQL).toStrictEqual([expectedRejectionReasonSQL]);
     expect(templateVersionRefsSQL).toStrictEqual([expectedTemplateVersionRef]);
+    expect(archivingSchedulesSQL).toStrictEqual(
+      expect.arrayContaining(
+        expectedDescriptorArchivingScheduleSQL
+          ? [expectedDescriptorArchivingScheduleSQL]
+          : []
+      )
+    );
     expect(asyncExchangePropertiesSQL).toStrictEqual([
       expectedAsyncExchangePropertiesSQL,
     ]);
@@ -329,6 +387,7 @@ describe("E-service splitter", () => {
       templateId: null,
       personalData: null,
       instanceLabel: null,
+      archivingReason: null,
       asyncExchange: null,
     };
 
