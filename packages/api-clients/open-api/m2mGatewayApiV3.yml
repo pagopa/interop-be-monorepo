@@ -10608,6 +10608,312 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/eservices:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Create an E-Service instance from a template
+      description: Creates a new E-Service instance from the specified template
+      operationId: createEServiceInstanceFromTemplate
+      requestBody:
+        description: Template instantiation parameters
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InstanceEServiceSeed"
+        required: true
+      responses:
+        "200":
+          description: E-Service instance created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/eservices/{eserviceId}:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Update an E-Service template instance
+      description: Updates the general information of the specified E-Service template instance
+      operationId: updateEServiceTemplateInstance
+      requestBody:
+        description: An E-Service template instance update seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceSeed"
+        required: true
+      responses:
+        "200":
+          description: E-Service template instance updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/eservices/{eserviceId}/instanceLabel:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Update the instance label of a template instance
+      description: Updates the instance label of the specified E-Service template instance after publication
+      operationId: updateEServiceTemplateInstanceLabel
+      requestBody:
+        description: A payload containing the new instance label
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceInstanceLabelUpdateSeed"
+        required: true
+      responses:
+        "200":
+          description: Instance label updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/eservices/{eserviceId}/descriptors:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Create a descriptor for a template instance
+      description: Creates a new descriptor for the specified E-Service template instance
+      operationId: createTemplateInstanceDescriptor
+      requestBody:
+        description: A template instance descriptor seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceInstanceDescriptorSeed"
+        required: true
+      responses:
+        "200":
+          description: Descriptor created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/eservices/{eserviceId}/descriptors/{descriptorId}:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The Descriptor ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Update a draft descriptor of a template instance
+      description: Updates the draft descriptor of the specified E-Service template instance
+      operationId: updateDraftDescriptorTemplateInstance
+      requestBody:
+        description: A template instance draft descriptor update seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceDescriptorTemplateInstanceSeed"
+        required: true
+      responses:
+        "200":
+          description: Descriptor updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/eservices/{eserviceId}/descriptors/{descriptorId}/quotas:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The Descriptor ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Update the quotas of a template instance descriptor
+      description: Updates the quotas of the specified descriptor of an E-Service template instance
+      operationId: updateTemplateInstanceDescriptorQuotas
+      requestBody:
+        description: A template instance descriptor quotas update seed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEServiceTemplateInstanceDescriptorQuotasSeed"
+        required: true
+      responses:
+        "200":
+          description: Descriptor quotas updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
     OffsetParam:
@@ -12212,6 +12518,8 @@ components:
           type: string
         asyncExchange:
           type: boolean
+        instanceLabel:
+          type: string
       required:
         - id
         - producerId
@@ -12220,6 +12528,118 @@ components:
         - technology
         - descriptors
         - mode
+    InstanceEServiceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
+    UpdateEServiceTemplateInstanceSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        isSignalHubEnabled:
+          type: boolean
+        isConsumerDelegable:
+          type: boolean
+        isClientAccessDelegable:
+          type: boolean
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
+    EServiceInstanceLabelUpdateSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        instanceLabel:
+          type: string
+          minLength: 1
+          maxLength: 12
+    EServiceInstanceDescriptorSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - audience
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+      properties:
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 0
+            maxLength: 250
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        dailyCallsTotal:
+          description: Total daily calls available for this E-Service
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+    UpdateEServiceDescriptorTemplateInstanceSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - audience
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+        - agreementApprovalPolicy
+      properties:
+        audience:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 250
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        dailyCallsTotal:
+          description: Total daily calls available for this E-Service
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        agreementApprovalPolicy:
+          $ref: "#/components/schemas/AgreementApprovalPolicy"
+    UpdateEServiceTemplateInstanceDescriptorQuotasSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - dailyCallsPerConsumer
+        - dailyCallsTotal
+      properties:
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        dailyCallsTotal:
+          description: Total daily calls available for this E-Service
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     EServiceDraftUpdateSeed:
       type: object
       additionalProperties: false
