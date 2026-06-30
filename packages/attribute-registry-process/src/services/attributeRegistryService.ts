@@ -351,6 +351,52 @@ export function attributeRegistryServiceBuilder(
 
       return newInternalCertifiedAttribute;
     },
+
+    async internalCreateCertifiedDiscreteAttribute(
+      apiInternalCertifiedDiscreteAttributeSeed: attributeRegistryApi.InternalCertifiedDiscreteAttributeSeed,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<Attribute> {
+      logger.info(
+        `Creating certified discrete attribute with origin ${apiInternalCertifiedDiscreteAttributeSeed.origin} and code ${apiInternalCertifiedDiscreteAttributeSeed.code} - Internal Request`
+      );
+
+      const duplicatedAttribute =
+        await readModelService.getAttributeByCodeOriginOrName(
+          apiInternalCertifiedDiscreteAttributeSeed.code,
+          apiInternalCertifiedDiscreteAttributeSeed.name,
+          apiInternalCertifiedDiscreteAttributeSeed.origin
+        );
+
+      if (duplicatedAttribute) {
+        throw attributeDuplicateByCodeOriginOrName(
+          apiInternalCertifiedDiscreteAttributeSeed.name,
+          apiInternalCertifiedDiscreteAttributeSeed.code,
+          apiInternalCertifiedDiscreteAttributeSeed.origin
+        );
+      }
+
+      const newInternalCertifiedDiscreteAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.certifiedDiscrete,
+        name: apiInternalCertifiedDiscreteAttributeSeed.name,
+        description: apiInternalCertifiedDiscreteAttributeSeed.description,
+        creationTime: new Date(),
+        code: apiInternalCertifiedDiscreteAttributeSeed.code,
+        origin: apiInternalCertifiedDiscreteAttributeSeed.origin,
+      };
+
+      logger.info(
+        `Certified discrete attribute created with id ${newInternalCertifiedDiscreteAttribute.id} - Internal Request`
+      );
+
+      const event = toCreateEventAttributeAdded(
+        newInternalCertifiedDiscreteAttribute,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return newInternalCertifiedDiscreteAttribute;
+    },
   };
 }
 

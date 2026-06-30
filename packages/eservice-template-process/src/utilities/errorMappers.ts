@@ -222,6 +222,7 @@ export const updateEServiceTemplateVersionAttributesErrorMapper = (
       "versionAttributeGroupSupersetMissingInAttributesSeed",
       "unchangedAttributes",
       "attributeDuplicatedInGroup",
+      "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -266,6 +267,7 @@ export const updateDraftTemplateVersionErrorMapper = (
       "inconsistentDailyCalls",
       "attributeDuplicatedInGroup",
       "asyncExchangeBulkNotAllowedForSoap",
+      "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -280,6 +282,7 @@ export const createEServiceTemplateVersionErrorMapper = (
       "attributeDuplicatedInGroup",
       "draftEServiceTemplateVersionAlreadyExists",
       "inconsistentDailyCalls",
+      "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("eserviceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)

@@ -18,6 +18,7 @@ import {
   eserviceMode,
   EServiceMode,
   RiskAnalysisId,
+  type EserviceAttributes,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -33,6 +34,7 @@ import {
   eServiceTemplateUpdateSameNameConflict,
   eServiceTemplateUpdateSameDescriptionConflict,
   asyncExchangeReceiveTemplateNotAllowed,
+  attributeDiscreteConfigNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -154,6 +156,7 @@ export function hasRoleToAccessDraftTemplateVersions(
       userRole.ADMIN_ROLE,
       userRole.API_ROLE,
       userRole.SUPPORT_ROLE,
+      userRole.VIEWER_ROLE,
     ]) ||
     hasAtLeastOneSystemRole(authData, [
       systemRole.M2M_ADMIN_ROLE,
@@ -224,5 +227,20 @@ export function assertUpdatedDescriptionDiffersFromCurrent(
 ): void {
   if (newDescription === eserviceTemplate.description) {
     throw eServiceTemplateUpdateSameDescriptionConflict(eserviceTemplate.id);
+  }
+}
+
+export function assertDiscreteConfigForCertifiedAttributesOnly(
+  attributes: EserviceAttributes
+): void {
+  const invalidAttribute = [attributes.declared, attributes.verified]
+    .flat(2)
+    .find(
+      (attribute) =>
+        "discreteConfig" in attribute && attribute.discreteConfig !== undefined
+    );
+
+  if (invalidAttribute) {
+    throw attributeDiscreteConfigNotAllowed(invalidAttribute.id);
   }
 }

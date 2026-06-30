@@ -54,6 +54,7 @@ describe("API GET /tenants/{tenantId}/attributes/verified/{attributeId}/revokers
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   const unauthorizedRoles: AuthRole[] = [

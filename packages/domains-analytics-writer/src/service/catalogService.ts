@@ -13,6 +13,7 @@ import { eserviceDescriptorTemplateVersionRefRepository } from "../repository/ca
 import { eserviceDescriptorAsyncExchangePropertiesRepository } from "../repository/catalog/eserviceDescriptorAsyncExchangeProperties.repository.js";
 import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDescriptor.repository.js";
 import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
+import { eserviceDescriptorArchivingRepository } from "../repository/catalog/eserviceDescriptorArchiving.repository.js";
 import { CatalogDbTable, DeletingDbTable } from "../model/db/index.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import {
@@ -50,6 +51,7 @@ export function catalogServiceBuilder(db: DBContext) {
   const attributeRepo = eserviceDescriptorAttributeRepository(db.conn);
   const riskAnalysisRepo = eserviceRiskAnalysisRepository(db.conn);
   const riskAnalysisAnswerRepo = eserviceRiskAnalysisAnswerRepository(db.conn);
+  const archivingRepo = eserviceDescriptorArchivingRepository(db.conn);
   const asyncExchangePropertiesRepo =
     eserviceDescriptorAsyncExchangePropertiesRepository(db.conn);
 
@@ -78,6 +80,9 @@ export function catalogServiceBuilder(db: DBContext) {
             ),
             templateVersionRefsSQL: batch.flatMap(
               (item) => item.templateVersionRefsSQL
+            ),
+            archivingSchedulesSQL: batch.flatMap(
+              (item) => item.archivingSchedulesSQL
             ),
             asyncExchangePropertiesSQL: batch.flatMap(
               (item) => item.asyncExchangePropertiesSQL
@@ -142,6 +147,13 @@ export function catalogServiceBuilder(db: DBContext) {
               batchItems.templateVersionRefsSQL
             );
           }
+          if (batchItems.archivingSchedulesSQL.length) {
+            await archivingRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.archivingSchedulesSQL
+            );
+          }
           if (batchItems.asyncExchangePropertiesSQL.length) {
             await asyncExchangePropertiesRepo.insert(
               t,
@@ -166,6 +178,7 @@ export function catalogServiceBuilder(db: DBContext) {
         await riskAnalysisAnswerRepo.merge(t);
         await rejectionRepo.merge(t);
         await templateVersionRefRepo.merge(t);
+        await archivingRepo.merge(t);
         await asyncExchangePropertiesRepo.merge(t);
       });
 
@@ -174,6 +187,7 @@ export function catalogServiceBuilder(db: DBContext) {
           t,
           "eserviceId",
           [
+            CatalogDbTable.eservice_descriptor_archiving_schedule,
             CatalogDbTable.eservice_descriptor_async_exchange_properties,
             CatalogDbTable.eservice_descriptor_template_version_ref,
             CatalogDbTable.eservice_descriptor_rejection_reason,
@@ -201,6 +215,7 @@ export function catalogServiceBuilder(db: DBContext) {
       await riskAnalysisAnswerRepo.clean();
       await rejectionRepo.clean();
       await templateVersionRefRepo.clean();
+      await archivingRepo.clean();
       await asyncExchangePropertiesRepo.clean();
 
       genericLogger.info(`Staging data cleaned`);
@@ -225,6 +240,9 @@ export function catalogServiceBuilder(db: DBContext) {
             ),
             templateVersionRefSQL: batch.flatMap((item) =>
               item.templateVersionRefSQL ? [item.templateVersionRefSQL] : []
+            ),
+            archivingSchedulesSQL: batch.flatMap((item) =>
+              item.archivingScheduleSQL ? [item.archivingScheduleSQL] : []
             ),
             asyncExchangePropertiesSQL: batch.flatMap((item) =>
               item.asyncExchangePropertiesSQL
@@ -281,6 +299,14 @@ export function catalogServiceBuilder(db: DBContext) {
             );
           }
 
+          if (batchItems.archivingSchedulesSQL.length > 0) {
+            await archivingRepo.insert(
+              t,
+              dbContext.pgp,
+              batchItems.archivingSchedulesSQL
+            );
+          }
+
           if (batchItems.asyncExchangePropertiesSQL.length > 0) {
             await asyncExchangePropertiesRepo.insert(
               t,
@@ -302,6 +328,7 @@ export function catalogServiceBuilder(db: DBContext) {
         await documentRepo.merge(t);
         await rejectionRepo.merge(t);
         await templateVersionRefRepo.merge(t);
+        await archivingRepo.merge(t);
         await asyncExchangePropertiesRepo.merge(t);
 
         await dbContext.conn.tx(async (t) => {
@@ -309,6 +336,7 @@ export function catalogServiceBuilder(db: DBContext) {
             t,
             "descriptorId",
             [
+              CatalogDbTable.eservice_descriptor_archiving_schedule,
               CatalogDbTable.eservice_descriptor_async_exchange_properties,
               CatalogDbTable.eservice_descriptor_template_version_ref,
               CatalogDbTable.eservice_descriptor_rejection_reason,
@@ -331,6 +359,7 @@ export function catalogServiceBuilder(db: DBContext) {
       await documentRepo.clean();
       await rejectionRepo.clean();
       await templateVersionRefRepo.clean();
+      await archivingRepo.clean();
       await asyncExchangePropertiesRepo.clean();
     },
 
@@ -454,6 +483,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_interface,
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
+            CatalogDbTable.eservice_descriptor_archiving_schedule,
             CatalogDbTable.eservice_descriptor_async_exchange_properties,
             CatalogDbTable.eservice_risk_analysis,
             CatalogDbTable.eservice_risk_analysis_answer,
@@ -495,6 +525,7 @@ export function catalogServiceBuilder(db: DBContext) {
             CatalogDbTable.eservice_descriptor_interface,
             CatalogDbTable.eservice_descriptor_rejection_reason,
             CatalogDbTable.eservice_descriptor_template_version_ref,
+            CatalogDbTable.eservice_descriptor_archiving_schedule,
             CatalogDbTable.eservice_descriptor_async_exchange_properties,
           ],
           DeletingDbTable.catalog_deleting_table,

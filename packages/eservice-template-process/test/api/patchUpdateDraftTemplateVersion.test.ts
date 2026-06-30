@@ -21,6 +21,7 @@ import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
   asyncExchangeBulkNotAllowedForSoap,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   eserviceTemplateNotFound,
@@ -220,6 +221,10 @@ describe("PATCH /templates/:templateId/versions/:templateVersionId router test",
         mockEServiceTemplate.id,
         templateVersion.id
       ),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

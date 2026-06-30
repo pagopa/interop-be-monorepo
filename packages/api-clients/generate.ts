@@ -13,9 +13,18 @@ import SwaggerParser from "@apidevtools/swagger-parser";
 import type { OpenAPIObject } from "openapi3-ts";
 import { generateZodClientFromOpenAPI } from "openapi-zod-client";
 import Handlebars from "handlebars";
+import { createEndpointChunkHelpers } from "./src/generatorUtils.js";
+
+const maxEndpointsPerChunk = 50;
 
 const main = async () => {
   const handlebars = Handlebars.create();
+  const {
+    endpointChunks,
+    hasChunkedEndpointGroups,
+    shouldChunkEndpoints,
+  } = createEndpointChunkHelpers(maxEndpointsPerChunk);
+
   handlebars.registerHelper({
     eq: (v1, v2) => v1 === v2,
     ne: (v1, v2) => v1 !== v2,
@@ -48,6 +57,9 @@ const main = async () => {
 
       return str.charAt(0).toUpperCase() + str.slice(1);
     },
+    endpointChunks,
+    hasChunkedEndpointGroups,
+    shouldChunkEndpoints,
   });
 
   const dir = "./src/generated";

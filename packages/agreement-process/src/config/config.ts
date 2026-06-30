@@ -7,6 +7,7 @@ import {
   SelfCareClientConfig,
   ReadModelSQLDbConfig,
   ApplicationAuditProducerConfig,
+  FeatureFlagAttributeCertifiedDiscreteConfig,
 } from "pagopa-interop-commons";
 
 const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
@@ -14,6 +15,7 @@ const AgreementProcessConfig = CommonHTTPServiceConfig.and(EventStoreConfig)
   .and(FileManagerConfig)
   .and(S3Config)
   .and(SelfCareClientConfig)
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(
     z
       .object({

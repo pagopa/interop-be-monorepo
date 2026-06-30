@@ -28,6 +28,7 @@ CREATE TABLE domains.eservice (
   template_id VARCHAR(36),
   personal_data BOOLEAN,
   instance_label VARCHAR(2048),
+  archiving_reason VARCHAR(2048),
   async_exchange BOOLEAN,
   deleted BOOLEAN,
   PRIMARY KEY (id)
@@ -136,6 +137,8 @@ CREATE TABLE domains.eservice_descriptor_attribute (
   kind VARCHAR(2048) NOT NULL,
   group_id INTEGER NOT NULL,
   daily_calls_per_consumer INTEGER,
+  certified_discrete_threshold INTEGER,
+  certified_discrete_comparator VARCHAR,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
@@ -262,6 +265,11 @@ CREATE TABLE IF NOT EXISTS domains.purpose (
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR(2048),
   purpose_template_id VARCHAR(36),
+  reviewer_workflow_review_mode VARCHAR(2048),
+  reviewer_workflow_signing_state VARCHAR(2048),
+  reviewer_workflow_signed_by VARCHAR(36),
+  reviewer_workflow_rejection_reason VARCHAR(2048),
+  reviewer_workflow_sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (id)
 );
@@ -288,6 +296,14 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
   deleted BOOLEAN,
   PRIMARY KEY (id, purpose_id),
   FOREIGN KEY (risk_analysis_form_id, purpose_id) REFERENCES domains.purpose_risk_analysis_form (id, purpose_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_reviewer (
+  purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
+  metadata_version INTEGER NOT NULL,
+  reviewer_id VARCHAR(36) NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (purpose_id, reviewer_id)
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version (
@@ -414,6 +430,16 @@ CREATE TABLE IF NOT EXISTS domains.tenant (
   PRIMARY KEY (id)
 );
 
+CREATE TABLE IF NOT EXISTS domains.tenant_remote_id (
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  origin VARCHAR(2048) NOT NULL,
+  value VARCHAR(2048) NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (tenant_id, origin)
+);
+
 CREATE TABLE IF NOT EXISTS domains.tenant_mail (
   id VARCHAR(2048),
   tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
@@ -452,6 +478,17 @@ CREATE TABLE IF NOT EXISTS domains.tenant_verified_attribute (
   tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
   metadata_version INTEGER NOT NULL,
   assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (attribute_id, tenant_id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.tenant_certified_discrete_attribute (
+  attribute_id VARCHAR(36) NOT NULL,
+  tenant_id VARCHAR(36) NOT NULL REFERENCES domains.tenant (id),
+  metadata_version INTEGER NOT NULL,
+  assignment_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  revocation_timestamp TIMESTAMP WITH TIME ZONE,
+  certified_discrete_value INTEGER NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, tenant_id)
 );
@@ -669,6 +706,8 @@ CREATE TABLE IF NOT EXISTS domains.eservice_template_version_attribute (
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   group_id INTEGER NOT NULL,
+  certified_discrete_threshold INTEGER,
+  certified_discrete_comparator VARCHAR,
   deleted BOOLEAN,
   PRIMARY KEY (attribute_id, version_id, group_id)
 );
@@ -775,4 +814,15 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_answer_annotat
   deleted BOOLEAN,
   checksum VARCHAR NOT NULL,
   PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS domains.eservice_descriptor_archiving_schedule (
+  eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id) ON DELETE CASCADE,
+  scope VARCHAR(2048) NOT NULL,
+  archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
+  started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (eservice_id, descriptor_id)
 );

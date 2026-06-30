@@ -21,9 +21,11 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { handleProducerKeychainNoKeysForAsyncEservice } from "../src/handlers/authorizations/handleProducerKeychainNoKeysForAsyncEservice.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
 import { addOneTenant, readModelService } from "./utils.js";
+import {
+  getNotificationRecipients,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 
 describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
   const producerId = generateId<TenantId>();
