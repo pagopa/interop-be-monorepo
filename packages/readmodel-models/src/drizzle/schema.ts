@@ -8,6 +8,7 @@ import {
   timestamp,
   foreignKey,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 import {
   readmodelAgreement,
@@ -411,6 +412,7 @@ export const eserviceInReadmodelCatalog = readmodelCatalog.table(
     templateId: uuid("template_id"),
     personalData: boolean("personal_data"),
     instanceLabel: varchar("instance_label"),
+    archivingReason: varchar("archiving_reason"),
     asyncExchange: boolean("async_exchange"),
   },
   (table) => [
@@ -473,6 +475,49 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
     }),
   ]
 );
+
+export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
+  readmodelCatalog.table(
+    "eservice_descriptor_archiving_schedule",
+    {
+      eserviceId: uuid("eservice_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      descriptorId: uuid("descriptor_id").notNull(),
+      scope: varchar().notNull(),
+      archivableOn: timestamp("archivable_on", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      startedAt: timestamp("started_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.eserviceId],
+        foreignColumns: [eserviceInReadmodelCatalog.id],
+        name: "eservice_descriptor_archiving_schedule_eservice_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.descriptorId],
+        foreignColumns: [eserviceDescriptorInReadmodelCatalog.id],
+        name: "eservice_descriptor_archiving_schedule_descriptor_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.eserviceId, table.metadataVersion],
+        foreignColumns: [
+          eserviceInReadmodelCatalog.id,
+          eserviceInReadmodelCatalog.metadataVersion,
+        ],
+        name: "eservice_descriptor_archiving_eservice_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.eserviceId, table.descriptorId],
+        name: "eservice_descriptor_archiving_schedule_pkey",
+      }),
+    ]
+  );
 
 export const eserviceDescriptorRejectionReasonInReadmodelCatalog =
   readmodelCatalog.table(
@@ -852,12 +897,51 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
     isFreeOfCharge: boolean("is_free_of_charge").notNull(),
     freeOfChargeReason: varchar("free_of_charge_reason"),
     purposeTemplateId: uuid("purpose_template_id"),
+    reviewerWorkflowReviewMode: varchar("reviewer_workflow_review_mode"),
+    reviewerWorkflowSigningState: varchar("reviewer_workflow_signing_state"),
+    reviewerWorkflowSignedBy: uuid("reviewer_workflow_signed_by"),
+    reviewerWorkflowRejectionReason: varchar(
+      "reviewer_workflow_rejection_reason"
+    ),
+    reviewerWorkflowSentToReviewerAt: timestamp(
+      "reviewer_workflow_sent_to_reviewer_at",
+      { withTimezone: true, mode: "string" }
+    ),
   },
   (table) => [
     unique("purpose_id_metadata_version_unique").on(
       table.id,
       table.metadataVersion
     ),
+  ]
+);
+
+export const riskAnalysisReviewerInReadmodelPurpose = readmodelPurpose.table(
+  "risk_analysis_reviewer",
+  {
+    purposeId: uuid("purpose_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    reviewerId: uuid("reviewer_id").notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.purposeId],
+      foreignColumns: [purposeInReadmodelPurpose.id],
+      name: "risk_analysis_reviewer_purpose_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.purposeId, table.metadataVersion],
+      foreignColumns: [
+        purposeInReadmodelPurpose.id,
+        purposeInReadmodelPurpose.metadataVersion,
+      ],
+      name: "risk_analysis_reviewer_purpose_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.purposeId, table.reviewerId],
+      name: "risk_analysis_reviewer_pkey",
+    }),
+    index("idx_risk_analysis_reviewer_id").on(table.reviewerId),
   ]
 );
 
@@ -1541,6 +1625,8 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
       dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
+      threshold: integer("certified_discrete_threshold"),
+      comparator: varchar("certified_discrete_comparator"),
     },
     (table) => [
       foreignKey({
@@ -1581,6 +1667,8 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
       ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
+      threshold: integer("certified_discrete_threshold"),
+      comparator: varchar("certified_discrete_comparator"),
     },
     (table) => [
       foreignKey({
@@ -2369,6 +2457,77 @@ export const purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate =
       primaryKey({
         columns: [table.purposeTemplateId, table.eserviceId],
         name: "purpose_template_eservice_descriptor_pkey",
+      }),
+    ]
+  );
+
+export const tenantRemoteIdInReadmodelTenant = readmodelTenant.table(
+  "tenant_remote_id",
+  {
+    tenantId: uuid("tenant_id").notNull(),
+    metadataVersion: integer("metadata_version").notNull(),
+    origin: varchar("origin").notNull(),
+    value: varchar("value").notNull(),
+    assignmentTimestamp: timestamp("assignment_timestamp", {
+      withTimezone: true,
+      mode: "string",
+    }).notNull(),
+  },
+  (table) => [
+    foreignKey({
+      columns: [table.tenantId],
+      foreignColumns: [tenantInReadmodelTenant.id],
+      name: "tenant_remote_id_tenant_id_fkey",
+    }).onDelete("cascade"),
+    foreignKey({
+      columns: [table.tenantId, table.metadataVersion],
+      foreignColumns: [
+        tenantInReadmodelTenant.id,
+        tenantInReadmodelTenant.metadataVersion,
+      ],
+      name: "tenant_remote_id_tenant_id_metadata_version_fkey",
+    }),
+    primaryKey({
+      columns: [table.tenantId, table.origin],
+      name: "tenant_remote_id_pkey",
+    }),
+  ]
+);
+
+export const tenantCertifiedDiscreteAttributeInReadmodelTenant =
+  readmodelTenant.table(
+    "tenant_certified_discrete_attribute",
+    {
+      attributeId: uuid("attribute_id").notNull(),
+      tenantId: uuid("tenant_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      assignmentTimestamp: timestamp("assignment_timestamp", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      revocationTimestamp: timestamp("revocation_timestamp", {
+        withTimezone: true,
+        mode: "string",
+      }),
+      discreteValue: integer("certified_discrete_value").notNull(),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.tenantId],
+        foreignColumns: [tenantInReadmodelTenant.id],
+        name: "tenant_certified_discrete_attribute_tenant_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.tenantId, table.metadataVersion],
+        foreignColumns: [
+          tenantInReadmodelTenant.id,
+          tenantInReadmodelTenant.metadataVersion,
+        ],
+        name: "tenant_certified_discrete_attri_tenant_id_metadata_version_fkey",
+      }),
+      primaryKey({
+        columns: [table.attributeId, table.tenantId],
+        name: "tenant_certified_discrete_attribute_pkey",
       }),
     ]
   );

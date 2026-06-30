@@ -7,6 +7,9 @@ import {
   PurposeVersionStampsV2,
   PurposeVersionStampV2,
   PurposeVersionV2,
+  ReviewerWorkflowV2,
+  RiskAnalysisReviewModeV2,
+  RiskAnalysisSigningStateV2,
 } from "../gen/v2/purpose/purpose.js";
 import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
 import { dateToBigInt } from "../utils.js";
@@ -21,6 +24,11 @@ import {
   PurposeVersionStamps,
   PurposeVersionState,
   purposeVersionState,
+  ReviewerWorkflow,
+  RiskAnalysisReviewMode,
+  riskAnalysisReviewMode,
+  RiskAnalysisSigningState,
+  riskAnalysisSigningState,
 } from "./purpose.js";
 
 export const toPurposeVersionStateV2 = (
@@ -91,6 +99,57 @@ export const toPurposeRiskAnalysisFormV2 = (
   tenantKind: input.tenantKind ? toTenantKindV2(input.tenantKind) : undefined,
 });
 
+export const toRiskAnalysisReviewModeV2 = (
+  input: RiskAnalysisReviewMode
+): RiskAnalysisReviewModeV2 =>
+  match(input)
+    .with(
+      riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      () => RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS
+    )
+    .with(
+      riskAnalysisReviewMode.adminWritesReviewerSigns,
+      () => RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS
+    )
+    .exhaustive();
+
+export const toRiskAnalysisSigningStateV2 = (
+  input: RiskAnalysisSigningState
+): RiskAnalysisSigningStateV2 =>
+  match(input)
+    .with(
+      riskAnalysisSigningState.draft,
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_DRAFT
+    )
+    .with(
+      riskAnalysisSigningState.assigned,
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_ASSIGNED
+    )
+    .with(
+      riskAnalysisSigningState.submitted,
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_SUBMITTED
+    )
+    .with(
+      riskAnalysisSigningState.signed,
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_SIGNED
+    )
+    .with(
+      riskAnalysisSigningState.rejected,
+      () => RiskAnalysisSigningStateV2.RISK_ANALYSIS_REJECTED
+    )
+    .exhaustive();
+
+export const toReviewerWorkflowV2 = (
+  input: ReviewerWorkflow
+): ReviewerWorkflowV2 => ({
+  reviewMode: toRiskAnalysisReviewModeV2(input.reviewMode),
+  reviewerIds: input.reviewerIds,
+  signingState: toRiskAnalysisSigningStateV2(input.signingState),
+  signedBy: input.signedBy,
+  rejectionReason: input.rejectionReason,
+  sentToReviewerAt: dateToBigInt(input.sentToReviewerAt),
+});
+
 export const toPurposeV2 = (input: Purpose): PurposeV2 => ({
   ...input,
   versions: input.versions.map(toPurposeVersionV2),
@@ -98,5 +157,8 @@ export const toPurposeV2 = (input: Purpose): PurposeV2 => ({
   updatedAt: dateToBigInt(input.updatedAt),
   riskAnalysisForm: input.riskAnalysisForm
     ? toPurposeRiskAnalysisFormV2(input.riskAnalysisForm)
+    : undefined,
+  reviewerWorkflow: input.reviewerWorkflow
+    ? toReviewerWorkflowV2(input.reviewerWorkflow)
     : undefined,
 });

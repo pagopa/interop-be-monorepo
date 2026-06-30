@@ -12,6 +12,7 @@ COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
 
 COPY ./packages/purpose-process/package.json /app/packages/purpose-process/package.json
+COPY ./packages/agreement-lifecycle/package.json /app/packages/agreement-lifecycle/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
@@ -26,6 +27,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 COPY tsconfig.json /app/
 COPY turbo.json /app/
 COPY ./packages/purpose-process /app/packages/purpose-process
+COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/api-clients /app/packages/api-clients
@@ -43,6 +45,7 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   cp -a --parents -t /out \
   node_modules packages/purpose-process/node_modules \
   package*.json packages/purpose-process/package*.json \
+  packages/agreement-lifecycle/ \
   packages/commons/ \
   packages/models/ \
   packages/api-clients \

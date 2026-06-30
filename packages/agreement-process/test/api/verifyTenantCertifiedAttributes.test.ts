@@ -44,6 +44,7 @@ describe("API GET /tenants/{tenantId}/eservices/{eserviceId}/descriptors/{descri
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

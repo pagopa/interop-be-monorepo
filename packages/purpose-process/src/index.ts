@@ -1,4 +1,5 @@
 import { initDB, startServer } from "pagopa-interop-commons";
+import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -62,7 +63,8 @@ const service = purposeServiceBuilder(
     schema: config.eventStoreDbSchema,
     useSSL: config.eventStoreDbUseSSL,
   }),
-  readModelServiceSQL
+  readModelServiceSQL,
+  selfcareV2InstitutionClientBuilder(config)
 );
 
 startServer(await createApp(service), config);
