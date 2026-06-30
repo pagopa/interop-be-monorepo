@@ -36,6 +36,28 @@ describe("API POST /eservices/templates/:eServiceTemplateId", () => {
     expect(res.status).toBe(204);
   });
 
+  it("Should accept asyncExchange updates", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const body = {
+      ...mockEServiceTemplateUpdateSeed,
+      asyncExchange: false,
+    };
+
+    const res = await makeRequest(
+      token,
+      generateId<EServiceTemplateId>(),
+      body
+    );
+
+    expect(res.status).toBe(204);
+    expect(
+      clients.eserviceTemplateProcessClient.updateDraftEServiceTemplate
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({ asyncExchange: false }),
+      expect.anything()
+    );
+  });
+
   it.each([
     { eServiceTemplateId: "invalid" as EServiceTemplateId },
     { body: {} },
@@ -85,6 +107,12 @@ describe("API POST /eservices/templates/:eServiceTemplateId", () => {
       body: {
         ...mockEServiceTemplateUpdateSeed,
         isSignalHubEnabled: "invalid",
+      },
+    },
+    {
+      body: {
+        ...mockEServiceTemplateUpdateSeed,
+        asyncExchange: "invalid",
       },
     },
   ])(

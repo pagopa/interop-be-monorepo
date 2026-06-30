@@ -54,14 +54,15 @@ function toOutboundPurposeV2(
     versions: purpose.versions.map(toOutboundPurposeVersionV2),
     riskAnalysisForm: undefined,
     purposeTemplateId: purpose.purposeTemplateId,
+    reviewerWorkflow: undefined, // TODO
   };
 }
 
 export function toOutboundEventV2(
   message: PurposeEventEnvelopeV2
-): OutboundPurposeEvent {
+): OutboundPurposeEvent | undefined {
   return match(message)
-    .returnType<OutboundPurposeEvent>()
+    .returnType<OutboundPurposeEvent | undefined>()
     .with(
       { type: "PurposeAdded" },
       { type: "DraftPurposeUpdated" },
@@ -107,6 +108,16 @@ export function toOutboundEventV2(
         streamVersion: msg.version,
         timestamp: new Date(),
       })
+    )
+    .with(
+      { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
+      { type: "PurposeRiskAnalysisWorkflowCreated" },
+      { type: "PurposeRiskAnalysisAssigned" },
+      { type: "PurposeRiskAnalysisSubmitted" },
+      { type: "PurposeRiskAnalysisSigned" },
+      { type: "PurposeRiskAnalysisRejected" },
+      { type: "PurposeRiskAnalysisFormEdited" },
+      () => undefined
     )
     .with({ type: "PurposeCloned" }, (msg) => ({
       event_version: msg.event_version,

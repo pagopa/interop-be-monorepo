@@ -3,6 +3,7 @@ syntax = "proto3";
 package agreement.v2;
 
 import "v2/agreement/agreement.proto";
+import "v2/eservice/eservice.proto";
 
 message AgreementAddedV2 {
   AgreementV2 agreement = 1;
@@ -56,8 +57,23 @@ message AgreementSuspendedByConsumerV2 {
   AgreementV2 agreement = 1;
 }
 
+enum AgreementSuspensionReasonV2 {
+  AGREEMENT_SUSPENSION_REASON_UNSPECIFIED = 0;
+  AGREEMENT_SUSPENSION_REASON_CERTIFIED_ATTRIBUTE = 1;
+  AGREEMENT_SUSPENSION_REASON_CERTIFIED_DISCRETE_ATTRIBUTE = 2;
+}
+
 message AgreementSuspendedByPlatformV2 {
   AgreementV2 agreement = 1;
+  optional AgreementSuspensionReasonV2 suspensionReason = 2;
+  optional CertifiedDiscreteAttributeFailureV2 discreteAttributeFailure = 3;
+}
+
+message CertifiedDiscreteAttributeFailureV2 {
+  string attributeId = 1;
+  int32 tenantValue = 2;
+  int32 threshold = 3;
+  eservice.v2.AttributeCertifiedDiscreteComparatorV2 comparator = 4;
 }
 
 message AgreementRejectedV2 {

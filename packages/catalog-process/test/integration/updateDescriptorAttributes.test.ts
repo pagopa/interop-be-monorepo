@@ -35,6 +35,7 @@ import {
   notValidDescriptorState,
   unchangedAttributes,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
@@ -1621,5 +1622,109 @@ describe("update descriptor", () => {
         context
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
+  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is on declared attribute", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      attributes: {
+        certified: [],
+        verified: [],
+        declared: [
+          [
+            {
+              id: mockDeclaredAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+      },
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+
+    await addOneEService(mockEService);
+
+    const attributeSeedWithDiscreteConfigOnDeclared: catalogApi.AttributesSeed =
+      {
+        certified: [],
+        verified: [],
+        declared: [
+          [
+            {
+              id: mockDeclaredAttribute1.id,
+              explicitAttributeVerification: false,
+              discreteConfig: { threshold: 1, comparator: "GT" },
+            },
+          ],
+        ],
+      };
+
+    await expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        attributeSeedWithDiscreteConfigOnDeclared,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(
+      attributeDiscreteConfigNotAllowed(mockDeclaredAttribute1.id)
+    );
+  });
+
+  it("should throw attributeDiscreteConfigNotAllowed when discreteConfig is on verified attribute", async () => {
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.published,
+      attributes: {
+        certified: [],
+        verified: [
+          [
+            {
+              id: mockVerifiedAttribute1.id,
+              explicitAttributeVerification: false,
+            },
+          ],
+        ],
+        declared: [],
+      },
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      descriptors: [mockDescriptor],
+    };
+
+    await addOneEService(mockEService);
+
+    const attributeSeedWithDiscreteConfigOnVerified: catalogApi.AttributesSeed =
+      {
+        certified: [],
+        verified: [
+          [
+            {
+              id: mockVerifiedAttribute1.id,
+              explicitAttributeVerification: false,
+              discreteConfig: { threshold: 1, comparator: "GT" },
+            },
+          ],
+        ],
+        declared: [],
+      };
+
+    await expect(
+      catalogService.updateDescriptorAttributes(
+        mockEService.id,
+        mockDescriptor.id,
+        attributeSeedWithDiscreteConfigOnVerified,
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(
+      attributeDiscreteConfigNotAllowed(mockVerifiedAttribute1.id)
+    );
   });
 });

@@ -103,8 +103,7 @@ describe("patchUpdateReversePurpose", () => {
   async function expectUpdatedPurpose(
     updatePurposeReturn: UpdatePurposeReturn,
     writtenPayload: DraftPurposeUpdatedV2,
-    expectedPurpose: Purpose,
-    expectedIsRiskAnalysisValid: boolean = true
+    expectedPurpose: Purpose
   ): Promise<void> {
     const sortedExpectedPurpose = sortPurpose(expectedPurpose);
     const sortedUpdatePurposeReturn =
@@ -118,7 +117,6 @@ describe("patchUpdateReversePurpose", () => {
     expect(sortedUpdatePurposeReturn).toEqual({
       data: {
         purpose: sortedExpectedPurpose,
-        isRiskAnalysisValid: expectedIsRiskAnalysisValid,
       },
       metadata: { version: 1 },
     });
@@ -715,7 +713,9 @@ describe("patchUpdateReversePurpose", () => {
         updatedAt: new Date(),
       };
 
-      expect(patchPurposeResult.data.purpose).toEqual(expectedPurpose);
+      expect(sortPurpose(patchPurposeResult.data.purpose)).toEqual(
+        sortPurpose(expectedPurpose)
+      );
     }
   );
 

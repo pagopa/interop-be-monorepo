@@ -292,7 +292,7 @@ const agreementRouter = (
           error,
           activateAgreementErrorMapper,
           ctx,
-          `Error activating agreement ${req.params.agreementId}`
+          `Error approving agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -312,7 +312,7 @@ const agreementRouter = (
           error,
           activateAgreementErrorMapper,
           ctx,
-          `Error activating agreement ${req.params.agreementId}`
+          `Error unsuspending agreement ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

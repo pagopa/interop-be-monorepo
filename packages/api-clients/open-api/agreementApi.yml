@@ -1355,6 +1355,11 @@ components:
           description: "set of the certified attributes belonging to this agreement, if any."
           items:
             $ref: "#/components/schemas/CertifiedAttribute"
+        certifiedDiscreteAttributes:
+          type: array
+          description: "set of the certified discrete attributes belonging to this agreement, if any."
+          items:
+            $ref: "#/components/schemas/CertifiedAttribute"
         declaredAttributes:
           type: array
           description: "set of the declared attributes belonging to this agreement, if any."
@@ -1398,6 +1403,7 @@ components:
         - state
         - verifiedAttributes
         - certifiedAttributes
+        - certifiedDiscreteAttributes
         - declaredAttributes
         - consumerDocuments
         - createdAt
@@ -1534,6 +1540,8 @@ components:
           $ref: "#/components/schemas/CertifiedTenantAttribute"
         verified:
           $ref: "#/components/schemas/VerifiedTenantAttribute"
+        certifiedDiscrete:
+          $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
     DeclaredTenantAttribute:
       type: object
       additionalProperties: false
@@ -1569,6 +1577,28 @@ components:
       required:
         - id
         - assignmentTimestamp
+    CertifiedDiscreteTenantAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        assignmentTimestamp:
+          type: string
+          format: date-time
+        revocationTimestamp:
+          type: string
+          format: date-time
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - assignmentTimestamp
+        - discreteValue
     VerifiedTenantAttribute:
       type: object
       additionalProperties: false
