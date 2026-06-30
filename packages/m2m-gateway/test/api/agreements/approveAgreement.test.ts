@@ -6,7 +6,7 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { generateId, pollingMaxRetriesExceeded, unsafeBrandId } from "pagopa-interop-models";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
@@ -108,7 +108,7 @@ describe("POST /agreements/:agreementId/approve router test", () => {
       .fn()
       .mockRejectedValue(
         agreementNotInExpectedState(
-          mockApiAgreement.id as string & BRAND<"AgreementId">,
+          unsafeBrandId(mockApiAgreement.id),
           mockApiAgreement.state
         )
       );
