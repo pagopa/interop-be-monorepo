@@ -447,7 +447,7 @@ describe("activate agreement", () => {
       await addOneEService(eservice);
       await addOneAttribute(certifiedDiscreteAttribute);
 
-      await agreementService.activateAgreement(
+      await agreementService.approveAgreement(
         { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       );
@@ -550,7 +550,7 @@ describe("activate agreement", () => {
       await addOneEService(eservice);
       await addOneAttribute(certifiedDiscreteAttribute);
 
-      await agreementService.activateAgreement(
+      await agreementService.approveAgreement(
         { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       );
@@ -1779,7 +1779,7 @@ describe("activate agreement", () => {
           };
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(
+            await agreementService.unsuspendAgreement(
               { agreementId: agreement.id, delegationId },
               getMockContext({ authData })
             );
@@ -1854,7 +1854,7 @@ describe("activate agreement", () => {
           } = await setupCertifiedDiscreteSuspensionTest(false);
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(
+            await agreementService.unsuspendAgreement(
               { agreementId: agreement.id, delegationId },
               getMockContext({ authData })
             );
