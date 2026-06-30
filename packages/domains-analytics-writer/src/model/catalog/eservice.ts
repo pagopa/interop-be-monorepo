@@ -10,6 +10,7 @@ import { EserviceDescriptorTemplateVersionRefSchema } from "./eserviceDescriptor
 import { EserviceDescriptorAsyncExchangePropertiesSchema } from "./eserviceDescriptorAsyncExchangeProperties.js";
 import { EserviceRiskAnalysisSchema } from "./eserviceRiskAnalysis.js";
 import { EserviceRiskAnalysisAnswerSchema } from "./eserviceRiskAnalysisAnswer.js";
+import { EserviceDescriptorArchivingSchema } from "./eserviceDescriptorArchiving.js";
 
 export const EserviceSchema = createSelectSchema(
   eserviceInReadmodelCatalog
@@ -34,6 +35,7 @@ export const EserviceItemsSchema = z.object({
   documentsSQL: z.array(EserviceDescriptorDocumentSchema),
   rejectionReasonsSQL: z.array(EserviceDescriptorRejectionReasonSchema),
   templateVersionRefsSQL: z.array(EserviceDescriptorTemplateVersionRefSchema),
+  archivingSchedulesSQL: z.array(EserviceDescriptorArchivingSchema),
   asyncExchangePropertiesSQL: z
     .array(EserviceDescriptorAsyncExchangePropertiesSchema)
     .default([]),

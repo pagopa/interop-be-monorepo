@@ -274,6 +274,7 @@ describe("events V1", async () => {
       ...agreement,
       state: agreementState.active,
       signedContract: undefined,
+      certifiedDiscreteAttributes: [],
     };
     const payload: AgreementActivatedV1 = {
       agreement: toAgreementV1(activatedAgreement),
@@ -319,6 +320,7 @@ describe("events V1", async () => {
       ...agreement,
       state: agreementState.active,
       signedContract: undefined,
+      certifiedDiscreteAttributes: [],
     };
     const payload: AgreementSuspendedV1 = {
       agreement: toAgreementV1(suspendedAgreement),
@@ -363,6 +365,7 @@ describe("events V1", async () => {
       ...agreement,
       state: agreementState.active,
       signedContract: undefined,
+      certifiedDiscreteAttributes: [],
     };
     const payload: AgreementActivatedV1 = {
       agreement: toAgreementV1(deactivatedAgreement),
@@ -406,6 +409,7 @@ describe("events V1", async () => {
       ...agreement,
       signedContract: undefined,
       verifiedAttributes: [{ id: generateId() }],
+      certifiedDiscreteAttributes: [],
     };
     const payload: AgreementActivatedV1 = {
       agreement: toAgreementV1(updatedAgreement),

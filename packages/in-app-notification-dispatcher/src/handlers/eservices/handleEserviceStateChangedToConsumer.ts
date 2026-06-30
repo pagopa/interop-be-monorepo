@@ -1,4 +1,5 @@
 import {
+  archivingScope,
   DescriptorId,
   EService,
   EServiceEventV2,
@@ -11,12 +12,12 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 type EServiceStateChangedEventType =
   | "EServiceNameUpdated"
@@ -34,7 +35,13 @@ type EServiceStateChangedEventType =
   | "EServiceDescriptorAttributesUpdatedByTemplateUpdate"
   | "EServiceDescriptorQuotasUpdatedByTemplateUpdate"
   | "EServiceDescriptorDocumentAddedByTemplateUpdate"
-  | "EServiceDescriptorDocumentUpdatedByTemplateUpdate";
+  | "EServiceDescriptorDocumentUpdatedByTemplateUpdate"
+  | "EServiceDescriptorArchivingScheduled"
+  | "EServiceDescriptorArchivingCanceled"
+  | "EServiceDescriptorArchivingCompleted"
+  | "EServiceArchivingScheduled"
+  | "EServiceArchivingCanceled"
+  | "EServiceArchivingCompleted";
 
 type EServiceStateChangedEvent = Extract<
   EServiceEventV2,
@@ -176,25 +183,61 @@ function getBodyAndDescriptorId(
     )
     .with(
       { type: "EServiceDescriptorSuspended" },
-      ({ data: { descriptorId } }) => ({
-        body: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
-          eservice.name,
-          producerName,
-          eservice.descriptors.find((d) => d.id === descriptorId)?.version
-        ),
-        descriptorId,
-      })
+      ({ data: { descriptorId } }) => {
+        const descriptor = eservice.descriptors.find(
+          (d) => d.id === descriptorId
+        );
+        const archivingSchedule = descriptor?.archivingSchedule;
+        if (archivingSchedule) {
+          return {
+            body: inAppTemplates.eserviceArchivingDescriptorSuspendedToConsumer(
+              eservice.name,
+              descriptor?.version,
+              archivingSchedule.archivableOn,
+              archivingSchedule.scope === archivingScope.descriptor
+            ),
+            descriptorId,
+          };
+        } else {
+          return {
+            body: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
+              eservice.name,
+              producerName,
+              descriptor?.version
+            ),
+            descriptorId,
+          };
+        }
+      }
     )
     .with(
       { type: "EServiceDescriptorActivated" },
-      ({ data: { descriptorId } }) => ({
-        body: inAppTemplates.eserviceDescriptorActivatedToConsumer(
-          eservice.name,
-          producerName,
-          eservice.descriptors.find((d) => d.id === descriptorId)?.version
-        ),
-        descriptorId,
-      })
+      ({ data: { descriptorId } }) => {
+        const descriptor = eservice.descriptors.find(
+          (d) => d.id === descriptorId
+        );
+        const archivingSchedule = descriptor?.archivingSchedule;
+        if (archivingSchedule) {
+          return {
+            body: inAppTemplates.eserviceArchivingDescriptorActivatedToConsumer(
+              eservice.name,
+              descriptor?.version,
+              archivingSchedule.archivableOn,
+              archivingSchedule.scope === archivingScope.eservice
+            ),
+            descriptorId,
+          };
+        } else {
+          return {
+            body: inAppTemplates.eserviceDescriptorActivatedToConsumer(
+              eservice.name,
+              producerName,
+              descriptor?.version
+            ),
+            descriptorId,
+          };
+        }
+      }
     )
     .with(
       {
@@ -251,6 +294,23 @@ function getBodyAndDescriptorId(
           descriptorId,
         };
       }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceArchivingCompleted"
+        ),
+      },
+      () => ({
+        // FIXME these events will be managed with "WORK ITEM 10"
+        body: "",
+        descriptorId: undefined,
+      })
     )
     .exhaustive();
 }

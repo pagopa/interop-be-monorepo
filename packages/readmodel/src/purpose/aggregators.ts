@@ -12,6 +12,7 @@ import {
   PurposeVersionStamp,
   PurposeVersionStampKind,
   PurposeVersionState,
+  ReviewerWorkflow,
   RiskAnalysisAnswerKind,
   riskAnalysisAnswerKind,
   RiskAnalysisId,
@@ -19,9 +20,12 @@ import {
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswer,
   RiskAnalysisSingleAnswerId,
+  RiskAnalysisReviewMode,
+  RiskAnalysisSigningState,
   stringToDate,
   TenantKind,
   unsafeBrandId,
+  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
 import {
@@ -33,6 +37,7 @@ import {
   PurposeItemsSQL,
   PurposeVersionStampSQL,
   PurposeVersionSignedDocumentSQL,
+  RiskAnalysisReviewerSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
@@ -45,6 +50,7 @@ export const aggregatePurposeArray = ({
   versionDocumentsSQL,
   versionStampsSQL,
   versionSignedDocumentsSQL,
+  reviewersSQL,
 }: {
   purposesSQL: PurposeSQL[];
   riskAnalysisFormsSQL: PurposeRiskAnalysisFormSQL[];
@@ -53,6 +59,7 @@ export const aggregatePurposeArray = ({
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
   versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
+  reviewersSQL: RiskAnalysisReviewerSQL[];
 }): Array<WithMetadata<Purpose>> => {
   const riskAnalysisFormsSQLByPurposeId =
     createPurposeSQLPropertyMap(riskAnalysisFormsSQL);
@@ -68,6 +75,8 @@ export const aggregatePurposeArray = ({
     versionSignedDocumentsSQL
   );
 
+  const reviewersSQLByPurposeId = createPurposeSQLPropertyMap(reviewersSQL);
+
   return purposesSQL.map((purposeSQL) => {
     const purposeId = unsafeBrandId<PurposeId>(purposeSQL.id);
 
@@ -80,6 +89,7 @@ export const aggregatePurposeArray = ({
       versionStampsSQL: versionStampsSQLByPurposeId.get(purposeId) || [],
       versionSignedDocumentsSQL:
         versionSignedDocumentsSQLByPurposeId.get(purposeId) || [],
+      reviewersSQL: reviewersSQLByPurposeId.get(purposeId) || [],
     });
   });
 };
@@ -90,7 +100,8 @@ const createPurposeSQLPropertyMap = <
     | PurposeRiskAnalysisAnswerSQL
     | PurposeVersionSQL
     | PurposeVersionDocumentSQL
-    | PurposeVersionStampSQL,
+    | PurposeVersionStampSQL
+    | RiskAnalysisReviewerSQL,
 >(
   items: T[]
 ): Map<PurposeId, T[]> =>
@@ -112,6 +123,7 @@ export const aggregatePurpose = ({
   versionDocumentsSQL,
   versionStampsSQL,
   versionSignedDocumentsSQL,
+  reviewersSQL,
 }: // eslint-disable-next-line sonarjs/cognitive-complexity
 PurposeItemsSQL): WithMetadata<Purpose> => {
   const riskAnalysisForm = purposeRiskAnalysisFormSQLToPurposeRiskAnalysisForm(
@@ -261,6 +273,41 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
           ),
         }
       : {}),
+    ...(purposeSQL.reviewerWorkflowReviewMode &&
+    purposeSQL.reviewerWorkflowSigningState
+      ? {
+          reviewerWorkflow: {
+            reviewMode: RiskAnalysisReviewMode.parse(
+              purposeSQL.reviewerWorkflowReviewMode
+            ),
+            signingState: RiskAnalysisSigningState.parse(
+              purposeSQL.reviewerWorkflowSigningState
+            ),
+            reviewerIds: reviewersSQL.map((r) =>
+              unsafeBrandId<UserId>(r.reviewerId)
+            ),
+            ...(purposeSQL.reviewerWorkflowSignedBy
+              ? {
+                  signedBy: unsafeBrandId<UserId>(
+                    purposeSQL.reviewerWorkflowSignedBy
+                  ),
+                }
+              : {}),
+            ...(purposeSQL.reviewerWorkflowRejectionReason
+              ? {
+                  rejectionReason: purposeSQL.reviewerWorkflowRejectionReason,
+                }
+              : {}),
+            ...(purposeSQL.reviewerWorkflowSentToReviewerAt
+              ? {
+                  sentToReviewerAt: stringToDate(
+                    purposeSQL.reviewerWorkflowSentToReviewerAt
+                  ),
+                }
+              : {}),
+          } satisfies ReviewerWorkflow,
+        }
+      : {}),
   };
 
   return {
@@ -355,6 +402,7 @@ export const toPurposeAggregator = (
     purposeVersionDocument: PurposeVersionDocumentSQL | null;
     purposeVersionStamp: PurposeVersionStampSQL | null;
     purposeVersionSignedDocument: PurposeVersionSignedDocumentSQL | null;
+    purposeRiskAnalysisReviewer: RiskAnalysisReviewerSQL | null;
   }>
 ): PurposeItemsSQL => {
   const {
@@ -365,6 +413,7 @@ export const toPurposeAggregator = (
     versionDocumentsSQL,
     versionStampsSQL,
     versionSignedDocumentsSQL,
+    reviewersSQL,
   } = toPurposeAggregatorArray(queryRes);
 
   throwIfMultiple(purposesSQL, "purpose");
@@ -377,6 +426,7 @@ export const toPurposeAggregator = (
     versionDocumentsSQL,
     versionStampsSQL,
     versionSignedDocumentsSQL,
+    reviewersSQL,
   };
 };
 
@@ -389,6 +439,7 @@ export const toPurposeAggregatorArray = (
     purposeVersionDocument: PurposeVersionDocumentSQL | null;
     purposeVersionStamp: PurposeVersionStampSQL | null;
     purposeVersionSignedDocument: PurposeVersionSignedDocumentSQL | null;
+    purposeRiskAnalysisReviewer: RiskAnalysisReviewerSQL | null;
   }>
 ): {
   purposesSQL: PurposeSQL[];
@@ -398,6 +449,7 @@ export const toPurposeAggregatorArray = (
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
   versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
+  reviewersSQL: RiskAnalysisReviewerSQL[];
 } => {
   const purposeIdSet = new Set<string>();
   const purposesSQL: PurposeSQL[] = [];
@@ -420,6 +472,9 @@ export const toPurposeAggregatorArray = (
   const purposeVersionSignedDocumentIdSet = new Set<string>();
   const purposeVersionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[] =
     [];
+
+  const purposeReviewerIdSet = new Set<string>();
+  const purposeReviewersSQL: RiskAnalysisReviewerSQL[] = [];
   // eslint-disable-next-line sonarjs/cognitive-complexity, complexity
   queryRes.forEach((row) => {
     const purposeSQL = row.purpose;
@@ -518,6 +573,23 @@ export const toPurposeAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         purposeVersionSignedDocumentsSQL.push(purposeVersionSignedDocumentSQL);
       }
+
+      const purposeReviewerSQL = row.purposeRiskAnalysisReviewer;
+      const purposeReviewerPK = purposeReviewerSQL
+        ? makeUniqueKey([
+            purposeReviewerSQL?.purposeId,
+            purposeReviewerSQL?.reviewerId,
+          ])
+        : undefined;
+      if (
+        purposeReviewerSQL &&
+        purposeReviewerPK &&
+        !purposeReviewerIdSet.has(purposeReviewerPK)
+      ) {
+        purposeReviewerIdSet.add(purposeReviewerPK);
+        // eslint-disable-next-line functional/immutable-data
+        purposeReviewersSQL.push(purposeReviewerSQL);
+      }
     }
   });
 
@@ -529,5 +601,6 @@ export const toPurposeAggregatorArray = (
     versionDocumentsSQL: purposeVersionDocumentsSQL,
     versionStampsSQL: purposeVersionStampsSQL,
     versionSignedDocumentsSQL: purposeVersionSignedDocumentsSQL,
+    reviewersSQL: purposeReviewersSQL,
   };
 };
