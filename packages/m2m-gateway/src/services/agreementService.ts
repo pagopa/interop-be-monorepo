@@ -191,7 +191,11 @@ export function agreementServiceBuilder(
       });
 
       return {
-        results: results.map(toM2MGatewayApiPurpose),
+        results: await Promise.all(
+          results.map((purpose) =>
+            toM2MGatewayApiPurpose(purpose, clients, headers)
+          )
+        ),
         pagination: {
           limit,
           offset,

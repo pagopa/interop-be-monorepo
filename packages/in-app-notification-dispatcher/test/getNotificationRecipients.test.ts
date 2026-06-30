@@ -5,11 +5,11 @@ import {
   notificationAdmittedRoles,
 } from "pagopa-interop-commons";
 import { TenantId, UserId, UserRole, generateId } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import { getNotificationRecipients } from "pagopa-interop-notification-commons";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
 
 describe("getNotificationRecipients", () => {
-  vi.unmock("../src/handlers/handlerCommons.js");
+  vi.unmock("pagopa-interop-notification-commons");
 
   const tenants: TenantId[] = [generateId<TenantId>(), generateId<TenantId>()];
 
@@ -69,7 +69,11 @@ describe("getNotificationRecipients", () => {
     );
     expect(
       readModelService.getTenantUsersWithNotificationEnabled
-    ).toHaveBeenCalledWith(tenants, "agreementActivatedRejectedToConsumer");
+    ).toHaveBeenCalledWith(
+      tenants,
+      "agreementActivatedRejectedToConsumer",
+      "inApp"
+    );
   });
 
   it("should not return users with 'support' role", async () => {
@@ -91,6 +95,8 @@ describe("getNotificationRecipients", () => {
       [authRole.API_ROLE]: false,
       [authRole.SECURITY_ROLE]: false,
       [authRole.SUPPORT_ROLE]: false,
+      [authRole.REVIEWER_ROLE]: false,
+      [authRole.VIEWER_ROLE]: false,
     });
     const result = await getNotificationRecipients(
       tenants,
@@ -109,6 +115,8 @@ describe("getNotificationRecipients", () => {
       [authRole.API_ROLE]: true,
       [authRole.SECURITY_ROLE]: false,
       [authRole.SUPPORT_ROLE]: false,
+      [authRole.REVIEWER_ROLE]: false,
+      [authRole.VIEWER_ROLE]: false,
     });
     const result = await getNotificationRecipients(
       tenants,
@@ -129,6 +137,8 @@ describe("getNotificationRecipients", () => {
       [authRole.API_ROLE]: false,
       [authRole.SECURITY_ROLE]: true,
       [authRole.SUPPORT_ROLE]: false,
+      [authRole.REVIEWER_ROLE]: false,
+      [authRole.VIEWER_ROLE]: false,
     });
     const result = await getNotificationRecipients(
       tenants,

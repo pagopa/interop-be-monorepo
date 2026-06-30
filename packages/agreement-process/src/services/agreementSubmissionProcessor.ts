@@ -16,6 +16,7 @@ import { agreementApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import {
   matchingCertifiedAttributes,
+  matchingCertifiedDiscreteAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
 } from "../model/domain/agreement-validators.js";
@@ -65,6 +66,10 @@ export const createSubmissionUpdateAgreementSeed = (
     ? {
         state: newState,
         certifiedAttributes: matchingCertifiedAttributes(descriptor, consumer),
+        certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
+          descriptor,
+          consumer
+        ),
         declaredAttributes: matchingDeclaredAttributes(descriptor, consumer),
         verifiedAttributes: matchingVerifiedAttributes(
           eservice,
@@ -81,6 +86,7 @@ export const createSubmissionUpdateAgreementSeed = (
     : {
         state: newState,
         certifiedAttributes: [],
+        certifiedDiscreteAttributes: [],
         declaredAttributes: [],
         verifiedAttributes: [],
         suspendedByConsumer: agreement.suspendedByConsumer,

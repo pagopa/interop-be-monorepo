@@ -1,10 +1,12 @@
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
+import { isFeatureFlagEnabled } from "pagopa-interop-commons";
 import {
   agreementApi,
   authorizationApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { config } from "../config/config.js";
 import {
   delegationKind,
   delegationState,
@@ -43,6 +45,8 @@ export function isValidDescriptor(
       catalogApi.EServiceDescriptorState.Values.DEPRECATED,
       catalogApi.EServiceDescriptorState.Values.PUBLISHED,
       catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING_SUSPENDED,
       () => true
     )
     .with(
@@ -67,6 +71,8 @@ export function isInvalidDescriptor(
       catalogApi.EServiceDescriptorState.Values.DEPRECATED,
       catalogApi.EServiceDescriptorState.Values.PUBLISHED,
       catalogApi.EServiceDescriptorState.Values.SUSPENDED,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING,
+      catalogApi.EServiceDescriptorState.Values.ARCHIVING_SUSPENDED,
       () => false
     )
     .exhaustive();
@@ -189,7 +195,13 @@ export function hasCertifiedAttributes(
     descriptor !== undefined &&
     certifiedAttributesSatisfied(
       descriptorAttributesFromApi(descriptor.attributes),
-      tenantAttributesFromApi(requesterTenant.attributes)
+      tenantAttributesFromApi(requesterTenant.attributes),
+      {
+        certifiedDiscreteEnabled: isFeatureFlagEnabled(
+          config,
+          "featureFlagAttributeCertifiedDiscrete"
+        ),
+      }
     )
   );
 }

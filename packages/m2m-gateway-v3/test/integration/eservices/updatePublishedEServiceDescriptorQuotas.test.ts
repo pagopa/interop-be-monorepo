@@ -80,6 +80,8 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       deprecatedAt: mockDescriptor.deprecatedAt,
       archivedAt: mockDescriptor.archivedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockDescriptor.archivingSchedule,
+      asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
     };
 
     expect(result).toStrictEqual(expectedM2MDescriptor);
@@ -152,6 +154,8 @@ describe("updatePublishedEServiceDescriptorQuotas", () => {
       deprecatedAt: mockDescriptor.deprecatedAt,
       archivedAt: mockDescriptor.archivedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockDescriptor.archivingSchedule,
+      asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
     };
 
     expect(result).toStrictEqual(expectedM2MDescriptor);
