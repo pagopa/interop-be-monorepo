@@ -573,7 +573,7 @@ export function invalidFileUploadError(
   return new ApiError({
     code: "invalidFileUploadError",
     title: "Invalid file",
-    detail: `File is not an allowed format or extension}`,
+    detail: `File is not an allowed format or extension`,
     errors,
   });
 }
