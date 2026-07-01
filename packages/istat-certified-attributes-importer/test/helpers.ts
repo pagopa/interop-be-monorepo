@@ -103,11 +103,11 @@ export const persistentAttribute: Attribute = {
   id: unsafeBrandId<AttributeId>(ATTRIBUTE_ISTAT_POPULATION_ID),
   origin: ISTAT_ATTRIBUTE_SEED.origin,
   code: ISTAT_ATTRIBUTE_SEED.code,
-  name: "Popolazione Residente",
+  name: "Popolazione residente comune",
   kind: "Certified",
   creationTime: new Date(),
   description:
-    "Attributo certificato discreto indicante la popolazione comunale",
+    "Questo attributo certificato indica la popolazione che risiede in un comune",
 };
 
 export const getTenantsWithDiscreteAttributeMock = (): Promise<

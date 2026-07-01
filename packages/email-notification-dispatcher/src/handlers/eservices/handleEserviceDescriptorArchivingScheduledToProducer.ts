@@ -69,7 +69,7 @@ export async function handleEserviceDescriptorArchivingScheduledToProducer(
   const archivableOn = descriptor.archivingSchedule
     ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
     : undefined;
-  const subject = `Avvio archiviazione della versione ${descriptor.version} dell'e-service "${eservice.name}"`;
+  const subject = `Una versione di un tuo e-service è in fase di archiviazione`;
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),

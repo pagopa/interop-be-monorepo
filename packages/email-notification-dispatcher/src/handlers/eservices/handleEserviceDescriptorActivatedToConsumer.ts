@@ -6,6 +6,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   unsafeBrandId,
+  archivingScope,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -18,10 +19,11 @@ import {
 import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
+import { dateAtRomeZone } from "pagopa-interop-commons";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
-export async function handleEserviceDescriptorActivated(
+export async function handleEserviceDescriptorActivatedToConsumer(
   data: EServiceDescriptorHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -48,9 +50,13 @@ export async function handleEserviceDescriptorActivated(
     throw descriptorNotFound(eservice.id, descriptorId);
   }
 
+  const archivingSchedule = descriptor.archivingSchedule;
+
   const [htmlTemplate, agreements, producer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorActivatedMailTemplate
+      archivingSchedule
+        ? eventMailTemplateType.eserviceArchivingDescriptorActivatedToConsumerMailTemplate
+        : eventMailTemplateType.eserviceDescriptorActivatedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveTenant(eservice.producerId, readModelService),
@@ -77,7 +83,7 @@ export async function handleEserviceDescriptorActivated(
 
   if (targets.length === 0) {
     logger.info(
-      `No users with email notifications enabled for handleEserviceDescriptorActivated - entityId: ${eservice.id}, eventType: ${notificationType}`
+      `No users with email notifications enabled for handleEserviceDescriptorActivatedToConsumer - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -97,6 +103,13 @@ export async function handleEserviceDescriptorActivated(
           body: templateService.compileHtml(htmlTemplate, {
             title: `Una versione di "${eservice.name}" è stata riattivata`,
             notificationType,
+            ...(archivingSchedule
+              ? {
+                  archivableOn: dateAtRomeZone(archivingSchedule.archivableOn),
+                  newerVersionAvailable:
+                    archivingSchedule.scope === archivingScope.descriptor,
+                }
+              : {}),
             entityId: `${eservice.id}/${descriptor.id}`,
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             producerName: producer.name,

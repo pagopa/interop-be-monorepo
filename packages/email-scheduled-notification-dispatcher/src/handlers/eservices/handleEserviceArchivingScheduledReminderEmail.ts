@@ -1,4 +1,3 @@
-import { differenceInCalendarDays } from "date-fns";
 import {
   CorrelationId,
   EmailNotificationMessagePayload,
@@ -12,7 +11,6 @@ import {
 } from "pagopa-interop-commons";
 import {
   eventMailTemplateType,
-  formatDaysRemaining,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,
@@ -73,12 +71,7 @@ export async function handleEserviceArchivingScheduledReminderEmail(
   const archivableOn = new Date(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );
-  const daysRemaining = Math.max(
-    differenceInCalendarDays(archivableOn, new Date()),
-    0
-  );
   const archivableOnFormatted = dateAtRomeZone(archivableOn);
-  const daysRemainingText = formatDaysRemaining(daysRemaining);
   const entityId = eservice.id;
 
   const [producerTemplate, consumerTemplate, producerTenant] =
@@ -110,8 +103,6 @@ export async function handleEserviceArchivingScheduledReminderEmail(
         entityId,
         ...(t.type === "Tenant" ? { recipientName: producerTenant.name } : {}),
         eserviceName: eservice.name,
-        daysRemaining,
-        daysRemainingText,
         archivableOn: archivableOnFormatted,
         ctaLabel: "Accedi a PDND",
         selfcareId: t.selfcareId,
@@ -164,8 +155,6 @@ export async function handleEserviceArchivingScheduledReminderEmail(
               : {}),
             eserviceName: eservice.name,
             producerName: producerTenant.name,
-            daysRemaining,
-            daysRemainingText,
             archivableOn: archivableOnFormatted,
             ctaLabel: "Accedi a PDND",
             selfcareId: t.selfcareId,
