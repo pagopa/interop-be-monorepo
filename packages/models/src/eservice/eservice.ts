@@ -161,6 +161,7 @@ export const ArchivingSchedule = z.object({
   archivableOn: z.coerce.date(),
   startedAt: z.coerce.date(),
   scope: ArchivingScope,
+  gracePeriodDays: z.number().int().min(30),
 });
 
 export type ArchivingSchedule = z.infer<typeof ArchivingSchedule>;

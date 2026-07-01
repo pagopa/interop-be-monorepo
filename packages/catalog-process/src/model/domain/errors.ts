@@ -83,6 +83,7 @@ const errorCodes = {
   certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
   eserviceDescriptorWithActiveOrPendingDelegation: "0067",
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
+  gracePeriodDaysNotValid: "0069",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -773,5 +774,15 @@ export function eServiceAlreadyArchived(
     detail: `EService ${eserviceId} is already archived`,
     code: "eServiceAlreadyArchived",
     title: "EService already archived",
+  });
+}
+
+export function gracePeriodDaysNotValid(
+  gracePeriodDays: number | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Grace period days ${gracePeriodDays} is not valid. It must be between 30 and 999999`,
+    code: "gracePeriodDaysNotValid",
+    title: "Grace period days not valid",
   });
 }

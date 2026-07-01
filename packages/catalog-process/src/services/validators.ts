@@ -77,6 +77,7 @@ import {
   eserviceInDraftState,
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
+  gracePeriodDaysNotValid,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -921,5 +922,17 @@ export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
   const latestDescriptor = getLatestDescriptor(eservice);
   if (latestDescriptor.state === descriptorState.archived) {
     throw eServiceAlreadyArchived(eservice.id);
+  }
+}
+
+export function assertGracePeriodDaysValid(
+  gracePeriodDays: number | undefined
+): void {
+  if (
+    gracePeriodDays === undefined ||
+    gracePeriodDays < 30 ||
+    gracePeriodDays > 999999
+  ) {
+    throw gracePeriodDaysNotValid(gracePeriodDays);
   }
 }

@@ -228,6 +228,7 @@ import {
   assertIsNotDraftEservice,
   assertEServiceIsInArchiving,
   assertEServiceIsNotAlreadyArchived,
+  assertGracePeriodDaysValid,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -1241,7 +1242,7 @@ export function catalogServiceBuilder(
 
     async scheduleEServiceArchiving(
       eserviceId: EServiceId,
-      body: catalogApi.EServiceArchivingReasonSeed,
+      body: catalogApi.EServiceArchivingSeed,
       {
         authData,
         correlationId,
@@ -1259,6 +1260,8 @@ export function catalogServiceBuilder(
       );
 
       assertEServiceArchivable(eservice.data);
+
+      assertGracePeriodDaysValid(body.gracePeriodDays);
 
       const updatedEService = await processEserviceArchiving(
         eservice.data,
@@ -2450,6 +2453,7 @@ export function catalogServiceBuilder(
     async scheduleEServiceDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      body: GracePeriodDaysSeed,
       {
         authData,
         correlationId,
@@ -2468,6 +2472,8 @@ export function catalogServiceBuilder(
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
+      assertGracePeriodDaysValid(body.gracePeriodDays); //Check if the grace period exists and is valid ( min 30 )
+
       const newState =
         descriptor.state === descriptorState.suspended
           ? descriptorState.archivingSuspended
@@ -2475,7 +2481,8 @@ export function catalogServiceBuilder(
 
       const updatedDescriptor = await processDescriptorArchiving(
         descriptor,
-        newState
+        newState,
+        body.gracePeriodDays
       );
 
       const updatedEService = replaceDescriptor(
@@ -4556,7 +4563,7 @@ export function catalogServiceBuilder(
 
 async function processEserviceArchiving(
   eservice: EService,
-  body: catalogApi.EServiceArchivingReasonSeed,
+  body: catalogApi.EServiceArchivingSeed,
   fileManager: FileManager,
   logger: Logger
 ): Promise<EService> {
@@ -4590,6 +4597,7 @@ async function processEserviceArchiving(
             descriptor,
             descriptorState.archiving,
             archivingScope.eservice,
+            body.gracePeriodDays,
             requestDate
           )
         )
@@ -4598,6 +4606,7 @@ async function processEserviceArchiving(
             descriptor,
             descriptorState.archivingSuspended,
             archivingScope.eservice,
+            body.gracePeriodDays,
             requestDate
           )
         )
@@ -4636,14 +4645,12 @@ async function deleteInactiveDescriptorLogic(
 async function processDescriptorArchiving(
   descriptor: Descriptor,
   newState: DescriptorState,
+  gracePeriodDays: number,
   scope: ArchivingScope = archivingScope.descriptor,
   requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(
-      requestDate,
-      config.gracePeriodArchivingEServiceDays
-    ),
+    ...calculateArchivableOn(requestDate, gracePeriodDays),
     scope,
   };
 
