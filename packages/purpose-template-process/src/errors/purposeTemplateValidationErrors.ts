@@ -11,26 +11,20 @@ import {
 } from "pagopa-interop-models";
 
 type PurposeTemplateValidationIssueCode =
-  | "unexpectedEServiceError"
   | "eserviceNotFound"
-  | "unexpectedAssociationEServiceError"
   | "eserviceAlreadyAssociated"
   | "eserviceNotAssociated"
   | "missingDescriptor"
   | "invalidDescriptorState"
-  | "unexpectedUnassociationEServiceError"
   | "purposeTemplateEServicePersonalDataFlagMismatch"
   | "invalidDescriptorStateForPublicationError"
   | "eserviceIsInstanceOfEServiceTemplate"
-  | "unexpectedEServiceTemplateError"
   | "eserviceTemplateNotFound"
-  | "unexpectedAssociationEServiceTemplateError"
   | "eserviceTemplateAlreadyAssociated"
   | "missingEServiceTemplateVersion"
   | "invalidEServiceTemplateVersionState"
   | "purposeTemplateEServiceTemplatePersonalDataFlagMismatch"
-  | "eserviceTemplateNotAssociated"
-  | "unexpectedUnassociationEServiceTemplateError";
+  | "eserviceTemplateNotAssociated";
 
 export class PurposeTemplateValidationIssue extends InternalError<PurposeTemplateValidationIssueCode> {
   constructor({
@@ -58,42 +52,12 @@ export type PurposeTemplateValidationResult<T> =
   | purposeTemplateValidationInvalid
   | purposeTemplateValidationValid<T>;
 
-export function unexpectedEServiceError(
-  reason: string,
-  eserviceId: EServiceId
-): PurposeTemplateValidationIssue {
-  return new PurposeTemplateValidationIssue({
-    code: "unexpectedEServiceError",
-    detail: `Unexpected error: ${reason} for eservice ${eserviceId}`,
-  });
-}
-
 export function eserviceNotFound(
   eserviceId: EServiceId
 ): PurposeTemplateValidationIssue {
   return new PurposeTemplateValidationIssue({
     code: "eserviceNotFound",
     detail: `EService ${eserviceId} not found`,
-  });
-}
-
-export function unexpectedAssociationEServiceError(
-  reason: string,
-  eserviceId: EServiceId
-): PurposeTemplateValidationIssue {
-  return new PurposeTemplateValidationIssue({
-    code: "unexpectedAssociationEServiceError",
-    detail: `Missing expected association for eservice ${eserviceId}: ${reason}`,
-  });
-}
-
-export function unexpectedUnassociationEServiceError(
-  reason: string,
-  eserviceId: EServiceId
-): PurposeTemplateValidationIssue {
-  return new PurposeTemplateValidationIssue({
-    code: "unexpectedUnassociationEServiceError",
-    detail: `Unexpected error: ${reason} for eservice ${eserviceId}`,
   });
 }
 
@@ -174,32 +138,12 @@ export function eserviceIsInstanceOfEServiceTemplateError(
   });
 }
 
-export function unexpectedEServiceTemplateError(
-  reason: string,
-  eserviceTemplateId: EServiceTemplateId
-): PurposeTemplateValidationIssue {
-  return new PurposeTemplateValidationIssue({
-    code: "unexpectedEServiceTemplateError",
-    detail: `Unexpected error: ${reason} for e-service template ${eserviceTemplateId}`,
-  });
-}
-
 export function eserviceTemplateNotFound(
   eserviceTemplateId: EServiceTemplateId
 ): PurposeTemplateValidationIssue {
   return new PurposeTemplateValidationIssue({
     code: "eserviceTemplateNotFound",
     detail: `E-service template ${eserviceTemplateId} not found`,
-  });
-}
-
-export function unexpectedAssociationEServiceTemplateError(
-  reason: string,
-  eserviceTemplateId: EServiceTemplateId
-): PurposeTemplateValidationIssue {
-  return new PurposeTemplateValidationIssue({
-    code: "unexpectedAssociationEServiceTemplateError",
-    detail: `Missing expected association for e-service template ${eserviceTemplateId}: ${reason}`,
   });
 }
 
@@ -251,16 +195,6 @@ export function eserviceTemplateNotAssociatedError(
   return new PurposeTemplateValidationIssue({
     code: "eserviceTemplateNotAssociated",
     detail: `E-service template ${eserviceTemplateId} is not associated with purpose template ${purposeTemplateId}`,
-  });
-}
-
-export function unexpectedUnassociationEServiceTemplateError(
-  reason: string,
-  eserviceTemplateId: EServiceTemplateId
-): PurposeTemplateValidationIssue {
-  return new PurposeTemplateValidationIssue({
-    code: "unexpectedUnassociationEServiceTemplateError",
-    detail: `Unexpected error: ${reason} for e-service template ${eserviceTemplateId}`,
   });
 }
 
