@@ -43,6 +43,7 @@ describe("API GET /purposeTemplates/{id}", () => {
     authRole.M2M_ROLE,
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(
