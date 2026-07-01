@@ -23,6 +23,7 @@
         color: #17324d;
       "
     >
+      <!-- H4 Desktop (from MUI Italia)-->
       <h1 style="font-size: 32px; line-height: 40px; margin: 0">{{ title }}</h1>
     </div>
   </td>
@@ -74,7 +75,13 @@
         color: #17324d;
       "
     >
-      <p>La versione {{ eserviceVersion }} dell'e-service "{{ eserviceName }}" è stata archiviata in anticipo poiché tutte le sottoscrizioni attive si sono concluse prima della scadenza prevista.</p>
+      <!-- Body 1 Desktop (from MUI Italia)-->
+      <p>
+        La versione <strong>{{ eserviceVersion }}</strong> dell'e-service <strong>{{ 
+        eserviceName }}</strong> è di nuovo attiva. I fruitori potranno nuovamente scambiare dati con questa versione.
+        {{#if isEserviceArchiving}}L'e-service è in fase di archiviazione e sarà archiviato{{
+        else}}La versione è in fase di archiviazione e sarà archiviata{{/if}} definitivamente il giorno <strong>{{ archivableOn }}</strong>.
+      </p>
     </div>
   </td>
 </tr>
