@@ -130,11 +130,6 @@ export const toCatalogItemV1 = (
   name: event.name,
   description: event.description,
   technology: toCatalogItemTechnologyV1(event.technology),
-  attributes: {
-    certified: toCatalogAttributeValueV1(event?.attributes?.certified),
-    declared: toCatalogAttributeValueV1(event?.attributes?.declared),
-    verified: toCatalogAttributeValueV1(event?.attributes?.verified),
-  },
   descriptors: toCatalogDescriptorV1(event.descriptors),
   createdAt: event.createdAt.toISOString(),
   riskAnalysis: toCatalogItemRiskAnalysisV1(event.riskAnalysis),
