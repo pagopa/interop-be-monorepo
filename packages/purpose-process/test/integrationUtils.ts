@@ -24,6 +24,8 @@ import {
   PurposeRiskAnalysisForm,
   PurposeRiskAnalysisFormV2,
   Client,
+  TenantId,
+  TenantKind,
 } from "pagopa-interop-models";
 import { afterEach, expect, inject } from "vitest";
 import {
@@ -50,16 +52,24 @@ import {
   purposeServiceBuilder,
 } from "../src/services/purposeService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
+import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
 
-export const { cleanup, postgresDB, readModelDB } =
+const { cleanup, postgresDB, readModelDB, tenantKindHistoryDB } =
   await setupTestContainersVitest(
     inject("eventStoreConfig"),
     inject("fileManagerConfig"),
     undefined,
     undefined,
     undefined,
-    inject("readModelSQLConfig")
+    inject("readModelSQLConfig"),
+    undefined,
+    undefined,
+    undefined,
+    inject("tenantKindHistoryDBConfig")
   );
+
+export { postgresDB };
 
 afterEach(cleanup);
 
@@ -83,11 +93,16 @@ const readModelService = readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
   clientReadModelServiceSQL,
+  tenantKindHistoryDB,
 });
+
+export const selfcareV2Client: SelfcareV2InstitutionClient =
+  {} as SelfcareV2InstitutionClient;
 
 export const purposeService = purposeServiceBuilder(
   postgresDB,
-  readModelService
+  readModelService,
+  selfcareV2Client
 );
 
 export const addOneClient = async (client: Client): Promise<void> => {
@@ -122,6 +137,25 @@ export const addOnePurposeTemplate = async (
 ): Promise<void> => {
   await writePurposeTemplateInEventstore(purposeTemplate);
   await upsertPurposeTemplate(readModelDB, purposeTemplate, 0);
+};
+
+export const addOneTenantKindHistory = async ({
+  tenantId,
+  metadataVersion,
+  kind,
+  modifiedAt,
+}: {
+  tenantId: TenantId;
+  metadataVersion: number;
+  kind: TenantKind;
+  modifiedAt: Date;
+}): Promise<void> => {
+  await tenantKindHistoryDB.insert(tenantKindHistory).values({
+    tenantId,
+    metadataVersion,
+    kind,
+    modifiedAt: modifiedAt.toISOString(),
+  });
 };
 
 export const addOnePurposeTemplateEServiceDescriptor = async (

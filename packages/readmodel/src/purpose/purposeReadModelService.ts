@@ -14,6 +14,7 @@ import {
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregatePurpose,
@@ -43,6 +44,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
         purpose -> 1 purpose_risk_analysis_form -> 2 purpose_risk_analysis_answer
                 -> 3 purpose_version -> 4 purpose_version_document
                                      -> 5 purpose_version_stamp
+                -> 6 risk_analysis_reviewer
       */
       const queryResult = await db
         .select({
@@ -55,6 +57,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: riskAnalysisReviewerInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .where(filter)
@@ -111,6 +114,14 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
             purposeVersionInReadmodelPurpose.id,
             purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
           )
+        )
+        .leftJoin(
+          // 7
+          riskAnalysisReviewerInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            riskAnalysisReviewerInReadmodelPurpose.purposeId
+          )
         );
 
       if (queryResult.length === 0) {
@@ -137,6 +148,7 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: riskAnalysisReviewerInReadmodelPurpose,
         })
         .from(purposeInReadmodelPurpose)
         .where(filter)
@@ -186,6 +198,13 @@ export function purposeReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          riskAnalysisReviewerInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            riskAnalysisReviewerInReadmodelPurpose.purposeId
           )
         );
 

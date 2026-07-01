@@ -47,7 +47,7 @@ export const createProducerDelegationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "originNotCompliant",
+      "delegationNotAllowedForTenant",
       "tenantNotAllowedToDelegation",
       "differentEserviceProducer",
       () => HTTP_STATUS_FORBIDDEN
@@ -67,7 +67,7 @@ export const createConsumerDelegationErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "originNotCompliant",
+      "delegationNotAllowedForTenant",
       "tenantNotAllowedToDelegation",
       () => HTTP_STATUS_FORBIDDEN
     )

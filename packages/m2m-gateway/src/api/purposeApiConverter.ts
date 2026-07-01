@@ -1,5 +1,6 @@
 import {
   agreementApi,
+  catalogApi,
   m2mGatewayApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
@@ -7,6 +8,11 @@ import {
   getPurposeCurrentVersion,
   sortPurposeVersionsByDate,
 } from "../services/purposeService.js";
+import { validateRiskAnalysis } from "pagopa-interop-commons";
+import { genericInternalError } from "pagopa-interop-models";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { match } from "ts-pattern";
 
 export function toGetPurposesApiQueryParams(
   params: m2mGatewayApi.GetPurposesQueryParams
@@ -21,6 +27,7 @@ export function toGetPurposesApiQueryParams(
     states: params.states,
     excludeDraft: false,
     name: params.title,
+    signingStates: [],
   };
 }
 
@@ -39,12 +46,15 @@ export function toGetPurposesApiQueryParamsForClient(
     states: params.states,
     excludeDraft: false,
     name: "",
+    signingStates: [],
   };
 }
 
-export function toM2MGatewayApiPurpose(
-  purpose: purposeApi.Purpose
-): m2mGatewayApi.Purpose {
+export async function toM2MGatewayApiPurpose(
+  purpose: purposeApi.Purpose,
+  clients: PagoPAInteropBeClients,
+  headers: M2MGatewayAppContext["headers"]
+): Promise<m2mGatewayApi.Purpose> {
   const currentVersion = getPurposeCurrentVersion(purpose);
 
   const sortedVersions = sortPurposeVersionsByDate(purpose.versions);
@@ -60,6 +70,50 @@ export function toM2MGatewayApiPurpose(
       ? latestVersion
       : undefined;
 
+  const isAfterFirstPublication = purpose.versions.some(
+    (pv) =>
+      pv.state === purposeApi.PurposeVersionState.Values.ACTIVE ||
+      pv.state === purposeApi.PurposeVersionState.Values.SUSPENDED
+  );
+
+  const isRiskAnalysisValid = await match(isAfterFirstPublication)
+    .with(true, () => true)
+    .with(false, async () => {
+      if (!purpose.riskAnalysisForm) {
+        return false;
+      }
+
+      const consumer = await clients.tenantProcessClient.tenant.getTenant({
+        params: { id: purpose.consumerId },
+        headers,
+      });
+
+      if (!consumer.data.kind) {
+        throw genericInternalError(
+          "Tenant kind is required to evaluate isRiskAnalysisValid"
+        );
+      }
+
+      const eservice = await clients.catalogProcessClient.getEServiceById({
+        params: { eServiceId: purpose.eserviceId },
+        headers,
+      });
+
+      const isRiskAnalysisValid =
+        eservice.data.mode === catalogApi.EServiceMode.Enum.DELIVER
+          ? validateRiskAnalysis(
+              { ...purpose.riskAnalysisForm, tenantKind: consumer.data.kind },
+              false,
+              consumer.data.kind,
+              new Date(),
+              eservice.data.personalData
+            ).type === "valid"
+          : true; // the risk analysis form was validated before publishing the eservice (receive mode)
+
+      return isRiskAnalysisValid;
+    })
+    .exhaustive();
+
   return {
     id: purpose.id,
     eserviceId: purpose.eserviceId,
@@ -70,7 +124,7 @@ export function toM2MGatewayApiPurpose(
     description: purpose.description,
     createdAt: purpose.createdAt,
     updatedAt: purpose.updatedAt,
-    isRiskAnalysisValid: purpose.isRiskAnalysisValid,
+    isRiskAnalysisValid,
     isFreeOfCharge: purpose.isFreeOfCharge,
     freeOfChargeReason: purpose.freeOfChargeReason,
     delegationId: purpose.delegationId,

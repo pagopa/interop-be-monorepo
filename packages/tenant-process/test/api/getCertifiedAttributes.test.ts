@@ -79,6 +79,7 @@ describe("API GET /tenants/attributes/certified test", () => {
     authRole.ADMIN_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   const makeRequest = async (

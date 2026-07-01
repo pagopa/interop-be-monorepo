@@ -13,6 +13,7 @@ import {
   clientPurposeInReadmodelClient,
   DrizzleReturnType,
   eserviceDescriptorInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   purposeInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
@@ -28,6 +29,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       const descriptorsSQL = await readModelDB
         .select()
         .from(eserviceDescriptorInReadmodelCatalog);
+      const asyncExchangePropertiesSQL = await readModelDB
+        .select()
+        .from(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog);
 
       return aggregateEserviceArray({
         eservicesSQL,
@@ -39,6 +43,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         riskAnalysesSQL: [],
         riskAnalysisAnswersSQL: [],
         templateVersionRefsSQL: [],
+        asyncExchangePropertiesSQL,
+        archivingSchedulesSQL: [],
       }).map((e) => e.data);
     },
 
@@ -58,6 +64,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         versionDocumentsSQL: [],
         versionStampsSQL: [],
         versionSignedDocumentsSQL: [],
+        reviewersSQL: [],
       }).map((p) => p.data);
     },
 

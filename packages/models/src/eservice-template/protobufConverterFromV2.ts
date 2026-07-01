@@ -2,26 +2,49 @@ import { unsafeBrandId } from "../brandedIds.js";
 import {
   fromAgreementApprovalPolicyV2,
   fromDocumentV2,
+  fromCertifiedDiscreteConfigV2,
   fromEServiceAttributeV2,
   fromEServiceModeV2,
   fromEServiceTechnologyV2,
   fromRiskAnalysisFormV2,
 } from "../eservice/protobufConverterFromV2.js";
 import {
+  EServiceTemplateAttributeV2,
   EServiceTemplateV2,
   EServiceTemplateVersionStateV2,
   EServiceTemplateVersionV2,
   EServiceTemplateRiskAnalysisV2,
 } from "../gen/v2/eservice-template/eservice-template.js";
-import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
+import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
 import { bigIntToDate } from "../utils.js";
 import {
   EServiceTemplate,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
-  EServiceTemplateRiskAnalysis,
+  EServiceTemplateAttribute,
+  EServiceTemplateAttributeCertifiedDiscrete,
 } from "./eserviceTemplate.js";
+
+const fromEServiceTemplateAttributeGroupV2 = (
+  input: EServiceTemplateAttributeV2
+): Array<
+  EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+> =>
+  input.values.map((attribute) => {
+    const common: EServiceTemplateAttribute = {
+      id: unsafeBrandId(attribute.id),
+      explicitAttributeVerification: attribute.explicitAttributeVerification,
+    };
+    return attribute.discreteConfig != null
+      ? {
+          ...common,
+          discreteConfig: fromCertifiedDiscreteConfigV2(
+            attribute.discreteConfig
+          ),
+        }
+      : common;
+  });
 
 export const fromEServiceTemplateVersionStateV2 = (
   input: EServiceTemplateVersionStateV2
@@ -47,7 +70,9 @@ export const fromEServiceTemplateVersionV2 = (
   attributes:
     input.attributes != null
       ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV2),
+          certified: input.attributes.certified.map(
+            fromEServiceTemplateAttributeGroupV2
+          ),
           declared: input.attributes.declared.map(fromEServiceAttributeV2),
           verified: input.attributes.verified.map(fromEServiceAttributeV2),
         }
@@ -60,6 +85,21 @@ export const fromEServiceTemplateVersionV2 = (
   state: fromEServiceTemplateVersionStateV2(input.state),
   interface:
     input.interface != null ? fromDocumentV2(input.interface) : undefined,
+  asyncExchangeCallbackInterface:
+    input.asyncExchangeCallbackInterface != null
+      ? fromDocumentV2(input.asyncExchangeCallbackInterface)
+      : undefined,
+  asyncExchangeProperties:
+    input.asyncExchangeProperties != null
+      ? {
+          responseTime: input.asyncExchangeProperties.responseTime,
+          resourceAvailableTime:
+            input.asyncExchangeProperties.resourceAvailableTime,
+          confirmation: input.asyncExchangeProperties.confirmation,
+          bulk: input.asyncExchangeProperties.bulk,
+          maxResultSet: input.asyncExchangeProperties.maxResultSet,
+        }
+      : undefined,
   agreementApprovalPolicy:
     input.agreementApprovalPolicy != null
       ? fromAgreementApprovalPolicyV2(input.agreementApprovalPolicy)
@@ -72,13 +112,12 @@ export const fromEServiceTemplateVersionV2 = (
 
 export function fromEServiceTemplateRiskAnalysisV2(
   input: EServiceTemplateRiskAnalysisV2
-): EServiceTemplateRiskAnalysis {
+): RiskAnalysis {
   return {
     ...input,
     id: unsafeBrandId(input.id),
     createdAt: bigIntToDate(input.createdAt),
     riskAnalysisForm: fromRiskAnalysisFormV2(input.riskAnalysisForm),
-    tenantKind: fromTenantKindV2(input.tenantKind),
   };
 }
 
