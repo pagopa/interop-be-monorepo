@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DescriptorId,
+  EServiceDescriptorStateV2,
   EServiceDocumentId,
   EServiceEventEnvelopeV2,
   EServiceId,
@@ -92,15 +93,17 @@ const getEnvelope = (
 });
 
 const getDescriptorStateEnvelope = (
-  state: typeof descriptorState.archiving | typeof descriptorState.archivingSuspended
+  state:
+    | typeof EServiceDescriptorStateV2.ARCHIVING
+    | typeof EServiceDescriptorStateV2.ARCHIVING_SUSPENDED
 ): EServiceEventEnvelopeV2 => {
-  const eserviceWithDescriptorState = toEServiceV2({
+  const eserviceWithDescriptorState = {
     ...eservice,
     descriptors: eservice.descriptors.map((descriptor) => ({
       ...descriptor,
       state,
     })),
-  });
+  };
 
   return {
     sequence_num: 1,
@@ -156,7 +159,7 @@ describe("toCatalogItemEventNotification", () => {
 
   it("should map descriptor state archiving to Deprecated for v1 compatibility", () => {
     const result = toCatalogItemEventNotification(
-      getDescriptorStateEnvelope(descriptorState.archiving)
+      getDescriptorStateEnvelope(EServiceDescriptorStateV2.ARCHIVING)
     );
 
     expect(result).toMatchObject({
@@ -170,7 +173,7 @@ describe("toCatalogItemEventNotification", () => {
 
   it("should map descriptor state archivingSuspended to Suspended for v1 compatibility", () => {
     const result = toCatalogItemEventNotification(
-      getDescriptorStateEnvelope(descriptorState.archivingSuspended)
+      getDescriptorStateEnvelope(EServiceDescriptorStateV2.ARCHIVING_SUSPENDED)
     );
 
     expect(result).toMatchObject({
