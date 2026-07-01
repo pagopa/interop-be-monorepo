@@ -1437,27 +1437,33 @@ const sortRiskAnalysisV2 = <
 
 export const sortEServiceV2 = <T extends EServiceV2 | undefined>(
   eservice: T
-): T => ({
-  ...eservice,
-  riskAnalysis: eservice?.riskAnalysis
-    ? [...eservice.riskAnalysis]
-        .sort(sortBy<EServiceRiskAnalysisV2>((ra) => ra.id))
-        .map(sortRiskAnalysisV2)
-    : [],
-});
+): T => {
+  if (!eservice) {
+    return eservice;
+  }
+  return {
+    ...eservice,
+    riskAnalysis: [...eservice.riskAnalysis]
+      .sort(sortBy<EServiceRiskAnalysisV2>((ra) => ra.id))
+      .map(sortRiskAnalysisV2),
+  };
+};
 
 export const sortEServiceTemplateV2 = <
   T extends EServiceTemplateV2 | undefined,
 >(
   eserviceTemplate: T
-): T => ({
-  ...eserviceTemplate,
-  riskAnalysis: eserviceTemplate?.riskAnalysis
-    ? [...eserviceTemplate.riskAnalysis]
-        .sort(sortBy<EServiceTemplateRiskAnalysisV2>((ra) => ra.id))
-        .map(sortRiskAnalysisV2)
-    : [],
-});
+): T => {
+  if (!eserviceTemplate) {
+    return eserviceTemplate;
+  }
+  return {
+    ...eserviceTemplate,
+    riskAnalysis: [...eserviceTemplate.riskAnalysis]
+      .sort(sortBy<EServiceTemplateRiskAnalysisV2>((ra) => ra.id))
+      .map(sortRiskAnalysisV2),
+  };
+};
 
 export const getMockContextInternal = ({
   serviceName,
