@@ -11,7 +11,6 @@ import {
   ClientKind,
   ClientKindTokenGenStates,
   clientKindTokenGenStates,
-  Descriptor,
   DescriptorId,
   DescriptorState,
   descriptorState,
@@ -96,15 +95,6 @@ export function getLastAgreement(agreements: Agreement[]): Agreement {
       (agreement1, agreement2) =>
         agreement2.createdAt.getTime() - agreement1.createdAt.getTime()
     )[0];
-}
-
-export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
-  return descriptors.filter(
-    (descriptor) =>
-      descriptor.state === descriptorState.published ||
-      descriptor.state === descriptorState.suspended ||
-      descriptor.state === descriptorState.deprecated
-  );
 }
 
 function getIdFromPlatformStatesPK<
