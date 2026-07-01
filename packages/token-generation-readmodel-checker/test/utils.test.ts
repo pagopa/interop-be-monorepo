@@ -52,7 +52,6 @@ import {
   compareReadModelPurposesWithPlatformStates,
   getLastAgreement,
   getLastPurposeVersion,
-  getValidDescriptors,
 } from "../src/utils/utils.js";
 import {
   addOneAgreement,
