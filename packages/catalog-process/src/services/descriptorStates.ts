@@ -5,4 +5,6 @@ export const activeDescriptorStates: DescriptorState[] = [
   descriptorState.suspended,
   descriptorState.deprecated,
   descriptorState.archived,
+  descriptorState.archiving,
+  descriptorState.archivingSuspended,
 ];
