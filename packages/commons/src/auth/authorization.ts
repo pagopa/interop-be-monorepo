@@ -178,6 +178,7 @@ function isSystemRole(role: AuthRole): role is SystemRole {
     )
     .with(
       authRole.ADMIN_ROLE,
+      authRole.REVIEWER_ROLE,
       authRole.SECURITY_ROLE,
       authRole.API_ROLE,
       authRole.SUPPORT_ROLE,

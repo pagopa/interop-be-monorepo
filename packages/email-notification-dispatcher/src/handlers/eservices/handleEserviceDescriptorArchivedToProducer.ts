@@ -17,6 +17,7 @@ import {
 } from "pagopa-interop-notification-commons";
 import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 import { config } from "../../config/config.js";
+import { dateAtRomeZone } from "pagopa-interop-commons";
 
 const notificationType: NotificationType = "eserviceStateChangedToProducer";
 
@@ -43,17 +44,9 @@ export async function handleEserviceDescriptorArchivedToProducer(
   const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
   const descriptor = retrieveDescriptor(eservice, descriptorId);
 
-  // Discriminator: skip auto-archive routine (Deprecated/Suspended -> Archived)
-  if (!descriptor.archivingSchedule) {
-    logger.info(
-      `Skipping email notification for "EServiceDescriptorArchived" without archivingSchedule (eservice ${eservice.id}, descriptor ${descriptor.id}) — routine auto-archiving`
-    );
-    return [];
-  }
-
   const [htmlTemplate, producer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceArchivingEarlyArchivedToProducerMailTemplate
+      eventMailTemplateType.eserviceArchivingDescriptorArchivedToProducerMailTemplate
     ),
     retrieveTenant(eservice.producerId, readModelService),
   ]);
@@ -73,7 +66,8 @@ export async function handleEserviceDescriptorArchivedToProducer(
     return [];
   }
 
-  const subject = `Archiviazione anticipata della versione ${descriptor.version} dell'e-service "${eservice.name}"`;
+  const archivingDate = dateAtRomeZone(new Date());
+  const subject = `La versione ${descriptor.version} dell'e-service "${eservice.name}" è stata archiviata il giorno ${archivingDate} perché senza fruitori. Da ora non è più attiva.`;
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
@@ -86,6 +80,7 @@ export async function handleEserviceDescriptorArchivedToProducer(
         ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
+        archivingDate,
         ctaLabel: `Visualizza e-service`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,

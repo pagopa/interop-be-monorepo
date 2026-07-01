@@ -13,6 +13,7 @@ import {
   RiskAnalysisId,
   TenantId,
   TenantKind,
+  UserId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
@@ -72,6 +73,12 @@ const errorCodes = {
   reviewerWorkflowNotInSubmittedState: "0052",
   editNotAllowedForReviewMode: "0053",
   reviewerWorkflowNotEditable: "0054",
+  reviewerWorkflowNotInSignedState: "0055",
+  riskAnalysisFormCannotBeUpdated: "0056",
+  userWithoutReviewerPrivileges: "0057",
+  missingSelfcareId: "0058",
+  reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
+  reviewerWorkflowNotAllowedForReceiveMode: "0060",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -642,5 +649,64 @@ export function reviewerWorkflowNotEditable(
     detail: `Purpose ${purposeId} reviewer workflow is not in an editable state (must be Assigned)`,
     code: "reviewerWorkflowNotEditable",
     title: "Reviewer workflow not editable",
+  });
+}
+
+export function reviewerWorkflowNotInSignedState(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} reviewer workflow is not in the Signed state`,
+    code: "reviewerWorkflowNotInSignedState",
+    title: "Reviewer workflow not in signed state",
+  });
+}
+
+export function riskAnalysisFormCannotBeUpdated(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk analysis form of purpose ${purposeId} cannot be updated because a reviewer workflow is active`,
+    code: "riskAnalysisFormCannotBeUpdated",
+    title: "Risk analysis form cannot be updated",
+  });
+}
+
+export function userWithoutReviewerPrivileges(
+  consumerId: TenantId,
+  userId: UserId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `User ${userId} does not have reviewer privileges for tenant ${consumerId}`,
+    code: "userWithoutReviewerPrivileges",
+    title: "User without reviewer privileges",
+  });
+}
+
+export function missingSelfcareId(tenantId: TenantId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant ${tenantId} does not have a selfcare ID`,
+    code: "missingSelfcareId",
+    title: "Missing selfcare ID",
+  });
+}
+
+export function reviewerWorkflowNotAllowedForDelegatedPurpose(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Reviewer workflow is not allowed for purpose ${purposeId} because it has an active delegation`,
+    code: "reviewerWorkflowNotAllowedForDelegatedPurpose",
+    title: "Reviewer workflow not allowed for delegated purpose",
+  });
+}
+
+export function reviewerWorkflowNotAllowedForReceiveMode(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Reviewer workflow is not allowed for purpose ${purposeId} because the eservice is in receive mode`,
+    code: "reviewerWorkflowNotAllowedForReceiveMode",
+    title: "Reviewer workflow not allowed for receive mode",
   });
 }
