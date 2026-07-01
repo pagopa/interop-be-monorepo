@@ -83,6 +83,14 @@ export async function importAttributes(
       chunk.map(async ([municipalityCode, totalCount]) => {
         stats.processed++;
         try {
+          if (Number.isNaN(totalCount)) {
+            logger.warn(
+              `Value 'Totale' for municipality ${municipalityCode} is not a Number: ${totalCount}`
+            );
+            stats.errors++;
+            return;
+          }
+
           try {
             if (!validIstatCodes.has(municipalityCode)) {
               logger.debug(
@@ -169,7 +177,7 @@ async function downloadAndAggregateData(
     if (Number(row["Età"]) === SUMMARY_AGE_CODE) {
       const codiceComune = row["Codice comune"];
       const totale = Number(row["Totale"]);
-      if (codiceComune && !isNaN(totale)) {
+      if (codiceComune) {
         populationMap.set(codiceComune, totale);
       }
     }
