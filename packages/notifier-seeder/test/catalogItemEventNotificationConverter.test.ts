@@ -91,6 +91,32 @@ const getEnvelope = (
   },
 });
 
+const getDescriptorStateEnvelope = (
+  state: typeof descriptorState.archiving | typeof descriptorState.archivingSuspended
+): EServiceEventEnvelopeV2 => {
+  const eserviceWithDescriptorState = toEServiceV2({
+    ...eservice,
+    descriptors: eservice.descriptors.map((descriptor) => ({
+      ...descriptor,
+      state,
+    })),
+  });
+
+  return {
+    sequence_num: 1,
+    stream_id: eserviceId,
+    version: 1,
+    correlation_id: generateId(),
+    log_date: new Date("2026-05-22T08:10:00.000Z"),
+    event_version: 2,
+    type: "EServiceDescriptorArchivingScheduled",
+    data: {
+      descriptorId,
+      eservice: eserviceWithDescriptorState,
+    },
+  };
+};
+
 describe("toCatalogItemEventNotification", () => {
   it("should convert async exchange callback interface added events using the callback interface document", () => {
     const result = toCatalogItemEventNotification(
@@ -125,6 +151,34 @@ describe("toCatalogItemEventNotification", () => {
           asyncExchangeCallbackInterfaceDocument.uploadDate.toISOString(),
       },
       serverUrls: [],
+    });
+  });
+
+  it("should map descriptor state archiving to Deprecated for v1 compatibility", () => {
+    const result = toCatalogItemEventNotification(
+      getDescriptorStateEnvelope(descriptorState.archiving)
+    );
+
+    expect(result).toMatchObject({
+      eServiceId: eserviceId,
+      catalogDescriptor: {
+        id: descriptorId,
+        state: "Deprecated",
+      },
+    });
+  });
+
+  it("should map descriptor state archivingSuspended to Suspended for v1 compatibility", () => {
+    const result = toCatalogItemEventNotification(
+      getDescriptorStateEnvelope(descriptorState.archivingSuspended)
+    );
+
+    expect(result).toMatchObject({
+      eServiceId: eserviceId,
+      catalogDescriptor: {
+        id: descriptorId,
+        state: "Suspended",
+      },
     });
   });
 });
