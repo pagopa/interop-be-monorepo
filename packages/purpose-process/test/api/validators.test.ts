@@ -625,7 +625,9 @@ describe("getUpdatedQuotas - certified discrete attributes", () => {
     tenant: Tenant
   ): Promise<Awaited<ReturnType<typeof getUpdatedQuotas>>> => {
     (retrieveActiveAgreement as Mock).mockResolvedValue(agreement);
-    (mockReadModelService.getAllPurposes as Mock).mockResolvedValue([]);
+    (
+      mockReadModelService.getActiveVersionsDailyCalls as Mock
+    ).mockResolvedValue({ consumerDailyCalls: 0, totalDailyCalls: 0 });
     (mockReadModelService.getTenantById as Mock).mockResolvedValue(tenant);
     return getUpdatedQuotas(eservice, consumerId, mockReadModelService);
   };
