@@ -72,7 +72,7 @@ export async function handleEserviceDescriptorArchivingCanceledToConsumer(
     return [];
   }
 
-  const subject = `Annullata l'archiviazione di una versione di "${eservice.name}"`;
+  const subject = `La versione di un e-service con cui stai scambiando dati non è più in fase di archiviazione`;
 
   return targets.flatMap((t) => {
     const tenant = tenants.find((x) => x.id === t.tenantId);
