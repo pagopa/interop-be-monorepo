@@ -156,6 +156,12 @@ export const getContextsAllowedToSeeDraftVersions = (creatorId: TenantId) => [
       userRoles: [userRole.SUPPORT_ROLE],
     },
   }),
+  getMockContext({
+    authData: {
+      ...getMockAuthData(creatorId),
+      userRoles: [userRole.VIEWER_ROLE],
+    },
+  }),
   getMockContextM2M({
     organizationId: creatorId,
   }),
