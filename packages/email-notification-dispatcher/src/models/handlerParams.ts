@@ -10,6 +10,7 @@ import {
   ProducerKeychainV2,
   PurposeId,
   PurposeV2,
+  PurposeVersionId,
   TenantV2,
   UserId,
 } from "pagopa-interop-models";
@@ -47,6 +48,11 @@ export type ClientPurposeHandlerParams = HandlerCommonParams & {
 
 export type PurposeHandlerParams = HandlerCommonParams & {
   purposeV2Msg?: PurposeV2;
+};
+
+export type PurposeVersionHandlerParams = HandlerCommonParams & {
+  purposeV2Msg?: PurposeV2;
+  purposeVersionId: PurposeVersionId;
 };
 
 export type TenantHandlerParams = HandlerCommonParams & {

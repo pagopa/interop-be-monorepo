@@ -1,6 +1,8 @@
 import {
   EmailNotificationMessagePayload,
   PurposeEvent,
+  PurposeVersionId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
@@ -35,7 +37,7 @@ export async function handlePurposeEvent(
     })
     .with(
       { type: "PurposeVersionActivated" },
-      async ({ data: { purpose } }) => [
+      async ({ data: { purpose, versionId } }) => [
         ...(await handlePurposeVersionActivatedFirstVersion({
           purposeV2Msg: purpose,
           logger,
@@ -45,6 +47,7 @@ export async function handlePurposeEvent(
         })),
         ...(await handlePurposeVersionActivatedOtherVersion({
           purposeV2Msg: purpose,
+          purposeVersionId: unsafeBrandId<PurposeVersionId>(versionId),
           logger,
           readModelService,
           templateService,
