@@ -8,6 +8,7 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
+  AgreementId,
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -113,7 +114,7 @@ describe("POST /agreements/:agreementId/approve router test", () => {
       .fn()
       .mockRejectedValue(
         agreementNotInExpectedState(
-          unsafeBrandId(mockApiAgreement.id),
+          unsafeBrandId<AgreementId>(mockApiAgreement.id),
           mockApiAgreement.state
         )
       );
