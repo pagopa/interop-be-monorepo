@@ -212,6 +212,7 @@ const purposeTemplateRouter = (
           M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: purposeTemplate, metadata } =
