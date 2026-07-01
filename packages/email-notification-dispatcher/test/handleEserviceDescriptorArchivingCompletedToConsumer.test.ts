@@ -119,7 +119,7 @@ describe("handleEserviceDescriptorArchivingCompletedToConsumer", () => {
     );
     expect(messages.length).toBeGreaterThanOrEqual(1);
     expect(messages[0].email.subject).toContain(
-      "Archiviazione conclusa per la versione"
+      "La versione di un e-service con cui stai scambiando dati è stata archiviata"
     );
   });
 

@@ -190,6 +190,8 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertNoExistingProducerDelegationForDescriptorArchiving,
+  assertNoExistingProducerDelegationForEServiceArchiving,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -213,6 +215,7 @@ import {
   assertAsyncExchangeReadyForPublication,
   assertDailyCallsForCertifiedAttributesOnly,
   assertDiscreteConfigForCertifiedAttributesOnly,
+  assertCertifiedDiscreteConfigUnchanged,
   assertAttributeDailyCallsConsistentWithTotal,
   assertEserviceIsNotInArchivingOrArchivedState,
   assertDescriptorArchivable,
@@ -1249,7 +1252,7 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationForEServiceArchiving(
         eserviceId,
         readModelService
       );
@@ -2407,6 +2410,7 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2454,8 +2458,9 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationForDescriptorArchiving(
         eserviceId,
+        descriptorId,
         readModelService
       );
 
@@ -3333,6 +3338,7 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, parsedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         descriptor.dailyCallsTotal
@@ -4632,7 +4638,10 @@ async function processDescriptorArchiving(
   requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(requestDate, config.gracePeriodArchivingEService),
+    ...calculateArchivableOn(
+      requestDate,
+      config.gracePeriodArchivingEServiceDays
+    ),
     scope,
   };
 
