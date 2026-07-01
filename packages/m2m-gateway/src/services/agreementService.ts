@@ -20,10 +20,6 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import {
-  assertAgreementIsPending,
-  assertAgreementIsSuspended,
-} from "../utils/validators/agreementValidators.js";
-import {
   toGetAgreementsApiQueryParams,
   toGetPurposesApiQueryParamsForAgreement,
   toM2MGatewayApiAgreement,
@@ -233,11 +229,7 @@ export function agreementServiceBuilder(
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Approving pending agreement with id ${agreementId}`);
 
-      const agreement = await retrieveAgreementById(headers, agreementId);
-
-      assertAgreementIsPending(agreement.data);
-
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.approveAgreement(
         { delegationId },
         {
           params: { agreementId },
@@ -325,11 +317,7 @@ export function agreementServiceBuilder(
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Unsuspending agreement with id ${agreementId}`);
 
-      const agreement = await retrieveAgreementById(headers, agreementId);
-
-      assertAgreementIsSuspended(agreement.data);
-
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },

@@ -7,11 +7,16 @@ import {
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { agreementApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  AgreementId,
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
-  agreementNotInSuspendedState,
+  agreementNotInExpectedState,
   missingMetadata,
 } from "../../../src/model/errors.js";
 import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
@@ -104,10 +109,15 @@ describe("POST /agreements/:agreementId/unsuspend router test", () => {
     expect(res.status).toBe(500);
   });
 
-  it("Should return 409 in case of agreementNotInSuspendedState error", async () => {
+  it("Should return 409 in case of agreementNotInExpectedState error", async () => {
     mockAgreementService.unsuspendAgreement = vi
       .fn()
-      .mockRejectedValue(agreementNotInSuspendedState(mockApiAgreement.id));
+      .mockRejectedValue(
+        agreementNotInExpectedState(
+          unsafeBrandId<AgreementId>(mockApiAgreement.id),
+          mockApiAgreement.state
+        )
+      );
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token);
 

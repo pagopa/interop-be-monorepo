@@ -17,6 +17,8 @@ import {
   DelegationId,
   emptyErrorMapper,
   AgreementDocument,
+  AgreementId,
+  badRequestError,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
@@ -62,6 +64,30 @@ const {
   VIEWER_ROLE,
 } = authRole;
 
+const parseAgreementId = (agreementId: string): AgreementId => {
+  const result = AgreementId.safeParse(agreementId);
+  if (!result.success) {
+    throw badRequestError(`Invalid agreementId: ${agreementId}`);
+  }
+
+  return result.data;
+};
+
+const parseOptionalDelegationId = (
+  delegationId: string | undefined
+): DelegationId | undefined => {
+  if (!delegationId) {
+    return undefined;
+  }
+
+  const result = DelegationId.safeParse(delegationId);
+  if (!result.success) {
+    throw badRequestError(`Invalid delegationId: ${delegationId}`);
+  }
+
+  return result.data;
+};
+
 const agreementRouter = (
   ctx: ZodiosContext,
   agreementService: AgreementService
@@ -97,19 +123,48 @@ const agreementRouter = (
       }
     })
 
-    .post("/agreements/:agreementId/activate", async (req, res) => {
+    .post("/agreements/:agreementId/approve", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const { data: agreement, metadata } =
-          await agreementService.activateAgreement(
+          await agreementService.approveAgreement(
             {
-              agreementId: unsafeBrandId(req.params.agreementId),
-              delegationId: req.body.delegationId
-                ? unsafeBrandId<DelegationId>(req.body.delegationId)
-                : undefined,
+              agreementId: parseAgreementId(req.params.agreementId),
+              delegationId: parseOptionalDelegationId(req.body.delegationId),
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          activateAgreementErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/agreements/:agreementId/unsuspend", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: agreement, metadata } =
+          await agreementService.unsuspendAgreement(
+            {
+              agreementId: parseAgreementId(req.params.agreementId),
+              delegationId: parseOptionalDelegationId(req.body.delegationId),
             },
             ctx
           );
