@@ -59,11 +59,18 @@ describe("API POST /templates/:templateId/eservices", () => {
   it.each([
     { templateId: "invalid" as EServiceTemplateId },
     { body: { ...mockInstanceEServiceSeed, extraField: 1 } },
+    { body: { ...mockInstanceEServiceSeed, asyncExchange: false } },
     {
       body: { ...mockInstanceEServiceSeed, isClientAccessDelegable: "invalid" },
     },
     { body: { ...mockInstanceEServiceSeed, isConsumerDelegable: "invalid" } },
     { body: { ...mockInstanceEServiceSeed, isSignalHubEnabled: "invalid" } },
+    {
+      body: {
+        ...mockInstanceEServiceSeed,
+        asyncExchangeProperties: { responseTime: "invalid" },
+      },
+    },
   ])(
     "Should return 400 if passed an invalid parameter: %s",
     async ({ templateId, body }) => {

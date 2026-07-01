@@ -6,6 +6,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -37,6 +38,8 @@ export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          archivingSchedule:
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog,
           asyncExchangeProperties:
             eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
         })
@@ -109,6 +112,13 @@ export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
               eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
               eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
             )
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
           )
         )
         .orderBy(ascLower(eserviceInReadmodelCatalog.name));

@@ -13,4 +13,5 @@ export const toCompactAttribute = (
 ): bffApi.CompactAttribute => ({
   id: attribute.id,
   name: attribute.name,
+  kind: attribute.kind,
 });

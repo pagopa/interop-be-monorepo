@@ -849,6 +849,10 @@ export async function enrichAgreement(
     attributes,
     agreement.certifiedAttributes.map((attr) => attr.id)
   );
+  const agreementCertifiedDiscreteAttrs = filterAttributes(
+    attributes,
+    agreement.certifiedDiscreteAttributes.map((attr) => attr.id)
+  );
   const agreementDeclaredAttrs = filterAttributes(
     attributes,
     agreement.declaredAttributes.map((attr) => attr.id)
@@ -909,6 +913,9 @@ export async function enrichAgreement(
     state: agreement.state,
     verifiedAttributes: agreementVerifiedAttrs.map((a) => toBffAttribute(a)),
     certifiedAttributes: agreementCertifiedAttrs.map((a) => toBffAttribute(a)),
+    certifiedDiscreteAttributes: agreementCertifiedDiscreteAttrs.map((a) =>
+      toBffAttribute(a)
+    ),
     declaredAttributes: agreementDeclaredAttrs.map((a) => toBffAttribute(a)),
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
@@ -941,11 +948,17 @@ function descriptorAttributesIds(
 function tenantAttributesIds(tenant: tenantApi.Tenant): string[] {
   const verifiedIds = tenant.attributes.map((attr) => attr.verified?.id);
   const certifiedIds = tenant.attributes.map((attr) => attr.certified?.id);
+  const certifiedDiscreteIds = tenant.attributes.map(
+    (attr) => attr.certifiedDiscrete?.id
+  );
   const declaredIds = tenant.attributes.map((attr) => attr.declared?.id);
 
-  return [...verifiedIds, ...certifiedIds, ...declaredIds].filter(
-    (x): x is string => x !== undefined
-  );
+  return [
+    ...verifiedIds,
+    ...certifiedIds,
+    ...certifiedDiscreteIds,
+    ...declaredIds,
+  ].filter((x): x is string => x !== undefined);
 }
 
 async function getConsumerProducerEserviceDelegation(

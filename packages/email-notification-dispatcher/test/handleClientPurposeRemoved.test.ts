@@ -25,10 +25,10 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import {
-  eServiceNotFound,
+  eserviceNotFound,
   purposeNotFound,
   tenantNotFound,
-} from "../src/models/errors.js";
+} from "pagopa-interop-notification-commons";
 import { handleClientPurposeRemoved } from "../src/handlers/authorization/handleClientPurposeRemovedEvent.js";
 import {
   addOneEService,
@@ -167,7 +167,7 @@ describe("handleClientPurposeRemoved", async () => {
     ).rejects.toThrow(tenantNotFound(unknownConsumerId));
   });
 
-  it("should throw eServiceNotFound when eservice is not found", async () => {
+  it("should throw eserviceNotFound when eservice is not found", async () => {
     const unknownEServiceId = generateId<EServiceId>();
     const purposeWithUnknownEservice: Purpose = {
       ...getMockPurpose(),
@@ -184,7 +184,7 @@ describe("handleClientPurposeRemoved", async () => {
         readModelService,
         correlationId: generateId<CorrelationId>(),
       })
-    ).rejects.toThrow(eServiceNotFound(unknownEServiceId));
+    ).rejects.toThrow(eserviceNotFound(unknownEServiceId));
   });
 
   it("should generate one message per user of the tenant", async () => {

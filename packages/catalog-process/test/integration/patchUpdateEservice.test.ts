@@ -111,6 +111,17 @@ describe("patch update eService", () => {
       personalData: true,
       asyncExchange: true,
     },
+    {
+      name: "New name",
+      description: "New description",
+      technology: "SOAP",
+      mode: "DELIVER",
+      isSignalHubEnabled: true,
+      isConsumerDelegable: true,
+      isClientAccessDelegable: true,
+      personalData: true,
+      archivingReason: "archiving reason",
+    },
   ] as catalogApi.PatchUpdateEServiceSeed[])(
     "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
     async (seed) => {
@@ -306,11 +317,18 @@ describe("patch update eService", () => {
       name: `${mockDocument.name}`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
+    const mockAsyncExchangeCallbackInterfaceDocument = getMockDocument();
+    const asyncExchangeCallbackInterfaceDocument = {
+      ...mockAsyncExchangeCallbackInterfaceDocument,
+      name: `${mockDocument.name}_callback`,
+      path: `${config.eserviceDocumentsPath}/${mockAsyncExchangeCallbackInterfaceDocument.id}/${mockDocument.name}_callback`,
+    };
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
       interface: interfaceDocument,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDocument,
     };
     const eservice: EService = {
       ...mockEService,
@@ -329,10 +347,23 @@ describe("patch update eService", () => {
       },
       genericLogger
     );
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDocument.id,
+        name: asyncExchangeCallbackInterfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDocument.path);
 
     const updateEServiceReturn = await catalogService.patchUpdateEService(
       eservice.id,
@@ -348,6 +379,7 @@ describe("patch update eService", () => {
       descriptors: eservice.descriptors.map((d) => ({
         ...d,
         interface: undefined,
+        asyncExchangeCallbackInterface: undefined,
         serverUrls: [],
       })),
     };
