@@ -6,6 +6,7 @@ import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleTemplateStatusChangedToProducer } from "./handleTemplateStatusChangedToProducer.js";
+import { handleTemplateActivatedToProducer } from "./handleTemplateActivatedToProducer.js";
 import { handleNewEserviceTemplateVersionToInstantiator } from "./handleNewEserviceTemplateVersionToInstantiator.js";
 import { handleEserviceTemplateNameChangedToInstantiator } from "./handleEserviceTemplateNameChangedToInstantiator.js";
 import { handleEserviceTemplateStatusChangedToInstantiator } from "./handleEserviceTemplateStatusChangedToInstantiator.js";
@@ -51,6 +52,19 @@ export async function handleEServiceTemplateEvent(
     )
     .with(
       {
+        type: "EServiceTemplateVersionActivated",
+      },
+      // Producer == creator of the template
+      ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) =>
+        handleTemplateActivatedToProducer(
+          eserviceTemplate,
+          eserviceTemplateVersionId,
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      {
         type: "EServiceTemplateNameUpdated",
       },
       ({ data: { eserviceTemplate, oldName } }) =>
@@ -84,7 +98,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionQuotasUpdated",
           "EServiceTemplateVersionAdded",
           "EServiceTemplateVersionAttributesUpdated",
-          "EServiceTemplateVersionActivated",
           "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
