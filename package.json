@@ -85,7 +85,8 @@
     "@tsconfig/strictest": "catalog:",
     "knip": "catalog:",
     "madge": "catalog:",
-    "turbo": "catalog:"
+    "turbo": "catalog:",
+    "yaml": "catalog:"
   },
   "config": {
     "protocVersion": "26.1"
