@@ -164,6 +164,7 @@ describe("E-service splitter", () => {
       dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
       dailyCallsTotal: descriptor.dailyCallsTotal,
       serverUrls: descriptor.serverUrls,
+      serverDescriptionUrls: descriptor.serverDescriptionUrls,
     };
 
     const expectedAttributeSQL: EServiceDescriptorAttributeSQL = {
@@ -343,6 +344,7 @@ describe("E-service splitter", () => {
       dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
       dailyCallsTotal: descriptor.dailyCallsTotal,
       serverUrls: descriptor.serverUrls,
+      serverDescriptionUrls: descriptor.serverDescriptionUrls,
     };
 
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {

@@ -589,6 +589,7 @@ async function innerCreateEService(
         seed.descriptor.agreementApprovalPolicy
       ),
     serverUrls: [],
+    serverDescriptionUrls: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -687,6 +688,9 @@ async function innerAddDocumentToEserviceEvent(
     interface: isInterface ? createdDocument : descriptor.interface,
     docs: isInterface ? descriptor.docs : [...descriptor.docs, createdDocument],
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
+    serverDescriptionUrls: isInterface
+      ? (documentSeed.serverDescriptionUrls ?? [])
+      : descriptor.serverDescriptionUrls,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
   };
 
@@ -753,6 +757,7 @@ function createNextDescriptor(
     dailyCallsTotal: seed.dailyCallsTotal,
     agreementApprovalPolicy: seed.agreementApprovalPolicy,
     serverUrls: [],
+    serverDescriptionUrls: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -1188,6 +1193,9 @@ export function catalogServiceBuilder(
                 interface:
                   d.interface?.id === documentId ? undefined : d.interface,
                 serverUrls: isInterface ? [] : d.serverUrls,
+                serverDescriptionUrls: isInterface
+                  ? []
+                  : d.serverDescriptionUrls,
                 docs: d.docs.filter((doc) => doc.id !== documentId),
               }
             : d
@@ -3837,7 +3845,7 @@ async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  serverUrls: string[],
+  serverUrls: Array<{ url: string; description?: string }>,
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;
@@ -3870,6 +3878,10 @@ async function createOpenApiInterfaceByTemplate(
     eserviceInstanceInterfaceRestData
   );
 
+  const serverDescriptionByUrl = new Map(
+    serverUrls.map((server) => [server.url, server.description ?? ""])
+  );
+
   return await verifyAndCreateDocument(
     fileManager,
     { id: eservice.id, isEserviceTemplate: true },
@@ -3886,7 +3898,7 @@ async function createOpenApiInterfaceByTemplate(
       filePath,
       prettyName,
       kind,
-      serverUrls,
+      extractedServerUrls,
       contentType,
       checksum
     ) =>
@@ -3901,7 +3913,10 @@ async function createOpenApiInterfaceByTemplate(
           fileName,
           contentType,
           checksum,
-          serverUrls,
+          serverUrls: extractedServerUrls,
+          serverDescriptionUrls: extractedServerUrls.map(
+            (url) => serverDescriptionByUrl.get(url) ?? ""
+          ),
           interfaceTemplateMetadata: eserviceInstanceInterfaceRestData,
         },
         ctx
@@ -4431,6 +4446,7 @@ async function updateDraftEService(
           ...d,
           interface: undefined,
           serverUrls: [],
+          serverDescriptionUrls: [],
         }))
       : eservice.data.descriptors,
     isSignalHubEnabled: updatedIsSignalHubEnabled,

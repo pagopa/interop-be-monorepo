@@ -155,7 +155,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
             contactUrl: "https://fun.tester.johnny.info",
             contactEmail: "johnnyd@funnytester.com",
             termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
-            serverUrls: ["https://fun.tester.server.com"],
+            serverUrls: [{ url: "https://fun.tester.server.com" }],
           },
           getMockContext({ authData: getMockAuthData() })
         )
@@ -183,7 +183,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
             contactUrl: "https://fun.tester.johnny.info",
             contactEmail: "johnnyd@funnytester.com",
             termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
-            serverUrls: ["https://fun.tester.server.com"],
+            serverUrls: [{ url: "https://fun.tester.server.com" }],
           },
           getMockContext({ authData: getMockAuthData() })
         )
@@ -257,7 +257,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
             contactUrl: "https://fun.tester.johnny.info",
             contactEmail: "johnnyd@funnytester.com",
             termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
-            serverUrls: ["https://fun.tester.server.com"],
+            serverUrls: [{ url: "https://fun.tester.server.com" }],
           },
           getMockContext({ authData })
         )
@@ -286,7 +286,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
             contactUrl: "https://fun.tester.johnny.info",
             contactEmail: "johnnyd@funnytester.com",
             termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
-            serverUrls: ["https://fun.tester.server.com"],
+            serverUrls: [{ url: "https://fun.tester.server.com" }],
           },
           getMockContext({ authData })
         )
@@ -349,7 +349,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
             contactUrl: "https://fun.tester.johnny.info",
             contactEmail: "johnnyd@funnytester.com",
             termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
-            serverUrls: ["https://fun.tester.server.com"],
+            serverUrls: [{ url: "https://fun.tester.server.com" }],
           },
           getMockContext({ authData })
         )
@@ -401,7 +401,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
             contactUrl: "https://fun.tester.johnny.info",
             contactEmail: "johnnyd@funnytester.com",
             termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
-            serverUrls: ["https://fun.tester.server.com"],
+            serverUrls: [{ url: "https://fun.tester.server.com" }],
           },
           getMockContext({ authData })
         )
@@ -502,12 +502,20 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const contactUrl = "https://fun.tester.johnny.info";
       const contactEmail = "johnnyd@funnytester.com";
       const termsAndConditionsUrl = "https://fun.tester.johnny.terms.com";
+      const expectedServerDescriptionUrls = [
+        "Primary production server",
+        "Secondary server hosted in Italy",
+        "Tertiary server hosted in io",
+      ];
       const requestPayload: catalogApi.TemplateInstanceInterfaceRESTSeed = {
         contactName,
         contactUrl,
         contactEmail,
         termsAndConditionsUrl,
-        serverUrls: expectedServerUrls,
+        serverUrls: expectedServerUrls.map((url, index) => ({
+          url,
+          description: expectedServerDescriptionUrls[index],
+        })),
       };
 
       const res = await catalogService.addEServiceTemplateInstanceInterface(
@@ -537,6 +545,9 @@ describe("addEServiceTemplateInstanceInterface", () => {
           },
         },
       });
+      expect(res.descriptors[0]?.serverDescriptionUrls).toStrictEqual(
+        expectedServerDescriptionUrls
+      );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -600,7 +611,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const requestPayload: catalogApi.TemplateInstanceInterfaceRESTSeed = {
         contactName,
         contactEmail,
-        serverUrls: expectedServerUrls,
+        serverUrls: expectedServerUrls.map((url) => ({ url })),
       };
 
       const res = await catalogService.addEServiceTemplateInstanceInterface(
@@ -689,7 +700,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
       const expectedServerUrls = ["https://host.com/TestWS/v1"];
       const requestPayload: catalogApi.TemplateInstanceInterfaceSOAPSeed = {
-        serverUrls: expectedServerUrls,
+        serverUrls: expectedServerUrls.map((url) => ({ url })),
       };
 
       const res = await catalogService.addEServiceTemplateInstanceInterface(

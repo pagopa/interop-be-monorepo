@@ -358,6 +358,7 @@ export const descriptorToDescriptorSQL = (
   dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
   dailyCallsTotal: descriptor.dailyCallsTotal,
   serverUrls: descriptor.serverUrls,
+  serverDescriptionUrls: descriptor.serverDescriptionUrls,
   agreementApprovalPolicy: descriptor.agreementApprovalPolicy || null,
   publishedAt: dateToString(descriptor.publishedAt),
   suspendedAt: dateToString(descriptor.suspendedAt),

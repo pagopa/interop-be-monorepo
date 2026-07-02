@@ -25,8 +25,8 @@ describe("verifyAndCreateDocument", async () => {
   };
 
   const serverUrls = [
-    "http://server1.example.com",
-    "http://server2.example.com",
+    { url: "http://server1.example.com" },
+    { url: "http://server2.example.com" },
   ];
 
   const eserviceInstanceInterfaceRestData = {
@@ -76,7 +76,7 @@ describe("verifyAndCreateDocument", async () => {
       `document-path/${documentId}/${interfaceFileInfo.name}`,
       prettyName,
       kind,
-      serverUrls,
+      serverUrls.map((server) => server.url),
       contentType,
       expect.any(String)
     );

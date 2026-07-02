@@ -25,7 +25,10 @@ describe("interpolateTemplateSoapApiSpec", async () => {
     contactEmail: "Test email",
     contactUrl: "http://example.com",
     termsAndConditionsUrl: "http://example.com",
-    serverUrls: ["http://server1.example.com", "http://server2.example.com"],
+    serverUrls: [
+      { url: "http://server1.example.com" },
+      { url: "http://server2.example.com" },
+    ],
   };
 
   it("should interpolate SOAP API spec", async () => {

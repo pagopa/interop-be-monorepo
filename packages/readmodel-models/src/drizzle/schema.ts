@@ -436,6 +436,7 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
       mode: "string",
     }).notNull(),
     serverUrls: varchar("server_urls").array().notNull(),
+    serverDescriptionUrls: varchar("server_description_urls").array().notNull(),
     publishedAt: timestamp("published_at", {
       withTimezone: true,
       mode: "string",

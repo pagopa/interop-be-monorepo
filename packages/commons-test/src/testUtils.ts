@@ -446,6 +446,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   dailyCallsTotal: 1000,
   createdAt: new Date(),
   serverUrls: ["pagopa.it"],
+  serverDescriptionUrls: [],
   agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],
