@@ -47,8 +47,7 @@ function analyzeFile(filePath) {
       maxBuffer: 50 * 1024 * 1024,
     });
   } catch {
-    console.log(`  File does not exist on ${TARGET_BRANCH}, skipping.\n`);
-    return false;
+    return null;
   }
 
   let developContent;
@@ -58,66 +57,42 @@ function analyzeFile(filePath) {
       maxBuffer: 50 * 1024 * 1024,
     });
   } catch {
-    console.log(`  File does not exist on ${BASE_BRANCH} (new file).\n`);
-    return false;
+    return null;
   }
 
   const current = extractOperations(targetContent);
   const develop = extractOperations(developContent);
 
-  if (current.size === 0 && develop.size === 0) {
-    console.log(`  No operations found (not an OpenAPI paths file).\n`);
-    return false;
-  }
+  if (current.size === 0 && develop.size === 0) return null;
 
   const allOperationIds = [...new Set([...develop.keys(), ...current.keys()])].sort();
+  const operations = [];
   const diffs = [];
 
   for (const id of allOperationIds) {
     const dev = develop.get(id);
     const cur = current.get(id);
 
-    if (!dev) {
-      diffs.push(`+ ${id}: ${cur.method} [${cur.responses.join(", ")}] (added)`);
-      continue;
-    }
-    if (!cur) {
-      diffs.push(`- ${id}: ${dev.method} [${dev.responses.join(", ")}] (removed)`);
-      continue;
-    }
-
-    const changes = [];
-    if (dev.method !== cur.method) changes.push(`method: ${dev.method} → ${cur.method}`);
-
-    const addedResponses = cur.responses.filter((r) => !dev.responses.includes(r));
-    const removedResponses = dev.responses.filter((r) => !cur.responses.includes(r));
-    if (addedResponses.length) changes.push(`+responses: [${addedResponses.join(", ")}]`);
-    if (removedResponses.length) changes.push(`-responses: [${removedResponses.join(", ")}]`);
-
-    if (changes.length) diffs.push(`~ ${id}: ${changes.join(" | ")}`);
-  }
-
-  // Print side-by-side
-  for (const id of allOperationIds) {
-    const dev = develop.get(id);
-    const cur = current.get(id);
     const devStr = dev ? `${dev.method} [${dev.responses.join(", ")}]` : "(missing)";
     const curStr = cur ? `${cur.method} [${cur.responses.join(", ")}]` : "(missing)";
-    const marker = devStr !== curStr ? " ← CHANGED" : "";
-    console.log(`  ${id}`);
-    console.log(`    develop: ${devStr}`);
-    console.log(`    current: ${curStr}${marker}`);
+    operations.push({ id, devStr, curStr, changed: devStr !== curStr });
+
+    if (!dev) {
+      diffs.push(`+ ${id}: ${cur.method} [${cur.responses.join(", ")}] (added)`);
+    } else if (!cur) {
+      diffs.push(`- ${id}: ${dev.method} [${dev.responses.join(", ")}] (removed)`);
+    } else {
+      const changes = [];
+      if (dev.method !== cur.method) changes.push(`method: ${dev.method} → ${cur.method}`);
+      const addedResponses = cur.responses.filter((r) => !dev.responses.includes(r));
+      const removedResponses = dev.responses.filter((r) => !cur.responses.includes(r));
+      if (addedResponses.length) changes.push(`+responses: [${addedResponses.join(", ")}]`);
+      if (removedResponses.length) changes.push(`-responses: [${removedResponses.join(", ")}]`);
+      if (changes.length) diffs.push(`~ ${id}: ${changes.join(" | ")}`);
+    }
   }
 
-  if (diffs.length === 0) {
-    console.log(`\n  No differences.\n`);
-  } else {
-    console.log(`\n  ${diffs.length} difference(s):`);
-    for (const d of diffs) console.log(`    ${d}`);
-    console.log();
-  }
-
-  return diffs.length > 0;
+  return { operations, diffs };
 }
 
 // --- Main ---
@@ -131,11 +106,36 @@ if (yamlFiles.length === 0) {
 
 console.log(`${yamlFiles.length} open-api YAML file(s) changed vs ${BASE_BRANCH}:\n`);
 
-let hasDiffs = false;
+const results = [];
 
 for (const file of yamlFiles) {
-  console.log(`=== ${file} ===`);
-  if (analyzeFile(file)) hasDiffs = true;
+  const result = analyzeFile(file);
+  if (result) results.push({ file, ...result });
 }
 
-if (hasDiffs) process.exit(1);
+// --- Output ---
+
+const withDiffs = results.filter((r) => r.diffs.length > 0);
+const withoutDiffs = results.filter((r) => r.diffs.length === 0);
+
+for (const { file, operations, diffs } of withDiffs) {
+  console.log(`=== ${file} ===`);
+  for (const { id, devStr, curStr, changed } of operations) {
+    const marker = changed ? " ← CHANGED" : "";
+    console.log(`  ${id}`);
+    console.log(`    develop: ${devStr}`);
+    console.log(`    current: ${curStr}${marker}`);
+  }
+  console.log(`\n  ${diffs.length} difference(s):`);
+  for (const d of diffs) console.log(`    ${d}`);
+  console.log();
+}
+
+if (withoutDiffs.length > 0) {
+  console.log("=== No differences ===");
+  for (const { file } of withoutDiffs) {
+    console.log(`  ${file}`);
+  }
+}
+
+if (withDiffs.length > 0) process.exit(1);
