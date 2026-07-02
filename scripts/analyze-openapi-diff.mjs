@@ -2,7 +2,7 @@ import { execSync } from "node:child_process";
 import { parse } from "yaml";
 
 const BASE_BRANCH = "origin/develop";
-const TARGET_BRANCH = "origin/PIN-10000_refactor-api-spec";
+const TARGET_BRANCH = "HEAD";
 const HTTP_METHODS = ["get", "post", "put", "patch", "delete", "head", "options", "trace"];
 
 // --- Parsing ---
