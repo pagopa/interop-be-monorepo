@@ -205,6 +205,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
         scope: toEServiceDescriptorArchivingScopeV2(
           input.archivingSchedule.scope
         ),
+        gracePeriodDays: input.archivingSchedule.gracePeriodDays ?? 30,
       }
     : undefined,
   asyncExchangeCallbackInterface: input.asyncExchangeCallbackInterface

@@ -201,6 +201,7 @@ export const descriptorToApiDescriptor = (
         scope: archivingScheduleScopeToApiArchivingScheduleScope(
           descriptor.archivingSchedule.scope
         ),
+        gracePeriodDays: descriptor.archivingSchedule.gracePeriodDays,
       }
     : undefined,
   asyncExchangeProperties: descriptor.asyncExchangeProperties
