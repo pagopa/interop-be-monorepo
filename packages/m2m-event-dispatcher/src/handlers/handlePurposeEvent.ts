@@ -67,7 +67,13 @@ async function handlePurposeEventV2(
             "DraftPurposeDeleted",
             "WaitingForApprovalPurposeDeleted",
             "PurposeCloned",
-            "PurposeDeletedByRevokedDelegation"
+            "PurposeDeletedByRevokedDelegation",
+            "PurposeRiskAnalysisWorkflowCreated",
+            "PurposeRiskAnalysisAssigned",
+            "PurposeRiskAnalysisSubmitted",
+            "PurposeRiskAnalysisSigned",
+            "PurposeRiskAnalysisRejected",
+            "PurposeRiskAnalysisFormEdited"
           ),
         },
         async (event) => {
@@ -142,9 +148,7 @@ async function handlePurposeEventV2(
            */
           type: P.union(
             "RiskAnalysisDocumentGenerated",
-            "MaintenancePurposeRiskAnalysisSetTenantKind",
-            "PurposeRiskAnalysisWorkflowCreated",
-            "PurposeRiskAnalysisAssigned"
+            "MaintenancePurposeRiskAnalysisSetTenantKind"
           ),
         },
         () => Promise.resolve(void 0)

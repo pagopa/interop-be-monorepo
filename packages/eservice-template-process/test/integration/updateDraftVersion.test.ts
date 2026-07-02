@@ -7,6 +7,7 @@ import {
   getMockDocument,
   getMockContext,
   getMockAuthData,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   descriptorState,
@@ -19,10 +20,12 @@ import {
   eserviceTemplateVersionState,
   operationForbidden,
   AttributeId,
+  attributeKind,
   technology,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
+  attributeDiscreteConfigNotAllowed,
   attributeNotFound,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
@@ -349,6 +352,92 @@ describe("update draft version", () => {
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
   });
+  it.each([attributeKind.declared, attributeKind.verified])(
+    "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
+    async (kind) => {
+      const nonCertifiedAttribute = getMockAttribute(kind);
+      await addOneAttribute(nonCertifiedAttribute);
+
+      const version: EServiceTemplateVersion = {
+        ...mockVersion,
+        state: eserviceTemplateVersionState.draft,
+        attributes: {
+          certified: [],
+          declared:
+            kind === attributeKind.declared
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                    },
+                  ],
+                ]
+              : [],
+          verified:
+            kind === attributeKind.verified
+              ? [
+                  [
+                    {
+                      id: nonCertifiedAttribute.id,
+                      explicitAttributeVerification: false,
+                    },
+                  ],
+                ]
+              : [],
+        },
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...getMockEServiceTemplate(),
+        versions: [version],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+
+      const seed = buildUpdateVersionSeed(version);
+
+      await expect(
+        eserviceTemplateService.updateDraftTemplateVersion(
+          eserviceTemplate.id,
+          version.id,
+          {
+            ...seed,
+            attributes: {
+              certified: [],
+              declared:
+                kind === attributeKind.declared
+                  ? [
+                      [
+                        {
+                          id: nonCertifiedAttribute.id,
+                          explicitAttributeVerification: false,
+                          discreteConfig: { threshold: 1, comparator: "GT" },
+                        },
+                      ],
+                    ]
+                  : [],
+              verified:
+                kind === attributeKind.verified
+                  ? [
+                      [
+                        {
+                          id: nonCertifiedAttribute.id,
+                          explicitAttributeVerification: false,
+                          discreteConfig: { threshold: 1, comparator: "GT" },
+                        },
+                      ],
+                    ]
+                  : [],
+            },
+          },
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        attributeDiscreteConfigNotAllowed(nonCertifiedAttribute.id)
+      );
+    }
+  );
 
   it("should update asyncExchangeProperties when asyncExchange is true and feature flag enabled", async () => {
     const version: EServiceTemplateVersion = {

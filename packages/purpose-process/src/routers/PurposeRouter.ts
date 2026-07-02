@@ -17,6 +17,7 @@ import {
   PurposeTemplateId,
   PurposeVersionDocument,
   TenantId,
+  UserId,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
@@ -29,6 +30,7 @@ import {
   purposeVersionToApiPurposeVersion,
   riskAnalysisFormConfigToApiRiskAnalysisFormConfig,
   remainingDailyCallsToApiRemainingDailyCalls,
+  apiSigningStateToSigningState,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { PurposeService } from "../services/purposeService.js";
@@ -36,6 +38,10 @@ import {
   activatePurposeVersionErrorMapper,
   archivePurposeVersionErrorMapper,
   assignRiskAnalysisReviewerErrorMapper,
+  submitRiskAnalysisErrorMapper,
+  signRiskAnalysisErrorMapper,
+  rejectRiskAnalysisErrorMapper,
+  editRiskAnalysisFormErrorMapper,
   clonePurposeErrorMapper,
   createPurposeErrorMapper,
   createPurposeFromTemplateErrorMapper,
@@ -74,6 +80,8 @@ const purposeRouter = (
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
   purposeRouter
     .get("/purposes", async (req, res) => {
@@ -87,6 +95,8 @@ const purposeRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const {
@@ -97,6 +107,8 @@ const purposeRouter = (
           clientId,
           states,
           excludeDraft,
+          reviewerId,
+          signingStates,
           offset,
           limit,
         } = req.query;
@@ -109,6 +121,10 @@ const purposeRouter = (
             clientId: clientId ? unsafeBrandId<ClientId>(clientId) : undefined,
             states: states?.map(apiPurposeVersionStateToPurposeVersionState),
             excludeDraft,
+            reviewerId: reviewerId
+              ? unsafeBrandId<UserId>(reviewerId)
+              : undefined,
+            signingStates: signingStates?.map(apiSigningStateToSigningState),
           },
           { offset, limit },
           ctx
@@ -228,7 +244,7 @@ const purposeRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE, REVIEWER_ROLE]);
 
         const result = await purposeService.getRemainingDailyCalls({
           purposeId: unsafeBrandId(req.params.purposeId),
@@ -262,6 +278,8 @@ const purposeRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: purpose, metadata } = await purposeService.getPurposeById(
@@ -423,7 +441,7 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
           const document = await purposeService.getRiskAnalysisDocument({
             purposeId: unsafeBrandId(req.params.purposeId),
@@ -528,6 +546,115 @@ const purposeRouter = (
         const errorRes = makeApiProblem(
           error,
           assignRiskAnalysisReviewerErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposes/:purposeId/riskAnalysis/submit", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE]);
+
+        const { data: purpose, metadata } =
+          await purposeService.submitRiskAnalysis(
+            unsafeBrandId(req.params.purposeId),
+            {
+              riskAnalysisForm: req.body.riskAnalysisForm,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          submitRiskAnalysisErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposes/:purposeId/riskAnalysis/sign", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [REVIEWER_ROLE]);
+
+        const { data: purpose, metadata } =
+          await purposeService.signRiskAnalysis(
+            unsafeBrandId(req.params.purposeId),
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          signRiskAnalysisErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/purposes/:purposeId/riskAnalysis/reject", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [REVIEWER_ROLE]);
+
+        const { data: purpose, metadata } =
+          await purposeService.rejectRiskAnalysis(
+            unsafeBrandId(req.params.purposeId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          rejectRiskAnalysisErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .put("/purposes/:purposeId/riskAnalysis/form", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [REVIEWER_ROLE]);
+
+        const { data: purpose, metadata } =
+          await purposeService.editRiskAnalysisForm(
+            unsafeBrandId(req.params.purposeId),
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(purposeApi.Purpose.parse(purposeToApiPurpose(purpose)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          editRiskAnalysisFormErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
@@ -696,6 +823,8 @@ const purposeRouter = (
           SUPPORT_ROLE,
           API_ROLE,
           SECURITY_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const riskAnalysisConfiguration =
@@ -732,6 +861,7 @@ const purposeRouter = (
             SUPPORT_ROLE,
             API_ROLE,
             SECURITY_ROLE,
+            REVIEWER_ROLE,
           ]);
 
           const riskAnalysisConfiguration =
@@ -878,7 +1008,7 @@ const purposeRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
           const document = await purposeService.getRiskAnalysisSignedDocument({
             purposeId: unsafeBrandId(req.params.purposeId),
