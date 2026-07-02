@@ -1,16 +1,17 @@
-name: Analyze BFF API
+name: Analyze OpenAPI specs
 
 on:
   pull_request:
     paths:
-      - "packages/api-clients/open-api/bffApi.yml"
+      - "packages/api-clients/open-api/**/*.yml"
+      - "packages/api-clients/open-api/**/*.yaml"
 
 permissions:
   contents: read
 
 jobs:
   analyze:
-    name: Analyze BFF API operations
+    name: Analyze OpenAPI operations
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -22,5 +23,5 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version-file: ./package.json
-      - name: Print BFF API operations summary
-        run: node scripts/analyze-bff-api.mjs
+      - name: Print OpenAPI operations summary
+        run: node scripts/analyze-openapi-diff.mjs
