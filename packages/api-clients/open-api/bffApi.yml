@@ -1899,71 +1899,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/descriptors/{descriptorId}/scheduleArchive:
     parameters:
       - name: eServiceId
@@ -2008,71 +1948,11 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     delete:
       security:
         - bearerAuth: []
@@ -2085,23 +1965,11 @@ paths:
         "204":
           description: E-Service Descriptor archiving canceled
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/scheduleArchive:
     parameters:
       - name: eServiceId
@@ -2139,49 +2007,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     post:
       security:
         - bearerAuth: []
@@ -2217,49 +2045,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
     post:
       security:
@@ -2315,71 +2103,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/descriptors/{descriptorId}/agreementApprovalPolicy/update:
     post:
       security:
@@ -2431,27 +2159,7 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "401":
           description: Unauthorized
           content:
@@ -2475,49 +2183,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
-          description: Forbidden
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/descriptors/{descriptorId}/publish:
     post:
       security:
@@ -2562,71 +2230,11 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Resource Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          $ref: "#/components/responses/NotFound"
 
   /eservices/{eServiceId}/descriptors/{descriptorId}/suspend:
     post:
@@ -2672,49 +2280,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
 
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/rest:
     post:
@@ -2771,27 +2339,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
 
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/soap:
     post:
@@ -2848,27 +2396,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
 
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents:
     post:
@@ -2943,49 +2471,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
 
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}:
     delete:
@@ -3038,49 +2526,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
-          description: E-Service descriptor document not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
     get:
       security:
         - bearerAuth: []
@@ -3136,49 +2584,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
-          description: EService not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /eservices/{eServiceId}/descriptors/{descriptorId}/clone:
     post:
       security:
@@ -3227,49 +2635,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedEServiceDescriptor"
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update:
     post:
       security:
@@ -3332,49 +2700,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Bad request
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: EService Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}:
     delete:
       security:
@@ -3412,49 +2740,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     put:
       security:
         - bearerAuth: []
@@ -3502,49 +2790,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "404":
-          description: E-Service not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /templates/eservices/{eServiceId}:
     post:
       security:
@@ -3593,93 +2841,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "404":
-          description: E-Service not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "403":
-          description: Forbidden
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          $ref: "#/components/responses/Conflict"
         "400":
-          description: Bad request
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /templates/eservices/{eServiceId}/instanceLabel/update:
     post:
       security:
@@ -3728,93 +2896,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "404":
-          description: E-Service not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "403":
-          description: Forbidden
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          $ref: "#/components/responses/Conflict"
         "400":
-          description: Bad request
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /eservices/{eServiceId}/riskAnalysis:
     post:
       security:
@@ -3858,49 +2946,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/riskAnalysis/{riskAnalysisId}:
     get:
       security:
@@ -3949,49 +2997,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/EServiceRiskAnalysis"
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     post:
       security:
         - bearerAuth: []
@@ -4041,49 +3049,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     delete:
       security:
         - bearerAuth: []
@@ -4127,49 +3095,9 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "400":
-          description: Invalid input
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/description/update:
     post:
       security:
@@ -4218,71 +3146,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "403":
-          description: Forbidden
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: EService not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /eservices/{eServiceId}/delegationFlags/update:
     post:
       security:
@@ -4331,93 +3199,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/CreatedResource"
         "403":
-          description: Forbidden
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: EService not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "400":
-          description: Bad request
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/name/update:
     post:
       security:
@@ -4462,71 +3250,11 @@ paths:
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "403":
-          description: Forbidden
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: EService not found
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Conflict
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/signalhub/update:
     post:
       security:
@@ -25089,6 +23817,19 @@ components:
         format: int32
       description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        "X-Rate-Limit-Limit":
+          $ref: "#/components/headers/RateLimitLimitHeader"
+        "X-Rate-Limit-Remaining":
+          $ref: "#/components/headers/RateLimitRemainingHeader"
+        "X-Rate-Limit-Interval":
+          $ref: "#/components/headers/RateLimitIntervalHeader"
     BadRequest:
       description: Bad Request
       content:
