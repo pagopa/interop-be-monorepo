@@ -2453,7 +2453,7 @@ export function catalogServiceBuilder(
     async scheduleEServiceDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      body: GracePeriodDaysSeed,
+      body: catalogApi.GracePeriodDaysSeed,
       {
         authData,
         correlationId,
@@ -4596,8 +4596,8 @@ async function processEserviceArchiving(
           processDescriptorArchiving(
             descriptor,
             descriptorState.archiving,
-            archivingScope.eservice,
             body.gracePeriodDays,
+            archivingScope.eservice,
             requestDate
           )
         )
@@ -4605,8 +4605,8 @@ async function processEserviceArchiving(
           processDescriptorArchiving(
             descriptor,
             descriptorState.archivingSuspended,
-            archivingScope.eservice,
             body.gracePeriodDays,
+            archivingScope.eservice,
             requestDate
           )
         )

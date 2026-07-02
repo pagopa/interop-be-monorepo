@@ -3888,6 +3888,13 @@ paths:
       summary: Schedule the archiving process for an E-Service Descriptor
       description: Schedule the archiving process for an E-Service Descriptor
       operationId: scheduleArchiveEserviceDescriptor
+      requestBody:
+        description: grace period
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GracePeriodDaysSeed"
       responses:
         "204":
           description: E-Service Descriptor scheduled for archiving
@@ -4096,7 +4103,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
+              $ref: "#/components/schemas/EServiceArchivingSeed"
       responses:
         "204":
           description: E-Service Descriptor scheduled for archiving
@@ -31892,7 +31899,7 @@ components:
         - eservice
         - descriptor
         - createdAt
-    EServiceArchivingReasonSeed:
+    EServiceArchivingSeed:
       type: object
       additionalProperties: false
       properties:
@@ -31900,8 +31907,25 @@ components:
           type: string
           minLength: 10
           maxLength: 250
+        gracePeriodDays:
+          type: integer
+          format: int32
+          minimum: 30
+          maximum: 99999
       required:
         - archivingReason
+        - gracePeriodDays
+    GracePeriodDaysSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        gracePeriodDays:
+          type: integer
+          format: int32
+          minimum: 30
+          maximum: 99999
+      required:
+        - gracePeriodDays
     CompactPurposeTemplateEServiceTemplate:
       type: object
       additionalProperties: false

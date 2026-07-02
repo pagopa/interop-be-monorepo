@@ -754,7 +754,7 @@ export function eserviceServiceBuilder(
 
     async scheduleArchiveEService(
       eserviceId: EServiceId,
-      seed: m2mGatewayApiV3.EServiceArchivingReasonSeed,
+      seed: m2mGatewayApiV3.EServiceArchivingSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EService> {
       logger.info(`Scheduling archive for eservice with id ${eserviceId}`);
@@ -1016,6 +1016,7 @@ export function eserviceServiceBuilder(
     async scheduleArchiveEserviceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      body: catalogApi.GracePeriodDaysSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
       logger.info(
@@ -1024,7 +1025,7 @@ export function eserviceServiceBuilder(
 
       const response =
         await clients.catalogProcessClient.scheduleEServiceDescriptorArchiving(
-          undefined,
+          body,
           {
             params: { eServiceId: eserviceId, descriptorId },
             headers,

@@ -234,6 +234,7 @@ export const aggregateDescriptor = ({
             scope: ArchivingScope.parse(archivingScheduleSQL.scope),
             archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
             startedAt: stringToDate(archivingScheduleSQL.startedAt),
+            gracePeriodDays: archivingScheduleSQL.gracePeriodDays,
           },
         }
       : {}),
