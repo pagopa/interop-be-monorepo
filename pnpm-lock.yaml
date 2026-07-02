@@ -214,8 +214,8 @@ catalogs:
       specifier: 2.1.1
       version: 2.1.1
     nodemailer:
-      specifier: 8.0.5
-      version: 8.0.5
+      specifier: 9.0.1
+      version: 9.0.1
     octokit:
       specifier: 4.1.4
       version: 4.1.4
@@ -1685,7 +1685,7 @@ importers:
         version: 2.2.4
       nodemailer:
         specifier: 'catalog:'
-        version: 8.0.5
+        version: 9.0.1
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -2005,7 +2005,7 @@ importers:
         version: 2.1.1
       nodemailer:
         specifier: 'catalog:'
-        version: 8.0.5
+        version: 9.0.1
       pagopa-interop-models:
         specifier: workspace:*
         version: link:../models
@@ -4729,7 +4729,7 @@ importers:
         version: 2.2.4
       nodemailer:
         specifier: 'catalog:'
-        version: 8.0.5
+        version: 9.0.1
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -11094,8 +11094,8 @@ packages:
     resolution: {integrity: sha512-3VW/8JpPqPvnJvseXowjZcirPisssnBuDikk6JIZ8jQzF7KJQX52iPFX4RYYxLycYH7IbMRSPUOga/esVjy5Yg==}
     engines: {node: '>=18'}
 
-  nodemailer@8.0.5:
-    resolution: {integrity: sha512-0PF8Yb1yZuQfQbq+5/pZJrtF6WQcjTd5/S4JOHs9PGFxuTqoB/icwuB44pOdURHJbRKX1PPoJZtY7R4VUoCC8w==}
+  nodemailer@9.0.1:
+    resolution: {integrity: sha512-Gwv8SQewT616ZM/URn0H54b8PWo/Wum7md3EW2aWy1lO27+WZCX+Xyak3J+NlmHUjDh5ME+uesJUDRbR3Ye8Bw==}
     engines: {node: '>=6.0.0'}
 
   normalize-path@3.0.0:
@@ -18181,7 +18181,7 @@ snapshots:
     dependencies:
       '@babel/parser': 7.29.0
 
-  nodemailer@8.0.5: {}
+  nodemailer@9.0.1: {}
 
   normalize-path@3.0.0: {}
 
