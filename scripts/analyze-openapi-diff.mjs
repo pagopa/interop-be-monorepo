@@ -115,10 +115,7 @@ for (const file of yamlFiles) {
 
 // --- Output ---
 
-const withDiffs = results.filter((r) => r.diffs.length > 0);
-const withoutDiffs = results.filter((r) => r.diffs.length === 0);
-
-for (const { file, operations, diffs } of withDiffs) {
+for (const { file, operations } of results) {
   console.log(`=== ${file} ===`);
   for (const { id, devStr, curStr, changed } of operations) {
     const marker = changed ? " ← CHANGED" : "";
@@ -126,8 +123,20 @@ for (const { file, operations, diffs } of withDiffs) {
     console.log(`    develop: ${devStr}`);
     console.log(`    current: ${curStr}${marker}`);
   }
-  console.log(`\n  ${diffs.length} difference(s):`);
-  for (const d of diffs) console.log(`    ${d}`);
+  console.log();
+}
+
+// --- Summary ---
+
+const withDiffs = results.filter((r) => r.diffs.length > 0);
+const withoutDiffs = results.filter((r) => r.diffs.length === 0);
+
+if (withDiffs.length > 0) {
+  console.log("=== Differences ===\n");
+  for (const { file, diffs } of withDiffs) {
+    console.log(`  ${file} (${diffs.length}):`);
+    for (const d of diffs) console.log(`    ${d}`);
+  }
   console.log();
 }
 
