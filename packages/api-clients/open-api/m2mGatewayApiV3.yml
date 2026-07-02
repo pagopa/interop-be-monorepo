@@ -12330,6 +12330,11 @@ components:
           format: date-time
         scope:
           $ref: "#/components/schemas/ArchivingScope"
+        gracePeriodDays:
+          type: integer
+          format: int32
+          minimum: 30
+          maximum: 999999
     ArchivingScope:
       type: string
       description: Archiving Scope

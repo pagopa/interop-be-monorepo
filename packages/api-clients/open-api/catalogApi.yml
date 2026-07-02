@@ -345,7 +345,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
+              $ref: "#/components/schemas/EServiceArchivingSeed"
       responses:
         "200":
           description: E-service archiving process started.
@@ -1218,6 +1218,13 @@ paths:
       summary: Schedule e-service descriptor archiving process
       operationId: scheduleEServiceDescriptorArchiving
       description: Schedules the archiving process of the specified E-Service descriptor
+      requestBody:
+        description: grace period
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GracePeriodDaysSeed"
       responses:
         "200":
           description: E-service descriptor archiving process started.
@@ -3743,6 +3750,11 @@ components:
           format: date-time
         scope:
           $ref: "#/components/schemas/ArchivingScope"
+        gracePeriodDays:
+          type: integer
+          format: int32
+          minimum: 30
+          maximum: 999999
     ArchivingScope:
       type: string
       description: Archiving Scope
@@ -3761,7 +3773,7 @@ components:
             - MANUAL
       required:
         - kind
-    EServiceArchivingReasonSeed:
+    EServiceArchivingSeed:
       type: object
       additionalProperties: false
       description: Archiving Reason
@@ -3770,8 +3782,26 @@ components:
           type: string
           minLength: 10
           maxLength: 250
+        gracePeriodDays:
+          type: integer
+          format: int32
+          minimum: 30
+          maximum: 999999
       required:
         - archivingReason
+        - gracePeriodDays
+    GracePeriodDaysSeed:
+      type: object
+      additionalProperties: false
+      description: Archiving Grace Period Days Seed
+      properties:
+        gracePeriodDays:
+          type: integer
+          format: int32
+          minimum: 30
+          maximum: 999999
+      required:
+        - gracePeriodDays
     ForceTargetState:
       type: object
       additionalProperties: false
