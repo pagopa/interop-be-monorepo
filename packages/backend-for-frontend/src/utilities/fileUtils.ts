@@ -27,6 +27,25 @@ type FileDocumentsRegistry = {
   uniqueNames: Map<string, string>;
 };
 
+/*
+  Builds a Content-Disposition attachment header value that is safe for
+  filenames containing non-ASCII characters (e.g. "–", accented letters).
+  Node.js rejects header values with characters outside latin1, so the
+  filename is provided both as an ASCII-only fallback (filename=) and as
+  an RFC 5987 percent-encoded value (filename*=) that preserves the
+  original name in modern browsers.
+*/
+export function contentDispositionAttachment(filename: string): string {
+  // eslint-disable-next-line no-control-regex
+  const asciiFallback = filename.replace(/[^\x20-\x7E]|["\\]/g, "_");
+  // encodeURIComponent leaves ' ( ) * unescaped, but RFC 5987 requires them percent-encoded
+  const rfc5987Encoded = encodeURIComponent(filename).replace(
+    /['()*]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`
+  );
+  return `attachment; filename="${asciiFallback}"; filename*=UTF-8''${rfc5987Encoded}`;
+}
+
 type FileData = {
   id: string;
   file: Uint8Array;
