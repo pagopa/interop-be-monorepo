@@ -2,9 +2,6 @@ name: Analyze OpenAPI specs
 
 on:
   pull_request:
-    paths:
-      - "packages/api-clients/open-api/**/*.yml"
-      - "packages/api-clients/open-api/**/*.yaml"
 
 permissions:
   contents: read
