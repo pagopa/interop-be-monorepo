@@ -83,7 +83,7 @@ export async function handleEserviceDescriptorArchivingScheduledToProducer(
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
         archivableOn,
-        ctaLabel: `Visualizza e-service`,
+        ctaLabel: `Accedi a PDND`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

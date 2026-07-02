@@ -130,7 +130,7 @@ export async function handleEserviceStateChanged(
             entityId,
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             copy,
-            ctaLabel: `Visualizza e-service`,
+            ctaLabel: `Accedi a PDND`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),

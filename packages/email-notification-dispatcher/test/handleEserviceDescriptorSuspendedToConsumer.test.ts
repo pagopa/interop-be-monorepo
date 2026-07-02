@@ -277,7 +277,7 @@ describe("handleEserviceDescriptorSuspendedToConsumer", async () => {
       expect(message.email.body).toContain(consumerTenants[0].name);
       expect(message.email.body).toContain(eservice.name);
       expect(message.email.body).toContain(descriptor.version);
-      expect(message.email.body).toContain(`Visualizza e-service`);
+      expect(message.email.body).toContain(`Accedi a PDND`);
     });
   });
 
