@@ -34,7 +34,7 @@ jobs:
             echo "skip=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check release label on PR 
+      - name: Check release label on PR
         if: steps.check_align.outputs.skip != 'true'
         env:
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ' ') }}
