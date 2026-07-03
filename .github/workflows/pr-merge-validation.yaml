@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  ALLOWED_RELEASE_DEVELOP: "2.21.0"
+  ALLOWED_RELEASE_TOWARDS_DEVELOP_BRANCH: "2.21.0"
 
 jobs:
   validate-develop:
@@ -40,7 +40,7 @@ jobs:
           PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ' ') }}
         run: |
           echo "Checking PR labels for release tag..."
-          echo "Allowed release: $ALLOWED_RELEASE_DEVELOP"
+          echo "Allowed release: $ALLOWED_RELEASE_TOWARDS_DEVELOP_BRANCH"
 
           RELEASE=""
           for LABEL in $PR_LABELS; do
@@ -57,8 +57,9 @@ jobs:
 
           echo "Found release label: $RELEASE"
 
-          if [ "$RELEASE" != "$ALLOWED_RELEASE_DEVELOP" ]; then
-            echo "::error::Release label '$RELEASE' does not match the allowed release '$ALLOWED_RELEASE_DEVELOP'"
+          if [ "$RELEASE" != "$ALLOWED_RELEASE_TOWARDS_DEVELOP_BRANCH" ]; then
+            echo "::error::Release label '$RELEASE' does not match the allowed release '$ALLOWED_RELEASE_TOWARDS_DEVELOP_BRANCH'"
+            echo "If you wish to merge this PR in the future, please wait until it is permitted."
             exit 1
           fi
 
