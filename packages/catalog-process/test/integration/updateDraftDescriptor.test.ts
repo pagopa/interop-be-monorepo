@@ -16,6 +16,7 @@ import {
   descriptorState,
   EService,
   Attribute,
+  attributeKind,
   generateId,
   EServiceDraftDescriptorUpdatedV2,
   toEServiceV2,
@@ -130,6 +131,101 @@ describe("updateDraftDescriptor", () => {
       descriptorSeed,
       getMockContext({ authData: getMockAuthData(eservice.producerId) })
     );
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "1",
+      type: "EServiceDraftDescriptorUpdated",
+      event_version: 2,
+    });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDraftDescriptorUpdatedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+      descriptorId: descriptor.id,
+    });
+    expect(updateDescriptorResponse).toEqual({
+      data: expectedEService,
+      metadata: { version: 1 },
+    });
+  });
+
+  it("should allow changing the discreteConfig of a certified discrete attribute on a draft descriptor", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
+    const discreteAttribute = getMockAttribute(attributeKind.certifiedDiscrete);
+    await addOneAttribute(discreteAttribute);
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      attributes: {
+        certified: [
+          [
+            {
+              id: discreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: { threshold: 100, comparator: "GT" },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+
+    const descriptorSeed: catalogApi.UpdateEServiceDescriptorSeed = {
+      ...buildUpdateDescriptorSeed(descriptor),
+      attributes: {
+        certified: [
+          [
+            {
+              id: discreteAttribute.id,
+              explicitAttributeVerification: false,
+              discreteConfig: { threshold: 200, comparator: "LT" },
+            },
+          ],
+        ],
+        declared: [],
+        verified: [],
+      },
+    };
+
+    const expectedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          attributes: {
+            certified: [
+              [
+                {
+                  id: discreteAttribute.id,
+                  explicitAttributeVerification: false,
+                  discreteConfig: { threshold: 200, comparator: "LT" },
+                },
+              ],
+            ],
+            declared: [],
+            verified: [],
+          },
+        },
+      ],
+    };
+
+    const updateDescriptorResponse = await catalogService.updateDraftDescriptor(
+      eservice.id,
+      descriptor.id,
+      descriptorSeed,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
