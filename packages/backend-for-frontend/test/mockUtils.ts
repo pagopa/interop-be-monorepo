@@ -352,7 +352,10 @@ export const getMockBffApiTemplateInstanceInterfaceRESTSeed =
     termsAndConditionsUrl: generateMock(z.string().url().optional()),
     serverUrls: generateMock(
       z.array(
-        z.object({ url: z.string().url(), description: z.string().optional() })
+        z.object({
+          url: z.string().url(),
+          description: z.string().min(10).max(250).optional(),
+        })
       )
     ),
   });
@@ -361,7 +364,10 @@ export const getMockBffApiTemplateInstanceInterfaceSOAPSeed =
   (): bffApi.TemplateInstanceInterfaceSOAPSeed => ({
     serverUrls: generateMock(
       z.array(
-        z.object({ url: z.string().url(), description: z.string().optional() })
+        z.object({
+          url: z.string().url(),
+          description: z.string().min(10).max(250).optional(),
+        })
       )
     ),
   });
