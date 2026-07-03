@@ -7,6 +7,7 @@ import { EserviceTemplateVersionDocumentSchema } from "./eserviceTemplateVersion
 import { EserviceTemplateVersionAttributeSchema } from "./eserviceTemplateVersionAttribute.js";
 import { EserviceTemplateRiskAnalysisSchema } from "./eserviceTemplateRiskAnalysis.js";
 import { EserviceTemplateRiskAnalysisAnswerSchema } from "./eserviceTemplateRiskAnalysisAnswer.js";
+import { EserviceTemplateVersionAsyncExchangePropertiesSchema } from "./eserviceTemplateVersionAsyncExchangeProperties.js";
 
 export const EserviceTemplateSchema = createSelectSchema(
   eserviceTemplateInReadmodelEserviceTemplate
@@ -23,6 +24,9 @@ export const EserviceTemplateItemsSchema = z.object({
   attributesSQL: z.array(EserviceTemplateVersionAttributeSchema),
   riskAnalysesSQL: z.array(EserviceTemplateRiskAnalysisSchema),
   riskAnalysisAnswersSQL: z.array(EserviceTemplateRiskAnalysisAnswerSchema),
+  asyncExchangePropertiesSQL: z.array(
+    EserviceTemplateVersionAsyncExchangePropertiesSchema
+  ),
 });
 export type EserviceTemplateItemsSchema = z.infer<
   typeof EserviceTemplateItemsSchema

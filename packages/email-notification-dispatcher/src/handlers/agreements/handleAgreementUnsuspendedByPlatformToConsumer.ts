@@ -9,13 +9,12 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  AgreementHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveAgreementEservice,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { AgreementHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =

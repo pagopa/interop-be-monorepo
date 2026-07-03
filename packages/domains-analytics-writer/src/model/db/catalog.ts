@@ -9,6 +9,8 @@ import {
   EserviceDescriptorTemplateVersionRefSchema,
   EserviceRiskAnalysisSchema,
   EserviceRiskAnalysisAnswerSchema,
+  EserviceDescriptorArchivingSchema,
+  EserviceDescriptorAsyncExchangePropertiesSchema,
 } from "pagopa-interop-kpi-models";
 
 export const CatalogDbTableConfig = {
@@ -22,6 +24,9 @@ export const CatalogDbTableConfig = {
     EserviceDescriptorTemplateVersionRefSchema,
   eservice_risk_analysis: EserviceRiskAnalysisSchema,
   eservice_risk_analysis_answer: EserviceRiskAnalysisAnswerSchema,
+  eservice_descriptor_archiving_schedule: EserviceDescriptorArchivingSchema,
+  eservice_descriptor_async_exchange_properties:
+    EserviceDescriptorAsyncExchangePropertiesSchema,
 } as const;
 export type CatalogDbTableConfig = typeof CatalogDbTableConfig;
 

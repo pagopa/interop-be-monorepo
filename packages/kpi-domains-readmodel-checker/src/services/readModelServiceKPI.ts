@@ -106,6 +106,15 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         CatalogDbTable.eservice_descriptor_template_version_ref
       );
+      const asyncExchangePropertiesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_async_exchange_properties
+      );
+
+      const archivingSchedulesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_archiving_schedule
+      );
 
       return aggregateEserviceArray({
         eservicesSQL,
@@ -124,6 +133,8 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           value: JSON.parse(ra.value),
         })),
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
       });
     },
 
@@ -169,6 +180,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         attributesSQL,
         interfacesSQL,
         documentsSQL,
+        asyncExchangePropertiesSQL: [],
       });
     },
 
@@ -181,6 +193,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       const certifiedAttributesSQL = await getManyFromDb(
         dbContext,
         TenantDbTable.tenant_certified_attribute
+      );
+      const certifiedDiscreteAttributesSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_certified_discrete_attribute
       );
       const declaredAttributesSQL = await getManyFromDb(
         dbContext,
@@ -202,15 +218,21 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         TenantDbTable.tenant_feature
       );
+      const remoteIdsSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_remote_id
+      );
       return aggregateTenantArray({
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       });
     },
 
@@ -244,6 +266,11 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         PurposeDbTable.purpose_version_signed_document
       );
 
+      const reviewersSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_reviewer
+      );
+
       return aggregatePurposeArray({
         purposesSQL,
         riskAnalysisFormsSQL,
@@ -255,6 +282,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       });
     },
 

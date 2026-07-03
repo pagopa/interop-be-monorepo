@@ -6,6 +6,7 @@ import {
   EserviceTemplateVersionAttributeSchema,
   EserviceTemplateRiskAnalysisSchema,
   EserviceTemplateRiskAnalysisAnswerSchema,
+  EserviceTemplateVersionAsyncExchangePropertiesSchema,
 } from "pagopa-interop-kpi-models";
 
 export const EserviceTemplateDbTableConfig = {
@@ -17,6 +18,8 @@ export const EserviceTemplateDbTableConfig = {
   eservice_template_risk_analysis: EserviceTemplateRiskAnalysisSchema,
   eservice_template_risk_analysis_answer:
     EserviceTemplateRiskAnalysisAnswerSchema,
+  eservice_template_version_async_exchange_properties:
+    EserviceTemplateVersionAsyncExchangePropertiesSchema,
 } as const;
 export type EserviceTemplateDbTableConfig =
   typeof EserviceTemplateDbTableConfig;

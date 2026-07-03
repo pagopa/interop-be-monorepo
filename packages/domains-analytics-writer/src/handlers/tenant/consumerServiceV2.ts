@@ -35,25 +35,30 @@ export async function handleTenantMessageV2(
       .with(
         {
           type: P.union(
-            "TenantOnboarded",
-            "TenantOnboardDetailsUpdated",
-            "TenantCertifiedAttributeAssigned",
-            "TenantCertifiedAttributeRevoked",
-            "TenantDeclaredAttributeAssigned",
-            "TenantDeclaredAttributeRevoked",
-            "TenantVerifiedAttributeAssigned",
-            "TenantVerifiedAttributeRevoked",
-            "TenantVerifiedAttributeExpirationUpdated",
-            "TenantVerifiedAttributeExtensionUpdated",
-            "TenantMailAdded",
-            "TenantMailDeleted",
             "MaintenanceTenantPromotedToCertifier",
             "MaintenanceTenantUpdated",
-            "TenantKindUpdated",
+            "TenantCertifiedAttributeAssigned",
+            "TenantCertifiedAttributeRevoked",
+            "TenantCertifiedDiscreteAttributeAssigned",
+            "TenantCertifiedDiscreteAttributeRevoked",
+            "TenantCertifiedDiscreteAttributeUpdated",
+            "TenantDeclaredAttributeAssigned",
+            "TenantDeclaredAttributeRevoked",
+            "TenantDelegatedConsumerFeatureAdded",
+            "TenantDelegatedConsumerFeatureRemoved",
             "TenantDelegatedProducerFeatureAdded",
             "TenantDelegatedProducerFeatureRemoved",
-            "TenantDelegatedConsumerFeatureAdded",
-            "TenantDelegatedConsumerFeatureRemoved"
+            "TenantKindUpdated",
+            "TenantMailAdded",
+            "TenantMailDeleted",
+            "TenantOnboardDetailsUpdated",
+            "TenantOnboarded",
+            "TenantRemoteIdAssigned",
+            "MaintenanceTenantRemoteIdDeleted",
+            "TenantVerifiedAttributeAssigned",
+            "TenantVerifiedAttributeExpirationUpdated",
+            "TenantVerifiedAttributeExtensionUpdated",
+            "TenantVerifiedAttributeRevoked"
           ),
         },
         (msg) => {
@@ -80,6 +85,9 @@ export async function handleTenantMessageV2(
               verifiedAttributeRevokersSQL:
                 splitResult.verifiedAttributeRevokersSQL,
               featuresSQL: splitResult.featuresSQL,
+              remoteIdsSQL: splitResult.remoteIdsSQL,
+              certifiedDiscreteAttributesSQL:
+                splitResult.certifiedDiscreteAttributesSQL,
             } satisfies z.input<typeof TenantItemsSchema>)
           );
         }

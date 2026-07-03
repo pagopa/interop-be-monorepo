@@ -45,6 +45,7 @@ describe("API GET /creators", () => {
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",

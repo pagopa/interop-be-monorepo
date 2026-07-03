@@ -8,6 +8,8 @@ import {
   TenantVerifiedAttributeSchema,
   TenantVerifiedAttributeRevokerSchema,
   TenantVerifiedAttributeVerifierSchema,
+  TenantRemoteIdSchema,
+  TenantCertifiedDiscreteAttributeSchema,
 } from "pagopa-interop-kpi-models";
 import { TenantSelfcareIdSchema } from "../tenant/tenant.js";
 
@@ -36,6 +38,8 @@ export const TenantDbTableConfig = {
   tenant_verified_attribute_verifier: TenantVerifiedAttributeVerifierSchema,
   tenant_verified_attribute_revoker: TenantVerifiedAttributeRevokerSchema,
   tenant_feature: TenantFeatureSchema,
+  tenant_remote_id: TenantRemoteIdSchema,
+  tenant_certified_discrete_attribute: TenantCertifiedDiscreteAttributeSchema,
 } as const;
 export type TenantDbTableConfig = typeof TenantDbTableConfig;
 

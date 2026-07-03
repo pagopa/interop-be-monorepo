@@ -3,6 +3,7 @@ import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
   InteropTokenGenerator,
+  isFeatureFlagEnabled,
   logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
@@ -47,6 +48,45 @@ async function processMessage({
   });
 
   await match(decodedMsg)
+    .with(
+      {
+        event_version: 2,
+        type: P.union(
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated"
+        ),
+      },
+      async ({ data: { tenant, attributeId } }) => {
+        if (
+          !isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")
+        ) {
+          return;
+        }
+
+        if (tenant) {
+          loggerInstance.info(
+            `Processing ${decodedMsg.type} message - Partition number: ${partition} - Offset: ${message.offset}`
+          );
+          const token = (await refreshableToken.get()).serialized;
+
+          await agreementProcessClient.internalComputeAgreementsByAttribute(
+            {
+              attributeId: unsafeBrandId(attributeId),
+              consumer: toApiCompactTenant(fromTenantV2(tenant)),
+            },
+            {
+              headers: {
+                "X-Correlation-Id": correlationId,
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+        } else {
+          throw missingKafkaMessageDataError("tenant", decodedMsg.type);
+        }
+      }
+    )
     .with(
       {
         event_version: 2,
@@ -100,7 +140,9 @@ async function processMessage({
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted"
         ),
       },
       () => Promise.resolve()

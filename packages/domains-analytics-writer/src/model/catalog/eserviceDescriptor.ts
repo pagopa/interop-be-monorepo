@@ -6,6 +6,8 @@ import {
   EserviceDescriptorInterfaceSchema,
   EserviceDescriptorRejectionReasonSchema,
   EserviceDescriptorTemplateVersionRefSchema,
+  EserviceDescriptorArchivingSchema,
+  EserviceDescriptorAsyncExchangePropertiesSchema,
 } from "pagopa-interop-kpi-models";
 
 export const EserviceDescriptorServerUrlsSchema = EserviceDescriptorSchema.pick(
@@ -31,10 +33,13 @@ export type EserviceDescriptorDeletingSchema = z.infer<
 export const EserviceDescriptorItemsSchema = z.object({
   descriptorSQL: EserviceDescriptorSchema,
   attributesSQL: z.array(EserviceDescriptorAttributeSchema),
-  interfaceSQL: EserviceDescriptorInterfaceSchema.optional(),
+  interfacesSQL: z.array(EserviceDescriptorInterfaceSchema),
   documentsSQL: z.array(EserviceDescriptorDocumentSchema),
   rejectionReasonsSQL: z.array(EserviceDescriptorRejectionReasonSchema),
   templateVersionRefSQL: EserviceDescriptorTemplateVersionRefSchema.optional(),
+  archivingScheduleSQL: EserviceDescriptorArchivingSchema.optional(),
+  asyncExchangePropertiesSQL:
+    EserviceDescriptorAsyncExchangePropertiesSchema.optional(),
 });
 export type EserviceDescriptorItemsSchema = z.infer<
   typeof EserviceDescriptorItemsSchema

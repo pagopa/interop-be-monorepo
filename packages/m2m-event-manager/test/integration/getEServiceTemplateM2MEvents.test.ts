@@ -33,16 +33,17 @@ describe("getEServiceTemplateM2MEvents", () => {
         // Visible only to some other creator
       }),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   const publicEventsCount = EServiceTemplateM2MEventType.options.length;
   const eventsVisibleToCreator =
     EServiceTemplateM2MEventType.options.length * 2; // public + owned by creator
 
   beforeEach(async () => {
-    await Promise.all(
-      mockEServiceTemplateM2MEvents.map(writeEServiceTemplateM2MEvent)
-    );
+    for (const event of mockEServiceTemplateM2MEvents) {
+      await writeEServiceTemplateM2MEvent(event);
+    }
   });
 
   it("should list only public eserviceTemplate M2M events", async () => {

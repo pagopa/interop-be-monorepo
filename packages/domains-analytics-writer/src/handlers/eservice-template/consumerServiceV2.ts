@@ -44,8 +44,12 @@ export async function handleEserviceTemplateMessageV2(
             "EServiceTemplateVersionDocumentUpdated",
             "EServiceTemplateVersionInterfaceAdded",
             "EServiceTemplateVersionInterfaceUpdated",
+            "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+            "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+            "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
             "EServiceTemplateRiskAnalysisAdded",
             "EServiceTemplateRiskAnalysisUpdated",
+            "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
             "EServiceTemplateVersionActivated",
             "EServiceTemplateDraftVersionDeleted",
             "EServiceTemplateVersionInterfaceDeleted",
@@ -74,6 +78,8 @@ export async function handleEserviceTemplateMessageV2(
               attributesSQL: splitResult.attributesSQL,
               riskAnalysesSQL: splitResult.riskAnalysesSQL,
               riskAnalysisAnswersSQL: splitResult.riskAnalysisAnswersSQL,
+              asyncExchangePropertiesSQL:
+                splitResult.asyncExchangePropertiesSQL,
             } satisfies z.input<typeof EserviceTemplateItemsSchema>)
           );
         }
