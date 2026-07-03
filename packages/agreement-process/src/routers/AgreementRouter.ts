@@ -30,7 +30,8 @@ import {
 } from "../model/domain/apiConverter.js";
 import { AgreementService } from "../services/agreementService.js";
 import {
-  activateAgreementErrorMapper,
+  approveAgreementErrorMapper,
+  unsuspendAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
   archiveAgreementErrorMapper,
   cloneAgreementErrorMapper,
@@ -148,7 +149,7 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          activateAgreementErrorMapper,
+          approveAgreementErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
@@ -179,7 +180,7 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          activateAgreementErrorMapper,
+          unsuspendAgreementErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

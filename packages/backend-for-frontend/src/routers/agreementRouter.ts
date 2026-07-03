@@ -10,7 +10,8 @@ import { emptyErrorMapper } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
-  activateAgreementErrorMapper,
+  approveAgreementErrorMapper,
+  unsuspendAgreementErrorMapper,
   getAgreementByIdErrorMapper,
   getAgreementContractErrorMapper,
   getAgreementSignedContractErrorMapper,
@@ -290,7 +291,7 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          activateAgreementErrorMapper,
+          approveAgreementErrorMapper,
           ctx,
           `Error approving agreement ${req.params.agreementId}`
         );
@@ -310,7 +311,7 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          activateAgreementErrorMapper,
+          unsuspendAgreementErrorMapper,
           ctx,
           `Error unsuspending agreement ${req.params.agreementId}`
         );
