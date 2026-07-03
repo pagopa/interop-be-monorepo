@@ -75,6 +75,7 @@ export async function handlePurposeMessageV2(
               versionDocumentsSQL: splitResult.versionDocumentsSQL,
               versionStampsSQL: splitResult.versionStampsSQL,
               versionSignedDocumentsSQL: splitResult.versionSignedDocumentsSQL,
+              reviewersSQL: splitResult.reviewersSQL,
             } satisfies z.input<typeof PurposeItemsSchema>)
           );
         }

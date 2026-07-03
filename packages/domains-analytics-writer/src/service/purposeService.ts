@@ -24,6 +24,7 @@ import { purposeVersionDocumentRepo } from "../repository/purpose/purposeVersion
 import { purposeRepo } from "../repository/purpose/purpose.repository.js";
 import { purposeVersionStampRepo } from "../repository/purpose/purposeVersionStamp.repository.js";
 import { purposeVersionSignedDocumentRepo } from "../repository/purpose/purposeVersionSignedDocument.repository.js";
+import { purposeRiskAnalysisReviewerRepo } from "../repository/purpose/purposeRiskAnalysisReviewer.repository.js";
 
 export function purposeServiceBuilder(db: DBContext) {
   const purposeRepository = purposeRepo(db.conn);
@@ -35,6 +36,7 @@ export function purposeServiceBuilder(db: DBContext) {
   const signedVersionDocumentRepository = purposeVersionSignedDocumentRepo(
     db.conn
   );
+  const reviewerRepository = purposeRiskAnalysisReviewerRepo(db.conn);
 
   return {
     async upsertBatchPurpose(
@@ -62,6 +64,7 @@ export function purposeServiceBuilder(db: DBContext) {
             versionSignedDocumentsSQL: batch.flatMap(
               (item) => item.versionSignedDocumentsSQL
             ),
+            reviewersSQL: batch.flatMap((item) => item.reviewersSQL),
           };
 
           if (batchItems.purposeSQL.length) {
@@ -113,6 +116,13 @@ export function purposeServiceBuilder(db: DBContext) {
               batchItems.versionSignedDocumentsSQL
             );
           }
+          if (batchItems.reviewersSQL.length) {
+            await reviewerRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.reviewersSQL
+            );
+          }
           genericLogger.info(
             `Staging data inserted for batch of ${batchItems.purposeSQL.length} purposes`
           );
@@ -125,6 +135,7 @@ export function purposeServiceBuilder(db: DBContext) {
         await formRepository.merge(t);
         await answerRepository.merge(t);
         await signedVersionDocumentRepository.merge(t);
+        await reviewerRepository.merge(t);
       });
 
       await dbContext.conn.tx(async (t) => {
@@ -138,6 +149,7 @@ export function purposeServiceBuilder(db: DBContext) {
             PurposeDbTable.purpose_risk_analysis_answer,
             PurposeDbTable.purpose_risk_analysis_form,
             PurposeDbTable.purpose_version_signed_document,
+            PurposeDbTable.purpose_risk_analysis_reviewer,
           ],
           PurposeDbTable.purpose
         );
@@ -154,6 +166,7 @@ export function purposeServiceBuilder(db: DBContext) {
       await formRepository.clean();
       await answerRepository.clean();
       await signedVersionDocumentRepository.clean();
+      await reviewerRepository.clean();
       genericLogger.info(`Staging data cleaned`);
     },
 
