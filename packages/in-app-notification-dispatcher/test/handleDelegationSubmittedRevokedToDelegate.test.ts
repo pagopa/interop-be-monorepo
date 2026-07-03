@@ -14,8 +14,11 @@ import {
   DelegationKind,
   EServiceId,
 } from "pagopa-interop-models";
-import { tenantNotFound } from "../src/models/errors.js";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  tenantNotFound,
+  getNotificationRecipients,
+} from "pagopa-interop-notification-commons";
+
 import { handleDelegationSubmittedRevokedToDelegate } from "../src/handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
 import {
   addOneDelegation,

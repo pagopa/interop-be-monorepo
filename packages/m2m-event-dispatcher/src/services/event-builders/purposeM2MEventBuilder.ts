@@ -103,7 +103,13 @@ function getPurposeM2MEventVisibility(
         "PurposeAdded",
         "DraftPurposeUpdated",
         "DraftPurposeDeleted",
-        "PurposeCloned"
+        "PurposeCloned",
+        "PurposeRiskAnalysisWorkflowCreated",
+        "PurposeRiskAnalysisAssigned",
+        "PurposeRiskAnalysisSubmitted",
+        "PurposeRiskAnalysisSigned",
+        "PurposeRiskAnalysisRejected",
+        "PurposeRiskAnalysisFormEdited"
       ),
       () => m2mEventVisibility.owner
     )

@@ -35,6 +35,7 @@ import {
   EServiceDocumentId,
   stringToDate,
   AttributeKind,
+  TenantKind,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -65,6 +66,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -73,7 +75,9 @@ import {
   DrizzleTransactionType,
   agreementSignedContractInReadmodelAgreement,
   delegationSignedContractDocumentInReadmodelDelegation,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import {
   and,
   asc,
@@ -85,6 +89,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  lte,
   notExists,
   or,
   SQL,
@@ -121,7 +126,8 @@ export function readModelServiceBuilderSQL(
   readmodelDB: DrizzleReturnType,
   catalogReadModelService: CatalogReadModelService,
   tenantReadModelService: TenantReadModelService,
-  eserviceTemplateReadModelService: EServiceTemplateReadModelService
+  eserviceTemplateReadModelService: EServiceTemplateReadModelService,
+  tenantKindHistoryDB: DrizzleReturnType
 ) {
   return {
     // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -134,6 +140,7 @@ export function readModelServiceBuilderSQL(
       const {
         eservicesIds,
         producersIds,
+        consumersIds,
         states,
         agreementStates,
         name,
@@ -147,6 +154,9 @@ export function readModelServiceBuilderSQL(
         templatesIds,
         personalData,
       } = filters;
+
+      const requiresAgreementJoin =
+        agreementStates.length > 0 || consumersIds.length > 0;
 
       return await readmodelDB.transaction(async (tx) => {
         const totalCountQuery = tx
@@ -258,38 +268,37 @@ export function readModelServiceBuilderSQL(
             eq(eserviceInReadmodelCatalog.id, subqueryWithEserviceFilters.id)
           );
 
+          const agreementStateClause =
+            agreementStates.length > 0
+              ? inArray(agreementInReadmodelAgreement.state, agreementStates)
+              : undefined;
+
+          const agreementConsumerClause =
+            consumersIds.length > 0
+              ? inArray(agreementInReadmodelAgreement.consumerId, consumersIds)
+              : eq(
+                  agreementInReadmodelAgreement.consumerId,
+                  authData.organizationId
+                );
+
           const agreementSubquery = tx
             .selectDistinctOn([agreementInReadmodelAgreement.eserviceId], {
               eserviceId: agreementInReadmodelAgreement.eserviceId,
             })
             .from(agreementInReadmodelAgreement)
             .where(
-              //  agreement states filter
-              agreementStates.length > 0
-                ? and(
-                    inArray(
-                      agreementInReadmodelAgreement.state,
-                      agreementStates
-                    ),
-                    eq(
-                      agreementInReadmodelAgreement.consumerId,
-                      authData.organizationId
-                    )
-                  )
+              requiresAgreementJoin
+                ? and(agreementStateClause, agreementConsumerClause)
                 : undefined
             )
             .as("agreementSubquery");
 
-          const queryAfterAgreementFilter =
-            agreementStates.length > 0
-              ? queryAfterEserviceFilters.innerJoin(
-                  agreementSubquery,
-                  eq(
-                    eserviceInReadmodelCatalog.id,
-                    agreementSubquery.eserviceId
-                  )
-                )
-              : queryAfterEserviceFilters;
+          const queryAfterAgreementFilter = requiresAgreementJoin
+            ? queryAfterEserviceFilters.innerJoin(
+                agreementSubquery,
+                eq(eserviceInReadmodelCatalog.id, agreementSubquery.eserviceId)
+              )
+            : queryAfterEserviceFilters;
 
           return queryAfterAgreementFilter
             .leftJoin(
@@ -451,6 +460,10 @@ export function readModelServiceBuilderSQL(
               riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
               templateVersionRef:
                 eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+              archivingSchedule:
+                eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+              asyncExchangeProperties:
+                eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
             })
             .from(eserviceInReadmodelCatalog)
             .where(inArray(eserviceInReadmodelCatalog.id, ids))
@@ -497,6 +510,13 @@ export function readModelServiceBuilderSQL(
               )
             )
             .leftJoin(
+              eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.id,
+                eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog.descriptorId
+              )
+            )
+            .leftJoin(
               eserviceRiskAnalysisInReadmodelCatalog,
               eq(
                 eserviceInReadmodelCatalog.id,
@@ -514,6 +534,13 @@ export function readModelServiceBuilderSQL(
                   eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
                   eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
                 )
+              )
+            )
+            .leftJoin(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+              eq(
+                eserviceDescriptorInReadmodelCatalog.id,
+                eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
               )
             )
             .orderBy(ascLower(eserviceInReadmodelCatalog.name)),
@@ -572,6 +599,23 @@ export function readModelServiceBuilderSQL(
       id: EServiceId
     ): Promise<WithMetadata<EService> | undefined> {
       return await catalogReadModelService.getEServiceById(id);
+    },
+    async getTenantKindAt(
+      tenantId: TenantId,
+      date: Date
+    ): Promise<TenantKind | undefined> {
+      const [result] = await tenantKindHistoryDB
+        .select()
+        .from(tenantKindHistory)
+        .where(
+          and(
+            eq(tenantKindHistory.tenantId, tenantId),
+            lte(tenantKindHistory.modifiedAt, date.toISOString())
+          )
+        )
+        .orderBy(desc(tenantKindHistory.modifiedAt))
+        .limit(1);
+      return result?.kind ? TenantKind.parse(result.kind) : undefined;
     },
     async getEServiceConsumers(
       eserviceId: EServiceId,

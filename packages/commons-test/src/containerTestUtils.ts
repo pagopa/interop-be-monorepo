@@ -4,7 +4,9 @@ import {
   InAppNotificationDBConfig,
   M2MEventSQLDbConfig,
   ReadModelSQLDbConfig,
+  TenantKindHistoryDBConfig,
   S3Config,
+  ScheduledNotificationDBConfig,
 } from "pagopa-interop-commons";
 import { GenericContainer } from "testcontainers";
 
@@ -36,6 +38,12 @@ export const TEST_IN_APP_NOTIFICATION_DB_IMAGE = "postgres:14";
 
 export const TEST_M2M_EVENT_DB_PORT = 5432;
 export const TEST_M2M_EVENT_DB_IMAGE = "postgres:14";
+
+export const TEST_SCHEDULED_NOTIFICATION_DB_PORT = 5432;
+export const TEST_SCHEDULED_NOTIFICATION_DB_IMAGE = "postgres:14";
+
+export const TEST_TENANT_KIND_HISTORY_DB_PORT = 5432;
+export const TEST_TENANT_KIND_HISTORY_DB_IMAGE = "postgres:14";
 
 /**
  * Starts a PostgreSQL container for testing purposes.
@@ -206,3 +214,37 @@ export const m2mEventDBContainer = (
       },
     ])
     .withExposedPorts(TEST_M2M_EVENT_DB_PORT);
+
+export const scheduledNotificationDBContainer = (
+  config: ScheduledNotificationDBConfig
+): GenericContainer =>
+  new GenericContainer(TEST_SCHEDULED_NOTIFICATION_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.scheduledNotificationDBName,
+      POSTGRES_USER: config.scheduledNotificationDBUsername,
+      POSTGRES_PASSWORD: config.scheduledNotificationDBPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/scheduled-notification-db",
+        target: "/docker-entrypoint-initdb.d",
+      },
+    ])
+    .withExposedPorts(TEST_SCHEDULED_NOTIFICATION_DB_PORT);
+
+export const tenantKindHistoryDBContainer = (
+  config: TenantKindHistoryDBConfig
+): GenericContainer =>
+  new GenericContainer(TEST_TENANT_KIND_HISTORY_DB_IMAGE)
+    .withEnvironment({
+      POSTGRES_DB: config.tenantKindHistoryDBName,
+      POSTGRES_USER: config.tenantKindHistoryDBUsername,
+      POSTGRES_PASSWORD: config.tenantKindHistoryDBPassword,
+    })
+    .withCopyDirectoriesToContainer([
+      {
+        source: "../../docker/tenant-kind-history-db",
+        target: "/docker-entrypoint-initdb.d",
+      },
+    ])
+    .withExposedPorts(TEST_TENANT_KIND_HISTORY_DB_PORT);

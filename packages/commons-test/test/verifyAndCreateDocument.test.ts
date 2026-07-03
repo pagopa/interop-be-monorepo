@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-commons";
 import { describe, expect, it, vi } from "vitest";
 import {
+  contentTooLargeError,
   generateId,
   invalidContentTypeDetected,
   technology,
@@ -50,6 +51,9 @@ describe("verifyAndCreateDocument", async () => {
   const kind = "INTERFACE";
   const fileName = interfaceFileInfo.name;
   const contentType = "application/json";
+  const noLimitFileSizePolicy = {
+    maxFileSizeBytes: Number.MAX_SAFE_INTEGER,
+  };
 
   it("should create a document", async () => {
     const mockCreateDocumentHandler = vi
@@ -67,6 +71,7 @@ describe("verifyAndCreateDocument", async () => {
       filePath,
       prettyName,
       mockCreateDocumentHandler,
+      noLimitFileSizePolicy,
       genericLogger
     );
 
@@ -98,11 +103,86 @@ describe("verifyAndCreateDocument", async () => {
         filePath,
         prettyName,
         () => Promise.resolve(),
+        noLimitFileSizePolicy,
         genericLogger
       )
     ).rejects.toThrowError(
       invalidContentTypeDetected(resource, "invalid", technology.rest)
     );
+  });
+  it("should throw contentTooLargeError if file size is greater than max file size", async () => {
+    const maxFileSizeBytes = file.size - 1;
+
+    await expect(
+      verifyAndCreateDocument(
+        fileManager,
+        resource,
+        technology.rest,
+        kind,
+        file,
+        documentId,
+        s3Bucket.toString(),
+        filePath,
+        prettyName,
+        () => Promise.resolve(),
+        { maxFileSizeBytes },
+        genericLogger
+      )
+    ).rejects.toThrowError(
+      contentTooLargeError(
+        `File size ${file.size} bytes exceeds maximum allowed size of ${maxFileSizeBytes} bytes`
+      )
+    );
+  });
+  it("should prioritize interface-specific limit over global limit", async () => {
+    const maxFileSizeBytes = file.size;
+    const maxInterfaceFileSizeBytes = file.size - 1;
+
+    await expect(
+      verifyAndCreateDocument(
+        fileManager,
+        resource,
+        technology.rest,
+        kind,
+        file,
+        documentId,
+        s3Bucket.toString(),
+        filePath,
+        prettyName,
+        () => Promise.resolve(),
+        {
+          maxFileSizeBytes,
+          maxInterfaceFileSizeBytes,
+        },
+        genericLogger
+      )
+    ).rejects.toThrowError(
+      contentTooLargeError(
+        `File size ${file.size} bytes exceeds maximum allowed size of ${maxInterfaceFileSizeBytes} bytes`
+      )
+    );
+  });
+  it("should not throw when max file size is undefined", async () => {
+    const mockCreateDocumentHandler = vi
+      .fn()
+      .mockResolvedValue({ id: documentId });
+
+    await expect(
+      verifyAndCreateDocument(
+        fileManager,
+        resource,
+        technology.rest,
+        kind,
+        file,
+        documentId,
+        s3Bucket.toString(),
+        filePath,
+        prettyName,
+        mockCreateDocumentHandler,
+        noLimitFileSizePolicy,
+        genericLogger
+      )
+    ).resolves.toEqual({ id: documentId });
   });
   it("should delete the file and rethrow error if document creation fails", async () => {
     const filePath = "document-path";
@@ -127,6 +207,7 @@ describe("verifyAndCreateDocument", async () => {
         filePath,
         prettyName,
         mockCreateDocumentHandler,
+        noLimitFileSizePolicy,
         genericLogger
       )
     ).rejects.toThrow("Document creation failed");

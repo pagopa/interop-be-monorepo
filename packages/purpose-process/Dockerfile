@@ -12,6 +12,7 @@ COPY pnpm-workspace.yaml /app/
 COPY .npmrc /app/
 
 COPY ./packages/purpose-process/package.json /app/packages/purpose-process/package.json
+COPY ./packages/agreement-lifecycle/package.json /app/packages/agreement-lifecycle/package.json
 COPY ./packages/commons/package.json /app/packages/commons/package.json
 COPY ./packages/models/package.json /app/packages/models/package.json
 COPY ./packages/api-clients/package.json /app/packages/api-clients/package.json
@@ -19,12 +20,14 @@ COPY ./packages/application-audit/package.json /app/packages/application-audit/p
 COPY ./packages/kafka-iam-auth/package.json /app/packages/kafka-iam-auth/package.json
 COPY ./packages/readmodel/package.json /app/packages/readmodel/package.json
 COPY ./packages/readmodel-models/package.json /app/packages/readmodel-models/package.json
+COPY ./packages/tenant-kind-history-db-models/package.json /app/packages/tenant-kind-history-db-models/package.json
 
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY tsconfig.json /app/
 COPY turbo.json /app/
 COPY ./packages/purpose-process /app/packages/purpose-process
+COPY ./packages/agreement-lifecycle /app/packages/agreement-lifecycle
 COPY ./packages/commons /app/packages/commons
 COPY ./packages/models /app/packages/models
 COPY ./packages/api-clients /app/packages/api-clients
@@ -32,6 +35,7 @@ COPY ./packages/application-audit /app/packages/application-audit
 COPY ./packages/kafka-iam-auth /app/packages/kafka-iam-auth
 COPY ./packages/readmodel /app/packages/readmodel
 COPY ./packages/readmodel-models /app/packages/readmodel-models
+COPY ./packages/tenant-kind-history-db-models /app/packages/tenant-kind-history-db-models
 
 ARG NODE_HEAP_SIZE=4096
 RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
@@ -41,6 +45,7 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   cp -a --parents -t /out \
   node_modules packages/purpose-process/node_modules \
   package*.json packages/purpose-process/package*.json \
+  packages/agreement-lifecycle/ \
   packages/commons/ \
   packages/models/ \
   packages/api-clients \
@@ -48,6 +53,7 @@ RUN NODE_OPTIONS="--max-old-space-size=${NODE_HEAP_SIZE}" pnpm build && \
   packages/kafka-iam-auth \
   packages/readmodel/ \
   packages/readmodel-models/ \
+  packages/tenant-kind-history-db-models \
   packages/purpose-process/dist && \
   find /out -exec touch -h --date=@0 {} \;
 
