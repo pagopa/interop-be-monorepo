@@ -763,5 +763,59 @@ describe("addEServiceTemplateInstanceInterface", () => {
           ?.interfaceMetadata
       ).toBeUndefined();
     });
+
+    it("should add SOAP interface to eservice template instance persisting server descriptions", async () => {
+      const interfaceDocumentFile = {
+        ...getMockDocument(),
+        name: "interface-test.wsdl",
+        contentType: "wsdl",
+        path: `${config.eserviceDocumentsPath}`,
+      };
+
+      const { eservice, descriptor } = await initEserviceTemplateInstance(
+        descriptorState.draft,
+        "Soap",
+        {
+          doc: interfaceDocumentFile,
+          content: await readFileContent("interface-test.wsdl"),
+        }
+      );
+
+      const expectedServerUrls = ["https://host.com/TestWS/v1"];
+      const expectedServerDescriptionUrls = ["Primary production server"];
+      const requestPayload: catalogApi.TemplateInstanceInterfaceSOAPSeed = {
+        serverUrls: expectedServerUrls.map((url, index) => ({
+          url,
+          description: expectedServerDescriptionUrls[index],
+        })),
+      };
+
+      const res = await catalogService.addEServiceTemplateInstanceInterface(
+        eservice.id,
+        descriptor.id,
+        requestPayload,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+      expect(res.descriptors[0]?.state).toBe(descriptorState.draft);
+      expect(res.descriptors[0]?.serverUrls).toStrictEqual(expectedServerUrls);
+      expect(res.descriptors[0]?.serverDescriptionUrls).toStrictEqual(
+        expectedServerDescriptionUrls
+      );
+
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent.type).toBe("EServiceDescriptorInterfaceAdded");
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorInterfaceAddedV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload.eservice?.descriptors[0]).toEqual(
+        expect.objectContaining({
+          serverUrls: expectedServerUrls,
+          serverDescriptionUrls: expectedServerDescriptionUrls,
+        })
+      );
+    });
   });
 });

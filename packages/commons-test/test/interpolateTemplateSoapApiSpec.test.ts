@@ -60,6 +60,34 @@ describe("interpolateTemplateSoapApiSpec", async () => {
 
     expect(normalizedFileContent).toBe(normalizedExpectedContent);
   });
+  it("should interpolate the SOAP API spec adding wsdl:documentation for each server description", async () => {
+    const dataWithDescriptions = {
+      ...eserviceInstanceInterfaceData,
+      serverUrls: [
+        {
+          url: "http://server1.example.com",
+          description: "Primary production server",
+        },
+        {
+          url: "http://server2.example.com",
+          description: "Secondary production server",
+        },
+      ],
+    };
+
+    const result: File = await interpolateTemplateSoapApiSpec(
+      eservice,
+      file,
+      interfaceFileInfo,
+      dataWithDescriptions
+    );
+
+    const fileContent = await result.text();
+
+    expect(fileContent).toContain("wsdl:documentation");
+    expect(fileContent).toContain("Primary production server");
+    expect(fileContent).toContain("Secondary production server");
+  });
   it("should throw interfaceExtractingInfoError if fileType is not supported", async () => {
     const interfaceFileInfo = {
       id: generateId(),

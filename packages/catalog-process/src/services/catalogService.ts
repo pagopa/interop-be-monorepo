@@ -4695,10 +4695,6 @@ async function createOpenApiInterfaceByTemplate(
     eserviceInstanceInterfaceRestData
   );
 
-  const serverDescriptionByUrl = new Map(
-    serverUrls.map((server) => [server.url, server.description ?? ""])
-  );
-
   return await verifyAndCreateDocument(
     fileManager,
     { id: eservice.id, isEserviceTemplate: true },
@@ -4732,7 +4728,7 @@ async function createOpenApiInterfaceByTemplate(
           checksum,
           serverUrls: extractedServerUrls,
           serverDescriptionUrls: extractedServerUrls.map(
-            (url) => serverDescriptionByUrl.get(url) ?? ""
+            (_, index) => serverUrls[index]?.description ?? ""
           ),
           interfaceTemplateMetadata: eserviceInstanceInterfaceRestData,
         },

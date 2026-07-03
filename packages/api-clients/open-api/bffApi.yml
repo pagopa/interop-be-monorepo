@@ -28372,6 +28372,19 @@ components:
         archivableOn:
           type: string
           format: date-time
+    TemplateInstanceInterfaceServerUrlSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
     TemplateInstanceInterfaceRESTSeed:
       type: object
       additionalProperties: false
@@ -28394,18 +28407,7 @@ components:
         serverUrls:
           type: array
           items:
-            type: object
-            additionalProperties: false
-            required:
-              - url
-            properties:
-              url:
-                type: string
-                format: uri
-              description:
-                type: string
-                minLength: 10
-                maxLength: 250
+            $ref: "#/components/schemas/TemplateInstanceInterfaceServerUrlSeed"
     TemplateInstanceInterfaceSOAPSeed:
       type: object
       additionalProperties: false
@@ -28415,18 +28417,7 @@ components:
         serverUrls:
           type: array
           items:
-            type: object
-            additionalProperties: false
-            required:
-              - url
-            properties:
-              url:
-                type: string
-                format: uri
-              description:
-                type: string
-                minLength: 10
-                maxLength: 250
+            $ref: "#/components/schemas/TemplateInstanceInterfaceServerUrlSeed"
     TemplateInstanceInterfaceMetadata:
       type: object
       additionalProperties: false
