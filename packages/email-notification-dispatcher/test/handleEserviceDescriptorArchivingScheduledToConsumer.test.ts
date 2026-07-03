@@ -119,7 +119,7 @@ describe("handleEserviceDescriptorArchivingScheduledToConsumer", () => {
     );
     expect(messages.length).toBeGreaterThanOrEqual(1);
     expect(messages[0].email.subject).toContain(
-      "Avvio archiviazione della versione"
+      "La versione di un e-service con cui stai scambiando dati è in fase di archiviazione"
     );
   });
 
