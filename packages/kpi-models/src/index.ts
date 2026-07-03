@@ -20,6 +20,8 @@ export * from "./catalog/eserviceDescriptorRejection.js";
 export * from "./catalog/eserviceDescriptorTemplateVersionRef.js";
 export * from "./catalog/eserviceRiskAnalysis.js";
 export * from "./catalog/eserviceRiskAnalysisAnswer.js";
+export * from "./catalog/eserviceDescriptorArchiving.js";
+export * from "./catalog/eserviceDescriptorAsyncExchangeProperties.js";
 
 // Authorization models
 export * from "./authorization/client.js";
@@ -45,6 +47,7 @@ export * from "./eserviceTemplate/eserviceTemplateVersionDocument.js";
 export * from "./eserviceTemplate/eserviceTemplateVersionAttribute.js";
 export * from "./eserviceTemplate/eserviceTemplateRiskAnalysis.js";
 export * from "./eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.js";
+export * from "./eserviceTemplate/eserviceTemplateVersionAsyncExchangeProperties.js";
 
 // Purpose models
 export * from "./purpose/purpose.js";
@@ -54,6 +57,7 @@ export * from "./purpose/purposeVersionStamp.js";
 export * from "./purpose/purposeVersionSignedDocument.js";
 export * from "./purpose/purposeRiskAnalysis.js";
 export * from "./purpose/purposeRiskAnalysisAnswer.js";
+export * from "./purpose/purposeRiskAnalysisReviewer.js";
 
 // PurposeTemplate models
 export * from "./purposeTemplate/purposeTemplate.js";
@@ -72,6 +76,8 @@ export * from "./tenant/tenantFeature.js";
 export * from "./tenant/tenantVerifiedAttribute.js";
 export * from "./tenant/tenantVerifiedAttributeRevoker.js";
 export * from "./tenant/tenantVerifiedAttributeVerifier.js";
+export * from "./tenant/tenantCertifiedDiscreteAttribute.js";
+export * from "./tenant/tenantRemoteId.js";
 
 // DB models
 export * from "./db/agreement.js";

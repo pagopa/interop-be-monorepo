@@ -8,7 +8,7 @@ import {
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import { EserviceDescriptorAsyncExchangePropertiesSchema } from "../../model/catalog/eserviceDescriptorAsyncExchangeProperties.js";
+import { EserviceDescriptorAsyncExchangePropertiesSchema } from "pagopa-interop-kpi-models";
 import { CatalogDbTable } from "../../model/db/index.js";
 
 export function eserviceDescriptorAsyncExchangePropertiesRepository(

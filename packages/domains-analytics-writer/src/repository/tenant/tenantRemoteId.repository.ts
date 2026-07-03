@@ -8,7 +8,7 @@ import {
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import { TenantRemoteIdSchema } from "../../model/tenant/tenantRemoteId.js";
+import { TenantRemoteIdSchema } from "pagopa-interop-kpi-models";
 import { TenantDbTable } from "../../model/db/index.js";
 
 export function tenantRemoteIdRepository(conn: DBConnection) {

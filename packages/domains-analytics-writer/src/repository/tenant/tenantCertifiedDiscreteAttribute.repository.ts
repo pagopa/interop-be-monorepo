@@ -9,7 +9,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { TenantDbTable } from "../../model/db/index.js";
-import { TenantCertifiedDiscreteAttributeSchema } from "../../model/tenant/tenantCertifiedDiscreteAttribute.js";
+import { TenantCertifiedDiscreteAttributeSchema } from "pagopa-interop-kpi-models";
 
 export function tenantCertifiedDiscreteAttributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

@@ -9,7 +9,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
 import { EserviceTemplateDbTable } from "../../model/db/index.js";
-import { EserviceTemplateVersionAsyncExchangePropertiesSchema } from "../../model/eserviceTemplate/eserviceTemplateVersionAsyncExchangeProperties.js";
+import { EserviceTemplateVersionAsyncExchangePropertiesSchema } from "pagopa-interop-kpi-models";
 
 export function eserviceTemplateVersionAsyncExchangePropertiesRepository(
   conn: DBConnection

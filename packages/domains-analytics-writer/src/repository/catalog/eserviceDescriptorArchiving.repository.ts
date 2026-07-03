@@ -8,7 +8,7 @@ import {
 } from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { config } from "../../config/config.js";
-import { EserviceDescriptorArchivingSchema } from "../../model/catalog/eserviceDescriptorArchiving.js";
+import { EserviceDescriptorArchivingSchema } from "pagopa-interop-kpi-models";
 import { CatalogDbTable } from "../../model/db/index.js";
 
 export function eserviceDescriptorArchivingRepository(conn: DBConnection) {
