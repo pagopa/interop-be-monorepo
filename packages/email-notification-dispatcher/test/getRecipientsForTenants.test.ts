@@ -12,7 +12,7 @@ import {
   UserRole,
   generateId,
 } from "pagopa-interop-models";
-import { getRecipientsForTenants } from "../src/handlers/handlerCommons.js";
+import { getRecipientsForTenants } from "pagopa-interop-notification-commons";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
 
 describe("getRecipientsForTenants", () => {
@@ -120,7 +120,8 @@ describe("getRecipientsForTenants", () => {
       readModelService.getTenantUsersWithNotificationEnabled
     ).toHaveBeenCalledWith(
       tenants.map((tenant) => tenant.id),
-      "agreementActivatedRejectedToConsumer"
+      "agreementActivatedRejectedToConsumer",
+      "email"
     );
   });
 
@@ -144,6 +145,8 @@ describe("getRecipientsForTenants", () => {
       [authRole.API_ROLE]: false,
       [authRole.SECURITY_ROLE]: false,
       [authRole.SUPPORT_ROLE]: false,
+      [authRole.REVIEWER_ROLE]: false,
+      [authRole.VIEWER_ROLE]: false,
     });
     const result = await getRecipientsForTenants({
       tenants,
@@ -165,6 +168,8 @@ describe("getRecipientsForTenants", () => {
       [authRole.API_ROLE]: true,
       [authRole.SECURITY_ROLE]: false,
       [authRole.SUPPORT_ROLE]: false,
+      [authRole.REVIEWER_ROLE]: false,
+      [authRole.VIEWER_ROLE]: false,
     });
     const result = await getRecipientsForTenants({
       tenants,
@@ -191,6 +196,8 @@ describe("getRecipientsForTenants", () => {
       [authRole.API_ROLE]: false,
       [authRole.SECURITY_ROLE]: true,
       [authRole.SUPPORT_ROLE]: false,
+      [authRole.REVIEWER_ROLE]: false,
+      [authRole.VIEWER_ROLE]: false,
     });
     const result = await getRecipientsForTenants({
       tenants,

@@ -50,9 +50,11 @@ describe("createTenantNotificationConfig", () => {
       createdAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedTenantNotificationConfig);
-    expect(writtenPayload.tenantNotificationConfig).toEqual(
-      toTenantNotificationConfigV2(expectedTenantNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      tenantNotificationConfig: toTenantNotificationConfigV2(
+        expectedTenantNotificationConfig
+      ),
+    });
   });
 
   it("should throw tenantNotificationConfigAlreadyExists if a notification config already exists for that tenant", async () => {

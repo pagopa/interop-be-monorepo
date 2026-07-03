@@ -77,6 +77,7 @@ describe("API GET /eservices/{eserviceId}/descriptors/{descriptorId}/documents t
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

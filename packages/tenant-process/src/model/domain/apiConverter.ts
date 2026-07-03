@@ -15,7 +15,8 @@ import {
   tenantFeatureType,
 } from "pagopa-interop-models";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
+import { match, P } from "ts-pattern";
+import { invalidTenantFeature } from "./errors.js";
 
 function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
   return match<TenantKind, tenantApi.TenantKind>(input)
@@ -105,6 +106,14 @@ function toApiTenantAttribute(
         delegationId: attribute.delegationId,
       },
     }))
+    .with({ type: tenantAttributeType.CERTIFIED_DISCRETE }, (attribute) => ({
+      certifiedDiscrete: {
+        id: attribute.id,
+        assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
+        revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
+        discreteValue: attribute.discreteValue,
+      },
+    }))
     .exhaustive();
 }
 
@@ -139,7 +148,34 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     name: tenant.name,
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
+    remoteIds: tenant.remoteIds?.map((remoteId) => ({
+      origin: remoteId.origin,
+      value: remoteId.value,
+      assignmentTimestamp: remoteId.assignmentTimestamp.toJSON(),
+    })),
+    selfcareInstitutionType: tenant.selfcareInstitutionType ?? undefined,
   };
+}
+
+export function fromApiTenantFeature(
+  input: tenantApi.TenantFeature
+): TenantFeature {
+  return match<tenantApi.TenantFeature, TenantFeature>(input)
+    .with({ certifier: P.not(P.nullish) }, ({ certifier }) => ({
+      type: tenantFeatureType.persistentCertifier,
+      certifierId: certifier.certifierId,
+    }))
+    .with({ delegatedProducer: P.not(P.nullish) }, ({ delegatedProducer }) => ({
+      type: tenantFeatureType.delegatedProducer,
+      availabilityTimestamp: new Date(delegatedProducer.availabilityTimestamp),
+    }))
+    .with({ delegatedConsumer: P.not(P.nullish) }, ({ delegatedConsumer }) => ({
+      type: tenantFeatureType.delegatedConsumer,
+      availabilityTimestamp: new Date(delegatedConsumer.availabilityTimestamp),
+    }))
+    .otherwise(() => {
+      throw invalidTenantFeature();
+    });
 }
 
 export function apiTenantFeatureTypeToTenantFeatureType(

@@ -43,8 +43,18 @@ const eventV2TypeMapper = (eventType: PurposeEventEnvelopeV2["type"]): string =>
       () => "purpose_version_deleted"
     )
     .with("PurposeVersionRejected", () => "purpose_version_rejected")
-    .with("RiskAnalysisDocumentGenerated", () => "purpose_updated")
-    .with("RiskAnalysisSignedDocumentGenerated", () => "purpose_updated")
+    .with(
+      "RiskAnalysisDocumentGenerated",
+      "RiskAnalysisSignedDocumentGenerated",
+      "MaintenancePurposeRiskAnalysisSetTenantKind",
+      "PurposeRiskAnalysisWorkflowCreated",
+      "PurposeRiskAnalysisAssigned",
+      "PurposeRiskAnalysisSubmitted",
+      "PurposeRiskAnalysisSigned",
+      "PurposeRiskAnalysisRejected",
+      "PurposeRiskAnalysisFormEdited",
+      () => "purpose_updated"
+    )
     .exhaustive();
 
 export const buildPurposeMessage = (

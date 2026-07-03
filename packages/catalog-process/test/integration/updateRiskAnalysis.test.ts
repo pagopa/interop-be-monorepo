@@ -171,7 +171,10 @@ describe("update risk analysis", () => {
       ],
     };
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
+    expect(writtenPayload).toEqual({
+      riskAnalysisId: riskAnalysis.id,
+      eservice: toEServiceV2(updatedEservice),
+    });
   });
   it("should write on event-store for the update of a risk analysis (delegate)", async () => {
     const producerTenantKind: TenantKind = randomArrayItem(
@@ -291,7 +294,10 @@ describe("update risk analysis", () => {
       ],
     };
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
+    expect(writtenPayload).toEqual({
+      riskAnalysisId: riskAnalysis.id,
+      eservice: toEServiceV2(updatedEservice),
+    });
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     expect(
