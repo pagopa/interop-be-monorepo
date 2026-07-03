@@ -42,23 +42,23 @@ jobs:
           echo "Checking PR labels for release tag..."
           echo "Allowed release: $ALLOWED_RELEASE_DEVELOP"
 
-          MATCHED_RELEASE=""
+          RELEASE=""
           for LABEL in $PR_LABELS; do
             if echo "$LABEL" | grep -qP '^\d+\.\d+\.\d+$'; then
-              MATCHED_RELEASE="$LABEL"
+              RELEASE="$LABEL"
               break
             fi
           done
 
-          if [ -z "$MATCHED_RELEASE" ]; then
+          if [ -z "$RELEASE" ]; then
             echo "::error::PR does not have a release label (expected format: x.y.z)"
             exit 1
           fi
 
-          echo "Found release label: $MATCHED_RELEASE"
+          echo "Found release label: $RELEASE"
 
-          if [ "$MATCHED_RELEASE" != "$ALLOWED_RELEASE_DEVELOP" ]; then
-            echo "::error::Release label '$MATCHED_RELEASE' does not match the allowed release '$ALLOWED_RELEASE_DEVELOP'"
+          if [ "$RELEASE" != "$ALLOWED_RELEASE_DEVELOP" ]; then
+            echo "::error::Release label '$RELEASE' does not match the allowed release '$ALLOWED_RELEASE_DEVELOP'"
             exit 1
           fi
 
