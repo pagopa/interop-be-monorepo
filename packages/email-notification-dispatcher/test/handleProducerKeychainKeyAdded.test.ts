@@ -26,7 +26,7 @@ import { handleProducerKeychainKeyAdded } from "../src/handlers/authorization/ha
 import {
   producerKeychainKeyNotFound,
   tenantNotFound,
-} from "../src/models/errors.js";
+} from "pagopa-interop-notification-commons";
 import {
   addOneTenant,
   getMockUser,

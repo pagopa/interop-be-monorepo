@@ -15,6 +15,7 @@ import { AgreementService } from "../services/agreementService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   approveAgreementErrorMapper,
+  archiveAgreementErrorMapper,
   downloadAgreementConsumerContractErrorMapper,
   unsuspendAgreementErrorMapper,
 } from "../utils/errorMappers.js";
@@ -231,6 +232,26 @@ const agreementRouter = (
           unsuspendAgreementErrorMapper,
           ctx,
           `Error unsuspending agreement with id ${req.params.agreementId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/agreements/:agreementId/archive", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        const agreement = await agreementService.archiveAgreement(
+          unsafeBrandId(req.params.agreementId),
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApiV3.Agreement.parse(agreement));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          archiveAgreementErrorMapper,
+          ctx,
+          `Error archiving agreement with id ${req.params.agreementId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

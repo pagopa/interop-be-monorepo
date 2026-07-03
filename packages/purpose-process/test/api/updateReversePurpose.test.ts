@@ -29,6 +29,7 @@ import {
   eserviceNotFound,
   tenantKindNotFound,
   tenantNotFound,
+  invalidFreeOfChargeReason,
   purposeFromTemplateCannotBeModified,
 } from "../../src/model/domain/errors.js";
 
@@ -42,15 +43,13 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
       freeOfChargeReason: "Mock free of charge reason",
     };
   const mockPurpose: Purpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
+    purposeToApiPurpose(mockPurpose)
   );
 
   const processResponse = getMockWithMetadata({
     purpose: mockPurpose,
-    isRiskAnalysisValid,
   });
 
   beforeEach(() => {
@@ -97,6 +96,11 @@ describe("API POST /reverse/purposes/{purposeId} test", () => {
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
     { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
+    {
+      error: invalidFreeOfChargeReason(false, "Some reason"),
+      expectedStatus: 400,
+    },
+
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
       error: tenantIsNotTheDelegatedConsumer(

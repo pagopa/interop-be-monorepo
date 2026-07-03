@@ -17,6 +17,7 @@ import request from "supertest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
@@ -157,6 +158,10 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/attributes
     },
     {
       error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

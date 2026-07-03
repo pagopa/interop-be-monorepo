@@ -6,12 +6,14 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -36,6 +38,10 @@ export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          archivingSchedule:
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          asyncExchangeProperties:
+            eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .where(eq(eserviceInReadmodelCatalog.templateId, eserviceTemplateId))
@@ -82,6 +88,13 @@ export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
           )
         )
         .leftJoin(
+          eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
           eserviceRiskAnalysisInReadmodelCatalog,
           eq(
             eserviceInReadmodelCatalog.id,
@@ -99,6 +112,13 @@ export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
               eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
               eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
             )
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
           )
         )
         .orderBy(ascLower(eserviceInReadmodelCatalog.name));

@@ -47,7 +47,6 @@ import {
   tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
   purposeCannotBeUpdated,
-  tenantKindNotFound,
   tenantNotFound,
   unchangedDailyCalls,
 } from "../../src/model/domain/errors.js";
@@ -190,9 +189,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -203,7 +206,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -286,9 +288,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -299,7 +305,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -370,9 +375,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -383,7 +392,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -446,9 +454,13 @@ describe("createPurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
     expect(createdPurposeVersion.state).toEqual(
       purposeVersionState.waitingForApproval
@@ -463,7 +475,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -557,9 +568,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -570,7 +585,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -704,9 +718,13 @@ describe("createPurposeVersion", () => {
     });
 
     expect(createdPurposeVersion).toEqual(expectedPurposeVersion);
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      toPurposeV2(expectedPurpose)
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: createdPurposeVersion.id,
+    });
     expect({
       ...purposeVersionResponse,
       data: {
@@ -717,7 +735,6 @@ describe("createPurposeVersion", () => {
       data: {
         purpose: expectedPurpose,
         createdVersionId: expectedPurposeVersion.id,
-        isRiskAnalysisValid: true,
       },
       metadata: { version: 1 },
     });
@@ -762,7 +779,7 @@ describe("createPurposeVersion", () => {
     }).rejects.toThrowError(tenantIsNotTheConsumer(mockEService.producerId));
   });
 
-  it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
+  it("should throw eserviceNotFound if the e-service does not exist in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
@@ -891,30 +908,6 @@ describe("createPurposeVersion", () => {
 
     expect(createdPurposeVersion.riskAnalysis).toBeUndefined();
     expect(purposeVersionResponse.data.purpose.id).toEqual(mockPurpose.id);
-  });
-
-  it("should throw tenantKindNotFound if e-service mode is DELIVER and the tenant consumer has no kind", async () => {
-    const consumer: Tenant = { ...mockConsumer, kind: undefined };
-    const eservice: EService = {
-      ...mockEService,
-      mode: eserviceMode.deliver,
-    };
-
-    await addOnePurpose(mockPurpose);
-    await addOneEService(eservice);
-    await addOneAgreement(mockAgreement);
-    await addOneTenant(consumer);
-    await addOneTenant(mockProducer);
-
-    expect(async () => {
-      await purposeService.createPurposeVersion(
-        mockPurpose.id,
-        {
-          dailyCalls: 20,
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      );
-    }).rejects.toThrowError(tenantKindNotFound(consumer.id));
   });
 
   it("should succeed even if e-service mode is RECEIVE and the tenant producer has no kind (no document generation needed)", async () => {

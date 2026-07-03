@@ -30,7 +30,6 @@ import {
   Agreement,
   Descriptor,
   agreementState,
-  TenantKind,
   PurposeActivatedV2,
   toPurposeV2,
   PurposeVersionUnsuspendedByConsumerV2,
@@ -47,6 +46,9 @@ import {
   UserId,
   purposeTemplateState,
   PurposeTemplate,
+  PurposeRiskAnalysisForm,
+  riskAnalysisSigningState,
+  riskAnalysisReviewMode,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -66,6 +68,8 @@ import {
   tenantIsNotTheDelegatedConsumer,
   tenantIsNotTheDelegate,
   purposeTemplateNotFound,
+  riskAnalysisTenantKindMismatch,
+  reviewerWorkflowNotInSignedState,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -201,9 +205,13 @@ describe("activatePurposeVersion", () => {
 
     expect(updatedVersion.riskAnalysis).toBeDefined();
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: versionWithStamp.id,
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -268,9 +276,13 @@ describe("activatePurposeVersion", () => {
 
     expect(updatedVersion.riskAnalysis).toBeDefined();
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: mockPurposeVersion.id,
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -337,9 +349,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersion.id,
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -406,9 +422,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersion.id,
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -478,9 +498,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: activateResponse.data.id,
+    });
 
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[1],
@@ -548,9 +572,13 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersionMock.id,
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -610,9 +638,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: expectedPurpose.versions[0],
       metadata: { version: 1 },
@@ -672,9 +703,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -755,9 +789,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -820,9 +857,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -945,9 +985,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -1049,9 +1092,12 @@ describe("activatePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurpose(writtenPayload.purpose)).toEqual(
-      sortPurpose(toPurposeV2(expectedPurpose))
-    );
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
     expect(activateResponse).toMatchObject({
       data: updatedVersion,
       metadata: { version: 1 },
@@ -1172,7 +1218,7 @@ describe("activatePurposeVersion", () => {
     }).rejects.toThrowError(missingRiskAnalysis(mockPurpose.id));
   });
 
-  it("should throw eserviceNotFound if the e-service does not exists in the readmodel", async () => {
+  it("should throw eserviceNotFound if the e-service does not exist in the readmodel", async () => {
     await addOnePurpose(mockPurpose);
     await addOneAgreement(mockAgreement);
     await addOneTenant(mockConsumer);
@@ -1365,7 +1411,8 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should throw riskAnalysisValidationFailed if the purpose is in draft and has an invalid risk analysis", async () => {
-    const riskAnalysisForm = getMockValidRiskAnalysisForm("GSP");
+    const riskAnalysisForm: PurposeRiskAnalysisForm =
+      getMockExpiredRiskAnalysisForm("PA");
 
     const purposeVersion: PurposeVersion = {
       ...mockPurposeVersion,
@@ -1386,7 +1433,7 @@ describe("activatePurposeVersion", () => {
     const result = validateRiskAnalysis(
       riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm),
       false,
-      mockConsumer.kind as TenantKind,
+      undefined,
       new Date(),
       undefined
     );
@@ -1405,6 +1452,239 @@ describe("activatePurposeVersion", () => {
         result.type === "invalid" ? result.issues : []
       )
     );
+  });
+
+  it("should throw riskAnalysisTenantKindMismatch if the purpose is in draft state and has a mismatching tenantKind", async () => {
+    const riskAnalysisForm = getMockValidRiskAnalysisForm("PRIVATE");
+
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.draft,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+      riskAnalysisForm,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    expect(async () => {
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: mockPurposeVersion.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      );
+    }).rejects.toThrowError(
+      riskAnalysisTenantKindMismatch(
+        tenantKind.PRIVATE,
+        tenantKind.PA,
+        riskAnalysisForm.id
+      )
+    );
+  });
+
+  it("should activate the purpose if it is in draft state and the tenant kind is GSP and risk analysis tenant kind is PRIVATE", async () => {
+    const consumer: Tenant = {
+      ...mockConsumer,
+      id: generateId(),
+      kind: tenantKind.GSP,
+    };
+    const agreement: Agreement = {
+      ...mockAgreement,
+      id: generateId(),
+      consumerId: consumer.id,
+    };
+    const riskAnalysisForm: PurposeRiskAnalysisForm =
+      getMockValidRiskAnalysisForm(tenantKind.PRIVATE);
+
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.draft,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      consumerId: consumer.id,
+      versions: [purposeVersion],
+      riskAnalysisForm,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(agreement);
+    await addOneTenant(consumer);
+    await addOneTenant(mockProducer);
+
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: purpose.id,
+        versionId: purposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(consumer.id, userId) })
+    );
+
+    const updatedVersion = activateResponse.data;
+    const writtenEvent = await readLastEventByStreamId(
+      purpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "1",
+      type: "PurposeActivated",
+      event_version: 2,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...purpose,
+      versions: [updatedVersion],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(updatedVersion.riskAnalysis).toBeDefined();
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
+  });
+
+  it("should throw riskAnalysisTenantKindMismatch if the purpose is in waitingForApproval state and has a mismatching tenantKind", async () => {
+    const riskAnalysisForm = getMockValidRiskAnalysisForm("PRIVATE");
+
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.waitingForApproval,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+      riskAnalysisForm,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    expect(async () => {
+      await purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: purposeVersion.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+      );
+    }).rejects.toThrowError(
+      riskAnalysisTenantKindMismatch(
+        tenantKind.PRIVATE,
+        tenantKind.PA,
+        riskAnalysisForm.id
+      )
+    );
+  });
+
+  it("should activate the purpose if it is in waitingForApproval state and the tenant kind and risk analysis tenant kind are both non-PA", async () => {
+    const consumer: Tenant = {
+      ...mockConsumer,
+      id: generateId(),
+      kind: tenantKind.GSP,
+    };
+    const agreement: Agreement = {
+      ...mockAgreement,
+      id: generateId(),
+      consumerId: consumer.id,
+    };
+    const riskAnalysisForm: PurposeRiskAnalysisForm =
+      getMockValidRiskAnalysisForm(tenantKind.PRIVATE);
+
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.waitingForApproval,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      consumerId: consumer.id,
+      versions: [purposeVersion],
+      riskAnalysisForm,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(agreement);
+    await addOneTenant(consumer);
+    await addOneTenant(mockProducer);
+
+    const activateResponse = await purposeService.activatePurposeVersion(
+      {
+        purposeId: purpose.id,
+        versionId: purposeVersion.id,
+        delegationId: undefined,
+      },
+      getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+    );
+
+    const updatedVersion = activateResponse.data;
+    const writtenEvent = await readLastEventByStreamId(
+      purpose.id,
+      "purpose",
+      postgresDB
+    );
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "1",
+      type: "PurposeVersionActivated",
+      event_version: 2,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...purpose,
+      suspendedByConsumer: false,
+      suspendedByProducer: false,
+      versions: [updatedVersion],
+      updatedAt: new Date(),
+    };
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeVersionActivatedV2,
+      payload: writtenEvent.data,
+    });
+
+    expect(updatedVersion.riskAnalysis).toBeDefined();
+    expect({
+      ...writtenPayload,
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+      versionId: purposeVersion.id,
+    });
+    expect(activateResponse).toMatchObject({
+      data: updatedVersion,
+      metadata: { version: 1 },
+    });
   });
 
   it("should throw tenantNotFound if the purpose consumer is not found in the readmodel", async () => {
@@ -1453,7 +1733,7 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should not require tenant kind check when document generation is not used", async () => {
-    const consumer: Tenant = { ...mockConsumer, kind: undefined };
+    const consumer: Tenant = { ...mockConsumer, kind: tenantKind.PA };
     const eservice: EService = {
       ...mockEService,
       mode: eserviceMode.deliver,
@@ -1696,5 +1976,104 @@ describe("activatePurposeVersion", () => {
     }).rejects.toThrowError(
       purposeTemplateNotFound(purpose.purposeTemplateId!)
     );
+  });
+
+  it.each(
+    Object.values(riskAnalysisSigningState).filter(
+      (s) => s !== riskAnalysisSigningState.signed
+    )
+  )(
+    "should throw reviewerWorkflowNotInSignedState when reviewerWorkflow exists and signingState is %s",
+    async (signingState) => {
+      const purpose: Purpose = {
+        ...mockPurpose,
+        reviewerWorkflow: {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+          signingState,
+          sentToReviewerAt: new Date(),
+        },
+      };
+
+      await addOnePurpose(purpose);
+      await addOneEService(mockEService);
+      await addOneAgreement(mockAgreement);
+      await addOneTenant(mockConsumer);
+      await addOneTenant(mockProducer);
+
+      expect(
+        purposeService.activatePurposeVersion(
+          {
+            purposeId: purpose.id,
+            versionId: mockPurposeVersion.id,
+            delegationId: undefined,
+          },
+          getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+        )
+      ).rejects.toThrowError(reviewerWorkflowNotInSignedState(purpose.id));
+    }
+  );
+
+  it("should not throw reviewerWorkflowNotInSignedState when reviewerWorkflow exists and signingState is signed", async () => {
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.waitingForApproval,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+      reviewerWorkflow: {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState: riskAnalysisSigningState.signed,
+        sentToReviewerAt: new Date(),
+      },
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    await expect(
+      purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: purposeVersion.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+      )
+    ).resolves.not.toThrow();
+  });
+
+  it("should not throw reviewerWorkflowNotInSignedState when reviewerWorkflow is absent", async () => {
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.waitingForApproval,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+      reviewerWorkflow: undefined,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    await expect(
+      purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: purposeVersion.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+      )
+    ).resolves.not.toThrow();
   });
 });

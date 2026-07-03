@@ -13,6 +13,7 @@ import {
   UIAuthData,
   WithLogger,
   eventRepository,
+  isFeatureFlagEnabled,
   ownership,
 } from "pagopa-interop-commons";
 import { agreementApi } from "pagopa-interop-api-clients";
@@ -325,6 +326,7 @@ export function agreementServiceBuilder(
         state: agreementState.draft,
         verifiedAttributes: [],
         certifiedAttributes: [],
+        certifiedDiscreteAttributes: [],
         declaredAttributes: [],
         consumerDocuments: [],
         createdAt: new Date(),
@@ -829,6 +831,7 @@ export function agreementServiceBuilder(
         id,
         verifiedAttributes: [],
         certifiedAttributes: [],
+        certifiedDiscreteAttributes: [],
         declaredAttributes: [],
         state: agreementState.draft,
         createdAt: new Date(),
@@ -1329,6 +1332,8 @@ export function agreementServiceBuilder(
         suspendedByPlatformChanged,
         agreement.metadata.version,
         agreementOwnership,
+        descriptor,
+        consumer,
         correlationId
       );
 
@@ -1358,7 +1363,7 @@ export function agreementServiceBuilder(
     async archiveAgreement(
       agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Archiving agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -1391,7 +1396,7 @@ export function agreementServiceBuilder(
         },
       };
 
-      await repository.createEvent(
+      const { newVersion } = await repository.createEvent(
         toCreateEventAgreementArchivedByConsumer(
           updatedAgreement,
           agreement.metadata.version,
@@ -1399,7 +1404,12 @@ export function agreementServiceBuilder(
         )
       );
 
-      return updatedAgreement;
+      return {
+        data: updatedAgreement,
+        metadata: {
+          version: newVersion,
+        },
+      };
     },
     async internalArchiveAgreementAfterDelegationRevocation(
       agreementId: AgreementId,
@@ -1487,7 +1497,13 @@ export function agreementServiceBuilder(
           eservice.producerId === consumer.id || // in case the consumer is also the producer, we don't need to check the attributes
           certifiedAttributesSatisfied(
             descriptor.attributes,
-            consumer.attributes
+            consumer.attributes,
+            {
+              certifiedDiscreteEnabled: isFeatureFlagEnabled(
+                config,
+                "featureFlagAttributeCertifiedDiscrete"
+              ),
+            }
           ),
       };
     },

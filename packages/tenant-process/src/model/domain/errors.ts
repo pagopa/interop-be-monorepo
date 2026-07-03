@@ -38,6 +38,9 @@ const errorCodes = {
   descriptorNotFoundInEservice: "0028",
   delegationNotFound: "0029",
   operationRestrictedToDelegate: "0030",
+  invalidTenantFeature: "0031",
+  certifiedDiscreteAttributeAlreadyAssigned: "0032",
+  tenantNotFoundByRemoteId: "0033",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -84,6 +87,16 @@ export function tenantNotFoundByExternalId(
     detail: `Tenant with externalId ${origin}/${code} not found`,
     code: "tenantNotFoundByExternalId",
     title: "Tenant not found by externalId",
+  });
+}
+export function tenantNotFoundByRemoteId(
+  origin: string,
+  remoteId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Tenant with remoteId ${origin}/${remoteId} not found`,
+    code: "tenantNotFoundByRemoteId",
+    title: "Tenant not found by remoteId",
   });
 }
 
@@ -220,6 +233,17 @@ export function certifiedAttributeAlreadyAssigned(
   });
 }
 
+export function certifiedDiscreteAttributeAlreadyAssigned(
+  attributeId: AttributeId,
+  tenantId: TenantId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified Discrete Attribute ${attributeId} already assigned to tenant ${tenantId}`,
+    code: "certifiedDiscreteAttributeAlreadyAssigned",
+    title: "Certified discrete attribute already assigned",
+  });
+}
+
 export function attributeAlreadyRevoked(
   tenantId: TenantId,
   revokerId: TenantId,
@@ -322,5 +346,13 @@ export function operationRestrictedToDelegate(): ApiError<ErrorCodes> {
     detail: "Not allowed to add declared attribute",
     code: "operationRestrictedToDelegate",
     title: "Not allowed to add declared attribute",
+  });
+}
+
+export function invalidTenantFeature(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Tenant feature variant could not be determined",
+    code: "invalidTenantFeature",
+    title: "Invalid tenant feature",
   });
 }

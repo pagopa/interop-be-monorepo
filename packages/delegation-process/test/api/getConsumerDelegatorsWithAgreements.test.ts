@@ -52,6 +52,7 @@ describe("API GET /consumer/delegatorsWithAgreements test", () => {
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(
