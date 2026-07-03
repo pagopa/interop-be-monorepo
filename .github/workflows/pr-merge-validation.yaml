@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 env:
-  ALLOWED_RELEASE_DEVELOP: "release-2.21.0"
+  ALLOWED_RELEASE_DEVELOP: "2.21.0"
 
 jobs:
   validate-develop:
@@ -44,14 +44,14 @@ jobs:
 
           MATCHED_RELEASE=""
           for LABEL in $PR_LABELS; do
-            if echo "$LABEL" | grep -qP '^release-\d+\.\d+\.\d+$'; then
+            if echo "$LABEL" | grep -qP '^\d+\.\d+\.\d+$'; then
               MATCHED_RELEASE="$LABEL"
               break
             fi
           done
 
           if [ -z "$MATCHED_RELEASE" ]; then
-            echo "::error::PR does not have a release label (expected format: release-x.y.z)"
+            echo "::error::PR does not have a release label (expected format: x.y.z)"
             exit 1
           fi
 
