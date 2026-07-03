@@ -11,12 +11,11 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  ClientUserHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { ClientUserHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 export async function handleClientUserDeleted(
@@ -61,7 +60,7 @@ export async function handleClientUserDeleted(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Client ${client.id}, user ${userId}, no emails to dispatch.`
+      `No users with email notifications enabled for handleClientUserDeleted - entityId: ${client.id}, eventType: ${notificationType}`
     );
     return [];
   }

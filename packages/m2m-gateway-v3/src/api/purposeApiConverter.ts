@@ -21,6 +21,7 @@ export function toGetPurposesApiQueryParams(
     states: params.states,
     excludeDraft: false,
     name: params.title,
+    signingStates: [],
   };
 }
 
@@ -39,6 +40,7 @@ export function toGetPurposesApiQueryParamsForClient(
     states: params.states,
     excludeDraft: false,
     name: "",
+    signingStates: [],
   };
 }
 
@@ -71,7 +73,6 @@ export function toM2MGatewayApiPurpose(
     description: purpose.description,
     createdAt: purpose.createdAt,
     updatedAt: purpose.updatedAt,
-    isRiskAnalysisValid: purpose.isRiskAnalysisValid,
     isFreeOfCharge: purpose.isFreeOfCharge,
     freeOfChargeReason: purpose.freeOfChargeReason,
     delegationId: purpose.delegationId,
@@ -119,5 +120,14 @@ export function toGetAgreementsApiQueryParamsForPurpose(
     showOnlyUpgradeable: false,
     offset: 0,
     limit: 1,
+  };
+}
+
+export function toM2MGatewayApiRemainingDailyCallsResponse(
+  response: purposeApi.RemainingDailyCallsResponse
+): m2mGatewayApiV3.RemainingDailyCallsResponse {
+  return {
+    remainingDailyCallsPerConsumer: response.remainingDailyCallsPerConsumer,
+    remainingDailyCallsTotal: response.remainingDailyCallsTotal,
   };
 }

@@ -9,6 +9,7 @@ import {
   UserNotificationConfig,
   UserNotificationConfigCreatedV2,
   toUserNotificationConfigV2,
+  toUserRoleV2,
   TenantId,
   NotificationConfig,
   userRole,
@@ -32,6 +33,7 @@ describe("createUserNotificationConfig", () => {
     clientAddedRemovedToProducer: false,
     purposeStatusChangedToProducer: false,
     templateStatusChangedToProducer: false,
+    eserviceStateChangedToProducer: false,
     agreementSuspendedUnsuspendedToConsumer: false,
     eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
@@ -57,6 +59,7 @@ describe("createUserNotificationConfig", () => {
     clientAddedRemovedToProducer: false,
     purposeStatusChangedToProducer: false,
     templateStatusChangedToProducer: false,
+    eserviceStateChangedToProducer: false,
     agreementSuspendedUnsuspendedToConsumer: false,
     eserviceStateChangedToConsumer: false,
     agreementActivatedRejectedToConsumer: false,
@@ -113,9 +116,11 @@ describe("createUserNotificationConfig", () => {
       createdAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedUserNotificationConfig);
-    expect(writtenPayload.userNotificationConfig).toEqual(
-      toUserNotificationConfigV2(expectedUserNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      userNotificationConfig: toUserNotificationConfigV2(
+        expectedUserNotificationConfig
+      ),
+    });
   });
 
   it("should return existing config if a notification config already exists for that user with the same role, without writing on event-store", async () => {
@@ -176,9 +181,12 @@ describe("createUserNotificationConfig", () => {
       messageType: UserNotificationConfigRoleAddedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.userNotificationConfig).toEqual(
-      toUserNotificationConfigV2(updatedUserNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      userNotificationConfig: toUserNotificationConfigV2(
+        updatedUserNotificationConfig
+      ),
+      userRole: toUserRoleV2(userRole.API_ROLE),
+    });
   });
 
   it("should create notification config with multiple roles at once", async () => {
@@ -215,9 +223,11 @@ describe("createUserNotificationConfig", () => {
       createdAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedUserNotificationConfig);
-    expect(writtenPayload.userNotificationConfig).toEqual(
-      toUserNotificationConfigV2(expectedUserNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      userNotificationConfig: toUserNotificationConfigV2(
+        expectedUserNotificationConfig
+      ),
+    });
   });
 
   it("should write two events when adding two missing roles to an existing config", async () => {
@@ -263,9 +273,12 @@ describe("createUserNotificationConfig", () => {
       messageType: UserNotificationConfigRoleAddedV2,
       payload: lastEvent.data,
     });
-    expect(lastEventPayload.userNotificationConfig).toEqual(
-      toUserNotificationConfigV2(expectedFinalUserNotificationConfig)
-    );
+    expect(lastEventPayload).toEqual({
+      userNotificationConfig: toUserNotificationConfigV2(
+        expectedFinalUserNotificationConfig
+      ),
+      userRole: toUserRoleV2(userRole.API_ROLE),
+    });
 
     // Read the previous event (version 1) - should be the first role addition
     const firstRoleEvent = await readNotificationConfigEventByVersion(
@@ -286,8 +299,11 @@ describe("createUserNotificationConfig", () => {
       userRoles: [userRole.SECURITY_ROLE, userRole.ADMIN_ROLE],
       updatedAt: new Date(),
     };
-    expect(firstRoleEventPayload.userNotificationConfig).toEqual(
-      toUserNotificationConfigV2(expectedAfterFirstRoleConfig)
-    );
+    expect(firstRoleEventPayload).toEqual({
+      userNotificationConfig: toUserNotificationConfigV2(
+        expectedAfterFirstRoleConfig
+      ),
+      userRole: toUserRoleV2(userRole.ADMIN_ROLE),
+    });
   });
 });

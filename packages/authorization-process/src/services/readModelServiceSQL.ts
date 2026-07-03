@@ -1,5 +1,10 @@
-import { and, eq, ilike, inArray } from "drizzle-orm";
-import { ascLower, escapeRegExp, withTotalCount } from "pagopa-interop-commons";
+import { and, eq, inArray } from "drizzle-orm";
+import {
+  ascLower,
+  escapeSqlLike,
+  ilikeEscaped,
+  withTotalCount,
+} from "pagopa-interop-commons";
 import {
   Client,
   WithMetadata,
@@ -75,6 +80,11 @@ export type GetProducerKeychainsFilters = {
   eserviceId: EServiceId | undefined;
 };
 
+type ProducerKeychainEServiceFlags = {
+  hasProducerKeychain: boolean;
+  hasProducerKeychainKeys: boolean;
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   readModelDB,
@@ -133,7 +143,10 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(clientInReadmodelClient.name, `%${escapeRegExp(name)}%`)
+              ? ilikeEscaped(
+                  clientInReadmodelClient.name,
+                  `%${escapeSqlLike(name)}%`
+                )
               : undefined,
             // USERS FILTER
             userIds.length > 0
@@ -323,9 +336,9 @@ export function readModelServiceBuilderSQL({
           and(
             // NAME FILTER
             name
-              ? ilike(
+              ? ilikeEscaped(
                   producerKeychainInReadmodelProducerKeychain.name,
-                  `%${escapeRegExp(name)}%`
+                  `%${escapeSqlLike(name)}%`
                 )
               : undefined,
             // USERS FILTER
@@ -402,6 +415,74 @@ export function readModelServiceBuilderSQL({
           toProducerKeychainAggregatorArray(queryResult)
         ).map((p) => p.data),
         totalCount: queryResult[0]?.totalCount ?? 0,
+      };
+    },
+    async getProducerKeychainEServiceFlags(
+      producerId: TenantId,
+      eserviceId: EServiceId
+    ): Promise<ProducerKeychainEServiceFlags> {
+      const producerKeychain = await readModelDB
+        .select({
+          id: producerKeychainInReadmodelProducerKeychain.id,
+        })
+        .from(producerKeychainEserviceInReadmodelProducerKeychain)
+        .innerJoin(
+          producerKeychainInReadmodelProducerKeychain,
+          eq(
+            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId,
+            producerKeychainInReadmodelProducerKeychain.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              producerKeychainInReadmodelProducerKeychain.producerId,
+              producerId
+            ),
+            eq(
+              producerKeychainEserviceInReadmodelProducerKeychain.eserviceId,
+              eserviceId
+            )
+          )
+        )
+        .limit(1);
+
+      const producerKeychainWithKeys = await readModelDB
+        .select({
+          id: producerKeychainInReadmodelProducerKeychain.id,
+        })
+        .from(producerKeychainEserviceInReadmodelProducerKeychain)
+        .innerJoin(
+          producerKeychainInReadmodelProducerKeychain,
+          eq(
+            producerKeychainEserviceInReadmodelProducerKeychain.producerKeychainId,
+            producerKeychainInReadmodelProducerKeychain.id
+          )
+        )
+        .innerJoin(
+          producerKeychainKeyInReadmodelProducerKeychain,
+          eq(
+            producerKeychainInReadmodelProducerKeychain.id,
+            producerKeychainKeyInReadmodelProducerKeychain.producerKeychainId
+          )
+        )
+        .where(
+          and(
+            eq(
+              producerKeychainInReadmodelProducerKeychain.producerId,
+              producerId
+            ),
+            eq(
+              producerKeychainEserviceInReadmodelProducerKeychain.eserviceId,
+              eserviceId
+            )
+          )
+        )
+        .limit(1);
+
+      return {
+        hasProducerKeychain: producerKeychain.length > 0,
+        hasProducerKeychainKeys: producerKeychainWithKeys.length > 0,
       };
     },
     async getProducerKeychainById(

@@ -3,7 +3,7 @@ import {
   generateId,
   EServiceTemplateVersion,
   TenantId,
-  EServiceTemplateRiskAnalysis,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import {
   riskAnalysisFormToRiskAnalysisFormToValidate,
@@ -23,14 +23,18 @@ import {
 } from "../src/model/domain/apiConverter.js";
 
 export const buildRiskAnalysisSeed = (
-  riskAnalysis: EServiceTemplateRiskAnalysis
-): eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed => ({
-  name: riskAnalysis.name,
-  riskAnalysisForm: riskAnalysisFormToRiskAnalysisFormToValidate(
+  riskAnalysis: RiskAnalysis
+): eserviceTemplateApi.EServiceTemplateRiskAnalysisSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
     riskAnalysis.riskAnalysisForm
-  ),
-  tenantKind: riskAnalysis.tenantKind,
-});
+  );
+
+  return {
+    name: riskAnalysis.name,
+    riskAnalysisForm: { version, answers },
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind!,
+  };
+};
 
 export const eserviceTemplateToApiEServiceTemplateSeed = (
   eserviceTemplate: EServiceTemplate
@@ -56,6 +60,7 @@ export const eserviceTemplateToApiUpdateEServiceTemplateSeed = (
   technology: technologyToApiTechnology(eserviceTemplate.technology),
   mode: eServiceModeToApiEServiceMode(eserviceTemplate.mode),
   isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
+  asyncExchange: eserviceTemplate.asyncExchange,
 });
 
 export const buildUpdateVersionSeed = (
@@ -107,6 +112,18 @@ export const buildInterfaceSeed =
     checksum: "checksum",
   });
 
+export const buildAsyncExchangeCallbackInterfaceSeed =
+  (): eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed => ({
+    contentType: "json",
+    prettyName: "prettyName",
+    serverUrls: ["pagopa.it"],
+    documentId: generateId(),
+    kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+    filePath: "filePath",
+    fileName: "fileName",
+    checksum: "checksum",
+  });
+
 export const buildDocumentSeed =
   (): eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed => ({
     contentType: "json",
@@ -137,6 +154,12 @@ export const getContextsAllowedToSeeDraftVersions = (creatorId: TenantId) => [
     authData: {
       ...getMockAuthData(creatorId),
       userRoles: [userRole.SUPPORT_ROLE],
+    },
+  }),
+  getMockContext({
+    authData: {
+      ...getMockAuthData(creatorId),
+      userRoles: [userRole.VIEWER_ROLE],
     },
   }),
   getMockContextM2M({

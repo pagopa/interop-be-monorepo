@@ -29,6 +29,7 @@
     "start:key-readmodel-writer-sql": "turbo start --filter pagopa-interop-key-readmodel-writer-sql",
     "start:producer-key-readmodel-writer-sql": "turbo start --filter pagopa-interop-producer-key-readmodel-writer-sql",
     "start:producer-keychain-readmodel-writer-sql": "turbo start --filter pagopa-interop-producer-keychain-readmodel-writer-sql",
+    "start:producer-keychain-platformstate-writer": "turbo start --filter pagopa-interop-producer-keychain-platformstate-writer",
     "start:bff": "turbo start --filter pagopa-interop-backend-for-frontend",
     "start:api-gateway": "turbo start --filter pagopa-interop-api-gateway",
     "start:anac-certified-attributes-importer": "turbo start --filter pagopa-interop-anac-certified-attributes-importer",
@@ -57,6 +58,9 @@
     "start:notification-config-readmodel-writer-sql": "turbo start --filter pagopa-interop-notification-config-readmodel-writer-sql",
     "start:notification-user-lifecycle": "turbo start --filter pagopa-interop-notification-user-lifecycle-consumer",
     "start:in-app-notification-dispatcher": "turbo start --filter pagopa-interop-in-app-notification-dispatcher",
+    "start:scheduled-notification-scheduler": "turbo start --filter pagopa-interop-scheduled-notification-scheduler",
+    "start:in-app-scheduled-notification-dispatcher": "turbo start --filter pagopa-interop-in-app-scheduled-notification-dispatcher",
+    "start:email-scheduled-notification-dispatcher": "turbo start --filter pagopa-interop-email-scheduled-notification-dispatcher",
     "start:m2m-events": "turbo start --filter pagopa-interop-m2m-event-*",
     "test": "turbo test",
     "test:integration": "turbo test:integration",
@@ -81,8 +85,6 @@
     "@tsconfig/strictest": "catalog:",
     "knip": "catalog:",
     "madge": "catalog:",
-    "prettier": "catalog:",
-    "eslint": "catalog:",
     "turbo": "catalog:"
   },
   "config": {

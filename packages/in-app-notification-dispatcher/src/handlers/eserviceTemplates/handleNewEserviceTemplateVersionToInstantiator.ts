@@ -10,12 +10,12 @@ import {
 } from "pagopa-interop-models";
 import { EServiceTemplateV2 } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   retrieveLatestDescriptor,
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 export async function handleNewEserviceTemplateVersionToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
@@ -31,7 +31,7 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
   }
 
   logger.info(
-    `Sending in-app notification for handleNewEserviceTemplateVersionToInstantiator ${eserviceTemplateV2Msg.id}`
+    `Sending in-app notification for handleNewEserviceTemplateVersionToInstantiator - entityId: ${eserviceTemplateV2Msg.id}, eventType: EServiceTemplateVersionPublished`
   );
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
@@ -59,7 +59,7 @@ export async function handleNewEserviceTemplateVersionToInstantiator(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No user notification configs found for handleNewEserviceTemplateVersionToInstantiator ${eserviceTemplate.id}`
+      `No users with notifications enabled for handleNewEserviceTemplateVersionToInstantiator - entityId: ${eserviceTemplate.id}, eventType: EServiceTemplateVersionPublished`
     );
     return [];
   }

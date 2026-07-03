@@ -46,6 +46,7 @@ describe("API GET /agreements/{agreementId}/consumer-documents/{documentId} test
     authRole.SUPPORT_ROLE,
     authRole.M2M_ADMIN_ROLE,
     authRole.M2M_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

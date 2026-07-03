@@ -79,7 +79,7 @@ describe("API POST /eservices/templates", () => {
     {
       body: {
         ...mockEServiceTemplateSeed,
-        description: "a".repeat(251),
+        description: "a".repeat(401),
       },
     },
     {

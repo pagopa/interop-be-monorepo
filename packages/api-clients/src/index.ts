@@ -19,3 +19,4 @@ export * as inAppNotificationApi from "./inAppNotificationApi.js";
 export * as notificationConfigApi from "./notificationConfigApi.js";
 export * as m2mEventApi from "./m2mEventApi.js";
 export * as m2mGatewayApiV3 from "./m2mGatewayApiV3.js";
+export * from "./zodiosWithMetadata.js";

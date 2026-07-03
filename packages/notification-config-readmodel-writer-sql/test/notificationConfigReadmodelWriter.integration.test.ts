@@ -172,6 +172,8 @@ describe("database test", async () => {
             !initialInAppConfig.purposeStatusChangedToProducer,
           templateStatusChangedToProducer:
             !initialInAppConfig.templateStatusChangedToProducer,
+          eserviceStateChangedToProducer:
+            !initialInAppConfig.eserviceStateChangedToProducer,
           agreementSuspendedUnsuspendedToConsumer:
             !initialInAppConfig.agreementSuspendedUnsuspendedToConsumer,
           eserviceStateChangedToConsumer:
@@ -220,6 +222,8 @@ describe("database test", async () => {
             !initialEmailConfig.purposeStatusChangedToProducer,
           templateStatusChangedToProducer:
             !initialEmailConfig.templateStatusChangedToProducer,
+          eserviceStateChangedToProducer:
+            !initialEmailConfig.eserviceStateChangedToProducer,
           agreementSuspendedUnsuspendedToConsumer:
             !initialEmailConfig.agreementSuspendedUnsuspendedToConsumer,
           eserviceStateChangedToConsumer:

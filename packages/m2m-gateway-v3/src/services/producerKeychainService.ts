@@ -17,6 +17,7 @@ import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
 import { toM2MJWK, toM2MProducerKey } from "../api/keysApiConverter.js";
 import {
   isPolledVersionAtLeastResponseVersion,
+  pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
@@ -49,6 +50,14 @@ export function producerKeychainServiceBuilder(
     )({
       condition: isPolledVersionAtLeastResponseVersion(response),
     });
+
+  const pollProducerKeychainUntilDeletion = (
+    keychainId: ProducerKeychainId,
+    headers: M2MGatewayAppContext["headers"]
+  ): Promise<void> =>
+    pollResourceUntilDeletion(() =>
+      retrieveProducerKeychainById(keychainId, headers)
+    )({});
 
   return {
     async getProducerKeychain(
@@ -372,6 +381,41 @@ export function producerKeychainServiceBuilder(
         );
 
       await pollProducerKeychain(response, headers);
+    },
+    async createProducerKeychain(
+      seed: m2mGatewayApiV3.ProducerKeychainSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.ProducerKeychain> {
+      logger.info(`Creating producer keychain with name ${seed.name}`);
+
+      const result =
+        await clients.authorizationClient.producerKeychain.createProducerKeychain(
+          seed,
+          {
+            headers,
+          }
+        );
+
+      await pollProducerKeychain(result, headers);
+
+      return toM2MGatewayApiProducerKeychain(result.data);
+    },
+
+    async deleteProducerKeychain(
+      keychainId: ProducerKeychainId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(`Deleting producer keychain with id ${keychainId}`);
+
+      await clients.authorizationClient.producerKeychain.deleteProducerKeychain(
+        undefined,
+        {
+          params: { producerKeychainId: keychainId },
+          headers,
+        }
+      );
+
+      await pollProducerKeychainUntilDeletion(keychainId, headers);
     },
   };
 }

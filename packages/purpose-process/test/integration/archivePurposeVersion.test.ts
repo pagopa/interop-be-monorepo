@@ -102,7 +102,10 @@ describe("archivePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
     expect(
       writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
     ).toEqual(toPurposeVersionV2(updatedVersion));
@@ -167,7 +170,10 @@ describe("archivePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion1.id,
+    });
     expect(
       writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
     ).toEqual(toPurposeVersionV2(updatedVersion));
@@ -243,7 +249,10 @@ describe("archivePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
     expect(
       writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
     ).toEqual(toPurposeVersionV2(updatedVersion));
@@ -369,7 +378,10 @@ describe("archivePurposeVersion", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.purpose).toEqual(toPurposeV2(expectedPurpose));
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      versionId: mockPurposeVersion.id,
+    });
     expect(
       writtenPayload.purpose?.versions.find((v) => v.id === updatedVersion.id)
     ).toEqual(toPurposeVersionV2(updatedVersion));

@@ -17,6 +17,7 @@ import {
   PurposeTemplateEServiceLinkedV2,
   PurposeTemplateId,
   Tenant,
+  dateToBigInt,
   descriptorState,
   generateId,
   purposeTemplateState,
@@ -28,6 +29,7 @@ import { describe, expect, it, vi } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
   eserviceAlreadyAssociatedError,
+  eserviceIsInstanceOfEServiceTemplateError,
   eserviceNotFound,
   invalidDescriptorStateError,
   missingDescriptorError,
@@ -145,11 +147,12 @@ describe("linkEservicesToPurposeTemplate", () => {
       payload: lastWrittenEvent.data,
     });
 
-    expect(lastWrittenPayload.purposeTemplate).toEqual(
-      toPurposeTemplateV2(purposeTemplate)
-    );
-    expect(lastWrittenPayload.eservice).toEqual(toEServiceV2(eService2));
-    expect(lastWrittenPayload.descriptorId).toBe(descriptor2.id);
+    expect(lastWrittenPayload).toEqual({
+      purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+      eservice: toEServiceV2(eService2),
+      descriptorId: descriptor2.id,
+      createdAt: dateToBigInt(new Date()),
+    });
 
     vi.useRealTimers();
   });
@@ -507,6 +510,40 @@ describe("linkEservicesToPurposeTemplate", () => {
       associationBetweenEServiceAndPurposeTemplateAlreadyExists(
         [eserviceAlreadyAssociatedError(eService1.id, purposeTemplate.id)],
         [eService1.id],
+        purposeTemplate.id
+      )
+    );
+  });
+
+  it("should throw associationEServicesForPurposeTemplateFailed when the eservice is an instance of an e-service template", async () => {
+    const templateOrigin = generateId<EService["templateId"] & string>();
+    const eserviceInstance: EService = {
+      ...eService1,
+      id: generateId<EServiceId>(),
+      templateId: templateOrigin,
+    };
+
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eserviceInstance);
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        purposeTemplate.id,
+        [eserviceInstance.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      associationEServicesForPurposeTemplateFailed(
+        [
+          eserviceIsInstanceOfEServiceTemplateError(
+            eserviceInstance.id,
+            templateOrigin
+          ),
+        ],
+        [eserviceInstance.id],
         purposeTemplate.id
       )
     );

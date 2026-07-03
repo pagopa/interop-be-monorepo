@@ -98,9 +98,14 @@ describe("publishPurposeTemplate", () => {
       payload: writtenEvent.data,
     });
 
-    expect(sortPurposeTemplate(writtenPayload.purposeTemplate)).toEqual(
-      sortPurposeTemplate(toPurposeTemplateV2(expectedPurposeTemplate))
-    );
+    expect({
+      ...writtenPayload,
+      purposeTemplate: sortPurposeTemplate(writtenPayload.purposeTemplate),
+    }).toEqual({
+      purposeTemplate: sortPurposeTemplate(
+        toPurposeTemplateV2(expectedPurposeTemplate)
+      ),
+    });
     expect(publishResponse).toMatchObject({
       data: updatedPurposeTemplate,
       metadata: { version: 1 },

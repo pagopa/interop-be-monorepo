@@ -6,14 +6,14 @@ import {
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { activeProducerDelegationNotFound } from "../../models/errors.js";
+  activeProducerDelegationNotFound,
+} from "pagopa-interop-notification-commons";
 
-export type EserviceNewVersionApprovedRejectedToDelegateEventType =
+type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 
@@ -27,7 +27,7 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
     throw missingKafkaMessageDataError("eservice", eventType);
   }
   logger.info(
-    `Handle eservice new version approved/rejected in-app notification for eservice ${eserviceV2Msg.id}`
+    `Sending in-app notification for handleEserviceNewVersionApprovedRejectedToDelegate - entityId: ${eserviceV2Msg.id}, eventType: ${eventType}`
   );
 
   const eservice = fromEServiceV2(eserviceV2Msg);
@@ -50,7 +50,7 @@ export async function handleEserviceNewVersionApprovedRejectedToDelegate(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for eservice ${eserviceV2Msg.id}`
+      `No users with notifications enabled for handleEserviceNewVersionApprovedRejectedToDelegate - entityId: ${eservice.id}, eventType: ${eventType}`
     );
     return [];
   }

@@ -7,18 +7,16 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
 } from "pagopa-interop-models";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
 import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
-import { config } from "../../config/config.js";
-import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
+} from "pagopa-interop-notification-commons";
+import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
   "purposeSuspendedUnsuspendedToConsumer";
@@ -47,7 +45,7 @@ export async function handlePurposeVersionSuspendedByProducer(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeVersionSuspendedByProducerMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 
@@ -63,7 +61,7 @@ export async function handlePurposeVersionSuspendedByProducer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeVersionSuspendedByProducer - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }

@@ -11,8 +11,8 @@ import {
   retrieveEservice,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 
 export async function handleEserviceStateChangedToConsumer(
   eserviceId: string,
@@ -20,7 +20,7 @@ export async function handleEserviceStateChangedToConsumer(
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   logger.info(
-    `Sending in-app notification for handleEserviceStateChangedToConsumer ${eserviceId}`
+    `Sending in-app notification for handleEserviceStateChangedToConsumer - entityId: ${eserviceId}, eventType: ProducerKeychainEServiceAdded`
   );
 
   const eservice = await retrieveEservice(

@@ -7,16 +7,15 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
@@ -40,7 +39,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
   // Only send notification if there are multiple versions (version count > 1)
   if (purpose.versions.length <= 1) {
     logger.info(
-      `Purpose ${purpose.id} has only one version, skipping purposeVersionActivatedOtherVersion notification`
+      `Skipping email notification for handlePurposeVersionActivatedOtherVersion - entityId: ${purpose.id}, eventType: ${notificationType}, reason: purpose has only one version`
     );
     return [];
   }
@@ -49,7 +48,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeQuotaAdjustmentResponseMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
   ]);
 
   const { dailyCallsPerConsumer } = retrieveLatestDescriptor(eservice);
@@ -69,7 +68,7 @@ export async function handlePurposeVersionActivatedOtherVersion(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeVersionActivatedOtherVersion - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }

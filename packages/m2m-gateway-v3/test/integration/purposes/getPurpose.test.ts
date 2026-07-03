@@ -38,7 +38,6 @@ describe("getPurpose", () => {
       eserviceId: mockApiPurposeResponse.data.eserviceId,
       id: mockApiPurposeResponse.data.id,
       isFreeOfCharge: mockApiPurposeResponse.data.isFreeOfCharge,
-      isRiskAnalysisValid: mockApiPurposeResponse.data.isRiskAnalysisValid,
       title: mockApiPurposeResponse.data.title,
       currentVersion: purposeVersion
         ? testToM2mGatewayApiPurposeVersion(purposeVersion)

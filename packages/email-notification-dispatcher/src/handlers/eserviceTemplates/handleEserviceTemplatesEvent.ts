@@ -80,6 +80,7 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateRiskAnalysisAdded",
           "EServiceTemplateRiskAnalysisDeleted",
           "EServiceTemplateRiskAnalysisUpdated",
+          "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
           "EServiceTemplateDraftVersionUpdated",
           "EServiceTemplateDraftUpdated",
           "EServiceTemplateDraftVersionDeleted",
@@ -96,12 +97,15 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionAdded",
           "EServiceTemplateVersionAttributesUpdated",
           "EServiceTemplateVersionActivated",
-          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
+          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
         ),
       },
       () => {
         logger.info(
-          `No need to send an email notification for ${decodedMessage.type} message`
+          `Skipping email notification for event ${decodedMessage.type}`
         );
         return [];
       }

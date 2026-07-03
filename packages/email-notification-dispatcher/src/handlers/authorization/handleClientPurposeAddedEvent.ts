@@ -5,16 +5,15 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
-  ClientPurposeHandlerParams,
   retrievePurpose,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { ClientPurposeHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "clientAddedRemovedToProducer";
@@ -34,7 +33,7 @@ export async function handleClientPurposeAdded(
 
   const [htmlTemplate, eservice, consumer] = await Promise.all([
     retrieveHTMLTemplate(eventMailTemplateType.clientPurposeAddedMailTemplate),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 
@@ -50,7 +49,7 @@ export async function handleClientPurposeAdded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleClientPurposeAdded - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }

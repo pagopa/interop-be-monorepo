@@ -9,13 +9,12 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  ProducerKeychainKeyHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
-import { producerKeychainKeyNotFound } from "../../models/errors.js";
+  producerKeychainKeyNotFound,
+} from "pagopa-interop-notification-commons";
+import { ProducerKeychainKeyHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
@@ -66,7 +65,7 @@ export async function handleProducerKeychainKeyAdded(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. ProducerKeychain ${producerKeychain.id}, key ${kid}, no emails to dispatch.`
+      `No users with email notifications enabled for handleProducerKeychainKeyAdded - entityId: ${producerKeychain.id}, eventType: ${notificationType}`
     );
     return [];
   }

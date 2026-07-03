@@ -7,15 +7,14 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "purposeStatusChangedToProducer";
@@ -43,7 +42,7 @@ export async function handlePurposeVersionUnsuspendedByConsumer(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeVersionUnsuspendedByConsumerMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 
@@ -59,7 +58,7 @@ export async function handlePurposeVersionUnsuspendedByConsumer(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeVersionUnsuspendedByConsumer - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }
