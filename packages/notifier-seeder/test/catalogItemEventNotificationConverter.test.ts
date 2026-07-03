@@ -60,6 +60,7 @@ const eservice = toEServiceV2({
       agreementApprovalPolicy: "Automatic",
       createdAt: new Date("2026-05-22T07:50:00.000Z"),
       serverUrls: ["https://example.com/callback"],
+      serverDescriptionUrls: [],
       attributes: {
         certified: [],
         declared: [],

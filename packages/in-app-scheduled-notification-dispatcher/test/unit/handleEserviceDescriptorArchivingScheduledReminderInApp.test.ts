@@ -35,6 +35,7 @@ const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
   agreementApprovalPolicy: undefined,
   createdAt: new Date(),
   serverUrls: [],
+  serverDescriptionUrls: [],
   attributes: { certified: [], declared: [], verified: [] },
   publishedAt: undefined,
   suspendedAt: undefined,
