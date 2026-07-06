@@ -539,6 +539,7 @@ export function catalogServiceBuilder(
               }
             : undefined,
         archivingSchedule: descriptor.archivingSchedule,
+        delegatedArchivingRequest: descriptor.delegatedArchivingRequest,
       };
     },
     getProducerEServiceDetails: async (
@@ -1842,6 +1843,36 @@ export function catalogServiceBuilder(
         params: {
           eServiceId,
           descriptorId,
+        },
+      });
+    },
+    submitDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      body: catalogApi.SubmitDelegatedEServiceArchivingSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Submitting delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.submitDelegatedEServiceArchiving(body, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
+    rejectDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      body: catalogApi.RejectDelegatedEServiceArchivingSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Rejecting delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.rejectDelegatedEServiceArchiving(body, {
+        headers,
+        params: {
+          eServiceId,
         },
       });
     },

@@ -13,6 +13,8 @@ import {
   EServiceRiskAnalysisFormV2,
   EServiceTechnologyV2,
   EServiceV2,
+  DelegatedArchivingRequestV2,
+  DescriptorArchivingRejectionReasonV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -40,6 +42,8 @@ import {
   eserviceMode,
   technology,
   type EServiceAttributeCertifiedDiscreteConfig,
+  DelegatedArchivingRequest,
+  DescriptorArchivingRejectionReason,
 } from "./eservice.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
@@ -163,6 +167,24 @@ export const toDescriptorRejectedReasonV2 = (
   rejectedAt: dateToBigInt(input.rejectedAt),
 });
 
+export const toDescriptorArchivingRejectionReasonV2 = (
+  input: DescriptorArchivingRejectionReason
+): DescriptorArchivingRejectionReasonV2 => ({
+  ...input,
+  rejectedAt: dateToBigInt(input.rejectedAt),
+});
+
+export const toDelegatedArchivingRequestV2 = (
+  input: DelegatedArchivingRequest
+): DelegatedArchivingRequestV2 => ({
+  requestedAt: dateToBigInt(input.requestedAt),
+  requestedBy: input.requestedBy,
+  gracePeriod: input.gracePeriod,
+  rejectionArchivingReasons: input.rejectionArchivingReasons.map(
+    toDescriptorArchivingRejectionReasonV2
+  ),
+});
+
 export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
   ...input,
   uploadDate: input.uploadDate.toISOString(),
@@ -213,6 +235,9 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
     : undefined,
   asyncExchangeProperties: input.asyncExchangeProperties
     ? { ...input.asyncExchangeProperties }
+    : undefined,
+  delegatedArchivingRequest: input.delegatedArchivingRequest
+    ? toDelegatedArchivingRequestV2(input.delegatedArchivingRequest)
     : undefined,
 });
 

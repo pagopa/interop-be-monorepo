@@ -289,3 +289,13 @@ message EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2 {
   string attributeId = 3;
   int32 dailyCallsPerConsumer = 4;
 }
+
+message EServiceArchivingRequestedByDelegateV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceArchivingRequestRejectedByDelegatorV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}

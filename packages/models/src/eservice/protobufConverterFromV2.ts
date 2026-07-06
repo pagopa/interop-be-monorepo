@@ -1,4 +1,4 @@
-import { EServiceTemplateId, unsafeBrandId } from "../brandedIds.js";
+import { EServiceTemplateId, TenantId, unsafeBrandId } from "../brandedIds.js";
 import { genericInternalError } from "../errors.js";
 import {
   AgreementApprovalPolicyV2,
@@ -16,6 +16,8 @@ import {
   EServiceTemplateVersionRefV2,
   type EServiceAttributeCertifiedDiscreteConfigV2,
   ArchivingScopeV2,
+  DelegatedArchivingRequestV2,
+  DescriptorArchivingRejectionReasonV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -44,6 +46,8 @@ import {
   type EServiceAttributeCertifiedDiscreteConfig,
   ArchivingScope,
   archivingScope,
+  DelegatedArchivingRequest,
+  DescriptorArchivingRejectionReason,
 } from "./eservice.js";
 import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 
@@ -181,6 +185,24 @@ export const fromDescriptorRejectionReasonV2 = (
   rejectedAt: bigIntToDate(input.rejectedAt),
 });
 
+export const fromDescriptorArchivingRejectionReasonV2 = (
+  input: DescriptorArchivingRejectionReasonV2
+): DescriptorArchivingRejectionReason => ({
+  ...input,
+  rejectedAt: bigIntToDate(input.rejectedAt),
+});
+
+export const fromDelegatedArchivingRequestV2 = (
+  input: DelegatedArchivingRequestV2
+): DelegatedArchivingRequest => ({
+  requestedAt: bigIntToDate(input.requestedAt),
+  requestedBy: unsafeBrandId<TenantId>(input.requestedBy),
+  gracePeriod: input.gracePeriod,
+  rejectionArchivingReasons: input.rejectionArchivingReasons.map(
+    fromDescriptorArchivingRejectionReasonV2
+  ),
+});
+
 export const fromEServiceTemplateVersionRefV2 = (
   input: EServiceTemplateVersionRefV2
 ): EServiceTemplateVersionRef => ({
@@ -251,6 +273,9 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
         ),
         gracePeriodDays: input.archivingSchedule.gracePeriodDays,
       }
+    : undefined,
+  delegatedArchivingRequest: input.delegatedArchivingRequest
+    ? fromDelegatedArchivingRequestV2(input.delegatedArchivingRequest)
     : undefined,
 });
 

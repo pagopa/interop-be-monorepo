@@ -174,6 +174,22 @@ export const AsyncExchangeProperties = z.object({
 });
 export type AsyncExchangeProperties = z.infer<typeof AsyncExchangeProperties>;
 
+export const DescriptorArchivingRejectionReason = z.object({
+  rejectionReason: z.string(),
+  rejectedAt: z.coerce.date(),
+});
+export type DescriptorArchivingRejectionReason = z.infer<
+  typeof DescriptorArchivingRejectionReason
+>;
+
+export const DelegatedArchivingRequest = z.object({
+  requestedAt: z.coerce.date(),
+  requestedBy: TenantId,
+  gracePeriod: z.number().int(),
+  rejectionArchivingReasons: z.array(DescriptorArchivingRejectionReason),
+});
+export type DelegatedArchivingRequest = z.infer<typeof DelegatedArchivingRequest>;
+
 export const Descriptor = z.object({
   id: DescriptorId,
   version: z.string(),
@@ -198,6 +214,7 @@ export const Descriptor = z.object({
   archivingSchedule: ArchivingSchedule.optional(),
   asyncExchangeCallbackInterface: Document.optional(),
   asyncExchangeProperties: AsyncExchangeProperties.optional(),
+  delegatedArchivingRequest: DelegatedArchivingRequest.optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 

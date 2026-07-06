@@ -78,6 +78,8 @@ import {
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
   gracePeriodDaysNotValid,
+  noDelegatedArchivingRequestFound,
+  delegatedArchivingRequestNotActive,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -289,6 +291,32 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
       eserviceId,
       producerDelegation.id
     );
+  }
+}
+
+export function assertHasActiveDelegatedArchivingRequest(
+  eserviceId: EServiceId,
+  descriptor: Descriptor
+): void {
+  const request = descriptor.delegatedArchivingRequest;
+  if (!request) {
+    throw noDelegatedArchivingRequestFound(eserviceId);
+  }
+  const lastRejection = request.rejectionArchivingReasons.at(-1);
+  if (lastRejection && lastRejection.rejectedAt >= request.requestedAt) {
+    throw delegatedArchivingRequestNotActive(eserviceId);
+  }
+}
+
+export function assertRequesterIsDelegateForArchiving(
+  producerDelegation: Delegation,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    authData.organizationId !== producerDelegation.delegateId
+  ) {
+    throw operationForbidden;
   }
 }
 
