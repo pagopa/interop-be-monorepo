@@ -67,6 +67,8 @@ function toOutboundDescriptorV2(
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
     asyncExchangeCallbackInterface: undefined,
     asyncExchangeProperties: undefined,
+    archivingSchedule: undefined,
+    delegatedArchivingRequest: undefined,
   };
 }
 
@@ -232,6 +234,9 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
+      // TODO: Propagate delegated archiving events when @pagopa/interop-outbound-models is updated
+      { type: "EServiceArchivingRequestedByDelegate" },
+      { type: "EServiceArchivingRequestRejectedByDelegator" },
       () => undefined
     )
     .with(

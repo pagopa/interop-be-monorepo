@@ -164,6 +164,15 @@ async function handleEServiceEventV2(
           `Skipping M2M event creation for ${decodedMessage.type} message`
         );
       })
+      .with(
+        { type: "EServiceArchivingRequestedByDelegate" },
+        { type: "EServiceArchivingRequestRejectedByDelegator" },
+        () => {
+          logger.info(
+            `Skipping M2M event creation for ${decodedMessage.type} message`
+          );
+        }
+      )
       .exhaustive()
   );
 }
