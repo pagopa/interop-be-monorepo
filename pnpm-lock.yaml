@@ -5111,9 +5111,6 @@ importers:
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 'catalog:'
-        version: 2.2.4
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -5967,9 +5964,6 @@ importers:
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 'catalog:'
-        version: 2.2.4
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -6175,9 +6169,6 @@ importers:
       kafka-iam-auth:
         specifier: workspace:*
         version: link:../kafka-iam-auth
-      kafkajs:
-        specifier: 'catalog:'
-        version: 2.2.4
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
