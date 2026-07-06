@@ -108,14 +108,26 @@ const initKafka = (config: InteropKafkaConfig): KafkaJS.Kafka => {
   return new KafkaJS.Kafka({ kafkaJS: kafkaConfig });
 };
 
+// With OAUTHBEARER/SASL_SSL the first admin operation (e.g. fetchTopicMetadata)
+// times out: the controller broker isn't known yet because the background
+// metadata refresh hasn't completed. A listTopics() call first forces a metadata
+// fetch that populates the controller-broker cache, so the following admin
+// operations succeed. Mirrors the knodia kafka-commons implementation.
+const initKafkaAdmin = async (
+  kafka: KafkaJS.Kafka
+): Promise<ReturnType<KafkaJS.Kafka["admin"]>> => {
+  const admin = kafka.admin();
+  await admin.connect();
+  await admin.listTopics({ timeout: 10000 });
+  return admin;
+};
+
 async function resetPartitionsOffsets(
   topics: string[],
   kafka: KafkaJS.Kafka,
   consumer: KafkaJS.Consumer
 ): Promise<void> {
-  const admin = kafka.admin();
-
-  await admin.connect();
+  const admin = await initKafkaAdmin(kafka);
 
   const fetchedTopics = await admin.fetchTopicMetadata({ topics });
   fetchedTopics.topics.forEach((t: KafkaJS.ITopicMetadata) =>
@@ -138,24 +150,23 @@ const validateTopicMetadata = async (
     `Check topics [${JSON.stringify(topicNames)}] existence...`
   );
 
-  const admin = kafka.admin();
-  await admin.connect();
+  const admin = await initKafkaAdmin(kafka);
 
   try {
     const { topics } = await admin.fetchTopicMetadata({
       topics: [...topicNames],
     });
     genericLogger.debug(`Topic metadata: ${JSON.stringify(topics)} `);
-    await admin.disconnect();
     return true;
   } catch (e) {
-    await admin.disconnect();
     genericLogger.error(
       `Unable to subscribe! Error during topic metadata fetch: ${JSON.stringify(
         e
       )}`
     );
     return false;
+  } finally {
+    await admin.disconnect();
   }
 };
 
