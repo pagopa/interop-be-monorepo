@@ -312,6 +312,47 @@ describe("retrieveServerUrlsAPI", () => {
       expect(urls).toEqual([]);
     });
 
+    it("should return an empty array for REST callback interface with empty servers array", async () => {
+      const restCallbackDoc = {
+        name: "callback.json",
+        text: vi.fn().mockResolvedValue(
+          JSON.stringify({
+            openapi: "3.0.0",
+            servers: [],
+          })
+        ),
+      } as unknown as File;
+
+      const urls = await retrieveServerUrlsAPI(
+        restCallbackDoc,
+        "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+        technology.rest,
+        { id: generateId(), isEserviceTemplate: false }
+      );
+
+      expect(urls).toEqual([]);
+    });
+
+    it("should return an empty array for REST callback interface without servers field", async () => {
+      const restCallbackDoc = {
+        name: "callback.json",
+        text: vi.fn().mockResolvedValue(
+          JSON.stringify({
+            openapi: "3.0.0",
+          })
+        ),
+      } as unknown as File;
+
+      const urls = await retrieveServerUrlsAPI(
+        restCallbackDoc,
+        "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+        technology.rest,
+        { id: generateId(), isEserviceTemplate: false }
+      );
+
+      expect(urls).toEqual([]);
+    });
+
     it("should throw error for REST callback interface with unsupported OpenAPI version", async () => {
       const invalidDoc = {
         name: "callback.json",

@@ -21,7 +21,7 @@ import {
   Technology,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { z, ZodError } from "zod";
+import { z } from "zod";
 import { calculateChecksum } from "../utils/fileUtils.js";
 import { FileManager } from "../file-manager/fileManager.js";
 import { Logger } from "../logging/index.js";
@@ -369,11 +369,7 @@ export const retrieveServerUrlsAPI = async (
     return serverUrls;
   } catch (error) {
     throw match(error)
-      .with(
-        P.instanceOf(ApiError<CommonErrorCodes>),
-        P.instanceOf(ZodError),
-        () => error
-      )
+      .with(P.instanceOf(ApiError<CommonErrorCodes>), () => error)
       .otherwise(() => invalidInterfaceFileDetected(resource));
   }
 };
