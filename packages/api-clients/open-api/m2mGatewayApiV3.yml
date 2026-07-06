@@ -12705,6 +12705,7 @@ components:
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
+        - description
       type: object
       additionalProperties: false
       properties:
@@ -12810,6 +12811,7 @@ components:
           $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - voucherLifespan
+        - description
     EServiceTemplateVersionDraftUpdateSeed:
       type: object
       additionalProperties: false

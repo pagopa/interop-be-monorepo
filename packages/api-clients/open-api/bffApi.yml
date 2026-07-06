@@ -31403,6 +31403,7 @@ components:
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
+        - description
       type: object
       additionalProperties: false
       properties:
