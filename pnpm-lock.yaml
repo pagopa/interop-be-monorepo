@@ -12340,6 +12340,11 @@ packages:
     engines: {node: '>= 14'}
     hasBin: true
 
+  yaml@2.8.3:
+    resolution: {integrity: sha512-AvbaCLOO2Otw/lW5bmh9d/WEdcDFdQp2Z2ZUH3pX9U2ihyUY0nvLv7J6TrWowklRGPYbB/IuIMfYgxaCPg5Bpg==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
+
   yargs-parser@21.1.1:
     resolution: {integrity: sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==}
     engines: {node: '>=12'}
@@ -16723,7 +16728,7 @@ snapshots:
 
   docker-compose@0.24.8:
     dependencies:
-      yaml: 2.8.3
+      yaml: 2.4.5
 
   docker-modem@3.0.8:
     dependencies:
@@ -18245,7 +18250,7 @@ snapshots:
 
   openapi3-ts@3.1.0:
     dependencies:
-      yaml: 2.8.3
+      yaml: 2.4.5
 
   optionator@0.9.4:
     dependencies:
@@ -19657,6 +19662,8 @@ snapshots:
   yallist@5.0.0: {}
 
   yaml@2.4.5: {}
+
+  yaml@2.8.3: {}
 
   yargs-parser@21.1.1: {}
 
