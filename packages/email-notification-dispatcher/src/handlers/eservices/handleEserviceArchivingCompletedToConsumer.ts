@@ -71,7 +71,7 @@ export async function handleEserviceArchivingCompletedToConsumer(
     return [];
   }
 
-  const subject = `Archiviazione conclusa dell'e-service "${eservice.name}"`;
+  const subject = `L'e-service con cui stai scambiando dati è stato archiviato`;
 
   return targets.flatMap((t) => {
     const tenant = tenants.find((x) => x.id === t.tenantId);
