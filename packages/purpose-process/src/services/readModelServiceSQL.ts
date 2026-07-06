@@ -27,6 +27,9 @@ import {
   purposeTemplateState,
   ClientId,
   Client,
+  UserId,
+  RiskAnalysisSigningState,
+  TenantKind,
 } from "pagopa-interop-models";
 import {
   agreementInReadmodelAgreement,
@@ -36,12 +39,14 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import {
   aggregatePurposeArray,
   AgreementReadModelService,
@@ -55,9 +60,13 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   and,
+  asc,
+  desc,
   eq,
+  exists,
   inArray,
   isNotNull,
+  lte,
   ne,
   notExists,
   or,
@@ -73,6 +82,8 @@ export type GetPurposesFilters = {
   purposesIds: PurposeId[];
   states: PurposeVersionState[];
   excludeDraft: boolean | undefined;
+  reviewerId?: UserId;
+  signingStates?: RiskAnalysisSigningState[];
 };
 
 const activeProducerDelegations = alias(
@@ -148,14 +159,60 @@ const getVisibilityFilter = (requesterId: TenantId): SQL | undefined =>
     eq(activeConsumerDelegations.delegateId, requesterId)
   );
 
+const getReviewerIdFilter = (
+  db: DrizzleReturnType,
+  reviewerId: UserId | undefined
+): SQL | undefined =>
+  reviewerId
+    ? exists(
+        db
+          .select()
+          .from(riskAnalysisReviewerInReadmodelPurpose)
+          .where(
+            and(
+              isNotNull(
+                purposeInReadmodelPurpose.reviewerWorkflowSentToReviewerAt
+              ),
+              eq(
+                riskAnalysisReviewerInReadmodelPurpose.purposeId,
+                purposeInReadmodelPurpose.id
+              ),
+              eq(riskAnalysisReviewerInReadmodelPurpose.reviewerId, reviewerId)
+            )
+          )
+      )
+    : undefined;
+
+const getSigningStateFilter = (
+  signingStates: RiskAnalysisSigningState[] | undefined
+): SQL | undefined =>
+  signingStates && signingStates.length > 0
+    ? inArray(
+        purposeInReadmodelPurpose.reviewerWorkflowSigningState,
+        signingStates
+      )
+    : undefined;
+
 const getPurposesFilters = (
   db: DrizzleReturnType,
   filters: Pick<
     GetPurposesFilters,
-    "title" | "eservicesIds" | "states" | "excludeDraft"
+    | "title"
+    | "eservicesIds"
+    | "states"
+    | "excludeDraft"
+    | "reviewerId"
+    | "signingStates"
   >
 ): Array<SQL | undefined> => {
-  const { title, eservicesIds, states, excludeDraft } = filters;
+  const {
+    title,
+    eservicesIds,
+    states,
+    excludeDraft,
+    reviewerId,
+    signingStates,
+  } = filters;
   const titleFilter = title
     ? ilikeEscaped(purposeInReadmodelPurpose.title, `%${escapeSqlLike(title)}%`)
     : undefined;
@@ -202,7 +259,17 @@ const getPurposesFilters = (
       )
     : undefined;
 
-  return [titleFilter, eservicesIdsFilter, versionStateFilter, draftFilter];
+  const reviewerIdFilter = getReviewerIdFilter(db, reviewerId);
+  const signingStateFilter = getSigningStateFilter(signingStates);
+
+  return [
+    titleFilter,
+    eservicesIdsFilter,
+    versionStateFilter,
+    draftFilter,
+    reviewerIdFilter,
+    signingStateFilter,
+  ];
 };
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -215,6 +282,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
   clientReadModelServiceSQL,
+  tenantKindHistoryDB,
 }: {
   readModelDB: DrizzleReturnType;
   purposeReadModelServiceSQL: PurposeReadModelService;
@@ -224,6 +292,7 @@ export function readModelServiceBuilderSQL({
   delegationReadModelServiceSQL: DelegationReadModelService;
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
   clientReadModelServiceSQL: ClientReadModelService;
+  tenantKindHistoryDB: DrizzleReturnType;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
@@ -249,6 +318,34 @@ export function readModelServiceBuilderSQL({
           ilikeEscaped(purposeInReadmodelPurpose.title, escapeSqlLike(title))
         )
       );
+    },
+    async getTenantKindAt(
+      tenantId: TenantId,
+      date: Date
+    ): Promise<TenantKind | undefined> {
+      const [result] = await tenantKindHistoryDB
+        .select()
+        .from(tenantKindHistory)
+        .where(
+          and(
+            eq(tenantKindHistory.tenantId, tenantId),
+            lte(tenantKindHistory.modifiedAt, date.toISOString())
+          )
+        )
+        .orderBy(desc(tenantKindHistory.modifiedAt))
+        .limit(1);
+      return result?.kind ? TenantKind.parse(result.kind) : undefined;
+    },
+    async getFirstTenantKind(
+      tenantId: TenantId
+    ): Promise<TenantKind | undefined> {
+      const [result] = await tenantKindHistoryDB
+        .select()
+        .from(tenantKindHistory)
+        .where(eq(tenantKindHistory.tenantId, tenantId))
+        .orderBy(asc(tenantKindHistory.modifiedAt))
+        .limit(1);
+      return result?.kind ? TenantKind.parse(result.kind) : undefined;
     },
     async getPurposes(
       requesterId: TenantId,
@@ -307,6 +404,7 @@ export function readModelServiceBuilderSQL({
           purposeVersionStamp: purposeVersionStampInReadmodelPurpose,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: riskAnalysisReviewerInReadmodelPurpose,
           totalCount: subquery.totalCount,
         })
         .from(purposeInReadmodelPurpose)
@@ -360,6 +458,13 @@ export function readModelServiceBuilderSQL({
           eq(
             purposeVersionInReadmodelPurpose.id,
             purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId
+          )
+        )
+        .leftJoin(
+          riskAnalysisReviewerInReadmodelPurpose,
+          eq(
+            purposeInReadmodelPurpose.id,
+            riskAnalysisReviewerInReadmodelPurpose.purposeId
           )
         )
         .leftJoin(

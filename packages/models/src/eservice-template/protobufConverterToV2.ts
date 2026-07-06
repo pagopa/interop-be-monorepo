@@ -8,11 +8,12 @@ import {
 } from "../gen/v2/eservice-template/eservice-template.js";
 import {
   toDocumentV2,
+  toCertifiedDiscreteConfigV2,
   toEServiceAttributeV2,
   toEServiceModeV2,
+  toRiskAnalysisFormV2,
   toEServiceTechnologyV2,
 } from "../eservice/protobufConverterToV2.js";
-import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import {
   AgreementApprovalPolicy,
   agreementApprovalPolicy,
@@ -20,11 +21,33 @@ import {
 import { AgreementApprovalPolicyV2 } from "../gen/v2/eservice/eservice.js";
 import {
   EServiceTemplate,
-  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
   eserviceTemplateVersionState,
+  EServiceTemplateAttribute,
+  EServiceTemplateAttributeCertifiedDiscrete,
 } from "./eserviceTemplate.js";
+import { RiskAnalysis } from "../risk-analysis/riskAnalysis.js";
+
+const toEServiceTemplateAttributeValueV2 = (
+  attribute:
+    | EServiceTemplateAttribute
+    | EServiceTemplateAttributeCertifiedDiscrete
+) => ({
+  id: attribute.id,
+  explicitAttributeVerification: attribute.explicitAttributeVerification,
+  ...("discreteConfig" in attribute
+    ? {
+        discreteConfig: toCertifiedDiscreteConfigV2(attribute.discreteConfig),
+      }
+    : undefined),
+});
+
+const toEServiceTemplateAttributeGroupV2 = (
+  attributes: Array<
+    EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+  >
+) => ({ values: attributes.map(toEServiceTemplateAttributeValueV2) });
 
 const toAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicy
@@ -63,11 +86,13 @@ export const toEServiceTemplateVersionStateV2 = (
     .exhaustive();
 
 export const toEServiceTemplateRiskAnalysisV2 = (
-  input: EServiceTemplateRiskAnalysis
+  input: RiskAnalysis
 ): EServiceTemplateRiskAnalysisV2 => ({
   ...input,
   createdAt: dateToBigInt(input.createdAt),
-  tenantKind: toTenantKindV2(input.tenantKind),
+  riskAnalysisForm: input.riskAnalysisForm
+    ? toRiskAnalysisFormV2(input.riskAnalysisForm)
+    : undefined,
 });
 
 export const toEServiceTemplateVersionV2 = (
@@ -76,7 +101,9 @@ export const toEServiceTemplateVersionV2 = (
   ...input,
   version: BigInt(input.version),
   attributes: {
-    certified: input.attributes.certified.map(toEServiceAttributeV2),
+    certified: input.attributes.certified.map(
+      toEServiceTemplateAttributeGroupV2
+    ),
     declared: input.attributes.declared.map(toEServiceAttributeV2),
     verified: input.attributes.verified.map(toEServiceAttributeV2),
   },
@@ -84,6 +111,13 @@ export const toEServiceTemplateVersionV2 = (
   state: toEServiceTemplateVersionStateV2(input.state),
   interface:
     input.interface != null ? toDocumentV2(input.interface) : undefined,
+  asyncExchangeCallbackInterface:
+    input.asyncExchangeCallbackInterface != null
+      ? toDocumentV2(input.asyncExchangeCallbackInterface)
+      : undefined,
+  asyncExchangeProperties: input.asyncExchangeProperties
+    ? { ...input.asyncExchangeProperties }
+    : undefined,
   agreementApprovalPolicy: input.agreementApprovalPolicy
     ? toAgreementApprovalPolicyV2(input.agreementApprovalPolicy)
     : undefined,

@@ -54,11 +54,13 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentUpdated",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",
+            "MaintenanceEServiceRiskAnalysisSetTenantKind",
             "EServiceDescriptionUpdated",
             "EServiceDescriptorSubmittedByDelegate",
             "EServiceDescriptorApprovedByDelegator",
             "EServiceDescriptorRejectedByDelegator",
             "EServiceDescriptorAttributesUpdated",
+            "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
             "EServiceNameUpdated",
             "EServiceIsConsumerDelegableEnabled",
             "EServiceIsConsumerDelegableDisabled",
@@ -72,6 +74,9 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorDocumentAddedByTemplateUpdate",
             "EServiceRiskAnalysisDeleted",
             "EServiceDescriptorInterfaceDeleted",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceDescriptorDocumentDeleted",
             "EServiceDraftDescriptorDeleted",
@@ -80,7 +85,14 @@ export async function handleCatalogMessageV2(
             "EServicePersonalDataFlagUpdatedAfterPublication",
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
             "EServiceInstanceLabelUpdated",
-            "MaintenanceEServicePersonalDataFlagReset"
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingCanceled",
+            "EServiceDescriptorArchivingCompleted",
+            "EServiceArchivingScheduled",
+            "EServiceArchivingCanceled",
+            "EServiceArchivingCompleted",
+            "MaintenanceEServicePersonalDataFlagReset",
+            "MaintenanceEServiceDescriptorUnarchived"
           ),
         },
         (msg) => {
@@ -105,6 +117,9 @@ export async function handleCatalogMessageV2(
               documentsSQL: splitResult.documentsSQL,
               rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
               templateVersionRefsSQL: splitResult.templateVersionRefsSQL,
+              archivingSchedulesSQL: splitResult.archivingSchedulesSQL,
+              asyncExchangePropertiesSQL:
+                splitResult.asyncExchangePropertiesSQL,
             } satisfies z.input<typeof EserviceItemsSchema>)
           );
         }

@@ -79,6 +79,8 @@ const authorizationRouter = (
     SUPPORT_ROLE,
     API_ROLE,
     INTERNAL_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
@@ -684,6 +686,7 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
+          API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
@@ -721,6 +724,46 @@ const authorizationRouter = (
             totalCount: producerKeychains.totalCount,
           })
         );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getProducerKeychainsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/producerKeychains/eservices/:eserviceId/flags", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          SECURITY_ROLE,
+          API_ROLE,
+          M2M_ROLE,
+          SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
+        ]);
+
+        const producerKeychainEServiceFlags =
+          await authorizationService.getProducerKeychainEServiceFlags(
+            {
+              eserviceId: unsafeBrandId<EServiceId>(req.params.eserviceId),
+              producerId: unsafeBrandId<TenantId>(req.query.producerId),
+            },
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            authorizationApi.ProducerKeychainEServiceFlags.parse(
+              producerKeychainEServiceFlags
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

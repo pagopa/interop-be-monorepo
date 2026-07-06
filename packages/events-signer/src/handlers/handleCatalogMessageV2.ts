@@ -44,7 +44,11 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorSuspended",
             "EServiceDescriptorSubmittedByDelegate",
             "EServiceDescriptorApprovedByDelegator",
-            "EServiceDescriptorRejectedByDelegator"
+            "EServiceDescriptorRejectedByDelegator",
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingCanceled",
+            "EServiceDescriptorArchivingCompleted",
+            "MaintenanceEServiceDescriptorUnarchived"
           ),
         },
         (event) => {
@@ -72,6 +76,31 @@ export const handleCatalogMessageV2 = async (
       .with(
         {
           type: P.union(
+            "EServiceArchivingScheduled",
+            "EServiceArchivingCanceled",
+            "EServiceArchivingCompleted"
+          ),
+        },
+        (event) => {
+          if (!event.data.eservice?.id) {
+            throw missingKafkaMessageDataError("eserviceId", event.type);
+          }
+          const eservice = fromEServiceV2(event.data.eservice);
+          const eserviceEntries = eservice.descriptors.map((descriptor) => ({
+            event_name: event.type,
+            id: eservice.id,
+            descriptor_id: descriptor.id,
+            state: descriptor.state,
+            eventTimestamp: timestamp,
+            correlationId,
+          }));
+
+          allCatalogDataToStore.push(...eserviceEntries);
+        }
+      )
+      .with(
+        {
+          type: P.union(
             "EServiceAdded",
             "DraftEServiceUpdated",
             "EServiceDeleted",
@@ -85,11 +114,16 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorDocumentUpdated",
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorDocumentDeleted",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",
+            "MaintenanceEServiceRiskAnalysisSetTenantKind",
             "EServiceRiskAnalysisDeleted",
             "EServiceDescriptionUpdated",
             "EServiceDescriptorAttributesUpdated",
+            "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
             "EServiceIsConsumerDelegableEnabled",
             "EServiceIsConsumerDelegableDisabled",
             "EServiceIsClientAccessDelegableEnabled",

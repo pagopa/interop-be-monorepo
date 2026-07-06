@@ -67,7 +67,13 @@ async function handlePurposeEventV2(
             "DraftPurposeDeleted",
             "WaitingForApprovalPurposeDeleted",
             "PurposeCloned",
-            "PurposeDeletedByRevokedDelegation"
+            "PurposeDeletedByRevokedDelegation",
+            "PurposeRiskAnalysisWorkflowCreated",
+            "PurposeRiskAnalysisAssigned",
+            "PurposeRiskAnalysisSubmitted",
+            "PurposeRiskAnalysisSigned",
+            "PurposeRiskAnalysisRejected",
+            "PurposeRiskAnalysisFormEdited"
           ),
         },
         async (event) => {
@@ -140,7 +146,10 @@ async function handlePurposeEventV2(
            * We avoid exposing the unsigned document generation.
            * The user will only be able to see only the signed one.
            */
-          type: P.union("RiskAnalysisDocumentGenerated"),
+          type: P.union(
+            "RiskAnalysisDocumentGenerated",
+            "MaintenancePurposeRiskAnalysisSetTenantKind"
+          ),
         },
         () => Promise.resolve(void 0)
       )

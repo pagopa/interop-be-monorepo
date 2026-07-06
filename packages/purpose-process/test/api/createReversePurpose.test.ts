@@ -27,6 +27,7 @@ import {
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
   riskAnalysisValidationFailed,
+  invalidFreeOfChargeReason,
 } from "../../src/model/domain/errors.js";
 import { getMockReversePurposeSeed } from "../mockUtils.js";
 
@@ -38,13 +39,9 @@ describe("API POST /reverse/purposes test", () => {
     generateId()
   );
   const mockPurpose: Purpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
-  const serviceResponse = getMockWithMetadata({
-    purpose: mockPurpose,
-    isRiskAnalysisValid,
-  });
+  const serviceResponse = getMockWithMetadata(mockPurpose);
 
-  const apiResponse = purposeToApiPurpose(mockPurpose, isRiskAnalysisValid);
+  const apiResponse = purposeToApiPurpose(mockPurpose);
 
   beforeEach(() => {
     purposeService.createReversePurpose = vi
@@ -115,6 +112,10 @@ describe("API POST /reverse/purposes test", () => {
     {
       error: duplicatedPurposeTitle(mockReversePurposeSeed.title),
       expectedStatus: 409,
+    },
+    {
+      error: invalidFreeOfChargeReason(false, "Some reason"),
+      expectedStatus: 400,
     },
   ])(
     "Should return $expectedStatus for $error.code",

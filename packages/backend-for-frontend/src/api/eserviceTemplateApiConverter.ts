@@ -12,7 +12,7 @@ import {
 } from "./catalogApiConverter.js";
 import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
-function toBffCompactEServiceTemplateVersion(
+export function toBffCompactEServiceTemplateVersion(
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion
 ): bffApi.CompactEServiceTemplateVersion {
   return {
@@ -50,6 +50,7 @@ export function toBffEServiceTemplateDetails(
       ? toBffCompactEServiceTemplateVersion(draftVersion)
       : undefined,
     personalData: eserviceTemplate.personalData,
+    asyncExchange: eserviceTemplate.asyncExchange,
   };
 }
 

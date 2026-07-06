@@ -8,9 +8,24 @@ import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPub
 import { handleEserviceDescriptorSubmittedByDelegate } from "./handleEserviceDescriptorSubmittedByDelegate.js";
 import { handleEserviceDescriptorApprovedByDelegator } from "./handleEserviceDescriptorApprovedByDelegator.js";
 import { handleEserviceDescriptorRejectedByDelegator } from "./handleEserviceDescriptorRejectedByDelegator.js";
-import { handleEserviceDescriptorActivated } from "./handleEserviceDescriptorActivated.js";
-import { handleEserviceDescriptorSuspended } from "./handleEserviceDescriptorSuspended.js";
+import { handleEserviceDescriptorActivatedToConsumer } from "./handleEserviceDescriptorActivatedToConsumer.js";
+import { handleEserviceDescriptorActivatedToProducer } from "./handleEserviceDescriptorActivatedToProducer.js";
+import { handleEserviceDescriptorSuspendedToConsumer } from "./handleEserviceDescriptorSuspendedToConsumer.js";
+import { handleEserviceDescriptorSuspendedToProducer } from "./handleEserviceDescriptorSuspendedToProducer.js";
 import { handleEserviceStateChanged } from "./handleEserviceStateChanged.js";
+import { handleEserviceDescriptorArchivingScheduledToProducer } from "./handleEserviceDescriptorArchivingScheduledToProducer.js";
+import { handleEserviceDescriptorArchivingScheduledToConsumer } from "./handleEserviceDescriptorArchivingScheduledToConsumer.js";
+import { handleEserviceArchivingScheduledToProducer } from "./handleEserviceArchivingScheduledToProducer.js";
+import { handleEserviceArchivingScheduledToConsumer } from "./handleEserviceArchivingScheduledToConsumer.js";
+import { handleEserviceDescriptorArchivingCompletedToProducer } from "./handleEserviceDescriptorArchivingCompletedToProducer.js";
+import { handleEserviceDescriptorArchivingCompletedToConsumer } from "./handleEserviceDescriptorArchivingCompletedToConsumer.js";
+import { handleEserviceArchivingCompletedToProducer } from "./handleEserviceArchivingCompletedToProducer.js";
+import { handleEserviceArchivingCompletedToConsumer } from "./handleEserviceArchivingCompletedToConsumer.js";
+import { handleEserviceDescriptorArchivedToProducer } from "./handleEserviceDescriptorArchivedToProducer.js";
+import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
+import { handleEserviceDescriptorArchivingCanceledToConsumer } from "./handleEserviceDescriptorArchivingCanceledToConsumer.js";
+import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceDescriptorArchivingCanceledToProducer } from "./handleEserviceDescriptorArchivingCanceledToProducer.js";
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEvent>
@@ -41,27 +56,51 @@ export async function handleEServiceEvent(
     )
     .with(
       { type: "EServiceDescriptorActivated" },
-      ({ data: { eservice, descriptorId } }) =>
-        handleEserviceDescriptorActivated({
-          eserviceV2Msg: eservice,
-          descriptorId,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceDescriptorActivatedToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceDescriptorActivatedToConsumer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
     )
     .with(
       { type: "EServiceDescriptorSuspended" },
-      ({ data: { eservice, descriptorId } }) =>
-        handleEserviceDescriptorSuspended({
-          eserviceV2Msg: eservice,
-          descriptorId,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceDescriptorSuspendedToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceDescriptorSuspendedToConsumer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
     )
     .with(
       { type: "EServiceDescriptorSubmittedByDelegate" },
@@ -102,6 +141,7 @@ export async function handleEServiceEvent(
           "EServiceNameUpdated",
           "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptorQuotasUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
           "EServiceDescriptorDocumentAdded",
           "EServiceDescriptorDocumentUpdated",
@@ -119,6 +159,156 @@ export async function handleEServiceEvent(
         })
     )
     .with(
+      { type: "EServiceDescriptorArchivingScheduled" },
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceDescriptorArchivingScheduledToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceDescriptorArchivingScheduledToConsumer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      { type: "EServiceArchivingScheduled" },
+      async ({ data: { eservice } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingScheduledToProducer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceArchivingScheduledToConsumer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingCompleted" },
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceDescriptorArchivingCompletedToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceDescriptorArchivingCompletedToConsumer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      { type: "EServiceArchivingCompleted" },
+      async ({ data: { eservice } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingCompletedToProducer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceArchivingCompletedToConsumer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      { type: "EServiceDescriptorArchived" },
+      ({ data: { eservice, descriptorId } }) =>
+        handleEserviceDescriptorArchivedToProducer({
+          eserviceV2Msg: eservice,
+          descriptorId,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "EServiceArchivingCanceled" },
+      async ({ data: { eservice } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingCanceledToProducer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceArchivingCanceledToConsumer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingCanceled" },
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceDescriptorArchivingCanceledToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceDescriptorArchivingCanceledToConsumer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
       {
         type: P.union(
           "EServiceAdded",
@@ -131,6 +321,7 @@ export async function handleEServiceEvent(
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
           "EServiceRiskAnalysisDeleted",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
@@ -139,18 +330,21 @@ export async function handleEServiceEvent(
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
           "EServicePersonalDataFlagUpdatedAfterPublication",
-          "EServiceDescriptorArchived",
           "EServiceDescriptionUpdated",
           "EServiceDescriptionUpdatedByTemplateUpdate",
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
           "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "EServiceDescriptorDocumentDeleted",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
-          "MaintenanceEServicePersonalDataFlagReset"
+          "MaintenanceEServicePersonalDataFlagReset",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {
