@@ -11,6 +11,8 @@ volumes:
   domains-analytics-sql-data:
   m2m-event-sql-data:
   digest-tracking-sql-data:
+  tenant-kind-history-sql-data:
+  scheduled-notification-sql-data:
   zookeeper-data:
   zookeeper-logs:
   kafka-data:
@@ -142,8 +144,13 @@ services:
 
     # POSTGRESQL tenant kind history
   tenant-kind-history-sql:
+    read_only: true
+    tmpfs:
+      - /var/run/postgresql
+      - /tmp
     volumes:
       - ./tenant-kind-history-db:/docker-entrypoint-initdb.d
+      - tenant-kind-history-sql-data:/var/lib/postgresql/data
     image: postgres:14
     ports:
       - 6008:5433
@@ -155,8 +162,13 @@ services:
 
   # POSTGRESQL scheduled notification (scheduled-notification-scheduler + dispatchers)
   scheduled-notification-sql:
+    read_only: true
+    tmpfs:
+      - /var/run/postgresql
+      - /tmp
     volumes:
       - ./scheduled-notification-db:/docker-entrypoint-initdb.d
+      - scheduled-notification-sql-data:/var/lib/postgresql/data
     image: postgres:14
     ports:
       - 6009:5433
