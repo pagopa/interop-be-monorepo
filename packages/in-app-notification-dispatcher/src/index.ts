@@ -10,6 +10,7 @@ import {
   EServiceTemplateEventV2,
   EventEnvelope,
   NewNotification,
+  NotificationType,
   PurposeEvent,
   TenantEvent,
   generateId,
@@ -24,6 +25,7 @@ import {
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   notificationConfigReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -66,6 +68,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
@@ -75,6 +79,9 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist:
+    config.notificationTypeBlocklist as NotificationType[],
+  producerKeychainReadModelServiceSQL,
 });
 
 const notificationDB = drizzle(

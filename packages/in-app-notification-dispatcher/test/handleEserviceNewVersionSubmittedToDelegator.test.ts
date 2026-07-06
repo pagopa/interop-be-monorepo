@@ -21,10 +21,12 @@ import {
 import {
   activeProducerDelegationNotFound,
   tenantNotFound,
-} from "../src/models/errors.js";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+  getNotificationRecipients,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+
 import { handleEserviceNewVersionSubmittedToDelegator } from "../src/handlers/eservices/handleEserviceNewVersionSubmittedToDelegator.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+
 import { addOneDelegation, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleEserviceNewVersionSubmittedToDelegator", () => {

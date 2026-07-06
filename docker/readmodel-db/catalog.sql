@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   template_id UUID,
   personal_data BOOLEAN,
   instance_label VARCHAR,
+  archiving_reason VARCHAR,
+  async_exchange BOOLEAN,
   PRIMARY KEY (id),
   CONSTRAINT eservice_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
@@ -54,6 +56,19 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_template_versio
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_async_exchange_properties (
+  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
+  response_time INTEGER NOT NULL,
+  resource_available_time INTEGER NOT NULL,
+  confirmation BOOLEAN NOT NULL,
+  bulk BOOLEAN NOT NULL,
+  max_result_set INTEGER NOT NULL,
+  PRIMARY KEY (descriptor_id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_rejection_reason (
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
@@ -67,7 +82,8 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_interface (
   id UUID,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  descriptor_id UUID UNIQUE NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
+  descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
+  kind VARCHAR NOT NULL,
   name VARCHAR NOT NULL,
   content_type VARCHAR NOT NULL,
   pretty_name VARCHAR NOT NULL,
@@ -75,6 +91,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_interface (
   checksum VARCHAR NOT NULL,
   upload_date TIMESTAMP WITH TIME ZONE NOT NULL,
   PRIMARY KEY (id),
+  UNIQUE (descriptor_id, kind),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -101,6 +118,9 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_attribute (
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
+  daily_calls_per_consumer INTEGER,
+  certified_discrete_threshold INTEGER,
+  certified_discrete_comparator VARCHAR,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
@@ -113,6 +133,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis (
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id UUID NOT NULL,
   risk_analysis_form_version VARCHAR NOT NULL,
+  tenant_kind VARCHAR,
   PRIMARY KEY (id, eservice_id),
   UNIQUE (risk_analysis_form_id, eservice_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
@@ -129,4 +150,15 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_risk_analysis_answer (
   PRIMARY KEY (id, eservice_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED,
   FOREIGN KEY (risk_analysis_form_id, eservice_id) REFERENCES readmodel_catalog.eservice_risk_analysis (risk_analysis_form_id, eservice_id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_archiving_schedule (
+  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id UUID NOT NULL REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
+  scope VARCHAR NOT NULL,
+  archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
+  started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  PRIMARY KEY (eservice_id, descriptor_id),
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

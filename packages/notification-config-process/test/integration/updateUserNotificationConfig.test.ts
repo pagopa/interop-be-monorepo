@@ -57,6 +57,8 @@ describe("updateUserNotificationConfig", () => {
           !userNotificationConfig.inAppConfig.purposeStatusChangedToProducer,
         templateStatusChangedToProducer:
           !userNotificationConfig.inAppConfig.templateStatusChangedToProducer,
+        eserviceStateChangedToProducer:
+          !userNotificationConfig.inAppConfig.eserviceStateChangedToProducer,
         agreementSuspendedUnsuspendedToConsumer:
           !userNotificationConfig.inAppConfig
             .agreementSuspendedUnsuspendedToConsumer,
@@ -150,9 +152,11 @@ describe("updateUserNotificationConfig", () => {
       updatedAt: new Date(),
     };
     expect(serviceReturnValue).toEqual(expectedUserNotificationConfig);
-    expect(writtenPayload.userNotificationConfig).toEqual(
-      toUserNotificationConfigV2(expectedUserNotificationConfig)
-    );
+    expect(writtenPayload).toEqual({
+      userNotificationConfig: toUserNotificationConfigV2(
+        expectedUserNotificationConfig
+      ),
+    });
   });
 
   it.each<[string, UserId, TenantId]>([

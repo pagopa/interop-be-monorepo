@@ -15,7 +15,6 @@ import {
   SafeStorageService,
   SignatureServiceBuilder,
 } from "pagopa-interop-commons";
-import { config } from "../config/config.js";
 import { PurposeTemplateEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
@@ -31,7 +30,7 @@ export const handlePurposeTemplateMessageV2 = async (
   const correlationId = generateId<CorrelationId>();
 
   const loggerInstance = logger({
-    serviceName: config.serviceName,
+    serviceName: "events-signer",
     correlationId,
   });
   const allPurposeTemplateDataToStore: PurposeTemplateEventData[] = [];
@@ -74,6 +73,8 @@ export const handlePurposeTemplateMessageV2 = async (
             "PurposeTemplateDraftDeleted",
             "PurposeTemplateDraftUpdated",
             "PurposeTemplateEServiceLinked",
+            "PurposeTemplateEServiceTemplateLinked",
+            "PurposeTemplateEServiceTemplateUnlinked",
             "PurposeTemplateEServiceUnlinked",
             "PurposeTemplateSuspended",
             "PurposeTemplateUnsuspended",

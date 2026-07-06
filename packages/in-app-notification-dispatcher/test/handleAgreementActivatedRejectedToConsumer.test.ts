@@ -16,16 +16,20 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
-import { handleAgreementActivatedRejectedToConsumer } from "../src/handlers/agreements/handleAgreementActivatedRejectedToConsumer.js";
-import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+import {
+  getNotificationRecipients,
+  tenantNotFound,
+  eserviceNotFound,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+
 import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
   readModelService,
 } from "./utils.js";
+import { handleAgreementActivatedRejectedToConsumer } from "../src/handlers/agreements/handleAgreementActivatedRejectedToConsumer.js";
 
 describe("handleAgreementActivatedRejectedToConsumer", () => {
   const consumerId = generateId<TenantId>();

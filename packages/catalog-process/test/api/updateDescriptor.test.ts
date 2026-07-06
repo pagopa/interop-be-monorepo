@@ -21,6 +21,8 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   eServiceDescriptorNotFound,
   eServiceNotFound,
   inconsistentDailyCalls,
@@ -107,7 +109,7 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/update test", 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: operationForbidden,
@@ -119,6 +121,14 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/update test", 
     },
     {
       error: inconsistentDailyCalls(),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

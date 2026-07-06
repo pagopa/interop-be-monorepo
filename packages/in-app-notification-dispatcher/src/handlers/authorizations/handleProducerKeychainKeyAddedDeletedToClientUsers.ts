@@ -7,8 +7,10 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { getNotificationRecipients } from "../handlerCommons.js";
+import {
+  inAppTemplates,
+  getNotificationRecipients,
+} from "pagopa-interop-notification-commons";
 
 type ProducerKeychainKeyAddedDeletedToClientUsersEventType =
   | "ProducerKeychainKeyAdded"
@@ -30,7 +32,7 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
   }
 
   logger.info(
-    `Sending in-app notification for handleProducerKeychainKeyAddedDeletedToClientUsers ${decodedMessage.data.producerKeychain.id} eventType ${decodedMessage.type}`
+    `Sending in-app notification for handleProducerKeychainKeyAddedDeletedToClientUsers - entityId: ${decodedMessage.data.producerKeychain.id}, eventType: ${decodedMessage.type}`
   );
 
   const producerKeychain = fromProducerKeychainV2(
@@ -44,7 +46,7 @@ export async function handleProducerKeychainKeyAddedDeletedToClientUsers(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for producerKeychainKeyAddedDeletedToClientUsers message`
+      `No users with notifications enabled for handleProducerKeychainKeyAddedDeletedToClientUsers - entityId: ${producerKeychain.id}, eventType: ${decodedMessage.type}`
     );
     return [];
   }

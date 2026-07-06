@@ -15,7 +15,14 @@ message TenantV2 {
   optional TenantKindV2 kind = 10;
   int64 onboardedAt = 11;
   optional TenantUnitTypeV2 subUnitType = 12;
+  optional string selfcareInstitutionType = 13;
+  repeated TenantRemoteIdV2 remoteIds = 14;
+}
 
+message TenantRemoteIdV2 {
+  string origin = 1;
+  string value = 2;
+  int64 assignmentTimestamp = 3;
 }
 
 enum TenantKindV2 {
@@ -91,6 +98,13 @@ message TenantCertifiedAttributeV2 {
   optional int64 revocationTimestamp = 3;
 }
 
+message TenantCertifiedDiscreteAttributeV2 {
+  string id = 1;
+  int64 assignmentTimestamp = 2;
+  optional int64 revocationTimestamp = 3;
+  int32 discreteValue = 4;
+}
+
 message TenantDeclaredAttributeV2 {
   string id = 1;
   int64 assignmentTimestamp = 2;
@@ -110,5 +124,6 @@ message TenantAttributeV2 {
     TenantCertifiedAttributeV2 certifiedAttribute = 1;
     TenantDeclaredAttributeV2 declaredAttribute = 2;
     TenantVerifiedAttributeV2 verifiedAttribute = 3;
+    TenantCertifiedDiscreteAttributeV2 certifiedDiscreteAttribute = 4;
   }
 }

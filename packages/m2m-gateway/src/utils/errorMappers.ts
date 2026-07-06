@@ -63,6 +63,16 @@ export const downloadEServiceDescriptorInterfaceErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    match(error.code)
+      .with(
+        "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+        "eserviceDescriptorNotFound",
+        () => HTTP_STATUS_NOT_FOUND
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getPurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -156,6 +166,7 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -290,6 +301,11 @@ export const assignEServiceTemplateVersionAttributesErrorMapper = (
       "eserviceTemplateVersionAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeTemplateRiskAnalysisErrorMapper = (

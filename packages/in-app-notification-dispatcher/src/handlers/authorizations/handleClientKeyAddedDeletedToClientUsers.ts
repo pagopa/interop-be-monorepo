@@ -9,8 +9,10 @@ import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { getNotificationRecipients } from "../handlerCommons.js";
+import {
+  inAppTemplates,
+  getNotificationRecipients,
+} from "pagopa-interop-notification-commons";
 
 type ClientKeyAddedDeletedToClientUsersEventType =
   | "ClientKeyAdded"
@@ -32,7 +34,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
   }
 
   logger.info(
-    `Sending in-app notification for handleClientKeyAddedDeletedToClientUsers ${decodedMessage.data.client.id} eventType ${decodedMessage.type}`
+    `Sending in-app notification for handleClientKeyAddedDeletedToClientUsers - entityId: ${decodedMessage.data.client.id}, eventType: ${decodedMessage.type}`
   );
 
   const client = fromClientV2(decodedMessage.data.client);
@@ -52,7 +54,7 @@ export async function handleClientKeyAddedDeletedToClientUsers(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${notificationType} message`
+      `No users with notifications enabled for handleClientKeyAddedDeletedToClientUsers - entityId: ${client.id}, eventType: ${decodedMessage.type}`
     );
     return [];
   }

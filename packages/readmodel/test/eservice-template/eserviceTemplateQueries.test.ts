@@ -1,6 +1,6 @@
 import {
   getMockDocument,
-  getMockEServiceAttribute,
+  getMockEServiceTemplateAttribute,
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
@@ -24,7 +24,7 @@ describe("E-service template queries", () => {
       const version: EServiceTemplateVersion = {
         ...getMockEServiceTemplateVersion(),
         attributes: {
-          certified: [[getMockEServiceAttribute()]],
+          certified: [[getMockEServiceTemplateAttribute()]],
           declared: [],
           verified: [],
         },

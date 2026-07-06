@@ -103,9 +103,10 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       riskAnalysis: [],
     };
 
-    expect(writtenPayload.eserviceTemplate).toEqual(
-      toEServiceTemplateV2(updatedEServiceTemplate)
-    );
+    expect(writtenPayload).toEqual({
+      riskAnalysisId: riskAnalysis.id,
+      eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
+    });
     expect(deleteResponse).toEqual({
       data: updatedEServiceTemplate,
       metadata: { version: 1 },

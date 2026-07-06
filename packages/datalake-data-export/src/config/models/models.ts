@@ -56,6 +56,7 @@ const ExportedDescriptor = Descriptor.pick({
   voucherLifespan: true,
   dailyCallsPerConsumer: true,
   dailyCallsTotal: true,
+  agreementApprovalPolicy: true,
   state: true,
   publishedAt: true,
   suspendedAt: true,

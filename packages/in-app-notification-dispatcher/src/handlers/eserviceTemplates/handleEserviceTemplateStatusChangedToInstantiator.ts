@@ -10,12 +10,12 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   retrieveLatestDescriptor,
   getNotificationRecipients,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 export async function handleEserviceTemplateStatusChangedToInstantiator(
   eserviceTemplateV2Msg: EServiceTemplateV2 | undefined,
@@ -31,7 +31,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   }
 
   logger.info(
-    `Sending in-app notification for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplateV2Msg.id}/${eserviceTemplateVersionId}`
+    `Sending in-app notification for handleEserviceTemplateStatusChangedToInstantiator - entityId: ${eserviceTemplateV2Msg.id}, eventType: EServiceTemplateVersionSuspended`
   );
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
@@ -58,7 +58,7 @@ export async function handleEserviceTemplateStatusChangedToInstantiator(
   );
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No user notification configs found for handleEserviceTemplateStatusChangedToInstantiator ${eserviceTemplate.id}/${eserviceTemplateVersionId}`
+      `No users with notifications enabled for handleEserviceTemplateStatusChangedToInstantiator - entityId: ${eserviceTemplate.id}, eventType: EServiceTemplateVersionSuspended`
     );
     return [];
   }

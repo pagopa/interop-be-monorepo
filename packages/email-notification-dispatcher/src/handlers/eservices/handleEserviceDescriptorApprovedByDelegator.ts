@@ -10,12 +10,11 @@ import {
   retrieveHTMLTemplate,
   retrieveProducerDelegation,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  EServiceHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { EServiceHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType =
@@ -63,7 +62,7 @@ export async function handleEserviceDescriptorApprovedByDelegator(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. EService ${eservice.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleEserviceDescriptorApprovedByDelegator - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }

@@ -58,7 +58,9 @@ describe("delete eserviceTemplate", () => {
       messageType: EServiceTemplateDeletedV2,
       payload: writtenEvent.data,
     });
-    expect(writtenPayload.eserviceTemplate?.id).toBe(eserviceTemplate.id);
+    expect(writtenPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+    });
   });
 
   it("should write on event-store for the deletion of an eserviceTemplate (eserviceTemplate with a draft version only) and delete the interface and documents of the draft version", async () => {
@@ -75,6 +77,12 @@ describe("delete eserviceTemplate", () => {
       ...mockInterface,
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceTemplateDocumentsPath}/${mockInterface.id}/${mockInterface.name}_interface`,
+    };
+    const mockAsyncCallback = getMockDocument();
+    const asyncExchangeCallbackInterfaceDocument = {
+      ...mockAsyncCallback,
+      name: `${mockAsyncCallback.name}_async_callback`,
+      path: `${config.eserviceTemplateDocumentsPath}/${mockAsyncCallback.id}/${mockAsyncCallback.name}_async_callback`,
     };
 
     await fileManager.storeBytes(
@@ -99,16 +107,31 @@ describe("delete eserviceTemplate", () => {
       genericLogger
     );
 
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceTemplateDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDocument.id,
+        name: asyncExchangeCallbackInterfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDocument.path);
 
     const version: EServiceTemplateVersion = {
       ...mockEserviceTemplateVersion,
       interface: interfaceDocument,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDocument,
       state: eserviceTemplateVersionState.draft,
       docs: [document],
     };
@@ -158,9 +181,11 @@ describe("delete eserviceTemplate", () => {
       ...eserviceTemplate,
       versions: [],
     };
-    expect(eserviceTemplateDeletionPayload.eserviceTemplate?.id).toBe(
-      mockEServiceTemplate.id
-    );
+    expect(eserviceTemplateDeletionPayload).toEqual({
+      eserviceTemplate: toEServiceTemplateV2(
+        expectedEserviceTemplateWithoutVersions
+      ),
+    });
     expect(versionDeletionPayload).toEqual({
       eserviceTemplate: toEServiceTemplateV2(
         expectedEserviceTemplateWithoutVersions
@@ -178,6 +203,11 @@ describe("delete eserviceTemplate", () => {
       document.path,
       genericLogger
     );
+    expect(fileManager.delete).toHaveBeenCalledWith(
+      config.s3Bucket,
+      asyncExchangeCallbackInterfaceDocument.path,
+      genericLogger
+    );
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
@@ -185,6 +215,9 @@ describe("delete eserviceTemplate", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).not.toContain(document.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).not.toContain(asyncExchangeCallbackInterfaceDocument.path);
   });
 
   it("should throw eserviceTemplateNotFound if the eserviceTemplate doesn't exist", () => {

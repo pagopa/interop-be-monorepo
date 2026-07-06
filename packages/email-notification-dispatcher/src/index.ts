@@ -1,13 +1,11 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { fileURLToPath } from "url";
-import fs from "fs";
-import path from "path";
 import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import {
   buildHTMLTemplateService,
   decodeKafkaMessage,
   logger,
 } from "pagopa-interop-commons";
+import { registerEmailTemplatePartials } from "pagopa-interop-notification-commons";
 import {
   AgreementEvent,
   AuthorizationEvent,
@@ -16,6 +14,7 @@ import {
   EServiceEvent,
   EServiceTemplateEventV2,
   EmailNotificationMessagePayload,
+  NotificationType,
   PurposeEvent,
   TenantEvent,
   generateId,
@@ -32,6 +31,7 @@ import {
   notificationConfigReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { config } from "./config/config.js";
@@ -68,6 +68,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -78,28 +80,16 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist:
+    config.notificationTypeBlocklist as NotificationType[],
+  producerKeychainReadModelServiceSQL,
 });
 
 const emailNotificationDispatcherService =
   emailNotificationDispatcherServiceBuilder();
 
 const templateService = buildHTMLTemplateService();
-
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-function registerPartial(name: string, path: string): void {
-  const buffer = fs.readFileSync(`${dirname}/${path}`);
-  templateService.registerPartial(name, buffer.toString());
-}
-
-registerPartial(
-  "common-header",
-  "/resources/templates/headers/common-header.hbs"
-);
-registerPartial(
-  "common-footer",
-  "/resources/templates/footers/common-footer.hbs"
-);
+registerEmailTemplatePartials(templateService);
 
 function processMessage(topicHandlers: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {

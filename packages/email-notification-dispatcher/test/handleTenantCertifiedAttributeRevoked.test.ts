@@ -23,7 +23,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { handleTenantCertifiedAttributeRevoked } from "../src/handlers/tenants/handleTenantCertifiedAttributeRevoked.js";
-import { attributeNotFound } from "../src/models/errors.js";
+import { attributeNotFound } from "pagopa-interop-notification-commons";
 import {
   addOneAttribute,
   addOneTenant,
@@ -121,7 +121,11 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
   });
 
   it("should generate no messages when attribute has no origin", async () => {
-    const attributeWithNoOrigin: Attribute = getMockAttribute("Certified");
+    const attributeWithNoOrigin: Attribute = {
+      ...getMockAttribute("Certified"),
+      origin: undefined,
+      code: undefined,
+    };
     await addOneAttribute(attributeWithNoOrigin);
 
     const messages = await handleTenantCertifiedAttributeRevoked({
@@ -218,7 +222,6 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
           expect(message.email.body).toContain(targetTenant.name);
         })
         .exhaustive();
-      expect(message.email.body).toContain(attribute.name);
       expect(message.email.body).toContain(attribute.name);
     });
   });
