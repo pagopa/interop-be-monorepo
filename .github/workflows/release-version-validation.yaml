@@ -1,4 +1,4 @@
-name: PR merge validation
+name: Release version validation
 on:
   pull_request:
     branches:
