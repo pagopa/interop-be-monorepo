@@ -426,5 +426,58 @@ describe("parseAndSanitizeHtml", () => {
         ],
       });
     });
+
+    it("should remove the OneTrust mobile menu before sanitizing attributes", () => {
+      const html = [
+        '<ul class="otnotice-menu">',
+        '<li><a href="#section-one">Section one</a></li>',
+        "</ul>",
+        '<div class="otnotice-menu-mobile">',
+        '<button class="otnotice-menu-mobile-toggle">Menu</button>',
+        '<ul class="otnotice-menu-mobile-container">',
+        '<li><a href="#section-one">Section one</a></li>',
+        "</ul>",
+        "</div>",
+        '<section id="section-one"><h2>Section one</h2></section>',
+      ].join("");
+
+      const result = parseAndSanitizeHtml(html);
+
+      expect(result).toEqual({
+        node: "root",
+        child: [
+          {
+            node: "element",
+            tag: "ul",
+            child: [
+              {
+                node: "element",
+                tag: "li",
+                child: [
+                  {
+                    node: "element",
+                    tag: "a",
+                    attr: { href: "#section-one" },
+                    child: [{ node: "text", text: "Section one" }],
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            node: "element",
+            tag: "section",
+            attr: { id: "section-one" },
+            child: [
+              {
+                node: "element",
+                tag: "h2",
+                child: [{ node: "text", text: "Section one" }],
+              },
+            ],
+          },
+        ],
+      });
+    });
   });
 });
