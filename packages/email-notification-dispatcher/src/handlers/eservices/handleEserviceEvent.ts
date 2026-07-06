@@ -8,8 +8,10 @@ import { handleEserviceDescriptorPublished } from "./handleEserviceDescriptorPub
 import { handleEserviceDescriptorSubmittedByDelegate } from "./handleEserviceDescriptorSubmittedByDelegate.js";
 import { handleEserviceDescriptorApprovedByDelegator } from "./handleEserviceDescriptorApprovedByDelegator.js";
 import { handleEserviceDescriptorRejectedByDelegator } from "./handleEserviceDescriptorRejectedByDelegator.js";
-import { handleEserviceDescriptorActivated } from "./handleEserviceDescriptorActivated.js";
-import { handleEserviceDescriptorSuspended } from "./handleEserviceDescriptorSuspended.js";
+import { handleEserviceDescriptorActivatedToConsumer } from "./handleEserviceDescriptorActivatedToConsumer.js";
+import { handleEserviceDescriptorActivatedToProducer } from "./handleEserviceDescriptorActivatedToProducer.js";
+import { handleEserviceDescriptorSuspendedToConsumer } from "./handleEserviceDescriptorSuspendedToConsumer.js";
+import { handleEserviceDescriptorSuspendedToProducer } from "./handleEserviceDescriptorSuspendedToProducer.js";
 import { handleEserviceStateChanged } from "./handleEserviceStateChanged.js";
 import { handleEserviceDescriptorArchivingScheduledToProducer } from "./handleEserviceDescriptorArchivingScheduledToProducer.js";
 import { handleEserviceDescriptorArchivingScheduledToConsumer } from "./handleEserviceDescriptorArchivingScheduledToConsumer.js";
@@ -20,9 +22,10 @@ import { handleEserviceDescriptorArchivingCompletedToConsumer } from "./handleEs
 import { handleEserviceArchivingCompletedToProducer } from "./handleEserviceArchivingCompletedToProducer.js";
 import { handleEserviceArchivingCompletedToConsumer } from "./handleEserviceArchivingCompletedToConsumer.js";
 import { handleEserviceDescriptorArchivedToProducer } from "./handleEserviceDescriptorArchivedToProducer.js";
-import { handleEserviceDescriptorArchivedToConsumer } from "./handleEserviceDescriptorArchivedToConsumer.js";
 import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
 import { handleEserviceDescriptorArchivingCanceledToConsumer } from "./handleEserviceDescriptorArchivingCanceledToConsumer.js";
+import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceDescriptorArchivingCanceledToProducer } from "./handleEserviceDescriptorArchivingCanceledToProducer.js";
 
 export async function handleEServiceEvent(
   params: HandlerParams<typeof EServiceEvent>
@@ -53,27 +56,51 @@ export async function handleEServiceEvent(
     )
     .with(
       { type: "EServiceDescriptorActivated" },
-      ({ data: { eservice, descriptorId } }) =>
-        handleEserviceDescriptorActivated({
-          eserviceV2Msg: eservice,
-          descriptorId,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceDescriptorActivatedToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceDescriptorActivatedToConsumer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
     )
     .with(
       { type: "EServiceDescriptorSuspended" },
-      ({ data: { eservice, descriptorId } }) =>
-        handleEserviceDescriptorSuspended({
-          eserviceV2Msg: eservice,
-          descriptorId,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceDescriptorSuspendedToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceDescriptorSuspendedToConsumer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
     )
     .with(
       { type: "EServiceDescriptorSubmittedByDelegate" },
@@ -225,19 +252,29 @@ export async function handleEServiceEvent(
     )
     .with(
       { type: "EServiceDescriptorArchived" },
-      async ({ data: { eservice, descriptorId } }) => {
+      ({ data: { eservice, descriptorId } }) =>
+        handleEserviceDescriptorArchivedToProducer({
+          eserviceV2Msg: eservice,
+          descriptorId,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "EServiceArchivingCanceled" },
+      async ({ data: { eservice } }) => {
         const [prod, cons] = await Promise.all([
-          handleEserviceDescriptorArchivedToProducer({
+          handleEserviceArchivingCanceledToProducer({
             eserviceV2Msg: eservice,
-            descriptorId,
             logger,
             readModelService,
             templateService,
             correlationId,
           }),
-          handleEserviceDescriptorArchivedToConsumer({
+          handleEserviceArchivingCanceledToConsumer({
             eserviceV2Msg: eservice,
-            descriptorId,
             logger,
             readModelService,
             templateService,
@@ -248,29 +285,28 @@ export async function handleEServiceEvent(
       }
     )
     .with(
-      { type: "EServiceArchivingCanceled" },
-      // per the notification mapping, archiving cancellation is notified only
-      // to consumers (the producer initiated the cancellation)
-      async ({ data: { eservice } }) =>
-        handleEserviceArchivingCanceledToConsumer({
-          eserviceV2Msg: eservice,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
-    )
-    .with(
       { type: "EServiceDescriptorArchivingCanceled" },
-      async ({ data: { eservice, descriptorId } }) =>
-        handleEserviceDescriptorArchivingCanceledToConsumer({
-          eserviceV2Msg: eservice,
-          descriptorId,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceDescriptorArchivingCanceledToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEserviceDescriptorArchivingCanceledToConsumer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...cons];
+      }
     )
     .with(
       {
