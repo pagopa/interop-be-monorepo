@@ -80,6 +80,9 @@ const errorCodes = {
   eserviceNotInArchiving: "0063",
   eServiceAlreadyArchived: "0064",
   attributeDiscreteConfigNotAllowed: "0065",
+  certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
+  eserviceDescriptorWithActiveOrPendingDelegation: "0067",
+  eserviceArchivingWithActiveOrPendingDelegation: "0068",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -394,6 +397,29 @@ export function eserviceWithActiveOrPendingDelegation(
   });
 }
 
+export function eserviceArchivingWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceArchivingWithActiveOrPendingDelegation",
+    title: "E-service archiving with active or pending delegation",
+  });
+}
+
+export function eserviceDescriptorWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} descriptor ${descriptorId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceDescriptorWithActiveOrPendingDelegation",
+    title: "E-service descriptor with active or pending delegation",
+  });
+}
+
 export function invalidDelegationFlags(
   isConsumerDelegable: boolean | undefined,
   isClientAccessDelegable: boolean | undefined
@@ -677,6 +703,16 @@ export function attributeDiscreteConfigNotAllowed(
     detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
     code: "attributeDiscreteConfigNotAllowed",
     title: "Discrete config not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedDiscreteAttributeConfigCannotBeChanged(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The discrete configuration for the certified attribute ${attributeId} cannot be changed`,
+    code: "certifiedDiscreteAttributeConfigCannotBeChanged",
+    title: "Certified discrete attribute config cannot be changed",
   });
 }
 

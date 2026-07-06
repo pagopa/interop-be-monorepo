@@ -54,6 +54,9 @@ describe("handleEserviceDescriptorArchivedToProducer", () => {
 
   const { logger } = getMockContext({});
 
+  const expectedMessageSubject =
+    /La versione \d+ dell'e-service "[^"]+" è stata archiviata il giorno \d{2}\/\d{2}\/\d{4} perché senza fruitori. Da ora non è più attiva./;
+
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneTenant(producerTenant);
@@ -85,7 +88,7 @@ describe("handleEserviceDescriptorArchivedToProducer", () => {
     );
   });
 
-  it("emits one email per producer user with the expected subject", async () => {
+  it("emits one email per producer user with the expected subject when archivingSchedule is present on the descriptor", async () => {
     const messages = await handleEserviceDescriptorArchivedToProducer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: archivingDescriptor.id,
@@ -95,12 +98,10 @@ describe("handleEserviceDescriptorArchivedToProducer", () => {
       correlationId: generateId<CorrelationId>(),
     });
     expect(messages).toHaveLength(users.length);
-    expect(messages[0].email.subject).toContain(
-      "Archiviazione anticipata della versione"
-    );
+    expect(messages[0].email.subject).toMatch(expectedMessageSubject);
   });
 
-  it("returns empty array when archivingSchedule is absent on the descriptor (routine auto-archive)", async () => {
+  it("emits one email per producer user when archivingSchedule is absent on the descriptor (routine auto-archive)", async () => {
     const routineDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
     };
@@ -121,6 +122,7 @@ describe("handleEserviceDescriptorArchivedToProducer", () => {
       readModelService,
       correlationId: generateId<CorrelationId>(),
     });
-    expect(messages).toEqual([]);
+    expect(messages).toHaveLength(users.length);
+    expect(messages[0].email.subject).toMatch(expectedMessageSubject);
   });
 });
