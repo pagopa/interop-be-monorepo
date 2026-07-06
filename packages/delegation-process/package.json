@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
-    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
+    "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
@@ -20,7 +20,6 @@
     "@types/express": "catalog:",
     "@types/node": "catalog:",
     "@types/supertest": "catalog:",
-    "cpx2": "catalog:",
     "eslint": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
