@@ -3400,10 +3400,17 @@ export function catalogServiceBuilder(
       const updatedDescriptor: Descriptor = {
         ...latestDescriptor,
         delegatedArchivingRequest: {
-          ...latestDescriptor.delegatedArchivingRequest!,
+          ...(latestDescriptor.delegatedArchivingRequest ?? {
+            requestedAt: new Date(),
+            requestedBy: authData.organizationId,
+            gracePeriod: 1,
+          }),
           rejectionArchivingReasons: [
-            ...latestDescriptor.delegatedArchivingRequest!
-              .rejectionArchivingReasons,
+            ...(
+              latestDescriptor.delegatedArchivingRequest ?? {
+                rejectionArchivingReasons: [],
+              }
+            ).rejectionArchivingReasons,
             newRejectionReason,
           ],
         },
