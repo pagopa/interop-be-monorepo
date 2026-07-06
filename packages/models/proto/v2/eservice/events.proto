@@ -290,12 +290,29 @@ message EServiceDescriptorAttributeDailyCallsPerConsumerUpdatedV2 {
   int32 dailyCallsPerConsumer = 4;
 }
 
-message EServiceArchivingRequestedByDelegateV2 {
+message EServiceDescriptorArchivingRequestedByDelegateV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }
 
-message EServiceArchivingRequestRejectedByDelegatorV2 {
+message EServiceDescriptorArchivingRequestRejectedByDelegatorV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
+}
+
+message EServiceDescriptorArchivingRequestApprovedByDelegatorV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceArchivingRequestedByDelegateV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceArchivingRequestRejectedByDelegatorV2 {
+  EServiceV2 eservice = 1;
+}
+
+message EServiceArchivingRequestApprovedByDelegatorV2 {
+  EServiceV2 eservice = 1;
 }

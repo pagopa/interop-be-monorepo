@@ -1188,7 +1188,6 @@ export const toCreateEventEServiceDescriptorAttributeDailyCallsPerConsumerUpdate
 
 export const toCreateEventEServiceArchivingRequestedByDelegate = (
   version: number,
-  descriptorId: DescriptorId,
   eservice: EService,
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
@@ -1198,7 +1197,6 @@ export const toCreateEventEServiceArchivingRequestedByDelegate = (
     type: "EServiceArchivingRequestedByDelegate",
     event_version: 2,
     data: {
-      descriptorId,
       eservice: toEServiceV2(eservice),
     },
   },
@@ -1207,7 +1205,6 @@ export const toCreateEventEServiceArchivingRequestedByDelegate = (
 
 export const toCreateEventEServiceArchivingRequestRejectedByDelegator = (
   version: number,
-  descriptorId: DescriptorId,
   eservice: EService,
   correlationId: CorrelationId
 ): CreateEvent<EServiceEvent> => ({
@@ -1217,7 +1214,6 @@ export const toCreateEventEServiceArchivingRequestRejectedByDelegator = (
     type: "EServiceArchivingRequestRejectedByDelegator",
     event_version: 2,
     data: {
-      descriptorId,
       eservice: toEServiceV2(eservice),
     },
   },

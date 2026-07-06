@@ -144,7 +144,11 @@ export const handleCatalogMessageV2 = async (
             "EServiceInstanceLabelUpdated",
             "MaintenanceEServicePersonalDataFlagReset",
             "EServiceArchivingRequestedByDelegate",
-            "EServiceArchivingRequestRejectedByDelegator"
+            "EServiceArchivingRequestRejectedByDelegator",
+            "EServiceArchivingRequestApprovedByDelegator",
+            "EServiceDescriptorArchivingRequestedByDelegate",
+            "EServiceDescriptorArchivingRequestRejectedByDelegator",
+            "EServiceDescriptorArchivingRequestApprovedByDelegator"
           ),
         },
         (event) => {

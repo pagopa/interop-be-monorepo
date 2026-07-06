@@ -77,7 +77,10 @@ async function handleEServiceEventV2(
             "EServiceArchivingScheduled",
             "EServiceArchivingCanceled",
             "EServiceArchivingCompleted",
-            "MaintenanceEServicePersonalDataFlagReset"
+            "MaintenanceEServicePersonalDataFlagReset",
+            "EServiceArchivingRequestedByDelegate",
+            "EServiceArchivingRequestRejectedByDelegator",
+            "EServiceArchivingRequestApprovedByDelegator"
           ),
         },
         async (event) => {
@@ -136,7 +139,10 @@ async function handleEServiceEventV2(
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
-            "MaintenanceEServiceDescriptorUnarchived"
+            "MaintenanceEServiceDescriptorUnarchived",
+            "EServiceDescriptorArchivingRequestedByDelegate",
+            "EServiceDescriptorArchivingRequestRejectedByDelegator",
+            "EServiceDescriptorArchivingRequestApprovedByDelegator"
           ),
         },
         async (event) => {
@@ -164,15 +170,6 @@ async function handleEServiceEventV2(
           `Skipping M2M event creation for ${decodedMessage.type} message`
         );
       })
-      .with(
-        { type: "EServiceArchivingRequestedByDelegate" },
-        { type: "EServiceArchivingRequestRejectedByDelegator" },
-        () => {
-          logger.info(
-            `Skipping M2M event creation for ${decodedMessage.type} message`
-          );
-        }
-      )
       .exhaustive()
   );
 }

@@ -345,7 +345,13 @@ export async function handleEServiceEvent(
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
-          "MaintenanceEServiceDescriptorUnarchived"
+          "MaintenanceEServiceDescriptorUnarchived",
+          "EServiceArchivingRequestedByDelegate",
+          "EServiceArchivingRequestRejectedByDelegator",
+          "EServiceArchivingRequestApprovedByDelegator",
+          "EServiceDescriptorArchivingRequestedByDelegate",
+          "EServiceDescriptorArchivingRequestRejectedByDelegator",
+          "EServiceDescriptorArchivingRequestApprovedByDelegator"
         ),
       },
       () => {

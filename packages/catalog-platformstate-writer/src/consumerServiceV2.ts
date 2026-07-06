@@ -419,7 +419,11 @@ export async function handleMessageV2(
           "EServiceDescriptorArchivingCanceled",
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceArchivingRequestedByDelegate",
-          "EServiceArchivingRequestRejectedByDelegator"
+          "EServiceArchivingRequestRejectedByDelegator",
+          "EServiceArchivingRequestApprovedByDelegator",
+          "EServiceDescriptorArchivingRequestedByDelegate",
+          "EServiceDescriptorArchivingRequestRejectedByDelegator",
+          "EServiceDescriptorArchivingRequestApprovedByDelegator"
         ),
       },
       () => Promise.resolve()

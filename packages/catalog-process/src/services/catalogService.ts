@@ -3361,7 +3361,6 @@ export function catalogServiceBuilder(
       const event = await repository.createEvent(
         toCreateEventEServiceArchivingRequestedByDelegate(
           eservice.metadata.version,
-          latestDescriptor.id,
           updatedEService,
           correlationId
         )
@@ -3418,7 +3417,6 @@ export function catalogServiceBuilder(
       const event = await repository.createEvent(
         toCreateEventEServiceArchivingRequestRejectedByDelegator(
           eservice.metadata.version,
-          latestDescriptor.id,
           updatedEService,
           correlationId
         )

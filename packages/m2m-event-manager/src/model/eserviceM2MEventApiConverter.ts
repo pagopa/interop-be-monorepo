@@ -175,6 +175,30 @@ function toApiEServiceM2MEventType(
       "MaintenanceEServiceDescriptorUnarchived",
       () => "MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED"
     )
+    .with(
+      "EServiceArchivingRequestedByDelegate",
+      () => "ESERVICE_ARCHIVING_REQUESTED_BY_DELEGATE"
+    )
+    .with(
+      "EServiceArchivingRequestRejectedByDelegator",
+      () => "ESERVICE_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR"
+    )
+    .with(
+      "EServiceArchivingRequestApprovedByDelegator",
+      () => "ESERVICE_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR"
+    )
+    .with(
+      "EServiceDescriptorArchivingRequestedByDelegate",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_REQUESTED_BY_DELEGATE"
+    )
+    .with(
+      "EServiceDescriptorArchivingRequestRejectedByDelegator",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR"
+    )
+    .with(
+      "EServiceDescriptorArchivingRequestApprovedByDelegator",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR"
+    )
     .exhaustive();
 }
 

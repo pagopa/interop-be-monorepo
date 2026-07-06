@@ -93,7 +93,13 @@ export async function exportInterfaceV2(
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "MaintenanceEServiceDescriptorUnarchived",
           "EServiceArchivingRequestedByDelegate",
-          "EServiceArchivingRequestRejectedByDelegator"
+          "EServiceArchivingRequestRejectedByDelegator",
+          "EServiceArchivingRequestedByDelegate",
+          "EServiceArchivingRequestRejectedByDelegator",
+          "EServiceArchivingRequestApprovedByDelegator",
+          "EServiceDescriptorArchivingRequestedByDelegate",
+          "EServiceDescriptorArchivingRequestRejectedByDelegator",
+          "EServiceDescriptorArchivingRequestApprovedByDelegator"
         ),
       },
       () => undefined

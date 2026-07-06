@@ -146,6 +146,12 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceArchivingCanceled" },
       { type: "EServiceArchivingCompleted" },
       { type: "MaintenanceEServicePersonalDataFlagReset" },
+      { type: "EServiceArchivingRequestedByDelegate" },
+      { type: "EServiceArchivingRequestRejectedByDelegator" },
+      { type: "EServiceArchivingRequestApprovedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestedByDelegate" },
+      { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })
