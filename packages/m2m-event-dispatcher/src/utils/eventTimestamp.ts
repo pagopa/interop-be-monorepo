@@ -1,4 +1,4 @@
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 
 export function getEventTimestamp(m: EachMessagePayload): Date {
   return new Date(

@@ -14,7 +14,7 @@ import {
   RefreshableInteropToken,
   userRole,
 } from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import { getMockClient, getMockTenant } from "pagopa-interop-commons-test";
 import { clientKind, relationshipStatus, Tenant } from "pagopa-interop-models";
 import { authorizationApi } from "pagopa-interop-api-clients";

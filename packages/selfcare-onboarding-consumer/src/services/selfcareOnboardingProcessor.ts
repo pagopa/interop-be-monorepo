@@ -3,7 +3,7 @@ import {
   logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   generateId,

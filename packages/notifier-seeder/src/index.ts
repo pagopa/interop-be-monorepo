@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import { runConsumer } from "kafka-iam-auth";
-import { EachMessagePayload } from "kafkajs";
+import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 import {

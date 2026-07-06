@@ -1,6 +1,5 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { runConsumer } from "kafka-iam-auth";
-import { EachMessagePayload } from "kafkajs";
+import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import { decodeKafkaMessage, Logger, logger } from "pagopa-interop-commons";
 import {
   AgreementEvent,

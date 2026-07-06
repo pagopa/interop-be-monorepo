@@ -4,7 +4,7 @@ import {
   formatTimeHHmmss,
   Logger,
 } from "pagopa-interop-commons";
-import { KafkaMessage } from "kafkajs";
+import { KafkaMessage } from "kafka-iam-auth";
 import { generateId } from "pagopa-interop-models";
 import { config } from "./config/config.js";
 

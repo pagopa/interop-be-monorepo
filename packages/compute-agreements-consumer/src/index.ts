@@ -1,5 +1,4 @@
-import { runConsumer } from "kafka-iam-auth";
-import { EachMessagePayload } from "kafkajs";
+import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import {
   decodeKafkaMessage,
   InteropTokenGenerator,

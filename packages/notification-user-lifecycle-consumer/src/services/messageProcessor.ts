@@ -5,7 +5,7 @@ import {
   CorrelationId,
   TenantId,
 } from "pagopa-interop-models";
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import { match } from "ts-pattern";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { isAxiosError } from "axios";

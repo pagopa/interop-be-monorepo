@@ -1,7 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { z } from "zod";
-import { KafkaMessage } from "kafkajs";
 import { Message } from "pagopa-interop-models";
+
+/**
+ * Minimal KafkaMessage type compatible with both kafkajs and
+ * @confluentinc/kafka-javascript, to avoid a direct dependency on either.
+ * Only the properties actually used by commons utilities are required;
+ * the rest is kept optional so the type structurally accepts messages
+ * from any Kafka client library.
+ */
+export type KafkaMessage = {
+  key?: Buffer | null;
+  value: Buffer | null;
+  timestamp?: string;
+  size?: number;
+  attributes?: number;
+  offset: string;
+  headers?: Record<string, Buffer | string | (Buffer | string)[] | undefined>;
+};
 
 /**
  * Decodes a Kafka message using the provided event schema.

@@ -1,6 +1,5 @@
-import { EachMessagePayload } from "kafkajs";
 import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
+import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import {
   AgreementEvent,
   CorrelationId,

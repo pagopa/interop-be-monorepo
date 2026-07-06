@@ -5,7 +5,7 @@ import {
   UserId,
   TenantId,
 } from "pagopa-interop-models";
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import { delay, EmailManagerSES, logger, Logger } from "pagopa-interop-commons";
 import { TooManyRequestsException } from "@aws-sdk/client-sesv2";
 import { match } from "ts-pattern";

@@ -1,11 +1,10 @@
-import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
   initFileManager,
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
+import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import { EServiceTemplateEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";

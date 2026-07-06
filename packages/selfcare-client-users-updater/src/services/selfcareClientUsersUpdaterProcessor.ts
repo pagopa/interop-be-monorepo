@@ -4,7 +4,7 @@ import {
   RefreshableInteropToken,
   userRole,
 } from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import {
   generateId,
   CorrelationId,

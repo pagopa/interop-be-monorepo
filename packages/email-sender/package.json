@@ -31,7 +31,6 @@
     "@aws-sdk/client-sesv2": "catalog:",
     "dotenv-flow": "catalog:",
     "kafka-iam-auth": "workspace:*",
-    "kafkajs": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",

@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 /* eslint-disable functional/no-let */
-import { EachMessagePayload } from "kafkajs";
+import { EachMessagePayload } from "kafka-iam-auth";
 import {
   getInteropHeaders,
   InteropTokenGenerator,

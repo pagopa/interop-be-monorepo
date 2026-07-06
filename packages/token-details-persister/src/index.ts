@@ -1,6 +1,5 @@
-import { EachBatchPayload } from "kafkajs";
 import { initFileManager, logger } from "pagopa-interop-commons";
-import { runBatchConsumer } from "kafka-iam-auth";
+import { runBatchConsumer, EachBatchPayload } from "kafka-iam-auth";
 import {
   baseConsumerConfig,
   config,

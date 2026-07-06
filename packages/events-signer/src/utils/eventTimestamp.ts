@@ -1,4 +1,4 @@
-import { KafkaMessage } from "kafkajs";
+import { KafkaMessage } from "kafka-iam-auth";
 
 export function getEventTimestamp(message: KafkaMessage): Date {
   return new Date(

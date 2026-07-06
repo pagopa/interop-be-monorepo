@@ -1,7 +1,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-empty-function */
 
-import { KafkaMessage } from "kafkajs";
+import { KafkaMessage } from "kafka-iam-auth";
 import { FileManager, decodeKafkaMessage } from "pagopa-interop-commons";
 import {
   EServiceEventEnvelopeV2,

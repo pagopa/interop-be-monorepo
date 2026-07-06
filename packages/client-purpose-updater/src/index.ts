@@ -1,10 +1,9 @@
-import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
   InteropTokenGenerator,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
+import { runConsumer, EachMessagePayload } from "kafka-iam-auth";
 import { PurposeEvent } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { handleMessageV2 } from "./clientPurposeUpdaterConsumerServiceV2.js";

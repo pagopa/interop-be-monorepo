@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { KafkaMessage } from "kafkajs";
+import { KafkaMessage } from "kafka-iam-auth";
 import { mockAttributeBatch } from "./utilsAttribute.js";
 import { mockCatalogBatch } from "./utilsCatalog.js";
 
