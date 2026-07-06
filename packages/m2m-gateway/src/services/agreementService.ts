@@ -9,8 +9,11 @@ import {
   AgreementDocumentId,
   AgreementId,
   generateId,
+  invalidFileUploadError,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
+import { isValidFile } from "pagopa-interop-commons";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
@@ -397,6 +400,10 @@ export function agreementServiceBuilder(
       logger.info(
         `Adding consumer document ${fileUpload.file.name} to agreement with id ${agreementId}`
       );
+
+      if (!(await isValidFile(fileUpload.file))) {
+        throw invalidFileUploadError();
+      }
 
       const documentId = generateId();
       const storagePath = await fileManager.storeBytes(
