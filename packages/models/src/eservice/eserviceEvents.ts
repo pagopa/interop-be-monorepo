@@ -64,7 +64,6 @@ import {
   EServicePersonalDataFlagUpdatedAfterPublicationV2,
   EServicePersonalDataFlagUpdatedByTemplateUpdateV2,
   EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
-  EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2,
   EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2,
   EServiceInstanceLabelUpdatedV2,
   EServiceArchivingScheduledV2,
@@ -284,11 +283,6 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
       ({ data }) =>
         EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2.toBinary(data)
-    )
-    .with(
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
-      ({ data }) =>
-        EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2.toBinary(data)
     )
     .with(
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
@@ -627,13 +621,6 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceAdded"),
     data: protobufDecoder(
       EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2
-    ),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated"),
-    data: protobufDecoder(
-      EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2
     ),
   }),
   z.object({

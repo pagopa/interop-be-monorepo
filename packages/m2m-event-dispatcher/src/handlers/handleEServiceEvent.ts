@@ -133,7 +133,6 @@ async function handleEServiceEventV2(
             "EServiceDescriptorArchivingCanceled",
             "EServiceDescriptorArchivingCompleted",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "MaintenanceEServiceDescriptorUnarchived"
           ),

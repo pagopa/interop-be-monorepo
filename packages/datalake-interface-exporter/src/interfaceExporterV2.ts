@@ -88,7 +88,6 @@ export async function exportInterfaceV2(
           "EServiceArchivingCompleted",
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "MaintenanceEServiceDescriptorUnarchived"
         ),

@@ -129,10 +129,6 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED"
     )
     .with(
-      "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
-      () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED"
-    )
-    .with(
       "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
       () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED"
     )

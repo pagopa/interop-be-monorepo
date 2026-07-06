@@ -384,7 +384,6 @@ export async function handleMessageV2(
           "EServiceDescriptorDocumentUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "EServiceDescriptorDocumentDeleted",
           "EServiceRiskAnalysisAdded",

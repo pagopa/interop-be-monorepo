@@ -104,11 +104,6 @@ function toApiEServiceTemplateM2MEventType(
       () => "ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED"
     )
     .with(
-      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
-      () =>
-        "ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED"
-    )
-    .with(
       "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
       () =>
         "ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED"

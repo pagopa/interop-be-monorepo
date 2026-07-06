@@ -28,7 +28,6 @@ import {
   EServiceTemplateVersionQuotasUpdatedV2,
   EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
   EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2,
-  EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2,
   EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2,
 } from "../gen/v2/eservice-template/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
@@ -176,15 +175,6 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
   z.object({
     event_version: z.literal(2),
     type: z.literal(
-      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated"
-    ),
-    data: protobufDecoder(
-      EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2
-    ),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal(
       "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
     ),
     data: protobufDecoder(
@@ -284,15 +274,6 @@ export function eserviceTemplateEventToBinaryDataV2(
       },
       ({ data }) =>
         EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2.toBinary(
-          data
-        )
-    )
-    .with(
-      {
-        type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
-      },
-      ({ data }) =>
-        EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2.toBinary(
           data
         )
     )

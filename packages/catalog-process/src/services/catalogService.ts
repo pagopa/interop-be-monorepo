@@ -163,7 +163,6 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded,
-  toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated,
   toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted,
   toCreateEventEServiceInstanceLabelUpdated,
   toCreateEventEServiceDescriptorArchivingScheduled,
@@ -1508,19 +1507,12 @@ export function catalogServiceBuilder(
         eservice: newEservice,
       };
 
-      const event = isAsyncExchangeCallbackInterface
-        ? toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated(
-            eserviceId,
-            eservice.metadata.version,
-            eventPayload,
-            correlationId
-          )
-        : toCreateEventEServiceDocumentUpdated(
-            eserviceId,
-            eservice.metadata.version,
-            eventPayload,
-            correlationId
-          );
+      const event = toCreateEventEServiceDocumentUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        eventPayload,
+        correlationId
+      );
 
       await repository.createEvent(event);
       return updatedDocument;

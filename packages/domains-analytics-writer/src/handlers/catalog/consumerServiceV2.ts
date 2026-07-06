@@ -75,7 +75,6 @@ export async function handleCatalogMessageV2(
             "EServiceRiskAnalysisDeleted",
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceDescriptorDocumentDeleted",

@@ -73,7 +73,6 @@ export async function handleMessageV2(
           "EServiceArchivingCompleted",
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "MaintenanceEServiceDescriptorUnarchived"
         ),

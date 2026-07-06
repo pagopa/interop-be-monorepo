@@ -34,7 +34,6 @@ export const EServiceTemplateM2MEventType = z.enum([
   "EServiceTemplateVersionInterfaceDeleted",
   "EServiceTemplateVersionInterfaceUpdated",
   "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
-  "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
   "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
   "EServiceTemplateVersionPublished",
   "EServiceTemplateVersionQuotasUpdated",

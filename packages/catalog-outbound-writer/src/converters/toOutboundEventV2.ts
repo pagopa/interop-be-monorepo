@@ -228,7 +228,6 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisUpdated" },
       // TODO: Propagate async exchange callback interface events when @pagopa/interop-outbound-models is updated
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
       () => undefined

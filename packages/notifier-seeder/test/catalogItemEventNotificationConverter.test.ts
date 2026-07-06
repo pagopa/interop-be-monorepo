@@ -73,9 +73,7 @@ const eservice = toEServiceV2({
 });
 
 const getEnvelope = (
-  type:
-    | "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded"
-    | "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated"
+  type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded"
 ): EServiceEventEnvelopeV2 => ({
   sequence_num: 1,
   stream_id: eserviceId,
@@ -106,24 +104,6 @@ describe("toCatalogItemEventNotification", () => {
           asyncExchangeCallbackInterfaceDocument.uploadDate.toISOString(),
       },
       isInterface: true,
-      serverUrls: [],
-    });
-  });
-
-  it("should convert async exchange callback interface updated events using the callback interface document", () => {
-    const result = toCatalogItemEventNotification(
-      getEnvelope("EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated")
-    );
-
-    expect(result).toEqual({
-      eServiceId: eserviceId,
-      descriptorId,
-      documentId: asyncExchangeCallbackInterfaceId,
-      updatedDocument: {
-        ...asyncExchangeCallbackInterfaceDocument,
-        uploadDate:
-          asyncExchangeCallbackInterfaceDocument.uploadDate.toISOString(),
-      },
       serverUrls: [],
     });
   });

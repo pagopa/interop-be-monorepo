@@ -106,7 +106,6 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorInterfaceAdded",
         "EServiceDescriptorInterfaceDeleted",
         "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-        "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
         "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
       ),
       () => m2mEventVisibility.owner
