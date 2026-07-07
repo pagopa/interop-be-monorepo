@@ -3785,8 +3785,6 @@ components:
         gracePeriodDays:
           type: integer
           format: int32
-          minimum: 30
-          maximum: 999999
       required:
         - archivingReason
         - gracePeriodDays
@@ -3798,8 +3796,6 @@ components:
         gracePeriodDays:
           type: integer
           format: int32
-          minimum: 30
-          maximum: 999999
       required:
         - gracePeriodDays
     ForceTargetState:

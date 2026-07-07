@@ -84,6 +84,7 @@ const errorCodes = {
   eserviceDescriptorWithActiveOrPendingDelegation: "0067",
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
   gracePeriodDaysNotValid: "0069",
+  gracePeriodDaysLowerThanDescriptor: "0070",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -778,11 +779,26 @@ export function eServiceAlreadyArchived(
 }
 
 export function gracePeriodDaysNotValid(
-  gracePeriodDays: number | undefined
+  gracePeriodDays: number | undefined,
+  minGracePeriodDays: number,
+  maxGracePeriodDays: number
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Grace period days ${gracePeriodDays} is not valid. It must be between 30 and 999999`,
+    detail: `Grace period days ${gracePeriodDays} is not valid. It must be between ${minGracePeriodDays} and ${maxGracePeriodDays}`,
     code: "gracePeriodDaysNotValid",
     title: "Grace period days not valid",
+  });
+}
+
+export function gracePeriodDaysLowerThanDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  gracePeriodDays: number,
+  descriptorGracePeriodDays: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Grace period days ${gracePeriodDays} for EService ${eserviceId} cannot be lower than the grace period days ${descriptorGracePeriodDays} already scheduled for Descriptor ${descriptorId}`,
+    code: "gracePeriodDaysLowerThanDescriptor",
+    title: "Grace period days lower than descriptor",
   });
 }
