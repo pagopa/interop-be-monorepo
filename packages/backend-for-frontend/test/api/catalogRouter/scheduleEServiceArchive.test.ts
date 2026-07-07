@@ -10,8 +10,9 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { getMockCatalogApiEService } from "../../mockUtils.js";
 
 describe("API POST /eservices/:eServiceId/scheduleArchive", () => {
-  const mockEServiceArchivingReasonSeed: bffApi.EServiceArchivingReasonSeed = {
+  const mockEServiceArchivingSeed: bffApi.EServiceArchivingSeed = {
     archivingReason: "Generic archiving reason",
+    gracePeriodDays: 90,
   };
   const mockEService = getMockCatalogApiEService();
 
@@ -24,7 +25,7 @@ describe("API POST /eservices/:eServiceId/scheduleArchive", () => {
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId = mockEService.id,
-    body: bffApi.EServiceArchivingReasonSeed = mockEServiceArchivingReasonSeed
+    body: bffApi.EServiceArchivingSeed = mockEServiceArchivingSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/${eServiceId}/scheduleArchive`)
@@ -42,7 +43,7 @@ describe("API POST /eservices/:eServiceId/scheduleArchive", () => {
     { eServiceId: "invalid" as EServiceId },
     {
       body: {
-        ...mockEServiceArchivingReasonSeed,
+        ...mockEServiceArchivingSeed,
         extraField: 1,
       },
     },
@@ -53,7 +54,7 @@ describe("API POST /eservices/:eServiceId/scheduleArchive", () => {
       const res = await makeRequest(
         token,
         eServiceId,
-        body as bffApi.EServiceArchivingReasonSeed
+        body as bffApi.EServiceArchivingSeed
       );
       expect(res.status).toBe(400);
     }

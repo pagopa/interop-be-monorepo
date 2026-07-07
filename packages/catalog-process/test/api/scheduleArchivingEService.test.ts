@@ -21,6 +21,8 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
+  gracePeriodDaysLowerThanDescriptor,
+  gracePeriodDaysNotValid,
   notValidEServiceState,
 } from "../../src/model/domain/errors.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
@@ -42,8 +44,9 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
 
   const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
 
-  const archivingReasonSeed: catalogApi.EServiceArchivingReasonSeed = {
+  const archivingSeed: catalogApi.EServiceArchivingSeed = {
     archivingReason: "No longer needed",
+    gracePeriodDays: 90,
   };
 
   catalogService.scheduleEServiceArchiving = vi
@@ -53,7 +56,7 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    body: catalogApi.EServiceArchivingReasonSeed = archivingReasonSeed
+    body: catalogApi.EServiceArchivingSeed = archivingSeed
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/scheduleArchive`)
@@ -106,6 +109,19 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
       error: notValidEServiceState(mockEService.id),
       expectedStatus: 400,
     },
+    {
+      error: gracePeriodDaysNotValid(10, 30, 90),
+      expectedStatus: 400,
+    },
+    {
+      error: gracePeriodDaysLowerThanDescriptor(
+        mockEService.id,
+        descriptor.id,
+        30,
+        90
+      ),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -132,7 +148,7 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        body as catalogApi.EServiceArchivingReasonSeed
+        body as catalogApi.EServiceArchivingSeed
       );
 
       expect(res.status).toBe(400);

@@ -17,8 +17,9 @@ import { config } from "../../../src/config/config.js";
 describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
   const mockEService: catalogApi.EService = getMockedApiEservice();
 
-  const mockSeed: m2mGatewayApiV3.EServiceArchivingReasonSeed = {
+  const mockSeed: m2mGatewayApiV3.EServiceArchivingSeed = {
     archivingReason: "test reason",
+    gracePeriodDays: 90,
   };
 
   const mockM2MEService: m2mGatewayApiV3.EService =
@@ -27,7 +28,7 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
   const makeRequest = async (
     token: string,
     eserviceId: string = mockEService.id,
-    body: m2mGatewayApiV3.EServiceArchivingReasonSeed = mockSeed
+    body: m2mGatewayApiV3.EServiceArchivingSeed = mockSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/${eserviceId}/scheduleArchive`)
@@ -78,7 +79,7 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
       const res = await makeRequest(
         token,
         mockEService.id,
-        seed as m2mGatewayApiV3.EServiceArchivingReasonSeed
+        seed as m2mGatewayApiV3.EServiceArchivingSeed
       );
 
       expect(res.status).toBe(400);

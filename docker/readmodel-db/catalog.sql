@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_archiving_sched
   scope VARCHAR NOT NULL,
   archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
   started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  grace_period_days INTEGER NOT NULL,
   PRIMARY KEY (eservice_id, descriptor_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

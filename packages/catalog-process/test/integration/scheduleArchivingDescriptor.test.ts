@@ -37,11 +37,13 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import * as dateCalculator from "../../src/utilities/dateCalculator.js";
+import { config } from "../../src/config/config.js";
 
 describe("schedule archiving of a descriptor", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
+  const mockGracePeriodDays = 30;
 
   it.each([
     {
@@ -77,6 +79,7 @@ describe("schedule archiving of a descriptor", () => {
         await catalogService.scheduleEServiceDescriptorArchiving(
           eservice.id,
           descriptor1.id,
+          { gracePeriodDays: mockGracePeriodDays },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
 
@@ -107,6 +110,7 @@ describe("schedule archiving of a descriptor", () => {
             )
           ),
           scope: "Descriptor",
+          gracePeriodDays: mockGracePeriodDays,
         },
       };
 
@@ -121,6 +125,50 @@ describe("schedule archiving of a descriptor", () => {
         data: expectedEService,
         metadata: { version: parseInt(writtenEvent.version, 10) },
       });
+    }
+  );
+
+  it.each([
+    {
+      gracePeriodDays: config.gracePeriodArchivingEServiceDays.min - 1,
+      testCase: "lower than the minimum allowed",
+    },
+    {
+      gracePeriodDays: config.gracePeriodArchivingEServiceDays.max + 1,
+      testCase: "higher than the maximum allowed",
+    },
+  ])(
+    "should throw gracePeriodDaysNotValid if the requested gracePeriodDays is $testCase",
+    async ({ gracePeriodDays }) => {
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: descriptorState.deprecated,
+        version: "1",
+      };
+      const descriptor2: Descriptor = {
+        ...mockDescriptor,
+        id: generateId(),
+        version: "2",
+        state: descriptorState.published,
+        interface: getMockDocument(),
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor, descriptor2],
+      };
+      await addOneEService(eservice);
+
+      await expect(
+        catalogService.scheduleEServiceDescriptorArchiving(
+          eservice.id,
+          descriptor.id,
+          { gracePeriodDays },
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrowError(
+        `Grace period days ${gracePeriodDays} is not valid. It must be between ${config.gracePeriodArchivingEServiceDays.min} and ${config.gracePeriodArchivingEServiceDays.max}`
+      );
     }
   );
 
@@ -141,6 +189,7 @@ describe("schedule archiving of a descriptor", () => {
       catalogService.scheduleEServiceDescriptorArchiving(
         eservice.id,
         descriptor.id,
+        { gracePeriodDays: mockGracePeriodDays },
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(
@@ -167,6 +216,7 @@ describe("schedule archiving of a descriptor", () => {
         catalogService.scheduleEServiceDescriptorArchiving(
           eservice.id,
           descriptor.id,
+          { gracePeriodDays: mockGracePeriodDays },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
@@ -218,6 +268,7 @@ describe("schedule archiving of a descriptor", () => {
         await catalogService.scheduleEServiceDescriptorArchiving(
           eservice.id,
           descriptor1.id,
+          { gracePeriodDays: mockGracePeriodDays },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -226,6 +277,7 @@ describe("schedule archiving of a descriptor", () => {
         archivableOn: expectedArchivableOn,
         startedAt: startedAt,
         scope: ArchivingScope.Enum.Descriptor,
+        gracePeriodDays: mockGracePeriodDays,
       };
 
       const expectedDescriptor1: Descriptor = {
@@ -277,6 +329,7 @@ describe("schedule archiving of a descriptor", () => {
         catalogService.scheduleEServiceDescriptorArchiving(
           eservice.id,
           descriptor1.id,
+          { gracePeriodDays: mockGracePeriodDays },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor1.id, state));
@@ -288,6 +341,7 @@ describe("schedule archiving of a descriptor", () => {
       catalogService.scheduleEServiceDescriptorArchiving(
         mockEService.id,
         mockDescriptor.id,
+        { gracePeriodDays: mockGracePeriodDays },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
@@ -316,6 +370,7 @@ describe("schedule archiving of a descriptor", () => {
       catalogService.scheduleEServiceDescriptorArchiving(
         eservice.id,
         descriptor1.id,
+        { gracePeriodDays: mockGracePeriodDays },
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
@@ -345,6 +400,7 @@ describe("schedule archiving of a descriptor", () => {
         catalogService.scheduleEServiceDescriptorArchiving(
           eservice.id,
           descriptor.id,
+          { gracePeriodDays: mockGracePeriodDays },
           getMockContext({
             authData: getMockAuthData(eservice.producerId),
           })
@@ -370,6 +426,7 @@ describe("schedule archiving of a descriptor", () => {
       catalogService.scheduleEServiceDescriptorArchiving(
         eservice.id,
         mockDescriptor.id,
+        { gracePeriodDays: mockGracePeriodDays },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
     ).rejects.toThrowError(
