@@ -1002,6 +1002,7 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
@@ -1146,6 +1147,7 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
@@ -1271,6 +1273,7 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
@@ -1278,6 +1281,9 @@ describe("authorization server tests", () => {
         parsedDecodedFileContent.expirationTime
       ),
       issuer: config.generatedInteropTokenIssuer,
+      cnf: {
+        jkt: calculateDPoPThumbprint(dpopProofJWT.header.jwk),
+      },
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
@@ -1432,11 +1438,15 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
       expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
       issuer: config.generatedInteropTokenIssuer,
+      cnf: {
+        jkt: calculateDPoPThumbprint(dpopProofJWT.header.jwk),
+      },
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
