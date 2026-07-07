@@ -85,39 +85,47 @@ const getCatalogItemInterface = (
   return descriptor.interface;
 };
 
+const findAsyncExchangeCallbackInterface = (
+  event: EServiceEventEnvelopeV2,
+  descriptorId: string
+): CatalogDocumentV1Notification | undefined => {
+  if (!event.data.eservice) {
+    return undefined;
+  }
+
+  const eservice = fromEServiceV2(event.data.eservice);
+  const asyncExchangeCallbackInterface = eservice.descriptors.find(
+    (d) => d.id === descriptorId
+  )?.asyncExchangeCallbackInterface;
+
+  return asyncExchangeCallbackInterface
+    ? toCatalogDocumentV1(asyncExchangeCallbackInterface)
+    : undefined;
+};
+
 const getAsyncExchangeCallbackInterface = (
   event: EServiceEventEnvelopeV2,
   descriptorId: string,
   documentId: string
 ): CatalogDocumentV1Notification => {
-  if (!event.data.eservice) {
-    throw missingKafkaMessageDataError("eservice", event.type);
-  }
+  const asyncExchangeCallbackInterface = findAsyncExchangeCallbackInterface(
+    event,
+    descriptorId
+  );
 
-  const eservice = fromEServiceV2(event.data.eservice);
-  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-
-  if (!descriptor) {
-    throw eventV1ConversionError(
-      `Expected descriptor ${descriptorId} in eservice ${eservice.id} during eventV1 conversion`
-    );
-  }
-
-  const asyncExchangeCallbackInterface =
-    descriptor.asyncExchangeCallbackInterface;
   if (!asyncExchangeCallbackInterface) {
     throw eventV1ConversionError(
-      `Expected async exchange callback interface ${documentId} in descriptor ${descriptor.id} during eventV1 conversion`
+      `Expected async exchange callback interface ${documentId} in descriptor ${descriptorId} during eventV1 conversion`
     );
   }
 
   if (asyncExchangeCallbackInterface.id !== documentId) {
     throw eventV1ConversionError(
-      `Expected async exchange callback interface with same ID ${documentId} in descriptor ${descriptor.id} during eventV1 conversion`
+      `Expected async exchange callback interface with same ID ${documentId} in descriptor ${descriptorId} during eventV1 conversion`
     );
   }
 
-  return toCatalogDocumentV1(asyncExchangeCallbackInterface);
+  return asyncExchangeCallbackInterface;
 };
 
 export const toCatalogItemEventNotification = (
@@ -290,10 +298,17 @@ export const toCatalogItemEventNotification = (
           eserviceV1,
           e.data.descriptorId
         );
-        const documentV1 = getCatalogItemDocument(
-          descriptorV1,
-          e.data.documentId
-        );
+
+        const documentV1 =
+          [...descriptorV1.docs, descriptorV1.interface].find(
+            (doc) => doc != null && doc.id === e.data.documentId
+          ) ?? findAsyncExchangeCallbackInterface(e, e.data.descriptorId);
+
+        if (!documentV1 || documentV1.id !== e.data.documentId) {
+          throw eventV1ConversionError(
+            `Expected document ${e.data.documentId} in descriptor ${descriptorV1.id} during eventV1 conversion`
+          );
+        }
 
         return {
           eServiceId: eserviceV1.id,
