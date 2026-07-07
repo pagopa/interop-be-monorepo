@@ -322,6 +322,13 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate,
           creatorTenant
         ),
+        asyncExchangeProperties:
+          eserviceTemplateVersion.asyncExchangeProperties,
+        asyncExchangeCallbackInterface:
+          eserviceTemplateVersion.asyncExchangeCallbackInterface &&
+          toBffCatalogApiDescriptorDoc(
+            eserviceTemplateVersion.asyncExchangeCallbackInterface
+          ),
         ...(hasRequesterRiskAnalysis !== null && { hasRequesterRiskAnalysis }),
       };
     },
@@ -631,6 +638,10 @@ export function eserviceTemplateServiceBuilder(
               },
             }
           );
+        },
+        {
+          maxFileSizeBytes: config.maxFileSizeBytes,
+          maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
         },
         ctx.logger
       );

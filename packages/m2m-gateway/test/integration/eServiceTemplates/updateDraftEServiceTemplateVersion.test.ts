@@ -82,6 +82,7 @@ describe("updateDraftEserviceTemplateVersion", () => {
       description: mockTemplateVersion.description,
       publishedAt: mockTemplateVersion.publishedAt,
       suspendedAt: mockTemplateVersion.suspendedAt,
+      asyncExchangeProperties: mockTemplateVersion.asyncExchangeProperties,
     };
 
     expect(result).toStrictEqual(expectedM2MTemplateVersion);

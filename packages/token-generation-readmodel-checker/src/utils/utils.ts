@@ -159,48 +159,58 @@ export async function compareTokenGenerationReadModel(
 ): Promise<number> {
   const tokenGenerationService =
     tokenGenerationReadModelServiceBuilder(dynamoDBClient);
-  const platformStatesEntries =
-    await tokenGenerationService.readAllPlatformStatesItems();
-  const tokenGenerationStatesEntries =
-    await tokenGenerationService.readAllTokenGenerationStatesItems();
 
-  const tokenGenStatesByClient = tokenGenerationStatesEntries.reduce(
-    (acc: Map<ClientId, TokenGenerationStatesGenericClient[]>, entry) => {
+  const tokenGenStatesByClient = new Map<
+    ClientId,
+    TokenGenerationStatesGenericClient[]
+  >();
+  const tokenGenerationStatesPages =
+    tokenGenerationService.readTokenGenerationStatesItemsPages();
+  for await (const tokenGenerationStatesEntries of tokenGenerationStatesPages) {
+    for (const entry of tokenGenerationStatesEntries) {
       const clientId = getClientIdFromTokenGenStatesPK(entry.PK);
-      acc.set(clientId, [...(acc.get(clientId) || []), entry]);
-      return acc;
-    },
-    new Map<ClientId, TokenGenerationStatesGenericClient[]>()
-  );
+      const entries = tokenGenStatesByClient.get(clientId) || [];
+      // eslint-disable-next-line functional/immutable-data
+      entries.push(entry);
+      tokenGenStatesByClient.set(clientId, entries);
+    }
+  }
 
   const platformStates: {
     purposes: Map<PurposeId, PlatformStatesPurposeEntry>;
     agreements: Map<AgreementId, PlatformStatesAgreementEntry>;
     eservices: Map<EServiceId, Map<DescriptorId, PlatformStatesCatalogEntry>>;
-  } = platformStatesEntries.reduce<{
-    purposes: Map<PurposeId, PlatformStatesPurposeEntry>;
-    agreements: Map<AgreementId, PlatformStatesAgreementEntry>;
-    eservices: Map<EServiceId, Map<DescriptorId, PlatformStatesCatalogEntry>>;
-  }>(
-    (acc, e) => {
+  } = {
+    purposes: new Map<PurposeId, PlatformStatesPurposeEntry>(),
+    agreements: new Map<AgreementId, PlatformStatesAgreementEntry>(),
+    eservices: new Map<
+      EServiceId,
+      Map<DescriptorId, PlatformStatesCatalogEntry>
+    >(),
+  };
+
+  const platformStatesPages =
+    tokenGenerationService.readPlatformStatesItemsPages();
+  for await (const platformStatesEntries of platformStatesPages) {
+    for (const e of platformStatesEntries) {
       const parsedPurpose = PlatformStatesPurposeEntry.safeParse(e);
       if (parsedPurpose.success) {
-        acc.purposes.set(
+        platformStates.purposes.set(
           unsafeBrandId<PurposeId>(
             getIdFromPlatformStatesPK(parsedPurpose.data.PK)
           ),
           parsedPurpose.data
         );
-        return acc;
+        continue;
       }
 
       const parsedAgreement = PlatformStatesAgreementEntry.safeParse(e);
       if (parsedAgreement.success) {
-        acc.agreements.set(
+        platformStates.agreements.set(
           parsedAgreement.data.agreementId,
           parsedAgreement.data
         );
-        return acc;
+        continue;
       }
 
       const parsedCatalog = PlatformStatesCatalogEntry.safeParse(e);
@@ -209,49 +219,51 @@ export async function compareTokenGenerationReadModel(
           parsedCatalog.data.PK
         );
 
-        acc.eservices.set(
+        platformStates.eservices.set(
           catalogIds.eserviceId,
           (
-            acc.eservices.get(catalogIds.eserviceId) ??
+            platformStates.eservices.get(catalogIds.eserviceId) ??
             new Map<DescriptorId, PlatformStatesCatalogEntry>()
           ).set(catalogIds.descriptorId, parsedCatalog.data)
         );
 
-        return acc;
+        continue;
       }
 
       if (PlatformStatesClientEntry.safeParse(e).success) {
-        return acc;
+        continue;
       }
 
       throw genericInternalError(
         `Unknown platform-states type for entry: ${JSON.stringify(e)} `
       );
-    },
-    {
-      purposes: new Map<PurposeId, PlatformStatesPurposeEntry>(),
-      agreements: new Map<AgreementId, PlatformStatesAgreementEntry>(),
-      eservices: new Map<
-        EServiceId,
-        Map<DescriptorId, PlatformStatesCatalogEntry>
-      >(),
     }
-  );
+  }
 
-  const purposes = await readModelService.getAllReadModelPurposes();
-  const purposesById = new Map(
-    purposes.map((purpose) => [purpose.id, purpose])
-  );
+  const purposesById = new Map<PurposeId, Purpose>();
+  for (const purpose of await readModelService.getAllReadModelPurposes()) {
+    purposesById.set(purpose.id, purpose);
+  }
 
-  const agreements = await readModelService.getAllReadModelAgreements();
   const agreementsById = new Map<AgreementId, Agreement>();
   const agreementsByConsumerIdEserviceId = new Map<
     GSIPKConsumerIdEServiceId,
     Agreement[]
   >();
 
-  for (const agreement of agreements) {
+  for (const agreement of await readModelService.getAllReadModelAgreements()) {
     agreementsById.set(agreement.id, agreement);
+
+    // Only agreements considered by getLastAgreement need to live in the
+    // by-consumer/e-service index; skipping the rest avoids keeping draft,
+    // rejected, etc. agreements in a second Map for no reason.
+    if (
+      agreement.state !== agreementState.active &&
+      agreement.state !== agreementState.suspended &&
+      agreement.state !== agreementState.archived
+    ) {
+      continue;
+    }
 
     const consumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
       consumerId: agreement.consumerId,
@@ -260,39 +272,47 @@ export async function compareTokenGenerationReadModel(
     const existingAgreements =
       agreementsByConsumerIdEserviceId.get(consumerIdEServiceId);
 
-    agreementsByConsumerIdEserviceId.set(consumerIdEServiceId, [
-      ...(existingAgreements || []),
-      agreement,
-    ]);
+    if (existingAgreements) {
+      // eslint-disable-next-line functional/immutable-data
+      existingAgreements.push(agreement);
+    } else {
+      agreementsByConsumerIdEserviceId.set(consumerIdEServiceId, [agreement]);
+    }
   }
 
-  const eservices = await readModelService.getAllReadModelEServices();
   const eservicesById = new Map<EServiceId, EService>();
-  for (const eservice of eservices) {
+  for (const eservice of await readModelService.getAllReadModelEServices()) {
     eservicesById.set(eservice.id, eservice);
   }
 
-  const clients = await readModelService.getAllReadModelClients();
-  const clientsById = new Map<ClientId, Client>(
-    clients.map((client) => [unsafeBrandId<ClientId>(client.id), client])
-  );
+  const clientsById = new Map<ClientId, Client>();
+  for (const client of await readModelService.getAllReadModelClients()) {
+    clientsById.set(unsafeBrandId<ClientId>(client.id), client);
+  }
 
   const purposeDifferences = await compareReadModelPurposesWithPlatformStates({
     platformStatesPurposeById: platformStates.purposes,
     purposesById,
     logger,
   });
+  platformStates.purposes.clear();
+
   const agreementDifferences =
     await compareReadModelAgreementsWithPlatformStates({
       platformStatesAgreementById: platformStates.agreements,
       agreementsById,
       logger,
     });
+  platformStates.agreements.clear();
+  agreementsById.clear();
+
   const catalogDifferences = await compareReadModelEServicesWithPlatformStates({
     platformStatesEServiceById: platformStates.eservices,
     eservicesById,
     logger,
   });
+  platformStates.eservices.clear();
+
   const clientAndTokenGenStatesDifferences =
     await compareReadModelClientsAndTokenGenStates({
       tokenGenStatesByClient,

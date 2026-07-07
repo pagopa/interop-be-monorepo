@@ -31,7 +31,7 @@ import {
   EServiceTemplateDraftVersionUpdatedV2,
   eserviceTemplateVersionState,
   EServiceTemplateNameUpdatedV2,
-  EServiceTemplateRiskAnalysis,
+  RiskAnalysis,
   tenantKind,
 } from "pagopa-interop-models";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
@@ -806,7 +806,7 @@ describe("database test", async () => {
         1
       );
 
-      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
+      const updatedRiskAnalysis: RiskAnalysis = {
         ...mockRiskAnalysis,
         riskAnalysisForm: {
           ...mockRiskAnalysis.riskAnalysisForm,

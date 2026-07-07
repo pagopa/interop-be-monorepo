@@ -3,6 +3,7 @@ import {
   attributeRegistryApi,
   catalogApi,
   m2mGatewayApi,
+  WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
 import {
   AttributeId,
@@ -28,11 +29,11 @@ import {
   cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorAttributeNotFound,
   eserviceDescriptorAttributeGroupNotFound,
+  eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
 } from "../model/errors.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { uploadEServiceDocument } from "../utils/fileUpload.js";
@@ -580,6 +581,34 @@ export function eserviceServiceBuilder(
 
       return downloadDocument(
         descriptor.interface,
+        fileManager,
+        config.eserviceDocumentsContainer,
+        logger
+      );
+    },
+    async downloadEServiceDescriptorAsyncExchangeCallbackInterface(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving async exchange callback interface for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId
+      );
+
+      if (!descriptor.asyncExchangeCallbackInterface) {
+        throw eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
+          eserviceId,
+          descriptorId
+        );
+      }
+
+      return downloadDocument(
+        descriptor.asyncExchangeCallbackInterface,
         fileManager,
         config.eserviceDocumentsContainer,
         logger

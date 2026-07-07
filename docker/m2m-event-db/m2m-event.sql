@@ -214,6 +214,6 @@ CREATE TABLE IF NOT EXISTS m2m_event.purpose_template (
   creator_id UUID NOT NULL,
 
   visibility VARCHAR NOT NULL,
-  
+
   PRIMARY KEY (id)
 );

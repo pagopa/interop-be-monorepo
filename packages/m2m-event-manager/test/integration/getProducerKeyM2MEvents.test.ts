@@ -25,10 +25,13 @@ describe("getProducerKeyM2MEvents", () => {
         visibility: m2mEventVisibility.owner,
       }),
     ])
-    .flat();
+    .flat()
+    .sort((a, b) => a.id.localeCompare(b.id));
 
   beforeEach(async () => {
-    await Promise.all(mockProducerKeyM2MEvents.map(writeProducerKeyM2MEvent));
+    for (const event of mockProducerKeyM2MEvents) {
+      await writeProducerKeyM2MEvent(event);
+    }
   });
 
   it("should not list producer key M2M events for non-owners", async () => {

@@ -20,6 +20,7 @@ import {
   EServiceAddedV2,
   EServiceDescriptorAddedV2,
   EServiceDescriptorDocumentAddedV2,
+  EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
   EServiceDocumentId,
   eserviceMode,
   EServiceTemplate,
@@ -43,6 +44,10 @@ import {
 } from "../integrationUtils.js";
 import { config } from "../../src/config/config.js";
 import { eServiceNameDuplicateForProducer } from "../../src/model/domain/errors.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../../src/model/domain/constants.js";
 
 describe("create eService from template", () => {
   const mockEService = getMockEService();
@@ -61,11 +66,19 @@ describe("create eService from template", () => {
     const publishedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
     const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [publishedVersion],
       personalData: false,
+      asyncExchange: true,
     };
 
     const tenant: Tenant = {
@@ -125,6 +138,7 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       templateId: eServiceTemplate.id,
       personalData: eServiceTemplate.personalData,
+      asyncExchange: eServiceTemplate.asyncExchange,
     };
 
     const expectedEServiceWithDescriptor: EService = {
@@ -138,6 +152,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
       personalData: eServiceTemplate.personalData,
+      asyncExchange: eServiceTemplate.asyncExchange,
       descriptors: [
         {
           ...mockDescriptor,
@@ -146,19 +161,24 @@ describe("create eService from template", () => {
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          dailyCallsPerConsumer:
+            publishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: publishedVersion.id },
+          asyncExchangeProperties: publishedVersion.asyncExchangeProperties,
         },
       ],
     };
 
-    expect(eServiceCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEService)
-    );
-    expect(descriptorCreationPayload.eservice).toEqual(
-      toEServiceV2(expectedEServiceWithDescriptor)
-    );
+    expect(eServiceCreationPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(descriptorCreationPayload).toEqual({
+      descriptorId: eService.descriptors[0].id,
+      eservice: toEServiceV2(expectedEServiceWithDescriptor),
+    });
   });
 
   it.each([
@@ -272,6 +292,7 @@ describe("create eService from template", () => {
         isClientAccessDelegable: false,
         templateId: eServiceTemplate.id,
         personalData: eServiceTemplate.personalData,
+        asyncExchange: eServiceTemplate.asyncExchange,
         ...(expectedParsedInstanceLabel !== undefined
           ? { instanceLabel: expectedParsedInstanceLabel }
           : {}),
@@ -288,6 +309,7 @@ describe("create eService from template", () => {
         isConsumerDelegable: false,
         templateId: eServiceTemplate.id,
         personalData: eServiceTemplate.personalData,
+        asyncExchange: eServiceTemplate.asyncExchange,
         ...(expectedParsedInstanceLabel !== undefined
           ? { instanceLabel: expectedParsedInstanceLabel }
           : {}),
@@ -299,19 +321,23 @@ describe("create eService from template", () => {
             createdAt: new Date(),
             serverUrls: [],
             audience: [],
-            dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-            dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+            dailyCallsPerConsumer:
+              publishedVersion?.dailyCallsPerConsumer ??
+              DEFAULT_DAILY_CALLS_PER_CONSUMER,
+            dailyCallsTotal:
+              publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
             templateVersionRef: { id: publishedVersion.id },
           },
         ],
       };
 
-      expect(eServiceCreationPayload.eservice).toEqual(
-        toEServiceV2(expectedEService)
-      );
-      expect(descriptorCreationPayload.eservice).toEqual(
-        toEServiceV2(expectedEServiceWithDescriptor)
-      );
+      expect(eServiceCreationPayload).toEqual({
+        eservice: toEServiceV2(expectedEService),
+      });
+      expect(descriptorCreationPayload).toEqual({
+        descriptorId: eService.descriptors[0].id,
+        eservice: toEServiceV2(expectedEServiceWithDescriptor),
+      });
     }
   );
 
@@ -332,6 +358,13 @@ describe("create eService from template", () => {
     const publishedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
 
     const eserviceTemplate: EServiceTemplate = {
@@ -344,6 +377,7 @@ describe("create eService from template", () => {
       ],
       versions: [publishedVersion],
       personalData: false,
+      asyncExchange: true,
     };
 
     await addOneTenant(tenant);
@@ -354,11 +388,6 @@ describe("create eService from template", () => {
       {},
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
-
-    const { tenantKind: _tenantKind, ...validRiskAnalysisPA1 } =
-      validEServiceTemplateRiskAnalysisPA1;
-    const { tenantKind: _tenantKind2, ...validRiskAnalysisPA2 } =
-      validEServiceTemplateRiskAnalysisPA2;
 
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,
@@ -371,8 +400,12 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
-      riskAnalysis: [validRiskAnalysisPA1, validRiskAnalysisPA2],
+      riskAnalysis: [
+        validEServiceTemplateRiskAnalysisPA1,
+        validEServiceTemplateRiskAnalysisPA2,
+      ],
       personalData: eserviceTemplate.personalData,
+      asyncExchange: undefined,
       descriptors: [
         {
           ...mockDescriptor,
@@ -381,9 +414,13 @@ describe("create eService from template", () => {
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          dailyCallsPerConsumer:
+            publishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: publishedVersion.id },
+          asyncExchangeProperties: publishedVersion.asyncExchangeProperties,
         },
       ],
     };
@@ -408,6 +445,13 @@ describe("create eService from template", () => {
     const publishedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
 
     const eserviceTemplate: EServiceTemplate = {
@@ -420,6 +464,7 @@ describe("create eService from template", () => {
       ],
       versions: [publishedVersion],
       personalData: false,
+      asyncExchange: true,
     };
 
     await addOneTenant(tenant);
@@ -430,9 +475,6 @@ describe("create eService from template", () => {
       {},
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
-
-    const { tenantKind: _tenantKind, ...validRiskAnalysisPrivate } =
-      validEServiceTemplateRiskAnalysisPrivate;
 
     const expectedEServiceWithDescriptor: EService = {
       ...mockEService,
@@ -445,8 +487,9 @@ describe("create eService from template", () => {
       isClientAccessDelegable: false,
       isConsumerDelegable: false,
       templateId: eserviceTemplate.id,
-      riskAnalysis: [validRiskAnalysisPrivate],
+      riskAnalysis: [validEServiceTemplateRiskAnalysisPrivate],
       personalData: eserviceTemplate.personalData,
+      asyncExchange: undefined,
       descriptors: [
         {
           ...mockDescriptor,
@@ -455,9 +498,13 @@ describe("create eService from template", () => {
           createdAt: new Date(),
           serverUrls: [],
           audience: [],
-          dailyCallsPerConsumer: publishedVersion?.dailyCallsPerConsumer ?? 1,
-          dailyCallsTotal: publishedVersion?.dailyCallsTotal ?? 1,
+          dailyCallsPerConsumer:
+            publishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            publishedVersion?.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: publishedVersion.id },
+          asyncExchangeProperties: publishedVersion.asyncExchangeProperties,
         },
       ],
     };
@@ -496,11 +543,19 @@ describe("create eService from template", () => {
         eserviceTemplateVersionState.published
       ),
       docs: [document1, document2],
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
     const eServiceTemplate: EServiceTemplate = {
       ...mockEServiceTemplate,
       versions: [eserviceTemplatePublishedVersion],
       personalData: false,
+      asyncExchange: true,
     };
 
     const tenant: Tenant = {
@@ -628,6 +683,7 @@ describe("create eService from template", () => {
       isConsumerDelegable: false,
       templateId: eServiceTemplate.id,
       personalData: eServiceTemplate.personalData,
+      asyncExchange: eServiceTemplate.asyncExchange,
       descriptors: [
         {
           ...mockDescriptor,
@@ -637,10 +693,14 @@ describe("create eService from template", () => {
           serverUrls: [],
           audience: [],
           dailyCallsPerConsumer:
-            eserviceTemplatePublishedVersion?.dailyCallsPerConsumer ?? 1,
+            eserviceTemplatePublishedVersion?.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
           dailyCallsTotal:
-            eserviceTemplatePublishedVersion?.dailyCallsTotal ?? 1,
+            eserviceTemplatePublishedVersion?.dailyCallsTotal ??
+            DEFAULT_DAILY_CALLS_TOTAL,
           templateVersionRef: { id: eserviceTemplatePublishedVersion.id },
+          asyncExchangeProperties:
+            eserviceTemplatePublishedVersion.asyncExchangeProperties,
         },
       ],
     };
@@ -697,8 +757,10 @@ describe("create eService from template", () => {
       expectedEventStoredDocument1
     );
 
-    expect(actualEServiceDocument2Creation.eservice).toEqual(
-      toEServiceV2({
+    expect(actualEServiceDocument2Creation).toEqual({
+      descriptorId: eService.descriptors[0].id,
+      documentId: expectedDocument2.id,
+      eservice: toEServiceV2({
         ...expectedEServiceWithDescriptor,
         descriptors: [
           {
@@ -706,8 +768,8 @@ describe("create eService from template", () => {
             docs: [expectedDocument1, expectedDocument2],
           },
         ],
-      })
-    );
+      }),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -748,6 +810,13 @@ describe("create eService from template", () => {
     const publishedVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
     };
 
     const eserviceTemplate: EServiceTemplate = {
@@ -830,6 +899,37 @@ describe("create eService from template", () => {
     });
   });
 
+  it("should throw templateVersionMissingAsyncExchangeProperties when the template is async but published version has no asyncExchangeProperties", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    await expect(
+      catalogService.createEServiceInstanceFromTemplate(
+        eServiceTemplate.id,
+        {},
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toMatchObject({
+      code: "templateVersionMissingAsyncExchangeProperties",
+    });
+  });
+
   it.each([
     {
       existingLabel: undefined,
@@ -888,4 +988,429 @@ describe("create eService from template", () => {
       );
     }
   );
+
+  it("should copy asyncExchangeProperties from template to instance descriptor", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    const eService = await catalogService.createEServiceInstanceFromTemplate(
+      eServiceTemplate.id,
+      {},
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(eService).toBeDefined();
+
+    const descriptorCreationEvent = await readEventByStreamIdAndVersion(
+      eService.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+
+    expect(descriptorCreationEvent).toMatchObject({
+      stream_id: eService.id,
+      version: "1",
+      type: "EServiceDescriptorAdded",
+      event_version: 2,
+    });
+
+    const descriptorCreationPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAddedV2,
+      payload: descriptorCreationEvent.data,
+    });
+
+    const createdDescriptor =
+      descriptorCreationPayload.eservice?.descriptors[0];
+    expect(createdDescriptor).toBeDefined();
+    expect(createdDescriptor?.asyncExchangeProperties).toEqual({
+      responseTime: 3600,
+      resourceAvailableTime: 7200,
+      confirmation: true,
+      bulk: false,
+      maxResultSet: 1000,
+    });
+  });
+
+  it("should allow overriding modifiable asyncExchangeProperties fields when creating instance from template", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    const eService = await catalogService.createEServiceInstanceFromTemplate(
+      eServiceTemplate.id,
+      {
+        asyncExchangeProperties: {
+          responseTime: 1800,
+          resourceAvailableTime: 3600,
+          maxResultSet: 500,
+        },
+      },
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(eService).toBeDefined();
+
+    const descriptorCreationEvent = await readEventByStreamIdAndVersion(
+      eService.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+
+    const descriptorCreationPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAddedV2,
+      payload: descriptorCreationEvent.data,
+    });
+
+    const createdDescriptor =
+      descriptorCreationPayload.eservice?.descriptors[0];
+    expect(createdDescriptor).toBeDefined();
+    expect(createdDescriptor?.asyncExchangeProperties).toEqual({
+      responseTime: 1800,
+      resourceAvailableTime: 3600,
+      confirmation: true,
+      bulk: false,
+      maxResultSet: 500,
+    });
+  });
+
+  it("should use template values for asyncExchangeProperties fields not provided in the seed", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    const eService = await catalogService.createEServiceInstanceFromTemplate(
+      eServiceTemplate.id,
+      { asyncExchangeProperties: { responseTime: 900 } },
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(eService).toBeDefined();
+
+    const descriptorCreationEvent = await readEventByStreamIdAndVersion(
+      eService.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+
+    const descriptorCreationPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAddedV2,
+      payload: descriptorCreationEvent.data,
+    });
+
+    const createdDescriptor =
+      descriptorCreationPayload.eservice?.descriptors[0];
+    expect(createdDescriptor).toBeDefined();
+    expect(createdDescriptor?.asyncExchangeProperties).toEqual({
+      responseTime: 900,
+      resourceAvailableTime: 7200,
+      confirmation: true,
+      bulk: false,
+      maxResultSet: 1000,
+    });
+  });
+
+  it("should ignore asyncExchange override fields when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    const eService = await catalogService.createEServiceInstanceFromTemplate(
+      eServiceTemplate.id,
+      {
+        asyncExchangeProperties: {
+          responseTime: 900,
+          resourceAvailableTime: 1800,
+          maxResultSet: 500,
+        },
+      },
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(eService).toBeDefined();
+    expect(eService.asyncExchange).toBeUndefined();
+
+    const descriptorCreationEvent = await readEventByStreamIdAndVersion(
+      eService.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+
+    const descriptorCreationPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAddedV2,
+      payload: descriptorCreationEvent.data,
+    });
+
+    const createdDescriptor =
+      descriptorCreationPayload.eservice?.descriptors[0];
+    expect(createdDescriptor).toBeDefined();
+    expect(createdDescriptor?.asyncExchangeProperties).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
+  });
+
+  it("should copy asyncExchangeCallbackInterface from template to instance descriptor", async () => {
+    vi.spyOn(fileManager, "copy");
+
+    const callbackDocId = generateId<EServiceDocumentId>();
+    const callbackDoc: Document = {
+      ...mockDocument,
+      id: unsafeBrandId(callbackDocId),
+      name: "callback.yaml",
+      prettyName: "Callback Interface",
+      path: `${config.eserviceDocumentsPath}/${callbackDocId}/callback.yaml`,
+      checksum: "callback-checksum",
+    };
+
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      asyncExchangeCallbackInterface: callbackDoc,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 1000,
+      },
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: callbackDoc.id,
+        name: callbackDoc.name,
+        content: Buffer.from("callback-content"),
+      },
+      genericLogger
+    );
+
+    const eService = await catalogService.createEServiceInstanceFromTemplate(
+      eServiceTemplate.id,
+      {},
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(eService).toBeDefined();
+
+    // Events: 0=EServiceAdded, 1=EServiceDescriptorAdded, 2=AsyncExchangeCallbackInterfaceAdded
+    const callbackInterfaceEvent = await readEventByStreamIdAndVersion(
+      eService.id,
+      2,
+      "catalog",
+      postgresDB
+    );
+
+    expect(callbackInterfaceEvent).toMatchObject({
+      stream_id: eService.id,
+      version: "2",
+      type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+      event_version: 2,
+    });
+
+    const callbackPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
+      payload: callbackInterfaceEvent.data,
+    });
+
+    const copiedCallbackInterface =
+      callbackPayload.eservice?.descriptors[0]?.asyncExchangeCallbackInterface;
+    expect(copiedCallbackInterface).toBeDefined();
+    expect(copiedCallbackInterface?.name).toEqual(callbackDoc.name);
+    expect(copiedCallbackInterface?.prettyName).toEqual(callbackDoc.prettyName);
+    expect(copiedCallbackInterface?.contentType).toEqual(
+      callbackDoc.contentType
+    );
+    expect(copiedCallbackInterface?.checksum).toEqual(callbackDoc.checksum);
+
+    // Verify fileManager.copy was called for the callback interface
+    expect(fileManager.copy).toHaveBeenCalledWith(
+      config.s3Bucket,
+      callbackDoc.path,
+      config.eserviceDocumentsPath,
+      expect.any(String),
+      callbackDoc.name,
+      genericLogger
+    );
+  });
+
+  // Skipped: depends on PIN-9415 (asyncExchangeProperties in descriptor)
+  it.skip("should not copy asyncExchangeCallbackInterface when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    vi.spyOn(fileManager, "copy");
+
+    const callbackDocId = generateId<EServiceDocumentId>();
+    const callbackDoc: Document = {
+      ...mockDocument,
+      id: unsafeBrandId(callbackDocId),
+      name: "callback.yaml",
+      prettyName: "Callback Interface",
+      path: `${config.eserviceDocumentsPath}/${callbackDocId}/callback.yaml`,
+      checksum: "callback-checksum",
+    };
+
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      asyncExchangeCallbackInterface: callbackDoc,
+    };
+    const eServiceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [publishedVersion],
+      personalData: false,
+      asyncExchange: true,
+    };
+
+    const tenant: Tenant = {
+      ...getMockTenant(mockEService.producerId),
+      kind: tenantKind.PA,
+    };
+
+    await addOneTenant(tenant);
+    await addOneEServiceTemplate(eServiceTemplate);
+
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: callbackDoc.id,
+        name: callbackDoc.name,
+        content: Buffer.from("callback-content"),
+      },
+      genericLogger
+    );
+
+    const eService = await catalogService.createEServiceInstanceFromTemplate(
+      eServiceTemplate.id,
+      {},
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    expect(eService).toBeDefined();
+    expect(eService.asyncExchange).toBeUndefined();
+
+    // Only 2 events should exist: EServiceAdded and EServiceDescriptorAdded
+    // No EServiceDescriptorAsyncExchangeCallbackInterfaceAdded event
+    const lastEvent = await readLastEserviceEvent(eService.id);
+    expect(lastEvent).toMatchObject({
+      stream_id: eService.id,
+      version: "1",
+      type: "EServiceDescriptorAdded",
+    });
+
+    // fileManager.copy should not have been called for the callback interface
+    expect(fileManager.copy).not.toHaveBeenCalled();
+
+    config.featureFlagAsyncExchange = true;
+  });
 });
