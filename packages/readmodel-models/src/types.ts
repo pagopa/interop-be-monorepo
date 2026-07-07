@@ -126,6 +126,7 @@ export type EServiceItemsSQL = {
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
   archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
   asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
+  archivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
 };
 
 export type EServiceTemplateSQL = InferSelectModel<

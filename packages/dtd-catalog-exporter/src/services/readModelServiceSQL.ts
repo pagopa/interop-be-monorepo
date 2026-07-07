@@ -6,7 +6,7 @@ import {
   Attribute,
   descriptorState,
 } from "pagopa-interop-models";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, or, isNull, inArray } from "drizzle-orm";
 import {
   attributeInReadmodelAttribute,
   DrizzleTransactionType,
@@ -42,6 +42,7 @@ import {
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import {
   aggregateEserviceArray,
@@ -81,6 +82,8 @@ export function readModelServiceBuilderSQL(
             eserviceDescriptorArchivingScheduleInReadmodelCatalog,
           asyncExchangeProperties:
             eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+          archivingRequests:
+            eserviceDescriptorArchivingRequestInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .where(
@@ -163,6 +166,25 @@ export function readModelServiceBuilderSQL(
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
             eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 11
+          eserviceDescriptorArchivingRequestInReadmodelCatalog,
+          or(
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+            ),
+            and(
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+              ),
+              isNull(
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+              )
+            )
           )
         );
 

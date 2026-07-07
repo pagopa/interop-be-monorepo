@@ -12,6 +12,7 @@ import {
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -44,7 +45,7 @@ import {
   toPurposeAggregatorArray,
   toTenantAggregatorArray,
 } from "pagopa-interop-readmodel";
-import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
+import { isNotNull, isNull, eq, ne, and, or, sql } from "drizzle-orm";
 import {
   ExportedAgreement,
   ExportedDelegation,
@@ -93,6 +94,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           archivingSchedule:
             eserviceDescriptorArchivingScheduleInReadmodelCatalog,
           asyncExchangeProperties: sql<null>`NULL`,
+          archivingRequests:
+            eserviceDescriptorArchivingRequestInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
@@ -142,6 +145,25 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
             eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 11
+          eserviceDescriptorArchivingRequestInReadmodelCatalog,
+          or(
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+            ),
+            and(
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+              ),
+              isNull(
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+              )
+            )
           )
         )
         .where(

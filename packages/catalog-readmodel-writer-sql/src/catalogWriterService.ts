@@ -26,6 +26,7 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
 
@@ -120,6 +121,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           templateVersionRefsSQL,
           archivingSchedulesSQL,
           asyncExchangePropertiesSQL,
+          archivingRequestsSQL,
         } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
         await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -182,6 +184,12 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
             .values(asyncExchangePropsSQL);
+        }
+
+        for (const archivingRequestSQL of archivingRequestsSQL) {
+          await tx
+            .insert(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+            .values(archivingRequestSQL);
         }
       });
     },
