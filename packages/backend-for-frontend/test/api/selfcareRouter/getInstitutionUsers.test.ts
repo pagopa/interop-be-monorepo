@@ -75,4 +75,13 @@ describe("GET /tenants/:tenantId/users", () => {
     const res = await makeRequest(token, validTenantId);
     expect(res.status).toBe(500);
   });
+
+  it.each([authRole.API_ROLE, authRole.SECURITY_ROLE, authRole.SUPPORT_ROLE])(
+    "should return 403 for non-admin role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token, validTenantId);
+      expect(res.status).toBe(403);
+    }
+  );
 });

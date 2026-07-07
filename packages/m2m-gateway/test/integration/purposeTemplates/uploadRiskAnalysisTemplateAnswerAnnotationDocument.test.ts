@@ -4,6 +4,7 @@ import {
   getMockedApiPurposeTemplate,
   getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument,
   getMockWithMetadata,
+  getMockedPdfBuffer,
 } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -46,7 +47,7 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     mockVersion
   );
 
-  const mockFileBuffer = Buffer.from("test content");
+  const mockFileBuffer = getMockedPdfBuffer();
   const mockFileUpload: m2mGatewayApi.RiskAnalysisTemplateAnnotationDocumentUploadMultipart =
     {
       file: new File(
