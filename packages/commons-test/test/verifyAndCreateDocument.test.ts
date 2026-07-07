@@ -8,9 +8,16 @@ import {
   contentTooLargeError,
   generateId,
   invalidContentTypeDetected,
+  invalidFileUploadError,
   technology,
 } from "pagopa-interop-models";
-import { getMockEService, readFileContent } from "../src/index.js";
+import {
+  getMockedPdfBuffer,
+  getMockEService,
+  getPaddedMockedPdfBuffer,
+  readFileContent,
+  readFileContentAsBuffer,
+} from "../src/index.js";
 import { fileManager, s3Bucket } from "./utils.js";
 
 describe("verifyAndCreateDocument", async () => {
@@ -20,7 +27,7 @@ describe("verifyAndCreateDocument", async () => {
 
   const interfaceFileInfo = {
     id: generateId(),
-    name: "json",
+    name: "test.json",
     contentType: "application/json",
     prettyName: "Test Interface",
   };
@@ -86,6 +93,62 @@ describe("verifyAndCreateDocument", async () => {
       expect.any(String)
     );
   });
+
+  it.each([
+    {
+      content: getPaddedMockedPdfBuffer(),
+      name: "test.pdf",
+      type: "application/pdf",
+    },
+    {
+      content: '"good string"',
+      name: "test.json",
+      type: "application/json",
+    },
+    {
+      content: Buffer.from("hello"),
+      name: "test.txt",
+      type: "text/plain",
+    },
+  ])(
+    "should create documents when file extensions and formats are valid",
+    async ({ content, name, type }) => {
+      const validFile = new File([content], name, {
+        type: type,
+        lastModified: file.lastModified,
+      });
+
+      const mockCreateDocumentHandler = vi
+        .fn()
+        .mockResolvedValue({ id: documentId });
+
+      await verifyAndCreateDocument(
+        fileManager,
+        resource,
+        technology.rest,
+        "DOCUMENT",
+        validFile,
+        documentId,
+        s3Bucket.toString(),
+        filePath,
+        name,
+        mockCreateDocumentHandler,
+        noLimitFileSizePolicy,
+        genericLogger
+      );
+
+      expect(mockCreateDocumentHandler).toHaveBeenCalledWith(
+        documentId,
+        name,
+        `document-path/${documentId}/${name}`,
+        name,
+        "DOCUMENT",
+        [],
+        type,
+        expect.any(String)
+      );
+    }
+  );
   it("should throw invalidContentTypeDetected if the content type is not valid", async () => {
     const invalidFile = new File([file], file.name, {
       type: "",
@@ -110,6 +173,106 @@ describe("verifyAndCreateDocument", async () => {
       invalidContentTypeDetected(resource, "invalid", technology.rest)
     );
   });
+  it.each([
+    {
+      content: getPaddedMockedPdfBuffer(1024),
+      name: "test.pdf",
+      type: "application/pdf",
+    },
+    {
+      content: "bad string",
+      name: "test.json",
+      type: "application/json",
+    },
+    {
+      content: Buffer.from([0x00, 0xff, 0x7a, 0x80, 0x00, 0x01]),
+      name: "test.info",
+      type: "text/plain",
+    },
+  ])(
+    "should throw invalidFileUploadError on wrong file format",
+    async ({ content, name, type }) => {
+      const invalidFile = new File([content], name, {
+        type: type,
+        lastModified: file.lastModified,
+      });
+      await expect(
+        verifyAndCreateDocument(
+          fileManager,
+          resource,
+          technology.rest,
+          "DOCUMENT",
+          invalidFile,
+          documentId,
+          s3Bucket.toString(),
+          filePath,
+          prettyName,
+          () => Promise.resolve(),
+          noLimitFileSizePolicy,
+          genericLogger
+        )
+      ).rejects.toThrowError(invalidFileUploadError());
+    }
+  );
+  it.each(["exe", "py", "sh", "ts", "js"])(
+    "should throw invalidFileUploadError if extension is not allowed",
+    async (ext) => {
+      const invalidFile = new File([file], `testFile.${ext}`, {
+        type: "application/pdf",
+        lastModified: file.lastModified,
+      });
+      await expect(
+        verifyAndCreateDocument(
+          fileManager,
+          resource,
+          technology.rest,
+          "DOCUMENT",
+          invalidFile,
+          documentId,
+          s3Bucket.toString(),
+          filePath,
+          prettyName,
+          () => Promise.resolve(),
+          noLimitFileSizePolicy,
+          genericLogger
+        )
+      ).rejects.toThrowError(invalidFileUploadError());
+    }
+  );
+
+  it.each([
+    readFileContentAsBuffer("empty.pdf"),
+    getMockedPdfBuffer(),
+    getPaddedMockedPdfBuffer(),
+  ])("should not throw with a valid PDF file", async (mockFile) => {
+    const pdfContent = await mockFile;
+    const validPDF = new File([pdfContent], "empty.pdf", {
+      type: "application/pdf",
+      lastModified: file.lastModified,
+    });
+
+    const mockCreateDocumentHandler = vi
+      .fn()
+      .mockResolvedValue({ id: documentId });
+
+    await expect(
+      verifyAndCreateDocument(
+        fileManager,
+        resource,
+        technology.rest,
+        "DOCUMENT",
+        validPDF,
+        documentId,
+        s3Bucket.toString(),
+        filePath,
+        prettyName,
+        mockCreateDocumentHandler,
+        noLimitFileSizePolicy,
+        genericLogger
+      )
+    ).resolves.toEqual({ id: documentId });
+  });
+
   it("should throw contentTooLargeError if file size is greater than max file size", async () => {
     const maxFileSizeBytes = file.size - 1;
 

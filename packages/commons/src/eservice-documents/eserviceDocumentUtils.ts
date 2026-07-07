@@ -15,6 +15,7 @@ import {
   invalidContentTypeDetected,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
+  invalidFileUploadError,
   invalidServerUrl,
   openapiVersionNotRecognized,
   technology,
@@ -22,7 +23,7 @@ import {
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z, ZodError } from "zod";
-import { calculateChecksum } from "../utils/fileUtils.js";
+import { calculateChecksum, isValidFile } from "../utils/fileUtils.js";
 import { FileManager } from "../file-manager/fileManager.js";
 import { Logger } from "../logging/index.js";
 import {
@@ -432,6 +433,10 @@ export async function verifyAndCreateDocument<T>(
     throw contentTooLargeError(
       `File size ${doc.size} bytes exceeds maximum allowed size of ${maxSizeForKind} bytes`
     );
+  }
+
+  if (!(await isValidFile(doc))) {
+    throw invalidFileUploadError();
   }
 
   const serverUrls = await retrieveServerUrlsAPI(

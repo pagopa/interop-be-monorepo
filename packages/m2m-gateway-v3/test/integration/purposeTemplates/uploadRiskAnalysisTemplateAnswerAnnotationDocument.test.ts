@@ -3,6 +3,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockedApiPurposeTemplate,
   getMockedApiRiskAnalysisTemplateAnswerAnnotationDocument,
+  getMockedPdfBuffer,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
@@ -46,7 +47,7 @@ describe("uploadRiskAnalysisTemplateAnswerAnnotationDocument", () => {
     mockVersion
   );
 
-  const mockFileBuffer = Buffer.from("test content");
+  const mockFileBuffer = getMockedPdfBuffer();
   const mockFileUpload: m2mGatewayApiV3.RiskAnalysisTemplateAnnotationDocumentUploadMultipart =
     {
       file: new File(
