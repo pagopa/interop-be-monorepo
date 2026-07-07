@@ -216,7 +216,6 @@ export const EService = z.object({
   name: z.string(),
   description: z.string(),
   technology: Technology,
-  attributes: EServiceAttributes.optional(),
   descriptors: z.array(Descriptor),
   createdAt: z.coerce.date(),
   riskAnalysis: z.array(RiskAnalysis),
