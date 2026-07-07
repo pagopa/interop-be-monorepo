@@ -56,6 +56,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     scope: mockApiArchivingScope,
     startedAt: descriptor.archivingSchedule?.startedAt.toJSON(),
     archivableOn: descriptor.archivingSchedule?.archivableOn.toJSON(),
+    gracePeriodDays: descriptor.archivingSchedule?.gracePeriodDays,
   };
 
   const mockApiEservice = eServiceToApiEService(mockEService);

@@ -2478,7 +2478,7 @@ export function catalogServiceBuilder(
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
-      assertGracePeriodDaysValid(body.gracePeriodDays); //Check if the grace period exists and is valid ( min 30 )
+      assertGracePeriodDaysValid(body.gracePeriodDays);
 
       const newState =
         descriptor.state === descriptorState.suspended
