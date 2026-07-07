@@ -3156,7 +3156,7 @@ components:
           type: array
           items:
             type: string
-        serverDescriptionUrls:
+        serverUrlsDescriptions:
           type: array
           items:
             type: string
@@ -3720,7 +3720,7 @@ components:
           type: array
           items:
             type: string
-        serverDescriptionUrls:
+        serverUrlsDescriptions:
           type: array
           items:
             type: string

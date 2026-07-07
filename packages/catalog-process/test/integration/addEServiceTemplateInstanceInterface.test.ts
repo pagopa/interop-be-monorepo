@@ -545,7 +545,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
           },
         },
       });
-      expect(res.descriptors[0]?.serverDescriptionUrls).toStrictEqual(
+      expect(res.descriptors[0]?.serverUrlsDescriptions).toStrictEqual(
         expectedServerDescriptionUrls
       );
 
@@ -799,7 +799,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
       expect(res.descriptors[0]?.state).toBe(descriptorState.draft);
       expect(res.descriptors[0]?.serverUrls).toStrictEqual(expectedServerUrls);
-      expect(res.descriptors[0]?.serverDescriptionUrls).toStrictEqual(
+      expect(res.descriptors[0]?.serverUrlsDescriptions).toStrictEqual(
         expectedServerDescriptionUrls
       );
 
@@ -813,7 +813,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       expect(writtenPayload.eservice?.descriptors[0]).toEqual(
         expect.objectContaining({
           serverUrls: expectedServerUrls,
-          serverDescriptionUrls: expectedServerDescriptionUrls,
+          serverUrlsDescriptions: expectedServerDescriptionUrls,
         })
       );
     });

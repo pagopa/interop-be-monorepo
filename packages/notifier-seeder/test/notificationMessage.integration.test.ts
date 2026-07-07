@@ -94,7 +94,7 @@ const getDescriptorMock = (descriptorId: string): EServiceDescriptorV2 =>
       "http://petstore.swagger.io/api/v1",
       "http://petstore.swagger.io/api/v2",
     ],
-    serverDescriptionUrls: [],
+    serverUrlsDescriptions: [],
     suspendedAt: new Date("2024-03-28T15:02:59.845Z"),
     voucherLifespan: 60,
   });

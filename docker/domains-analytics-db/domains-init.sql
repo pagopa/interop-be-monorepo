@@ -48,7 +48,7 @@ CREATE TABLE domains.eservice_descriptor (
   agreement_approval_policy VARCHAR(2048),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   server_urls VARCHAR(65535) NOT NULL,
-  server_description_urls VARCHAR(65535) NOT NULL,
+  server_urls_descriptions VARCHAR(65535) NOT NULL,
   published_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,

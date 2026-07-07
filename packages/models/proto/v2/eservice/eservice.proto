@@ -111,7 +111,7 @@ message EServiceDescriptorV2 {
   optional EServiceDocumentV2 asyncExchangeCallbackInterface = 21;
   optional AsyncExchangePropertiesV2 asyncExchangeProperties = 22;
   optional ArchivingScheduleV2 archivingSchedule = 23;
-  repeated string serverDescriptionUrls = 24;
+  repeated string serverUrlsDescriptions = 24;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {

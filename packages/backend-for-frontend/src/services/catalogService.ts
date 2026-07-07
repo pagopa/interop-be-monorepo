@@ -500,7 +500,7 @@ export function catalogServiceBuilder(
         rejectionReasons: descriptor.rejectionReasons,
         serverUrls: descriptor.serverUrls.map((url, index) => ({
           url,
-          description: descriptor.serverDescriptionUrls?.[index] || undefined,
+          description: descriptor.serverUrlsDescriptions?.[index] || undefined,
         })),
         templateRef: eserviceTemplate && {
           templateId: eserviceTemplate.id,

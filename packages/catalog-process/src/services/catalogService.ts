@@ -708,7 +708,7 @@ async function innerCreateEService(
         seed.descriptor.agreementApprovalPolicy
       ),
     serverUrls: [],
-    serverDescriptionUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -826,9 +826,9 @@ async function innerAddDocumentToEserviceEvent(
     interface: isInterface ? createdDocument : descriptor.interface,
     docs: isDocument ? [...descriptor.docs, createdDocument] : descriptor.docs,
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
-    serverDescriptionUrls: isInterface
-      ? (documentSeed.serverDescriptionUrls ?? [])
-      : descriptor.serverDescriptionUrls,
+    serverUrlsDescriptions: isInterface
+      ? (documentSeed.serverUrlsDescriptions ?? [])
+      : descriptor.serverUrlsDescriptions,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
     asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
       ? createdDocument
@@ -904,7 +904,7 @@ function createNextDescriptor(
     dailyCallsTotal: seed.dailyCallsTotal,
     agreementApprovalPolicy: seed.agreementApprovalPolicy,
     serverUrls: [],
-    serverDescriptionUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -1379,9 +1379,9 @@ export function catalogServiceBuilder(
                 interface:
                   d.interface?.id === documentId ? undefined : d.interface,
                 serverUrls: isInterface ? [] : d.serverUrls,
-                serverDescriptionUrls: isInterface
+                serverUrlsDescriptions: isInterface
                   ? []
-                  : d.serverDescriptionUrls,
+                  : d.serverUrlsDescriptions,
                 docs: d.docs.filter((doc) => doc.id !== documentId),
                 asyncExchangeCallbackInterface:
                   d.asyncExchangeCallbackInterface?.id === documentId
@@ -4727,7 +4727,7 @@ async function createOpenApiInterfaceByTemplate(
           contentType,
           checksum,
           serverUrls: extractedServerUrls,
-          serverDescriptionUrls: extractedServerUrls.map(
+          serverUrlsDescriptions: extractedServerUrls.map(
             (_, index) => serverUrls[index]?.description ?? ""
           ),
           interfaceTemplateMetadata: eserviceInstanceInterfaceRestData,
@@ -5317,7 +5317,7 @@ async function updateDraftEService(
           interface: undefined,
           asyncExchangeCallbackInterface: undefined,
           serverUrls: [],
-          serverDescriptionUrls: [],
+          serverUrlsDescriptions: [],
         }))
       : eservice.data.descriptors,
     isSignalHubEnabled: updatedIsSignalHubEnabled,

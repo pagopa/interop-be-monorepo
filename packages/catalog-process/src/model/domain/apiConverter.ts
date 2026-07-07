@@ -180,7 +180,7 @@ export const descriptorToApiDescriptor = (
     descriptor.agreementApprovalPolicy
   ),
   serverUrls: descriptor.serverUrls,
-  serverDescriptionUrls: descriptor.serverDescriptionUrls,
+  serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
   publishedAt: descriptor.publishedAt?.toJSON(),
   suspendedAt: descriptor.suspendedAt?.toJSON(),
   deprecatedAt: descriptor.deprecatedAt?.toJSON(),

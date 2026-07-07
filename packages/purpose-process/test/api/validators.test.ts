@@ -78,7 +78,7 @@ describe("isOverQuota", () => {
         interface: undefined,
         agreementApprovalPolicy: "Automatic",
         serverUrls: [],
-        serverDescriptionUrls: [],
+        serverUrlsDescriptions: [],
         attributes: {
           certified: [],
           declared: [],
@@ -321,7 +321,7 @@ describe("getUpdatedQuotas", () => {
         interface: undefined,
         agreementApprovalPolicy: "Automatic",
         serverUrls: [],
-        serverDescriptionUrls: [],
+        serverUrlsDescriptions: [],
         attributes: {
           certified: [],
           declared: [],
@@ -537,7 +537,7 @@ describe("getUpdatedQuotas - certified discrete attributes", () => {
         interface: undefined,
         agreementApprovalPolicy: "Automatic",
         serverUrls: [],
-        serverDescriptionUrls: [],
+        serverUrlsDescriptions: [],
         attributes: {
           certified,
           declared: [],

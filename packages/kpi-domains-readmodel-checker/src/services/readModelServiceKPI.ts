@@ -122,7 +122,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           ...d,
           audience: JSON.parse(d.audience),
           serverUrls: JSON.parse(d.serverUrls),
-          serverDescriptionUrls: JSON.parse(d.serverDescriptionUrls),
+          serverUrlsDescriptions: JSON.parse(d.serverUrlsDescriptions),
         })),
         interfacesSQL,
         documentsSQL,
