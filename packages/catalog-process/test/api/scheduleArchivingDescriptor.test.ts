@@ -2,7 +2,6 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
-  ArchivingScope,
   Descriptor,
   DescriptorId,
   EService,
@@ -28,7 +27,6 @@ import {
 import {
   eServiceToApiEService,
   descriptorToApiDescriptor,
-  archivingScheduleScopeToApiArchivingScheduleScope,
 } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchive authorization test", () => {
@@ -42,22 +40,9 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     descriptors: [descriptor],
   };
 
-  const mockApiArchivingScope = catalogApi.ArchivingScope.parse(
-    archivingScheduleScopeToApiArchivingScheduleScope(
-      ArchivingScope.Enum.Descriptor
-    )
-  );
-
   const apiDescriptor = catalogApi.EServiceDescriptor.parse(
     descriptorToApiDescriptor(descriptor)
   );
-
-  apiDescriptor.archivingSchedule = {
-    scope: mockApiArchivingScope,
-    startedAt: descriptor.archivingSchedule?.startedAt.toJSON(),
-    archivableOn: descriptor.archivingSchedule?.archivableOn.toJSON(),
-    gracePeriodDays: descriptor.archivingSchedule?.gracePeriodDays,
-  };
 
   const mockApiEservice = eServiceToApiEService(mockEService);
   mockApiEservice.descriptors = [apiDescriptor];
