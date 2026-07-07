@@ -142,7 +142,7 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
 
-    # POSTGRESQL tenant kind history
+  # POSTGRESQL tenant kind history
   tenant-kind-history-sql:
     read_only: true
     tmpfs:
