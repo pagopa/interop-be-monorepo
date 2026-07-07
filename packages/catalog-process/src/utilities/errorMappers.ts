@@ -801,7 +801,11 @@ export const updateEserviceDescriptorArchivingStatusErrorMapper = (
       "descriptorArchivingNotCancelableByScope",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "notValidDescriptor",
+      "gracePeriodDaysNotValid",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -818,6 +822,8 @@ export const updateEServiceArchivingStatusErrorMapper = (
     .with(
       "eserviceWithoutValidDescriptors",
       "notValidEServiceState",
+      "gracePeriodDaysNotValid",
+      "gracePeriodDaysLowerThanDescriptor",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
