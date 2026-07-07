@@ -121,6 +121,21 @@ describe("PATCH /purposes/:purposeId router test", () => {
     expect(res.status).toBe(400);
   });
 
+  it("Should return 400 if passed a merge-patch body with duplicate fields", async () => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await request(api)
+      .patch(`${appBasePath}/purposes/${mockPurpose.id}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .set("Content-Type", "application/merge-patch+json").send(`{
+        "title": "updated title",
+        "description": "updated description",
+        "title": "duplicated title"
+      }`);
+
+    expect(res.status).toBe(400);
+  });
+
   it.each([
     {
       error: invalidSeedForPurposeFromTemplate(["invalid"]),

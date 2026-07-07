@@ -7,6 +7,7 @@ import {
   integrityRest02Middleware,
   multerMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
+  strictJsonBodyParser,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import {
@@ -14,7 +15,6 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import express from "express";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
@@ -97,7 +97,9 @@ export async function createApp(
 
   const app = zodiosCtx.app();
   app.use(
-    express.json({ type: ["application/json", "application/merge-patch+json"] })
+    strictJsonBodyParser({
+      type: ["application/json", "application/merge-patch+json"],
+    })
   );
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.

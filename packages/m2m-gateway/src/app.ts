@@ -7,6 +7,7 @@ import {
   loggerMiddleware,
   multerMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
+  strictJsonBodyParser,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import {
@@ -14,7 +15,6 @@ import {
   applicationAuditEndMiddleware,
 } from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import express from "express";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { config } from "./config/config.js";
 import agreementRouter from "./routers/agreementRouter.js";
@@ -86,7 +86,9 @@ export async function createApp(
 
   const app = zodiosCtx.app();
   app.use(
-    express.json({ type: ["application/json", "application/merge-patch+json"] })
+    strictJsonBodyParser({
+      type: ["application/json", "application/merge-patch+json"],
+    })
   );
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
