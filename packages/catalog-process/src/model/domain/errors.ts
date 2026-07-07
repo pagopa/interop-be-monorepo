@@ -87,6 +87,7 @@ const errorCodes = {
   noDelegatedArchivingRequestFound: "0070",
   delegatedArchivingRequestNotActive: "0071",
   noDelegationForArchivingRequest: "0072",
+  delegatedArchivingRequestAlreadyInProgress: "0073",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -425,10 +426,11 @@ export function eserviceDescriptorWithActiveOrPendingDelegation(
 }
 
 export function noDelegatedArchivingRequestFound(
-  eserviceId: EServiceId
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `No active delegated archiving request found for E-service ${eserviceId}`,
+    detail: `No active delegated archiving request found for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""}`,
     code: "noDelegatedArchivingRequestFound",
     title: "No delegated archiving request found",
   });
@@ -817,5 +819,16 @@ export function gracePeriodDaysNotValid(
     detail: `Grace period days ${gracePeriodDays} is not valid. It must be between 30 and 999999`,
     code: "gracePeriodDaysNotValid",
     title: "Grace period days not valid",
+  });
+}
+
+export function delegatedArchivingRequestAlreadyInProgress(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An archiving request for EService ${eserviceId}${descriptorId ? ` and Descriptor ${descriptorId}` : ""} is already in progress`,
+    code: "delegatedArchivingRequestAlreadyInProgress",
+    title: "Delegated archiving request already in progress",
   });
 }

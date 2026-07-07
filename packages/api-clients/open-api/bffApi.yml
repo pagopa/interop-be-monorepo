@@ -27706,8 +27706,14 @@ components:
           format: int32
           description: Number of days before the actual archiving takes effect
           minimum: 1
+        archivingReason:
+          type: string
+          description: Reason for archiving the E-Service
+          minLength: 10
+          maxLength: 250
       required:
         - gracePeriod
+        - archivingReason
     RejectDelegatedEServiceArchivingSeed:
       type: object
       additionalProperties: false

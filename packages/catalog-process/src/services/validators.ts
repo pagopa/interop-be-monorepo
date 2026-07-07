@@ -80,6 +80,7 @@ import {
   gracePeriodDaysNotValid,
   noDelegatedArchivingRequestFound,
   delegatedArchivingRequestNotActive,
+  delegatedArchivingRequestAlreadyInProgress,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -294,17 +295,34 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
   }
 }
 
-export function assertHasActiveDelegatedArchivingRequest(
-  eserviceId: EServiceId,
-  descriptor: Descriptor
+export function assertDelegatedEserviceHasActiveArchivingRequests(
+  eservice: EService
 ): void {
-  const request = descriptor.delegatedArchivingRequest;
-  if (!request) {
-    throw noDelegatedArchivingRequestFound(eserviceId);
+  const requests = eservice.delegatedArchivingRequest;
+  if (!requests || requests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eservice.id);
   }
-  const lastRejection = request.rejectionArchivingReasons.at(-1);
-  if (lastRejection && lastRejection.rejectedAt >= request.requestedAt) {
-    throw delegatedArchivingRequestNotActive(eserviceId);
+  const lastRejection = requests.at(-1);
+  if (lastRejection && lastRejection.rejectedAt) {
+    throw delegatedArchivingRequestNotActive(eservice.id);
+  }
+}
+
+export function assertDelegatedEserviceHasNoActiveArchivingRequests(
+  eservice: EService
+): void {
+  const requests = eservice.delegatedArchivingRequest;
+  if (!requests) {
+    return;
+  }
+  const hasActiveArchivingRequest =
+    requests.filter(
+      (archivingRequest) =>
+        archivingRequest.rejectedAt === undefined &&
+        archivingRequest.acceptedAt === undefined
+    ).length > 0;
+  if (hasActiveArchivingRequest) {
+    throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
   }
 }
 

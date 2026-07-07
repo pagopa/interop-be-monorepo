@@ -68,8 +68,8 @@ import {
   archivingScope,
   ArchivingScope,
   AsyncExchangeProperties,
-  DelegatedArchivingRequest,
-  DescriptorArchivingRejectionReason,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -118,6 +118,7 @@ import {
   templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
   noDelegationForArchivingRequest,
+  noDelegatedArchivingRequestFound,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -180,6 +181,7 @@ import {
   toCreateEventMaintenanceEServiceDescriptorUnarchived,
   toCreateEventEServiceArchivingRequestedByDelegate,
   toCreateEventEServiceArchivingRequestRejectedByDelegator,
+  toCreateEventEServiceArchivingRequestApprovedByDelegator,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -233,8 +235,9 @@ import {
   assertEServiceIsInArchiving,
   assertEServiceIsNotAlreadyArchived,
   assertGracePeriodDaysValid,
-  assertHasActiveDelegatedArchivingRequest,
+  assertDelegatedEserviceHasActiveArchivingRequests,
   assertRequesterIsDelegateForArchiving,
+  assertDelegatedEserviceHasNoActiveArchivingRequests,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -1268,8 +1271,7 @@ export function catalogServiceBuilder(
       if (producerDelegation) {
         // With an active delegation, the owner can only proceed if the delegate
         // has previously submitted an active archiving request
-        const latestDescriptor = getLatestDescriptor(eservice.data);
-        assertHasActiveDelegatedArchivingRequest(eserviceId, latestDescriptor);
+        assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
       }
 
       assertEServiceArchivable(eservice.data);
@@ -3336,27 +3338,20 @@ export function catalogServiceBuilder(
       assertRequesterIsDelegateForArchiving(producerDelegation, authData);
 
       assertEServiceArchivable(eservice.data);
+      assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
 
-      const latestDescriptor = getLatestDescriptor(eservice.data);
-      const existingRequest = latestDescriptor.delegatedArchivingRequest;
-
-      const updatedRequest: DelegatedArchivingRequest = {
-        requestedAt: new Date(),
-        requestedBy: authData.organizationId,
-        gracePeriod: seed.gracePeriod,
-        rejectionArchivingReasons:
-          existingRequest?.rejectionArchivingReasons ?? [],
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: [
+          ...(eservice.data.delegatedArchivingRequest ?? []),
+          {
+            requestedAt: new Date(),
+            requesterId: authData.organizationId,
+            gracePeriodDays: seed.gracePeriod,
+            archivingReason: seed.archivingReason,
+          },
+        ],
       };
-
-      const updatedDescriptor: Descriptor = {
-        ...latestDescriptor,
-        delegatedArchivingRequest: updatedRequest,
-      };
-
-      const updatedEService = replaceDescriptor(
-        eservice.data,
-        updatedDescriptor
-      );
 
       const event = await repository.createEvent(
         toCreateEventEServiceArchivingRequestedByDelegate(
@@ -3388,38 +3383,21 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      const latestDescriptor = getLatestDescriptor(eservice.data);
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
 
-      assertHasActiveDelegatedArchivingRequest(eserviceId, latestDescriptor);
-
-      const newRejectionReason: DescriptorArchivingRejectionReason = {
-        rejectionReason: body.rejectionReason,
-        rejectedAt: new Date(),
-      };
-
-      const updatedDescriptor: Descriptor = {
-        ...latestDescriptor,
-        delegatedArchivingRequest: {
-          ...(latestDescriptor.delegatedArchivingRequest ?? {
-            requestedAt: new Date(),
-            requestedBy: authData.organizationId,
-            gracePeriod: 1,
-          }),
-          rejectionArchivingReasons: [
-            ...(
-              latestDescriptor.delegatedArchivingRequest ?? {
-                rejectionArchivingReasons: [],
-              }
-            ).rejectionArchivingReasons,
-            newRejectionReason,
-          ],
+      const updatedRequests = updateLatestArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason: body.rejectionReason,
         },
-      };
-
-      const updatedEService = replaceDescriptor(
-        eservice.data,
-        updatedDescriptor
+        eserviceId
       );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
 
       const event = await repository.createEvent(
         toCreateEventEServiceArchivingRequestRejectedByDelegator(
@@ -3430,6 +3408,68 @@ export function catalogServiceBuilder(
       );
       return {
         data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async approveDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Approving delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+
+      // TODO: Check if the eservice is still archivable
+
+      const updatedRequests = updateLatestArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          acceptedAt: new Date(),
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const lastRequest = updatedRequests.at(-1);
+
+      if (!lastRequest) {
+        throw noDelegatedArchivingRequestFound(eserviceId);
+      }
+
+      const archivableEservice = await processEserviceArchiving(
+        updatedEService,
+        {
+          gracePeriodDays: lastRequest.gracePeriodDays,
+          archivingReason: lastRequest.archivingReason,
+        },
+        fileManager,
+        logger
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestApprovedByDelegator(
+          eservice.metadata.version,
+          archivableEservice,
+          correlationId
+        )
+      );
+      return {
+        data: archivableEservice,
         metadata: {
           version: event.newVersion,
         },
@@ -4793,6 +4833,38 @@ async function processDescriptorArchiving(
   };
 
   return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);
+}
+
+function updateLatestArchivingRequest<
+  T extends
+    | DelegatedDescriptorArchivingRequest
+    | DelegatedEServiceArchivingRequest,
+>(
+  requests: T[],
+  lastRequest: Partial<
+    Omit<
+      T,
+      "requesterId" | "requestedAt" | "gracePeriodDays" | "archivingReason"
+    >
+  >,
+  eserviceId: EServiceId
+): T[] {
+  const previousDelegateRequests = requests.slice(0, -1);
+  const latestDelegatedArchivingRequest = requests.at(-1);
+
+  if (!latestDelegatedArchivingRequest) {
+    throw noDelegatedArchivingRequestFound(eserviceId);
+  }
+
+  const updatedRequests = [
+    ...previousDelegateRequests,
+    {
+      ...latestDelegatedArchivingRequest,
+      ...lastRequest,
+    },
+  ];
+
+  return updatedRequests;
 }
 
 async function createOpenApiInterfaceByTemplate(
