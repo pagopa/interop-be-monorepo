@@ -69,7 +69,7 @@ describe("API /keys/{keyId} authorization test", () => {
     expect(res.status).toBe(404);
   });
 
-  it("Should return 403 for tenantNotAllowedOnClient", async () => {
+  it("Should return 404 for tenantNotAllowedOnClient", async () => {
     authorizationService.getJWKByKid = vi
       .fn()
       .mockRejectedValue(
@@ -77,7 +77,7 @@ describe("API /keys/{keyId} authorization test", () => {
       );
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockKey.kid);
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(404);
   });
 
   it.each([

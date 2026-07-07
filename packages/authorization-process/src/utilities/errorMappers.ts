@@ -353,7 +353,7 @@ export const removeClientAdminErrorMapper = (
 
 export const getJWKByKidErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
-    .with("tenantNotAllowedOnClient", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowedOnClient", () => HTTP_STATUS_NOT_FOUND)
     .with("jwkNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -361,6 +361,6 @@ export const getProducerJWKByKidErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_FORBIDDEN)
+    .with("tenantNotAllowedOnProducerKeychain", () => HTTP_STATUS_NOT_FOUND)
     .with("producerJwkNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
