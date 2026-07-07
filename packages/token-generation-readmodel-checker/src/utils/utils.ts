@@ -240,20 +240,30 @@ export async function compareTokenGenerationReadModel(
     }
   }
 
-  const purposes = await readModelService.getAllReadModelPurposes();
-  const purposesById = new Map(
-    purposes.map((purpose) => [purpose.id, purpose])
-  );
+  const purposesById = new Map<PurposeId, Purpose>();
+  for (const purpose of await readModelService.getAllReadModelPurposes()) {
+    purposesById.set(purpose.id, purpose);
+  }
 
-  const agreements = await readModelService.getAllReadModelAgreements();
   const agreementsById = new Map<AgreementId, Agreement>();
   const agreementsByConsumerIdEserviceId = new Map<
     GSIPKConsumerIdEServiceId,
     Agreement[]
   >();
 
-  for (const agreement of agreements) {
+  for (const agreement of await readModelService.getAllReadModelAgreements()) {
     agreementsById.set(agreement.id, agreement);
+
+    // Only agreements considered by getLastAgreement need to live in the
+    // by-consumer/e-service index; skipping the rest avoids keeping draft,
+    // rejected, etc. agreements in a second Map for no reason.
+    if (
+      agreement.state !== agreementState.active &&
+      agreement.state !== agreementState.suspended &&
+      agreement.state !== agreementState.archived
+    ) {
+      continue;
+    }
 
     const consumerIdEServiceId = makeGSIPKConsumerIdEServiceId({
       consumerId: agreement.consumerId,
@@ -262,39 +272,47 @@ export async function compareTokenGenerationReadModel(
     const existingAgreements =
       agreementsByConsumerIdEserviceId.get(consumerIdEServiceId);
 
-    agreementsByConsumerIdEserviceId.set(consumerIdEServiceId, [
-      ...(existingAgreements || []),
-      agreement,
-    ]);
+    if (existingAgreements) {
+      // eslint-disable-next-line functional/immutable-data
+      existingAgreements.push(agreement);
+    } else {
+      agreementsByConsumerIdEserviceId.set(consumerIdEServiceId, [agreement]);
+    }
   }
 
-  const eservices = await readModelService.getAllReadModelEServices();
   const eservicesById = new Map<EServiceId, EService>();
-  for (const eservice of eservices) {
+  for (const eservice of await readModelService.getAllReadModelEServices()) {
     eservicesById.set(eservice.id, eservice);
   }
 
-  const clients = await readModelService.getAllReadModelClients();
-  const clientsById = new Map<ClientId, Client>(
-    clients.map((client) => [unsafeBrandId<ClientId>(client.id), client])
-  );
+  const clientsById = new Map<ClientId, Client>();
+  for (const client of await readModelService.getAllReadModelClients()) {
+    clientsById.set(unsafeBrandId<ClientId>(client.id), client);
+  }
 
   const purposeDifferences = await compareReadModelPurposesWithPlatformStates({
     platformStatesPurposeById: platformStates.purposes,
     purposesById,
     logger,
   });
+  platformStates.purposes.clear();
+
   const agreementDifferences =
     await compareReadModelAgreementsWithPlatformStates({
       platformStatesAgreementById: platformStates.agreements,
       agreementsById,
       logger,
     });
+  platformStates.agreements.clear();
+  agreementsById.clear();
+
   const catalogDifferences = await compareReadModelEServicesWithPlatformStates({
     platformStatesEServiceById: platformStates.eservices,
     eservicesById,
     logger,
   });
+  platformStates.eservices.clear();
+
   const clientAndTokenGenStatesDifferences =
     await compareReadModelClientsAndTokenGenStates({
       tokenGenStatesByClient,
