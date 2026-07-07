@@ -10,7 +10,7 @@ import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("addAgreementConsumerDocument", () => {
   const agreementId = generateId();
-  const mockFile = new File(["test content"], "test.json", {
+  const mockFile = new File(['"test content"'], "test.json", {
     type: "application/json",
   });
 
@@ -21,18 +21,10 @@ describe("addAgreementConsumerDocument", () => {
   };
 
   it("should add agreement consumer document and store it", async () => {
-    const arrayBufferMock = vi.fn().mockResolvedValue(new ArrayBuffer(10));
-    const mockFileWithArrayBuffer = {
-      ...mockFile,
-      arrayBuffer: arrayBufferMock,
-      name: "test.json",
-      type: "application/json",
-    };
-
     const enhancedMockDoc = {
-      doc: mockFileWithArrayBuffer,
-      name: "test.json",
-      prettyName: "test.json",
+      doc: mockFile,
+      name: mockFile.name,
+      prettyName: mockFile.name,
     } as unknown as bffApi.addAgreementConsumerDocument_Body;
 
     const mockAddAgreementConsumerDocument = vi.fn().mockResolvedValue({});
@@ -54,8 +46,6 @@ describe("addAgreementConsumerDocument", () => {
       bffMockContext
     );
 
-    expect(arrayBufferMock).toHaveBeenCalled();
-
     expect(fileManager.storeBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.consumerDocumentsContainer,
@@ -71,21 +61,13 @@ describe("addAgreementConsumerDocument", () => {
   });
 
   it("should attempt to add agreement consumer document, fail the API call, and delete the stored file", async () => {
-    const arrayBufferMock = vi.fn().mockResolvedValue(new ArrayBuffer(10));
-    const mockFileWithArrayBuffer = {
-      ...mockFile,
-      arrayBuffer: arrayBufferMock,
-      name: "test.json",
-      type: "application/json",
-    };
-
     const enhancedMockDoc = {
-      doc: mockFileWithArrayBuffer,
-      name: "test.json",
-      prettyName: "test.json",
+      doc: mockFile,
+      name: mockFile.name,
+      prettyName: mockFile.name,
     } as unknown as bffApi.addAgreementConsumerDocument_Body;
 
-    const mockStoragePath = "path/to/stored/file.json";
+    const mockStoragePath = "path/to/stored/test.json";
 
     const mockApiError = new Error("Simulated API failure");
     const mockAddAgreementConsumerDocument = vi
@@ -113,14 +95,12 @@ describe("addAgreementConsumerDocument", () => {
       )
     ).rejects.toThrow(mockApiError);
 
-    expect(arrayBufferMock).toHaveBeenCalled();
-
     expect(fileManager.storeBytes).toHaveBeenCalledWith(
       expect.objectContaining({
         bucket: config.consumerDocumentsContainer,
         path: `${config.consumerDocumentsPath}/${agreementId}`,
         resourceId: expect.any(String),
-        name: "test.json",
+        name: mockFile.name,
         content: expect.any(Buffer),
       }),
       bffMockContext.logger
