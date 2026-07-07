@@ -13,8 +13,8 @@ import {
   EServiceRiskAnalysisFormV2,
   EServiceTechnologyV2,
   EServiceV2,
-  DelegatedArchivingRequestV2,
-  DescriptorArchivingRejectionReasonV2,
+  DelegatedDescriptorArchivingRequestV2,
+  DelegatedEServiceArchivingRequestV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -42,8 +42,8 @@ import {
   eserviceMode,
   technology,
   type EServiceAttributeCertifiedDiscreteConfig,
-  DelegatedArchivingRequest,
-  DescriptorArchivingRejectionReason,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
 } from "./eservice.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
@@ -167,22 +167,22 @@ export const toDescriptorRejectedReasonV2 = (
   rejectedAt: dateToBigInt(input.rejectedAt),
 });
 
-export const toDescriptorArchivingRejectionReasonV2 = (
-  input: DescriptorArchivingRejectionReason
-): DescriptorArchivingRejectionReasonV2 => ({
+export const toDelegatedDescriptorArchivingRequestV2 = (
+  input: DelegatedDescriptorArchivingRequest
+): DelegatedDescriptorArchivingRequestV2 => ({
   ...input,
   rejectedAt: dateToBigInt(input.rejectedAt),
+  acceptedAt: dateToBigInt(input.acceptedAt),
+  requestedAt: dateToBigInt(input.requestedAt),
 });
 
-export const toDelegatedArchivingRequestV2 = (
-  input: DelegatedArchivingRequest
-): DelegatedArchivingRequestV2 => ({
+export const toDelegatedEServiceArchivingRequestV2 = (
+  input: DelegatedEServiceArchivingRequest
+): DelegatedEServiceArchivingRequestV2 => ({
+  ...input,
+  rejectedAt: dateToBigInt(input.rejectedAt),
+  acceptedAt: dateToBigInt(input.acceptedAt),
   requestedAt: dateToBigInt(input.requestedAt),
-  requestedBy: input.requestedBy,
-  gracePeriod: input.gracePeriod,
-  rejectionArchivingReasons: input.rejectionArchivingReasons.map(
-    toDescriptorArchivingRejectionReasonV2
-  ),
 });
 
 export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
@@ -236,9 +236,10 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   asyncExchangeProperties: input.asyncExchangeProperties
     ? { ...input.asyncExchangeProperties }
     : undefined,
-  delegatedArchivingRequest: input.delegatedArchivingRequest
-    ? toDelegatedArchivingRequestV2(input.delegatedArchivingRequest)
-    : undefined,
+  delegatedArchivingRequest:
+    input.delegatedArchivingRequest?.map(
+      toDelegatedDescriptorArchivingRequestV2
+    ) ?? [],
 });
 
 export const toRiskAnalysisV2 = (
@@ -263,4 +264,8 @@ export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV2(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
+  delegatedArchivingRequest:
+    eservice.delegatedArchivingRequest?.map(
+      toDelegatedEServiceArchivingRequestV2
+    ) ?? [],
 });

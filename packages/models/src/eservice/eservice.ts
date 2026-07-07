@@ -174,21 +174,25 @@ export const AsyncExchangeProperties = z.object({
 });
 export type AsyncExchangeProperties = z.infer<typeof AsyncExchangeProperties>;
 
-export const DescriptorArchivingRejectionReason = z.object({
-  rejectionReason: z.string(),
-  rejectedAt: z.coerce.date(),
+export const DelegatedDescriptorArchivingRequest = z.object({
+  requestedAt: z.coerce.date(),
+  acceptedAt: z.coerce.date().optional(),
+  rejectedAt: z.coerce.date().optional(),
+  rejectionReason: z.string().optional(),
+  requesterId: TenantId,
+  gracePeriodDays: z.number().int(),
 });
-export type DescriptorArchivingRejectionReason = z.infer<
-  typeof DescriptorArchivingRejectionReason
+export type DelegatedDescriptorArchivingRequest = z.infer<
+  typeof DelegatedDescriptorArchivingRequest
 >;
 
-export const DelegatedArchivingRequest = z.object({
-  requestedAt: z.coerce.date(),
-  requestedBy: TenantId,
-  gracePeriod: z.number().int(),
-  rejectionArchivingReasons: z.array(DescriptorArchivingRejectionReason),
-});
-export type DelegatedArchivingRequest = z.infer<typeof DelegatedArchivingRequest>;
+export const DelegatedEServiceArchivingRequest =
+  DelegatedDescriptorArchivingRequest.extend({
+    archivingReason: z.string(),
+  });
+export type DelegatedEServiceArchivingRequest = z.infer<
+  typeof DelegatedEServiceArchivingRequest
+>;
 
 export const Descriptor = z.object({
   id: DescriptorId,
@@ -214,7 +218,9 @@ export const Descriptor = z.object({
   archivingSchedule: ArchivingSchedule.optional(),
   asyncExchangeCallbackInterface: Document.optional(),
   asyncExchangeProperties: AsyncExchangeProperties.optional(),
-  delegatedArchivingRequest: DelegatedArchivingRequest.optional(),
+  delegatedArchivingRequest: z
+    .array(DelegatedDescriptorArchivingRequest)
+    .optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -247,6 +253,9 @@ export const EService = z.object({
   instanceLabel: z.string().optional(),
   archivingReason: z.string().optional(),
   asyncExchange: z.boolean().optional(),
+  delegatedArchivingRequest: z
+    .array(DelegatedEServiceArchivingRequest)
+    .optional(),
 });
 
 export type EService = z.infer<typeof EService>;

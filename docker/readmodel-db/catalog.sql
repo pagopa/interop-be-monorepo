@@ -162,3 +162,21 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_archiving_sched
   PRIMARY KEY (eservice_id, descriptor_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
+
+CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_archiving_request (
+  id UUID NOT NULL,
+  eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
+  metadata_version INTEGER NOT NULL,
+  descriptor_id UUID REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE, -- se eservice -> null
+  grace_period_days INTEGER NOT NULL,
+  requester_id UUID NOT NULL, -- Delegato
+  requested_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  accepted_at TIMESTAMP WITH TIME ZONE,
+  rejected_at TIMESTAMP WITH TIME ZONE,
+  -- acknowledged_at TIMESTAMP WITH TIME ZONE,
+  rejection_reason VARCHAR,
+  archiving_reason VARCHAR,
+  FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
+);
+
+-- join where (eservice_id = :eservice_id and descriptor_id = :descriptor_id) or (eservice_id = :eservice_id and descriptor_id is null)
