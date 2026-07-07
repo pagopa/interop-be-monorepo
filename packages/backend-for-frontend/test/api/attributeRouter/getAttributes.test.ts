@@ -14,15 +14,16 @@ describe("API GET /attributes", () => {
   const defaultQuery = {
     offset: 0,
     limit: 5,
-    kinds: ["CERTIFIED", "VERIFIED", "DECLARED"],
+    kinds: ["CERTIFIED", "CERTIFIED_DISCRETE", "VERIFIED", "DECLARED"],
   };
   const mockAttributes: attributeRegistryApi.Attributes = {
     results: [
       getMockBffApiAttribute("CERTIFIED"),
+      getMockBffApiAttribute("CERTIFIED_DISCRETE"),
       getMockBffApiAttribute("VERIFIED"),
       getMockBffApiAttribute("DECLARED"),
     ],
-    totalCount: 3,
+    totalCount: 4,
   };
   const mockResponse: bffApi.Attributes = {
     results: mockAttributes.results.map(toCompactAttribute),
@@ -54,6 +55,13 @@ describe("API GET /attributes", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockResponse);
+    expect(clients.attributeProcessClient.getAttributes).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queries: expect.objectContaining({
+          kinds: defaultQuery.kinds,
+        }),
+      })
+    );
   });
 
   it.each([

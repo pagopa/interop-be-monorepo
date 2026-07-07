@@ -134,6 +134,31 @@ const tenantRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/tenants/:tenantId/attributes/certifiedDiscrete",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+          await tenantService.addCertifiedDiscreteAttribute(
+            tenantId,
+            req.body,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error adding certified discrete attribute ${req.body.id} to tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/tenants/attributes/declared", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -250,6 +275,34 @@ const tenantRouter = (
             emptyErrorMapper,
             ctx,
             `Error revoking certified attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/tenants/:tenantId/attributes/certifiedDiscrete/:attributeId",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+
+        try {
+          const tenantId = unsafeBrandId<TenantId>(req.params.tenantId);
+          const attributeId = unsafeBrandId<AttributeId>(
+            req.params.attributeId
+          );
+          await tenantService.revokeCertifiedDiscreteAttribute(
+            tenantId,
+            attributeId,
+            ctx
+          );
+
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error revoking certified discrete attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

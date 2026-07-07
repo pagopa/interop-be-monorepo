@@ -307,6 +307,65 @@ export function attributeRegistryServiceBuilder(
       };
     },
 
+    async createCertifiedDiscreteAttribute(
+      apiCertifiedDiscreteAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Attribute>> {
+      logger.info(
+        `Creating certified discrete attribute with code ${apiCertifiedDiscreteAttributeSeed.code}`
+      );
+      const certifierId = await getCertifierId(
+        authData.organizationId,
+        readModelService
+      );
+      const duplicatedAttribute =
+        await readModelService.getAttributeByCodeOriginOrName(
+          apiCertifiedDiscreteAttributeSeed.code,
+          apiCertifiedDiscreteAttributeSeed.name,
+          certifierId
+        );
+
+      if (duplicatedAttribute) {
+        throw attributeDuplicateByCodeOriginOrName(
+          apiCertifiedDiscreteAttributeSeed.name,
+          apiCertifiedDiscreteAttributeSeed.code,
+          certifierId
+        );
+      }
+
+      const newCertifiedDiscreteAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.certifiedDiscrete,
+        name: apiCertifiedDiscreteAttributeSeed.name,
+        description: apiCertifiedDiscreteAttributeSeed.description,
+        creationTime: new Date(),
+        code: apiCertifiedDiscreteAttributeSeed.code,
+        origin: certifierId,
+      };
+
+      logger.info(
+        `Certified discrete attribute created with id ${newCertifiedDiscreteAttribute.id}`
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventAttributeAdded(
+          newCertifiedDiscreteAttribute,
+          correlationId
+        )
+      );
+
+      return {
+        data: newCertifiedDiscreteAttribute,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+
     async internalCreateCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>

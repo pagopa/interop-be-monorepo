@@ -286,6 +286,31 @@ const attributeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/certifiedDiscreteAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data, metadata } =
+          await attributeRegistryService.createCertifiedDiscreteAttribute(
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(attributeRegistryApi.Attribute.parse(toApiAttribute(data)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createCertifiedAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/declaredAttributes", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
