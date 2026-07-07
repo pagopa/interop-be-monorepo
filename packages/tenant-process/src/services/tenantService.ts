@@ -676,43 +676,45 @@ export function tenantServiceBuilder(
           attr.id === attribute.id
       );
 
-      const tenantWithNewAttribute: Tenant = !existingCertifiedDiscrete
-        ? {
-            ...targetTenant.data,
-            attributes: [
-              ...targetTenant.data.attributes,
-              {
-                id: attribute.id,
-                type: tenantAttributeType.CERTIFIED_DISCRETE,
-                assignmentTimestamp: new Date(),
-                revocationTimestamp: undefined,
-                discreteValue: tenantAttributeSeed.certifiedDiscreteThreshold,
-              },
-            ],
-            updatedAt: new Date(),
-          }
-        : existingCertifiedDiscrete.revocationTimestamp
-          ? {
-              ...targetTenant.data,
-              attributes: targetTenant.data.attributes.map((a) =>
-                a.id === attribute.id
-                  ? {
-                      ...a,
-                      assignmentTimestamp: new Date(),
-                      revocationTimestamp: undefined,
-                      discreteValue:
-                        tenantAttributeSeed.certifiedDiscreteThreshold,
-                    }
-                  : a
-              ),
-              updatedAt: new Date(),
-            }
-          : (() => {
-              throw certifiedDiscreteAttributeAlreadyAssigned(
-                attribute.id,
-                targetTenant.data.id
-              );
-            })();
+      const now = new Date();
+
+      let tenantWithNewAttribute: Tenant;
+      if (!existingCertifiedDiscrete) {
+        tenantWithNewAttribute = {
+          ...targetTenant.data,
+          attributes: [
+            ...targetTenant.data.attributes,
+            {
+              id: attribute.id,
+              type: tenantAttributeType.CERTIFIED_DISCRETE,
+              assignmentTimestamp: now,
+              revocationTimestamp: undefined,
+              discreteValue: tenantAttributeSeed.certifiedDiscreteThreshold,
+            },
+          ],
+          updatedAt: now,
+        };
+      } else if (existingCertifiedDiscrete.revocationTimestamp) {
+        tenantWithNewAttribute = {
+          ...targetTenant.data,
+          attributes: targetTenant.data.attributes.map((a) =>
+            a.id === attribute.id
+              ? {
+                  ...a,
+                  assignmentTimestamp: now,
+                  revocationTimestamp: undefined,
+                  discreteValue: tenantAttributeSeed.certifiedDiscreteThreshold,
+                }
+              : a
+          ),
+          updatedAt: now,
+        };
+      } else {
+        throw certifiedDiscreteAttributeAlreadyAssigned(
+          attribute.id,
+          targetTenant.data.id
+        );
+      }
 
       const tenantCertifiedDiscreteAttributeAssignedEvent =
         toCreateEventTenantCertifiedDiscreteAttributeAssigned(
