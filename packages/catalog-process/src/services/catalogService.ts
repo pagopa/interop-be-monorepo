@@ -97,6 +97,7 @@ import {
   eServiceTemplateWithoutPublishedVersion,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
+  interfaceDocumentNotUpdatable,
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
@@ -1453,15 +1454,13 @@ export function catalogServiceBuilder(
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
 
-      const isInterface = document.id === descriptor?.interface?.id;
-      const isAsyncExchangeCallbackInterface =
-        document.id === descriptor?.asyncExchangeCallbackInterface?.id;
-
+      // The interface and the async exchange callback interface cannot be
+      // updated: only regular documents are updatable through this operation.
       if (
-        (isInterface || isAsyncExchangeCallbackInterface) &&
-        descriptorStatesNotAllowingInterfaceOperations(descriptor)
+        document.id === descriptor.interface?.id ||
+        document.id === descriptor.asyncExchangeCallbackInterface?.id
       ) {
-        throw notValidDescriptorState(descriptor.id, descriptor.state);
+        throw interfaceDocumentNotUpdatable(descriptor.id, documentId);
       }
 
       if (
@@ -1489,13 +1488,9 @@ export function catalogServiceBuilder(
           d.id === descriptorId
             ? {
                 ...d,
-                interface: isInterface ? updatedDocument : d.interface,
                 docs: d.docs.map((doc) =>
                   doc.id === documentId ? updatedDocument : doc
                 ),
-                asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
-                  ? updatedDocument
-                  : d.asyncExchangeCallbackInterface,
               }
             : d
         ),

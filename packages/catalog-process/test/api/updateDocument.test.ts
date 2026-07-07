@@ -28,6 +28,7 @@ import {
   eServiceDocumentNotFound,
   templateInstanceNotAllowed,
   notValidDescriptorState,
+  interfaceDocumentNotUpdatable,
 } from "../../src/model/domain/errors.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update authorization test", () => {
@@ -133,6 +134,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptor.state),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceDocumentNotUpdatable(descriptor.id, mockDocument.id),
       expectedStatus: 400,
     },
   ])(

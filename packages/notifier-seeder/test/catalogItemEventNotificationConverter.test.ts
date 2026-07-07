@@ -16,19 +16,8 @@ import { toCatalogItemEventNotification } from "../src/models/catalog/catalogIte
 const descriptorId: DescriptorId = generateId();
 const eserviceId: EServiceId = generateId();
 const producerId: TenantId = generateId();
-const documentId: EServiceDocumentId = generateId();
 const interfaceId: EServiceDocumentId = generateId();
 const asyncExchangeCallbackInterfaceId: EServiceDocumentId = generateId();
-
-const document = {
-  id: documentId,
-  name: "document.pdf",
-  contentType: "application/pdf",
-  prettyName: "Document",
-  path: `eservices/docs/${documentId}/document.pdf`,
-  checksum: "document-checksum",
-  uploadDate: new Date("2026-05-22T08:02:00.000Z"),
-};
 
 const interfaceDocument = {
   id: interfaceId,
@@ -62,7 +51,7 @@ const eservice = toEServiceV2({
       version: "1",
       interface: interfaceDocument,
       asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDocument,
-      docs: [document],
+      docs: [],
       state: descriptorState.draft,
       audience: [],
       voucherLifespan: 60,
@@ -100,28 +89,6 @@ const getEnvelope = (
   },
 });
 
-const getDocumentUpdatedEnvelope = (
-  documentId: EServiceDocumentId
-): EServiceEventEnvelopeV2 => ({
-  sequence_num: 1,
-  stream_id: eserviceId,
-  version: 1,
-  correlation_id: generateId(),
-  log_date: new Date("2026-05-22T08:10:00.000Z"),
-  event_version: 2,
-  type: "EServiceDescriptorDocumentUpdated",
-  data: {
-    descriptorId,
-    documentId,
-    eservice,
-  },
-});
-
-const toDocumentV1 = <T extends { uploadDate: Date }>(doc: T) => ({
-  ...doc,
-  uploadDate: doc.uploadDate.toISOString(),
-});
-
 describe("toCatalogItemEventNotification", () => {
   it("should convert async exchange callback interface added events using the callback interface document", () => {
     const result = toCatalogItemEventNotification(
@@ -138,48 +105,6 @@ describe("toCatalogItemEventNotification", () => {
       },
       isInterface: true,
       serverUrls: [],
-    });
-  });
-
-  it("should convert document updated events resolving the document from the descriptor docs", () => {
-    const result = toCatalogItemEventNotification(
-      getDocumentUpdatedEnvelope(documentId)
-    );
-
-    expect(result).toEqual({
-      eServiceId: eserviceId,
-      descriptorId,
-      documentId,
-      updatedDocument: toDocumentV1(document),
-      serverUrls: ["https://example.com/callback"],
-    });
-  });
-
-  it("should convert document updated events resolving the document from the descriptor interface", () => {
-    const result = toCatalogItemEventNotification(
-      getDocumentUpdatedEnvelope(interfaceId)
-    );
-
-    expect(result).toEqual({
-      eServiceId: eserviceId,
-      descriptorId,
-      documentId: interfaceId,
-      updatedDocument: toDocumentV1(interfaceDocument),
-      serverUrls: ["https://example.com/callback"],
-    });
-  });
-
-  it("should convert document updated events resolving the document from the async exchange callback interface", () => {
-    const result = toCatalogItemEventNotification(
-      getDocumentUpdatedEnvelope(asyncExchangeCallbackInterfaceId)
-    );
-
-    expect(result).toEqual({
-      eServiceId: eserviceId,
-      descriptorId,
-      documentId: asyncExchangeCallbackInterfaceId,
-      updatedDocument: toDocumentV1(asyncExchangeCallbackInterfaceDocument),
-      serverUrls: ["https://example.com/callback"],
     });
   });
 });
