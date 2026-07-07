@@ -60,11 +60,6 @@ describe("isOverQuota", () => {
     description: "eservice description",
     technology: "Rest",
     mode: eserviceMode.deliver,
-    attributes: {
-      certified: [],
-      declared: [],
-      verified: [],
-    },
     descriptors: [
       {
         id: descriptorId,
@@ -303,11 +298,6 @@ describe("getUpdatedQuotas", () => {
     description: "eservice description",
     technology: "Rest",
     mode: eserviceMode.deliver,
-    attributes: {
-      certified: [],
-      declared: [],
-      verified: [],
-    },
     descriptors: [
       {
         id: descriptorId,
@@ -523,7 +513,6 @@ describe("getUpdatedQuotas - certified discrete attributes", () => {
     description: "eservice description",
     technology: "Rest",
     mode: eserviceMode.deliver,
-    attributes: { certified: [], declared: [], verified: [] },
     descriptors: [
       {
         id: descriptorId,

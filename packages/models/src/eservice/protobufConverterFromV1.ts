@@ -192,23 +192,20 @@ export const fromRiskAnalysisV1 = (
   riskAnalysisForm: fromRiskAnalysisFormV1(input.riskAnalysisForm),
 });
 
-export const fromEServiceV1 = (input: EServiceV1): EService => ({
-  ...input,
-  id: unsafeBrandId(input.id),
-  producerId: unsafeBrandId(input.producerId),
-  technology: fromEServiceTechnologyV1(input.technology),
-  attributes:
-    input.attributes != null
-      ? {
-          certified: input.attributes.certified.map(fromEServiceAttributeV1),
-          declared: input.attributes.declared.map(fromEServiceAttributeV1),
-          verified: input.attributes.verified.map(fromEServiceAttributeV1),
-        }
-      : undefined,
-  descriptors: input.descriptors.map(fromDescriptorV1),
-  // createdAt is required in EService definition but not in protobuf
-  // tracked in https://pagopa.atlassian.net/browse/IMN-171
-  createdAt: bigIntToDate(input.createdAt) || defaultCreatedAt,
-  riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV1),
-  mode: fromEServiceModeV1(input.mode),
-});
+export const fromEServiceV1 = (input: EServiceV1): EService => {
+  const eservice = { ...input };
+  delete eservice.attributes;
+
+  return {
+    ...eservice,
+    id: unsafeBrandId(input.id),
+    producerId: unsafeBrandId(input.producerId),
+    technology: fromEServiceTechnologyV1(input.technology),
+    descriptors: input.descriptors.map(fromDescriptorV1),
+    // createdAt is required in EService definition but not in protobuf
+    // tracked in https://pagopa.atlassian.net/browse/IMN-171
+    createdAt: bigIntToDate(input.createdAt) || defaultCreatedAt,
+    riskAnalysis: input.riskAnalysis.map(fromRiskAnalysisV1),
+    mode: fromEServiceModeV1(input.mode),
+  };
+};

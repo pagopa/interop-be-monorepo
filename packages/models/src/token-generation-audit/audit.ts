@@ -10,7 +10,13 @@ import {
   TenantId,
 } from "../brandedIds.js";
 import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
+import { ClientAssertionDigest } from "../client-assertion/clientAssertionValidation.js";
 import { InteractionState } from "../token-generation-readmodel/interactions-entry.js";
+
+export const CNFAuditDetails = z.object({
+  jkt: z.string(),
+});
+export type CNFAuditDetails = z.infer<typeof CNFAuditDetails>;
 
 export const ClientAssertionAuditDetails = z.object({
   jwtId: z.string(),
@@ -21,6 +27,7 @@ export const ClientAssertionAuditDetails = z.object({
   subject: ClientId,
   audience: z.string(),
   expirationTime: z.number(),
+  digest: ClientAssertionDigest.optional(),
 });
 export type ClientAssertionAuditDetails = z.infer<
   typeof ClientAssertionAuditDetails
@@ -59,11 +66,14 @@ export const GeneratedTokenAuditDetails = z.object({
   purposeVersionId: PurposeVersionId,
   algorithm: z.string(),
   keyId: z.string(),
+  typ: z.string(),
   audience: z.string(),
   subject: z.string(),
   notBefore: z.number(),
   expirationTime: z.number(),
   issuer: z.string(),
+  cnf: CNFAuditDetails.optional(),
+  digest: ClientAssertionDigest.optional(),
   clientAssertion: ClientAssertionAuditDetails,
   dpop: DPoPAuditDetails.optional(),
   interaction: InteractionAuditDetails.optional(),
