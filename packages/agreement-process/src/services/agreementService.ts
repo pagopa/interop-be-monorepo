@@ -87,6 +87,7 @@ import {
   toCreateEventDraftAgreementUpdated,
   toCreateEventAgreementDocumentGenerated,
   toCreateEventAgreementSignedContractGenerated,
+  toCreateEventAgreementActivated,
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
@@ -123,7 +124,6 @@ import {
 import { config } from "../config/config.js";
 import {
   archiveRelatedToAgreements,
-  buildFirstActivationEvents,
   createActivationEvent,
   createActivationUpdateAgreementSeed,
 } from "./agreementActivationProcessor.js";
@@ -757,12 +757,14 @@ export function agreementServiceBuilder(
 
       const submissionEvents: Array<CreateEvent<AgreementEvent>> =
         submittedAgreement.state === agreementState.active
-          ? buildFirstActivationEvents(
-              submittedAgreement,
-              agreement.metadata.version,
-              archiveEvents,
-              correlationId
-            )
+          ? [
+              toCreateEventAgreementActivated(
+                submittedAgreement,
+                agreement.metadata.version,
+                correlationId
+              ),
+              ...archiveEvents,
+            ]
           : [
               toCreateEventAgreementSubmitted(
                 submittedAgreement,
@@ -1370,7 +1372,7 @@ export function agreementServiceBuilder(
         delegationId,
       }: {
         agreementId: AgreementId;
-        delegationId: DelegationId | undefined;
+        delegationId?: DelegationId | undefined;
       },
       {
         authData,

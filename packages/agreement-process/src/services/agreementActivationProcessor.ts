@@ -255,18 +255,6 @@ export async function createActivationEvent(
   }
 }
 
-export function buildFirstActivationEvents(
-  updatedAgreement: Agreement,
-  version: number,
-  archiveEvents: Array<CreateEvent<AgreementEvent>>,
-  correlationId: CorrelationId
-): Array<CreateEvent<AgreementEvent>> {
-  return [
-    toCreateEventAgreementActivated(updatedAgreement, version, correlationId),
-    ...archiveEvents,
-  ];
-}
-
 export const archiveRelatedToAgreements = async (
   agreement: Agreement,
   authData: UIAuthData | M2MAdminAuthData,
