@@ -3,7 +3,11 @@ import { z } from "zod";
 import { IMain, ITask } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
 import { DBConnection } from "../db/db.js";
-import { DeletingDbTable, DomainDbTable } from "../model/db/index.js";
+import {
+  DeletingDbTable,
+  DomainDbTable,
+  DomainDbTableSchemas,
+} from "../model/db/index.js";
 import { config } from "../config/config.js";
 import {
   buildColumnSet,
@@ -12,20 +16,36 @@ import {
   generateStagingDeleteQuery,
 } from "../utils/sqlQueryHelper.js";
 
-interface DeletingConfig<TDeletingSchema extends z.ZodRawShape> {
+type TableKey<TTable extends DomainDbTable> = Extract<
+  keyof z.infer<DomainDbTableSchemas[TTable]>,
+  string
+>;
+type RepositoryKey<
+  TTable extends DomainDbTable,
+  TSchema extends z.ZodRawShape,
+> = Extract<keyof TSchema, TableKey<TTable>>;
+
+interface DeletingConfig<
+  TTable extends DomainDbTable,
+  TSchema extends z.ZodRawShape,
+  TDeletingSchema extends z.ZodRawShape,
+> {
   deletingTableName: DeletingDbTable;
   deletingSchema: z.ZodObject<TDeletingSchema>;
   /** Key columns for the mergeDeleting query. Defaults to the main keyColumns if omitted. */
-  deletingKeyColumns?: string[];
+  deletingKeyColumns?: Array<RepositoryKey<TTable, TSchema>>;
   useIdAsSourceDeleteKey?: boolean;
   physicalDelete?: boolean;
-  additionalKeysToUpdate?: string[];
+  additionalKeysToUpdate?: Array<RepositoryKey<TTable, TSchema>>;
 }
 
-interface RepositoryConfig<TSchema extends z.ZodRawShape> {
-  tableName: DomainDbTable;
+interface RepositoryConfig<
+  TTable extends DomainDbTable,
+  TSchema extends z.ZodRawShape,
+> {
+  tableName: TTable;
   schema: z.ZodObject<TSchema>;
-  keyColumns: string[];
+  keyColumns: Array<RepositoryKey<TTable, TSchema>>;
 }
 
 interface BaseRepository<TSchema> {
@@ -46,30 +66,35 @@ interface DeletingRepository<TDeletingSchema> {
 
 // Overload: with deleting config
 export function createRepository<
+  TTable extends DomainDbTable,
   TSchema extends z.ZodRawShape,
   TDeletingSchema extends z.ZodRawShape,
 >(
   conn: DBConnection,
-  repoCfg: RepositoryConfig<TSchema> & {
-    deleting: DeletingConfig<TDeletingSchema>;
+  repoCfg: RepositoryConfig<TTable, TSchema> & {
+    deleting: DeletingConfig<TTable, TSchema, TDeletingSchema>;
   }
 ): BaseRepository<z.infer<z.ZodObject<TSchema>>> &
   DeletingRepository<z.infer<z.ZodObject<TDeletingSchema>>>;
 
 // Overload: without deleting config
-export function createRepository<TSchema extends z.ZodRawShape>(
+export function createRepository<
+  TTable extends DomainDbTable,
+  TSchema extends z.ZodRawShape,
+>(
   conn: DBConnection,
-  repoCfg: RepositoryConfig<TSchema>
+  repoCfg: RepositoryConfig<TTable, TSchema>
 ): BaseRepository<z.infer<z.ZodObject<TSchema>>>;
 
 // Implementation
 export function createRepository<
+  TTable extends DomainDbTable,
   TSchema extends z.ZodRawShape,
   TDeletingSchema extends z.ZodRawShape,
 >(
   conn: DBConnection,
-  repoCfg: RepositoryConfig<TSchema> & {
-    deleting?: DeletingConfig<TDeletingSchema>;
+  repoCfg: RepositoryConfig<TTable, TSchema> & {
+    deleting?: DeletingConfig<TTable, TSchema, TDeletingSchema>;
   }
 ): BaseRepository<z.infer<z.ZodObject<TSchema>>> &
   Partial<DeletingRepository<z.infer<z.ZodObject<TDeletingSchema>>>> {
@@ -82,10 +107,7 @@ export function createRepository<
       try {
         const cs = buildColumnSet(pgp, tableName, schema);
         await t.none(pgp.helpers.insert(records, cs));
-        await t.none(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          generateStagingDeleteQuery(tableName, keyColumns as any)
-        );
+        await t.none(generateStagingDeleteQuery(tableName, keyColumns));
       } catch (error: unknown) {
         throw genericInternalError(
           `Error inserting into staging table ${stagingTableName}: ${error}`
@@ -99,8 +121,7 @@ export function createRepository<
           schema,
           schemaName,
           tableName,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          keyColumns as any
+          keyColumns
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
@@ -156,12 +177,10 @@ export function createRepository<
           schemaName,
           tableName,
           deletingTableName,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          effectiveDeletingKeyColumns as any,
+          effectiveDeletingKeyColumns,
           useIdAsSourceDeleteKey,
           physicalDelete,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          additionalKeysToUpdate as any
+          additionalKeysToUpdate
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
