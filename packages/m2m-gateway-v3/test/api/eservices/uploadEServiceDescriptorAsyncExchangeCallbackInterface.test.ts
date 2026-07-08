@@ -10,6 +10,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
+  fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface router test", () => {
@@ -78,7 +79,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCal
         eserviceId,
         descriptorId,
         expect.objectContaining({
-          file: expect.any(File),
+          file: fileFromTestMultipartFileUpload(mockFileUpload),
           prettyName: mockFileUpload.prettyName,
         }),
         expect.any(Object)

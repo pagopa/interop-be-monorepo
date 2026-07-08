@@ -11,6 +11,7 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
+  fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 import { config } from "../../../src/config/config.js";
 
@@ -80,7 +81,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
         eserviceId,
         descriptorId,
         expect.objectContaining({
-          file: expect.any(File),
+          file: fileFromTestMultipartFileUpload(mockFileUpload),
           prettyName: mockFileUpload.prettyName,
         }),
         expect.any(Object) // Context object

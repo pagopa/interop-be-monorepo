@@ -15,6 +15,7 @@ import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileAnnotationDocumentUpload,
   addTestMultipartFileAnnotationDocumentToSupertestRequest,
+  fileFromTestMultipartFileUpload,
 } from "../../multipartTestUtils.js";
 import { config } from "../../../src/config/config.js";
 
@@ -79,7 +80,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocum
       ).toHaveBeenCalledWith(
         purposeTemplateId,
         expect.objectContaining({
-          file: expect.any(File),
+          file: fileFromTestMultipartFileUpload(mockFileUpload),
           prettyName: mockFileUpload.prettyName,
           answerId: mockFileUpload.answerId,
         }),
