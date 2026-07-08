@@ -415,8 +415,8 @@ export function hyperlinkDetectionError(
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     code: "hyperlinkDetectionError",
-    title: "Hyperlink detection error",
-    detail: `Hyperlink detection error for text ${text}`,
+    title: "Hyperlink not allowed",
+detail: `Hyperlink detected in text ${text}`,
   });
 }
 
