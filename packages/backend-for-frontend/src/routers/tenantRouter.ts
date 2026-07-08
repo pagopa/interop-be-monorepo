@@ -302,7 +302,7 @@ const tenantRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error revoking certified discrete attribute ${req.params.attributeId} to tenant ${req.params.tenantId}`
+            `Error revoking certified discrete attribute ${req.params.attributeId} from tenant ${req.params.tenantId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

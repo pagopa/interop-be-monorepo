@@ -1204,7 +1204,7 @@ paths:
       tags:
         - tenantAttribute
       operationId: revokeCertifiedDiscreteAttributeById
-      description: Revoke a certified discrete attribute to a Tenant by the requester Tenant
+      description: Revoke a certified discrete attribute from a Tenant by the requester Tenant
       responses:
         "200":
           description: Updated Tenant

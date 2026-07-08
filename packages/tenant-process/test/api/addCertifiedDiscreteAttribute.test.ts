@@ -90,7 +90,7 @@ describe("API POST /tenants/{tenantId}/attributes/certifiedDiscrete test", () =>
         generateId(),
         generateId()
       ),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
