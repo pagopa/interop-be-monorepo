@@ -57,7 +57,6 @@ const errorCodes = {
   noVersionInEServiceTemplate: "0049",
   delegationContractNotFound: "0050",
   clientNotFound: "0051",
-  agreementNotInExpectedState: "0052",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -178,17 +177,6 @@ export function agreementNotFound(consumerId: string): ApiError<ErrorCodes> {
     detail: `Agreement of consumer ${consumerId} not found`,
     code: "agreementNotFound",
     title: "Agreement not found",
-  });
-}
-
-export function agreementNotInExpectedState(
-  agreementId: string,
-  state: string
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Agreement ${agreementId} not in expected state (current state: ${state})`,
-    code: "agreementNotInExpectedState",
-    title: "Agreement not in expected state",
   });
 }
 

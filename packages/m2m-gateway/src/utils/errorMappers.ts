@@ -17,16 +17,12 @@ const {
 export const approveAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_CONFLICT)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const unsuspendAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_CONFLICT)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAttributeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)

@@ -6,7 +6,6 @@ import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
 type AgreementProcessErrorCodes =
   | "agreementNotFound"
-  | "agreementNotInExpectedState"
   | "tenantIsNotTheConsumer"
   | "tenantIsNotTheDelegateConsumer";
 
@@ -43,23 +42,18 @@ const {
 export const approveAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_CONFLICT)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const unsuspendAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
-  match(error.code)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_CONFLICT)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+  match(error.code).otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const archiveAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegateConsumer",

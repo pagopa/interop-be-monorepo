@@ -139,7 +139,6 @@ export const approveAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -147,7 +146,6 @@ export const unsuspendAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
