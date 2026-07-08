@@ -161,6 +161,7 @@ const getMockAuditDetails = (): GeneratedTokenAuditDetails => ({
   algorithm: algorithm.RS256,
   clientId: generateId(),
   keyId: generateId(),
+  typ: "at+jwt",
   purposeVersionId: generateId(),
   jwtId: generateId(),
   issuedAt: new Date().getMilliseconds(),
