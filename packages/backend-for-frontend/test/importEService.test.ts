@@ -7,6 +7,7 @@ import {
   getMockAuthData,
   getMockContext,
   getMockDocument,
+  getMockedPdfBuffer,
 } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
@@ -205,7 +206,7 @@ describe("importEService", () => {
       );
       zipWithRootFolder.addFile(
         `${rootFolderName}/${docPath}`,
-        Buffer.from("doc content")
+        getMockedPdfBuffer()
       );
 
       const renamedFileResource: bffApi.FileResource = {

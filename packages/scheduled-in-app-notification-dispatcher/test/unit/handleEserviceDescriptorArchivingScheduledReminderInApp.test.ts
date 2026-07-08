@@ -56,7 +56,6 @@ const makeEservice = (overrides: Partial<EService> = {}): EService => ({
   name: "test-eservice",
   description: "desc",
   technology: "Rest",
-  attributes: undefined,
   descriptors: [],
   createdAt: new Date(),
   riskAnalysis: [],

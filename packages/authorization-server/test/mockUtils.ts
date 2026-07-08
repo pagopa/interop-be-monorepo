@@ -80,6 +80,7 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
     algorithm: algorithm.RS256,
     clientId,
     keyId: kid,
+    typ: "at+jwt",
     purposeVersionId,
     jwtId: generateId(),
     issuedAt: dateToSeconds(new Date()),
