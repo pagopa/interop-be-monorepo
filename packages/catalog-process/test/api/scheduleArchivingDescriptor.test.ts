@@ -2,7 +2,6 @@
 import { describe, it, expect, vi } from "vitest";
 import request from "supertest";
 import {
-  ArchivingScope,
   Descriptor,
   DescriptorId,
   EService,
@@ -22,12 +21,12 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
+  gracePeriodDaysNotValid,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import {
   eServiceToApiEService,
   descriptorToApiDescriptor,
-  archivingScheduleScopeToApiArchivingScheduleScope,
 } from "../../src/model/domain/apiConverter.js";
 
 describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchive authorization test", () => {
@@ -41,26 +40,18 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     descriptors: [descriptor],
   };
 
-  const mockApiArchivingScope = catalogApi.ArchivingScope.parse(
-    archivingScheduleScopeToApiArchivingScheduleScope(
-      ArchivingScope.Enum.Descriptor
-    )
-  );
-
   const apiDescriptor = catalogApi.EServiceDescriptor.parse(
     descriptorToApiDescriptor(descriptor)
   );
-
-  apiDescriptor.archivingSchedule = {
-    scope: mockApiArchivingScope,
-    startedAt: descriptor.archivingSchedule?.startedAt.toJSON(),
-    archivableOn: descriptor.archivingSchedule?.archivableOn.toJSON(),
-  };
 
   const mockApiEservice = eServiceToApiEService(mockEService);
   mockApiEservice.descriptors = [apiDescriptor];
 
   const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
+
+  const gracePeriodDaysSeed: catalogApi.GracePeriodDaysSeed = {
+    gracePeriodDays: 90,
+  };
 
   catalogService.scheduleEServiceDescriptorArchiving = vi
     .fn()
@@ -69,7 +60,8 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    descriptorId: DescriptorId
+    descriptorId: DescriptorId,
+    body: catalogApi.GracePeriodDaysSeed = gracePeriodDaysSeed
   ) =>
     request(api)
       .post(
@@ -77,7 +69,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -122,6 +114,10 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptor.state),
+      expectedStatus: 400,
+    },
+    {
+      error: gracePeriodDaysNotValid(10, 30, 90),
       expectedStatus: 400,
     },
   ])(

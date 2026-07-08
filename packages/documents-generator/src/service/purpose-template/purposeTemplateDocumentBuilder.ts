@@ -286,7 +286,11 @@ function getAnswerAnnotation(
   const docs = annotation.docs
     .map(
       (doc) =>
-        `<div class="doc"><i>Documento allegato: ${doc.prettyName} (id: ${doc.id}, checksum: ${doc.checksum})</i></div>`
+        `<div class="doc"><i>Documento allegato: ${Handlebars.escapeExpression(
+          doc.prettyName
+        )} (id: ${doc.id}, checksum: ${Handlebars.escapeExpression(
+          doc.checksum
+        )})</i></div>`
     )
     .join("");
 
@@ -338,7 +342,7 @@ function getSingleAnswerSuggestedValues(
       (value, idx) =>
         `<li><span class="option-label">Opzione ${
           idx + 1
-        }:</span> ${value}</li>`
+        }:</span> ${Handlebars.escapeExpression(value)}</li>`
     )
     .join("");
 

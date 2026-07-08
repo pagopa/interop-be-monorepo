@@ -80,6 +80,7 @@ import {
   gracePeriodDaysNotValid,
   delegatedArchivingRequestNotActive,
   delegatedArchivingRequestAlreadyInProgress,
+  gracePeriodDaysLowerThanDescriptor,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -979,9 +980,34 @@ export function assertGracePeriodDaysValid(
 ): void {
   if (
     gracePeriodDays === undefined ||
-    gracePeriodDays < 30 ||
-    gracePeriodDays > 999999
+    gracePeriodDays < config.gracePeriodArchivingEServiceDays.min ||
+    gracePeriodDays > config.gracePeriodArchivingEServiceDays.max
   ) {
-    throw gracePeriodDaysNotValid(gracePeriodDays);
+    throw gracePeriodDaysNotValid(
+      gracePeriodDays,
+      config.gracePeriodArchivingEServiceDays.min,
+      config.gracePeriodArchivingEServiceDays.max
+    );
+  }
+}
+
+export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
+  eservice: EService,
+  gracePeriodDays: number
+): void {
+  for (const descriptor of eservice.descriptors) {
+    const descriptorGracePeriodDays =
+      descriptor.archivingSchedule?.gracePeriodDays;
+    if (
+      descriptorGracePeriodDays !== undefined &&
+      descriptorGracePeriodDays > gracePeriodDays
+    ) {
+      throw gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        descriptor.id,
+        gracePeriodDays,
+        descriptorGracePeriodDays
+      );
+    }
   }
 }

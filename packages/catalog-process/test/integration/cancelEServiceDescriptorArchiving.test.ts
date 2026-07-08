@@ -39,6 +39,7 @@ describe("cancel archiving of a descriptor", () => {
     archivableOn: new Date(),
     startedAt: new Date(),
     scope: archivingScope.descriptor,
+    gracePeriodDays: 90,
   };
 
   it("should write on event-store to restore deprecated state for a descriptor in archiving state", async () => {
@@ -159,6 +160,7 @@ describe("cancel archiving of a descriptor", () => {
       archivableOn: new Date(),
       startedAt: new Date(),
       scope: archivingScope.eservice,
+      gracePeriodDays: 90,
     };
     const descriptor1: Descriptor = {
       ...mockDescriptor,
@@ -320,6 +322,7 @@ describe("cancel archiving of a descriptor", () => {
         archivableOn: new Date(),
         startedAt: new Date(),
         scope: archivingScope.eservice,
+        gracePeriodDays: 90,
       },
     };
     const descriptor2: Descriptor = {

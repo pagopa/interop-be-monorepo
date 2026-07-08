@@ -34,6 +34,7 @@ describe("cancel eservice archiving", () => {
     archivableOn: new Date(),
     startedAt: new Date(),
     scope: archivingScope.eservice,
+    gracePeriodDays: 90,
   };
 
   it.each<{
@@ -140,6 +141,7 @@ describe("cancel eservice archiving", () => {
         archivableOn: new Date(),
         startedAt: new Date(),
         scope: archivingScope.descriptor,
+        gracePeriodDays: 90,
       },
     };
     const descriptorWithEServiceScope: Descriptor = {
@@ -257,6 +259,7 @@ describe("cancel eservice archiving", () => {
           archivableOn: new Date(),
           startedAt: new Date(),
           scope: archivingScope.descriptor,
+          gracePeriodDays: 90,
         },
       },
     },

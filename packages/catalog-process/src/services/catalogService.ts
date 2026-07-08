@@ -240,6 +240,7 @@ import {
   assertDelegatedEserviceHasNoActiveArchivingRequests,
   assertDelegatedDescriptorHasNoActiveArchivingRequests,
   assertDelegatedDescriptorHasActiveArchivingRequests,
+  assertEServiceGracePeriodIsNotLowerThanDescriptors,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -1284,6 +1285,11 @@ export function catalogServiceBuilder(
       assertEServiceArchivable(eservice.data);
 
       assertGracePeriodDaysValid(body.gracePeriodDays);
+
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        eservice.data,
+        body.gracePeriodDays
+      );
 
       const updatedEService = await processEserviceArchiving(
         eservice.data,
@@ -2494,7 +2500,7 @@ export function catalogServiceBuilder(
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
-      assertGracePeriodDaysValid(body.gracePeriodDays); //Check if the grace period exists and is valid ( min 30 )
+      assertGracePeriodDaysValid(body.gracePeriodDays);
 
       const newState =
         descriptor.state === descriptorState.suspended
