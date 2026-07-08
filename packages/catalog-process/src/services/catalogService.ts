@@ -190,6 +190,8 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertNoExistingProducerDelegationForDescriptorArchiving,
+  assertNoExistingProducerDelegationForEServiceArchiving,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -213,6 +215,7 @@ import {
   assertAsyncExchangeReadyForPublication,
   assertDailyCallsForCertifiedAttributesOnly,
   assertDiscreteConfigForCertifiedAttributesOnly,
+  assertCertifiedDiscreteConfigUnchanged,
   assertAttributeDailyCallsConsistentWithTotal,
   assertEserviceIsNotInArchivingOrArchivedState,
   assertDescriptorArchivable,
@@ -653,7 +656,6 @@ async function innerCreateEService(
     description: seed.description,
     technology: apiTechnologyToTechnology(seed.technology),
     mode: apiEServiceModeToEServiceMode(seed.mode),
-    attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: template?.riskAnalysis ?? [],
@@ -1250,7 +1252,7 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationForEServiceArchiving(
         eserviceId,
         readModelService
       );
@@ -2223,7 +2225,6 @@ export function catalogServiceBuilder(
         name: clonedEServiceName,
         description: eservice.data.description,
         technology: eservice.data.technology,
-        attributes: eservice.data.attributes,
         createdAt: new Date(),
         riskAnalysis: eservice.data.riskAnalysis,
         mode: eservice.data.mode,
@@ -2409,6 +2410,7 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2456,8 +2458,9 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationForDescriptorArchiving(
         eserviceId,
+        descriptorId,
         readModelService
       );
 
@@ -3335,6 +3338,7 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, parsedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         descriptor.dailyCallsTotal
@@ -4634,7 +4638,10 @@ async function processDescriptorArchiving(
   requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(requestDate, config.gracePeriodArchivingEService),
+    ...calculateArchivableOn(
+      requestDate,
+      config.gracePeriodArchivingEServiceDays
+    ),
     scope,
   };
 

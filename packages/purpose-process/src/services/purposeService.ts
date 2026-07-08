@@ -1,6 +1,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  purposeApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
 import {
   AppContext,
   AuthData,
@@ -101,6 +104,8 @@ import {
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotInSignedState,
+  reviewerWorkflowNotAllowedForDelegatedPurpose,
+  reviewerWorkflowNotAllowedForReceiveMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -151,6 +156,8 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
+  assertTenantHasSelfcareId,
+  assertUserSelfcareReviewerPrivileges,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -339,7 +346,8 @@ async function retrievePublishedPurposeTemplate(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
 
@@ -548,6 +556,21 @@ export function purposeServiceBuilder(
 
       assertRequesterIsConsumer(purpose.data, authData);
 
+      assertPurposeIsNotFromTemplate(purpose.data);
+
+      if (purpose.data.delegationId !== undefined) {
+        throw reviewerWorkflowNotAllowedForDelegatedPurpose(purposeId);
+      }
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      if (eservice.mode === eserviceMode.receive) {
+        throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
+      }
+
       if (purpose.data.reviewerWorkflow !== undefined) {
         throw reviewerWorkflowConflict(purposeId);
       }
@@ -558,6 +581,24 @@ export function purposeServiceBuilder(
       if (seed.reviewerIds.length > 1) {
         throw multipleReviewersNotAllowed(purposeId);
       }
+
+      const consumer = await retrieveTenant(
+        purpose.data.consumerId,
+        readModelService
+      );
+      assertTenantHasSelfcareId(consumer);
+
+      await Promise.all(
+        seed.reviewerIds.map((reviewerId) =>
+          assertUserSelfcareReviewerPrivileges({
+            selfcareId: consumer.selfcareId,
+            consumerId: purpose.data.consumerId,
+            selfcareV2InstitutionClient,
+            userIdToCheck: unsafeBrandId(reviewerId),
+            correlationId,
+          })
+        )
+      );
 
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,

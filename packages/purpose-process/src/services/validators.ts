@@ -1,4 +1,7 @@
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  purposeApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
 import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
   isFeatureFlagEnabled,
@@ -9,9 +12,11 @@ import {
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
+  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   Delegation,
   DelegationId,
   delegationKind,
@@ -27,6 +32,7 @@ import {
   purposeVersionState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
+  Tenant,
   TenantId,
   tenantKind,
   TenantKind,
@@ -34,6 +40,7 @@ import {
   PurposeId,
   ReviewerWorkflow,
   riskAnalysisSigningState,
+  UserId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -44,6 +51,7 @@ import {
   invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
+  missingSelfcareId,
   purposeFromTemplateCannotBeModified,
   purposeNotInDraftState,
   riskAnalysisAnswerNotInSuggestValues,
@@ -60,6 +68,7 @@ import {
   tenantIsNotTheProducer,
   tenantNotAllowed,
   tenantNotFound,
+  userWithoutReviewerPrivileges,
 } from "../model/domain/errors.js";
 import { config } from "../config/config.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
@@ -887,3 +896,40 @@ function riskAnalysisFormInputDiffersFromPrevious(
 
   return false;
 }
+
+export function assertTenantHasSelfcareId(
+  tenant: Tenant
+): asserts tenant is Tenant & { selfcareId: string } {
+  if (!tenant.selfcareId) {
+    throw missingSelfcareId(tenant.id);
+  }
+}
+
+export const assertUserSelfcareReviewerPrivileges = async ({
+  selfcareId,
+  consumerId,
+  selfcareV2InstitutionClient,
+  userIdToCheck,
+  correlationId,
+}: {
+  selfcareId: string;
+  consumerId: TenantId;
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
+  userIdToCheck: UserId;
+  correlationId: CorrelationId;
+}): Promise<void> => {
+  const users =
+    await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
+      params: { institutionId: selfcareId },
+      queries: {
+        userId: userIdToCheck,
+        productRoles: userRole.REVIEWER_ROLE,
+      },
+      headers: {
+        "X-Correlation-Id": correlationId,
+      },
+    });
+  if (users.length === 0) {
+    throw userWithoutReviewerPrivileges(consumerId, userIdToCheck);
+  }
+};

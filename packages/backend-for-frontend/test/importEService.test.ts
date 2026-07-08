@@ -7,6 +7,7 @@ import {
   getMockAuthData,
   getMockContext,
   getMockDocument,
+  getMockedPdfBuffer,
 } from "pagopa-interop-commons-test";
 import {
   DescriptorId,
@@ -176,6 +177,61 @@ describe("importEService", () => {
 
       const result = await catalogService.importEService(
         fileResource,
+        bffMockContext
+      );
+
+      expect(result).toEqual({
+        id: baseEService.id,
+        descriptorId: baseEService.descriptors[0].id,
+      });
+      fs.unlinkSync(zipPath);
+    });
+
+    it("should import eService when the zip has a root folder whose name differs from the file name", async () => {
+      const rootFolderName = "myRoot";
+      const docPath = "documents/doc1.pdf";
+
+      const configurationWithDoc = {
+        ...configuration,
+        descriptor: {
+          ...configuration.descriptor,
+          docs: [{ path: docPath, prettyName: "doc1 prettyName" }],
+        },
+      };
+
+      const zipWithRootFolder = new AdmZip();
+      zipWithRootFolder.addFile(
+        `${rootFolderName}/${jsonFilename}`,
+        Buffer.from(JSON.stringify(configurationWithDoc))
+      );
+      zipWithRootFolder.addFile(
+        `${rootFolderName}/${docPath}`,
+        getMockedPdfBuffer()
+      );
+
+      const renamedFileResource: bffApi.FileResource = {
+        filename: "myRoot (1).zip",
+        url: "/import/folder",
+      };
+
+      const zipPath = path.join(__dirname, "test_root.zip");
+      zipWithRootFolder.writeZip(zipPath);
+
+      const zipContent = fs.readFileSync(zipPath);
+
+      await fileManager.storeBytes(
+        {
+          bucket: config.importEserviceContainer,
+          path: `${config.importEservicePath}`,
+          resourceId: `${tenantId}`,
+          name: `${renamedFileResource.filename}`,
+          content: zipContent,
+        },
+        genericLogger
+      );
+
+      const result = await catalogService.importEService(
+        renamedFileResource,
         bffMockContext
       );
 
