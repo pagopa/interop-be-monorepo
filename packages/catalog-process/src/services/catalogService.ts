@@ -3346,6 +3346,8 @@ export function catalogServiceBuilder(
 
       assertEServiceArchivable(eservice.data);
       assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
+      assertGracePeriodDaysValid(seed.gracePeriod);
+      // FIXME: Check if there is a descriptor in archiving and their grace period days
 
       const updatedRequests = appendArchivingRequest(
         eservice.data.delegatedArchivingRequest,
@@ -3508,6 +3510,7 @@ export function catalogServiceBuilder(
       }
 
       assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+      assertGracePeriodDaysValid(seed.gracePeriod);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
