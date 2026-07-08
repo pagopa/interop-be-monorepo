@@ -129,7 +129,8 @@ export function toCatalogCreateEServiceTemplateSeed(
   return {
     ...eServiceTemplateSeed,
     version: {
-      voucherLifespan: 60,
+      ...eServiceTemplateSeed.version,
+      voucherLifespan: eServiceTemplateSeed.version?.voucherLifespan ?? 60,
     },
   };
 }
