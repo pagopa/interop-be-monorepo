@@ -76,6 +76,7 @@ import {
   agreementSignedContractInReadmodelAgreement,
   delegationSignedContractDocumentInReadmodelDelegation,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import {
@@ -464,6 +465,8 @@ export function readModelServiceBuilderSQL(
                 eserviceDescriptorArchivingScheduleInReadmodelCatalog,
               asyncExchangeProperties:
                 eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+              archivingRequests:
+                eserviceDescriptorArchivingRequestInReadmodelCatalog,
             })
             .from(eserviceInReadmodelCatalog)
             .where(inArray(eserviceInReadmodelCatalog.id, ids))
@@ -541,6 +544,25 @@ export function readModelServiceBuilderSQL(
               eq(
                 eserviceDescriptorInReadmodelCatalog.id,
                 eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+              )
+            )
+            .leftJoin(
+              // 11
+              eserviceDescriptorArchivingRequestInReadmodelCatalog,
+              or(
+                eq(
+                  eserviceDescriptorInReadmodelCatalog.id,
+                  eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+                ),
+                and(
+                  eq(
+                    eserviceInReadmodelCatalog.id,
+                    eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+                  ),
+                  isNull(
+                    eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+                  )
+                )
               )
             )
             .orderBy(ascLower(eserviceInReadmodelCatalog.name)),

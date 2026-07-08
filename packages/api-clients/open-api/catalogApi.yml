@@ -458,7 +458,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/SubmitDelegatedEServiceArchivingSeed"
+              $ref: "#/components/schemas/EServiceArchivingSeed"
       responses:
         "200":
           description: Delegated archiving request submitted.
@@ -536,7 +536,148 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RejectDelegatedEServiceArchivingSeed"
+              $ref: "#/components/schemas/RejectDelegatedArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request rejected.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Submit a delegated archiving request for an E-Service
+      operationId: submitDelegatedDescriptorArchiving
+      description: Allows a delegate to request the archiving of the specified Descriptor. The owner must then approve or reject the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GracePeriodDaysSeed"
+      responses:
+        "200":
+          description: Delegated archiving request submitted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/approveDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Approve a delegated archiving request for an Descriptor
+      operationId: approveDelegatedDescriptorArchiving
+      description: Allows the owner (delegator) to approve a delegate's archiving request.
+      responses:
+        "200":
+          description: Delegated archiving request approved.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/rejectDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Reject a delegated archiving request for a Descriptor
+      operationId: rejectDelegatedDescriptorArchiving
+      description: Allows the owner (delegator) to reject a delegate's archiving request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedArchivingSeed"
       responses:
         "200":
           description: Delegated archiving request rejected.
@@ -4074,25 +4215,7 @@ components:
           type: string
       required:
         - rejectionReason
-    SubmitDelegatedEServiceArchivingSeed:
-      type: object
-      additionalProperties: false
-      description: Seed for a delegate to submit an archiving request for an E-Service
-      properties:
-        gracePeriod:
-          type: integer
-          format: int32
-          description: Number of days before the actual archiving takes effect
-          minimum: 1
-        archivingReason:
-          type: string
-          description: Reason for archiving the E-Service
-          minLength: 10
-          maxLength: 250
-      required:
-        - gracePeriod
-        - archivingReason
-    RejectDelegatedEServiceArchivingSeed:
+    RejectDelegatedArchivingSeed:
       type: object
       additionalProperties: false
       description: Seed for an owner to reject a delegated archiving request

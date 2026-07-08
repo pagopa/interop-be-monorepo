@@ -3328,7 +3328,7 @@ export function catalogServiceBuilder(
     },
     async submitDelegatedEServiceArchiving(
       eserviceId: EServiceId,
-      seed: catalogApi.SubmitDelegatedEServiceArchivingSeed,
+      seed: catalogApi.EServiceArchivingSeed,
       {
         authData,
         correlationId,
@@ -3353,10 +3353,10 @@ export function catalogServiceBuilder(
 
       assertEServiceArchivable(eservice.data);
       assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
-      assertGracePeriodDaysValid(seed.gracePeriod);
+      assertGracePeriodDaysValid(seed.gracePeriodDays);
       assertEServiceGracePeriodIsNotLowerThanDescriptors(
         eservice.data,
-        seed.gracePeriod
+        seed.gracePeriodDays
       );
 
       const updatedRequests = appendArchivingRequest(
@@ -3364,7 +3364,7 @@ export function catalogServiceBuilder(
         {
           requestedAt: new Date(),
           requesterId: authData.organizationId,
-          gracePeriodDays: seed.gracePeriod,
+          gracePeriodDays: seed.gracePeriodDays,
           archivingReason: seed.archivingReason,
         }
       );
@@ -3390,7 +3390,7 @@ export function catalogServiceBuilder(
     },
     async rejectDelegatedEServiceArchiving(
       eserviceId: EServiceId,
-      body: catalogApi.RejectDelegatedEServiceArchivingSeed,
+      body: catalogApi.RejectDelegatedArchivingSeed,
       {
         authData,
         correlationId,
@@ -3506,7 +3506,7 @@ export function catalogServiceBuilder(
     async submitDelegatedDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: catalogApi.SubmitDelegatedEServiceArchivingSeed,
+      seed: catalogApi.GracePeriodDaysSeed,
       {
         authData,
         correlationId,
@@ -3528,7 +3528,7 @@ export function catalogServiceBuilder(
       }
 
       assertRequesterIsDelegateForArchiving(producerDelegation, authData);
-      assertGracePeriodDaysValid(seed.gracePeriod);
+      assertGracePeriodDaysValid(seed.gracePeriodDays);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
@@ -3543,7 +3543,7 @@ export function catalogServiceBuilder(
         {
           requestedAt: new Date(),
           requesterId: authData.organizationId,
-          gracePeriodDays: seed.gracePeriod,
+          gracePeriodDays: seed.gracePeriodDays,
         }
       );
 
@@ -3570,7 +3570,7 @@ export function catalogServiceBuilder(
     async rejectDelegatedDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      body: catalogApi.RejectDelegatedEServiceArchivingSeed,
+      body: catalogApi.RejectDelegatedArchivingSeed,
       {
         authData,
         correlationId,
