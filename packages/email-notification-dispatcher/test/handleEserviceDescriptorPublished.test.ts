@@ -28,7 +28,10 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { descriptorNotFound, tenantNotFound } from "../src/models/errors.js";
+import {
+  descriptorNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
 import {
   addOneAgreement,

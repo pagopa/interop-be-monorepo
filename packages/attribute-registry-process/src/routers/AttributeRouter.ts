@@ -31,6 +31,7 @@ import {
   createCertifiedAttributesErrorMapper,
   createDeclaredAttributesErrorMapper,
   createInternalCertifiedAttributesErrorMapper,
+  createInternalCertifiedDiscreteAttributesErrorMapper,
   createVerifiedAttributesErrorMapper,
   getAttributeByIdErrorMapper,
   getAttributeByOriginAndCodeErrorMapper,
@@ -78,6 +79,8 @@ const attributeRouter = (
     M2M_ADMIN_ROLE,
     INTERNAL_ROLE,
     SUPPORT_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   attributeRouter
@@ -199,6 +202,8 @@ const attributeRouter = (
             SECURITY_ROLE,
             M2M_ADMIN_ROLE,
             M2M_ROLE,
+            REVIEWER_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const { data, metadata } =
@@ -233,6 +238,8 @@ const attributeRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const attributes = await attributeRegistryService.getAttributesByIds(
@@ -349,6 +356,32 @@ const attributeRouter = (
         const errorRes = makeApiProblem(
           error,
           createInternalCertifiedAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/internal/certifiedDiscreteAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+        const attribute =
+          await attributeRegistryService.internalCreateCertifiedDiscreteAttribute(
+            req.body,
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createInternalCertifiedDiscreteAttributesErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

@@ -46,6 +46,20 @@ export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getRiskAnalysisAssignmentsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "eServiceNotFound",
+      "agreementNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
@@ -172,6 +186,7 @@ export const createEServiceDocumentErrorMapper = (
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -185,6 +200,7 @@ export const createEServiceTemplateDocumentErrorMapper = (
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -257,6 +273,7 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
       "invalidContentTypeDetected",
       "eserviceTemplateInterfaceDataNotValid",
       "invalidInterfaceFile",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
@@ -292,6 +309,20 @@ export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
     .with(
       "eServiceNotFound",
       "eserviceDescriptorNotFound",
+      "tenantNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeTemplateLinkableResourcesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eserviceDescriptorNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       "tenantNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
