@@ -3340,17 +3340,19 @@ export function catalogServiceBuilder(
       assertEServiceArchivable(eservice.data);
       assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
 
+      const updatedRequests = appendArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        {
+          requestedAt: new Date(),
+          requesterId: authData.organizationId,
+          gracePeriodDays: seed.gracePeriod,
+          archivingReason: seed.archivingReason,
+        }
+      );
+
       const updatedEService: EService = {
         ...eservice.data,
-        delegatedArchivingRequest: [
-          ...(eservice.data.delegatedArchivingRequest ?? []),
-          {
-            requestedAt: new Date(),
-            requesterId: authData.organizationId,
-            gracePeriodDays: seed.gracePeriod,
-            archivingReason: seed.archivingReason,
-          },
-        ],
+        delegatedArchivingRequest: updatedRequests,
       };
 
       const event = await repository.createEvent(
@@ -3445,11 +3447,10 @@ export function catalogServiceBuilder(
         delegatedArchivingRequest: updatedRequests,
       };
 
-      const lastRequest = updatedRequests.at(-1);
-
-      if (!lastRequest) {
-        throw noDelegatedArchivingRequestFound(eserviceId);
-      }
+      const lastRequest = getLatestArchivingRequest(
+        updatedRequests,
+        eserviceId
+      );
 
       const archivableEservice = await processEserviceArchiving(
         updatedEService,
@@ -4835,36 +4836,64 @@ async function processDescriptorArchiving(
   return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);
 }
 
+// Archiving requests helper functions
 function updateLatestArchivingRequest<
   T extends
     | DelegatedDescriptorArchivingRequest
     | DelegatedEServiceArchivingRequest,
 >(
-  requests: T[],
-  lastRequest: Partial<
+  archivingRequests: T[],
+  lastRequestUpdates: Partial<
     Omit<
       T,
       "requesterId" | "requestedAt" | "gracePeriodDays" | "archivingReason"
     >
   >,
-  eserviceId: EServiceId
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
 ): T[] {
-  const previousDelegateRequests = requests.slice(0, -1);
-  const latestDelegatedArchivingRequest = requests.at(-1);
+  const latestDelegatedArchivingRequest = getLatestArchivingRequest(
+    archivingRequests,
+    eserviceId,
+    descriptorId
+  );
 
-  if (!latestDelegatedArchivingRequest) {
-    throw noDelegatedArchivingRequestFound(eserviceId);
-  }
-
-  const updatedRequests = [
-    ...previousDelegateRequests,
-    {
-      ...latestDelegatedArchivingRequest,
-      ...lastRequest,
-    },
-  ];
+  const updatedRequests = archivingRequests.map((request) =>
+    request === latestDelegatedArchivingRequest
+      ? {
+          ...request,
+          ...lastRequestUpdates,
+        }
+      : request
+  );
 
   return updatedRequests;
+}
+
+function appendArchivingRequest<
+  T extends
+    | DelegatedDescriptorArchivingRequest
+    | DelegatedEServiceArchivingRequest,
+>(previousArchivingRequests: T[] | undefined, newArchivingRequest: T): T[] {
+  return [...(previousArchivingRequests ?? []), newArchivingRequest];
+}
+
+function getLatestArchivingRequest<
+  T extends
+    | DelegatedDescriptorArchivingRequest
+    | DelegatedEServiceArchivingRequest,
+>(
+  archivingRequests: T[] | undefined,
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): T {
+  if (!archivingRequests) {
+    throw noDelegatedArchivingRequestFound(eserviceId, descriptorId);
+  }
+  const latestRequest = archivingRequests.reduce((latest, current) =>
+    current.requestedAt > latest.requestedAt ? current : latest
+  );
+  return latestRequest;
 }
 
 async function createOpenApiInterfaceByTemplate(
