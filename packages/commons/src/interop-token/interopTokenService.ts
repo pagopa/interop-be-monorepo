@@ -39,6 +39,7 @@ import {
   AgidIntegrityRest02TokenPayload,
   IntegrityRest02SignedHeaders,
 } from "./models.js";
+import { genericLogger } from "../logging/index.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
   SerializedAuthTokenPayload,
@@ -485,6 +486,7 @@ export class InteropTokenGenerator {
     };
 
     const command = new SignCommand(commandParams);
+    genericLogger.info(`Signing token with KMS kid ${keyId}`);
     const response = await this.kmsClient.send(command);
 
     if (!response.Signature) {
