@@ -874,13 +874,23 @@ export const submitDelegatedEServiceArchivingErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound", // Descriptor only
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
+      "gracePeriodDaysNotValid",
       "noDelegationForArchivingRequest",
-      "notValidEServiceState",
+      "notValidEServiceState", // EService only
+      "notValidDescriptor", // Descriptor only
       "eserviceWithoutValidDescriptors",
       () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "delegatedArchivingRequestAlreadyInProgress",
+      () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -888,25 +898,32 @@ export const rejectDelegatedEServiceArchivingErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
-      "noDelegatedArchivingRequestFound",
-      "delegatedArchivingRequestNotActive",
-      () => HTTP_STATUS_BAD_REQUEST
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound", // Descriptor only
+      () => HTTP_STATUS_NOT_FOUND
     )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with("noDelegatedArchivingRequestFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-// FIXME: Correct error codes
 export const approveDelegatedEServiceArchivingErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "noDelegatedArchivingRequestFound",
-      "delegatedArchivingRequestNotActive",
+      "notValidEServiceState", // EService only
+      "notValidDescriptor", // Descriptor only
+      "eserviceWithoutValidDescriptors",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

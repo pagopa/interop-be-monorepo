@@ -241,6 +241,8 @@ import {
   assertDelegatedDescriptorHasNoActiveArchivingRequests,
   assertDelegatedDescriptorHasActiveArchivingRequests,
   assertEServiceGracePeriodIsNotLowerThanDescriptors,
+  assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
+  assertDelegatedEserviceHasAtLeastOneArchivingRequests,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -3403,6 +3405,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
+      assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
 
       assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
 
@@ -3448,6 +3451,7 @@ export function catalogServiceBuilder(
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
+      assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
 
       assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
 
@@ -3585,6 +3589,10 @@ export function catalogServiceBuilder(
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
 
       assertDelegatedDescriptorHasActiveArchivingRequests(
         descriptor,
@@ -3640,6 +3648,10 @@ export function catalogServiceBuilder(
       assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
 
       assertDelegatedDescriptorHasActiveArchivingRequests(
         descriptor,

@@ -81,6 +81,7 @@ import {
   delegatedArchivingRequestNotActive,
   delegatedArchivingRequestAlreadyInProgress,
   gracePeriodDaysLowerThanDescriptor,
+  noDelegatedArchivingRequestFound,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -296,6 +297,15 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
   }
 }
 
+export function assertDelegatedEserviceHasAtLeastOneArchivingRequests(
+  eservice: EService
+): void {
+  const archivingRequests = eservice.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eservice.id);
+  }
+}
+
 export function assertDelegatedEserviceHasActiveArchivingRequests(
   eservice: EService
 ): void {
@@ -309,6 +319,16 @@ export function assertDelegatedEserviceHasNoActiveArchivingRequests(
 ): void {
   if (hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
     throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  const archivingRequests = descriptor.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eserviceId, descriptor.id);
   }
 }
 
