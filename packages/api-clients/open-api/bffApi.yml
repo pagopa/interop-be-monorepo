@@ -15397,7 +15397,7 @@ paths:
       tags:
         - tenants
       operationId: revokeCertifiedDiscreteAttribute
-      description: Revoke a certified discrete attribute to a Tenant by the requester Tenant
+      description: Revoke a certified discrete attribute from a Tenant by the requester Tenant
       responses:
         "204":
           description: Updated Tenant
@@ -15874,6 +15874,7 @@ paths:
       tags:
         - attributes
       operationId: createCertifiedDiscreteAttribute
+      description: Creates the certified discrete attribute passed as payload
       responses:
         "200":
           description: Certified discrete attribute created
@@ -15963,7 +15964,6 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-      description: Creates the certified discrete attribute passed as payload
       requestBody:
         required: true
         content:

@@ -678,43 +678,49 @@ export function tenantServiceBuilder(
 
       const now = new Date();
 
-      let tenantWithNewAttribute: Tenant;
-      if (!existingCertifiedDiscrete) {
-        tenantWithNewAttribute = {
-          ...targetTenant.data,
-          attributes: [
-            ...targetTenant.data.attributes,
-            {
-              id: attribute.id,
-              type: tenantAttributeType.CERTIFIED_DISCRETE,
-              assignmentTimestamp: now,
-              revocationTimestamp: undefined,
-              discreteValue: tenantAttributeSeed.certifiedDiscreteThreshold,
-            },
-          ],
-          updatedAt: now,
-        };
-      } else if (existingCertifiedDiscrete.revocationTimestamp) {
-        tenantWithNewAttribute = {
-          ...targetTenant.data,
-          attributes: targetTenant.data.attributes.map((a) =>
-            a.id === attribute.id
-              ? {
-                  ...a,
-                  assignmentTimestamp: now,
-                  revocationTimestamp: undefined,
-                  discreteValue: tenantAttributeSeed.certifiedDiscreteThreshold,
-                }
-              : a
-          ),
-          updatedAt: now,
-        };
-      } else {
+      const buildTenantWithNewAttribute = (): Tenant => {
+        if (!existingCertifiedDiscrete) {
+          return {
+            ...targetTenant.data,
+            attributes: [
+              ...targetTenant.data.attributes,
+              {
+                id: attribute.id,
+                type: tenantAttributeType.CERTIFIED_DISCRETE,
+                assignmentTimestamp: now,
+                revocationTimestamp: undefined,
+                discreteValue: tenantAttributeSeed.certifiedDiscreteThreshold,
+              },
+            ],
+            updatedAt: now,
+          };
+        }
+
+        if (existingCertifiedDiscrete.revocationTimestamp) {
+          return {
+            ...targetTenant.data,
+            attributes: targetTenant.data.attributes.map((a) =>
+              a.id === attribute.id
+                ? {
+                    ...a,
+                    assignmentTimestamp: now,
+                    revocationTimestamp: undefined,
+                    discreteValue:
+                      tenantAttributeSeed.certifiedDiscreteThreshold,
+                  }
+                : a
+            ),
+            updatedAt: now,
+          };
+        }
+
         throw certifiedDiscreteAttributeAlreadyAssigned(
           attribute.id,
           targetTenant.data.id
         );
-      }
+      };
+
+      const tenantWithNewAttribute = buildTenantWithNewAttribute();
 
       const tenantCertifiedDiscreteAttributeAssignedEvent =
         toCreateEventTenantCertifiedDiscreteAttributeAssigned(
@@ -986,7 +992,7 @@ export function tenantServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Tenant>> {
       logger.info(
-        `Revoke certified discrete attribute ${attributeId} to tenantId ${tenantId}`
+        `Revoke certified discrete attribute ${attributeId} from tenant ${tenantId}`
       );
       const requesterTenant = await retrieveTenant(
         authData.organizationId,
