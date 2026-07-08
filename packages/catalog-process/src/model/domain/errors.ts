@@ -437,10 +437,11 @@ export function noDelegatedArchivingRequestFound(
 }
 
 export function delegatedArchivingRequestNotActive(
-  eserviceId: EServiceId
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `The delegated archiving request for E-service ${eserviceId} has been rejected and is no longer active. The delegate must resubmit.`,
+    detail: `The delegated archiving request for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} has been rejected and is no longer active. The delegate must resubmit.`,
     code: "delegatedArchivingRequestNotActive",
     title: "Delegated archiving request not active",
   });

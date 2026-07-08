@@ -78,7 +78,6 @@ import {
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
   gracePeriodDaysNotValid,
-  noDelegatedArchivingRequestFound,
   delegatedArchivingRequestNotActive,
   delegatedArchivingRequestAlreadyInProgress,
 } from "../model/domain/errors.js";
@@ -88,6 +87,7 @@ import {
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
 import { catalogApi } from "pagopa-interop-api-clients";
+import { hasActiveArchivingRequest } from "../utilities/archivingRequests.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -298,12 +298,7 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
 export function assertDelegatedEserviceHasActiveArchivingRequests(
   eservice: EService
 ): void {
-  const requests = eservice.delegatedArchivingRequest;
-  if (!requests || requests.length === 0) {
-    throw noDelegatedArchivingRequestFound(eservice.id);
-  }
-  const lastRejection = requests.at(-1);
-  if (lastRejection && lastRejection.rejectedAt) {
+  if (!hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
     throw delegatedArchivingRequestNotActive(eservice.id);
   }
 }
@@ -311,18 +306,26 @@ export function assertDelegatedEserviceHasActiveArchivingRequests(
 export function assertDelegatedEserviceHasNoActiveArchivingRequests(
   eservice: EService
 ): void {
-  const requests = eservice.delegatedArchivingRequest;
-  if (!requests) {
-    return;
-  }
-  const hasActiveArchivingRequest =
-    requests.filter(
-      (archivingRequest) =>
-        archivingRequest.rejectedAt === undefined &&
-        archivingRequest.acceptedAt === undefined
-    ).length > 0;
-  if (hasActiveArchivingRequest) {
+  if (hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
     throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasActiveArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestNotActive(eserviceId, descriptor.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasNoActiveArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  if (hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestAlreadyInProgress(eserviceId, descriptor.id);
   }
 }
 
