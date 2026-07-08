@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Purpose, PurposeId, generateId } from "pagopa-interop-models";
+import {
+  Purpose,
+  PurposeId,
+  PurposeTemplateId,
+  generateId,
+} from "pagopa-interop-models";
 import {
   generateToken,
   getMockPurpose,
@@ -16,6 +21,10 @@ import {
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
   multipleReviewersNotAllowed,
+  userWithoutReviewerPrivileges,
+  purposeFromTemplateCannotBeModified,
+  reviewerWorkflowNotAllowedForDelegatedPurpose,
+  reviewerWorkflowNotAllowedForReceiveMode,
 } from "../../src/model/domain/errors.js";
 
 describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
@@ -76,6 +85,25 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     { error: reviewerWorkflowConflict(mockPurpose.id), expectedStatus: 409 },
     { error: multipleReviewersNotAllowed(mockPurpose.id), expectedStatus: 400 },
+    {
+      error: userWithoutReviewerPrivileges(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: purposeFromTemplateCannotBeModified(
+        mockPurpose.id,
+        generateId<PurposeTemplateId>()
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: reviewerWorkflowNotAllowedForDelegatedPurpose(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

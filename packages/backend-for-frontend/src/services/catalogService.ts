@@ -1629,10 +1629,18 @@ export function catalogServiceBuilder(
 
       const zip = new AdmZip(Buffer.from(zipFile));
 
-      const rootFolderName = fileResource.filename.replace(".zip", "");
+      const entries = zip.getEntries();
+      const topLevelSegments = new Set(
+        entries.map((e) => e.entryName.split("/")[0])
+      );
+      const rootFolderPrefix =
+        topLevelSegments.size === 1 &&
+        entries.every((e) => e.entryName.includes("/"))
+          ? `${[...topLevelSegments][0]}/`
+          : "";
 
-      const entriesMap = zip.getEntries().reduce((map, entry) => {
-        map.set(entry.entryName.replace(rootFolderName + "/", ""), entry);
+      const entriesMap = entries.reduce((map, entry) => {
+        map.set(entry.entryName.replace(rootFolderPrefix, ""), entry);
         return map;
       }, new Map<string, AdmZip.IZipEntry>());
       entriesMap.delete("");
