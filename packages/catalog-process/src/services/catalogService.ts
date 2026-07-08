@@ -250,6 +250,7 @@ import {
 } from "../model/domain/constants.js";
 import {
   appendArchivingRequest,
+  getLatestActiveArchivingRequest,
   getLatestArchivingRequest,
   updateLatestActiveArchivingRequest,
 } from "../utilities/archivingRequests.js";
@@ -3353,7 +3354,10 @@ export function catalogServiceBuilder(
       assertEServiceArchivable(eservice.data);
       assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
       assertGracePeriodDaysValid(seed.gracePeriod);
-      // FIXME: Check if there is a descriptor in archiving and their grace period days
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        eservice.data,
+        seed.gracePeriod
+      );
 
       const updatedRequests = appendArchivingRequest(
         eservice.data.delegatedArchivingRequest,
@@ -3448,6 +3452,14 @@ export function catalogServiceBuilder(
       assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
 
       assertEServiceArchivable(eservice.data);
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        eservice.data,
+        latestActiveRequest.gracePeriodDays
+      );
 
       const updatedRequests = updateLatestActiveArchivingRequest(
         eservice.data.delegatedArchivingRequest ?? [],
