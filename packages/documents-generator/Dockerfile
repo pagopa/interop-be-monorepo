@@ -69,7 +69,7 @@ RUN echo "deb [check-valid-until=no] http://snapshot.debian.org/archive/debian-s
 RUN apt-get update -o Acquire::Check-Valid-Until=false && \
     apt-get install -y --no-install-recommends \
     chromium=149.0.7827.196-1~deb12u1 \
-    chromium-common=149.0.7827.196-1~deb12u1 \
+    chromium-common=149.0.7827.196-1~deb12u1 && \
     rm /etc/apt/sources.list.d/chromium-snapshot.list && \
     rm -rf /var/lib/apt/lists/*
 
