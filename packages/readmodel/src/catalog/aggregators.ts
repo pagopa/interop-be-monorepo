@@ -183,6 +183,7 @@ export const aggregateDescriptor = ({
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
+    serverUrlsDescriptions: descriptorSQL.serverUrlsDescriptions,
     attributes: {
       certified: certifiedAttributes,
       declared: declaredAttributes,
