@@ -45,6 +45,7 @@ import {
   AgidIntegrityRest02TokenPayload,
   IntegrityRest02SignedHeaders,
 } from "./models.js";
+import { genericLogger } from "../logging/index.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 
 const JWT_HEADER_ALG = algorithm.RS256;
@@ -486,6 +487,7 @@ export class InteropTokenGenerator {
     };
 
     const command = new SignCommand(commandParams);
+    genericLogger.info(`Signing token with KMS kid ${keyId}`);
     const response = await this.kmsClient.send(command);
 
     if (!response.Signature) {
