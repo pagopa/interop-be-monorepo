@@ -24,6 +24,7 @@ import { match } from "ts-pattern";
 import {
   draftEServiceTemplateVersionAlreadyExists,
   templateNotInReceiveMode,
+  eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
   inconsistentDailyCalls,
   eserviceTemplateWithoutPublishedVersion,
@@ -44,6 +45,27 @@ export function assertRequesterEServiceTemplateCreator(
 ): void {
   if (authData.organizationId !== creatorId) {
     throw operationForbidden;
+  }
+}
+
+/**
+ * Asserts that the requester can see the e-service template.
+ * Non-creators have no visibility on templates that have only draft
+ * versions, so those must appear as not-found (404) instead of leaking
+ * their existence with a forbidden (403).
+ */
+export function assertEServiceTemplateVisibleToRequester(
+  eserviceTemplate: EServiceTemplate,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  const hasPublishedVersions = eserviceTemplate.versions.some(
+    (v) => v.state !== eserviceTemplateVersionState.draft
+  );
+  if (
+    authData.organizationId !== eserviceTemplate.creatorId &&
+    !hasPublishedVersions
+  ) {
+    throw eserviceTemplateNotFound(eserviceTemplate.id);
   }
 }
 

@@ -346,7 +346,7 @@ describe("deleteEServiceTemplateVersion", () => {
     ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
-  it("should throw operationForbidden if the requester is not the eservice template creator", async () => {
+  it("should throw eserviceTemplateNotFound if the requester is not the creator and the eservice template has only draft versions", async () => {
     const eserviceTemplateVersion = getMockEServiceTemplateVersion();
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
@@ -354,10 +354,37 @@ describe("deleteEServiceTemplateVersion", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    expect(
+    await expect(
       eserviceTemplateService.deleteEServiceTemplateVersion(
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
+        getMockContext({})
+      )
+    ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
+  });
+
+  it("should throw operationForbidden if the requester is not the creator and the eservice template has published versions", async () => {
+    const publishedVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      version: 1,
+      state: eserviceTemplateVersionState.published,
+      publishedAt: new Date(),
+    };
+    const draftVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      version: 2,
+      state: eserviceTemplateVersionState.draft,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [publishedVersion, draftVersion],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+
+    await expect(
+      eserviceTemplateService.deleteEServiceTemplateVersion(
+        eserviceTemplate.id,
+        draftVersion.id,
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
