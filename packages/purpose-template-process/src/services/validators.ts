@@ -493,6 +493,20 @@ async function validateEServiceExistence(
 }
 
 /**
+ * Retrieve an eservice and throw a validation issue when it does not exist.
+ */
+async function retrieveEserviceForValidation(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<EService> {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (!eservice) {
+    throw eserviceNotFound(eserviceId);
+  }
+  return eservice;
+}
+
+/**
  * Validate the existence of the e-services in the disassociation flow.
  * Variant of `validateEServiceExistence` without the `personalData` check:
  * the purpose template's `handlesPersonalData` flag may drift after the link is
@@ -508,36 +522,37 @@ async function validateEServiceExistenceForDisassociation(
 }> {
   const eserviceResults = await Promise.allSettled(
     eserviceIds.map(
-      async (eserviceId) => await readModelService.getEServiceById(eserviceId)
+      async (eserviceId) =>
+        await retrieveEserviceForValidation(eserviceId, readModelService)
     )
   );
 
   return eserviceResults.reduce(
     (acc, result, index) =>
       match(result)
-        .with({ status: "fulfilled" }, (res) => {
-          if (!res.value) {
+        .with({ status: "fulfilled" }, (res) => ({
+          ...acc,
+          validEservices: [...acc.validEservices, res.value],
+        }))
+        .with({ status: "rejected" }, (res) => {
+          if (res.reason instanceof PurposeTemplateValidationIssue) {
             return {
               ...acc,
               validationIssues: [
                 ...acc.validationIssues,
-                eserviceNotFound(eserviceIds[index]),
+                res.reason,
               ],
             };
           }
 
           return {
             ...acc,
-            validEservices: [...acc.validEservices, res.value],
+            validationIssues: [
+              ...acc.validationIssues,
+              unexpectedEServiceError(res.reason.message, eserviceIds[index]),
+            ],
           };
         })
-        .with({ status: "rejected" }, (res) => ({
-          ...acc,
-          validationIssues: [
-            ...acc.validationIssues,
-            unexpectedEServiceError(res.reason.message, eserviceIds[index]),
-          ],
-        }))
         .exhaustive(),
     {
       validationIssues: new Array<PurposeTemplateValidationIssue>(),
