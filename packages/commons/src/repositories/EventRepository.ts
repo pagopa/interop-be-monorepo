@@ -94,7 +94,7 @@ async function internalCreateEvent<T extends Event>(
 async function internalCreateEvents<T extends Event>(
   db: DB,
   toBinaryData: (event: T) => Uint8Array,
-  createEvents: Array<CreateEvent<T>>
+  createEvents: CreateEvent<T>[]
 ): Promise<CreatedEvents> {
   const createdEvents: CreatedEvent[] = [];
   const latestNewVersions = new Map<string, number>();
@@ -128,14 +128,12 @@ export const eventRepository = <T extends Event>(
   toBinaryData: (event: T) => Uint8Array
 ): {
   createEvent: (createEvent: CreateEvent<T>) => Promise<CreatedEvent>;
-  createEvents: (createEvents: Array<CreateEvent<T>>) => Promise<CreatedEvents>;
+  createEvents: (createEvents: CreateEvent<T>[]) => Promise<CreatedEvents>;
 } => ({
   async createEvent(createEvent: CreateEvent<T>): Promise<CreatedEvent> {
     return await internalCreateEvent(db, toBinaryData, createEvent);
   },
-  async createEvents(
-    createEvents: Array<CreateEvent<T>>
-  ): Promise<CreatedEvents> {
+  async createEvents(createEvents: CreateEvent<T>[]): Promise<CreatedEvents> {
     return await internalCreateEvents(db, toBinaryData, createEvents);
   },
 });

@@ -868,14 +868,14 @@ export function purposeTemplateServiceBuilder(
   );
 
   function linkOrUnlinkValidationResultsToEServiceDescriptorsPurposeTemplate(
-    purposeTemplateValidationResults: Array<{
+    purposeTemplateValidationResults: {
       eservice: EService;
       descriptorId: DescriptorId;
-    }>,
+    }[],
     purposeTemplateId: PurposeTemplateId,
     creationTimestamp: Date,
     createdEvents: Awaited<ReturnType<typeof repository.createEvents>>
-  ): Array<WithMetadata<EServiceDescriptorPurposeTemplate>> {
+  ): WithMetadata<EServiceDescriptorPurposeTemplate>[] {
     return purposeTemplateValidationResults.map(
       (purposeTemplateValidationResult) => ({
         data: {
@@ -892,14 +892,14 @@ export function purposeTemplateServiceBuilder(
   }
 
   function linkOrUnlinkValidationResultsToEServiceTemplateVersionPurposeTemplates(
-    validationResults: Array<{
+    validationResults: {
       eserviceTemplate: EServiceTemplate;
       eserviceTemplateVersionId: EServiceTemplateVersionId;
-    }>,
+    }[],
     purposeTemplateId: PurposeTemplateId,
     creationTimestamp: Date,
     createdEvents: Awaited<ReturnType<typeof repository.createEvents>>
-  ): Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>> {
+  ): WithMetadata<EServiceTemplateVersionPurposeTemplate>[] {
     return validationResults.map((validationResult) => ({
       data: {
         purposeTemplateId,
@@ -1190,7 +1190,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
+    ): Promise<WithMetadata<EServiceDescriptorPurposeTemplate>[]> {
       logger.info(
         `Linking e-services ${eserviceIds} to purpose template ${purposeTemplateId}`
       );
@@ -1268,7 +1268,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
+    ): Promise<WithMetadata<EServiceTemplateVersionPurposeTemplate>[]> {
       const dedupedEServiceTemplateIds = Array.from(
         new Set(eserviceTemplateIds)
       );
@@ -1347,7 +1347,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>> {
+    ): Promise<WithMetadata<EServiceTemplateVersionPurposeTemplate>[]> {
       const dedupedEServiceTemplateIds = Array.from(
         new Set(eserviceTemplateIds)
       );
@@ -1426,7 +1426,7 @@ export function purposeTemplateServiceBuilder(
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
-    ): Promise<Array<WithMetadata<EServiceDescriptorPurposeTemplate>>> {
+    ): Promise<WithMetadata<EServiceDescriptorPurposeTemplate>[]> {
       logger.info(
         `Unlinking e-services ${eserviceIds} from purpose template ${purposeTemplateId}`
       );

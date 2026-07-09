@@ -149,7 +149,7 @@ export const fromCertifiedDiscreteConfigV2 = (
 
 export const fromEServiceAttributeCertifiedV2 = (
   input: EServiceAttributeV2
-): Array<EServiceAttributeCertifiedDiscrete | EServiceAttributeCertified> =>
+): (EServiceAttributeCertifiedDiscrete | EServiceAttributeCertified)[] =>
   input.values.map((attribute) => {
     const common: EServiceAttributeCertified = {
       id: unsafeBrandId(attribute.id),

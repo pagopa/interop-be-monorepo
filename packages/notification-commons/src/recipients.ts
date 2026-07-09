@@ -59,7 +59,7 @@ export async function getNotificationRecipients(
   readModelService: NotificationReadModelService,
   logger: Logger,
   notificationTypeBlocklist?: NotificationType[]
-): Promise<Array<{ userId: UserId; tenantId: TenantId }>> {
+): Promise<{ userId: UserId; tenantId: TenantId }[]> {
   if (
     getNotificationTypeBlocklist({
       notificationTypeBlocklist,

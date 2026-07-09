@@ -11,7 +11,7 @@ import { attributeAlreadyExists, attributeNotFound } from "../models/errors.js";
 export async function getAllBulkAttributes(
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: ApiGatewayAppContext["headers"],
-  attributeIds: Array<attributeRegistryApi.Attribute["id"]>
+  attributeIds: attributeRegistryApi.Attribute["id"][]
 ): Promise<attributeRegistryApi.Attribute[]> {
   return await getAllFromPaginated<attributeRegistryApi.Attribute>(
     async (offset, limit) =>

@@ -216,7 +216,7 @@ export function expectGenericSinglePageListResult<T>(
   expect(actual).toEqual({
     totalCount: expected.length,
     results: expect.arrayContaining(
-      expected as unknown as Array<DeeplyAllowMatchers<T>>
+      expected as unknown as DeeplyAllowMatchers<T>[]
     ),
   });
   expect(actual.results).toHaveLength(expected.length);

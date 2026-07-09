@@ -104,7 +104,7 @@ export function agreementReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getAgreementsByFilter(
       filter: SQL | undefined
-    ): Promise<Array<WithMetadata<Agreement>>> {
+    ): Promise<WithMetadata<Agreement>[]> {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }

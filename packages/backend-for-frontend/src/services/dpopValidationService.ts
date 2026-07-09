@@ -67,7 +67,7 @@ function assertDpopClientAssertionDebuggerConfig(
 }
 
 function toDPoPValidationSteps(
-  dpopValidationErrors: Array<ApiError<string>> = []
+  dpopValidationErrors: ApiError<string>[] = []
 ): DPoPValidationSteps {
   return {
     dpopValidation: {
@@ -81,7 +81,7 @@ function toDPoPValidationSteps(
 }
 
 function apiErrorsToValidationFailures<T extends string>(
-  errors: Array<ApiError<T>> | undefined
+  errors: ApiError<T>[] | undefined
 ): bffApi.TokenGenerationValidationStepFailure[] {
   if (!errors) {
     return [];

@@ -503,9 +503,10 @@ describe("getUpdatedQuotas - certified discrete attributes", () => {
   const DESCRIPTOR_TOTAL = 1000;
 
   const buildEService = (
-    certified: Array<
-      Array<EServiceAttributeCertified | EServiceAttributeCertifiedDiscrete>
-    >
+    certified: (
+      | EServiceAttributeCertified
+      | EServiceAttributeCertifiedDiscrete
+    )[][]
   ): EService => ({
     id: eserviceId,
     producerId,

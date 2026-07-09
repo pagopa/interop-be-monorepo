@@ -179,11 +179,11 @@ async function getUsersWithNotificationsEnabled(
   readModelService: ReadModelServiceSQL,
   logger: Logger
 ): Promise<
-  Array<{
+  {
     userId: UserId;
     tenantId: TenantId;
     notificationType: NotificationType;
-  }>
+  }[]
 > {
   const configPromises = audiences.map(async (audience) => {
     const audienceId =

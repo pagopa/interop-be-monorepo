@@ -834,11 +834,11 @@ describe("create agreement", () => {
         getMockContext({ authData: getMockAuthData(consumer.id) })
       );
 
-    const satisfyingComparatorCases: Array<{
+    const satisfyingComparatorCases: {
       comparator: AttributeCertifiedDiscreteComparator;
       threshold: number;
       value: number;
-    }> = [
+    }[] = [
       {
         comparator: attributeCertifiedDiscreteComparator.GT,
         threshold: 40,
@@ -871,11 +871,11 @@ describe("create agreement", () => {
       },
     ];
 
-    const nonSatisfyingComparatorCases: Array<{
+    const nonSatisfyingComparatorCases: {
       comparator: AttributeCertifiedDiscreteComparator;
       threshold: number;
       value: number;
-    }> = [
+    }[] = [
       {
         comparator: attributeCertifiedDiscreteComparator.GT,
         threshold: 40,

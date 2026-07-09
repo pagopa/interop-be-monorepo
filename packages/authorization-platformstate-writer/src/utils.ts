@@ -1223,7 +1223,7 @@ export const updateTokenGenStatesDataForSecondRetrieval = async ({
 };
 
 const convertValueToAttributeValue = (
-  value: string | number | boolean | Array<string | number | boolean>
+  value: string | number | boolean | (string | number | boolean)[]
 ): AttributeValue => {
   if (typeof value === "string") {
     return { S: value };

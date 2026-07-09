@@ -812,16 +812,14 @@ describe("updatePurpose and updateReversePurpose", () => {
 
   const oldFreeOfChargeReason = "Some reason";
   const newFreeOfChargeReason = "New reason";
-  const successFreeOfChargeTestCases: Array<
-    [
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
-      Pick<
-        purposeApi.PurposeUpdateContent,
-        "isFreeOfCharge" | "freeOfChargeReason"
-      >,
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
-    ]
-  > = [
+  const successFreeOfChargeTestCases: [
+    Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+    Pick<
+      purposeApi.PurposeUpdateContent,
+      "isFreeOfCharge" | "freeOfChargeReason"
+    >,
+    Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+  ][] = [
     [
       {
         isFreeOfCharge: true,
@@ -945,16 +943,14 @@ describe("updatePurpose and updateReversePurpose", () => {
     }
   );
 
-  const failureFreeOfChargeTestCases: Array<
-    [
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
-      Pick<
-        purposeApi.PurposeUpdateContent,
-        "isFreeOfCharge" | "freeOfChargeReason"
-      >,
-      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
-    ]
-  > = [
+  const failureFreeOfChargeTestCases: [
+    Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+    Pick<
+      purposeApi.PurposeUpdateContent,
+      "isFreeOfCharge" | "freeOfChargeReason"
+    >,
+    Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+  ][] = [
     [
       {
         isFreeOfCharge: true,

@@ -131,7 +131,7 @@ export async function createActivationEvent(
   descriptor: Descriptor,
   consumer: Tenant,
   correlationId: CorrelationId
-): Promise<Array<CreateEvent<AgreementEventV2>>> {
+): Promise<CreateEvent<AgreementEventV2>[]> {
   if (isFirstActivation) {
     // Pending >>> Active
 
@@ -261,7 +261,7 @@ export const archiveRelatedToAgreements = async (
   activeDelegations: ActiveDelegations,
   readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId
-): Promise<Array<CreateEvent<AgreementEvent>>> => {
+): Promise<CreateEvent<AgreementEvent>[]> => {
   const existingAgreements = await readModelService.getAllAgreements({
     consumerId: agreement.consumerId,
     eserviceId: agreement.eserviceId,
@@ -290,7 +290,7 @@ function maybeCreateSuspensionByPlatformEvents(
   suspendedByPlatformChanged: boolean,
   agreementEventStoreVersion: number,
   correlationId: CorrelationId
-): Array<CreateEvent<AgreementEventV2>> {
+): CreateEvent<AgreementEventV2>[] {
   if (
     suspendedByPlatformChanged &&
     updatedAgreement.state === agreementState.suspended

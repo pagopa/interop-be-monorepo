@@ -41,7 +41,7 @@ export function attributeReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getAttributesByFilter(
       filter: SQL | undefined
-    ): Promise<Array<WithMetadata<Attribute>>> {
+    ): Promise<WithMetadata<Attribute>[]> {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }

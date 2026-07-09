@@ -17,10 +17,10 @@ import { CatalogEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleCatalogMessageV2 = async (
-  eventsWithTimestamp: Array<{
+  eventsWithTimestamp: {
     eserviceV2: EServiceEventV2;
     timestamp: Date;
-  }>,
+  }[],
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService

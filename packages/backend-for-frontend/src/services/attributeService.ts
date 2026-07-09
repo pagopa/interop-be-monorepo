@@ -12,7 +12,7 @@ import {
 export async function getAllBulkAttributes(
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
   headers: BffAppContext["headers"],
-  attributeIds: Array<attributeRegistryApi.Attribute["id"]>
+  attributeIds: attributeRegistryApi.Attribute["id"][]
 ): Promise<attributeRegistryApi.Attribute[]> {
   return await getAllFromPaginated<attributeRegistryApi.Attribute>(
     async (offset, limit) =>

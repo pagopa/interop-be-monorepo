@@ -41,7 +41,7 @@ export const aggregateAgreementArray = ({
   contractsSQL: AgreementContractSQL[];
   attributesSQL: AgreementAttributeSQL[];
   signedContractsSQL: AgreementSignedContractSQL[];
-}): Array<WithMetadata<Agreement>> => {
+}): WithMetadata<Agreement>[] => {
   const stampsSQLByAgreementId = createAgreementSQLPropertyMap(stampsSQL);
   const consumerDocumentsSQLByAgreementId =
     createAgreementSQLPropertyMap(consumerDocumentsSQL);
@@ -310,14 +310,14 @@ const stampSQLtoStamp = (stampSQL: AgreementStampSQL): AgreementStamp => ({
 });
 
 export const toAgreementAggregator = (
-  queryRes: Array<{
+  queryRes: {
     agreement: AgreementSQL;
     stamp: AgreementStampSQL | null;
     attribute: AgreementAttributeSQL | null;
     consumerDocument: AgreementConsumerDocumentSQL | null;
     contract: AgreementContractSQL | null;
     signedContract: AgreementSignedContractSQL | null;
-  }>
+  }[]
 ): AgreementItemsSQL => {
   const {
     agreementsSQL,
@@ -342,14 +342,14 @@ export const toAgreementAggregator = (
 };
 
 export const toAgreementAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     agreement: AgreementSQL;
     stamp: AgreementStampSQL | null;
     attribute: AgreementAttributeSQL | null;
     consumerDocument: AgreementConsumerDocumentSQL | null;
     contract: AgreementContractSQL | null;
     signedContract: AgreementSignedContractSQL | null;
-  }>
+  }[]
 ): {
   agreementsSQL: AgreementSQL[];
   stampsSQL: AgreementStampSQL[];

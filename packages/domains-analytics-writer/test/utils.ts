@@ -242,14 +242,14 @@ export async function resetTargetTables(
 export async function getTablesByName(
   db: DBConnection,
   tables: string[]
-): Promise<Array<{ tablename: string }>> {
+): Promise<{ tablename: string }[]> {
   const query = `
       SELECT tablename
       FROM pg_catalog.pg_tables
       WHERE schemaname LIKE 'pg_temp%' 
         AND tablename IN ($1:csv);
     `;
-  return await db.query<Array<{ tablename: string }>>(query, [tables]);
+  return await db.query<{ tablename: string }[]>(query, [tables]);
 }
 
 export async function getOneFromDb<T extends DomainDbTable>(
@@ -259,7 +259,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
 ): Promise<z.infer<DomainDbTableSchemas[T]> | undefined> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
-  const entries = Object.entries(where) as Array<[string, unknown]>;
+  const entries = Object.entries(where) as [string, unknown][];
   const clause = entries
     .map(([k], i) => `"${snakeCaseMapper(k)}" = $${i + 1}`)
     .join(" AND ");
@@ -277,10 +277,10 @@ export async function getManyFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
   where: Partial<z.infer<DomainDbTableSchemas[T]>>
-): Promise<Array<z.infer<DomainDbTableSchemas[T]>>> {
+): Promise<z.infer<DomainDbTableSchemas[T]>[]> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
-  const entries = Object.entries(where) as Array<[string, unknown]>;
+  const entries = Object.entries(where) as [string, unknown][];
   const clause = entries
     .map(([k], i) => `"${snakeCaseMapper(k)}" = $${i + 1}`)
     .join(" AND ");

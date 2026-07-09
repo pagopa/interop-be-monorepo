@@ -26,7 +26,7 @@ import {
 
 export function validateAsyncScopeClaims(
   jwt: AsyncClientAssertion
-): Array<ApiError<string>> | undefined {
+): ApiError<string>[] | undefined {
   const errors = match(jwt.payload.scope)
     .with(interactionState.startInteraction, () => [
       !jwt.payload.urlCallback
@@ -202,12 +202,12 @@ export function buildStartInteractionPlatformErrors({
 }: {
   clientId: string;
   catalogEntry?: AsyncCatalogValidationContext;
-}): Array<ApiError<string>> | undefined {
+}): ApiError<string>[] | undefined {
   if (!catalogEntry) {
     return undefined;
   }
 
-  const errors: Array<ApiError<string>> = [];
+  const errors: ApiError<string>[] = [];
 
   if (catalogEntry.asyncExchange !== true) {
     errors.push(
@@ -236,8 +236,8 @@ export function buildConsumerAsyncPlatformErrors(
   jwt: AsyncClientAssertion,
   interaction: Interaction,
   catalogEntry: AsyncCatalogValidationContext
-): Array<ApiError<string>> | undefined {
-  const errors: Array<ApiError<string>> = [];
+): ApiError<string>[] | undefined {
+  const errors: ApiError<string>[] = [];
 
   if (catalogEntry.state !== ItemState.Enum.ACTIVE) {
     errors.push(
@@ -317,8 +317,8 @@ export function buildProducerAsyncPlatformErrors(
   jwt: AsyncClientAssertion,
   interaction: Interaction,
   catalogEntry: AsyncCatalogValidationContext
-): Array<ApiError<string>> | undefined {
-  const errors: Array<ApiError<string>> = [];
+): ApiError<string>[] | undefined {
+  const errors: ApiError<string>[] = [];
 
   if (catalogEntry.state !== ItemState.Enum.ACTIVE) {
     errors.push(

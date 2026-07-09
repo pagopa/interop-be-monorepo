@@ -63,7 +63,7 @@ export const aggregateProducerKeychainArray = ({
   usersSQL: ProducerKeychainUserSQL[];
   eservicesSQL: ProducerKeychainEServiceSQL[];
   keysSQL: ProducerKeychainKeySQL[];
-}): Array<WithMetadata<ProducerKeychain>> => {
+}): WithMetadata<ProducerKeychain>[] => {
   const usersSQLByProducerKeychainId = createProducerKeychainSQLPropertyMap(
     producerKeychainUsersSQL
   );
@@ -109,12 +109,12 @@ const createProducerKeychainSQLPropertyMap = <
   }, new Map<ProducerKeychainId, T[]>());
 
 export const toProducerKeychainAggregator = (
-  queryRes: Array<{
+  queryRes: {
     producerKeychain: ProducerKeychainSQL;
     producerKeychainUser: ProducerKeychainUserSQL | null;
     producerKeychainEService: ProducerKeychainEServiceSQL | null;
     producerKeychainKey: ProducerKeychainKeySQL | null;
-  }>
+  }[]
 ): ProducerKeychainItemsSQL => {
   const { producerKeychainsSQL, usersSQL, eservicesSQL, keysSQL } =
     toProducerKeychainAggregatorArray(queryRes);
@@ -130,12 +130,12 @@ export const toProducerKeychainAggregator = (
 };
 
 export const toProducerKeychainAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     producerKeychain: ProducerKeychainSQL;
     producerKeychainUser: ProducerKeychainUserSQL | null;
     producerKeychainEService: ProducerKeychainEServiceSQL | null;
     producerKeychainKey: ProducerKeychainKeySQL | null;
-  }>
+  }[]
 ): {
   producerKeychainsSQL: ProducerKeychainSQL[];
   usersSQL: ProducerKeychainUserSQL[];

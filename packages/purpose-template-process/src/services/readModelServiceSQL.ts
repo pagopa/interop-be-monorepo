@@ -256,7 +256,7 @@ export function readModelServiceBuilderSQL({
     },
     async getPurposeTemplatesByTitle(
       title: string
-    ): Promise<Array<WithMetadata<PurposeTemplate>>> {
+    ): Promise<WithMetadata<PurposeTemplate>[]> {
       return await purposeTemplateReadModelServiceSQL.getPurposeTemplatesByFilter(
         ilikeEscaped(
           purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
@@ -522,10 +522,10 @@ export function readModelServiceBuilderSQL({
         .limit(limit)
         .offset(offset);
 
-      const results: Array<{
+      const results: {
         answerId: RiskAnalysisSingleAnswerId | RiskAnalysisMultiAnswerId;
         document: RiskAnalysisTemplateAnswerAnnotationDocument;
-      }> = queryResult.map((r) => {
+      }[] = queryResult.map((r) => {
         const { answerId, ...document } = r;
         return {
           answerId: unsafeBrandId<

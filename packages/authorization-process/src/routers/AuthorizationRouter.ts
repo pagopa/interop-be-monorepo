@@ -70,7 +70,7 @@ import {
 const authorizationRouter = (
   ctx: ZodiosContext,
   authorizationService: AuthorizationService
-): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
+): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>[] => {
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,

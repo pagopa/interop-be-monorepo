@@ -29,7 +29,7 @@ export class ApiError<T> extends Error {
   public code: T;
   public title: string;
   public detail: string;
-  public errors: Array<{ code: T; detail: string }>;
+  public errors: { code: T; detail: string }[];
 
   constructor({
     code,

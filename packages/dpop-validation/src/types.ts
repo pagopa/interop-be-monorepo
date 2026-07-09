@@ -7,6 +7,6 @@ export type ValidationResult<T> =
 
 export type SuccessfulValidation<T> = { errors: undefined; data: T };
 export type FailedValidation<T> = {
-  errors: Array<ApiError<T>>;
+  errors: ApiError<T>[];
   data: undefined;
 };

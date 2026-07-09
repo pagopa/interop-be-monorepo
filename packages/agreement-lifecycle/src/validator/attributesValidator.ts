@@ -25,7 +25,7 @@ type CertifiedDiscreteValidationOptions = {
 
 const attributesSatisfied = (
   descriptorAttributes: EServiceAttribute[][],
-  tenantAttributes: Array<TenantAttribute["id"]>
+  tenantAttributes: TenantAttribute["id"][]
 ): boolean =>
   descriptorAttributes
     .filter((attGroup) => attGroup.length > 0)

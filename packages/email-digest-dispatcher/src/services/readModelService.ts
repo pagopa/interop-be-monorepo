@@ -218,13 +218,11 @@ type DelegationQueryResult<T extends string = string> = {
  * and maps to the output format with totalCount per state.
  */
 function processDelegationResults<T extends string>(
-  results: Array<DelegationQueryResult<T>>,
+  results: DelegationQueryResult<T>[],
   sectionLimit: number
-): Array<
-  BaseDelegation & { state: DelegationState; counterpartyId: TenantId }
-> {
+): (BaseDelegation & { state: DelegationState; counterpartyId: TenantId })[] {
   // Group by state
-  const groupedByState = new Map<string, Array<DelegationQueryResult<T>>>();
+  const groupedByState = new Map<string, DelegationQueryResult<T>[]>();
   for (const row of results) {
     const stateResults = groupedByState.get(row.state) ?? [];
     groupedByState.set(row.state, [...stateResults, row]);
@@ -265,7 +263,7 @@ async function getCachedEntities<K, V>(
 
   const uncachedIds = ids.filter((id) => !cache.has(id));
 
-  const cachedEntries: Array<[K, V]> = ids
+  const cachedEntries: [K, V][] = ids
     .filter((id) => cache.has(id))
     .map((id) => [id, cache.get(id) as V]);
 

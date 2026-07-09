@@ -55,7 +55,7 @@ import { TenantService } from "../services/tenantService.js";
 const tenantsRouter = (
   ctx: ZodiosContext,
   tenantService: TenantService
-): Array<ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>> => {
+): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext>[] => {
   const {
     ADMIN_ROLE,
     SECURITY_ROLE,

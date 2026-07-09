@@ -16,7 +16,7 @@ import { CheckDiffConfig } from "./config/config.js";
 type UserWithRoles = { id: string; roles: string[] };
 
 function mergeUsersByIdWithRoles(
-  users: Array<{ id: string; roles?: string[] }>
+  users: { id: string; roles?: string[] }[]
 ): UserWithRoles[] {
   const userMap = new Map<string, Set<string>>();
 
@@ -41,13 +41,13 @@ type TenantOriginMismatch = {
 };
 
 type UserDifferences = {
-  missingInConfig: Array<{ userId: string; selfcareRoles: string[] }>;
-  extraInConfig: Array<{ userId: string; configRoles: string[] }>;
-  roleMismatches: Array<{
+  missingInConfig: { userId: string; selfcareRoles: string[] }[];
+  extraInConfig: { userId: string; configRoles: string[] }[];
+  roleMismatches: {
     userId: string;
     selfcareRoles: string[];
     configRoles: string[];
-  }>;
+  }[];
 };
 
 type TenantDiff = {
@@ -62,11 +62,11 @@ type TenantDiff = {
 
 type DiffResult = {
   tenants: TenantDiff[];
-  tenantsMissingNotificationConfig: Array<{
+  tenantsMissingNotificationConfig: {
     tenantId: string;
     tenantName: string;
     selfcareId: string;
-  }>;
+  }[];
   summary: {
     totalTenants: number;
     tenantsWithDifferences: number;
@@ -224,7 +224,7 @@ export async function checkDifferences(
 
   const userNotificationConfigMap = new Map<
     string,
-    Array<{ userId: string; userRoles: string[] }>
+    { userId: string; userRoles: string[] }[]
   >();
   for (const c of allUserNotificationConfigs) {
     const existing = userNotificationConfigMap.get(c.tenantId) ?? [];

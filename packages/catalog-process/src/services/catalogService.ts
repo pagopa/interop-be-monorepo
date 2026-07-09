@@ -630,7 +630,7 @@ async function innerCreateEService(
   }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
 ): Promise<{
   eService: EService;
-  events: Array<CreateEvent<EServiceEvent>>;
+  events: CreateEvent<EServiceEvent>[];
 }> {
   const origin = await retrieveOriginFromAuthData(
     authData,
@@ -4660,7 +4660,7 @@ async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  serverUrls: Array<{ url: string; description?: string }>,
+  serverUrls: { url: string; description?: string }[],
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;

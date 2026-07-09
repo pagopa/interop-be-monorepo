@@ -17,8 +17,8 @@ import { ReadModelContext } from "./readModelContext.js";
 
 const getInteractionRequiredTimestampFields = (
   interaction: Interaction
-): Array<keyof Interaction> =>
-  match<Interaction["state"], Array<keyof Interaction>>(interaction.state)
+): (keyof Interaction)[] =>
+  match<Interaction["state"], (keyof Interaction)[]>(interaction.state)
     .with(interactionState.startInteraction, () => [
       "startInteractionTokenIssuedAt",
     ])

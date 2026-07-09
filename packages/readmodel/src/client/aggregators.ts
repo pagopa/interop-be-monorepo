@@ -82,7 +82,7 @@ export const aggregateClientArray = ({
   usersSQL: ClientUserSQL[];
   purposesSQL: ClientPurposeSQL[];
   keysSQL: ClientKeySQL[];
-}): Array<WithMetadata<Client>> => {
+}): WithMetadata<Client>[] => {
   const usersSQLByClientId = createClientSQLPropertyMap(usersSQL);
   const purposesSQLByClientId = createClientSQLPropertyMap(purposesSQL);
   const keysSQLByClientId = createClientSQLPropertyMap(keysSQL);
@@ -114,12 +114,12 @@ const createClientSQLPropertyMap = <
   }, new Map<ClientId, T[]>());
 
 export const toClientAggregator = (
-  queryRes: Array<{
+  queryRes: {
     client: ClientSQL;
     clientUser: ClientUserSQL | null;
     clientPurpose: ClientPurposeSQL | null;
     clientKey: ClientKeySQL | null;
-  }>
+  }[]
 ): ClientItemsSQL => {
   const { clientsSQL, usersSQL, purposesSQL, keysSQL } =
     toClientAggregatorArray(queryRes);
@@ -135,12 +135,12 @@ export const toClientAggregator = (
 };
 
 export const toClientAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     client: ClientSQL;
     clientUser: ClientUserSQL | null;
     clientPurpose: ClientPurposeSQL | null;
     clientKey: ClientKeySQL | null;
-  }>
+  }[]
 ): {
   clientsSQL: ClientSQL[];
   usersSQL: ClientUserSQL[];

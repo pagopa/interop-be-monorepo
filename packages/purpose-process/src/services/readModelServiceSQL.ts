@@ -204,7 +204,7 @@ const getPurposesFilters = (
     | "reviewerId"
     | "signingStates"
   >
-): Array<SQL | undefined> => {
+): (SQL | undefined)[] => {
   const {
     title,
     eservicesIds,

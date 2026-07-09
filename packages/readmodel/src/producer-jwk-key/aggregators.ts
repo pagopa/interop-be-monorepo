@@ -7,7 +7,7 @@ import { ProducerJWKKeySQL } from "pagopa-interop-readmodel-models";
 
 export const aggregateProducerJWKKeyArray = (
   producersJWKKeySQL: ProducerJWKKeySQL[]
-): Array<WithMetadata<ProducerJWKKey>> =>
+): WithMetadata<ProducerJWKKey>[] =>
   producersJWKKeySQL.map(aggregateProducerJWKKey);
 
 export const aggregateProducerJWKKey = ({

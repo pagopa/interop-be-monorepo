@@ -18,10 +18,10 @@ import { AgreementEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleAgreementMessageV2 = async (
-  eventsWithTimestamp: Array<{
+  eventsWithTimestamp: {
     agreementV2: AgreementEventV2;
     timestamp: Date;
-  }>,
+  }[],
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService

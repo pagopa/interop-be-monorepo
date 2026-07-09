@@ -486,7 +486,7 @@ describe("Integration tests", async () => {
           },
           metadata: { version: metadataVersion },
         },
-      ] satisfies Array<WithMetadata<EServiceDescriptorPurposeTemplate>>);
+      ] satisfies WithMetadata<EServiceDescriptorPurposeTemplate>[]);
     });
 
     it("PurposeTemplateEServiceUnlinked", async () => {
@@ -709,7 +709,7 @@ describe("Integration tests", async () => {
             },
             metadata: { version: metadataVersion },
           },
-        ] satisfies Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>>)
+        ] satisfies WithMetadata<EServiceTemplateVersionPurposeTemplate>[])
       );
       expect(retrieved).toHaveLength(2);
     });

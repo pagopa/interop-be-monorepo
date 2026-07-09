@@ -36,28 +36,27 @@ describe("API POST /purposeTemplates/:id/unlinkEserviceTemplates", () => {
     generateId<EServiceTemplateId>(),
   ];
 
-  const mockUnlinkResponses: Array<
-    WithMetadata<EServiceTemplateVersionPurposeTemplate>
-  > = [
-    {
-      data: {
-        purposeTemplateId,
-        eserviceTemplateId: eserviceTemplateIds[0],
-        eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
-        createdAt: new Date(),
+  const mockUnlinkResponses: WithMetadata<EServiceTemplateVersionPurposeTemplate>[] =
+    [
+      {
+        data: {
+          purposeTemplateId,
+          eserviceTemplateId: eserviceTemplateIds[0],
+          eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+          createdAt: new Date(),
+        },
+        metadata: { version: 1 },
       },
-      metadata: { version: 1 },
-    },
-    {
-      data: {
-        purposeTemplateId,
-        eserviceTemplateId: eserviceTemplateIds[1],
-        eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
-        createdAt: new Date(),
+      {
+        data: {
+          purposeTemplateId,
+          eserviceTemplateId: eserviceTemplateIds[1],
+          eserviceTemplateVersionId: generateId<EServiceTemplateVersionId>(),
+          createdAt: new Date(),
+        },
+        metadata: { version: 1 },
       },
-      metadata: { version: 1 },
-    },
-  ];
+    ];
 
   const validUnlinkRequest: purposeTemplateApi.linkEServiceTemplatesToPurposeTemplate_Body =
     {

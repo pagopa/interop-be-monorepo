@@ -36,11 +36,11 @@ describe("getRecipientsForTenants", () => {
     getMockTenant(),
   ];
 
-  const users: Array<{
+  const users: {
     userId: UserId;
     tenantId: TenantId;
     userRoles: UserRole[];
-  }> = [
+  }[] = [
     {
       userId: generateId(),
       tenantId: tenants[0].id,

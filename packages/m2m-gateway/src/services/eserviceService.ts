@@ -113,10 +113,10 @@ export function eserviceServiceBuilder(
   > {
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
     const kindAttributeGroups = descriptor.attributes[attributeKind];
-    const allFlatKindAttributes: Array<{
+    const allFlatKindAttributes: {
       attributeId: string;
       groupIndex: number;
-    }> = kindAttributeGroups.flatMap((group, groupIndex) =>
+    }[] = kindAttributeGroups.flatMap((group, groupIndex) =>
       group.map((attribute) => ({
         attributeId: attribute.id,
         groupIndex,
@@ -128,7 +128,7 @@ export function eserviceServiceBuilder(
       offset + limit
     );
 
-    const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
+    const attributeIdsToResolve: attributeRegistryApi.Attribute["id"][] =
       paginatedFlatKindAttributes.map((item) => item.attributeId);
 
     const attributeMap = await getResolvedAttributesMap(

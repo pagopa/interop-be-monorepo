@@ -103,7 +103,7 @@ export function notificationConfigReadModelServiceBuilder(
       notificationType: NotificationType,
       notificationChannel: "inApp" | "email"
     ): Promise<
-      Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
+      { userId: UserId; tenantId: TenantId; userRoles: UserRole[] }[]
     > {
       const enabledNotificationTable = match(notificationChannel)
         .with(

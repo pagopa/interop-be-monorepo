@@ -58,7 +58,7 @@ export async function createUpgradeOrNewDraft({
   activeDelegations: ActiveDelegations;
   correlationId: CorrelationId;
   logger: Logger;
-}): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
+}): Promise<[Agreement, CreateEvent<AgreementEvent>[]]> {
   const newAgreementId = generateId<AgreementId>();
   if (canBeUpgraded) {
     // Upgrade Agreement case:

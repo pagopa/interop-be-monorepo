@@ -158,10 +158,10 @@ const updateAgreementStateOnTokenGenStatesEntries = async ({
   dynamoDBClient,
   logger,
 }: {
-  entriesToUpdate: Array<
+  entriesToUpdate: (
     | TokenGenStatesConsumerClientGSIAgreement
     | TokenGenerationStatesConsumerClient
-  >;
+  )[];
   agreementItemState: ItemState;
   dynamoDBClient: DynamoDBClient;
   logger: Logger;

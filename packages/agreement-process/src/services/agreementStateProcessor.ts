@@ -367,7 +367,7 @@ export async function computeAgreementsStateByAttribute(
   readModelService: ReadModelServiceSQL,
   correlationId: CorrelationId,
   logger: Logger
-): Promise<Array<CreateEvent<AgreementEvent>>> {
+): Promise<CreateEvent<AgreementEvent>[]> {
   const agreements = await readModelService.getAllAgreements({
     consumerId: consumer.id,
     agreementStates: updatableStates,

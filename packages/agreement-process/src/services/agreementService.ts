@@ -623,7 +623,7 @@ export function agreementServiceBuilder(
               correlationId
             );
 
-      const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
+      const archivedAgreementsUpdates: CreateEvent<AgreementEvent>[] =
         isActiveOrSuspended(submittedAgreement.state)
           ? agreements.map((agreement) =>
               createAgreementArchivedByUpgradeEvent(

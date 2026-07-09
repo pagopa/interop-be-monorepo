@@ -237,7 +237,7 @@ export const mapNotificationConfig =
   (f: (notificationType: NotificationType, currentValue: boolean) => boolean) =>
   (c: NotificationConfig): NotificationConfig => {
     const keys = Object.keys(NotificationConfig.shape) as NotificationType[];
-    const entries: Array<[NotificationType, boolean]> = keys.map((key) => [
+    const entries: [NotificationType, boolean][] = keys.map((key) => [
       key,
       f(key, c[key]),
     ]);

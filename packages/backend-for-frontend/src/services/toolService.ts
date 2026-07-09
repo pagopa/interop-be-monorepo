@@ -323,10 +323,10 @@ async function validateAsyncTokenGeneration(
 
 function handleValidationResults(
   errs: {
-    clientAssertionErrors?: Array<ApiError<string>>;
-    keyRetrieveErrors?: Array<ApiError<string>>;
-    clientAssertionSignatureErrors?: Array<ApiError<string>>;
-    platformStateErrors?: Array<ApiError<string>>;
+    clientAssertionErrors?: ApiError<string>[];
+    keyRetrieveErrors?: ApiError<string>[];
+    clientAssertionSignatureErrors?: ApiError<string>[];
+    platformStateErrors?: ApiError<string>[];
   },
   clientKind?: authorizationApi.ClientKind,
   eservice?: bffApi.TokenGenerationValidationEService,
@@ -630,8 +630,8 @@ function assertIsConsumer(
 }
 
 function getStepResult(
-  prevStepErrors: Array<ApiError<string>>,
-  currentStepErrors: Array<ApiError<string>>
+  prevStepErrors: ApiError<string>[],
+  currentStepErrors: ApiError<string>[]
 ): bffApi.TokenGenerationValidationStepResult {
   if (currentStepErrors.length > 0) {
     return bffApi.TokenGenerationValidationStepResult.Enum.FAILED;
@@ -889,7 +889,7 @@ const descriptorStateToItemState = (
     : ItemState.Enum.INACTIVE;
 
 function apiErrorsToValidationFailures<T extends string>(
-  errors: Array<ApiError<T>> | undefined
+  errors: ApiError<T>[] | undefined
 ): bffApi.TokenGenerationValidationStepFailure[] {
   if (!errors) {
     return [];

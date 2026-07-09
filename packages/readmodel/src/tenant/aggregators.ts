@@ -172,7 +172,7 @@ export const aggregateTenantArray = ({
   verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
   featuresSQL: TenantFeatureSQL[];
   remoteIdsSQL: TenantRemoteIdSQL[];
-}): Array<WithMetadata<Tenant>> => {
+}): WithMetadata<Tenant>[] => {
   const mailsSQLByTenantId = createTenantSQLPropertyMap(mailsSQL);
   const certifiedAttributesSQLByTenantId = createTenantSQLPropertyMap(
     certifiedAttributesSQL
@@ -415,7 +415,7 @@ const aggregateTenantAttributes = ({
 };
 
 export const toTenantAggregator = (
-  queryRes: Array<{
+  queryRes: {
     tenant: TenantSQL;
     mail: TenantMailSQL | null;
     certifiedAttribute: TenantCertifiedAttributeSQL | null;
@@ -426,7 +426,7 @@ export const toTenantAggregator = (
     revoker: TenantVerifiedAttributeRevokerSQL | null;
     feature: TenantFeatureSQL | null;
     remoteId: TenantRemoteIdSQL | null;
-  }>
+  }[]
 ): TenantItemsSQL => {
   const {
     tenantsSQL,
@@ -458,7 +458,7 @@ export const toTenantAggregator = (
 };
 
 export const toTenantAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     tenant: TenantSQL;
     mail: TenantMailSQL | null;
     certifiedAttribute: TenantCertifiedAttributeSQL | null;
@@ -469,7 +469,7 @@ export const toTenantAggregatorArray = (
     revoker: TenantVerifiedAttributeRevokerSQL | null;
     feature: TenantFeatureSQL | null;
     remoteId: TenantRemoteIdSQL | null;
-  }>
+  }[]
 ): {
   tenantsSQL: TenantSQL[];
   mailsSQL: TenantMailSQL[];

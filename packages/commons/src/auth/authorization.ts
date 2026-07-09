@@ -131,7 +131,7 @@ export function validateAuthorization<
 
 export function hasAtLeastOneUserRole(
   authData: AuthData,
-  admittedUserRoles: ReadonlyArray<UserRole>
+  admittedUserRoles: readonly UserRole[]
 ): boolean {
   return (
     isUiAuthData(authData) &&
@@ -143,7 +143,7 @@ export function hasAtLeastOneUserRole(
 
 export function hasAtLeastOneSystemRole(
   authData: AuthData,
-  admittedSystemRoles: ReadonlyArray<SystemRole>
+  admittedSystemRoles: readonly SystemRole[]
 ): boolean {
   return (
     !isUiAuthData(authData) && admittedSystemRoles.includes(authData.systemRole)
