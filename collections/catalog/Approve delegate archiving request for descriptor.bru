@@ -1,0 +1,21 @@
+meta {
+  name: Approve delegate archiving request for a Descriptor
+  type: http
+  seq: 45
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/descriptors/:descriptorId/approveDelegatedArchiving
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}

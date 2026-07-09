@@ -1848,7 +1848,7 @@ export function catalogServiceBuilder(
     },
     submitDelegatedEServiceArchiving: async (
       eServiceId: EServiceId,
-      body: catalogApi.SubmitDelegatedEServiceArchivingSeed,
+      body: catalogApi.EServiceArchivingSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
@@ -1861,9 +1861,23 @@ export function catalogServiceBuilder(
         },
       });
     },
+    approveDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Approving delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.approveDelegatedEServiceArchiving(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
     rejectDelegatedEServiceArchiving: async (
       eServiceId: EServiceId,
-      body: catalogApi.RejectDelegatedEServiceArchivingSeed,
+      body: catalogApi.RejectDelegatedArchivingSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(

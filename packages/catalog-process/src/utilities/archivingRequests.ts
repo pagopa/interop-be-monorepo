@@ -8,6 +8,7 @@ import {
   delegatedArchivingRequestNotActive,
   noDelegatedArchivingRequestFound,
 } from "../model/domain/errors.js";
+import { calculateArchivableOn } from "./dateCalculator.js";
 
 type ArchivingRequest =
   | DelegatedDescriptorArchivingRequest
@@ -98,4 +99,34 @@ export function hasActiveArchivingRequest<T extends ArchivingRequest>(
     isActiveArchivingRequest
   );
   return activeArchivingRequests.length > 0;
+}
+
+export function calculateProjectedArchivingDateForArchivingRequest<
+  T extends ArchivingRequest,
+>(
+  requestDate: Date,
+  archivingRequests: T[] | undefined,
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): { archivableOn: Date; gracePeriodDays: number } | undefined {
+  if (
+    archivingRequests &&
+    archivingRequests.length > 0 &&
+    hasActiveArchivingRequest(archivingRequests)
+  ) {
+    const latestActiveRequest = getLatestActiveArchivingRequest(
+      archivingRequests,
+      eserviceId,
+      descriptorId
+    );
+    const archivableOn = calculateArchivableOn(
+      requestDate,
+      latestActiveRequest.gracePeriodDays
+    ).archivableOn;
+    return {
+      archivableOn,
+      gracePeriodDays: latestActiveRequest.gracePeriodDays,
+    };
+  }
+  return undefined;
 }

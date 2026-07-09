@@ -17,6 +17,8 @@ import {
   archivingScope,
   AsyncExchangeProperties,
   AttributeId,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
   Delegation,
   delegationKind,
   delegationState,
@@ -82,6 +84,8 @@ import {
   delegatedArchivingRequestAlreadyInProgress,
   gracePeriodDaysLowerThanDescriptor,
   noDelegatedArchivingRequestFound,
+  noActiveDelegationFound,
+  delegatedArchiveRequestForIncorrectDelegateProducer,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -89,7 +93,11 @@ import {
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
 import { catalogApi } from "pagopa-interop-api-clients";
-import { hasActiveArchivingRequest } from "../utilities/archivingRequests.js";
+import {
+  calculateProjectedArchivingDateForArchivingRequest,
+  hasActiveArchivingRequest,
+} from "../utilities/archivingRequests.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -359,6 +367,28 @@ export function assertRequesterIsDelegateForArchiving(
     authData.organizationId !== producerDelegation.delegateId
   ) {
     throw operationForbidden;
+  }
+}
+
+export function assertDelegatedArchivingRequestDelegationIsStillValid(
+  producerDelegation: Delegation | undefined,
+  archivingRequest:
+    | DelegatedEServiceArchivingRequest
+    | DelegatedDescriptorArchivingRequest,
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): asserts producerDelegation is Delegation {
+  if (!producerDelegation) {
+    throw noActiveDelegationFound(eserviceId);
+  }
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    archivingRequest.requesterId !== producerDelegation.delegateId
+  ) {
+    throw delegatedArchiveRequestForIncorrectDelegateProducer(
+      eserviceId,
+      descriptorId
+    );
   }
 }
 
@@ -1027,6 +1057,49 @@ export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
         descriptor.id,
         gracePeriodDays,
         descriptorGracePeriodDays
+      );
+    }
+  }
+}
+
+export function assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
+  eservice: EService,
+  gracePeriodDays: number
+): void {
+  const today = new Date();
+  const projectedArchivalDate = calculateArchivableOn(
+    today,
+    gracePeriodDays
+  ).archivableOn;
+  for (const descriptor of eservice.descriptors) {
+    const archivingSchedule = descriptor.archivingSchedule;
+    const requestedArchivableOn =
+      calculateProjectedArchivingDateForArchivingRequest(
+        today,
+        descriptor.delegatedArchivingRequest,
+        eservice.id,
+        descriptor.id
+      );
+    if (
+      archivingSchedule &&
+      archivingSchedule.archivableOn > projectedArchivalDate
+    ) {
+      throw gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        descriptor.id,
+        gracePeriodDays,
+        archivingSchedule.gracePeriodDays
+      );
+    }
+    if (
+      requestedArchivableOn &&
+      requestedArchivableOn.archivableOn > projectedArchivalDate
+    ) {
+      throw gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        descriptor.id,
+        gracePeriodDays,
+        requestedArchivableOn.gracePeriodDays
       );
     }
   }
