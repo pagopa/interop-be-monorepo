@@ -232,6 +232,12 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
+      { type: "EServiceArchivingRequestedByDelegate" },
+      { type: "EServiceArchivingRequestRejectedByDelegator" },
+      { type: "EServiceArchivingRequestApprovedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestedByDelegate" },
+      { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
+      { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
       () => undefined
     )
     .with(

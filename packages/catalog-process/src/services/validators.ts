@@ -17,6 +17,8 @@ import {
   archivingScope,
   AsyncExchangeProperties,
   AttributeId,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
   Delegation,
   delegationKind,
   delegationState,
@@ -78,7 +80,12 @@ import {
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
   gracePeriodDaysNotValid,
+  delegatedArchivingRequestNotActive,
+  delegatedArchivingRequestAlreadyInProgress,
   gracePeriodDaysLowerThanDescriptor,
+  noDelegatedArchivingRequestFound,
+  noActiveDelegationFound,
+  delegatedArchiveRequestForIncorrectDelegateProducer,
 } from "../model/domain/errors.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
@@ -86,6 +93,11 @@ import {
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
 import { catalogApi } from "pagopa-interop-api-clients";
+import {
+  calculateProjectedArchivingDateForArchivingRequest,
+  hasActiveArchivingRequest,
+} from "../utilities/archivingRequests.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -289,6 +301,93 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
     throw eserviceArchivingWithActiveOrPendingDelegation(
       eserviceId,
       producerDelegation.id
+    );
+  }
+}
+
+export function assertDelegatedEserviceHasAtLeastOneArchivingRequests(
+  eservice: EService
+): void {
+  const archivingRequests = eservice.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eservice.id);
+  }
+}
+
+export function assertDelegatedEserviceHasActiveArchivingRequests(
+  eservice: EService
+): void {
+  if (!hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestNotActive(eservice.id);
+  }
+}
+
+export function assertDelegatedEserviceHasNoActiveArchivingRequests(
+  eservice: EService
+): void {
+  if (hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  const archivingRequests = descriptor.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eserviceId, descriptor.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasActiveArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestNotActive(eserviceId, descriptor.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasNoActiveArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  if (hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestAlreadyInProgress(eserviceId, descriptor.id);
+  }
+}
+
+export function assertRequesterIsDelegateForArchiving(
+  producerDelegation: Delegation,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    authData.organizationId !== producerDelegation.delegateId
+  ) {
+    throw operationForbidden;
+  }
+}
+
+export function assertDelegatedArchivingRequestDelegationIsStillValid(
+  producerDelegation: Delegation | undefined,
+  archivingRequest:
+    | DelegatedEServiceArchivingRequest
+    | DelegatedDescriptorArchivingRequest,
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): asserts producerDelegation is Delegation {
+  if (!producerDelegation) {
+    throw noActiveDelegationFound(eserviceId);
+  }
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    archivingRequest.requesterId !== producerDelegation.delegateId
+  ) {
+    throw delegatedArchiveRequestForIncorrectDelegateProducer(
+      eserviceId,
+      descriptorId
     );
   }
 }
@@ -958,6 +1057,49 @@ export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
         descriptor.id,
         gracePeriodDays,
         descriptorGracePeriodDays
+      );
+    }
+  }
+}
+
+export function assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
+  eservice: EService,
+  gracePeriodDays: number
+): void {
+  const today = new Date();
+  const projectedArchivalDate = calculateArchivableOn(
+    today,
+    gracePeriodDays
+  ).archivableOn;
+  for (const descriptor of eservice.descriptors) {
+    const archivingSchedule = descriptor.archivingSchedule;
+    const requestedArchivableOn =
+      calculateProjectedArchivingDateForArchivingRequest(
+        today,
+        descriptor.delegatedArchivingRequest,
+        eservice.id,
+        descriptor.id
+      );
+    if (
+      archivingSchedule &&
+      archivingSchedule.archivableOn > projectedArchivalDate
+    ) {
+      throw gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        descriptor.id,
+        gracePeriodDays,
+        archivingSchedule.gracePeriodDays
+      );
+    }
+    if (
+      requestedArchivableOn &&
+      requestedArchivableOn.archivableOn > projectedArchivalDate
+    ) {
+      throw gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        descriptor.id,
+        gracePeriodDays,
+        requestedArchivableOn.gracePeriodDays
       );
     }
   }

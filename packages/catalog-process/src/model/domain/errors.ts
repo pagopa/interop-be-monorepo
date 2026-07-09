@@ -85,6 +85,12 @@ const errorCodes = {
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
   gracePeriodDaysNotValid: "0069",
   gracePeriodDaysLowerThanDescriptor: "0070",
+  noDelegatedArchivingRequestFound: "0071",
+  delegatedArchivingRequestNotActive: "0072",
+  noDelegationForArchivingRequest: "0073",
+  delegatedArchivingRequestAlreadyInProgress: "0074",
+  noActiveDelegationFound: "0075",
+  delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -419,6 +425,59 @@ export function eserviceDescriptorWithActiveOrPendingDelegation(
     detail: `E-service ${eserviceId} descriptor ${descriptorId} can't be archived with an active or pending delegation ${delegationId}`,
     code: "eserviceDescriptorWithActiveOrPendingDelegation",
     title: "E-service descriptor with active or pending delegation",
+  });
+}
+
+export function noDelegatedArchivingRequestFound(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No active delegated archiving request found for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""}`,
+    code: "noDelegatedArchivingRequestFound",
+    title: "No delegated archiving request found",
+  });
+}
+
+export function noActiveDelegationFound(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The E-service ${eserviceId} has no active delegation`,
+    code: "noActiveDelegationFound",
+    title: "No active delegation found for E-service",
+  });
+}
+
+export function delegatedArchiveRequestForIncorrectDelegateProducer(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} archiving request refers to a delegation no longer active`,
+    code: "delegatedArchiveRequestForIncorrectDelegateProducer",
+    title: "Archiving request with invalid requesterId",
+  });
+}
+
+export function delegatedArchivingRequestNotActive(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The delegated archiving request for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} has been rejected and is no longer active. The delegate must resubmit.`,
+    code: "delegatedArchivingRequestNotActive",
+    title: "Delegated archiving request not active",
+  });
+}
+
+export function noDelegationForArchivingRequest(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No active producer delegation found for E-service ${eserviceId} to submit an archiving request`,
+    code: "noDelegationForArchivingRequest",
+    title: "No delegation for archiving request",
   });
 }
 
@@ -787,6 +846,17 @@ export function gracePeriodDaysNotValid(
     detail: `Grace period days ${gracePeriodDays} is not valid. It must be between ${minGracePeriodDays} and ${maxGracePeriodDays}`,
     code: "gracePeriodDaysNotValid",
     title: "Grace period days not valid",
+  });
+}
+
+export function delegatedArchivingRequestAlreadyInProgress(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An archiving request for EService ${eserviceId}${descriptorId ? ` and Descriptor ${descriptorId}` : ""} is already in progress`,
+    code: "delegatedArchivingRequestAlreadyInProgress",
+    title: "Delegated archiving request already in progress",
   });
 }
 

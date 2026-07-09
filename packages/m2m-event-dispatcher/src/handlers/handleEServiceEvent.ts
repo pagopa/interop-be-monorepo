@@ -77,7 +77,10 @@ async function handleEServiceEventV2(
             "EServiceArchivingScheduled",
             "EServiceArchivingCanceled",
             "EServiceArchivingCompleted",
-            "MaintenanceEServicePersonalDataFlagReset"
+            "MaintenanceEServicePersonalDataFlagReset",
+            "EServiceArchivingRequestedByDelegate",
+            "EServiceArchivingRequestRejectedByDelegator",
+            "EServiceArchivingRequestApprovedByDelegator"
           ),
         },
         async (event) => {
@@ -136,7 +139,10 @@ async function handleEServiceEventV2(
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
-            "MaintenanceEServiceDescriptorUnarchived"
+            "MaintenanceEServiceDescriptorUnarchived",
+            "EServiceDescriptorArchivingRequestedByDelegate",
+            "EServiceDescriptorArchivingRequestRejectedByDelegator",
+            "EServiceDescriptorArchivingRequestApprovedByDelegator"
           ),
         },
         async (event) => {

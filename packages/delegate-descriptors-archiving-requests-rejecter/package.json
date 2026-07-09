@@ -1,0 +1,39 @@
+{
+  "name": "pagopa-interop-delegate-descriptors-archiving-requests-rejecter",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability delegated archiving requests rejecter: consumes descriptor archived and delegation revoked events and closes pending delegated archiving requests",
+  "main": "dist",
+  "type": "module",
+  "scripts": {
+    "test": "vitest --config vitest.config.ts",
+    "test:it": "vitest integration",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "dotenv-flow": "catalog:",
+    "kafka-iam-auth": "workspace:*",
+    "kafkajs": "catalog:",
+    "pagopa-interop-api-clients": "workspace:*",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-commons-test": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-readmodel": "workspace:*",
+    "ts-pattern": "catalog:",
+    "zod": "catalog:"
+  }
+}

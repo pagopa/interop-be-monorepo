@@ -13,6 +13,8 @@ import {
   EServiceRiskAnalysisFormV2,
   EServiceTechnologyV2,
   EServiceV2,
+  DelegatedDescriptorArchivingRequestV2,
+  DelegatedEServiceArchivingRequestV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -40,6 +42,8 @@ import {
   eserviceMode,
   technology,
   type EServiceAttributeCertifiedDiscreteConfig,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
 } from "./eservice.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
@@ -163,6 +167,24 @@ export const toDescriptorRejectedReasonV2 = (
   rejectedAt: dateToBigInt(input.rejectedAt),
 });
 
+export const toDelegatedDescriptorArchivingRequestV2 = (
+  input: DelegatedDescriptorArchivingRequest
+): DelegatedDescriptorArchivingRequestV2 => ({
+  ...input,
+  rejectedAt: dateToBigInt(input.rejectedAt),
+  acceptedAt: dateToBigInt(input.acceptedAt),
+  requestedAt: dateToBigInt(input.requestedAt),
+});
+
+export const toDelegatedEServiceArchivingRequestV2 = (
+  input: DelegatedEServiceArchivingRequest
+): DelegatedEServiceArchivingRequestV2 => ({
+  ...input,
+  rejectedAt: dateToBigInt(input.rejectedAt),
+  acceptedAt: dateToBigInt(input.acceptedAt),
+  requestedAt: dateToBigInt(input.requestedAt),
+});
+
 export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
   ...input,
   uploadDate: input.uploadDate.toISOString(),
@@ -214,6 +236,10 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   asyncExchangeProperties: input.asyncExchangeProperties
     ? { ...input.asyncExchangeProperties }
     : undefined,
+  delegatedArchivingRequest:
+    input.delegatedArchivingRequest?.map(
+      toDelegatedDescriptorArchivingRequestV2
+    ) ?? [],
 });
 
 export const toRiskAnalysisV2 = (
@@ -238,4 +264,8 @@ export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV2(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
+  delegatedArchivingRequest:
+    eservice.delegatedArchivingRequest?.map(
+      toDelegatedEServiceArchivingRequestV2
+    ) ?? [],
 });

@@ -115,6 +115,7 @@ import {
   eServiceAsyncExchangeNotEnabled,
   templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
+  noDelegationForArchivingRequest,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -175,6 +176,12 @@ import {
   toCreateEventEServiceArchivingCanceled,
   toCreateEventEServiceArchivingCompleted,
   toCreateEventMaintenanceEServiceDescriptorUnarchived,
+  toCreateEventEServiceArchivingRequestedByDelegate,
+  toCreateEventEServiceArchivingRequestRejectedByDelegator,
+  toCreateEventEServiceArchivingRequestApprovedByDelegator,
+  toCreateEventEServiceDescriptorArchivingRequestedByDelegate,
+  toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
+  toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator,
 } from "../model/domain/toEvent.js";
 import {
   getLatestDescriptor,
@@ -191,7 +198,6 @@ import {
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
   assertNoExistingProducerDelegationForDescriptorArchiving,
-  assertNoExistingProducerDelegationForEServiceArchiving,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -229,7 +235,16 @@ import {
   assertEServiceIsInArchiving,
   assertEServiceIsNotAlreadyArchived,
   assertGracePeriodDaysValid,
+  assertDelegatedEserviceHasActiveArchivingRequests,
+  assertRequesterIsDelegateForArchiving,
+  assertDelegatedEserviceHasNoActiveArchivingRequests,
+  assertDelegatedDescriptorHasNoActiveArchivingRequests,
+  assertDelegatedDescriptorHasActiveArchivingRequests,
   assertEServiceGracePeriodIsNotLowerThanDescriptors,
+  assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
+  assertDelegatedEserviceHasAtLeastOneArchivingRequests,
+  assertDelegatedArchivingRequestDelegationIsStillValid,
+  assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -237,6 +252,20 @@ import {
   DEFAULT_DAILY_CALLS_PER_CONSUMER,
   DEFAULT_DAILY_CALLS_TOTAL,
 } from "../model/domain/constants.js";
+import {
+  appendArchivingRequest,
+  getLatestActiveArchivingRequest,
+  getLatestArchivingRequest,
+  hasActiveArchivingRequest,
+  updateLatestActiveArchivingRequest,
+} from "../utilities/archivingRequests.js";
+
+export type InternalArchiveDelegatedArchivingRequestSeed = {
+  descriptorId?: string;
+  delegationId?: string;
+  reason: string;
+  triggerEvent: string;
+};
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -1255,10 +1284,16 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      await assertNoExistingProducerDelegationForEServiceArchiving(
-        eserviceId,
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
         readModelService
       );
+
+      if (producerDelegation) {
+        // With an active delegation, the owner can only proceed if the delegate
+        // has previously submitted an active archiving request
+        assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+      }
 
       assertEServiceArchivable(eservice.data);
 
@@ -3298,6 +3333,526 @@ export function catalogServiceBuilder(
       );
       return {
         data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async submitDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      seed: catalogApi.EServiceArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Submitting delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      assertEServiceArchivable(eservice.data);
+      assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
+      assertGracePeriodDaysValid(seed.gracePeriodDays);
+      assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
+        eservice.data,
+        seed.gracePeriodDays
+      );
+
+      const updatedRequests = appendArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        {
+          requestedAt: new Date(),
+          requesterId: authData.organizationId,
+          gracePeriodDays: seed.gracePeriodDays,
+          archivingReason: seed.archivingReason,
+        }
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestedByDelegate(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async rejectDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      body: catalogApi.RejectDelegatedArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Rejecting delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+      assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
+
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId
+      );
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason: body.rejectionReason,
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestRejectedByDelegator(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async approveDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Approving delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+      assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
+
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+
+      assertEServiceArchivable(eservice.data);
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId
+      );
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        eservice.data,
+        latestActiveRequest.gracePeriodDays
+      );
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          acceptedAt: new Date(),
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const lastRequest = getLatestArchivingRequest(
+        updatedRequests,
+        eserviceId
+      );
+
+      const archivableEservice = await processEserviceArchiving(
+        updatedEService,
+        {
+          gracePeriodDays: lastRequest.gracePeriodDays,
+          archivingReason: lastRequest.archivingReason,
+        },
+        fileManager,
+        logger
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestApprovedByDelegator(
+          eservice.metadata.version,
+          archivableEservice,
+          correlationId
+        )
+      );
+      return {
+        data: archivableEservice,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async submitDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.GracePeriodDaysSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Submitting delegated archiving request for Descriptor ${descriptorId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+      assertGracePeriodDaysValid(seed.gracePeriodDays);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorArchivable(descriptor, eservice.data);
+      assertDelegatedDescriptorHasNoActiveArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      const updatedRequests = appendArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        {
+          requestedAt: new Date(),
+          requesterId: authData.organizationId,
+          gracePeriodDays: seed.gracePeriodDays,
+        }
+      );
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestedByDelegate(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async rejectDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: catalogApi.RejectDelegatedArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Rejecting delegated archiving request for Desccriptor ${descriptorId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedDescriptorHasActiveArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason: body.rejectionReason,
+        },
+        eserviceId,
+        descriptorId
+      );
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async internalArchiveDelegatedArchivingRequest(
+      eserviceId: EServiceId,
+      seed: InternalArchiveDelegatedArchivingRequestSeed,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal archiving delegated archiving request for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const rejectionReason = seed.reason;
+
+      if (seed.descriptorId) {
+        const descriptorId = unsafeBrandId<DescriptorId>(seed.descriptorId);
+        const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+        if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+          logger.info(
+            `No active delegated descriptor archiving request found for descriptor ${descriptorId} of EService ${eserviceId}`
+          );
+          return;
+        }
+
+        const updatedRequests = updateLatestActiveArchivingRequest(
+          descriptor.delegatedArchivingRequest ?? [],
+          {
+            rejectedAt: new Date(),
+            rejectionReason,
+          },
+          eserviceId,
+          descriptorId
+        );
+
+        const updatedEService = replaceDescriptor(eservice.data, {
+          ...descriptor,
+          delegatedArchivingRequest: updatedRequests,
+        });
+
+        await repository.createEvent(
+          toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator(
+            eservice.metadata.version,
+            descriptorId,
+            updatedEService,
+            correlationId
+          )
+        );
+
+        return;
+      }
+
+      if (!hasActiveArchivingRequest(eservice.data.delegatedArchivingRequest)) {
+        logger.info(
+          `No active delegated eService archiving request found for EService ${eserviceId}`
+        );
+        return;
+      }
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason,
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceArchivingRequestRejectedByDelegator(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+    },
+    async approveDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Approving delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedDescriptorHasActiveArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      assertDescriptorArchivable(descriptor, eservice.data);
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest ?? [],
+        {
+          acceptedAt: new Date(),
+        },
+        eserviceId
+      );
+
+      const updatedDescriptor: Descriptor = {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const lastRequest = getLatestArchivingRequest(
+        updatedRequests,
+        eserviceId,
+        descriptorId
+      );
+
+      const newState =
+        descriptor.state === descriptorState.suspended
+          ? descriptorState.archivingSuspended
+          : descriptorState.archiving;
+
+      const archivableDescriptor = await processDescriptorArchiving(
+        updatedDescriptor,
+        newState,
+        lastRequest.gracePeriodDays
+      );
+
+      const archivableEservice = replaceDescriptor(
+        eservice.data,
+        archivableDescriptor
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator(
+          eservice.metadata.version,
+          descriptorId,
+          archivableEservice,
+          correlationId
+        )
+      );
+      return {
+        data: archivableEservice,
         metadata: {
           version: event.newVersion,
         },

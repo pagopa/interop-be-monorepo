@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, and, or, isNull } from "drizzle-orm";
 import { ascLower } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -114,6 +114,7 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   TenantVerifiedAttributeVerifierSQL,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -144,6 +145,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             eserviceDescriptorArchivingScheduleInReadmodelCatalog,
           asyncExchangeProperties:
             eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+          archivingRequests:
+            eserviceDescriptorArchivingRequestInReadmodelCatalog,
         })
         .from(eserviceInReadmodelCatalog)
         .leftJoin(
@@ -224,6 +227,25 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
             eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          // 11
+          eserviceDescriptorArchivingRequestInReadmodelCatalog,
+          or(
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+            ),
+            and(
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+              ),
+              isNull(
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+              )
+            )
           )
         );
 

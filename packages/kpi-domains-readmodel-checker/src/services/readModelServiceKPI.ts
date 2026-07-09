@@ -135,6 +135,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         templateVersionRefsSQL,
         archivingSchedulesSQL,
         asyncExchangePropertiesSQL,
+        archivingRequestsSQL: [], // FIXME: Add this to kpi?
       });
     },
 

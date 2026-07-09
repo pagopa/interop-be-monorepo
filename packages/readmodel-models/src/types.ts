@@ -72,6 +72,7 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "./drizzle/schema.js";
 
 export type DrizzleReturnType = ReturnType<typeof drizzle>;
@@ -85,6 +86,9 @@ export type EServiceDescriptorSQL = InferSelectModel<
 >;
 export type EServiceDescriptorArchivingScheduleSQL = InferSelectModel<
   typeof eserviceDescriptorArchivingScheduleInReadmodelCatalog
+>;
+export type EServiceDescriptorArchivingRequestSQL = InferSelectModel<
+  typeof eserviceDescriptorArchivingRequestInReadmodelCatalog
 >;
 export type EServiceDescriptorRejectionReasonSQL = InferSelectModel<
   typeof eserviceDescriptorRejectionReasonInReadmodelCatalog
@@ -122,6 +126,7 @@ export type EServiceItemsSQL = {
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
   archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
   asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
+  archivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
 };
 
 export type EServiceTemplateSQL = InferSelectModel<
