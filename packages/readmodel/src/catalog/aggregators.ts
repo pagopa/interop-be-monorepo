@@ -407,7 +407,7 @@ export const aggregateEservice = ({
       : {}),
     ...(archivingRequestsSQLWithNullDescriptorId.length > 0
       ? {
-          archivingRequests: archivingRequestsSQLWithNullDescriptorId
+          delegatedArchivingRequest: archivingRequestsSQLWithNullDescriptorId
             .filter(
               (archivingRequest) =>
                 archivingRequest.archivingReason !== null &&

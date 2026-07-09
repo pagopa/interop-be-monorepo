@@ -17,8 +17,8 @@ function isActiveArchivingRequest<T extends ArchivingRequest>(
   archivingRequest: T
 ): boolean {
   return (
-    archivingRequest.acceptedAt !== undefined ||
-    archivingRequest.rejectedAt !== undefined
+    archivingRequest.acceptedAt === undefined &&
+    archivingRequest.rejectedAt === undefined
   );
 }
 
