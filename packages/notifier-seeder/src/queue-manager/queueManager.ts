@@ -51,7 +51,7 @@ export function initQueueManager(
     },
     receiveLast: async (
       logger: Logger,
-      msgsToReceive: number = 1
+      msgsToReceive = 1
     ): Promise<QueueMessage[]> => {
       logger.debug(
         `Receiving last ${msgsToReceive} messages from queue ${config.queueUrl}`

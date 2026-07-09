@@ -47,7 +47,7 @@ const makeApiProblem = makeApiProblemBuilder({});
 export const contextMiddleware =
   (
     serviceName: string,
-    readCorrelationIdFromHeader: boolean = true
+    readCorrelationIdFromHeader = true
   ): ZodiosRouterContextRequestHandler<ExpressContext> =>
   async (req, res, next): Promise<unknown> => {
     const setCtx = (correlationId: string): void => {

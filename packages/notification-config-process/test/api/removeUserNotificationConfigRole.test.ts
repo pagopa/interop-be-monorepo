@@ -18,7 +18,7 @@ describe("API DELETE /internal/userNotificationConfigs/tenantId/{tenantId}/userI
     token: string,
     tenantId: TenantId = defaultTenantId,
     userId: UserId = defaultUserId,
-    role: string = "ADMIN"
+    role = "ADMIN"
   ) =>
     request(api)
       .delete(

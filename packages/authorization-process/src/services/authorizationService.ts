@@ -831,7 +831,7 @@ export function authorizationServiceBuilder(
 
       retrieveDescriptor(agreement.descriptorId, eservice);
 
-      const validPurposeVersionStates: Set<PurposeVersionState> = new Set([
+      const validPurposeVersionStates = new Set<PurposeVersionState>([
         purposeVersionState.active,
         purposeVersionState.suspended,
       ]);

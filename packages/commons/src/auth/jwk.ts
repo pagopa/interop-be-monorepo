@@ -109,7 +109,7 @@ export function assertValidRSAKey(key: KeyObject): void {
 
 export function assertValidRSAKeyLength(
   key: KeyObject,
-  minLength: number = 2048
+  minLength = 2048
 ): void {
   const length = key.asymmetricKeyDetails?.modulusLength;
   if (!length || length < minLength) {

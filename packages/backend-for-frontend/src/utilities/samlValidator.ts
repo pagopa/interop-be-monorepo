@@ -54,9 +54,9 @@ const validateSignature = (saml: SAMLResponse): void => {
     (t) =>
       t.Algorithm &&
       [
-        TRANSFORM_ENVELOPED_SIGNATURE,
         TRANSFORM_C14N_EXCL_OMIT_COMMENTS,
         TRANSFORM_C14N_EXCL_WITH_COMMENTS,
+        TRANSFORM_ENVELOPED_SIGNATURE,
       ].includes(t.Algorithm)
   );
   if (!atLeastOneEnvelopedSignature || !allAlgorithmsAreValid) {
@@ -73,9 +73,9 @@ export const validateSamlResponse = (samlResponse: string): SAMLResponse => {
     isArray: (name) =>
       [
         "Assertion",
-        "AudienceRestriction",
-        "Audience",
         "AttributeValue",
+        "Audience",
+        "AudienceRestriction",
         "Transform",
       ].includes(name),
   }).parse(samlResponse);

@@ -83,7 +83,7 @@ export async function getAllCategories(
   const responseFields = response.data.fields as Array<{ id: string }>;
   const responseRecords = response.data.records as Array<any>;
 
-  const fields: Map<CategoriesFields, number> = new Map(
+  const fields = new Map<CategoriesFields, number>(
     responseFields
       .map<[string, number]>((f, index) => [f.id, index])
       .filter((data): data is [CategoriesFields, number] =>
@@ -144,7 +144,7 @@ export async function getAllInstitutions(
     return [];
   }
 
-  const fields: Map<InstitutionsFields, number> = new Map(
+  const fields = new Map<InstitutionsFields, number>(
     responseFields
       .map<[string, number]>((f, index) => [f.id, index])
       .filter((data): data is [InstitutionsFields, number] =>

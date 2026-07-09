@@ -31,7 +31,7 @@ const serializeError = (error: unknown): string => {
   }
 };
 
-const processExit = async (exitStatusCode: number = 1): Promise<void> => {
+const processExit = async (exitStatusCode = 1): Promise<void> => {
   genericLogger.error(`Process exit with code ${exitStatusCode}`);
   await delay(1000);
   process.exit(exitStatusCode);
@@ -194,7 +194,7 @@ export function initQueueManager(
     receiveLast: async (
       queueUrl: string,
       logger: Logger,
-      msgsToReceive: number = 1
+      msgsToReceive = 1
     ): Promise<QueueMessage[]> => {
       logger.debug(
         `Receiving last ${msgsToReceive} messages from queue ${queueUrl}`

@@ -495,7 +495,7 @@ export function enhanceTenantAttributes(
   tenantAttributes: tenantApi.TenantAttribute[],
   registryAttributes: attributeRegistryApi.Attribute[]
 ): bffApi.TenantAttributes {
-  const registryAttributesMap: Map<string, bffApi.Attribute> = new Map(
+  const registryAttributesMap = new Map<string, bffApi.Attribute>(
     registryAttributes.map((attribute) => [attribute.id, attribute])
   );
 

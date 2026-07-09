@@ -96,7 +96,7 @@ export const verifyClientAssertion = (
   expectedAudiences: string[],
   logger: Logger,
   // TODO: delete when FEATURE_FLAG_CLIENT_ASSERTION_STRICT_CLAIMS_VALIDATION is removed
-  featureFlagClientAssertionStrictClaimsValidation: boolean = false
+  featureFlagClientAssertionStrictClaimsValidation = false
   // eslint-disable-next-line sonarjs/cognitive-complexity
 ): ValidationResult<ClientAssertion> => {
   try {

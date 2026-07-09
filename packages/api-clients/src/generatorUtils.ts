@@ -31,7 +31,7 @@ export function createEndpointChunkHelpers(
   ): EndpointChunk[] => {
     const chunks: EndpointChunk[] = [];
     for (
-      let index: number = 0;
+      let index = 0;
       index < endpoints.length;
       index += maxEndpointsPerChunk
     ) {

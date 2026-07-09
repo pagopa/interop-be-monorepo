@@ -74,7 +74,7 @@ export const purposeTemplateService = purposeTemplateServiceBuilder(
 
 const writePurposeTemplateInEventstore = async (
   purposeTemplate: PurposeTemplate,
-  metadataVersion: number = 0
+  metadataVersion = 0
 ): Promise<void> => {
   const purposeTemplateEvent: PurposeTemplateEvent = {
     type: "PurposeTemplateAdded",
@@ -116,7 +116,7 @@ export function expectSinglePageListResult(
 
 export const addOnePurposeTemplate = async (
   purposeTemplate: PurposeTemplate,
-  metadataVersion: number = 0
+  metadataVersion = 0
 ): Promise<void> => {
   await writePurposeTemplateInEventstore(purposeTemplate, metadataVersion);
   await upsertPurposeTemplate(readModelDB, purposeTemplate, metadataVersion);

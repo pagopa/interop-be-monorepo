@@ -465,7 +465,7 @@ export function toCompactProducerDescriptor(
 export function toBffEServiceTemplateInstance(
   eservice: catalogApi.EService,
   producer: tenantApi.Tenant,
-  showAllDescriptors: boolean = false
+  showAllDescriptors = false
 ): bffApi.EServiceTemplateInstance {
   const descriptorsToInclude = (
     showAllDescriptors

@@ -82,7 +82,7 @@ const testProblem: Problem = {
   correlationId: "test-correlation-id",
 };
 
-const testProblemResponse: AxiosError<Problem> = new AxiosError(
+const testProblemResponse = new AxiosError<Problem>(
   testProblem.title,
   undefined,
   undefined,
@@ -378,7 +378,7 @@ describe("makeApiProblem - forceGenericProblemOn500 = true", () => {
     const context = getMockContext({});
     vi.spyOn(context.logger, "warn");
 
-    const problemResponse500: AxiosError<Problem> = new AxiosError(
+    const problemResponse500 = new AxiosError<Problem>(
       testProblem.title,
       undefined,
       undefined,
