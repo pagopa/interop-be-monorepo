@@ -1045,6 +1045,26 @@ const eservicesRouter = (
         }
       }
     )
+    .post(
+      "/internal/eservices/:eServiceId/delegatedArchivingRequests/archive",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await catalogService.internalArchiveDelegatedArchivingRequest(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/internal/eservices/:eServiceId/archive", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
