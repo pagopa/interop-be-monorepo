@@ -301,7 +301,9 @@ function validateFieldValue(
 ): RiskAnalysisValidationIssue[] {
   if (rule.dataType === dataType.freeText) {
     return fieldValue.flatMap((v) =>
-      containsHyperlink(v) ? [unexpectedFieldHyperlinkError(rule.fieldName)] : []
+      containsHyperlink(v)
+        ? [unexpectedFieldHyperlinkError(rule.fieldName)]
+        : []
     );
   }
   return match(rule.allowedValues)
