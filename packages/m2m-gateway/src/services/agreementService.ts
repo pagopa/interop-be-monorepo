@@ -32,6 +32,10 @@ import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { agreementContractNotFound } from "../model/errors.js";
+import {
+  assertAgreementIsPending,
+  assertAgreementIsSuspended,
+} from "../utils/validators/agreementValidator.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -232,6 +236,10 @@ export function agreementServiceBuilder(
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Approving pending agreement with id ${agreementId}`);
 
+      const agreement = await retrieveAgreementById(headers, agreementId);
+
+      assertAgreementIsPending(agreement.data);
+
       const response = await clients.agreementProcessClient.approveAgreement(
         { delegationId },
         {
@@ -319,6 +327,10 @@ export function agreementServiceBuilder(
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.Agreement> {
       logger.info(`Unsuspending agreement with id ${agreementId}`);
+
+      const agreement = await retrieveAgreementById(headers, agreementId);
+
+      assertAgreementIsSuspended(agreement.data);
 
       const response = await clients.agreementProcessClient.unsuspendAgreement(
         { delegationId },

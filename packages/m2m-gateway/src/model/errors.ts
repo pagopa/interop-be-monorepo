@@ -31,6 +31,8 @@ const errorCodes = {
   eserviceDescriptorNotFound: "0010",
   taxCodeAndIPACodeConflict: "0011",
   purposeVersionNotFound: "0012",
+  agreementNotInSuspendedState: "0013",
+  agreementNotInPendingState: "0014",
   missingPurposeVersionWithState: "0015",
   missingPurposeCurrentVersion: "0016",
   eserviceTemplateVersionNotFound: "0017",
@@ -165,6 +167,26 @@ export function missingPurposeCurrentVersion(
     detail: `There is no current valid version for purpose ${purposeId}`,
     code: "missingPurposeCurrentVersion",
     title: "Missing current purpose version",
+  });
+}
+
+export function agreementNotInPendingState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in pending state`,
+    code: "agreementNotInPendingState",
+    title: "Agreement not in pending state",
+  });
+}
+
+export function agreementNotInSuspendedState(
+  agreementId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Agreement ${agreementId} is not in suspended state`,
+    code: "agreementNotInSuspendedState",
+    title: "Agreement not in suspended state",
   });
 }
 

@@ -18,7 +18,10 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  agreementNotInPendingState,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiAgreement,
@@ -76,6 +79,23 @@ describe("approveAgreement", () => {
     expect(
       mockInteropBeClients.agreementProcessClient.getAgreementById
     ).toHaveBeenCalledTimes(pollingTentatives);
+  });
+
+  it("Should throw agreementNotInPendingState in case of non-pending agreement", async () => {
+    const mockAgreementNotPending = getMockWithMetadata(
+      getMockedApiAgreement({ state: "ACTIVE" })
+    );
+    mockGetAgreement.mockResolvedValueOnce(mockAgreementNotPending);
+
+    await expect(
+      agreementService.approveAgreement(
+        unsafeBrandId(mockAgreementNotPending.data.id),
+        mockDelegationRef,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      agreementNotInPendingState(mockAgreementNotPending.data.id)
+    );
   });
 
   it("Should throw missingMetadata in case the agreement returned by the unsuspend agreement POST call has no metadata", async () => {

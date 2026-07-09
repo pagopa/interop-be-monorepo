@@ -18,7 +18,10 @@ import {
 } from "../../integrationUtils.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import {
+  agreementNotInSuspendedState,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiAgreement,
@@ -75,6 +78,25 @@ describe("unsuspendAgreement", () => {
     expect(
       mockInteropBeClients.agreementProcessClient.getAgreementById
     ).toHaveBeenCalledTimes(pollingTentatives);
+  });
+
+  it("Should throw agreementNotInSuspendedState in case of non-suspended agreement", async () => {
+    const mockAgreementNotSuspended = getMockWithMetadata(
+      getMockedApiAgreement({
+        state: agreementApi.AgreementState.Values.ACTIVE,
+      })
+    );
+    mockGetAgreement.mockResolvedValueOnce(mockAgreementNotSuspended);
+
+    await expect(
+      agreementService.unsuspendAgreement(
+        unsafeBrandId(mockAgreementNotSuspended.data.id),
+        mockDelegationRef,
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      agreementNotInSuspendedState(mockAgreementNotSuspended.data.id)
+    );
   });
 
   it("Should throw missingMetadata in case the agreement returned by the unsuspend agreement POST call has no metadata", async () => {
