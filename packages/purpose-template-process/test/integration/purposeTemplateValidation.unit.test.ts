@@ -366,6 +366,21 @@ describe("Purpose Template Validation", () => {
       );
     });
 
+    it("should propagate the original error when eservice retrieval fails during disassociation", async () => {
+      const eserviceIds = [eserviceId1];
+      const dbError = new Error("Database connection failed");
+
+      mockReadModelService.getEServiceById = vi.fn().mockRejectedValue(dbError);
+
+      await expect(
+        validateEservicesDisassociations(
+          eserviceIds,
+          purposeTemplate,
+          mockReadModelService
+        )
+      ).rejects.toThrow(dbError);
+    });
+
     it("should return valid when trying to unlink an associated eservice with a personal data flag mismatch", async () => {
       const eserviceIds = [eserviceId1];
       const mockDescriptor = getMockDescriptor(descriptorState.published);

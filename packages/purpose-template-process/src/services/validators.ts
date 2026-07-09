@@ -528,7 +528,7 @@ async function validateEServiceExistenceForDisassociation(
   );
 
   return eserviceResults.reduce(
-    (acc, result, index) =>
+    (acc, result) =>
       match(result)
         .with({ status: "fulfilled" }, (res) => ({
           ...acc,
@@ -538,20 +538,11 @@ async function validateEServiceExistenceForDisassociation(
           if (res.reason instanceof PurposeTemplateValidationIssue) {
             return {
               ...acc,
-              validationIssues: [
-                ...acc.validationIssues,
-                res.reason,
-              ],
+              validationIssues: [...acc.validationIssues, res.reason],
             };
           }
 
-          return {
-            ...acc,
-            validationIssues: [
-              ...acc.validationIssues,
-              unexpectedEServiceError(res.reason.message, eserviceIds[index]),
-            ],
-          };
+          throw res.reason;
         })
         .exhaustive(),
     {
