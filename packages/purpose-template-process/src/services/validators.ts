@@ -512,6 +512,9 @@ async function retrieveEserviceForValidation(
  * the purpose template's `handlesPersonalData` flag may drift after the link is
  * created (while the purpose template is still in Draft state), and blocking
  * the unlink on such drift would leave the creator unable to tear down the link.
+ *
+ * Only not-found results are collected as validation issues; readmodel failures
+ * are rethrown as infrastructure errors.
  */
 async function validateEServiceExistenceForDisassociation(
   eserviceIds: EServiceId[],
