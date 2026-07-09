@@ -54,8 +54,12 @@ describe("delegatedArchivingRequestsProcessor", () => {
       logger: genericLogger,
     });
 
-    expect(catalogProcessClient.archiveDelegatedArchivingRequest).toHaveBeenCalledTimes(1);
-    expect(catalogProcessClient.archiveDelegatedArchivingRequest).toHaveBeenCalledWith(
+    expect(
+      catalogProcessClient.archiveDelegatedArchivingRequest
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      catalogProcessClient.archiveDelegatedArchivingRequest
+    ).toHaveBeenCalledWith(
       expect.objectContaining({
         eServiceId: eservice.id,
         seed: expect.objectContaining({
@@ -93,7 +97,9 @@ describe("delegatedArchivingRequestsProcessor", () => {
       logger: genericLogger,
     });
 
-    expect(catalogProcessClient.archiveDelegatedArchivingRequest).toHaveBeenCalledTimes(1);
+    expect(
+      catalogProcessClient.archiveDelegatedArchivingRequest
+    ).toHaveBeenCalledTimes(1);
   });
 
   it("should not archive delegated request after descriptor archived event when no pending request exists", async () => {
@@ -126,7 +132,9 @@ describe("delegatedArchivingRequestsProcessor", () => {
       logger: genericLogger,
     });
 
-    expect(catalogProcessClient.archiveDelegatedArchivingRequest).not.toHaveBeenCalled();
+    expect(
+      catalogProcessClient.archiveDelegatedArchivingRequest
+    ).not.toHaveBeenCalled();
     expect(
       shouldArchiveDelegatedArchivingRequestForDescriptorArchivedEvent(
         eservice,
@@ -197,7 +205,9 @@ describe("delegatedArchivingRequestsProcessor", () => {
       logger: genericLogger,
     });
 
-    expect(catalogProcessClient.archiveDelegatedArchivingRequest).toHaveBeenCalledTimes(2);
+    expect(
+      catalogProcessClient.archiveDelegatedArchivingRequest
+    ).toHaveBeenCalledTimes(2);
   });
 
   it("should not call internal endpoint after delegation revoked event when no pending request exists", async () => {
@@ -250,6 +260,8 @@ describe("delegatedArchivingRequestsProcessor", () => {
       logger: genericLogger,
     });
 
-    expect(catalogProcessClient.archiveDelegatedArchivingRequest).not.toHaveBeenCalled();
+    expect(
+      catalogProcessClient.archiveDelegatedArchivingRequest
+    ).not.toHaveBeenCalled();
   });
 });
