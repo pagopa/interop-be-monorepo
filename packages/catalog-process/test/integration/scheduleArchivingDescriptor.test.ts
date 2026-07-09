@@ -37,7 +37,6 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import * as dateCalculator from "../../src/utilities/dateCalculator.js";
-import { config } from "../../src/config/config.js";
 
 describe("schedule archiving of a descriptor", () => {
   const mockEService = getMockEService();
@@ -125,50 +124,6 @@ describe("schedule archiving of a descriptor", () => {
         data: expectedEService,
         metadata: { version: parseInt(writtenEvent.version, 10) },
       });
-    }
-  );
-
-  it.each([
-    {
-      gracePeriodDays: config.gracePeriodArchivingEServiceDays.min - 1,
-      testCase: "lower than the minimum allowed",
-    },
-    {
-      gracePeriodDays: config.gracePeriodArchivingEServiceDays.max + 1,
-      testCase: "higher than the maximum allowed",
-    },
-  ])(
-    "should throw gracePeriodDaysNotValid if the requested gracePeriodDays is $testCase",
-    async ({ gracePeriodDays }) => {
-      const descriptor: Descriptor = {
-        ...mockDescriptor,
-        interface: mockDocument,
-        state: descriptorState.deprecated,
-        version: "1",
-      };
-      const descriptor2: Descriptor = {
-        ...mockDescriptor,
-        id: generateId(),
-        version: "2",
-        state: descriptorState.published,
-        interface: getMockDocument(),
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [descriptor, descriptor2],
-      };
-      await addOneEService(eservice);
-
-      await expect(
-        catalogService.scheduleEServiceDescriptorArchiving(
-          eservice.id,
-          descriptor.id,
-          { gracePeriodDays },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
-        )
-      ).rejects.toThrowError(
-        `Grace period days ${gracePeriodDays} is not valid. It must be between ${config.gracePeriodArchivingEServiceDays.min} and ${config.gracePeriodArchivingEServiceDays.max}`
-      );
     }
   );
 

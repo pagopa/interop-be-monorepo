@@ -27,6 +27,7 @@ import {
   EServiceAttributeCertifiedDiscrete,
   ArchivingScope,
   TenantKind,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorArchivingScheduleSQL,
@@ -234,7 +235,9 @@ export const aggregateDescriptor = ({
             scope: ArchivingScope.parse(archivingScheduleSQL.scope),
             archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
             startedAt: stringToDate(archivingScheduleSQL.startedAt),
-            gracePeriodDays: archivingScheduleSQL.gracePeriodDays,
+            gracePeriodDays: GracePeriodDays.parse(
+              archivingScheduleSQL.gracePeriodDays
+            ),
           },
         }
       : {}),

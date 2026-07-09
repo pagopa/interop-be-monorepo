@@ -266,7 +266,9 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
         scope: fromEServiceDescriptorArchivingScopeV2(
           input.archivingSchedule.scope
         ),
-        gracePeriodDays: input.archivingSchedule.gracePeriodDays,
+        gracePeriodDays: fromGracePeriodDaysV2(
+          input.archivingSchedule.gracePeriodDays
+        ),
       }
     : undefined,
 });

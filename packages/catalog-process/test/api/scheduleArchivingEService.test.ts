@@ -22,7 +22,6 @@ import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
   gracePeriodDaysLowerThanDescriptor,
-  gracePeriodDaysNotValid,
   notValidEServiceState,
 } from "../../src/model/domain/errors.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
@@ -107,10 +106,6 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
     },
     {
       error: notValidEServiceState(mockEService.id),
-      expectedStatus: 400,
-    },
-    {
-      error: gracePeriodDaysNotValid(10, 30, 90),
       expectedStatus: 400,
     },
     {

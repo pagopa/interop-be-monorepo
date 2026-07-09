@@ -41,7 +41,7 @@ import {
   eserviceMode,
   technology,
   type EServiceAttributeCertifiedDiscreteConfig,
-  GracePeriodDays,
+  type GracePeriodDays,
 } from "./eservice.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
@@ -217,7 +217,9 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
         scope: toEServiceDescriptorArchivingScopeV2(
           input.archivingSchedule.scope
         ),
-        gracePeriodDays: input.archivingSchedule.gracePeriodDays,
+        gracePeriodDays: toGracePeriodDaysV2(
+          input.archivingSchedule.gracePeriodDays
+        ),
       }
     : undefined,
   asyncExchangeCallbackInterface: input.asyncExchangeCallbackInterface

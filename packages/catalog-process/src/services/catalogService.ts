@@ -68,6 +68,7 @@ import {
   archivingScope,
   ArchivingScope,
   AsyncExchangeProperties,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -4646,7 +4647,7 @@ async function deleteInactiveDescriptorLogic(
 async function processDescriptorArchiving(
   descriptor: Descriptor,
   newState: DescriptorState,
-  gracePeriodDays: number,
+  gracePeriodDays: GracePeriodDays,
   scope: ArchivingScope = archivingScope.descriptor,
   requestDate: Date = new Date()
 ): Promise<Descriptor> {

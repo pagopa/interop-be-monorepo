@@ -20,6 +20,7 @@ import {
   operationForbidden,
   generateId,
   EServiceArchivingScheduledV2,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -27,7 +28,6 @@ import {
   eserviceArchivingWithActiveOrPendingDelegation,
   notValidEServiceState,
   gracePeriodDaysLowerThanDescriptor,
-  gracePeriodDaysNotValid,
 } from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
@@ -35,14 +35,13 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import { config } from "../../src/config/config.js";
 
 describe("schedule archiving of an EService", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
   const mockArchivingReason = "Test reason";
-  const mockGracePeriodDays = 30;
+  const mockGracePeriodDays: GracePeriodDays = 30;
 
   it.each([
     {
@@ -595,45 +594,4 @@ describe("schedule archiving of an EService", () => {
       )
     ).resolves.not.toThrow();
   });
-
-  it.each([
-    {
-      gracePeriodDays: config.gracePeriodArchivingEServiceDays.min - 1,
-      testCase: "lower than the minimum allowed",
-    },
-    {
-      gracePeriodDays: config.gracePeriodArchivingEServiceDays.max + 1,
-      testCase: "higher than the maximum allowed",
-    },
-  ])(
-    "should throw gracePeriodDaysNotValid if the requested gracePeriodDays is $testCase",
-    async ({ gracePeriodDays }) => {
-      const descriptor: Descriptor = {
-        ...mockDescriptor,
-        state: descriptorState.published,
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [descriptor],
-      };
-      await addOneEService(eservice);
-
-      await expect(
-        catalogService.scheduleEServiceArchiving(
-          eservice.id,
-          {
-            archivingReason: mockArchivingReason,
-            gracePeriodDays,
-          },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
-        )
-      ).rejects.toThrowError(
-        gracePeriodDaysNotValid(
-          gracePeriodDays,
-          config.gracePeriodArchivingEServiceDays.min,
-          config.gracePeriodArchivingEServiceDays.max
-        )
-      );
-    }
-  );
 });

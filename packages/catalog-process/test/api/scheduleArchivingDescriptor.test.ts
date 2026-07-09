@@ -21,7 +21,6 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
-  gracePeriodDaysNotValid,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import {
@@ -114,10 +113,6 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptor.state),
-      expectedStatus: 400,
-    },
-    {
-      error: gracePeriodDaysNotValid(10, 30, 90),
       expectedStatus: 400,
     },
   ])(
