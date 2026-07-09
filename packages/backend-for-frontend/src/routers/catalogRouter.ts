@@ -1061,6 +1061,27 @@ const catalogRouter = (
       }
     )
     .post(
+      "/eservices/:eServiceId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.approveDelegatedEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error approving delegated archiving request for eService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/eservices/:eServiceId/rejectDelegatedArchiving",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);

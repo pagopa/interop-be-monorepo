@@ -1,0 +1,26 @@
+meta {
+  name: Reject delegate archiving request for an E-Service
+  type: http
+  seq: 43
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eServiceId/rejectDelegatedArchiving
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+body:json {
+  {
+    "rejectionReason": "I do not approve this request"
+  }
+}

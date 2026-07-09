@@ -243,6 +243,8 @@ import {
   assertEServiceGracePeriodIsNotLowerThanDescriptors,
   assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
   assertDelegatedEserviceHasAtLeastOneArchivingRequests,
+  assertDelegatedArchivingRequestDelegationIsStillValid,
+  assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -3364,7 +3366,7 @@ export function catalogServiceBuilder(
       assertEServiceArchivable(eservice.data);
       assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
       assertGracePeriodDaysValid(seed.gracePeriodDays);
-      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+      assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
         eservice.data,
         seed.gracePeriodDays
       );
@@ -3417,6 +3419,22 @@ export function catalogServiceBuilder(
 
       assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
 
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId
+      );
+
       const updatedRequests = updateLatestActiveArchivingRequest(
         eservice.data.delegatedArchivingRequest ?? [],
         {
@@ -3466,6 +3484,16 @@ export function catalogServiceBuilder(
       assertEServiceArchivable(eservice.data);
       const latestActiveRequest = getLatestActiveArchivingRequest(
         eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
         eserviceId
       );
       assertEServiceGracePeriodIsNotLowerThanDescriptors(
@@ -3600,6 +3628,23 @@ export function catalogServiceBuilder(
       assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
         descriptor,
         eserviceId
+      );
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId,
+        descriptorId
       );
 
       assertDelegatedDescriptorHasActiveArchivingRequests(
@@ -3738,6 +3783,22 @@ export function catalogServiceBuilder(
       assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
         descriptor,
         eserviceId
+      );
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId,
+        descriptorId
       );
 
       assertDelegatedDescriptorHasActiveArchivingRequests(
