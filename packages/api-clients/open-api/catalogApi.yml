@@ -3753,8 +3753,7 @@ components:
         gracePeriodDays:
           type: integer
           format: int32
-          minimum: 30
-          maximum: 999999
+          enum: [30, 60, 90, 120]
     ArchivingScope:
       type: string
       description: Archiving Scope
@@ -3785,6 +3784,7 @@ components:
         gracePeriodDays:
           type: integer
           format: int32
+          enum: [30, 60, 90, 120]
       required:
         - archivingReason
         - gracePeriodDays
@@ -3796,6 +3796,7 @@ components:
         gracePeriodDays:
           type: integer
           format: int32
+          enum: [30, 60, 90, 120]
       required:
         - gracePeriodDays
     ForceTargetState:

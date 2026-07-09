@@ -13,6 +13,7 @@ import {
   EServiceRiskAnalysisFormV2,
   EServiceTechnologyV2,
   EServiceV2,
+  GracePeriodDaysV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -40,6 +41,7 @@ import {
   eserviceMode,
   technology,
   type EServiceAttributeCertifiedDiscreteConfig,
+  GracePeriodDays,
 } from "./eservice.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
@@ -79,6 +81,16 @@ export const toEServiceDescriptorStateV2 = (
       descriptorState.archivingSuspended,
       () => EServiceDescriptorStateV2.ARCHIVING_SUSPENDED
     )
+    .exhaustive();
+
+export const toGracePeriodDaysV2 = (
+  input: GracePeriodDays
+): GracePeriodDaysV2 =>
+  match(input)
+    .with(30, () => GracePeriodDaysV2.GRACE_PERIOD_30_DAYS)
+    .with(60, () => GracePeriodDaysV2.GRACE_PERIOD_60_DAYS)
+    .with(90, () => GracePeriodDaysV2.GRACE_PERIOD_90_DAYS)
+    .with(120, () => GracePeriodDaysV2.GRACE_PERIOD_120_DAYS)
     .exhaustive();
 
 export const toEServiceTechnologyV2 = (
@@ -205,7 +217,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
         scope: toEServiceDescriptorArchivingScopeV2(
           input.archivingSchedule.scope
         ),
-        gracePeriodDays: input.archivingSchedule.gracePeriodDays ?? 30,
+        gracePeriodDays: input.archivingSchedule.gracePeriodDays,
       }
     : undefined,
   asyncExchangeCallbackInterface: input.asyncExchangeCallbackInterface

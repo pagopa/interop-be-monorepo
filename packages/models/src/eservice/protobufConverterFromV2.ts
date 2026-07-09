@@ -16,6 +16,7 @@ import {
   EServiceTemplateVersionRefV2,
   type EServiceAttributeCertifiedDiscreteConfigV2,
   ArchivingScopeV2,
+  GracePeriodDaysV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -44,6 +45,7 @@ import {
   type EServiceAttributeCertifiedDiscreteConfig,
   ArchivingScope,
   archivingScope,
+  GracePeriodDays,
 } from "./eservice.js";
 import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 
@@ -78,6 +80,21 @@ export const fromEServiceDescriptorStateV2 = (
       return descriptorState.archiving;
     case EServiceDescriptorStateV2.ARCHIVING_SUSPENDED:
       return descriptorState.archivingSuspended;
+  }
+};
+
+export const fromGracePeriodDaysV2 = (
+  input: GracePeriodDaysV2
+): GracePeriodDays => {
+  switch (input) {
+    case GracePeriodDaysV2.GRACE_PERIOD_30_DAYS:
+      return 30;
+    case GracePeriodDaysV2.GRACE_PERIOD_60_DAYS:
+      return 60;
+    case GracePeriodDaysV2.GRACE_PERIOD_90_DAYS:
+      return 90;
+    case GracePeriodDaysV2.GRACE_PERIOD_120_DAYS:
+      return 120;
   }
 };
 

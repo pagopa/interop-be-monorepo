@@ -157,11 +157,21 @@ export const ArchivingScope = z.enum([
 ]);
 export type ArchivingScope = z.infer<typeof ArchivingScope>;
 
+export const gracePeriodDays = [30, 60, 90, 120] as const;
+export const GracePeriodDays = z.union(
+  gracePeriodDays.map((day) => z.literal(day)) as [
+    z.ZodLiteral<number>,
+    z.ZodLiteral<number>,
+    ...z.ZodLiteral<number>[],
+  ]
+);
+export type GracePeriodDays = z.infer<typeof GracePeriodDays>;
+
 export const ArchivingSchedule = z.object({
   archivableOn: z.coerce.date(),
   startedAt: z.coerce.date(),
   scope: ArchivingScope,
-  gracePeriodDays: z.number().int(),
+  gracePeriodDays: GracePeriodDays,
 });
 
 export type ArchivingSchedule = z.infer<typeof ArchivingSchedule>;

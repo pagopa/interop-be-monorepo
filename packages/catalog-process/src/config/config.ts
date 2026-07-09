@@ -41,25 +41,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
           .number()
           .default(3 * 1024 * 1024),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
-        GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS_MIN: z.coerce
-          .number()
-          .int()
-          .positive(),
-        GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS_MAX: z.coerce
-          .number()
-          .int()
-          .positive(),
       })
-      .refine(
-        (c) =>
-          c.GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS_MIN <
-          c.GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS_MAX,
-        {
-          message:
-            "GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS_MIN must be less than GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS_MAX",
-          path: ["GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS_MIN"],
-        }
-      )
       .transform((c) => ({
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
         maxFileSizeBytes: c.MAX_FILE_SIZE_BYTES,
@@ -67,10 +49,6 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
-        gracePeriodArchivingEServiceDays: {
-          min: c.GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS_MIN,
-          max: c.GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS_MAX,
-        },
       }))
   )
   .and(EServiceTemplateS3Config)

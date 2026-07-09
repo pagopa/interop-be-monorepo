@@ -228,7 +228,6 @@ import {
   assertIsNotDraftEservice,
   assertEServiceIsInArchiving,
   assertEServiceIsNotAlreadyArchived,
-  assertGracePeriodDaysValid,
   assertEServiceGracePeriodIsNotLowerThanDescriptors,
 } from "./validators.js";
 import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
@@ -1261,8 +1260,6 @@ export function catalogServiceBuilder(
       );
 
       assertEServiceArchivable(eservice.data);
-
-      assertGracePeriodDaysValid(body.gracePeriodDays);
 
       assertEServiceGracePeriodIsNotLowerThanDescriptors(
         eservice.data,
@@ -2477,8 +2474,6 @@ export function catalogServiceBuilder(
       );
 
       assertDescriptorArchivable(descriptor, eservice.data);
-
-      assertGracePeriodDaysValid(body.gracePeriodDays);
 
       const newState =
         descriptor.state === descriptorState.suspended
