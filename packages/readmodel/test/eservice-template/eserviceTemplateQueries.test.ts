@@ -14,6 +14,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import { upsertEServiceTemplate } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { eserviceTemplateReadModelService } from "./eserviceTemplateUtils.js";

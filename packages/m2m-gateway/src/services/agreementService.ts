@@ -1,10 +1,11 @@
-import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   delegationApi,
   m2mGatewayApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
+import { isValidFile } from "pagopa-interop-commons";
 import {
   AgreementDocumentId,
   AgreementId,
@@ -13,9 +14,18 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 
-import { isValidFile } from "pagopa-interop-commons";
+import {
+  toGetAgreementsApiQueryParams,
+  toGetPurposesApiQueryParamsForAgreement,
+  toM2MGatewayApiAgreement,
+  toM2MGatewayApiDocument,
+} from "../api/agreementApiConverter.js";
+import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
+import { agreementContractNotFound } from "../model/errors.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
+import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
@@ -26,16 +36,6 @@ import {
   assertAgreementIsPending,
   assertAgreementIsSuspended,
 } from "../utils/validators/agreementValidators.js";
-import {
-  toGetAgreementsApiQueryParams,
-  toGetPurposesApiQueryParamsForAgreement,
-  toM2MGatewayApiAgreement,
-  toM2MGatewayApiDocument,
-} from "../api/agreementApiConverter.js";
-import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
-import { config } from "../config/config.js";
-import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
-import { agreementContractNotFound } from "../model/errors.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 

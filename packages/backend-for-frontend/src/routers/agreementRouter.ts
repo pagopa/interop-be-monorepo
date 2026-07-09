@@ -7,7 +7,9 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
+import { AgreementService } from "../services/agreementService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import {
   activateAgreementErrorMapper,
@@ -16,7 +18,6 @@ import {
   getAgreementSignedContractErrorMapper,
   getAgreementsErrorMapper,
 } from "../utilities/errorMappers.js";
-import { AgreementService } from "../services/agreementService.js";
 
 const agreementRouter = (
   ctx: ZodiosContext,

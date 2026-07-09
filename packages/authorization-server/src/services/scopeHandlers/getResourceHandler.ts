@@ -10,6 +10,12 @@ import {
   isInteractionStateAllowedForScope,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
+
+import type {
+  AsyncGeneratedTokenData,
+  ScopeHandlerContext,
+} from "../asyncTokenService.js";
+
 import {
   asyncClientAssertionClaimsValidationFailed,
   asyncExchangeNotEnabled,
@@ -22,19 +28,15 @@ import {
   resourceAvailableTimeExpired,
 } from "../../model/domain/errors.js";
 import {
+  readInteraction,
+  updateInteractionState,
+} from "../../utilities/interactionsUtils.js";
+import {
   logTokenGenerationInfo,
   publishAudit,
   retrieveAsyncCatalogEntry,
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
-import {
-  readInteraction,
-  updateInteractionState,
-} from "../../utilities/interactionsUtils.js";
-import type {
-  AsyncGeneratedTokenData,
-  ScopeHandlerContext,
-} from "../asyncTokenService.js";
 
 export const handleGetResource = async (
   ctx: ScopeHandlerContext

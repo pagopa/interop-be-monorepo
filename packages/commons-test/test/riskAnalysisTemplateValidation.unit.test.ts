@@ -1,5 +1,3 @@
-import { describe, expect, it } from "vitest";
-import { TenantKind, tenantKind } from "pagopa-interop-models";
 import {
   incompatiblePurposeTemplatePersonalDataError,
   malformedRiskAnalysisTemplateFieldValueOrSuggestionError,
@@ -13,6 +11,9 @@ import {
   unexpectedRiskAnalysisTemplateRulesVersionError,
   validatePurposeTemplateRiskAnalysis,
 } from "pagopa-interop-commons";
+import { TenantKind, tenantKind } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import {
   getMockValidRiskAnalysisFormTemplate,
   validatedRiskAnalysisTemplate2_0_Private,

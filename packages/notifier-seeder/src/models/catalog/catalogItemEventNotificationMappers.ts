@@ -13,6 +13,8 @@ import {
   eserviceMode,
   technology,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { CatalogAttributeValueV1 } from "../../protobuf-models/v1/events.js";
 import {
   CatalogDescriptorV1Notification,
@@ -20,7 +22,6 @@ import {
   CatalogItemRiskAnalysisV1Notification,
   CatalogItemV1Notification,
 } from "./catalogItemEventNotification.js";
-import { match } from "ts-pattern";
 
 const toCatalogItemTechnologyV1 = (input: Technology): string =>
   match(input)

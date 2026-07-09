@@ -1,4 +1,9 @@
 import {
+  validateAsyncClaimsForScope,
+  validatePlatformState,
+  verifyClientAssertionSignature,
+} from "pagopa-interop-client-assertion-validation";
+import {
   clientKindTokenGenStates,
   genericInternalError,
   interactionState,
@@ -6,11 +11,12 @@ import {
   unsafeBrandId,
   ProducerKeychainId,
 } from "pagopa-interop-models";
-import {
-  validateAsyncClaimsForScope,
-  validatePlatformState,
-  verifyClientAssertionSignature,
-} from "pagopa-interop-client-assertion-validation";
+
+import type {
+  AsyncGeneratedTokenData,
+  ScopeHandlerContext,
+} from "../asyncTokenService.js";
+
 import {
   asyncClientAssertionClaimsValidationFailed,
   clientAssertionSignatureValidationFailed,
@@ -21,20 +27,16 @@ import {
   entityNumberExceedsMaxResultSet,
 } from "../../model/domain/errors.js";
 import {
+  readInteraction,
+  updateInteractionState,
+} from "../../utilities/interactionsUtils.js";
+import {
   logTokenGenerationInfo,
   publishProducerAudit,
   retrieveAsyncCatalogEntry,
   retrieveProducerKey,
   retrieveTokenGenStatesEntryByPurposeId,
 } from "../../utilities/tokenServiceHelpers.js";
-import {
-  readInteraction,
-  updateInteractionState,
-} from "../../utilities/interactionsUtils.js";
-import type {
-  AsyncGeneratedTokenData,
-  ScopeHandlerContext,
-} from "../asyncTokenService.js";
 
 export const handleCallbackInvocation = async (
   ctx: ScopeHandlerContext

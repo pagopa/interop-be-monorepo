@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   DescriptorId,
   EServiceDocumentId,
@@ -11,6 +10,8 @@ import {
   technology,
   toEServiceV2,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
 
 const descriptorId: DescriptorId = generateId();

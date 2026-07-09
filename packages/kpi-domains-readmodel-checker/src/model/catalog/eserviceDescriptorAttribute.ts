@@ -1,6 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { eserviceDescriptorAttributeInReadmodelCatalog } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const EserviceDescriptorAttributeSchema = createSelectSchema(
   eserviceDescriptorAttributeInReadmodelCatalog

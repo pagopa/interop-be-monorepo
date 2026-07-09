@@ -1,15 +1,16 @@
+import { HtmlTemplateService, Logger, logger } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EmailNotificationMessagePayload,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { HtmlTemplateService, Logger, logger } from "pagopa-interop-commons";
 import { isStale } from "pagopa-interop-notification-commons";
 import {
   schedulableEventType,
   ScheduledNotificationRow,
 } from "pagopa-interop-scheduled-notification-db-models";
 import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { handleEserviceArchivingScheduledReminderEmail } from "./eservices/handleEserviceArchivingScheduledReminderEmail.js";
 import { handleEserviceDescriptorArchivingScheduledReminderEmail } from "./eservices/handleEserviceDescriptorArchivingScheduledReminderEmail.js";

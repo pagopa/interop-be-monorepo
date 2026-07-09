@@ -1,4 +1,3 @@
-import request from "supertest";
 import { catalogApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import {
@@ -13,7 +12,9 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
+import request from "supertest";
 import { describe, vi, it, expect } from "vitest";
+
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,

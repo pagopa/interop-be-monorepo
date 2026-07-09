@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
 import {
   EService,
   Purpose,
@@ -20,17 +19,19 @@ import {
   unsafeBrandId,
   purposeVersionState,
 } from "pagopa-interop-models";
-import {
-  isOverQuota,
-  getUpdatedQuotas,
-} from "../../src/services/validators.js";
+import { describe, it, expect, vi, beforeEach, afterEach, Mock } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   descriptorNotFound,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
 import { retrieveActiveAgreement } from "../../src/services/purposeService.js";
-import { config } from "../../src/config/config.js";
+import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
+import {
+  isOverQuota,
+  getUpdatedQuotas,
+} from "../../src/services/validators.js";
 
 vi.mock("../../src/services/purposeService.js", () => ({
   retrieveActiveAgreement: vi.fn(),

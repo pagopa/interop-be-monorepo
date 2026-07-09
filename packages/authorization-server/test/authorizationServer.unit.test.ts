@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import {} from "pagopa-interop-client-assertion-validation";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -8,7 +10,6 @@ import {
   writeTokenGenStatesApiClient,
   writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ClientId,
   clientKindTokenGenStates,
@@ -20,18 +21,18 @@ import {
   TokenGenerationStatesConsumerClient,
   UserId,
 } from "pagopa-interop-models";
-import {} from "pagopa-interop-client-assertion-validation";
-import { genericLogger } from "pagopa-interop-commons";
-import {
-  fallbackAudit,
-  retrieveKey,
-} from "../src/utilities/tokenServiceHelpers.js";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { config } from "../src/config/config.js";
 import {
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
-import { config } from "../src/config/config.js";
+import {
+  fallbackAudit,
+  retrieveKey,
+} from "../src/utilities/tokenServiceHelpers.js";
 import { dynamoDBClient, fileManager } from "./integrationUtils.js";
 import {
   getMockAuditMessage,
