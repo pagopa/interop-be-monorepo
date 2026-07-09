@@ -493,6 +493,60 @@ async function validateEServiceExistence(
 }
 
 /**
+ * Validate the existence of the e-services in the disassociation flow.
+ * Variant of `validateEServiceExistence` without the `personalData` check:
+ * the purpose template's `handlesPersonalData` flag may drift after the link is
+ * created (while the purpose template is still in Draft state), and blocking
+ * the unlink on such drift would leave the creator unable to tear down the link.
+ */
+async function validateEServiceExistenceForDisassociation(
+  eserviceIds: EServiceId[],
+  readModelService: ReadModelServiceSQL
+): Promise<{
+  validationIssues: PurposeTemplateValidationIssue[];
+  validEservices: EService[];
+}> {
+  const eserviceResults = await Promise.allSettled(
+    eserviceIds.map(
+      async (eserviceId) => await readModelService.getEServiceById(eserviceId)
+    )
+  );
+
+  return eserviceResults.reduce(
+    (acc, result, index) =>
+      match(result)
+        .with({ status: "fulfilled" }, (res) => {
+          if (!res.value) {
+            return {
+              ...acc,
+              validationIssues: [
+                ...acc.validationIssues,
+                eserviceNotFound(eserviceIds[index]),
+              ],
+            };
+          }
+
+          return {
+            ...acc,
+            validEservices: [...acc.validEservices, res.value],
+          };
+        })
+        .with({ status: "rejected" }, (res) => ({
+          ...acc,
+          validationIssues: [
+            ...acc.validationIssues,
+            unexpectedEServiceError(res.reason.message, eserviceIds[index]),
+          ],
+        }))
+        .exhaustive(),
+    {
+      validationIssues: new Array<PurposeTemplateValidationIssue>(),
+      validEservices: new Array<EService>(),
+    }
+  );
+}
+
+/**
  * Helper function to validate eservice associations with a purpose template
  *
  * @param validEservices the list of valid eservices
@@ -908,11 +962,11 @@ export async function validateEservicesDisassociations(
     Array<{ eservice: EService; descriptorId: DescriptorId }>
   >
 > {
-  const { validationIssues, validEservices } = await validateEServiceExistence(
-    eserviceIds,
-    purposeTemplate,
-    readModelService
-  );
+  const { validationIssues, validEservices } =
+    await validateEServiceExistenceForDisassociation(
+      eserviceIds,
+      readModelService
+    );
 
   if (validationIssues.length > 0) {
     throw disassociationEServicesFromPurposeTemplateFailed(
