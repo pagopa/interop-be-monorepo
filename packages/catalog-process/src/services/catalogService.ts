@@ -254,6 +254,7 @@ import {
   appendArchivingRequest,
   getLatestActiveArchivingRequest,
   getLatestArchivingRequest,
+  hasActiveArchivingRequest,
   updateLatestActiveArchivingRequest,
 } from "../utilities/archivingRequests.js";
 
@@ -3639,10 +3640,7 @@ export function catalogServiceBuilder(
     async internalArchiveDelegatedArchivingRequest(
       eserviceId: EServiceId,
       seed: InternalArchiveDelegatedArchivingRequestSeed,
-      {
-        correlationId,
-        logger,
-      }: WithLogger<AppContext<InternalAuthData>>
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
         `Internal archiving delegated archiving request for EService ${eserviceId}`
@@ -3650,14 +3648,6 @@ export function catalogServiceBuilder(
 
       const eservice = await retrieveEService(eserviceId, readModelService);
       const rejectionReason = seed.reason;
-
-      const hasActiveArchivingRequest = (
-        requests: Array<{ acceptedAt?: Date; rejectedAt?: Date }> | undefined
-      ): boolean =>
-        (requests ?? []).some(
-          (request) =>
-            request.acceptedAt === undefined && request.rejectedAt === undefined
-        );
 
       if (seed.descriptorId) {
         const descriptorId = unsafeBrandId<DescriptorId>(seed.descriptorId);
