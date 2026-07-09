@@ -28,7 +28,8 @@ import {
 } from "../model/domain/apiConverter.js";
 import { AgreementService } from "../services/agreementService.js";
 import {
-  activateAgreementErrorMapper,
+  approveAgreementErrorMapper,
+  unsuspendAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
   archiveAgreementErrorMapper,
   cloneAgreementErrorMapper,
@@ -97,14 +98,14 @@ const agreementRouter = (
       }
     })
 
-    .post("/agreements/:agreementId/activate", async (req, res) => {
+    .post("/agreements/:agreementId/approve", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const { data: agreement, metadata } =
-          await agreementService.activateAgreement(
+          await agreementService.approveAgreement(
             {
               agreementId: unsafeBrandId(req.params.agreementId),
               delegationId: req.body.delegationId
@@ -124,7 +125,40 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          activateAgreementErrorMapper,
+          approveAgreementErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/agreements/:agreementId/unsuspend", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: agreement, metadata } =
+          await agreementService.unsuspendAgreement(
+            {
+              agreementId: unsafeBrandId(req.params.agreementId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          unsuspendAgreementErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
