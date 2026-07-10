@@ -11,7 +11,6 @@ import {
   ClientKind,
   ClientKindTokenGenStates,
   clientKindTokenGenStates,
-  Descriptor,
   DescriptorId,
   DescriptorState,
   descriptorState,
@@ -96,15 +95,6 @@ export function getLastAgreement(agreements: Agreement[]): Agreement {
       (agreement1, agreement2) =>
         agreement2.createdAt.getTime() - agreement1.createdAt.getTime()
     )[0];
-}
-
-export function getValidDescriptors(descriptors: Descriptor[]): Descriptor[] {
-  return descriptors.filter(
-    (descriptor) =>
-      descriptor.state === descriptorState.published ||
-      descriptor.state === descriptorState.suspended ||
-      descriptor.state === descriptorState.deprecated
-  );
 }
 
 function getIdFromPlatformStatesPK<
@@ -530,12 +520,14 @@ export async function compareReadModelEServicesWithPlatformStates({
       differencesCount++;
       logger.error(`Read model e-service not found for id: ${id}`);
     } else {
-      // Descriptors with a state other than deprecated, published or suspended are not considered because they are not expected to be in the platform-states
+      // Descriptors with a state other than deprecated, published, suspended, archiving or archivingSuspended are not considered because they are not expected to be in the platform-states
       const shouldPlatformStatesCatalogEntriesExist = eservice.descriptors.some(
         (d) =>
           d.state === descriptorState.deprecated ||
           d.state === descriptorState.published ||
-          d.state === descriptorState.suspended
+          d.state === descriptorState.suspended ||
+          d.state === descriptorState.archiving ||
+          d.state === descriptorState.archivingSuspended
       );
       const platformStatesEntries = platformStatesEServiceById.get(id);
 
@@ -577,7 +569,7 @@ export async function compareReadModelEServicesWithPlatformStates({
 
         if (platformStatesEntry && !readModelEntry) {
           logger.error(
-            `platform-states entry with ${platformStatesEntry.PK} should not be in the table because the descriptor state is not published, suspended or deprecated`
+            `platform-states entry with ${platformStatesEntry.PK} should not be in the table because the descriptor state is not published, suspended, deprecated, archiving or archivingSuspended`
           );
           differencesCount++;
         }
@@ -910,7 +902,9 @@ export const clientKindToTokenGenerationStatesClientKind = (
     .exhaustive();
 
 const descriptorStateToItemState = (state: DescriptorState): ItemState =>
-  state === descriptorState.published || state === descriptorState.deprecated
+  state === descriptorState.published ||
+  state === descriptorState.deprecated ||
+  state === descriptorState.archiving
     ? itemState.active
     : itemState.inactive;
 

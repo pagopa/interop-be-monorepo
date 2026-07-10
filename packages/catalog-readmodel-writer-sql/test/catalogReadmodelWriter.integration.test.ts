@@ -1703,6 +1703,7 @@ export const getMockDescriptor = (): Descriptor => ({
   dailyCallsTotal: 1000,
   createdAt: new Date(),
   serverUrls: ["pagopa.it"],
+  serverUrlsDescriptions: [],
   agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],

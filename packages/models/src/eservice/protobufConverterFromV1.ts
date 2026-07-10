@@ -153,6 +153,8 @@ export const fromDescriptorV1 = (input: EServiceDescriptorV1): Descriptor => {
     suspendedAt: bigIntToDate(input.suspendedAt),
     deprecatedAt: bigIntToDate(input.deprecatedAt),
     archivedAt: bigIntToDate(input.archivedAt),
+    // serverUrlsDescriptions is not present in V1 events
+    serverUrlsDescriptions: [],
   };
 };
 
