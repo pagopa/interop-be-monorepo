@@ -58,6 +58,8 @@ const {
   M2M_ADMIN_ROLE,
   INTERNAL_ROLE,
   SUPPORT_ROLE,
+  REVIEWER_ROLE,
+  VIEWER_ROLE,
 } = authRole;
 
 const agreementRouter = (
@@ -197,6 +199,7 @@ const agreementRouter = (
             SUPPORT_ROLE,
             M2M_ADMIN_ROLE,
             M2M_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const document = await agreementService.getAgreementConsumerDocument(
@@ -381,6 +384,8 @@ const agreementRouter = (
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const agreements = await agreementService.getAgreements(
@@ -423,6 +428,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const producers = await agreementService.getAgreementsProducers(
@@ -453,6 +459,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const consumers = await agreementService.getAgreementsConsumers(
@@ -485,6 +492,7 @@ const agreementRouter = (
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: agreement, metadata } =
@@ -735,6 +743,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const eservices = await agreementService.getAgreementsEServices(
@@ -766,7 +775,7 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
           const result = await agreementService.verifyTenantCertifiedAttributes(
             {

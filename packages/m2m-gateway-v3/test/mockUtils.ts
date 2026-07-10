@@ -182,6 +182,7 @@ export const testToM2mGatewayApiEService = (
   isClientAccessDelegable: eservice.isClientAccessDelegable,
   templateId: eservice.templateId,
   personalData: eservice.personalData,
+  archivingReason: eservice.archivingReason,
   asyncExchange: eservice.asyncExchange,
 });
 

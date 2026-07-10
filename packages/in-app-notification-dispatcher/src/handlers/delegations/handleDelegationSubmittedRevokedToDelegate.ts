@@ -7,12 +7,12 @@ import {
 import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   getNotificationRecipients,
   retrieveEservice,
   retrieveTenant,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 type DelegationSubmittedRevokedToDelegateEventType =
   | "ProducerDelegationSubmitted"

@@ -35,6 +35,8 @@ describe("API /producerKeychains/eservices/{eserviceId}/flags authorization test
     authRole.SUPPORT_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.REVIEWER_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

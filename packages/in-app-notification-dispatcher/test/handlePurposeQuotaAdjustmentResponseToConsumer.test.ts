@@ -16,10 +16,14 @@ import {
   toPurposeV2,
   purposeVersionState,
 } from "pagopa-interop-models";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  getNotificationRecipients,
+  tenantNotFound,
+  eserviceNotFound,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 import { handlePurposeQuotaAdjustmentResponseToConsumer } from "../src/handlers/purposes/handlePurposeQuotaAdjustmentResponseToConsumer.js";
-import { tenantNotFound, eserviceNotFound } from "../src/models/errors.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+
 import {
   addOneEService,
   addOnePurpose,

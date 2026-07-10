@@ -25,6 +25,7 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   asyncExchangeBulkNotAllowedForSoap,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   eServiceDescriptorNotFound,
@@ -142,6 +143,10 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     },
     {
       error: asyncExchangeBulkNotAllowedForSoap(mockEService.id, descriptor.id),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

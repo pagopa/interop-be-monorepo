@@ -23,7 +23,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
 import { handleTenantCertifiedAttributeAssigned } from "../src/handlers/tenants/handleTenantCertifiedAttributeAssigned.js";
-import { attributeNotFound } from "../src/models/errors.js";
+import { attributeNotFound } from "pagopa-interop-notification-commons";
 import {
   addOneAttribute,
   addOneTenant,
@@ -222,7 +222,6 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
           expect(message.email.body).toContain(targetTenant.name);
         })
         .exhaustive();
-      expect(message.email.body).toContain(attribute.name);
       expect(message.email.body).toContain(attribute.name);
     });
   });

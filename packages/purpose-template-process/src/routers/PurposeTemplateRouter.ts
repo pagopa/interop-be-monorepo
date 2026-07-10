@@ -87,6 +87,7 @@ const purposeTemplateRouter = (
     SECURITY_ROLE,
     SUPPORT_ROLE,
     INTERNAL_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   purposeTemplateRouter
@@ -100,6 +101,7 @@ const purposeTemplateRouter = (
           M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const {
@@ -177,6 +179,7 @@ const purposeTemplateRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { creatorName, offset, limit } = req.query;
@@ -209,6 +212,7 @@ const purposeTemplateRouter = (
           M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: purposeTemplate, metadata } =

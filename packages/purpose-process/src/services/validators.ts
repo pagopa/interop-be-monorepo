@@ -1,5 +1,10 @@
-import { purposeApi } from "pagopa-interop-api-clients";
 import {
+  purposeApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
+import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
+import {
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   Ownership,
   ownership,
@@ -7,9 +12,11 @@ import {
   RiskAnalysisValidatedForm,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
+  userRole,
   validateRiskAnalysis,
 } from "pagopa-interop-commons";
 import {
+  CorrelationId,
   Delegation,
   DelegationId,
   delegationKind,
@@ -25,11 +32,15 @@ import {
   purposeVersionState,
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswer,
+  Tenant,
   TenantId,
   tenantKind,
   TenantKind,
-  tenantAttributeType,
   RiskAnalysisFormId,
+  PurposeId,
+  ReviewerWorkflow,
+  riskAnalysisSigningState,
+  UserId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -40,10 +51,12 @@ import {
   invalidPersonalData,
   invalidPurposeTenantKind,
   missingFreeOfChargeReason,
+  missingSelfcareId,
   purposeFromTemplateCannotBeModified,
   purposeNotInDraftState,
   riskAnalysisAnswerNotInSuggestValues,
   riskAnalysisContainsNotEditableAnswers,
+  riskAnalysisFormCannotBeUpdated,
   riskAnalysisMissingExpectedFieldError,
   riskAnalysisTenantKindMismatch,
   riskAnalysisValidationFailed,
@@ -55,7 +68,9 @@ import {
   tenantIsNotTheProducer,
   tenantNotAllowed,
   tenantNotFound,
+  userWithoutReviewerPrivileges,
 } from "../model/domain/errors.js";
+import { config } from "../config/config.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
 import {
   retrieveActiveAgreement,
@@ -135,7 +150,7 @@ export const assertConsistentFreeOfCharge = (
   }
 };
 
-const assertRequesterIsConsumer = (
+export const assertRequesterIsConsumer = (
   purpose: Pick<Purpose, "consumerId">,
   authData: Pick<UIAuthData, "organizationId">
 ): void => {
@@ -284,35 +299,11 @@ export async function getUpdatedQuotas(
   consumerId: TenantId,
   readModelService: ReadModelServiceSQL
 ): Promise<UpdatedQuotas> {
-  const allPurposes = await readModelService.getAllPurposes({
-    eservicesIds: [eservice.id],
-    states: [purposeVersionState.active],
-    excludeDraft: true,
-  });
-
-  const consumerPurposes = allPurposes.filter(
-    (p) => p.consumerId === consumerId
-  );
-
-  const agreement = await retrieveActiveAgreement(
-    eservice.id,
-    consumerId,
-    readModelService
-  );
-
-  const getActiveVersions = (purposes: Purpose[]): PurposeVersion[] =>
-    purposes
-      .flatMap((p) => p.versions)
-      .filter((v) => v.state === purposeVersionState.active);
-
-  const consumerActiveVersions = getActiveVersions(consumerPurposes);
-  const allPurposesActiveVersions = getActiveVersions(allPurposes);
-
-  const aggregateDailyCalls = (versions: PurposeVersion[]): number =>
-    versions.reduce((acc, v) => acc + v.dailyCalls, 0);
-
-  const consumerLoadRequestsSum = aggregateDailyCalls(consumerActiveVersions);
-  const allPurposesRequestsSum = aggregateDailyCalls(allPurposesActiveVersions);
+  const [{ consumerDailyCalls, totalDailyCalls }, agreement] =
+    await Promise.all([
+      readModelService.getActiveVersionsDailyCalls(eservice.id, consumerId),
+      retrieveActiveAgreement(eservice.id, consumerId, readModelService),
+    ]);
 
   const currentDescriptor = eservice.descriptors.find(
     (d) => d.id === agreement.descriptorId
@@ -327,21 +318,21 @@ export async function getUpdatedQuotas(
     throw tenantNotFound(consumerId);
   }
 
-  const consumerCertifiedAttributesIds = new Set(
-    tenant.attributes
-      .filter(
-        (a) =>
-          a.type === tenantAttributeType.CERTIFIED && !a.revocationTimestamp
-      )
-      .map((a) => a.id)
+  const certifiedDiscreteEnabled = isFeatureFlagEnabled(
+    config,
+    "featureFlagAttributeCertifiedDiscrete"
   );
 
   const maxDailyCallsPerConsumer =
     currentDescriptor.attributes.certified.flat().reduce((max, current) => {
-      if (!consumerCertifiedAttributesIds.has(current.id)) {
+      if (!current.dailyCallsPerConsumer) {
         return max;
       }
-      if (!current.dailyCallsPerConsumer) {
+      if (
+        !matchesCertifiedDescriptorAttribute(current, tenant.attributes, {
+          certifiedDiscreteEnabled,
+        })
+      ) {
         return max;
       }
       return Math.max(max, current.dailyCallsPerConsumer);
@@ -350,8 +341,8 @@ export async function getUpdatedQuotas(
   const maxDailyCallsTotal = currentDescriptor.dailyCallsTotal;
 
   return {
-    currentConsumerCalls: consumerLoadRequestsSum,
-    currentTotalCalls: allPurposesRequestsSum,
+    currentConsumerCalls: consumerDailyCalls,
+    currentTotalCalls: totalDailyCalls,
     maxDailyCallsPerConsumer,
     maxDailyCallsTotal,
   };
@@ -816,3 +807,105 @@ export function validateRiskAnalysisAgainstTemplateOrThrow(
     eservicePersonalData
   );
 }
+
+export function assertRiskAnalysisFormEditableInCurrentReviewMode(
+  purposeId: PurposeId,
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined,
+  reviewerWorkflow: ReviewerWorkflow
+): void {
+  if (
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.draft &&
+    reviewerWorkflow.signingState !== riskAnalysisSigningState.rejected &&
+    riskAnalysisFormInputDiffersFromPrevious(inputForm, existingForm)
+  ) {
+    throw riskAnalysisFormCannotBeUpdated(purposeId);
+  }
+}
+
+function riskAnalysisFormInputDiffersFromPrevious(
+  inputForm: purposeApi.RiskAnalysisFormSeed | undefined,
+  existingForm: PurposeRiskAnalysisForm | undefined
+): boolean {
+  // If no existing form and input form exists, adding one counts as a change
+  if (!existingForm && inputForm) {
+    return true;
+  }
+
+  // If input form is undefined, the existing form remains unchanged
+  if (!inputForm) {
+    return false;
+  }
+
+  // Both exist - compare them after normalizing to same structure
+  if (inputForm && existingForm) {
+    if (inputForm.version !== existingForm.version) {
+      return true;
+    }
+
+    // Normalize existing form to match input form structure
+    const existingAnswers = {
+      ...Object.fromEntries(
+        existingForm.singleAnswers.map(({ key, value }) => [
+          key,
+          value ? [value] : [],
+        ])
+      ),
+      ...Object.fromEntries(
+        existingForm.multiAnswers.map(({ key, values }) => [key, values])
+      ),
+    };
+
+    // Sort both structures by key to make comparison order-independent
+    const sortedInputAnswers = Object.fromEntries(
+      Object.entries(inputForm.answers).sort(([a], [b]) => a.localeCompare(b))
+    );
+    const sortedExistingAnswers = Object.fromEntries(
+      Object.entries(existingAnswers).sort(([a], [b]) => a.localeCompare(b))
+    );
+
+    return (
+      JSON.stringify(sortedInputAnswers) !==
+      JSON.stringify(sortedExistingAnswers)
+    );
+  }
+
+  return false;
+}
+
+export function assertTenantHasSelfcareId(
+  tenant: Tenant
+): asserts tenant is Tenant & { selfcareId: string } {
+  if (!tenant.selfcareId) {
+    throw missingSelfcareId(tenant.id);
+  }
+}
+
+export const assertUserSelfcareReviewerPrivileges = async ({
+  selfcareId,
+  consumerId,
+  selfcareV2InstitutionClient,
+  userIdToCheck,
+  correlationId,
+}: {
+  selfcareId: string;
+  consumerId: TenantId;
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
+  userIdToCheck: UserId;
+  correlationId: CorrelationId;
+}): Promise<void> => {
+  const users =
+    await selfcareV2InstitutionClient.getInstitutionUsersByProductUsingGET({
+      params: { institutionId: selfcareId },
+      queries: {
+        userId: userIdToCheck,
+        productRoles: userRole.REVIEWER_ROLE,
+      },
+      headers: {
+        "X-Correlation-Id": correlationId,
+      },
+    });
+  if (users.length === 0) {
+    throw userWithoutReviewerPrivileges(consumerId, userIdToCheck);
+  }
+};

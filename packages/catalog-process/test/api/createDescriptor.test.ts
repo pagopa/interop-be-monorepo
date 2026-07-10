@@ -23,6 +23,7 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   asyncExchangeBulkNotAllowedForSoap,
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   draftDescriptorAlreadyExists,
@@ -158,6 +159,10 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     },
     {
       error: asyncExchangeBulkNotAllowedForSoap(eservice.id, newDescriptor.id),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

@@ -1,13 +1,14 @@
 import {
-  CommonHTTPServiceConfig,
-  FileManagerConfig,
-  EventStoreConfig,
-  S3Config,
   ApplicationAuditProducerConfig,
-  ReadModelSQLDbConfig,
+  CommonHTTPServiceConfig,
+  EventStoreConfig,
   FeatureFlagAgreementApprovalPolicyUpdateConfig,
   FeatureFlagAsyncExchangeConfig,
+  FeatureFlagAttributeCertifiedDiscreteConfig,
   FeatureFlagTenantKindInRiskAnalysisConfig,
+  FileManagerConfig,
+  ReadModelSQLDbConfig,
+  S3Config,
   TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
@@ -28,6 +29,7 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(S3Config)
   .and(EventStoreConfig)
   .and(FeatureFlagAgreementApprovalPolicyUpdateConfig)
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig)
   .and(TenantKindHistoryDBConfig)
   .and(FeatureFlagTenantKindInRiskAnalysisConfig)
   .and(
@@ -39,6 +41,10 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
           .number()
           .default(3 * 1024 * 1024),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
+        GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS: z.coerce
+          .number()
+          .int()
+          .positive(),
       })
       .transform((c) => ({
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
@@ -47,6 +53,8 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
+        gracePeriodArchivingEServiceDays:
+          c.GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS,
       }))
   )
   .and(EServiceTemplateS3Config)
