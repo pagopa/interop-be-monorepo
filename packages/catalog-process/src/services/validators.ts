@@ -29,6 +29,7 @@ import {
   eserviceMode,
   EServiceTemplateId,
   getEServiceAttributeDiscreteConfig,
+  GracePeriodDays,
   operationForbidden,
   RiskAnalysisId,
   technology,
@@ -85,6 +86,7 @@ import {
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
 import { catalogApi } from "pagopa-interop-api-clients";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -927,20 +929,29 @@ export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
 
 export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
   eservice: EService,
-  gracePeriodDays: number
+  gracePeriodDays: GracePeriodDays
 ): void {
+  const today = new Date();
+  const { archivableOn: requestedArchivableOn } = calculateArchivableOn(
+    today,
+    gracePeriodDays
+  );
   for (const descriptor of eservice.descriptors) {
     const descriptorGracePeriodDays =
       descriptor.archivingSchedule?.gracePeriodDays;
-    if (
-      descriptorGracePeriodDays !== undefined &&
-      descriptorGracePeriodDays > gracePeriodDays
-    ) {
+    if (descriptorGracePeriodDays === undefined) {
+      continue;
+    }
+    const { archivableOn: expectedArchivableOn } = calculateArchivableOn(
+      today,
+      descriptorGracePeriodDays
+    );
+    if (requestedArchivableOn < expectedArchivableOn) {
       throw gracePeriodDaysLowerThanDescriptor(
         eservice.id,
         descriptor.id,
-        gracePeriodDays,
-        descriptorGracePeriodDays
+        requestedArchivableOn,
+        expectedArchivableOn
       );
     }
   }

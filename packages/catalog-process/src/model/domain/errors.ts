@@ -1,4 +1,7 @@
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidationIssue,
+  dateAtRomeZone,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
@@ -780,11 +783,11 @@ export function eServiceAlreadyArchived(
 export function gracePeriodDaysLowerThanDescriptor(
   eserviceId: EServiceId,
   descriptorId: DescriptorId,
-  gracePeriodDays: number,
-  descriptorGracePeriodDays: number
+  requestedArchivableOn: Date,
+  expectedArchivableOn: Date
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Grace period days ${gracePeriodDays} for EService ${eserviceId} cannot be lower than the grace period days ${descriptorGracePeriodDays} already scheduled for Descriptor ${descriptorId}`,
+    detail: `Requested archiving date ${dateAtRomeZone(requestedArchivableOn)} for EService ${eserviceId} cannot be lower than expected archiving date ${dateAtRomeZone(expectedArchivableOn)} already scheduled for Descriptor ${descriptorId}`,
     code: "gracePeriodDaysLowerThanDescriptor",
     title: "Grace period days lower than descriptor",
   });
