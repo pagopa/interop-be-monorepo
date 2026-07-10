@@ -3156,6 +3156,10 @@ components:
           type: array
           items:
             type: string
+        serverUrlsDescriptions:
+          type: array
+          items:
+            type: string
         interfaceTemplateMetadata:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
     UpdateEServiceDescriptorDocumentSeed:
@@ -3378,6 +3382,19 @@ components:
           format: uuid
         interfaceMetadata:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
+    TemplateInstanceInterfaceServerUrlSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
     TemplateInstanceInterfaceRESTSeed:
       type: object
       additionalProperties: false
@@ -3400,8 +3417,7 @@ components:
         serverUrls:
           type: array
           items:
-            type: string
-            format: uri
+            $ref: "#/components/schemas/TemplateInstanceInterfaceServerUrlSeed"
     TemplateInstanceInterfaceSOAPSeed:
       type: object
       additionalProperties: false
@@ -3411,8 +3427,7 @@ components:
         serverUrls:
           type: array
           items:
-            type: string
-            format: uri
+            $ref: "#/components/schemas/TemplateInstanceInterfaceServerUrlSeed"
     TemplateInstanceInterfaceMetadata:
       type: object
       additionalProperties: false
@@ -3702,6 +3717,10 @@ components:
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         serverUrls:
+          type: array
+          items:
+            type: string
+        serverUrlsDescriptions:
           type: array
           items:
             type: string
