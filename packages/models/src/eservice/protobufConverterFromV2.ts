@@ -17,7 +17,6 @@ import {
   type EServiceAttributeCertifiedDiscreteConfigV2,
   ArchivingScopeV2,
   DelegatedDescriptorArchivingRequestV2,
-  DelegatedEServiceArchivingRequestV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -47,7 +46,6 @@ import {
   ArchivingScope,
   archivingScope,
   DelegatedDescriptorArchivingRequest,
-  DelegatedEServiceArchivingRequest,
 } from "./eservice.js";
 import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 
@@ -195,16 +193,6 @@ export const fromDelegatedDescriptorArchivingRequestV2 = (
   requestedAt: bigIntToDate(input.requestedAt),
 });
 
-export const fromDelegatedEServiceArchivingRequestV2 = (
-  input: DelegatedEServiceArchivingRequestV2
-): DelegatedEServiceArchivingRequest => ({
-  ...input,
-  requesterId: unsafeBrandId<TenantId>(input.requesterId),
-  acceptedAt: bigIntToDate(input.acceptedAt),
-  rejectedAt: bigIntToDate(input.rejectedAt),
-  requestedAt: bigIntToDate(input.requestedAt),
-});
-
 export const fromEServiceTemplateVersionRefV2 = (
   input: EServiceTemplateVersionRefV2
 ): EServiceTemplateVersionRef => ({
@@ -332,11 +320,5 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   templateId:
     input.templateId != null
       ? unsafeBrandId<EServiceTemplateId>(input.templateId)
-      : undefined,
-  delegatedArchivingRequest:
-    input.delegatedArchivingRequest.length > 0
-      ? input.delegatedArchivingRequest.map(
-          fromDelegatedEServiceArchivingRequestV2
-        )
       : undefined,
 });

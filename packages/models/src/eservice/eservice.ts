@@ -181,17 +181,10 @@ export const DelegatedDescriptorArchivingRequest = z.object({
   rejectionReason: z.string().optional(),
   requesterId: TenantId,
   gracePeriodDays: z.number().int(),
+  archivingReason: z.string().optional(),
 });
 export type DelegatedDescriptorArchivingRequest = z.infer<
   typeof DelegatedDescriptorArchivingRequest
->;
-
-export const DelegatedEServiceArchivingRequest =
-  DelegatedDescriptorArchivingRequest.extend({
-    archivingReason: z.string(),
-  });
-export type DelegatedEServiceArchivingRequest = z.infer<
-  typeof DelegatedEServiceArchivingRequest
 >;
 
 export const Descriptor = z.object({
@@ -253,9 +246,6 @@ export const EService = z.object({
   instanceLabel: z.string().optional(),
   archivingReason: z.string().optional(),
   asyncExchange: z.boolean().optional(),
-  delegatedArchivingRequest: z
-    .array(DelegatedEServiceArchivingRequest)
-    .optional(),
 });
 
 export type EService = z.infer<typeof EService>;

@@ -66,27 +66,6 @@ export const splitEserviceIntoObjectsSQL = (
       }
     );
 
-  const eserviceArchivingRequestSQL: EServiceDescriptorArchivingRequestSQL[] =
-    eservice.delegatedArchivingRequest?.map<EServiceDescriptorArchivingRequestSQL>(
-      (archivingRequest) => ({
-        id: generateId(),
-        eserviceId: eservice.id,
-        metadataVersion: version,
-        descriptorId: null,
-        requestedAt: dateToString(archivingRequest.requestedAt),
-        requesterId: archivingRequest.requesterId,
-        acceptedAt: archivingRequest.acceptedAt
-          ? dateToString(archivingRequest.acceptedAt)
-          : null,
-        rejectedAt: archivingRequest.rejectedAt
-          ? dateToString(archivingRequest.rejectedAt)
-          : null,
-        archivingReason: archivingRequest.archivingReason,
-        gracePeriodDays: archivingRequest.gracePeriodDays,
-        rejectionReason: archivingRequest.rejectionReason ?? null,
-      })
-    ) ?? [];
-
   const {
     descriptorsSQL,
     attributesSQL,
@@ -174,10 +153,7 @@ export const splitEserviceIntoObjectsSQL = (
     templateVersionRefsSQL,
     archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
-    archivingRequestsSQL: [
-      ...eserviceArchivingRequestSQL,
-      ...descriptorArchivingRequestsSQL,
-    ],
+    archivingRequestsSQL: descriptorArchivingRequestsSQL,
   };
 };
 

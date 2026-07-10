@@ -177,6 +177,12 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_archiving_reque
   -- acknowledged_at TIMESTAMP WITH TIME ZONE,
   rejection_reason VARCHAR,
   archiving_reason VARCHAR,
+  GENERATED ALWAYS AS (
+    CASE
+      WHEN descriptor_id IS NULL THEN 'EService'
+      ELSE 'Descriptor'
+    END
+  ) STORED,
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );
 

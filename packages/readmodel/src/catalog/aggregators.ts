@@ -28,7 +28,6 @@ import {
   ArchivingScope,
   TenantKind,
   DelegatedDescriptorArchivingRequest,
-  DelegatedEServiceArchivingRequest,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorArchivingRequestSQL,
@@ -189,6 +188,7 @@ export const aggregateDescriptor = ({
           ? stringToDate(archivingRequest.acceptedAt)
           : undefined,
         rejectionReason: archivingRequest.rejectionReason ?? undefined,
+        archivingReason: archivingRequest.archivingReason ?? undefined,
       }));
 
   return {
@@ -347,8 +347,10 @@ export const aggregateEservice = ({
         ),
         asyncExchangePropertiesSQL:
           asyncExchangePropertiesSQLByDescriptorId.get(descriptorSQL.id),
-        descriptorArchivingRequestsSQL:
-          archivingRequestsSQLByDescriptorId.get(descriptorSQL.id) || [],
+        descriptorArchivingRequestsSQL: [
+          ...(archivingRequestsSQLByDescriptorId.get(descriptorSQL.id) || []),
+          ...(archivingRequestsSQLWithNullDescriptorId ?? []),
+        ],
       })
     );
 
@@ -404,29 +406,6 @@ export const aggregateEservice = ({
       : {}),
     ...(eserviceSQL.asyncExchange !== null
       ? { asyncExchange: eserviceSQL.asyncExchange }
-      : {}),
-    ...(archivingRequestsSQLWithNullDescriptorId.length > 0
-      ? {
-          delegatedArchivingRequest: archivingRequestsSQLWithNullDescriptorId
-            .filter(
-              (archivingRequest) =>
-                archivingRequest.archivingReason !== null &&
-                archivingRequest.descriptorId === null
-            )
-            .map<DelegatedEServiceArchivingRequest>((archivingRequest) => ({
-              gracePeriodDays: archivingRequest.gracePeriodDays,
-              archivingReason: archivingRequest.archivingReason ?? "",
-              requestedAt: stringToDate(archivingRequest.requestedAt),
-              requesterId: unsafeBrandId(archivingRequest.requesterId),
-              rejectedAt: archivingRequest.rejectedAt
-                ? stringToDate(archivingRequest.rejectedAt)
-                : undefined,
-              acceptedAt: archivingRequest.acceptedAt
-                ? stringToDate(archivingRequest.acceptedAt)
-                : undefined,
-              rejectionReason: archivingRequest.rejectionReason ?? undefined,
-            })),
-        }
       : {}),
   };
   return {
