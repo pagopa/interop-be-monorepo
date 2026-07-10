@@ -170,6 +170,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         EserviceTemplateDbTable.eservice_template_version_document
       );
+      const asyncExchangePropertiesSQL = await getManyFromDb(
+        dbContext,
+        EserviceTemplateDbTable.eservice_template_version_async_exchange_properties
+      );
       return aggregateEServiceTemplateArray({
         eserviceTemplatesSQL,
         riskAnalysesSQL,
@@ -181,7 +185,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         attributesSQL,
         interfacesSQL,
         documentsSQL,
-        asyncExchangePropertiesSQL: [],
+        asyncExchangePropertiesSQL,
       });
     },
 
