@@ -8,6 +8,7 @@ import {
   PurposeId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "../brandedIds.js";
 import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
 import { ClientAssertionDigest } from "../client-assertion/clientAssertionValidation.js";
@@ -53,7 +54,7 @@ export const InteractionAuditDetails = z.object({
 });
 export type InteractionAuditDetails = z.infer<typeof InteractionAuditDetails>;
 
-export const GeneratedTokenAuditDetails = z.object({
+export const GeneratedConsumerTokenAuditDetails = z.object({
   jwtId: z.string(),
   correlationId: z.string(),
   issuedAt: z.number(),
@@ -78,6 +79,29 @@ export const GeneratedTokenAuditDetails = z.object({
   dpop: DPoPAuditDetails.optional(),
   interaction: InteractionAuditDetails.optional(),
 });
-export type GeneratedTokenAuditDetails = z.infer<
-  typeof GeneratedTokenAuditDetails
+export type GeneratedConsumerTokenAuditDetails = z.infer<
+  typeof GeneratedConsumerTokenAuditDetails
+>;
+
+export const GeneratedApiTokenAuditDetails = z.object({
+  jwtId: z.string(),
+  correlationId: z.string(),
+  issuedAt: z.number(),
+  clientId: ClientId,
+  organizationId: TenantId,
+  adminId: UserId.optional(),
+  algorithm: z.string(),
+  keyId: z.string(),
+  typ: z.string(),
+  audience: z.string(),
+  subject: z.string(),
+  notBefore: z.number(),
+  expirationTime: z.number(),
+  issuer: z.string(),
+  cnf: CNFAuditDetails.optional(),
+  clientAssertion: ClientAssertionAuditDetails,
+  dpop: DPoPAuditDetails.optional(),
+});
+export type GeneratedApiTokenAuditDetails = z.infer<
+  typeof GeneratedApiTokenAuditDetails
 >;

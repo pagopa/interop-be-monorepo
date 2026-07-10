@@ -8,7 +8,7 @@ import {
 import {
   generateId,
   ClientId,
-  GeneratedTokenAuditDetails,
+  GeneratedConsumerTokenAuditDetails,
   EServiceId,
   DescriptorId,
   AgreementId,
@@ -57,46 +57,47 @@ export const getMockTokenRequest = async (
   body: await getMockAccessTokenRequest(),
 });
 
-export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
-  const correlationId = generateId();
-  const eserviceId = generateId<EServiceId>();
-  const descriptorId = generateId<DescriptorId>();
-  const agreementId = generateId<AgreementId>();
-  const clientId = generateId<ClientId>();
-  const purposeId = generateId<PurposeId>();
-  const kid = "kid";
-  const purposeVersionId = generateId<PurposeVersionId>();
-  const consumerId = generateId<TenantId>();
-  const clientAssertionJti = generateId();
+export const getMockConsumerTokenAuditMessage =
+  (): GeneratedConsumerTokenAuditDetails => {
+    const correlationId = generateId();
+    const eserviceId = generateId<EServiceId>();
+    const descriptorId = generateId<DescriptorId>();
+    const agreementId = generateId<AgreementId>();
+    const clientId = generateId<ClientId>();
+    const purposeId = generateId<PurposeId>();
+    const kid = "kid";
+    const purposeVersionId = generateId<PurposeVersionId>();
+    const consumerId = generateId<TenantId>();
+    const clientAssertionJti = generateId();
 
-  return {
-    correlationId,
-    eserviceId,
-    descriptorId,
-    agreementId,
-    subject: clientId,
-    audience: "pagopa.it",
-    purposeId,
-    algorithm: algorithm.RS256,
-    clientId,
-    keyId: kid,
-    typ: "at+jwt",
-    purposeVersionId,
-    jwtId: generateId(),
-    issuedAt: dateToSeconds(new Date()),
-    issuer: "interop jwt issuer",
-    expirationTime: dateToSeconds(new Date()),
-    organizationId: consumerId,
-    notBefore: 0,
-    clientAssertion: {
+    return {
+      correlationId,
+      eserviceId,
+      descriptorId,
+      agreementId,
       subject: clientId,
       audience: "pagopa.it",
+      purposeId,
       algorithm: algorithm.RS256,
+      clientId,
       keyId: kid,
-      jwtId: clientAssertionJti,
+      typ: "at+jwt",
+      purposeVersionId,
+      jwtId: generateId(),
       issuedAt: dateToSeconds(new Date()),
-      issuer: consumerId,
+      issuer: "interop jwt issuer",
       expirationTime: dateToSeconds(new Date()),
-    },
+      organizationId: consumerId,
+      notBefore: 0,
+      clientAssertion: {
+        subject: clientId,
+        audience: "pagopa.it",
+        algorithm: algorithm.RS256,
+        keyId: kid,
+        jwtId: clientAssertionJti,
+        issuedAt: dateToSeconds(new Date()),
+        issuer: consumerId,
+        expirationTime: dateToSeconds(new Date()),
+      },
+    };
   };
-};
