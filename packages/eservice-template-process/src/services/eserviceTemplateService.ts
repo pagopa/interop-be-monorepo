@@ -106,7 +106,6 @@ import {
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
   toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded,
-  toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated,
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted,
 } from "../model/domain/toEvent.js";
 import { config } from "../config/config.js";
@@ -1970,23 +1969,14 @@ export function eserviceTemplateServiceBuilder(
             newEserviceTemplate,
             correlationId
           )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated(
-              eserviceTemplateId,
-              eserviceTemplate.metadata.version,
-              eserviceTemplateVersionId,
-              documentId,
-              newEserviceTemplate,
-              correlationId
-            )
-          : toCreateEventEServiceTemplateVersionDocumentUpdated(
-              eserviceTemplateId,
-              eserviceTemplate.metadata.version,
-              eserviceTemplateVersionId,
-              documentId,
-              newEserviceTemplate,
-              correlationId
-            );
+        : toCreateEventEServiceTemplateVersionDocumentUpdated(
+            eserviceTemplateId,
+            eserviceTemplate.metadata.version,
+            eserviceTemplateVersionId,
+            documentId,
+            newEserviceTemplate,
+            correlationId
+          );
 
       await repository.createEvent(event);
       return updatedDocument;

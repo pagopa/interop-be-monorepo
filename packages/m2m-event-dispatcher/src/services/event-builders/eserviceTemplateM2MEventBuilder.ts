@@ -96,7 +96,6 @@ function getEServiceTemplateM2MEventVisibility(
         "EServiceTemplateVersionInterfaceDeleted",
         "EServiceTemplateVersionInterfaceUpdated",
         "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
-        "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
         "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
       ),
       () => m2mEventVisibility.owner

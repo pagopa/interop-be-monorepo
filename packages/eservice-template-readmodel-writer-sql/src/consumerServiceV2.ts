@@ -49,7 +49,6 @@ export async function handleMessageV2(
       { type: "EServiceTemplateVersionInterfaceDeleted" },
       { type: "EServiceTemplateVersionInterfaceUpdated" },
       { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded" },
-      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted" },
       { type: "EServiceTemplateVersionPublished" },
       { type: "EServiceTemplateVersionQuotasUpdated" },

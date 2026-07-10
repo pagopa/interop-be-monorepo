@@ -19,7 +19,6 @@ import {
   Document,
   EServiceTemplateVersionState,
   EServiceTemplateVersionInterfaceUpdatedV2,
-  EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -422,13 +421,12 @@ describe("update Document", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eserviceTemplate.id,
       version: "1",
-      type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+      type: "EServiceTemplateVersionDocumentUpdated",
       event_version: 2,
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType:
-        EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2,
+      messageType: EServiceTemplateVersionDocumentUpdatedV2,
       payload: writtenEvent.data,
     });
 

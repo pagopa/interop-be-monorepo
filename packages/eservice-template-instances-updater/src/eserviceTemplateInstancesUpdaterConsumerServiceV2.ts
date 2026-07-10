@@ -383,7 +383,6 @@ export async function handleMessageV2({
       { type: "EServiceTemplateVersionInterfaceUpdated" },
       { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded" },
       { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted" },
-      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceTemplateVersionPublished" },
       { type: "EServiceTemplateVersionSuspended" },
       () => Promise.resolve

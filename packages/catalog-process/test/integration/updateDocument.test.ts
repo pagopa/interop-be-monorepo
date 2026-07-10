@@ -21,7 +21,6 @@ import {
   delegationKind,
   EServiceTemplateId,
   unsafeBrandId,
-  EServiceDescriptorInterfaceUpdatedV2,
   DescriptorState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -32,6 +31,7 @@ import {
   eServiceDocumentNotFound,
   documentPrettyNameDuplicate,
   templateInstanceNotAllowed,
+  interfaceDocumentNotUpdatable,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -118,7 +118,7 @@ describe("update Document", () => {
     }
   );
 
-  it("should write on event-store for the update of a interface in a descriptor in draft state", async () => {
+  it("should throw interfaceDocumentNotUpdatable when updating the interface of a descriptor", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
       interface: mockDocument,
@@ -128,56 +128,17 @@ describe("update Document", () => {
       descriptors: [descriptor],
     };
     await addOneEService(eservice);
-    const returnedDocument = await catalogService.updateDocument(
-      eservice.id,
-      descriptor.id,
-      mockDocument.id,
-      { prettyName: "updated prettyName" },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    expect(
+      catalogService.updateDocument(
+        eservice.id,
+        descriptor.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(
+      interfaceDocumentNotUpdatable(descriptor.id, mockDocument.id)
     );
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    const expectedEservice = toEServiceV2({
-      ...eservice,
-      descriptors: [
-        {
-          ...descriptor,
-          interface: {
-            ...mockDocument,
-            prettyName: "updated prettyName",
-          },
-        },
-      ],
-    });
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceDescriptorInterfaceUpdated",
-      event_version: 2,
-    });
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorInterfaceUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload).toEqual({
-      descriptorId: descriptor.id,
-      documentId: mockDocument.id,
-      eservice: expectedEservice,
-    });
-    expect(writtenPayload).toEqual({
-      descriptorId: descriptor.id,
-      documentId: mockDocument.id,
-      eservice: toEServiceV2({
-        ...eservice,
-        descriptors: [
-          {
-            ...descriptor,
-            interface: returnedDocument,
-          },
-        ],
-      }),
-    });
   });
 
   it.each(
@@ -260,10 +221,10 @@ describe("update Document", () => {
     }
   );
 
-  it("should write on event-store for the update of a interface in a descriptor in draft state (delegate)", async () => {
+  it("should throw interfaceDocumentNotUpdatable when updating the async exchange callback interface of a descriptor (delegate)", async () => {
     const descriptor: Descriptor = {
       ...getMockDescriptor(descriptorState.draft),
-      interface: mockDocument,
+      asyncExchangeCallbackInterface: mockDocument,
     };
     const eservice: EService = {
       ...mockEService,
@@ -278,55 +239,17 @@ describe("update Document", () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
 
-    const returnedDocument = await catalogService.updateDocument(
-      eservice.id,
-      descriptor.id,
-      mockDocument.id,
-      { prettyName: "updated prettyName" },
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+    expect(
+      catalogService.updateDocument(
+        eservice.id,
+        descriptor.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      )
+    ).rejects.toThrowError(
+      interfaceDocumentNotUpdatable(descriptor.id, mockDocument.id)
     );
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    const expectedEservice = toEServiceV2({
-      ...eservice,
-      descriptors: [
-        {
-          ...descriptor,
-          interface: {
-            ...mockDocument,
-            prettyName: "updated prettyName",
-          },
-        },
-      ],
-    });
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceDescriptorInterfaceUpdated",
-      event_version: 2,
-    });
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorInterfaceUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload).toEqual({
-      descriptorId: descriptor.id,
-      documentId: mockDocument.id,
-      eservice: expectedEservice,
-    });
-    expect(writtenPayload).toEqual({
-      descriptorId: descriptor.id,
-      documentId: mockDocument.id,
-      eservice: toEServiceV2({
-        ...eservice,
-        descriptors: [
-          {
-            ...descriptor,
-            interface: returnedDocument,
-          },
-        ],
-      }),
-    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
@@ -427,34 +350,6 @@ describe("update Document", () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(state),
         docs: [mockDocument],
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [descriptor],
-      };
-      await addOneEService(eservice);
-      expect(
-        catalogService.updateDocument(
-          eservice.id,
-          descriptor.id,
-          mockDocument.id,
-          { prettyName: "updated prettyName" },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
-        )
-      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
-    }
-  );
-
-  it.each(
-    Object.values(descriptorState).filter(
-      (state) => state !== descriptorState.draft
-    )
-  )(
-    "should throw notValidDescriptorState if the descriptor is in s% state for interface update",
-    async (state) => {
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
-        interface: mockDocument,
       };
       const eservice: EService = {
         ...mockEService,

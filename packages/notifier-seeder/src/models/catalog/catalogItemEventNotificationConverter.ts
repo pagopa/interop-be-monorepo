@@ -282,52 +282,6 @@ export const toCatalogItemEventNotification = (
       }
     )
     .with(
-      { type: "EServiceDescriptorInterfaceUpdated" }, // CatalogItemDocumentUpdatedV1
-      (e): CatalogItemDocumentUpdateNotification => {
-        const eserviceV1 = getCatalogItem(e);
-        const descriptorV1 = getCatalogItemDescriptor(
-          eserviceV1,
-          e.data.descriptorId
-        );
-        const interfaceV1 = getCatalogItemInterface(
-          descriptorV1,
-          e.data.documentId
-        );
-
-        return {
-          eServiceId: eserviceV1.id,
-          descriptorId: descriptorV1.id,
-          documentId: interfaceV1.id,
-          updatedDocument: interfaceV1,
-          serverUrls: descriptorV1.serverUrls,
-        };
-      }
-    )
-    .with(
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
-      (e): CatalogItemDocumentUpdateNotification => {
-        const eserviceV1 = getCatalogItem(e);
-        const descriptorV1 = getCatalogItemDescriptor(
-          eserviceV1,
-          e.data.descriptorId
-        );
-        const asyncExchangeCallbackInterface =
-          getAsyncExchangeCallbackInterface(
-            e,
-            e.data.descriptorId,
-            e.data.documentId
-          );
-
-        return {
-          eServiceId: eserviceV1.id,
-          descriptorId: descriptorV1.id,
-          documentId: asyncExchangeCallbackInterface.id,
-          updatedDocument: asyncExchangeCallbackInterface,
-          serverUrls: [],
-        };
-      }
-    )
-    .with(
       { type: "EServiceDescriptorDocumentUpdated" }, // CatalogItemDocumentUpdatedV1
       { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" }, // CatalogItemDocumentUpdatedV1
       (e): CatalogItemDocumentUpdateNotification => {

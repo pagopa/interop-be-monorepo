@@ -121,20 +121,12 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_INTERFACE_ADDED"
     )
     .with(
-      "EServiceDescriptorInterfaceUpdated",
-      () => "ESERVICE_DESCRIPTOR_INTERFACE_UPDATED"
-    )
-    .with(
       "EServiceDescriptorInterfaceDeleted",
       () => "ESERVICE_DESCRIPTOR_INTERFACE_DELETED"
     )
     .with(
       "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
       () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED"
-    )
-    .with(
-      "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
-      () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED"
     )
     .with(
       "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",

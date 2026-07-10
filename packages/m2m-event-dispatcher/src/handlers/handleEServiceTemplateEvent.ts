@@ -72,7 +72,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionInterfaceDeleted",
           "EServiceTemplateVersionInterfaceUpdated",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
-          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
           "EServiceTemplateVersionPublished",
           "EServiceTemplateVersionQuotasUpdated"

@@ -83,6 +83,7 @@ const errorCodes = {
   certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
   eserviceDescriptorWithActiveOrPendingDelegation: "0067",
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
+  interfaceDocumentNotUpdatable: "0069",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -149,6 +150,17 @@ export function eServiceDocumentNotFound(
     detail: `Document with id ${documentId} not found in EService ${eserviceId} / Descriptor ${descriptorId}`,
     code: "eServiceDocumentNotFound",
     title: "EService document not found",
+  });
+}
+
+export function interfaceDocumentNotUpdatable(
+  descriptorId: DescriptorId,
+  documentId: EServiceDocumentId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} is the interface or the async exchange callback interface of descriptor ${descriptorId} and cannot be updated`,
+    code: "interfaceDocumentNotUpdatable",
+    title: "Interface document not updatable",
   });
 }
 

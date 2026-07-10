@@ -515,29 +515,6 @@ export const toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceA
     correlationId,
   });
 
-export const toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated =
-  (
-    streamId: string,
-    version: number,
-    eserviceTemplateVersionId: EServiceTemplateVersionId,
-    documentId: EServiceDocumentId,
-    eserviceTemplate: EServiceTemplate,
-    correlationId: CorrelationId
-  ): CreateEvent<EServiceTemplateEvent> => ({
-    streamId,
-    version,
-    event: {
-      type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
-      event_version: 2,
-      data: {
-        eserviceTemplateVersionId,
-        documentId,
-        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
-      },
-    },
-    correlationId,
-  });
-
 export const toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted =
   (
     streamId: string,
