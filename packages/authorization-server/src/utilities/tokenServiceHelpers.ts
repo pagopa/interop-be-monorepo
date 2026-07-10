@@ -260,11 +260,16 @@ const buildAuditMessageBody = ({
   purposeVersionId: unsafeBrandId(purposeVersionId),
   algorithm: generatedToken.header.alg,
   keyId: generatedToken.header.kid,
+  typ: generatedToken.header.typ,
   audience: [generatedToken.payload.aud].flat().join(","),
   subject: generatedToken.payload.sub,
   notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
   expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
   issuer: generatedToken.payload.iss,
+  ...(generatedToken.payload.cnf ? { cnf: generatedToken.payload.cnf } : {}),
+  ...(generatedToken.payload.digest
+    ? { digest: generatedToken.payload.digest }
+    : {}),
   clientAssertion: {
     algorithm: clientAssertion.header.alg,
     audience: [clientAssertion.payload.aud].flat().join(","),
@@ -274,6 +279,9 @@ const buildAuditMessageBody = ({
     jwtId: clientAssertion.payload.jti,
     keyId: clientAssertion.header.kid,
     subject: clientAssertion.payload.sub,
+    ...(clientAssertion.payload.digest
+      ? { digest: clientAssertion.payload.digest }
+      : {}),
   },
   ...(dpop
     ? {
