@@ -34,10 +34,12 @@ const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
   .and(
     z
       .object({
-        TOKEN_AUDITING_TOPIC: z.string(),
+        CONSUMER_TOKEN_AUDITING_TOPIC: z.string(),
+        API_TOKEN_AUDITING_TOPIC: z.string(),
       })
       .transform((c) => ({
-        tokenAuditingTopic: c.TOKEN_AUDITING_TOPIC,
+        consumerTokenAuditingTopic: c.CONSUMER_TOKEN_AUDITING_TOPIC,
+        apiTokenAuditingTopic: c.API_TOKEN_AUDITING_TOPIC,
       }))
   )
   .and(AuthorizationServerTokenGenerationConfig)

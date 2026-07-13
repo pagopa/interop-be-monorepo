@@ -45,7 +45,10 @@ import {
   retrieveKey,
   validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
-import { publishConsumerTokenAudit } from "../utilities/audit.js";
+import {
+  publishApiTokenAudit,
+  publishConsumerTokenAudit,
+} from "../utilities/audit.js";
 
 export type GeneratedTokenData =
   | {
@@ -67,13 +70,15 @@ export function tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer,
+  consumerTokenAuditProducer,
+  apiTokenAuditProducer,
   fileManager,
 }: {
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
   redisRateLimiter: RateLimiter;
-  producer: Awaited<ReturnType<typeof initProducer>>;
+  consumerTokenAuditProducer: Awaited<ReturnType<typeof initProducer>>;
+  apiTokenAuditProducer: Awaited<ReturnType<typeof initProducer>>;
   fileManager: FileManager;
 }) {
   return {
@@ -250,7 +255,7 @@ export function tokenServiceBuilder({
             });
 
             await publishConsumerTokenAudit({
-              producer,
+              producer: consumerTokenAuditProducer,
               generatedToken: token,
               key,
               eserviceId,
@@ -286,6 +291,18 @@ export function tokenServiceBuilder({
             // Pass JWK directly (can be undefined).
             // generateInteropApiToken handles conditional 'cnf' inclusion.
             dpopJWK: dpopProofJWT?.header.jwk,
+          });
+
+          await publishApiTokenAudit({
+            producer: apiTokenAuditProducer,
+            generatedToken: token,
+            adminId: key.adminId,
+            organizationId: key.consumerId,
+            clientAssertion: clientAssertionJWT,
+            dpop: dpopProofJWT,
+            correlationId: getCtx().correlationId,
+            fileManager,
+            logger: getCtx().logger,
           });
 
           logTokenGenerationInfo({
