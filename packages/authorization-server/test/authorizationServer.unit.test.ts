@@ -296,21 +296,26 @@ describe("unit tests", () => {
       const mockAuditMessage = getMockConsumerTokenAuditMessage();
 
       const fileListBeforeAudit = await fileManager.listFiles(
-        config.s3Bucket,
+        config.s3BucketConsumerTokenAuditFallback,
         genericLogger
       );
       expect(fileListBeforeAudit).toHaveLength(0);
 
-      await fallbackAudit(mockAuditMessage, fileManager, genericLogger);
+      await fallbackAudit({
+        messageBody: mockAuditMessage,
+        bucket: config.s3BucketConsumerTokenAuditFallback,
+        fileManager,
+        logger: genericLogger,
+      });
 
       const fileListAfterAudit = await fileManager.listFiles(
-        config.s3Bucket,
+        config.s3BucketConsumerTokenAuditFallback,
         genericLogger
       );
       expect(fileListAfterAudit).toHaveLength(1);
 
       const fileContent = await fileManager.get(
-        config.s3Bucket,
+        config.s3BucketConsumerTokenAuditFallback,
         fileListAfterAudit[0],
         genericLogger
       );
@@ -329,8 +334,13 @@ describe("unit tests", () => {
         Promise.reject()
       );
 
-      expect(
-        fallbackAudit(mockAuditMessage, fileManager, genericLogger)
+      await expect(
+        fallbackAudit({
+          messageBody: mockAuditMessage,
+          bucket: config.s3BucketConsumerTokenAuditFallback,
+          fileManager,
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.clientId));
     });
   });
