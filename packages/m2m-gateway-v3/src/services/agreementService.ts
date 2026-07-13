@@ -1,4 +1,4 @@
-import { FileManager, WithLogger } from "pagopa-interop-commons";
+import { FileManager, isValidFile, WithLogger } from "pagopa-interop-commons";
 import {
   agreementApi,
   delegationApi,
@@ -8,6 +8,7 @@ import {
   AgreementDocumentId,
   AgreementId,
   generateId,
+  invalidFileUploadError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -20,10 +21,6 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import {
-  assertAgreementIsPending,
-  assertAgreementIsSuspended,
-} from "../utils/validators/agreementValidators.js";
-import {
   toGetAgreementsApiQueryParams,
   toGetPurposesApiQueryParamsForAgreement,
   toM2MGatewayApiAgreement,
@@ -33,6 +30,10 @@ import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { agreementContractNotFound } from "../model/errors.js";
+import {
+  assertAgreementIsPending,
+  assertAgreementIsSuspended,
+} from "../utils/validators/agreementValidator.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -233,7 +234,7 @@ export function agreementServiceBuilder(
 
       assertAgreementIsPending(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.approveAgreement(
         { delegationId },
         {
           params: { agreementId },
@@ -325,13 +326,34 @@ export function agreementServiceBuilder(
 
       assertAgreementIsSuspended(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },
           headers,
         }
       );
+      const polledResource = await pollAgreement(response, headers);
+
+      return toM2MGatewayApiAgreementWithDelegationId(
+        polledResource.data,
+        headers
+      );
+    },
+    async archiveAgreement(
+      agreementId: AgreementId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Agreement> {
+      logger.info(`Archiving agreement with id ${agreementId}`);
+
+      const response = await clients.agreementProcessClient.archiveAgreement(
+        undefined,
+        {
+          params: { agreementId },
+          headers,
+        }
+      );
+
       const polledResource = await pollAgreement(response, headers);
 
       return toM2MGatewayApiAgreementWithDelegationId(
@@ -396,6 +418,10 @@ export function agreementServiceBuilder(
       logger.info(
         `Adding consumer document ${fileUpload.file.name} to agreement with id ${agreementId}`
       );
+
+      if (!(await isValidFile(fileUpload.file))) {
+        throw invalidFileUploadError();
+      }
 
       const documentId = generateId();
       const storagePath = await fileManager.storeBytes(

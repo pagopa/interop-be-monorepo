@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
@@ -15,13 +16,17 @@ import { fromM2MGatewayAppContext } from "../utils/context.js";
 import {
   getEserviceDescriptorErrorMapper,
   downloadEServiceDescriptorInterfaceErrorMapper,
+  downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   uploadEServiceDescriptorInterfaceErrorMapper,
+  uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
+  deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   deleteDraftEServiceDescriptorErrorMapper,
   getEServiceRiskAnalysisErrorMapper,
   getEServiceDescriptorAttributesErrorMapper,
   createEServiceDescriptorAttributeGroupsErrorMapper,
   deleteEServiceDescriptorAttributeFromGroupErrorMapper,
+  updateEServiceDescriptorAttributeInGroupErrorMapper,
   assignEServiceDescriptorAttributesErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
@@ -30,7 +35,8 @@ const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
 const eserviceRouter = (
   ctx: ZodiosContext,
-  eserviceService: EserviceService
+  eserviceService: EserviceService,
+  kmsClient: KMSClient
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const eserviceRouter = ctx.router(m2mGatewayApiV3.eservicesApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -129,13 +135,35 @@ const eserviceRouter = (
           unsafeBrandId(req.params.eserviceId),
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
           emptyErrorMapper,
           ctx,
           `Error deleting eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/:eserviceId/scheduleArchive", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice = await eserviceService.scheduleArchiveEService(
+          unsafeBrandId(req.params.eserviceId),
+          req.body,
+          ctx
+        );
+        return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error scheduling archiving for eservice with id ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -230,6 +258,29 @@ const eserviceRouter = (
           emptyErrorMapper,
           ctx,
           `Error updating Signal Hub flag for eservice with id ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/:eserviceId/personalDataFlag", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice = await eserviceService.updateEServicePersonalDataFlag(
+          unsafeBrandId(req.params.eserviceId),
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error updating personalData flag for eservice with id ${req.params.eserviceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -354,7 +405,7 @@ const eserviceRouter = (
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -467,7 +518,12 @@ const eserviceRouter = (
             ctx
           );
 
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -494,7 +550,7 @@ const eserviceRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -518,14 +574,101 @@ const eserviceRouter = (
               unsafeBrandId(req.params.descriptorId),
               ctx
             );
-
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             downloadEServiceDescriptorInterfaceErrorMapper,
             ctx,
             `Error retrieving interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const file =
+            await eserviceService.downloadEServiceDescriptorAsyncExchangeCallbackInterface(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
+            ctx,
+            `Error retrieving async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const document =
+            await eserviceService.uploadEServiceDescriptorAsyncExchangeCallbackInterface(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          return res.status(201).send(m2mGatewayApiV3.Document.parse(document));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
+            ctx,
+            `Error uploading async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceService.deleteEServiceDescriptorAsyncExchangeCallbackInterface(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
+            ctx,
+            `Error deleting async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -573,7 +716,7 @@ const eserviceRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -721,6 +864,83 @@ const eserviceRouter = (
         }
       }
     )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eserviceDescriptor =
+            await eserviceService.scheduleArchiveEserviceDescriptor(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.EServiceDescriptor.parse(eserviceDescriptor));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error archiving descriptor ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eserviceDescriptor =
+            await eserviceService.cancelEServiceDescriptorArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.EServiceDescriptor.parse(eserviceDescriptor));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error canceling archiving for descriptor ${req.params.descriptorId} for eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete("/eservices/:eserviceId/scheduleArchive", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const eservice = await eserviceService.cancelEServiceArchiving(
+          unsafeBrandId(req.params.eserviceId),
+          ctx
+        );
+        return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error canceling archiving for eservice ${req.params.eserviceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/eservices/:eserviceId/riskAnalyses", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
@@ -809,7 +1029,7 @@ const eserviceRouter = (
             unsafeBrandId(req.params.riskAnalysisId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -945,6 +1165,32 @@ const eserviceRouter = (
         }
       }
     )
+    .patch(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceService.updateEServiceDescriptorCertifiedAttributeInGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            unsafeBrandId(req.params.attributeId),
+            req.body,
+            ctx
+          );
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            updateEServiceDescriptorAttributeInGroupErrorMapper,
+            ctx,
+            `Error updating certified attribute ${req.params.attributeId} in group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete(
       "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes/:attributeId",
       async (req, res) => {
@@ -958,7 +1204,7 @@ const eserviceRouter = (
             unsafeBrandId(req.params.attributeId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1014,7 +1260,7 @@ const eserviceRouter = (
             unsafeBrandId(req.params.attributeId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1070,7 +1316,7 @@ const eserviceRouter = (
             unsafeBrandId(req.params.attributeId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1095,7 +1341,7 @@ const eserviceRouter = (
             req.body,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1120,7 +1366,7 @@ const eserviceRouter = (
             req.body,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1146,7 +1392,7 @@ const eserviceRouter = (
             req.body,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

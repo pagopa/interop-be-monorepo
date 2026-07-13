@@ -7,6 +7,7 @@ import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   generateToken,
   getMockedApiEserviceDescriptor,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { api, mockEserviceService } from "../../vitest.api.setup.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
@@ -41,7 +42,8 @@ describe("POST /eservices/{eServiceId}/descriptors router test", () => {
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/${eserviceId}/descriptors`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

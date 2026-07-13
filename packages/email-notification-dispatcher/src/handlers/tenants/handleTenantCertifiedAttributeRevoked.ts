@@ -8,14 +8,13 @@ import {
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveAttribute,
   retrieveTenantByCertifierId,
-  TenantHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { TenantHandlerParams } from "../../models/handlerParams.js";
+
 import { certifierDatabaseOriginNames } from "../../config/constants.js";
 import { config } from "../../config/config.js";
 
@@ -67,7 +66,7 @@ export async function handleTenantCertifiedAttributeRevoked(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Tenant ${tenant.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handleTenantCertifiedAttributeRevoked - entityId: ${tenant.id}, eventType: ${notificationType}`
     );
     return [];
   }

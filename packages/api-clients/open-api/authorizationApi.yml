@@ -66,6 +66,9 @@ paths:
       responses:
         "200":
           description: Client created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -378,9 +381,6 @@ paths:
       responses:
         "200":
           description: Request succeed
-          headers:
-            X-Metadata-Version:
-              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -428,6 +428,9 @@ paths:
       responses:
         "200":
           description: Users added
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -592,6 +595,9 @@ paths:
       responses:
         "200":
           description: Key created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -769,8 +775,15 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: the corresponding key has been deleted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullClient"
         "401":
           description: Unauthorized
           content:
@@ -1140,6 +1153,9 @@ paths:
       responses:
         "200":
           description: Producer keychain created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1236,6 +1252,49 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /producerKeychains/eservices/{eserviceId}/flags:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      tags:
+        - producerKeychain
+      summary: Get producer keychain flags for an eservice
+      description: Get producer keychain flags for an eservice
+      operationId: getProducerKeychainEServiceFlags
+      parameters:
+        - name: eserviceId
+          in: path
+          description: E-Service identifier
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: producerId
+          in: query
+          description: E-Service producer identifier
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Producer keychain flags found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKeychainEServiceFlags"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /producerKeychains/{producerKeychainId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1255,6 +1314,9 @@ paths:
       responses:
         "200":
           description: Producer Keychain retrieved
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1477,6 +1539,9 @@ paths:
       responses:
         "200":
           description: Key created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
           content:
             application/json:
               schema:
@@ -1654,8 +1719,15 @@ paths:
           schema:
             type: string
       responses:
-        "204":
+        "200":
           description: the corresponding key has been deleted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FullProducerKeychain"
         "401":
           description: Unauthorized
           content:
@@ -2365,6 +2437,17 @@ components:
       required:
         - results
         - totalCount
+    ProducerKeychainEServiceFlags:
+      type: object
+      additionalProperties: false
+      properties:
+        hasProducerKeychain:
+          type: boolean
+        hasProducerKeychainKeys:
+          type: boolean
+      required:
+        - hasProducerKeychain
+        - hasProducerKeychainKeys
     ProducerKeychainSeed:
       description: Producer keychain creation request body
       type: object

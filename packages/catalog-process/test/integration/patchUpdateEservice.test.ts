@@ -31,6 +31,7 @@ import {
   eServiceNotFound,
   eServiceNameDuplicateForProducer,
   eserviceNotInDraftState,
+  invalidDelegationFlags,
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
@@ -108,6 +109,18 @@ describe("patch update eService", () => {
       isConsumerDelegable: true,
       isClientAccessDelegable: true,
       personalData: true,
+      asyncExchange: true,
+    },
+    {
+      name: "New name",
+      description: "New description",
+      technology: "SOAP",
+      mode: "DELIVER",
+      isSignalHubEnabled: true,
+      isConsumerDelegable: true,
+      isClientAccessDelegable: true,
+      personalData: true,
+      archivingReason: "archiving reason",
     },
   ] as catalogApi.PatchUpdateEServiceSeed[])(
     "should write on event-store and update only the fields set in the seed, and leave undefined fields unchanged (seed #%#)",
@@ -158,6 +171,7 @@ describe("patch update eService", () => {
         isClientAccessDelegable:
           seed.isClientAccessDelegable ?? eservice.isClientAccessDelegable,
         personalData: seed.personalData ?? eservice.personalData,
+        asyncExchange: seed.asyncExchange ?? eservice.asyncExchange,
         descriptors: eservice.descriptors.map((d) => ({
           ...d,
           interface: wasTechnologyUpdated ? undefined : d.interface,
@@ -180,7 +194,9 @@ describe("patch update eService", () => {
         payload: writtenEvent.data,
       });
 
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+      expect(writtenPayload).toEqual({
+        eservice: toEServiceV2(expectedEService),
+      });
       expect(updateEServiceReturn).toEqual({
         data: expectedEService,
         metadata: { version: 1 },
@@ -205,7 +221,10 @@ describe("patch update eService", () => {
       isClientAccessDelegable: true,
     };
 
-    const isClientAccessDelegable = randomArrayItem([false, true, undefined]);
+    const isClientAccessDelegable = match(isConsumerDelegable)
+      .with(false, () => false)
+      .with(undefined, () => undefined)
+      .exhaustive();
 
     await addOneEService(eservice);
     const updateEServiceReturn = await catalogService.patchUpdateEService(
@@ -254,11 +273,40 @@ describe("patch update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
     expect(updateEServiceReturn).toEqual({
       data: expectedEService,
       metadata: { version: 1 },
     });
+  });
+
+  it("should throw invalidDelegationFlags when isConsumerDelegable is false and isClientAccessDelegable is true", async () => {
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.draft,
+      interface: mockDocument,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      isConsumerDelegable: true,
+      isClientAccessDelegable: false,
+    };
+
+    await addOneEService(eservice);
+
+    await expect(
+      catalogService.patchUpdateEService(
+        mockEService.id,
+        {
+          isConsumerDelegable: false,
+          isClientAccessDelegable: true,
+        },
+        getMockContextM2MAdmin({ organizationId: mockEService.producerId })
+      )
+    ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
 
   it("should delete interface on technology change)", async () => {
@@ -269,11 +317,18 @@ describe("patch update eService", () => {
       name: `${mockDocument.name}`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
+    const mockAsyncExchangeCallbackInterfaceDocument = getMockDocument();
+    const asyncExchangeCallbackInterfaceDocument = {
+      ...mockAsyncExchangeCallbackInterfaceDocument,
+      name: `${mockDocument.name}_callback`,
+      path: `${config.eserviceDocumentsPath}/${mockAsyncExchangeCallbackInterfaceDocument.id}/${mockDocument.name}_callback`,
+    };
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
       interface: interfaceDocument,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDocument,
     };
     const eservice: EService = {
       ...mockEService,
@@ -292,10 +347,23 @@ describe("patch update eService", () => {
       },
       genericLogger
     );
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDocument.id,
+        name: asyncExchangeCallbackInterfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDocument.path);
 
     const updateEServiceReturn = await catalogService.patchUpdateEService(
       eservice.id,
@@ -311,6 +379,7 @@ describe("patch update eService", () => {
       descriptors: eservice.descriptors.map((d) => ({
         ...d,
         interface: undefined,
+        asyncExchangeCallbackInterface: undefined,
         serverUrls: [],
       })),
     };
@@ -328,7 +397,9 @@ describe("patch update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
     expect(fileManager.delete).toHaveBeenCalledWith(
       config.s3Bucket,
       interfaceDocument.path,
@@ -380,7 +451,9 @@ describe("patch update eService", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(expectedEService),
+    });
     expect(updateEServiceReturn).toEqual({
       data: expectedEService,
       metadata: { version: 1 },

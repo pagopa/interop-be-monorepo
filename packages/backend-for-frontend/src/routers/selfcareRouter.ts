@@ -1,8 +1,10 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
 import {
+  authRole,
   ZodiosContext,
   ExpressContext,
+  validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
@@ -50,9 +52,8 @@ const selfcareRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const products = await selfcareService.getSelfcareInstitutionsProducts(
-          ctx
-        );
+        const products =
+          await selfcareService.getSelfcareInstitutionsProducts(ctx);
 
         return res
           .status(200)
@@ -92,6 +93,8 @@ const selfcareRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
+        validateAuthorization(ctx, [authRole.ADMIN_ROLE]);
+
         const results = await selfcareService.getInstitutionUsers(
           unsafeBrandId<TenantId>(req.params.tenantId),
           req.query.personId,

@@ -4,6 +4,7 @@ import {
   generateToken,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -106,7 +107,8 @@ describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttribu
       .get(
         `${appBasePath}/eservices/${eserviceId}/descriptors/${descriptorId}/verifiedAttributes`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .query(query)
       .send();
   const authorizedRoles: AuthRole[] = [

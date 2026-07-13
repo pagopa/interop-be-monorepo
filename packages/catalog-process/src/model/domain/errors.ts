@@ -4,6 +4,7 @@ import {
   AttributeId,
   DelegationId,
   DescriptorId,
+  DescriptorState,
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
@@ -39,7 +40,7 @@ const errorCodes = {
   eserviceWithoutValidDescriptors: "0022",
   audienceCannotBeEmpty: "0023",
   eserviceWithActiveOrPendingDelegation: "0024",
-  invalidEServiceFlags: "0025",
+  invalidDelegationFlags: "0025",
   inconsistentAttributesSeedGroupsCount: "0026",
   descriptorAttributeGroupSupersetMissingInAttributesSeed: "0027",
   unchangedAttributes: "0028",
@@ -61,6 +62,27 @@ const errorCodes = {
   eServiceTemplateWithoutPersonalDataFlag: "0044",
   eServiceUpdateSameDescriptionConflict: "0045",
   eServiceUpdateSameNameConflict: "0046",
+  eserviceInDraftState: "0047",
+  attributeDailyCallsNotAllowed: "0048",
+  certifiedAttributeGroupNotFoundInSeed: "0049",
+  asyncExchangeCallbackInterfaceAlreadyExists: "0050",
+  eServiceAsyncExchangeNotEnabled: "0051",
+  missingAsyncExchangeProperties: "0053",
+  asyncExchangeBulkNotAllowedForSoap: "0054",
+  asyncExchangeNotAllowedForReceiveMode: "0055",
+  missingAsyncExchangeCallbackInterface: "0056",
+  templateVersionMissingAsyncExchangeProperties: "0057",
+  riskAnalysisTenantKindMismatch: "0058",
+  eserviceInArchivingOrArchivedState: "0059",
+  descriptorArchivingNotCancelableByScope: "0060",
+  descriptorAlreadyArchived: "0061",
+  notValidEServiceState: "0062",
+  eserviceNotInArchiving: "0063",
+  eServiceAlreadyArchived: "0064",
+  attributeDiscreteConfigNotAllowed: "0065",
+  certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
+  eserviceDescriptorWithActiveOrPendingDelegation: "0067",
+  eserviceArchivingWithActiveOrPendingDelegation: "0068",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -132,12 +154,22 @@ export function eServiceDocumentNotFound(
 
 export function notValidDescriptorState(
   descriptorId: DescriptorId,
-  descriptorStatus: string
+  descriptorStatus: DescriptorState
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} is in an invalid state ${descriptorStatus} for this operation`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
+  });
+}
+
+export function notValidEServiceState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in an invalid state for this operation`,
+    code: "notValidEServiceState",
+    title: "Not valid EService",
   });
 }
 
@@ -215,6 +247,16 @@ export function eserviceNotInDraftState(
   });
 }
 
+export function eserviceInDraftState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in draft state`,
+    code: "eserviceInDraftState",
+    title: "EService is in draft state",
+  });
+}
+
 export function eserviceNotInReceiveMode(
   eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
@@ -245,9 +287,7 @@ export function riskAnalysisValidationFailed(
   issues: RiskAnalysisValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis validation failed. Reasons: [${issues
-      .map((i) => i.detail)
-      .join(", ")}]`,
+    detail: `Risk analysis validation failed. Reasons: [${issues.map((i) => i.detail).join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
   });
@@ -357,13 +397,37 @@ export function eserviceWithActiveOrPendingDelegation(
   });
 }
 
-export function invalidEServiceFlags(
-  eserviceId: EServiceId
+export function eserviceArchivingWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `EService ${eserviceId} flags are not valid`,
-    code: "invalidEServiceFlags",
-    title: "Invalid EService flags",
+    detail: `E-service ${eserviceId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceArchivingWithActiveOrPendingDelegation",
+    title: "E-service archiving with active or pending delegation",
+  });
+}
+
+export function eserviceDescriptorWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} descriptor ${descriptorId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceDescriptorWithActiveOrPendingDelegation",
+    title: "E-service descriptor with active or pending delegation",
+  });
+}
+
+export function invalidDelegationFlags(
+  isConsumerDelegable: boolean | undefined,
+  isClientAccessDelegable: boolean | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Invalid delegation flags: isClientAccessDelegable cannot be true when isConsumerDelegable is false (isConsumerDelegable=${isConsumerDelegable}, isClientAccessDelegable=${isClientAccessDelegable})`,
+    code: "invalidDelegationFlags",
+    title: "Invalid delegation flags",
   });
 }
 
@@ -503,6 +567,19 @@ export function missingPersonalDataFlag(
   });
 }
 
+export function riskAnalysisTenantKindMismatch(
+  actualKind: TenantKind,
+  currentTenantKind: TenantKind,
+  eserviceId: EServiceId,
+  riskAnalysisId: RiskAnalysisId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Risk Analysis tenant kind mismatch for eserviceId ${eserviceId} with riskAnalysisId ${riskAnalysisId}: expected ${currentTenantKind}, actual ${actualKind}`,
+    code: "riskAnalysisTenantKindMismatch",
+    title: "Risk Analysis tenant kind mismatch",
+  });
+}
+
 export function eServiceTemplateWithoutPersonalDataFlag(
   eServiceTemplateId: EServiceTemplateId,
   eServiceTemplateVersionId: EServiceTemplateVersionId
@@ -512,6 +589,49 @@ export function eServiceTemplateWithoutPersonalDataFlag(
     code: "eServiceTemplateWithoutPersonalDataFlag",
     title:
       "EService Template personalData flag must be set before instantiation",
+  });
+}
+
+export function missingAsyncExchangeProperties(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because async exchange properties (responseTime, resourceAvailableTime, maxResultSet) must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeProperties",
+    title: "Missing required async exchange properties for publication",
+  });
+}
+
+export function missingAsyncExchangeCallbackInterface(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published because asyncExchangeCallbackInterface must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeCallbackInterface",
+    title: "Async exchange callback interface must be set before publication",
+  });
+}
+
+export function asyncExchangeBulkNotAllowedForSoap(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} in eservice ${eserviceId} can't be published with asyncExchangeBulk enabled when technology is Soap`,
+    code: "asyncExchangeBulkNotAllowedForSoap",
+    title: "Async exchange bulk not allowed for SOAP technology",
+  });
+}
+
+export function asyncExchangeNotAllowedForReceiveMode(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} can't have async exchange enabled with receive mode`,
+    code: "asyncExchangeNotAllowedForReceiveMode",
+    title: "Async exchange not allowed for receive mode",
   });
 }
 
@@ -532,5 +652,126 @@ export function eServiceUpdateSameNameConflict(
     detail: `The name provided is the same as the current one for EService ${eserviceId}`,
     code: "eServiceUpdateSameNameConflict",
     title: "Same EService name update conflict",
+  });
+}
+
+export function eServiceAsyncExchangeNotEnabled(
+  eServiceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eServiceId} does not have async exchange enabled`,
+    code: "eServiceAsyncExchangeNotEnabled",
+    title: "EService does not have async exchange enabled",
+  });
+}
+
+export function asyncExchangeCallbackInterfaceAlreadyExists(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} already contains an async exchange callback interface`,
+    code: "asyncExchangeCallbackInterfaceAlreadyExists",
+    title: "Descriptor already contains an async exchange callback interface",
+  });
+}
+
+export function templateVersionMissingAsyncExchangeProperties(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange properties are missing for version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
+    code: "templateVersionMissingAsyncExchangeProperties",
+    title: "Template version missing async exchange properties",
+  });
+}
+
+export function attributeDailyCallsNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDailyCallsNotAllowed",
+    title: "Custom daily calls not allowed for non-certified attribute",
+  });
+}
+
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedDiscreteAttributeConfigCannotBeChanged(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The discrete configuration for the certified attribute ${attributeId} cannot be changed`,
+    code: "certifiedDiscreteAttributeConfigCannotBeChanged",
+    title: "Certified discrete attribute config cannot be changed",
+  });
+}
+
+export function certifiedAttributeGroupNotFoundInSeed(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
+    code: "certifiedAttributeGroupNotFoundInSeed",
+    title: "Certified attribute group not found in seed",
+  });
+}
+
+export function eserviceInArchivingOrArchivedState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `You can't create a new version, because the EService ${eserviceId} is in archiving or archived state`,
+    code: "eserviceInArchivingOrArchivedState",
+    title: "EService in archiving or archived state",
+  });
+}
+
+export function descriptorArchivingNotCancelableByScope(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} archiving cannot be canceled because it was scheduled at eservice scope`,
+    code: "descriptorArchivingNotCancelableByScope",
+    title: "Descriptor archiving not cancelable by scope",
+  });
+}
+export function descriptorAlreadyArchived(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} is already archived`,
+    code: "descriptorAlreadyArchived",
+    title: "Descriptor already archived",
+  });
+}
+
+export function eserviceNotInArchiving(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not have an ongoing global archiving orchestration`,
+    code: "eserviceNotInArchiving",
+    title: "EService not in archiving",
+  });
+}
+
+export function eServiceAlreadyArchived(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is already archived`,
+    code: "eServiceAlreadyArchived",
+    title: "EService already archived",
   });
 }

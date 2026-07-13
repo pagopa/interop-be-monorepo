@@ -1,6 +1,7 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   authRole,
@@ -18,7 +19,8 @@ import { getPurposeTemplateRiskAnalysisErrorMapper } from "../utils/errorMappers
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,
-  purposeTemplateService: PurposeTemplateService
+  purposeTemplateService: PurposeTemplateService,
+  kmsClient: KMSClient
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ADMIN_ROLE, M2M_ROLE } = authRole;
 
@@ -213,7 +215,12 @@ const purposeTemplateRouter = (
               ctx
             );
 
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -265,7 +272,7 @@ const purposeTemplateRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -290,13 +297,96 @@ const purposeTemplateRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
             emptyErrorMapper,
             ctx,
             `Error unlinking e-service ${req.params.eserviceId} from purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/purposeTemplates/:purposeTemplateId/eserviceTemplates",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const purposeTemplateEServiceTemplates =
+            await purposeTemplateService.getPurposeTemplateEServiceTemplates(
+              unsafeBrandId(req.params.purposeTemplateId),
+              req.query,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApiV3.EServiceTemplates.parse(
+                purposeTemplateEServiceTemplates
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error retrieving purpose template e-service templates for purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/purposeTemplates/:purposeTemplateId/eserviceTemplates",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await purposeTemplateService.addPurposeTemplateEServiceTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            req.body,
+            ctx
+          );
+
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error linking e-service template to purpose template ${req.params.purposeTemplateId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/purposeTemplates/:purposeTemplateId/eserviceTemplates/:eserviceTemplateId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await purposeTemplateService.removePurposeTemplateEServiceTemplate(
+            unsafeBrandId(req.params.purposeTemplateId),
+            unsafeBrandId(req.params.eserviceTemplateId),
+            ctx
+          );
+
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error unlinking e-service template ${req.params.eserviceTemplateId} from purpose template ${req.params.purposeTemplateId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -463,7 +553,7 @@ const purposeTemplateRouter = (
           ctx
         );
 
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -487,7 +577,7 @@ const purposeTemplateRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

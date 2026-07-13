@@ -1,9 +1,10 @@
 openapi: 3.0.3
 info:
   title: PDND Interoperability API
-  description: PDND Interoperability API for machine-to-machine interaction with interoperability features
+  description: PDND Interoperability API for machine-to-machine interaction with
+    interoperability features
   x-summary: PDND Interoperability API
-  version: "3.0.0"
+  version: "3.1.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -54,7 +55,8 @@ paths:
       parameters:
         - in: query
           name: states
-          description: Filter Agreements by states. If not specified, return Agreements in any state
+          description: Filter Agreements by states. If not specified, return Agreements in
+            any state
           required: false
           schema:
             type: array
@@ -64,7 +66,8 @@ paths:
           explode: false
         - in: query
           name: producerIds
-          description: Filter Agreements by producer IDs. If not specified, return Agreements for any producer
+          description: Filter Agreements by producer IDs. If not specified, return
+            Agreements for any producer
           required: false
           schema:
             type: array
@@ -75,7 +78,8 @@ paths:
           explode: false
         - in: query
           name: consumerIds
-          description: Filter Agreements by consumer IDs. If not specified, return Agreements for any consumer
+          description: Filter Agreements by consumer IDs. If not specified, return
+            Agreements for any consumer
           required: false
           schema:
             type: array
@@ -86,7 +90,8 @@ paths:
           explode: false
         - in: query
           name: descriptorIds
-          description: Filter Agreements by Descriptor IDs. If not specified, return Agreements for any Descriptor
+          description: Filter Agreements by Descriptor IDs. If not specified, return
+            Agreements for any Descriptor
           required: false
           schema:
             type: array
@@ -95,23 +100,8 @@ paths:
             default: []
           explode: false
         - $ref: "#/components/parameters/EserviceIdsParam"
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Agreements retrieved
@@ -222,11 +212,16 @@ paths:
       tags:
         - agreements
       summary: Delete an Agreement
-      description: Delete an Agreement in Draft, Pending, or MissingCertifiedAttributes state
+      description: Delete an Agreement in Draft, Pending, or
+        MissingCertifiedAttributes state
       operationId: deleteAgreement
       responses:
-        "204":
+        "200":
           description: Agreement deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -263,23 +258,8 @@ paths:
       description: Retrieve a list of Purposes associated with an Agreement
       operationId: getAgreementPurposes
       parameters:
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/OffsetParam"
       responses:
         "200":
           description: Purposes retrieved for the Agreement
@@ -320,7 +300,8 @@ paths:
       tags:
         - agreements
       summary: Approve an Agreement in Pending state
-      description: Approve an Agreement that is in Pending state, transitioning it to Active state
+      description: Approve an Agreement that is in Pending state, transitioning it to
+        Active state
       operationId: approveAgreement
       requestBody:
         content:
@@ -369,7 +350,8 @@ paths:
       tags:
         - agreements
       summary: Reject an Agreement in Pending state
-      description: Reject an Agreement that is in Pending state, transitioning it to Rejected state
+      description: Reject an Agreement that is in Pending state, transitioning it to
+        Rejected state
       operationId: rejectAgreement
       requestBody:
         content:
@@ -380,6 +362,50 @@ paths:
       responses:
         "200":
           description: Agreement rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /agreements/{agreementId}/archive:
+    parameters:
+      - schema:
+          $ref: "#/components/schemas/AgreementId"
+        name: agreementId
+        description: The ID of the Agreement to archive
+        in: path
+        required: true
+    post:
+      tags:
+        - agreements
+      summary: Archive an Agreement in Active or Suspended state
+      description: |
+        Archive an Agreement that is in Active or Suspended state, transitioning it to Archived state.
+        The Archived state is not reversible.
+      operationId: archiveAgreement
+      responses:
+        "200":
+          description: Agreement archived
           content:
             application/json:
               schema:
@@ -417,7 +443,8 @@ paths:
       tags:
         - agreements
       summary: Submit an Agreement in Draft state
-      description: Submit an Agreement that is in Draft state, transitioning it to Active state if all requirements are satisfied, to Pending otherwise
+      description: Submit an Agreement that is in Draft state, transitioning it to
+        Active state if all requirements are satisfied, to Pending otherwise
       operationId: submitAgreement
       requestBody:
         content:
@@ -701,23 +728,8 @@ paths:
       description: Retrieve a list of Consumer Documents for the specified Agreement
       operationId: getAgreementConsumerDocuments
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Consumer Documents retrieved
@@ -769,7 +781,8 @@ paths:
       operationId: downloadAgreementConsumerDocument
       responses:
         "200":
-          description: Consumer Document retrieved, a multipart containing the file and its metadata
+          description: Consumer Document retrieved, a multipart containing the file and
+            its metadata
           content:
             multipart/form-data:
               schema:
@@ -802,8 +815,12 @@ paths:
       description: Delete a specific Consumer Document from the specified Agreement
       operationId: deleteAgreementConsumerDocument
       responses:
-        "204":
+        "200":
           description: Consumer Document deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -841,7 +858,8 @@ paths:
       operationId: downloadAgreementConsumerContract
       responses:
         "200":
-          description: Consumer contract retrieved, a multipart containing the file and its metadata
+          description: Consumer contract retrieved, a multipart containing the file and
+            its metadata
           content:
             multipart/form-data:
               schema:
@@ -877,7 +895,8 @@ paths:
       parameters:
         - in: query
           name: states
-          description: Filter Consumer Delegations by states. If not specified, return Consumer Delegations in any state
+          description: Filter Consumer Delegations by states. If not specified, return
+            Consumer Delegations in any state
           required: false
           schema:
             type: array
@@ -885,46 +904,11 @@ paths:
               $ref: "#/components/schemas/DelegationState"
             default: []
           explode: false
-        - in: query
-          name: delegatorIds
-          description: Filter Consumer Delegations by delegator IDs. If not specified, return Consumer Delegations for any delegator
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: delegateIds
-          description: Filter Consumer Delegations by delegate IDs. If not specified, return Consumer Delegations for any delegate
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/DelegatorIdsParam"
+        - $ref: "#/components/parameters/DelegateIdsParam"
         - $ref: "#/components/parameters/EserviceIdsParam"
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Consumer Delegations retrieved
@@ -1041,7 +1025,8 @@ paths:
       tags:
         - delegations
       summary: Accept a Consumer Delegation in Waiting for Approval state
-      description: Accept a Consumer Delegation that is in Waiting for Approval state, transitioning it to Active state
+      description: Accept a Consumer Delegation that is in Waiting for Approval state,
+        transitioning it to Active state
       operationId: acceptConsumerDelegation
       responses:
         "200":
@@ -1083,7 +1068,8 @@ paths:
       parameters:
         - in: query
           name: states
-          description: Filter Producer Delegations by states. If not specified, return Producer Delegations in any state
+          description: Filter Producer Delegations by states. If not specified, return
+            Producer Delegations in any state
           required: false
           schema:
             type: array
@@ -1091,46 +1077,11 @@ paths:
               $ref: "#/components/schemas/DelegationState"
             default: []
           explode: false
-        - in: query
-          name: delegatorIds
-          description: Filter Producer Delegations by delegator IDs. If not specified, return Producer Delegations for any delegator
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
-        - in: query
-          name: delegateIds
-          description: Filter Producer Delegations by delegate IDs. If not specified, return Producer Delegations for any delegate
-          required: false
-          schema:
-            type: array
-            items:
-              type: string
-              format: uuid
-            default: []
-          explode: false
+        - $ref: "#/components/parameters/DelegatorIdsParam"
+        - $ref: "#/components/parameters/DelegateIdsParam"
         - $ref: "#/components/parameters/EserviceIdsParam"
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Producer Delegations retrieved
@@ -1247,7 +1198,8 @@ paths:
       tags:
         - delegations
       summary: Accept a Producer Delegation in Waiting for Approval state
-      description: Accept a Producer Delegation that is in Waiting for Approval state, transitioning it to Active state
+      description: Accept a Producer Delegation that is in Waiting for Approval state,
+        transitioning it to Active state
       operationId: acceptProducerDelegation
       responses:
         "200":
@@ -1291,7 +1243,8 @@ paths:
       tags:
         - delegations
       summary: Reject a Producer Delegation in Waiting for Approval state
-      description: Reject a Producer Delegation that is in Waiting for Approval state, transitioning it to Rejected state
+      description: Reject a Producer Delegation that is in Waiting for Approval state,
+        transitioning it to Rejected state
       operationId: rejectProducerDelegation
       requestBody:
         content:
@@ -1336,23 +1289,8 @@ paths:
       description: Retrieve a list of Certified Attributes
       operationId: getCertifiedAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Certified Attributes retrieved successfully
@@ -1549,23 +1487,8 @@ paths:
       description: Retrieve a list of Verified Attributes
       operationId: getVerifiedAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Verified Attributes retrieved successfully
@@ -1640,23 +1563,8 @@ paths:
       description: Retrieve a list of Declared Attributes
       operationId: getDeclaredAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Declared Attributes retrieved successfully
@@ -1748,23 +1656,8 @@ paths:
           schema:
             type: string
             format: uuid
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Clients retrieved successfully
@@ -1787,6 +1680,44 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - clients
+      summary: Create a new consumer client
+      description: Create a new consumer client for the requester's organization.
+      operationId: createClient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientSeed"
+      responses:
+        "200":
+          description: Consumer client created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}:
@@ -1829,6 +1760,40 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - clients
+      summary: Delete a Consumer Client
+      description: Delete a Consumer Client by its ID
+      operationId: deleteClient
+      responses:
+        "200":
+          description: Consumer client deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /clients/{clientId}/purposes:
     parameters:
       - name: clientId
@@ -1844,30 +1809,15 @@ paths:
       description: Retrieve a list of Purposes linked to a specific Client
       operationId: getClientPurposes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
         - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: states
           description: >
-            Filter Purposes by states. If not specified, return Purposes for any state.
-            If "ARCHIVED" is included in the filter, only Purposes where all
-            their versions are in the "ARCHIVED" state will be returned,
+            Filter Purposes by states. If not specified, return Purposes for any
+            state. If "ARCHIVED" is included in the filter, only Purposes where
+            all their versions are in the "ARCHIVED" state will be returned,
             excluding those that have versions in other states.
           schema:
             type: array
@@ -1919,8 +1869,12 @@ paths:
               $ref: "#/components/schemas/ClientAddPurpose"
         required: true
       responses:
-        "204":
+        "200":
           description: Client linked to the Purpose
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -1965,8 +1919,12 @@ paths:
       description: Unlink a Client from a Purpose, removing the association between them
       operationId: removeClientPurpose
       responses:
-        "204":
+        "200":
           description: Client unlinked from the Purpose
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2003,23 +1961,8 @@ paths:
       description: Retrieve a list of keys associated with a Client
       operationId: getClientKeys
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: List of Client Keys
@@ -2105,11 +2048,16 @@ paths:
       tags:
         - clients
       summary: Deletes a key by client and key identifier (kid).
-      description: Given a client and key identifiers it deletes the corresponding key, if any
+      description: Given a client and key identifiers it deletes the corresponding
+        key, if any
       operationId: deleteClientKeyById
       responses:
-        "204":
+        "200":
           description: the corresponding key has been deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2150,29 +2098,13 @@ paths:
             type: string
         - name: producerId
           in: query
-          description:
-            Filter Producer Keychains by Producer ID (Producer Keychain owner).
+          description: Filter Producer Keychains by Producer ID (Producer Keychain owner).
             If not specified, return Producer Keychains for any Producer.
           schema:
             type: string
             format: uuid
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Producer Keychains retrieved successfully
@@ -2195,6 +2127,44 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - producerKeychains
+      summary: Create a producer keychain
+      description: Create a producer keychain for the requester's organization.
+      operationId: createProducerKeychain
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProducerKeychainSeed"
+      responses:
+        "200":
+          description: Producer keychain created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProducerKeychain"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{keychainId}:
@@ -2238,6 +2208,40 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - producerKeychains
+      summary: Delete a Producer Keychain
+      description: Delete a Producer Keychain by its ID
+      operationId: deleteProducerKeychain
+      responses:
+        "200":
+          description: Producer Keychain deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /producerKeychains/{keychainId}/eservices:
     parameters:
       - name: keychainId
@@ -2254,23 +2258,8 @@ paths:
       description: Retrieve a list of E-Services linked to a specific Producer Keychain
       operationId: getProducerKeychainEServices
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: List of E-Services linked to the Producer Keychain
@@ -2314,8 +2303,12 @@ paths:
               $ref: "#/components/schemas/ProducerKeychainAddEService"
         required: true
       responses:
-        "204":
+        "200":
           description: Producer Keychain linked to the E-Service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2358,11 +2351,16 @@ paths:
       tags:
         - producerKeychains
       summary: Unlink an E-Service from a Producer Keychain
-      description: Unlink an E-Service from a Producer Keychain, removing the association between them
+      description: Unlink an E-Service from a Producer Keychain, removing the
+        association between them
       operationId: removeProducerKeychainEService
       responses:
-        "204":
+        "200":
           description: E-Service unlinked from the Producer Keychain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2400,23 +2398,8 @@ paths:
       description: Retrieve a list of keys associated with a Producer Keychain
       operationId: getProducerKeychainKeys
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: List of Producer Keychain Keys
@@ -2503,11 +2486,16 @@ paths:
       tags:
         - producerKeychains
       summary: Deletes a key by producer keychain and key identifier (kid).
-      description: "Given a producer keychain and key identifiers it deletes the corresponding key, if any"
+      description: "Given a producer keychain and key identifiers it deletes the
+        corresponding key, if any"
       operationId: deleteProducerKeychainKeyById
       responses:
-        "204":
+        "200":
           description: the corresponding key has been deleted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2541,7 +2529,8 @@ paths:
       tags:
         - delegations
       summary: Reject a Consumer Delegation in Waiting for Approval state
-      description: Reject a Consumer Delegation that is in Waiting for Approval state, transitioning it to Rejected state
+      description: Reject a Consumer Delegation that is in Waiting for Approval state,
+        transitioning it to Rejected state
       operationId: rejectConsumerDelegation
       requestBody:
         content:
@@ -2588,7 +2577,8 @@ paths:
       parameters:
         - in: query
           name: producerIds
-          description: Filter E-Services by producer IDs. If not specified, return E-Services for any producer
+          description: Filter E-Services by producer IDs. If not specified, return
+            E-Services for any producer
           schema:
             type: array
             items:
@@ -2627,23 +2617,8 @@ paths:
           description: Filter E-Services by client access delegable status
           schema:
             type: boolean
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Services retrieved
@@ -2800,8 +2775,95 @@ paths:
       operationId: deleteEService
       description: Delete an E-Service in Draft state
       responses:
-        "204":
+        "200":
           description: E-Service deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/scheduleArchive:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+    post:
+      tags:
+        - eservices
+      summary: Schedule the archiving process for an E-Service
+      description: Schedules an archiving of an E-Service, with latest Descriptor that is in Published or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.
+      operationId: scheduleArchiveEservice
+      requestBody:
+        description: A payload containing archiving reason that describes the motivation about archiving
+        required: true 
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
+      responses:
+        "200":
+          description: Archiving process of an E-Service scheduled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - eservices
+      summary: Cancel an ongoing archiving process of an E-Service
+      description: "Cancels the ongoing archiving process of an E-Service that is in Archiving or ArchivingSuspended state, restoring it to its previous operational state: Deprecated or Suspended state (if state was ArchivingSuspended)"
+      operationId: cancelScheduleArchiveEservice
+      responses:
+        "200":
+          description: Archiving process of an E-Service canceled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2834,8 +2896,10 @@ paths:
     patch:
       tags:
         - eservices
-      summary: Update the delegation configurations of an E-Service after its publication
-      description: Update the delegation configurations of an E-Service in Published, Suspended, or Deprecated state
+      summary: Update the delegation configurations of an E-Service after its
+        publication
+      description: Update the delegation configurations of an E-Service in Published,
+        Suspended, or Deprecated state
       operationId: updatePublishedEServiceDelegation
       requestBody:
         required: true
@@ -2885,7 +2949,8 @@ paths:
       tags:
         - eservices
       summary: Update the description of an E-Service after its publication
-      description: Update the description of an E-Service in Published, Suspended, or Deprecated state
+      description: Update the description of an E-Service in Published, Suspended, or
+        Deprecated state
       operationId: updatePublishedEServiceDescription
       requestBody:
         required: true
@@ -2935,7 +3000,8 @@ paths:
       tags:
         - eservices
       summary: Update the name of an E-Service after its publication
-      description: Update the name of an E-Service in Published, Suspended, or Deprecated state
+      description: Update the name of an E-Service in Published, Suspended, or
+        Deprecated state
       operationId: updatePublishedEServiceName
       requestBody:
         required: true
@@ -2984,8 +3050,10 @@ paths:
     patch:
       tags:
         - eservices
-      summary: Update the flag to enable Signal Hub for an E-Service after its publication
-      description: Update the flag to enable Signal Hub for an E-Service in Published, Suspended, or Deprecated state
+      summary: Update the flag to enable Signal Hub for an E-Service after its
+        publication
+      description: Update the flag to enable Signal Hub for an E-Service in Published,
+        Suspended, or Deprecated state
       operationId: updatePublishedEServiceSignalHub
       requestBody:
         required: true
@@ -2996,6 +3064,57 @@ paths:
       responses:
         "200":
           description: E-Service Signal Hub flag updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/personalDataFlag:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+    post:
+      tags:
+        - eservices
+      summary: Set personalData flag for an E-Service after its publication
+      description: Set personalData flag for an E-Service in Published, Suspended, or
+        Deprecated state. The flag can only be set once.
+      operationId: updateEServicePersonalDataFlag
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicePersonalDataFlagUpdateSeed"
+      responses:
+        "200":
+          description: E-Service personalData flag updated
           content:
             application/json:
               schema:
@@ -3040,26 +3159,12 @@ paths:
       parameters:
         - name: state
           in: query
-          description: Filter Descriptors by states. If not specified, return Descriptors in any state
+          description: Filter Descriptors by states. If not specified, return Descriptors
+            in any state
           schema:
             $ref: "#/components/schemas/EServiceDescriptorState"
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Descriptors retrieved
@@ -3223,8 +3328,12 @@ paths:
         Delete an E-Service Descriptor in Draft state.
         It is not possible to delete the last remaining Descriptor for an E-Service.
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3266,7 +3375,8 @@ paths:
       tags:
         - eservices
       summary: Update the quotas of an E-Service Descriptor after its publication
-      description: Update the quotas of an E-Service Descriptor in Published, Suspended, or Deprecated state
+      description: Update the quotas of an E-Service Descriptor in Published,
+        Suspended, or Deprecated state
       operationId: updatePublishedEServiceDescriptorQuotas
       requestBody:
         required: true
@@ -3325,23 +3435,8 @@ paths:
       description: Retrieve a list of documents for the specified E-Service Descriptor
       operationId: getEServiceDescriptorDocuments
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Descriptor Documents retrieved
@@ -3439,7 +3534,8 @@ paths:
       operationId: downloadEServiceDescriptorDocument
       responses:
         "200":
-          description: E-Service Descriptor Document retrieved, a multipart containing the file and its metadata
+          description: E-Service Descriptor Document retrieved, a multipart containing the
+            file and its metadata
           content:
             multipart/form-data:
               schema:
@@ -3470,8 +3566,12 @@ paths:
       description: Delete a specific Document for the specified E-Service Descriptor
       operationId: deleteEServiceDescriptorDocument
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Document deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3516,7 +3616,8 @@ paths:
       operationId: downloadEServiceDescriptorInterface
       responses:
         "200":
-          description: E-Service Descriptor interface retrieved, a multipart containing the file and its metadata
+          description: E-Service Descriptor interface retrieved, a multipart containing
+            the file and its metadata
           content:
             multipart/form-data:
               schema:
@@ -3592,8 +3693,138 @@ paths:
         The Descriptor must be in Draft state.
       operationId: deleteEServiceDescriptorInterface
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor interface deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/asyncExchangeCallbackInterface:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor for which to download the async exchange callback interface
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eservices
+      summary: Download an E-Service Descriptor async exchange callback interface
+      description: Download the async exchange callback interface document of an E-Service Descriptor
+      operationId: downloadEServiceDescriptorAsyncExchangeCallbackInterface
+      responses:
+        "200":
+          description: E-Service Descriptor async exchange callback interface retrieved, a multipart containing the file and its metadata
+          content:
+            multipart/form-data:
+              schema:
+                $ref: "#/components/schemas/FileDownloadMultipart"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - eservices
+      summary: Upload an E-Service Descriptor async exchange callback interface
+      description: |
+        Upload an async exchange callback interface document for the specified E-Service Descriptor.
+        If the Descriptor already has an async exchange callback interface, it should be first deleted before uploading a new one.
+        The Descriptor must be in Draft state and async exchange must be enabled.
+      operationId: uploadEServiceDescriptorAsyncExchangeCallbackInterface
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileUploadMultipart"
+        required: true
+      responses:
+        "201":
+          description: E-Service Descriptor async exchange callback interface uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - eservices
+      summary: Delete an E-Service Descriptor async exchange callback interface
+      description: |
+        Delete the async exchange callback interface document of an E-Service Descriptor.
+        The Descriptor must be in Draft state.
+      operationId: deleteEServiceDescriptorAsyncExchangeCallbackInterface
+      responses:
+        "200":
+          description: E-Service Descriptor async exchange callback interface deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -3619,9 +3850,12 @@ paths:
     post:
       tags:
         - eservices
-      summary: Suspend an E-Service Descriptor in Published or Deprecated state
+      summary: Suspend an E-Service Descriptor in Published, Deprecated or Archiving
+        state
       operationId: suspendDescriptor
-      description: Suspend an E-Service Descriptor that is in Published or Deprecated state, transitioning it to Suspended state
+      description: Suspend an E-Service Descriptor that is in Published, Deprecated or
+        Archiving state, transitioning it to Suspended state or in
+        ArchivingSuspended if previous state was Archiving
       parameters:
         - name: eserviceId
           in: path
@@ -3668,8 +3902,11 @@ paths:
     post:
       tags:
         - eservices
-      summary: Unsuspend an E-Service Descriptor in Suspended state
-      description: Unsuspend an E-Service Descriptor that is in Suspended state, transitioning it to Active or Deprecated state
+      summary: Unsuspend an E-Service Descriptor in Suspended or ArchivingSuspended
+        state
+      description: Unsuspend an E-Service Descriptor that is in Suspended or
+        ArchivingSuspended state, transitioning it to Active, Deprecated or
+        Archiving state
       operationId: unsuspendDescriptor
       parameters:
         - name: eserviceId
@@ -3768,7 +4005,8 @@ paths:
         - eservices
       summary: Approve a delegated E-Service Descriptor in Waiting for Approval state
       operationId: approveDelegatedEServiceDescriptor
-      description: Approve a delegated E-Service Descriptor that is in Waiting for Approval state
+      description: Approve a delegated E-Service Descriptor that is in Waiting for
+        Approval state
       parameters:
         - name: eserviceId
           in: path
@@ -3817,7 +4055,8 @@ paths:
         - eservices
       summary: Reject a delegated E-Service Descriptor in Waiting for Approval state
       operationId: rejectDelegatedEServiceDescriptor
-      description: Reject a delegated E-Service Descriptor that is in Waiting for Approval state
+      description: Reject a delegated E-Service Descriptor that is in Waiting for
+        Approval state
       requestBody:
         description: Payload containing the reason of the rejection
         content:
@@ -3842,6 +4081,89 @@ paths:
       responses:
         "200":
           description: E-Service Descriptor rejected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/scheduleArchive:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor to schedule for archiving
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Schedule the archiving process for an E-Service Descriptor
+      description: Schedules an archiving of an E-Service Descriptor that is in Deprecated or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.
+      operationId: scheduleArchiveEserviceDescriptor
+      responses:
+        "200":
+          description: Archiving process of an E-Service Descriptor scheduled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - eservices
+      summary: Cancel the archiving process for an E-Service Descriptor
+      description: Cancels an archiving of an E-Service Descriptor that is in Archiving or ArchivingSuspended state, transitioning it back to Deprecated or Suspended.
+      operationId: cancelEServiceDescriptorArchiving
+      responses:
+        "200":
+          description: Archiving process of an E-Service Descriptor canceled successfully
           content:
             application/json:
               schema:
@@ -3926,23 +4248,8 @@ paths:
       description: Retrieve a list of Risk Analyses for a specific E-Service
       operationId: getEServiceRiskAnalyses
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Risk Analyses retrieved
@@ -4023,8 +4330,12 @@ paths:
         The E-Service must be in Draft state and in Receive mode.
       operationId: deleteEServiceRiskAnalysis
       responses:
-        "204":
+        "200":
           description: E-Service Risk Analysis deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4067,23 +4378,8 @@ paths:
       description: Retrieve a list of E-Service Descriptor Certified Attributes
       operationId: getEServiceDescriptorCertifiedAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Descriptors Certified Attributes retrieved
@@ -4131,23 +4427,8 @@ paths:
       description: Retrieve a list of E-Service Descriptor Declared Attributes
       operationId: getEServiceDescriptorDeclaredAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Descriptors Declared Attributes retrieved
@@ -4195,23 +4476,8 @@ paths:
       description: Retrieve a list of E-Service Descriptor Verified Attributes
       operationId: getEServiceDescriptorVerifiedAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Descriptors Verified Attributes retrieved
@@ -4263,8 +4529,10 @@ paths:
     post:
       tags:
         - eservices
-      summary: Assign E-Service Descriptor Certified Attributes to a specific Attribute Group
-      description: Assign a set of Certified Attributes to the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor
+      summary: Assign E-Service Descriptor Certified Attributes to a specific
+        Attribute Group
+      description: Assign a set of Certified Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Descriptor
       operationId: assignEServiceDescriptorCertifiedAttributesToGroup
       requestBody:
         required: true
@@ -4273,8 +4541,13 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
-        "204":
-          description: E-Service Descriptor Certified Attribute assigned to the Attribute Group
+        "200":
+          description: E-Service Descriptor Certified Attribute assigned to the Attribute
+            Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4323,8 +4596,10 @@ paths:
     post:
       tags:
         - eservices
-      summary: Assign E-Service Descriptor Declared Attributes to a specific Attribute Group
-      description: Assign a set of Declared Attributes to the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor
+      summary: Assign E-Service Descriptor Declared Attributes to a specific Attribute
+        Group
+      description: Assign a set of Declared Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Descriptor
       operationId: assignEServiceDescriptorDeclaredAttributesToGroup
       requestBody:
         required: true
@@ -4333,8 +4608,13 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
-        "204":
-          description: E-Service Descriptor Declared Attribute assigned to the Attribute Group
+        "200":
+          description: E-Service Descriptor Declared Attribute assigned to the Attribute
+            Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4383,8 +4663,10 @@ paths:
     post:
       tags:
         - eservices
-      summary: Assign E-Service Descriptor Verified Attributes to a specific Attribute Group
-      description: Assign a set of Verified Attributes to the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor
+      summary: Assign E-Service Descriptor Verified Attributes to a specific Attribute
+        Group
+      description: Assign a set of Verified Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Descriptor
       operationId: assignEServiceDescriptorVerifiedAttributesToGroup
       requestBody:
         required: true
@@ -4393,8 +4675,13 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
-        "204":
-          description: E-Service Descriptor Verified Attribute assigned to the Attribute Group
+        "200":
+          description: E-Service Descriptor Verified Attribute assigned to the Attribute
+            Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4446,17 +4733,65 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/AttributeId"
+    patch:
+      tags:
+        - eservices
+      summary: Update an E-Service Descriptor Certified Attribute in a specific Attribute Group
+      description: |
+        Update a specific Certified Attribute (identified by attributeId) within the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
+        Currently the only supported property is dailyCallsPerConsumer.
+      operationId: updateEServiceDescriptorCertifiedAttributeInGroup
+      requestBody:
+        description: A seed object containing the properties to update for the Certified Attribute
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorAttributeSeed"
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Attribute updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
     delete:
       tags:
         - eservices
-      summary: Delete an E-Service Descriptor Certified Attribute from a specific Attribute Group
+      summary: Delete an E-Service Descriptor Certified Attribute from a specific
+        Attribute Group
       description: |
         Delete a specific Certified Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceDescriptorCertifiedAttributeFromGroup
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Certified Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4509,14 +4844,19 @@ paths:
     delete:
       tags:
         - eservices
-      summary: Delete an E-Service Descriptor Verified Attribute from a specific Attribute Group
+      summary: Delete an E-Service Descriptor Verified Attribute from a specific
+        Attribute Group
       description: |
         Delete a specific Verified Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceDescriptorVerifiedAttributeFromGroup
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Verified Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4569,14 +4909,19 @@ paths:
     delete:
       tags:
         - eservices
-      summary: Delete an E-Service Descriptor Declared Attribute from a specific Attribute Group
+      summary: Delete an E-Service Descriptor Declared Attribute from a specific
+        Attribute Group
       description: |
         Delete a specific Declared Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceDescriptorDeclaredAttributeFromGroup
       responses:
-        "204":
+        "200":
           description: E-Service Descriptor Declared Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4616,7 +4961,8 @@ paths:
       tags:
         - eservices
       summary: Create a Certified Attributes Group for an E-Service Descriptor
-      description: Create a new group of Certified Attributes for an E-Service Descriptor in Draft state
+      description: Create a new group of Certified Attributes for an E-Service
+        Descriptor in Draft state
       operationId: createEServiceDescriptorCertifiedAttributesGroup
       requestBody:
         required: true
@@ -4670,7 +5016,8 @@ paths:
       tags:
         - eservices
       summary: Create a Declared Attributes Group for an E-Service Descriptor
-      description: Create a new group of Declared Attributes for an E-Service Descriptor in Draft state
+      description: Create a new group of Declared Attributes for an E-Service
+        Descriptor in Draft state
       operationId: createEServiceDescriptorDeclaredAttributesGroup
       requestBody:
         required: true
@@ -4724,7 +5071,8 @@ paths:
       tags:
         - eservices
       summary: Create a Verified Attributes Group for an E-Service Descriptor
-      description: Create a new group of Verified Attributes for an E-Service Descriptor in Draft state
+      description: Create a new group of Verified Attributes for an E-Service
+        Descriptor in Draft state
       operationId: createEServiceDescriptorVerifiedAttributesGroup
       requestBody:
         required: true
@@ -4775,7 +5123,8 @@ paths:
             type: string
         - in: query
           name: eserviceTemplateIds
-          description: Filter E-Service Templates by IDs. If not specified, return E-Service Templates with any ID
+          description: Filter E-Service Templates by IDs. If not specified, return
+            E-Service Templates with any ID
           schema:
             type: array
             items:
@@ -4784,7 +5133,8 @@ paths:
           explode: false
         - in: query
           name: creatorIds
-          description: Filter E-Service Templates by creator IDs. If not specified, return E-Service Templates for any creator
+          description: Filter E-Service Templates by creator IDs. If not specified, return
+            E-Service Templates for any creator
           schema:
             type: array
             items:
@@ -4792,23 +5142,8 @@ paths:
               format: uuid
             default: []
           explode: false
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Templates retrieved
@@ -4883,8 +5218,7 @@ paths:
         description: The E-Service Template id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     get:
       tags:
         - eserviceTemplates
@@ -4968,8 +5302,12 @@ paths:
       operationId: deleteEServiceTemplate
       description: Delete an E-Service Template in Draft state
       responses:
-        "204":
+        "200":
           description: E-Service Template deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4998,13 +5336,13 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     patch:
       tags:
         - eserviceTemplates
       summary: Update the description of an E-Service Template after its publication
-      description: Update the description of an E-Service Template in Published or Suspended state
+      description: Update the description of an E-Service Template in Published or
+        Suspended state
       operationId: updatePublishedEServiceTemplateDescription
       requestBody:
         required: true
@@ -5047,13 +5385,13 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     patch:
       tags:
         - eserviceTemplates
       summary: Update the intended target of an E-Service Template after its publication
-      description: Update the intended target of an E-Service Template in Published or Suspended state
+      description: Update the intended target of an E-Service Template in Published or
+        Suspended state
       operationId: updatePublishedEServiceTemplateIntendedTarget
       requestBody:
         required: true
@@ -5096,8 +5434,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     patch:
       tags:
         - eserviceTemplates
@@ -5147,8 +5484,7 @@ paths:
         description: The E-Service Template ID of the Versions to retrieve
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     get:
       tags:
         - eserviceTemplates
@@ -5158,26 +5494,12 @@ paths:
       parameters:
         - name: state
           in: query
-          description: Filter Versions by states. If not specified, return Versions in any state
+          description: Filter Versions by states. If not specified, return Versions in any
+            state
           schema:
             $ref: "#/components/schemas/EServiceTemplateVersionState"
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Template Versions retrieved
@@ -5253,8 +5575,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version to retrieve
@@ -5343,8 +5664,12 @@ paths:
         It is not possible to delete the last remaining Version for a Template.
       operationId: deleteDraftEServiceTemplateVersion
       responses:
-        "204":
+        "200":
           description: E-Service Template Version deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5375,8 +5700,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version to suspend
@@ -5388,7 +5712,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Suspend an E-Service Template Version in Published state
-      description: Suspend an E-Service Template Version that is in Published state, transitioning it to Suspended state
+      description: Suspend an E-Service Template Version that is in Published state,
+        transitioning it to Suspended state
       operationId: suspendEServiceTemplateVersion
       responses:
         "200":
@@ -5425,8 +5750,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version to unsuspend
@@ -5438,7 +5762,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Unsuspend an E-Service Template Version in Suspended state
-      description: Unsuspend an E-Service Template Version that is in Suspended state, transitioning it to Published state
+      description: Unsuspend an E-Service Template Version that is in Suspended state,
+        transitioning it to Published state
       operationId: unsuspendEServiceTemplateVersion
       responses:
         "200":
@@ -5475,8 +5800,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version to publish
@@ -5488,7 +5812,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Publish an E-Service Template Version in Draft state
-      description: Publish an E-Service Template Version that is in Draft state, transitioning it to Published state
+      description: Publish an E-Service Template Version that is in Draft state,
+        transitioning it to Published state
       operationId: publishEServiceTemplateVersion
       responses:
         "200":
@@ -5525,8 +5850,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -5541,23 +5865,8 @@ paths:
       description: Retrieve a list of Documents for the specified E-Service Template Version
       operationId: getEServiceTemplateVersionDocuments
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Template Version Documents retrieved
@@ -5633,8 +5942,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -5657,7 +5965,8 @@ paths:
       operationId: downloadEServiceTemplateVersionDocument
       responses:
         "200":
-          description: E-Service Template Version Document retrieved, a multipart containing the file and its metadata
+          description: E-Service Template Version Document retrieved, a multipart
+            containing the file and its metadata
           content:
             multipart/form-data:
               schema:
@@ -5688,8 +5997,12 @@ paths:
       description: Delete a specific Document for the specified E-Service Template Version
       operationId: deleteEServiceTemplateVersionDocument
       responses:
-        "204":
+        "200":
           description: E-Service Template Version Document deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5718,8 +6031,7 @@ paths:
         description: The E-Service Template ID for which to create a risk analysis
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
     post:
       tags:
         - eserviceTemplates
@@ -5771,23 +6083,8 @@ paths:
       description: Retrieve a list of Risk Analyses for a specific E-Service Template
       operationId: getEServiceTemplateRiskAnalyses
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Template Risk Analyses retrieved
@@ -5819,8 +6116,7 @@ paths:
         description: The E-Service Template id
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: riskAnalysisId
         in: path
         description: The Risk Analysis id
@@ -5869,8 +6165,12 @@ paths:
         The E-Service Template must be in Draft state and in Receive mode.
       operationId: deleteEServiceTemplateRiskAnalysis
       responses:
-        "204":
+        "200":
           description: E-Service Template Risk Analysis deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -5899,8 +6199,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -5912,7 +6211,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update the quotas of an E-Service Template Version after its publication
-      description: Update the quotas of an E-Service Template Version in Published or Suspended state
+      description: Update the quotas of an E-Service Template Version in Published or
+        Suspended state
       operationId: updatePublishedEServiceTemplateVersionQuotas
       requestBody:
         required: true
@@ -5957,8 +6257,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -5973,23 +6272,8 @@ paths:
       description: Retrieve a list of E-Service Template Version Certified Attributes
       operationId: getEServiceTemplateVersionCertifiedAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Template Version Certified Attributes retrieved
@@ -6023,8 +6307,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6039,23 +6322,8 @@ paths:
       description: Retrieve a list of E-Service Template Version Declared Attributes
       operationId: getEServiceTemplateVersionDeclaredAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Template Version Declared Attributes retrieved
@@ -6089,8 +6357,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6105,23 +6372,8 @@ paths:
       description: Retrieve a list of E-Service Template Version Verified Attributes
       operationId: getEServiceTemplateVersionVerifiedAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: E-Service Template Version Verified Attributes retrieved
@@ -6155,8 +6407,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6175,8 +6426,10 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Assign E-Service Template Version Certified Attribute to a specific Attribute Group
-      description: Assign a set of Certified Attributes to the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version
+      summary: Assign E-Service Template Version Certified Attribute to a specific
+        Attribute Group
+      description: Assign a set of Certified Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Template Version
       operationId: assignEServiceTemplateVersionCertifiedAttributesToGroup
       requestBody:
         required: true
@@ -6185,8 +6438,13 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
-        "204":
-          description: E-Service Descriptor Certified Attribute assigned to the Attribute Group
+        "200":
+          description: E-Service Descriptor Certified Attribute assigned to the Attribute
+            Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6217,8 +6475,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6237,8 +6494,10 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Assign E-Service Template Version Declared Attributes to a specific Attribute Group
-      description: Assign a set of Declared Attributes to the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version
+      summary: Assign E-Service Template Version Declared Attributes to a specific
+        Attribute Group
+      description: Assign a set of Declared Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Template Version
       operationId: assignEServiceTemplateVersionDeclaredAttributesToGroup
       requestBody:
         required: true
@@ -6247,8 +6506,13 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
-        "204":
-          description: E-Service Template Version Declared Attribute assigned to the Attribute Group
+        "200":
+          description: E-Service Template Version Declared Attribute assigned to the
+            Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6279,8 +6543,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6299,8 +6562,10 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Assign E-Service Template Version Verified Attributes to a specific Attribute Group
-      description: Assign a set of Verified Attributes to the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version
+      summary: Assign E-Service Template Version Verified Attributes to a specific
+        Attribute Group
+      description: Assign a set of Verified Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Template Version
       operationId: assignEServiceTemplateVersionVerifiedAttributesToGroup
       requestBody:
         required: true
@@ -6309,8 +6574,13 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
-        "204":
-          description: E-Service Template Version Verified Attribute assigned to the Attribute Group
+        "200":
+          description: E-Service Template Version Verified Attribute assigned to the
+            Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6341,8 +6611,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6367,14 +6636,20 @@ paths:
     delete:
       tags:
         - eserviceTemplates
-      summary: Delete an E-Service Template Certified Attribute from a specific Attribute Group
+      summary: Delete an E-Service Template Certified Attribute from a specific
+        Attribute Group
       description: |
         Delete a specific Certified Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version.
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceTemplateVersionCertifiedAttributeFromGroup
       responses:
-        "204":
-          description: E-Service Template Version Certified Attribute deleted from Attribute Group
+        "200":
+          description: E-Service Template Version Certified Attribute deleted from
+            Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6403,8 +6678,7 @@ paths:
         description: The E-Service Template ID
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6429,14 +6703,20 @@ paths:
     delete:
       tags:
         - eserviceTemplates
-      summary: Delete an E-Service Template Verified Attribute from a specific Attribute Group
+      summary: Delete an E-Service Template Verified Attribute from a specific
+        Attribute Group
       description: |
         Delete a specific Verified Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version.
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceTemplateVersionVerifiedAttributeFromGroup
       responses:
-        "204":
-          description: E-Service Template Version Verified Attribute deleted from Attribute Group
+        "200":
+          description: E-Service Template Version Verified Attribute deleted from
+            Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6465,8 +6745,7 @@ paths:
         description: The ID of the E-Service Template
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the E-Service Template Version
@@ -6491,14 +6770,20 @@ paths:
     delete:
       tags:
         - eserviceTemplates
-      summary: Delete an E-Service Template Declared Attribute from a specific Attribute Group
+      summary: Delete an E-Service Template Declared Attribute from a specific
+        Attribute Group
       description: |
         Delete a specific Declared Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version.
         If the deleted attribute is the last one in the group, the entire group will be removed.
       operationId: deleteEServiceTemplateVersionDeclaredAttributeFromGroup
       responses:
-        "204":
-          description: E-Service Template Version Declared Attribute deleted from Attribute Group
+        "200":
+          description: E-Service Template Version Declared Attribute deleted from
+            Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6527,8 +6812,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6540,7 +6824,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Create Certified Attributes Group for E-Service Template Version
-      description: Create a new group of Certified Attributes for an E-Service Template Version in Draft state
+      description: Create a new group of Certified Attributes for an E-Service
+        Template Version in Draft state
       operationId: createEServiceTemplateVersionCertifiedAttributesGroup
       requestBody:
         required: true
@@ -6583,8 +6868,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6596,7 +6880,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Create Declared Attributes Group for E-Service Template Version
-      description: Create a new group of Declared Attributes for an E-Service Template Version in Draft state
+      description: Create a new group of Declared Attributes for an E-Service Template
+        Version in Draft state
       operationId: createEServiceTemplateVersionDeclaredAttributesGroup
       requestBody:
         required: true
@@ -6639,8 +6924,7 @@ paths:
         description: The E-Service Template ID of the Version
         required: true
         schema:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
       - name: versionId
         in: path
         description: The ID of the Version
@@ -6652,7 +6936,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Create Verified Attributes Group for E-Service Template Version
-      description: Create a new group of Verified Attributes for an E-Service Template Version in Draft state
+      description: Create a new group of Verified Attributes for an E-Service Template
+        Version in Draft state
       operationId: createEServiceTemplateVersionVerifiedAttributesGroup
       requestBody:
         required: true
@@ -6817,12 +7102,14 @@ paths:
         - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: title
-          description: Filter Purposes by title. If not specified, return Purposes for any title
+          description: Filter Purposes by title. If not specified, return Purposes for any
+            title
           schema:
             type: string
         - in: query
           name: consumerIds
-          description: Filter Purposes by consumer ids. If not specified, return Purposes for any consumer
+          description: Filter Purposes by consumer ids. If not specified, return Purposes
+            for any consumer
           schema:
             type: array
             items:
@@ -6833,9 +7120,9 @@ paths:
         - in: query
           name: states
           description: >
-            Filter Purposes by states. If not specified, return Purposes for any state.
-            If "ARCHIVED" is included in the filter, only Purposes where all
-            their versions are in the "ARCHIVED" state will be returned,
+            Filter Purposes by states. If not specified, return Purposes for any
+            state. If "ARCHIVED" is included in the filter, only Purposes where
+            all their versions are in the "ARCHIVED" state will be returned,
             excluding those that have versions in other states.
           schema:
             type: array
@@ -6843,23 +7130,8 @@ paths:
               $ref: "#/components/schemas/PurposeVersionState"
             default: []
           explode: false
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Purposes retrieved
@@ -6930,11 +7202,16 @@ paths:
       tags:
         - purposes
       summary: Delete Purpose
-      description: Delete Purpose. Only purposes with one version can be deleted. The version must be in Draft or WaitingForApproval state
+      description: Delete Purpose. Only purposes with one version can be deleted. The
+        version must be in Draft or WaitingForApproval state
       operationId: deletePurpose
       responses:
-        "204":
+        "200":
           description: Purpose deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -7019,26 +7296,12 @@ paths:
       parameters:
         - name: state
           in: query
-          description: Filter Versions by states. If not specified, return Versions in any state
+          description: Filter Versions by states. If not specified, return Versions in any
+            state
           schema:
             $ref: "#/components/schemas/PurposeVersionState"
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Purpose Versions retrieved
@@ -7167,8 +7430,12 @@ paths:
       description: Delete a Purpose Version in waiting for approval or draft state
       operationId: deletePurposeVersion
       responses:
-        "204":
+        "200":
           description: Purpose Version deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -7302,7 +7569,8 @@ paths:
       tags:
         - purposes
       summary: Approve a Purpose in Waiting for Approval state
-      description: Approve a Purpose that is in Waiting for Approval state, transitioning it to Active state
+      description: Approve a Purpose that is in Waiting for Approval state,
+        transitioning it to Active state
       operationId: approvePurpose
       requestBody:
         content:
@@ -7555,7 +7823,8 @@ paths:
       operationId: downloadPurposeVersionRiskAnalysisDocument
       responses:
         "200":
-          description: Purpose version risk analysis document retrieved, a multipart containing the file and its metadata
+          description: Purpose version risk analysis document retrieved, a multipart
+            containing the file and its metadata
           content:
             multipart/form-data:
               schema:
@@ -7625,6 +7894,45 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /purposes/{purposeId}/remainingDailyCalls:
+    parameters:
+      - name: purposeId
+        in: path
+        description: The ID of the Purpose to retrieve the remainingDailyCalls for
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - purposes
+      operationId: getRemainingDailyCalls
+      summary: Retrieve remaining dailyCalls for a purpose
+      description: Retrieve remaining available daily calls for a purpose
+      responses:
+        "200":
+          description: Retrieve remaining daily calls
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemainingDailyCallsResponse"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /tenants:
     get:
       tags:
@@ -7651,23 +7959,8 @@ paths:
             Tax code of the Tenant
             Available only for Tenants not listed in IPA
             Mutually exclusive with IPACode
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Tenants retrieved
@@ -7753,23 +8046,8 @@ paths:
           schema:
             type: string
             format: uuid
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Tenant Declared Attributes retrieved
@@ -7899,23 +8177,8 @@ paths:
       description: Retrieve a list of Certified Attributes assigned to the Tenant
       operationId: getTenantCertifiedAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Tenant Certified Attributes retrieved
@@ -8049,23 +8312,8 @@ paths:
       description: Retrieve a list of Verified Attributes assigned to the Tenant
       operationId: getTenantVerifiedAttributes
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Tenant Verified Attributes retrieved
@@ -8212,26 +8460,12 @@ paths:
       tags:
         - tenants
       summary: List Tenant Verified Attribute Verifiers
-      description: Retrieve a list of Verifiers for a specific Verified Attribute of a Tenant
+      description: Retrieve a list of Verifiers for a specific Verified Attribute of a
+        Tenant
       operationId: getTenantVerifiedAttributeVerifiers
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Verified Attribute Verifiers retrieved
@@ -8279,23 +8513,8 @@ paths:
       description: Retrieve a list of Revokers for a specific Verified Attribute of a Tenant
       operationId: getTenantVerifiedAttributeRevokers
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Verified Attribute Revokers retrieved
@@ -8332,12 +8551,14 @@ paths:
       parameters:
         - in: query
           name: purposeTitle
-          description: Filter Purpose Templates by title. If not specified, return Purpose Templates for any title.
+          description: Filter Purpose Templates by title. If not specified, return Purpose
+            Templates for any title.
           schema:
             type: string
         - in: query
           name: creatorIds
-          description: Filter Purpose Templates by Creator IDs. If not specified, return Purpose Templates for any Creator.
+          description: Filter Purpose Templates by Creator IDs. If not specified, return
+            Purpose Templates for any Creator.
           schema:
             type: array
             items:
@@ -8349,8 +8570,9 @@ paths:
         - in: query
           name: states
           description: >
-            Filter Purpose Templates by states. If not specified, return Purpose Templates for any state.
-            Purpose Templates in Draft state are visible only to their creator.
+            Filter Purpose Templates by states. If not specified, return Purpose
+            Templates for any state. Purpose Templates in Draft state are
+            visible only to their creator.
           schema:
             type: array
             items:
@@ -8359,31 +8581,19 @@ paths:
           explode: false
         - in: query
           name: targetTenantKind
-          description: Filter Purpose Templates by target tenant kind. If not specified, return Purpose Templates for any tenant kind.
+          description: Filter Purpose Templates by target tenant kind. If not specified,
+            return Purpose Templates for any tenant kind.
           schema:
             $ref: "#/components/schemas/TargetTenantKind"
         - in: query
           name: handlesPersonalData
-          description: Filter Purpose Templates by whether they handle personal data. If not specified, return Purpose Templates that both handle and do not handle personal data.
+          description: Filter Purpose Templates by whether they handle personal data. If
+            not specified, return Purpose Templates that both handle and do not
+            handle personal data.
           schema:
             type: boolean
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Purpose Templates retrieved
@@ -8569,8 +8779,12 @@ paths:
       description: Delete a Purpose Template that is in Draft state
       operationId: deletePurposeTemplate
       responses:
-        "204":
+        "200":
           description: Purpose Template deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8718,26 +8932,12 @@ paths:
       tags:
         - purposeTemplates
       summary: Retrieve a list of Risk Analysis Template Annotation Documents
-      description: Retrieve a list of Risk Analysis Template Annotation Documents for the specified Purpose Template
+      description: Retrieve a list of Risk Analysis Template Annotation Documents for
+        the specified Purpose Template
       operationId: getRiskAnalysisTemplateAnnotationDocuments
       parameters:
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Risk Analysis Template Annotation Documents retrieved
@@ -8770,17 +8970,20 @@ paths:
       tags:
         - purposeTemplates
       summary: Upload a Risk Analysis Form Template Answer Annotation Document
-      description: Upload a Document for the specified Risk Analysis Form Template Answer Annotation
+      description: Upload a Document for the specified Risk Analysis Form Template
+        Answer Annotation
       operationId: uploadRiskAnalysisTemplateAnswerAnnotationDocument
       requestBody:
         content:
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentUploadMultipart"
+              $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentUploadMultipa\
+                rt"
         required: true
       responses:
         "201":
-          description: Risk Analysis Form Template Answer Annotation Document uploaded successfully
+          description: Risk Analysis Form Template Answer Annotation Document uploaded
+            successfully
           content:
             application/json:
               schema:
@@ -8846,7 +9049,8 @@ paths:
       operationId: getRiskAnalysisTemplateAnswerAnnotationDocument
       responses:
         "200":
-          description: Risk Analysis Form Template Answer Annotation Document retrieved, a multipart containing the file and its metadata
+          description: Risk Analysis Form Template Answer Annotation Document retrieved, a
+            multipart containing the file and its metadata
           content:
             multipart/form-data:
               schema:
@@ -8879,8 +9083,12 @@ paths:
       description: Delete the Document of a Risk Analysis Form Template Answer Annotation
       operationId: deleteRiskAnalysisTemplateAnswerAnnotationDocument
       responses:
-        "204":
+        "200":
           description: Risk Analysis Form Template Answer Annotation Document deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -9001,7 +9209,8 @@ paths:
       parameters:
         - in: query
           name: producerIds
-          description: Filter Purpose Template linked E-Services by E-Service Producer IDs. If not specified, return linked E-Services for any Producer.
+          description: Filter Purpose Template linked E-Services by E-Service Producer
+            IDs. If not specified, return linked E-Services for any Producer.
           schema:
             type: array
             items:
@@ -9011,26 +9220,12 @@ paths:
           explode: false
         - in: query
           name: eserviceName
-          description: Filter Purpose Template linked E-Services by E-Service name. If not specified, return linked E-Services for any name.
+          description: Filter Purpose Template linked E-Services by E-Service name. If not
+            specified, return linked E-Services for any name.
           schema:
             type: string
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
-        - in: query
-          name: limit
-          description: Maximum number of results to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
       responses:
         "200":
           description: Purpose Template E-Services retrieved
@@ -9070,8 +9265,12 @@ paths:
               $ref: "#/components/schemas/PurposeTemplateLinkEService"
         required: true
       responses:
-        "204":
+        "200":
           description: E-Services linked to Purpose Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -9111,11 +9310,162 @@ paths:
       tags:
         - purposeTemplates
       summary: Unlink an E-Service From Purpose Template
-      description: Unlink an E-Service From a Purpose Template that is in Draft or Active state
+      description: Unlink an E-Service From a Purpose Template that is in Draft or
+        Active state
       operationId: removePurposeTemplateEService
       responses:
-        "204":
+        "200":
           description: E-Service unlinked from Purpose Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/eserviceTemplates:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/PurposeTemplateId"
+    get:
+      tags:
+        - purposeTemplates
+      summary: List E-Service Templates linked to a Purpose Template
+      description: Retrieve a list of E-Service Templates linked to a specific Purpose Template, enriched with full template metadata
+      operationId: getPurposeTemplateEServiceTemplates
+      parameters:
+        - in: query
+          name: creatorIds
+          description: Filter Purpose Template linked E-Service Templates by Creator IDs. If not specified, return linked E-Service Templates for any Creator.
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: eserviceTemplateName
+          description: Filter Purpose Template linked E-Service Templates by name. If not specified, return linked E-Service Templates for any name.
+          schema:
+            type: string
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Purpose Template E-Service Templates retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplates"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - purposeTemplates
+      summary: Link an E-Service Template to a Purpose Template
+      description: Link an E-Service Template to a Purpose Template that is in Draft or Active state
+      operationId: addPurposeTemplateEServiceTemplate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PurposeTemplateLinkEServiceTemplate"
+        required: true
+      responses:
+        "200":
+          description: E-Service Template linked to Purpose Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplates/{purposeTemplateId}/eserviceTemplates/{eserviceTemplateId}:
+    parameters:
+      - name: purposeTemplateId
+        in: path
+        description: The Purpose Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/PurposeTemplateId"
+      - name: eserviceTemplateId
+        in: path
+        description: The E-Service Template ID to unlink
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceTemplateId"
+    delete:
+      tags:
+        - purposeTemplates
+      summary: Unlink an E-Service Template From Purpose Template
+      description: Unlink an E-Service Template From a Purpose Template that is in Draft or Active state
+      operationId: removePurposeTemplateEServiceTemplate
+      responses:
+        "200":
+          description: E-Service Template unlinked from Purpose Template
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -9147,7 +9497,8 @@ paths:
           $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Publish a Purpose Template in Draft state
-      description: Publish a Purpose Template that is in Draft state, transitioning it to Published state
+      description: Publish a Purpose Template that is in Draft state, transitioning it
+        to Published state
       operationId: publishPurposeTemplate
       tags:
         - purposeTemplates
@@ -9206,7 +9557,8 @@ paths:
           $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Archive a Purpose Template in Published or Suspended state
-      description: Archive a Purpose Template that is in Published or Suspended state, transitioning it to Archived state
+      description: Archive a Purpose Template that is in Published or Suspended state,
+        transitioning it to Archived state
       operationId: archivePurposeTemplate
       tags:
         - purposeTemplates
@@ -9265,7 +9617,8 @@ paths:
           $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Unsuspend a Purpose Template in Suspended state
-      description: Unsuspend a Purpose Template that is in Suspended state, transitioning it to Published state
+      description: Unsuspend a Purpose Template that is in Suspended state,
+        transitioning it to Published state
       operationId: unsuspendPurposeTemplate
       tags:
         - purposeTemplates
@@ -9324,7 +9677,8 @@ paths:
           $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Suspend a Purpose Template in Published state
-      description: Suspend a Purpose Template that is in Published state, transitioning it to Suspended state
+      description: Suspend a Purpose Template that is in Published state,
+        transitioning it to Suspended state
       operationId: suspendPurposeTemplate
       tags:
         - purposeTemplates
@@ -9859,6 +10213,33 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /purposeTemplateEvents:
+    get:
+      tags:
+        - events
+      summary: Get Purpose Template events
+      description: |
+        Retrieve list of Purpose Template events that occurred after the specified event ID.
+        Results are ordered in ascending order (oldest events first).
+      operationId: getPurposeTemplateEvents
+      parameters:
+        - $ref: "#/components/parameters/LastEventId"
+        - $ref: "#/components/parameters/EventsLimit"
+      responses:
+        "200":
+          description: Purpose Template events retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeTemplateEvents"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /users:
     get:
       tags:
@@ -9880,23 +10261,8 @@ paths:
               type: string
             default: []
           explode: false
-        - in: query
-          name: limit
-          description: Maximum number of users to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/OffsetParam"
       responses:
         "200":
           description: Users retrieved successfully
@@ -9981,23 +10347,8 @@ paths:
       description: Retrieve a list of Users associated with a Client
       operationId: getClientUsers
       parameters:
-        - in: query
-          name: limit
-          description: Maximum number of users to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/OffsetParam"
       responses:
         "200":
           description: Client Users retrieved
@@ -10043,8 +10394,12 @@ paths:
               $ref: "#/components/schemas/LinkUser"
         required: true
       responses:
-        "204":
+        "200":
           description: User linked to the Client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -10088,8 +10443,12 @@ paths:
       tags:
         - clients
       responses:
-        "204":
+        "200":
           description: User unlinked from Client
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -10111,9 +10470,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  /producerKeychains/{producerKeychainId}/users:
+  /producerKeychains/{keychainId}/users:
     parameters:
-      - name: producerKeychainId
+      - name: keychainId
         in: path
         description: ID of Producer Keychain the users belong to
         required: true
@@ -10126,23 +10485,8 @@ paths:
       description: Retrieve a list of Users associated with a Producer Keychain
       operationId: getProducerKeychainUsers
       parameters:
-        - in: query
-          name: limit
-          description: Maximum number of users to return
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 1
-            maximum: 50
-        - in: query
-          name: offset
-          description: Pagination starting position
-          required: true
-          schema:
-            type: integer
-            format: int32
-            minimum: 0
+        - $ref: "#/components/parameters/LimitParam"
+        - $ref: "#/components/parameters/OffsetParam"
       responses:
         "200":
           description: Producer Keychain Users retrieved
@@ -10188,8 +10532,12 @@ paths:
               $ref: "#/components/schemas/LinkUser"
         required: true
       responses:
-        "204":
+        "200":
           description: User linked to the Producer Keychain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -10211,9 +10559,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  /producerKeychains/{producerKeychainId}/users/{userId}:
+  /producerKeychains/{keychainId}/users/{userId}:
     parameters:
-      - name: producerKeychainId
+      - name: keychainId
         in: path
         description: The Producer Keychain id
         required: true
@@ -10233,8 +10581,12 @@ paths:
       tags:
         - producerKeychains
       responses:
-        "204":
+        "200":
           description: User unlinked from Producer Keychain
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -10258,10 +10610,30 @@ paths:
           $ref: "#/components/responses/TooManyRequests"
 components:
   parameters:
+    OffsetParam:
+      in: query
+      name: offset
+      description: Pagination starting position
+      required: true
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+    LimitParam:
+      in: query
+      name: limit
+      description: Maximum number of results to return
+      required: true
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+        maximum: 50
     TemplateIdsParam:
       in: query
       name: templateIds
-      description: Filter E-Services by template IDs. If not specified, return E-Services for any template, and E-Services without a template
+      description: Filter E-Services by template IDs. If not specified, return
+        E-Services for any template, and E-Services without a template
       required: false
       explode: false
       schema:
@@ -10273,7 +10645,37 @@ components:
     EserviceIdsParam:
       in: query
       name: eserviceIds
-      description: Filter by E-Service IDs. If not specified, return results for any E-Service
+      description: >-
+        Filter by E-Service IDs. If not specified, return results for any
+        E-Service. For e-services that are instances of an e-service template,
+        purpose templates linked to the originating e-service template are also
+        returned.
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
+    DelegatorIdsParam:
+      in: query
+      name: delegatorIds
+      description: Filter Delegations by delegator IDs. If not specified, return
+        Delegations for any delegator
+      required: false
+      explode: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: uuid
+        default: []
+    DelegateIdsParam:
+      in: query
+      name: delegateIds
+      description: Filter Delegations by delegate IDs. If not specified, return
+        Delegations for any delegate
       required: false
       explode: false
       schema:
@@ -10437,6 +10839,12 @@ components:
             - PURPOSE_CLONED
             - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
             - RISK_ANALYSIS_DOCUMENT_GENERATED
+            - PURPOSE_RISK_ANALYSIS_WORKFLOW_CREATED
+            - PURPOSE_RISK_ANALYSIS_ASSIGNED
+            - PURPOSE_RISK_ANALYSIS_SUBMITTED
+            - PURPOSE_RISK_ANALYSIS_SIGNED
+            - PURPOSE_RISK_ANALYSIS_REJECTED
+            - PURPOSE_RISK_ANALYSIS_FORM_EDITED
         eventTimestamp:
           type: string
           format: date-time
@@ -10481,6 +10889,9 @@ components:
             - MAINTENANCE_TENANT_UPDATED
             - TENANT_CERTIFIED_ATTRIBUTE_ASSIGNED
             - TENANT_CERTIFIED_ATTRIBUTE_REVOKED
+            - TENANT_CERTIFIED_DISCRETE_ATTRIBUTE_ASSIGNED
+            - TENANT_CERTIFIED_DISCRETE_ATTRIBUTE_REVOKED
+            - TENANT_CERTIFIED_DISCRETE_ATTRIBUTE_UPDATED
             - TENANT_DECLARED_ATTRIBUTE_ASSIGNED
             - TENANT_DECLARED_ATTRIBUTE_REVOKED
             - TENANT_DELEGATED_CONSUMER_FEATURE_ADDED
@@ -10496,6 +10907,7 @@ components:
             - TENANT_VERIFIED_ATTRIBUTE_EXPIRATION_UPDATED
             - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
             - TENANT_VERIFIED_ATTRIBUTE_REVOKED
+            - TENANT_REMOTE_ID_ASSIGNED
         eventTimestamp:
           type: string
           format: date-time
@@ -10546,6 +10958,9 @@ components:
             - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
             - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
             - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
+            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_RISK_ANALYSIS_ADDED
             - ESERVICE_RISK_ANALYSIS_UPDATED
             - ESERVICE_RISK_ANALYSIS_DELETED
@@ -10558,6 +10973,7 @@ components:
             - ESERVICE_SIGNAL_HUB_ENABLED
             - ESERVICE_SIGNAL_HUB_DISABLED
             - ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED
+            - ESERVICE_DESCRIPTOR_ATTRIBUTE_DAILY_CALLS_PER_CONSUMER_UPDATED
             - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED
             - ESERVICE_DESCRIPTOR_AGREEMENT_APPROVAL_POLICY_UPDATED
             - ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
@@ -10569,6 +10985,15 @@ components:
             - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED_BY_TEMPLATE_UPDATE
             - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED_BY_TEMPLATE_UPDATE
             - ESERVICE_DESCRIPTOR_QUOTAS_UPDATED_BY_TEMPLATE_UPDATE
+            - ESERVICE_INSTANCE_LABEL_UPDATED
+            - ESERVICE_ARCHIVING_SCHEDULED
+            - ESERVICE_ARCHIVING_CANCELED
+            - ESERVICE_ARCHIVING_COMPLETED
+            - ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED
+            - ESERVICE_DESCRIPTOR_ARCHIVING_CANCELED
+            - ESERVICE_DESCRIPTOR_ARCHIVING_COMPLETED
+            - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
+            - MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED
         eventTimestamp:
           type: string
           format: date-time
@@ -10625,6 +11050,9 @@ components:
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
+            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
+            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_TEMPLATE_VERSION_PUBLISHED
             - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED
             - ESERVICE_TEMPLATE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION
@@ -10639,8 +11067,7 @@ components:
       required:
         - id
         - eventType
-        - eventTimestamp
-          - eserviceTemplateId
+        - eventTimestamp - eserviceTemplateId
     EServiceTemplateEvents:
       type: object
       additionalProperties: false
@@ -10859,6 +11286,51 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/ProducerDelegationEvent"
+    PurposeTemplateEvent:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        eventType:
+          type: string
+          enum:
+            - PURPOSE_TEMPLATE_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_ADDED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_DELETED
+            - PURPOSE_TEMPLATE_ANNOTATION_DOCUMENT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_UPDATED
+            - PURPOSE_TEMPLATE_DRAFT_DELETED
+            - PURPOSE_TEMPLATE_PUBLISHED
+            - PURPOSE_TEMPLATE_SUSPENDED
+            - PURPOSE_TEMPLATE_UNSUSPENDED
+            - PURPOSE_TEMPLATE_ARCHIVED
+            - RISK_ANALYSIS_TEMPLATE_DOCUMENT_GENERATED
+            - PURPOSE_TEMPLATE_ESERVICE_LINKED
+            - PURPOSE_TEMPLATE_ESERVICE_UNLINKED
+        eventTimestamp:
+          type: string
+          format: date-time
+        purposeTemplateId:
+          type: string
+          format: uuid
+      required:
+        - id
+        - eventType
+        - eventTimestamp
+        - purposeTemplateId
+
+    PurposeTemplateEvents:
+      type: object
+      additionalProperties: false
+      required:
+        - events
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeTemplateEvent"
     Agreement:
       type: object
       additionalProperties: false
@@ -11006,7 +11478,8 @@ components:
         - createdAt
     EServiceDescriptorCertifiedAttribute:
       type: object
-      description: Represents an E-Service Descriptor Certified attribute with the index of its attribute group.
+      description: Represents an E-Service Descriptor Certified attribute with the
+        index of its attribute group.
       properties:
         groupIndex:
           type: integer
@@ -11020,7 +11493,8 @@ components:
         - attribute
     EServiceTemplateVersionCertifiedAttribute:
       type: object
-      description: Represents an E-Service Template Version Certified attribute with the index of its attribute group.
+      description: Represents an E-Service Template Version Certified attribute with
+        the index of its attribute group.
       properties:
         groupIndex:
           type: integer
@@ -11034,7 +11508,8 @@ components:
         - attribute
     EServiceDescriptorDeclaredAttribute:
       type: object
-      description: Represents an E-Service Descriptor Declared attribute with the index of its attribute group.
+      description: Represents an E-Service Descriptor Declared attribute with the
+        index of its attribute group.
       properties:
         groupIndex:
           type: integer
@@ -11048,7 +11523,8 @@ components:
         - attribute
     EServiceTemplateVersionDeclaredAttribute:
       type: object
-      description: Represents an E-Service Template Version Declared attribute with the index of its attribute group.
+      description: Represents an E-Service Template Version Declared attribute with
+        the index of its attribute group.
       properties:
         groupIndex:
           type: integer
@@ -11062,7 +11538,8 @@ components:
         - attribute
     EServiceDescriptorVerifiedAttribute:
       type: object
-      description: Represents an E-Service Descriptor Verified attribute with the index of its attribute group.
+      description: Represents an E-Service Descriptor Verified attribute with the
+        index of its attribute group.
       properties:
         groupIndex:
           type: integer
@@ -11076,7 +11553,8 @@ components:
         - attribute
     EServiceTemplateVersionVerifiedAttribute:
       type: object
-      description: Represents an E-Service Template Version Verified attribute with the index of its attribute group.
+      description: Represents an E-Service Template Version Verified attribute with
+        the index of its attribute group.
       properties:
         groupIndex:
           type: integer
@@ -11099,6 +11577,17 @@ components:
             format: uuid
       required:
         - attributeIds
+    EServiceDescriptorAttributeSeed:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        dailyCallsPerConsumer:
+          description: Maximum number of daily calls that this descriptor can afford per consumer that has the related certified attribute
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
     DeclaredAttributeSeed:
       type: object
       additionalProperties: false
@@ -11444,6 +11933,27 @@ components:
           $ref: "#/components/schemas/PurposeId"
       required:
         - purposeId
+    ClientSeed:
+      description: Client creation request body
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        members:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+        - name
+        - members
     ProducerKeychain:
       description: |
         Models a Producer Keychain with field visibility based on the requester's permissions.
@@ -11503,6 +12013,27 @@ components:
       required:
         - results
         - pagination
+    ProducerKeychainSeed:
+      description: Producer keychain creation request body
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 5
+          maxLength: 60
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
+        members:
+          type: array
+          items:
+            type: string
+            format: uuid
+      required:
+        - name
+        - description
+        - members
     ProducerKeychainAddEService:
       type: object
       additionalProperties: false
@@ -11519,11 +12050,9 @@ components:
           type: string
           format: uuid
         delegatorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegatorId"
         delegateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegateId"
         eserviceId:
           $ref: "#/components/schemas/EServiceId"
         createdAt:
@@ -11577,11 +12106,9 @@ components:
           type: string
           format: uuid
         delegatorId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegatorId"
         delegateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegateId"
         eserviceId:
           $ref: "#/components/schemas/EServiceId"
         createdAt:
@@ -11649,8 +12176,7 @@ components:
         eserviceId:
           $ref: "#/components/schemas/EServiceId"
         delegateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/DelegateId"
       required:
         - eserviceId
         - delegateId
@@ -11679,9 +12205,12 @@ components:
         isClientAccessDelegable:
           type: boolean
         templateId:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/TemplateId"
         personalData:
+          type: boolean
+        archivingReason:
+          type: string
+        asyncExchange:
           type: boolean
       required:
         - id
@@ -11702,7 +12231,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -11714,6 +12243,9 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+          nullable: true
+        asyncExchange:
           type: boolean
           nullable: true
     EServiceDescriptor:
@@ -11735,7 +12267,8 @@ components:
           type: integer
           format: int32
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per consumer
+          description: Maximum number of daily calls that this descriptor can afford per
+            consumer
           type: integer
           format: int32
           minimum: 1
@@ -11769,6 +12302,10 @@ components:
         templateVersionId:
           type: string
           format: uuid
+        archivingSchedule:
+          $ref: "#/components/schemas/ArchivingSchedule"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - id
         - version
@@ -11781,6 +12318,24 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
         - serverUrls
+    ArchivingSchedule:
+      type: object
+      additionalProperties: false
+      properties:
+        archivableOn:
+          type: string
+          format: date-time
+        startedAt:
+          type: string
+          format: date-time
+        scope:
+          $ref: "#/components/schemas/ArchivingScope"
+    ArchivingScope:
+      type: string
+      description: Archiving Scope
+      enum:
+        - ESERVICE
+        - DESCRIPTOR
     EServiceDescriptors:
       type: object
       additionalProperties: false
@@ -11804,6 +12359,8 @@ components:
         - SUSPENDED
         - ARCHIVED
         - WAITING_FOR_APPROVAL
+        - ARCHIVING
+        - ARCHIVING_SUSPENDED
     EServiceDescriptorSeed:
       type: object
       additionalProperties: false
@@ -11826,7 +12383,8 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per consumer
+          description: Maximum number of daily calls that this descriptor can afford per
+            consumer
           type: integer
           format: int32
           minimum: 1
@@ -11839,6 +12397,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - audience
         - voucherLifespan
@@ -11880,6 +12440,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceDescriptorQuotasUpdateSeed:
       type: object
       additionalProperties: false
@@ -11890,7 +12452,8 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per consumer
+          description: Maximum number of daily calls that this descriptor can afford per
+            consumer
           type: integer
           format: int32
           minimum: 1
@@ -11920,6 +12483,34 @@ components:
       required:
         - results
         - pagination
+    AsyncExchangeProperties:
+      type: object
+      required:
+        - responseTime
+        - resourceAvailableTime
+        - confirmation
+        - bulk
+        - maxResultSet
+      properties:
+        responseTime:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999999
+        resourceAvailableTime:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 999999
+        confirmation:
+          type: boolean
+        bulk:
+          type: boolean
+        maxResultSet:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 99999
     EServiceTechnology:
       type: string
       description: API Technology
@@ -11987,7 +12578,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
       required:
         - description
     EServiceTemplateIntendedTargetUpdateSeed:
@@ -12026,7 +12617,8 @@ components:
           type: integer
           format: int32
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per consumer
+          description: Maximum number of daily calls that this descriptor can afford per
+            consumer
           type: integer
           format: int32
           minimum: 1
@@ -12050,6 +12642,8 @@ components:
         deprecatedAt:
           type: string
           format: date-time
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - id
         - version
@@ -12099,7 +12693,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -12147,7 +12741,8 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per consumer
+          description: Maximum number of daily calls that this descriptor can afford per
+            consumer
           type: integer
           format: int32
           minimum: 1
@@ -12173,7 +12768,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -12197,7 +12792,8 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per consumer
+          description: Maximum number of daily calls that this descriptor can afford per
+            consumer
           type: integer
           format: int32
           minimum: 1
@@ -12210,6 +12806,8 @@ components:
           maximum: 1000000000
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
       required:
         - voucherLifespan
     EServiceTemplateVersionDraftUpdateSeed:
@@ -12241,6 +12839,8 @@ components:
           nullable: true
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicyNullable"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceSeed:
       type: object
       additionalProperties: false
@@ -12258,7 +12858,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
         technology:
           $ref: "#/components/schemas/EServiceTechnology"
         mode:
@@ -12272,6 +12872,8 @@ components:
         isClientAccessDelegable:
           type: boolean
         personalData:
+          type: boolean
+        asyncExchange:
           type: boolean
     EServiceNameUpdateSeed:
       type: object
@@ -12300,7 +12902,7 @@ components:
         description:
           type: string
           minLength: 10
-          maxLength: 250
+          maxLength: 400
     EServiceSignalHubUpdateSeed:
       type: object
       additionalProperties: false
@@ -12308,6 +12910,14 @@ components:
         - isSignalHubEnabled
       properties:
         isSignalHubEnabled:
+          type: boolean
+    EServicePersonalDataFlagUpdateSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - personalData
+      properties:
+        personalData:
           type: boolean
     DescriptorSeedForEServiceCreation:
       required:
@@ -12348,6 +12958,8 @@ components:
           minimum: 1
         agreementApprovalPolicy:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangeProperties"
     JWK:
       description: JSON Web Key
       type: object
@@ -12547,8 +13159,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-        isRiskAnalysisValid:
-          type: boolean
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
@@ -12570,7 +13180,6 @@ components:
         - title
         - description
         - createdAt
-        - isRiskAnalysisValid
         - isFreeOfCharge
     PurposeSeed:
       type: object
@@ -12613,7 +13222,8 @@ components:
     PurposeFromTemplateSeed:
       type: object
       additionalProperties: false
-      description: contains the expected payload for purpose creation from a purpose template
+      description: contains the expected payload for purpose creation from a purpose
+        template
       properties:
         eserviceId:
           $ref: "#/components/schemas/EServiceId"
@@ -12762,7 +13372,8 @@ components:
     PurposeDraftUpdateSeed:
       type: object
       additionalProperties: false
-      description: Contains the expected payload for purpose update of a purpose not created from a purpose template
+      description: Contains the expected payload for purpose update of a purpose not
+        created from a purpose template
       properties:
         title:
           type: string
@@ -12788,7 +13399,8 @@ components:
     PurposeDraftFromTemplateUpdateSeed:
       type: object
       additionalProperties: false
-      description: Contains the expected payload for purpose update of a purpose created from a purpose template
+      description: Contains the expected payload for purpose update of a purpose
+        created from a purpose template
       properties:
         title:
           type: string
@@ -12879,6 +13491,29 @@ components:
           $ref: "#/components/schemas/EServiceId"
       required:
         - eserviceId
+    PurposeTemplateLinkEServiceTemplate:
+      type: object
+      additionalProperties: false
+      properties:
+        eserviceTemplateId:
+          $ref: "#/components/schemas/EServiceTemplateId"
+      required:
+        - eserviceTemplateId
+    RemainingDailyCallsResponse:
+      type: object
+      additionalProperties: false
+      properties:
+        remainingDailyCallsPerConsumer:
+          type: integer
+          format: int32
+          minimum: 0
+        remainingDailyCallsTotal:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - remainingDailyCallsPerConsumer
+        - remainingDailyCallsTotal
     EServiceRiskAnalysisSeed:
       type: object
       additionalProperties: false
@@ -12971,6 +13606,16 @@ components:
         createdAt:
           type: string
           format: date-time
+    EServiceArchivingReasonSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        archivingReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - archivingReason
     Tenant:
       description: Tenant model
       type: object
@@ -12996,6 +13641,8 @@ components:
           format: date-time
         subUnitType:
           $ref: "#/components/schemas/TenantSubUnitType"
+        selfcareInstitutionType:
+          type: string
       required:
         - id
         - certifier
@@ -13329,7 +13976,8 @@ components:
     DelegationRef:
       type: object
       additionalProperties: false
-      description: Set the delegation ID in order to operate as a delegate for an active producer or consumer delegation
+      description: Set the delegation ID in order to operate as a delegate for an
+        active producer or consumer delegation
       properties:
         delegationId:
           $ref: "#/components/schemas/DelegationId"
@@ -13642,7 +14290,8 @@ components:
           description: URI reference of type definition
           type: string
         status:
-          description: The HTTP status code generated by the origin server for this occurrence of the problem
+          description: The HTTP status code generated by the origin server for this
+            occurrence of the problem
           example: 503
           exclusiveMaximum: true
           format: int32
@@ -13686,7 +14335,8 @@ components:
           pattern: "^[0-9]{3}-[0-9]{4}$"
           type: string
         detail:
-          description: A human readable explanation specific to this occurrence of the problem
+          description: A human readable explanation specific to this occurrence of the
+            problem
           example: Parameter not valid
           maxLength: 4096
           pattern: "^.{0,1024}$"
@@ -13741,6 +14391,22 @@ components:
       type: string
       format: uuid
       description: The unique identifier of the Tenant
+    DelegatorId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Delegator
+    DelegateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Delegate
+    TemplateId:
+      type: string
+      format: uuid
+      description: The unique identifier of the Template
+    VoidObject:
+      type: object
+      additionalProperties: false
+      description: An empty object
   responses:
     TooManyRequests:
       description: Too Many Requests
@@ -13862,23 +14528,23 @@ components:
         type: integer
         format: int32
         minimum: 0
-      description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+      description: Time interval in milliseconds. Allowed requests will be constantly
+        replenished during the interval. At the end of the interval the max
+        allowed requests will be available
     IntegrityRest02DigestHeader:
       schema:
         type: string
-        pattern: ^SHA-256=[a-zA-Z0-9]{64}$
+        pattern: ^SHA-256=[a-zA-Z0-9+/]{43}=$
       description: |
         Digest of the body using the canonical JSON representation of the response body.
         The digest is calculated using the SHA-256 algorithm on the response body
-        exactly as it is sent to the client.
+        exactly as it is sent to the client, encoded in Base64 as per RFC 3230
     IntegrityRest02AgidJwtSignatureHeader:
+      description: |
+        The `Agid-JWT-Signature` header contains a JSON Web Signature (JWS) signed with the PDND API private key.
+        It ensures payload integrity and non-repudiation across all responses (both success and error), in compliance with: 1) Linee Guida sull'interoperabilità tecnica delle Pubbliche Amministrazioni - Pattern di sicurezza,  2) RFC 7515 and 3) RFC 7519.
       schema:
         type: string
-        pattern: ^[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+\.[a-zA-Z0-9\-_]+$
-      description: |
-        Agid-JWT-Signature header signed with the M2M gateway private key.
-        Inside the JWT there is a `signed_header` field containting the `digest` header value,
-        the `content-type` header and, optionally, the `content-encoding` header.
   securitySchemes:
     DPoPAuth:
       type: http

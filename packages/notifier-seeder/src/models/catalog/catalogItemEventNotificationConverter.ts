@@ -19,7 +19,10 @@ import {
   CatalogItemRiskAnalysisNotification,
   CatalogItemV1Notification,
 } from "./catalogItemEventNotification.js";
-import { toCatalogItemV1 } from "./catalogItemEventNotificationMappers.js";
+import {
+  toCatalogDocumentV1,
+  toCatalogItemV1,
+} from "./catalogItemEventNotificationMappers.js";
 
 const getCatalogItem = (
   event: EServiceEventEnvelopeV2
@@ -82,6 +85,41 @@ const getCatalogItemInterface = (
   return descriptor.interface;
 };
 
+const getAsyncExchangeCallbackInterface = (
+  event: EServiceEventEnvelopeV2,
+  descriptorId: string,
+  documentId: string
+): CatalogDocumentV1Notification => {
+  if (!event.data.eservice) {
+    throw missingKafkaMessageDataError("eservice", event.type);
+  }
+
+  const eservice = fromEServiceV2(event.data.eservice);
+  const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
+
+  if (!descriptor) {
+    throw eventV1ConversionError(
+      `Expected descriptor ${descriptorId} in eservice ${eservice.id} during eventV1 conversion`
+    );
+  }
+
+  const asyncExchangeCallbackInterface =
+    descriptor.asyncExchangeCallbackInterface;
+  if (!asyncExchangeCallbackInterface) {
+    throw eventV1ConversionError(
+      `Expected async exchange callback interface ${documentId} in descriptor ${descriptor.id} during eventV1 conversion`
+    );
+  }
+
+  if (asyncExchangeCallbackInterface.id !== documentId) {
+    throw eventV1ConversionError(
+      `Expected async exchange callback interface with same ID ${documentId} in descriptor ${descriptor.id} during eventV1 conversion`
+    );
+  }
+
+  return toCatalogDocumentV1(asyncExchangeCallbackInterface);
+};
+
 export const toCatalogItemEventNotification = (
   event: EServiceEventEnvelopeV2
 ): CatalogItemEventNotification =>
@@ -102,6 +140,12 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceNameUpdatedByTemplateUpdate" },
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      { type: "EServiceInstanceLabelUpdated" },
+      // FIXME these events will be managed with "WORK ITEM 10"
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingCanceled" },
+      { type: "EServiceArchivingCompleted" },
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
       })
@@ -126,7 +170,13 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
       { type: "EServiceDescriptorAgreementApprovalPolicyUpdated" },
       { type: "EServiceDescriptorAttributesUpdated" },
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
       { type: "EServiceDescriptorAttributesUpdatedByTemplateUpdate" },
+      // FIXME these events will be managed with "WORK ITEM 10"
+      { type: "EServiceDescriptorArchivingScheduled" },
+      { type: "EServiceDescriptorArchivingCanceled" },
+      { type: "EServiceDescriptorArchivingCompleted" },
+      { type: "MaintenanceEServiceDescriptorUnarchived" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);
         const catalogItemDescriptor = getCatalogItemDescriptor(
@@ -193,9 +243,32 @@ export const toCatalogItemEventNotification = (
       }
     )
     .with(
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
+      (e): CatalogItemDocumentAddedNotification => {
+        const catalogItem = getCatalogItem(e);
+        const catalogItemDescriptor = getCatalogItemDescriptor(
+          catalogItem,
+          e.data.descriptorId
+        );
+
+        return {
+          eServiceId: catalogItem.id,
+          descriptorId: catalogItemDescriptor.id,
+          document: getAsyncExchangeCallbackInterface(
+            e,
+            e.data.descriptorId,
+            e.data.documentId
+          ),
+          isInterface: true,
+          serverUrls: [],
+        };
+      }
+    )
+    .with(
       { type: "EServiceDescriptorDocumentDeleted" }, // CatalogItemDocumentDeletedV1
       { type: "EServiceDescriptorDocumentDeletedByTemplateUpdate" }, // CatalogItemDocumentDeletedV1
       { type: "EServiceDescriptorInterfaceDeleted" }, // CatalogItemDocumentDeletedV1
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       (e): CatalogItemDocumentDeletedNotification => {
         if (!e.data.eservice) {
           throw missingKafkaMessageDataError("eservice", e.type);
@@ -231,6 +304,30 @@ export const toCatalogItemEventNotification = (
       }
     )
     .with(
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
+      (e): CatalogItemDocumentUpdateNotification => {
+        const eserviceV1 = getCatalogItem(e);
+        const descriptorV1 = getCatalogItemDescriptor(
+          eserviceV1,
+          e.data.descriptorId
+        );
+        const asyncExchangeCallbackInterface =
+          getAsyncExchangeCallbackInterface(
+            e,
+            e.data.descriptorId,
+            e.data.documentId
+          );
+
+        return {
+          eServiceId: eserviceV1.id,
+          descriptorId: descriptorV1.id,
+          documentId: asyncExchangeCallbackInterface.id,
+          updatedDocument: asyncExchangeCallbackInterface,
+          serverUrls: [],
+        };
+      }
+    )
+    .with(
       { type: "EServiceDescriptorDocumentUpdated" }, // CatalogItemDocumentUpdatedV1
       { type: "EServiceDescriptorDocumentUpdatedByTemplateUpdate" }, // CatalogItemDocumentUpdatedV1
       (e): CatalogItemDocumentUpdateNotification => {
@@ -257,6 +354,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceRiskAnalysisAdded" }, // CatalogItemRiskAnalysisAddedV1
       { type: "EServiceRiskAnalysisDeleted" }, // CatalogItemRiskAnalysisDeletedV1
       { type: "EServiceRiskAnalysisUpdated" }, // CatalogItemRiskAnalysisUpdatedV1
+      { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" }, // CatalogItemRiskAnalysisUpdatedV1
       (e): CatalogItemRiskAnalysisNotification => ({
         catalogItem: getCatalogItem(e),
         catalogRiskAnalysisId: e.data.riskAnalysisId,

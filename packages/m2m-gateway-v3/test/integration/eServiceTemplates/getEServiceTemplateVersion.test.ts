@@ -62,6 +62,8 @@ describe("getEServiceTemplateVersion", () => {
         description: mockApiTemplateVersion1.description,
         publishedAt: mockApiTemplateVersion1.publishedAt,
         suspendedAt: mockApiTemplateVersion1.suspendedAt,
+        asyncExchangeProperties:
+          mockApiTemplateVersion1.asyncExchangeProperties,
       };
 
     const result = await eserviceTemplateService.getEServiceTemplateVersion(
@@ -70,7 +72,7 @@ describe("getEServiceTemplateVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(expectedM2MTemplateVersion);
+    expect(result).toStrictEqual(expectedM2MTemplateVersion);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient

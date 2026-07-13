@@ -10,22 +10,20 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
-    "build": "tsc",
-    "check": "tsc --project tsconfig.check.json"
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "build": "tsc"
   },
   "dependencies": {
     "aws-msk-iam-sasl-signer-js": "catalog:",
     "kafkajs": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "ts-pattern": "catalog:",
-    "prettier": "catalog:"
+    "ts-pattern": "catalog:"
   },
   "devDependencies": {
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:"
   }
 }

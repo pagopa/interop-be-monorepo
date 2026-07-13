@@ -67,6 +67,9 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
+    asyncExchangeCallbackInterface: undefined,
+    asyncExchangeProperties: undefined,
+    serverUrlsDescriptions: undefined,
   };
 }
 
@@ -76,6 +79,8 @@ function toOutboundEServiceV2(
   return {
     ...eservice,
     riskAnalysis: undefined,
+    asyncExchange: undefined,
+    instanceLabel: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
     templateId: eservice.templateId,
   };
@@ -103,9 +108,9 @@ function toOutboundPurposeTemplateV2(
 
 export function toOutboundEventV2(
   message: PurposeTemplateEventEnvelopeV2
-): OutboundPurposeTemplateEvent {
+): OutboundPurposeTemplateEvent | undefined {
   return match(message)
-    .returnType<OutboundPurposeTemplateEvent>()
+    .returnType<OutboundPurposeTemplateEvent | undefined>()
     .with(
       { type: "PurposeTemplateAdded" },
       { type: "PurposeTemplateDraftUpdated" },
@@ -190,5 +195,10 @@ export function toOutboundEventV2(
       stream_id: msg.stream_id,
       timestamp: new Date().toISOString(),
     }))
+    .with(
+      { type: "PurposeTemplateEServiceTemplateLinked" },
+      { type: "PurposeTemplateEServiceTemplateUnlinked" },
+      () => undefined
+    )
     .exhaustive();
 }

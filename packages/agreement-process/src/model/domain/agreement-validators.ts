@@ -14,14 +14,13 @@ import {
   EServiceId,
   unsafeBrandId,
   TenantId,
-  AgreementStamp,
-  AgreementStamps,
   delegationKind,
   Delegation,
   delegationState,
   DelegationId,
 } from "pagopa-interop-models";
 import {
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   M2MAuthData,
   ownership,
@@ -33,13 +32,14 @@ import {
   filterCertifiedAttributes,
   filterDeclaredAttributes,
   filterVerifiedAttributes,
+  matchesCertifiedDiscreteAttribute,
 } from "pagopa-interop-agreement-lifecycle";
+import { config } from "../../config/config.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   agreementActivationFailed,
   agreementAlreadyExists,
   agreementNotInExpectedState,
-  agreementStampNotFound,
   agreementSubmissionFailed,
   descriptorNotFound,
   descriptorNotInExpectedState,
@@ -56,6 +56,7 @@ import {
 import {
   ActiveDelegations,
   CertifiedAgreementAttribute,
+  CertifiedDiscreteAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
@@ -357,6 +358,22 @@ export const assertRequesterCanActAsConsumer = (
   }
 };
 
+export function assertAgreementIsPending(
+  agreement: Pick<Agreement, "state" | "id">
+): void {
+  if (agreement.state !== agreementState.pending) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+}
+
+export function assertAgreementIsSuspended(
+  agreement: Pick<Agreement, "state" | "id">
+): void {
+  if (agreement.state !== agreementState.suspended) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+}
+
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
@@ -380,6 +397,8 @@ const validateLatestDescriptor = (
     descriptorState.deprecated,
     descriptorState.published,
     descriptorState.suspended,
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
   ];
 
   const recentActiveDescriptors = eservice.descriptors
@@ -445,7 +464,12 @@ export const validateCertifiedAttributes = ({
   consumer: Tenant;
 }): void => {
   if (
-    !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes)
+    !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes, {
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
+    })
   ) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
   }
@@ -459,11 +483,15 @@ export const validateSubmitOnDescriptor = async (
   return validateLatestDescriptor(eservice, descriptorId, allowedState);
 };
 
-export const validateActiveOrPendingAgreement = (
+export const validateActiveSuspendedOrPendingAgreement = (
   agreementId: AgreementId,
   state: AgreementState
 ): void => {
-  if (agreementState.active !== state && agreementState.pending !== state) {
+  if (
+    agreementState.active !== state &&
+    agreementState.pending !== state &&
+    agreementState.suspended !== state
+  ) {
     throw agreementSubmissionFailed(agreementId);
   }
 };
@@ -534,7 +562,34 @@ export const matchingCertifiedAttributes = (
   return matchingAttributes(
     descriptor.attributes.certified,
     certifiedAttributes
-  ).map((id) => ({ id } as CertifiedAgreementAttribute));
+  ).map((id) => ({ id }) as CertifiedAgreementAttribute);
+};
+
+export const matchingCertifiedDiscreteAttributes = (
+  descriptor: Descriptor,
+  consumer: Tenant
+): CertifiedDiscreteAgreementAttribute[] => {
+  if (!isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")) {
+    return [];
+  }
+
+  const matchedIds = descriptor.attributes.certified
+    .flat()
+    .filter(
+      (descriptorAttribute) =>
+        "discreteConfig" in descriptorAttribute &&
+        consumer.attributes.some((tenantAttribute) =>
+          matchesCertifiedDiscreteAttribute(
+            descriptorAttribute,
+            tenantAttribute
+          )
+        )
+    )
+    .map((descriptorAttribute) => descriptorAttribute.id);
+
+  return [...new Set(matchedIds)].map(
+    (id) => ({ id }) as CertifiedDiscreteAgreementAttribute
+  );
 };
 
 export const matchingDeclaredAttributes = (
@@ -548,7 +603,7 @@ export const matchingDeclaredAttributes = (
   return matchingAttributes(
     descriptor.attributes.declared,
     declaredAttributes
-  ).map((id) => ({ id } as DeclaredAgreementAttribute));
+  ).map((id) => ({ id }) as DeclaredAgreementAttribute);
 };
 
 export const matchingVerifiedAttributes = (
@@ -564,16 +619,5 @@ export const matchingVerifiedAttributes = (
   return matchingAttributes(
     descriptor.attributes.verified,
     verifiedAttributes
-  ).map((id) => ({ id } as VerifiedAgreementAttribute));
+  ).map((id) => ({ id }) as VerifiedAgreementAttribute);
 };
-
-export function assertStampExists<S extends keyof AgreementStamps>(
-  stamps: AgreementStamps,
-  stamp: S
-): asserts stamps is AgreementStamps & {
-  [key in S]: AgreementStamp;
-} {
-  if (!stamps[stamp]) {
-    throw agreementStampNotFound(stamp);
-  }
-}

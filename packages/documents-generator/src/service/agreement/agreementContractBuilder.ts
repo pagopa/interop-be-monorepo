@@ -4,12 +4,11 @@ import { fileURLToPath } from "url";
 import {
   FileManager,
   Logger,
-  PDFGenerator,
   dateAtRomeZone,
   formatDateyyyyMMddHHmmss,
-  getIpaCode,
   timeAtRomeZone,
 } from "pagopa-interop-commons";
+import { PDFGenerator, getIpaCode } from "../../pdf-generator/pdfGenerator.js";
 import {
   Agreement,
   AgreementDocumentId,
@@ -85,7 +84,7 @@ const getAttributesData = async (
     T extends
       | CertifiedTenantAttribute
       | DeclaredTenantAttribute
-      | VerifiedTenantAttribute
+      | VerifiedTenantAttribute,
   >(
     type: TenantAttributeType
   ): Promise<
@@ -97,6 +96,7 @@ const getAttributesData = async (
     const seedAttributes = match(type)
       .with(
         tenantAttributeType.CERTIFIED,
+        tenantAttributeType.CERTIFIED_DISCRETE,
         () => agreement.certifiedAttributes || []
       )
       .with(
@@ -109,8 +109,13 @@ const getAttributesData = async (
       )
       .exhaustive()
       .map((attribute) => attribute.id);
+
     const tenantAttributes = consumer.attributes.filter(
-      (a) => a.type === type && seedAttributes.includes(a.id)
+      (a) =>
+        (a.type === type ||
+          (type === tenantAttributeType.CERTIFIED &&
+            a.type === tenantAttributeType.CERTIFIED_DISCRETE)) &&
+        seedAttributes.includes(a.id)
     );
 
     return Promise.all(
@@ -129,6 +134,9 @@ const getAttributesData = async (
     );
   };
 
+  // TODO(PIN-9889): include certified discrete attributes in the generated
+  // contract by invoking getAttributesDataByType with CERTIFIED_DISCRETE,
+  // once the agreement verification flow for discrete attributes is in place.
   const certified = await getAttributesDataByType<CertifiedTenantAttribute>(
     tenantAttributeType.CERTIFIED
   );
@@ -329,9 +337,7 @@ export const agreementContractBuilder = (
 function assertStampExists<S extends keyof AgreementStamps>(
   stamps: AgreementStamps,
   stamp: S
-): asserts stamps is AgreementStamps & {
-  [key in S]: AgreementStamp;
-} {
+): asserts stamps is AgreementStamps & Record<S, AgreementStamp> {
   if (!stamps[stamp]) {
     throw agreementStampNotFound(stamp);
   }

@@ -149,6 +149,14 @@ export const maintenanceTenantUpdatedErrorMapper = (
 ): number =>
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("invalidTenantFeature", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceTenantDeleteRemoteIdErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const verifyVerifiedAttributeErrorMapper = (
@@ -283,6 +291,48 @@ export const getTenantVerifiedAttributeRevokersErrorMapper = (
       "tenantNotFound",
       "attributeNotFound",
       "attributeNotFoundInTenant",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalAddCertifiedDiscreteAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "tenantNotFoundByRemoteId",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "certifiedDiscreteAttributeAlreadyAssigned",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalUpdateCertifiedDiscreteAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "attributeNotFoundInTenant",
+      "tenantNotFoundByRemoteId",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalRevokeCertifiedDiscreteAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFoundInTenant",
+      "attributeNotFound",
+      "tenantNotFoundByRemoteId",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

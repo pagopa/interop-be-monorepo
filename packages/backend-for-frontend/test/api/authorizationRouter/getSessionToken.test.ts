@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import {
+  generateId,
+  tokenVerificationFailed,
+  tooManyRequestsError,
+} from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -11,6 +15,11 @@ import {
   getMockGetSessionTokenReturnType,
   getMockBffApiIdentityToken,
 } from "../../mockUtils.js";
+import {
+  missingUserRolesInIdentityToken,
+  tenantBySelfcareIdNotFound,
+  tenantLoginNotAllowed,
+} from "../../../src/model/errors.js";
 
 describe("API POST /session/tokens", () => {
   const mockIdentityToken = getMockBffApiIdentityToken();
@@ -39,16 +48,38 @@ describe("API POST /session/tokens", () => {
     expect(res.body).toEqual(mockServiceResponse.sessionToken);
   });
 
-  it("Should return 500 for too many requests", async () => {
-    services.authorizationService.getSessionToken = vi.fn().mockResolvedValue({
-      ...mockServiceResponse,
-      limitReached: true,
-      rateLimitedTenantId: generateId(),
-    });
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token);
-    expect(res.status).toBe(500);
-  });
+  it.each([
+    {
+      error: tokenVerificationFailed(generateId(), generateId()),
+      expectedStatus: 401,
+    },
+    {
+      error: tenantBySelfcareIdNotFound(generateId()),
+      expectedStatus: 403,
+    },
+    {
+      error: tenantLoginNotAllowed(generateId()),
+      expectedStatus: 403,
+    },
+    {
+      error: tooManyRequestsError(generateId()),
+      expectedStatus: 429,
+    },
+    {
+      error: missingUserRolesInIdentityToken(),
+      expectedStatus: 500,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      services.authorizationService.getSessionToken = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
 
   it.each([{ body: {} }, { body: { ...mockIdentityToken, extraField: 1 } }])(
     "Should return 400 if passed invalid data: %s",

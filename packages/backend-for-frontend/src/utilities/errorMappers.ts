@@ -9,10 +9,13 @@ type ErrorCodes = BFFErrorCodes | CommonErrorCodes;
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_FOUND,
+  HTTP_STATUS_NOT_IMPLEMENTED,
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_BAD_REQUEST,
   HTTP_STATUS_CONFLICT,
   HTTP_STATUS_SERVICE_UNAVAILABLE,
+  HTTP_STATUS_TOO_MANY_REQUESTS,
+  HTTP_STATUS_UNAUTHORIZED,
 } = constants;
 
 export const bffGetCatalogErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -43,6 +46,20 @@ export const getPurposesErrorMapper = (error: ApiError<ErrorCodes>): number =>
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const getRiskAnalysisAssignmentsErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "eServiceNotFound",
+      "agreementNotFound",
+      "eserviceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const getPurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with(
@@ -65,6 +82,23 @@ export const getSelfcareUserErrorMapper = (
   match(error.code)
     .with("selfcareEntityNotFilled", () => HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getSessionTokenErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
+    .with(
+      "tenantBySelfcareIdNotFound",
+      "tenantLoginNotAllowed",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .with(
+      "missingUserRolesInIdentityToken",
+      () => HTTP_STATUS_INTERNAL_SERVER_ERROR
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getAgreementsErrorMapper = (error: ApiError<ErrorCodes>): number =>
@@ -101,7 +135,14 @@ export const getAgreementSignedContractErrorMapper = (
     .with("contractNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const activateAgreementErrorMapper = (
+export const approveAgreementErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("agreementDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const unsuspendAgreementErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -113,6 +154,11 @@ export const getClientUsersErrorMapper = (
 ): number =>
   match(error.code)
     .with("userNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPrivacyNoticeErrorMapper = (
@@ -135,6 +181,7 @@ export const getProducerKeychainUsersErrorMapper = (
 export const toolsErrorMapper = (error: ApiError<ErrorCodes>): number =>
   match(error.code)
     .with("tenantNotAllowed", () => HTTP_STATUS_FORBIDDEN)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createEServiceDocumentErrorMapper = (
@@ -146,6 +193,7 @@ export const createEServiceDocumentErrorMapper = (
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -159,6 +207,7 @@ export const createEServiceTemplateDocumentErrorMapper = (
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -231,6 +280,7 @@ export const addEServiceInterfaceByTemplateErrorMapper = (
       "invalidContentTypeDetected",
       "eserviceTemplateInterfaceDataNotValid",
       "invalidInterfaceFile",
+      "openapiVersionNotRecognized",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("invalidEserviceRequester", () => HTTP_STATUS_FORBIDDEN)
@@ -266,6 +316,20 @@ export const getPurposeTemplateEServiceDescriptorsErrorMapper = (
     .with(
       "eServiceNotFound",
       "eserviceDescriptorNotFound",
+      "tenantNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getPurposeTemplateLinkableResourcesErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eserviceDescriptorNotFound",
+      "eserviceTemplateNotFound",
+      "eserviceTemplateVersionNotFound",
       "tenantNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )

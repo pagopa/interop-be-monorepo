@@ -10,13 +10,13 @@ import { m2mGatewayApi, purposeApi } from "pagopa-interop-api-clients";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
 import { api, mockPurposeService } from "../../vitest.api.setup.js";
+import { testToM2mGatewayApiPurpose as toM2MGatewayApiPurpose } from "../../mockUtils.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   delegationEServiceMismatch,
   missingMetadata,
   requesterIsNotTheDelegateConsumer,
 } from "../../../src/model/errors.js";
-import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
 import { config } from "../../../src/config/config.js";
 
 describe("POST /purposes router test", () => {

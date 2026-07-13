@@ -65,7 +65,7 @@ describe("getEserviceTemplateRiskAnalysis", () => {
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toEqual(expectedRiskAnalysis);
+    expect(result).toStrictEqual(expectedRiskAnalysis);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient

@@ -2,7 +2,6 @@ import {
   and,
   eq,
   getTableColumns,
-  ilike,
   inArray,
   isNull,
   ne,
@@ -14,8 +13,9 @@ import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
   createListResult,
-  escapeRegExp,
+  escapeSqlLike,
   getValidFormRulesVersions,
+  ilikeEscaped,
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
@@ -26,6 +26,9 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceId,
+  EServiceTemplate,
+  EServiceTemplateId,
+  EServiceTemplateVersionPurposeTemplate,
   genericInternalError,
   ListResult,
   PurposeTemplate,
@@ -42,10 +45,12 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  aggregateEServiceTemplateVersionPurposeTemplateArray,
   aggregatePurposeTemplateArray,
   aggregatePurposeTemplateEServiceDescriptor,
   aggregatePurposeTemplateEServiceDescriptorArray,
   CatalogReadModelService,
+  EServiceTemplateReadModelService,
   PurposeTemplateReadModelService,
   toPurposeTemplateAggregatorArray,
   toRiskAnalysisTemplateAnswerAnnotationDocument,
@@ -54,6 +59,8 @@ import {
   DrizzleReturnType,
   eserviceDescriptorInReadmodelCatalog,
   eserviceInReadmodelCatalog,
+  eserviceTemplateInReadmodelEserviceTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
@@ -84,9 +91,16 @@ export type GetPurposeTemplateEServiceDescriptorsFilters = {
   eserviceName?: string;
 };
 
+export type GetPurposeTemplateEServiceTemplatesFilters = {
+  purposeTemplateId: PurposeTemplateId;
+  creatorIds: TenantId[];
+  eserviceTemplateName?: string;
+};
+
 const getPurposeTemplatesFilters = (
   filters: GetPurposeTemplatesFilters,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+  resolvedEServiceTemplateIds: EServiceTemplateId[]
 ): SQL | undefined => {
   const {
     purposeTitle,
@@ -99,9 +113,9 @@ const getPurposeTemplatesFilters = (
   } = filters;
 
   const purposeTitleFilter = purposeTitle
-    ? ilike(
+    ? ilikeEscaped(
         purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
-        `%${escapeRegExp(purposeTitle)}%`
+        `%${escapeSqlLike(purposeTitle)}%`
       )
     : undefined;
 
@@ -110,13 +124,23 @@ const getPurposeTemplatesFilters = (
       ? inArray(purposeTemplateInReadmodelPurposeTemplate.creatorId, creatorIds)
       : undefined;
 
-  const eserviceIdsFilter =
+  const concreteEserviceMatch =
     eserviceIds.length > 0
       ? inArray(
           purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate.eserviceId,
           eserviceIds
         )
       : undefined;
+
+  const templateEserviceMatch =
+    resolvedEServiceTemplateIds.length > 0
+      ? inArray(
+          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+          resolvedEServiceTemplateIds
+        )
+      : undefined;
+
+  const eserviceIdsFilter = or(concreteEserviceMatch, templateEserviceMatch);
 
   const statesFilter =
     states.length > 0
@@ -192,23 +216,51 @@ const getPurposeTemplatesFilters = (
 export function readModelServiceBuilderSQL({
   readModelDB,
   catalogReadModelServiceSQL,
+  eserviceTemplateReadModelServiceSQL,
   purposeTemplateReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   catalogReadModelServiceSQL: CatalogReadModelService;
+  eserviceTemplateReadModelServiceSQL: EServiceTemplateReadModelService;
   purposeTemplateReadModelServiceSQL: PurposeTemplateReadModelService;
 }) {
   return {
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
+    async getEServiceTemplateById(
+      id: EServiceTemplateId
+    ): Promise<EServiceTemplate | undefined> {
+      return (
+        await eserviceTemplateReadModelServiceSQL.getEServiceTemplateById(id)
+      )?.data;
+    },
+    async getEServiceTemplateVersionPurposeTemplateByPurposeTemplateIdAndEServiceTemplateId(
+      purposeTemplateId: PurposeTemplateId,
+      eserviceTemplateId: EServiceTemplateId
+    ): Promise<EServiceTemplateVersionPurposeTemplate | undefined> {
+      const rows =
+        await purposeTemplateReadModelServiceSQL.getEServiceTemplateVersionPurposeTemplatesByFilter(
+          and(
+            eq(
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            eq(
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+              eserviceTemplateId
+            )
+          )
+        );
+      return rows.at(0)?.data;
+    },
     async getPurposeTemplatesByTitle(
       title: string
     ): Promise<Array<WithMetadata<PurposeTemplate>>> {
       return await purposeTemplateReadModelServiceSQL.getPurposeTemplatesByFilter(
-        ilike(
+        ilikeEscaped(
           purposeTemplateInReadmodelPurposeTemplate.purposeTitle,
-          escapeRegExp(title)
+          escapeSqlLike(title)
         )
       );
     },
@@ -217,6 +269,22 @@ export function readModelServiceBuilderSQL({
       { limit, offset }: { limit: number; offset: number },
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<PurposeTemplate>> {
+      const resolvedEServiceTemplateIds: EServiceTemplateId[] =
+        filters.eserviceIds.length > 0
+          ? (
+              await Promise.all(
+                filters.eserviceIds.map((id) =>
+                  catalogReadModelServiceSQL.getEServiceById(id)
+                )
+              )
+            )
+              .map((e) => e?.data.templateId)
+              .filter(
+                (templateId): templateId is EServiceTemplateId =>
+                  templateId !== undefined
+              )
+          : [];
+
       const subquery = readModelDB
         .select(
           withTotalCount({
@@ -232,13 +300,26 @@ export function readModelServiceBuilderSQL({
           )
         )
         .leftJoin(
+          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
+          eq(
+            purposeTemplateInReadmodelPurposeTemplate.id,
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId
+          )
+        )
+        .leftJoin(
           purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
           eq(
             purposeTemplateInReadmodelPurposeTemplate.id,
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
           )
         )
-        .where(getPurposeTemplatesFilters(filters, authData))
+        .where(
+          getPurposeTemplatesFilters(
+            filters,
+            authData,
+            resolvedEServiceTemplateIds
+          )
+        )
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
         .orderBy(
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
@@ -522,9 +603,9 @@ export function readModelServiceBuilderSQL({
               ? inArray(eserviceInReadmodelCatalog.producerId, producerIds)
               : undefined,
             eserviceName
-              ? ilike(
+              ? ilikeEscaped(
                   eserviceInReadmodelCatalog.name,
-                  `%${escapeRegExp(eserviceName)}%`
+                  `%${escapeSqlLike(eserviceName)}%`
                 )
               : undefined
           )
@@ -542,6 +623,62 @@ export function readModelServiceBuilderSQL({
         purposeTemplateEServiceDescriptors.map(
           (eserviceDescriptor) => eserviceDescriptor.data
         ),
+        queryResult[0]?.totalCount
+      );
+    },
+    async getPurposeTemplateEServiceTemplates(
+      filters: GetPurposeTemplateEServiceTemplatesFilters,
+      { limit, offset }: { limit: number; offset: number }
+    ): Promise<ListResult<EServiceTemplateVersionPurposeTemplate>> {
+      const { purposeTemplateId, creatorIds, eserviceTemplateName } = filters;
+
+      const queryResult = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
+            )
+          )
+        )
+        .from(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
+        .innerJoin(
+          eserviceTemplateInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+            eserviceTemplateInReadmodelEserviceTemplate.id
+          )
+        )
+        .where(
+          and(
+            eq(
+              eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+              purposeTemplateId
+            ),
+            creatorIds.length > 0
+              ? inArray(
+                  eserviceTemplateInReadmodelEserviceTemplate.creatorId,
+                  creatorIds
+                )
+              : undefined,
+            eserviceTemplateName
+              ? ilikeEscaped(
+                  eserviceTemplateInReadmodelEserviceTemplate.name,
+                  `%${escapeSqlLike(eserviceTemplateName)}%`
+                )
+              : undefined
+          )
+        )
+        .orderBy(
+          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.createdAt
+        )
+        .limit(limit)
+        .offset(offset);
+
+      const eserviceTemplateVersionPurposeTemplates =
+        aggregateEServiceTemplateVersionPurposeTemplateArray(queryResult);
+
+      return createListResult(
+        eserviceTemplateVersionPurposeTemplates.map((row) => row.data),
         queryResult[0]?.totalCount
       );
     },
@@ -621,9 +758,9 @@ export function readModelServiceBuilderSQL({
               purposeTemplateState.published
             ),
             creatorName
-              ? ilike(
+              ? ilikeEscaped(
                   tenantInReadmodelTenant.name,
-                  `%${escapeRegExp(creatorName)}%`
+                  `%${escapeSqlLike(creatorName)}%`
                 )
               : undefined
           )

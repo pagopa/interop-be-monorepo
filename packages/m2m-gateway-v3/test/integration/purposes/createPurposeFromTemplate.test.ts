@@ -31,7 +31,10 @@ import {
   mockPollingResponse,
   purposeService,
 } from "../../integrationUtils.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiPurposeVersion,
+} from "../../mockUtils.js";
 
 describe("createPurposeFromTemplate", () => {
   const mockPurposeTemplate = getMockPurposeTemplate();
@@ -70,6 +73,7 @@ describe("createPurposeFromTemplate", () => {
     mockGetDelegation.mockClear();
   });
 
+  const purposeVersion = mockPurposeProcessGetResponse.data.versions[0];
   const expectedM2MPurpose: m2mGatewayApiV3.Purpose = {
     consumerId: mockPurposeProcessGetResponse.data.consumerId,
     createdAt: mockPurposeProcessGetResponse.data.createdAt,
@@ -77,9 +81,10 @@ describe("createPurposeFromTemplate", () => {
     eserviceId: mockPurposeProcessGetResponse.data.eserviceId,
     id: mockPurposeProcessGetResponse.data.id,
     isFreeOfCharge: mockPurposeProcessGetResponse.data.isFreeOfCharge,
-    isRiskAnalysisValid: mockPurposeProcessGetResponse.data.isRiskAnalysisValid,
     title: mockPurposeProcessGetResponse.data.title,
-    currentVersion: mockPurposeProcessGetResponse.data.versions.at(0),
+    currentVersion: purposeVersion
+      ? testToM2mGatewayApiPurposeVersion(purposeVersion)
+      : undefined,
     delegationId: mockPurposeProcessGetResponse.data.delegationId,
     freeOfChargeReason: mockPurposeProcessGetResponse.data.freeOfChargeReason,
     rejectedVersion: undefined,
@@ -110,7 +115,7 @@ describe("createPurposeFromTemplate", () => {
       mockAppContext
     );
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromTemplate,
@@ -161,7 +166,7 @@ describe("createPurposeFromTemplate", () => {
       mockAppContext
     );
 
-    expect(result).toEqual(expectedM2MPurpose);
+    expect(result).toStrictEqual(expectedM2MPurpose);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.purposeProcessClient.createPurposeFromTemplate,

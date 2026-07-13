@@ -57,6 +57,9 @@ describe("getEserviceDescriptor", () => {
       archivedAt: mockCatalogProcessResponseDescriptor.archivedAt,
       templateVersionId:
         mockCatalogProcessResponseDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockCatalogProcessResponseDescriptor.archivingSchedule,
+      asyncExchangeProperties:
+        mockCatalogProcessResponseDescriptor.asyncExchangeProperties,
     };
 
     const result = await eserviceService.getEServiceDescriptor(
@@ -65,7 +68,7 @@ describe("getEserviceDescriptor", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEserviceDescriptorResponse);
+    expect(result).toStrictEqual(m2mEserviceDescriptorResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
       params: { eServiceId: mockCatalogProcessResponse.data.id },

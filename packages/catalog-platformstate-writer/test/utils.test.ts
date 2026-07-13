@@ -183,6 +183,42 @@ describe("utils tests", async () => {
 
       expect(retrievedCatalogEntry).toEqual(catalogStateEntry);
     });
+
+    it("should persist async exchange as a nested object", async () => {
+      const primaryKey = makePlatformStatesEServiceDescriptorPK({
+        eserviceId: generateId(),
+        descriptorId: generateId(),
+      });
+      const catalogStateEntry: PlatformStatesCatalogEntry = {
+        PK: primaryKey,
+        state: itemState.inactive,
+        descriptorVoucherLifespan: 100,
+        descriptorAudience: ["pagopa.it/test1", "pagopa.it/test2"],
+        asyncExchange: true,
+        asyncExchangeProperties: {
+          responseTime: 120,
+          resourceAvailableTime: 600,
+          confirmation: true,
+          bulk: false,
+          maxResultSet: 100,
+        },
+        version: 1,
+        updatedAt: new Date().toISOString(),
+      };
+
+      await upsertPlatformStatesCatalogEntry(
+        catalogStateEntry,
+        dynamoDBClient,
+        genericLogger
+      );
+
+      const retrievedCatalogEntry = await readCatalogEntry(
+        primaryKey,
+        dynamoDBClient
+      );
+
+      expect(retrievedCatalogEntry).toEqual(catalogStateEntry);
+    });
   });
 
   describe("readCatalogEntry", async () => {
@@ -258,18 +294,21 @@ describe("utils tests", async () => {
     });
   });
 
-  describe("descriptorStateToClientState", async () => {
-    it.each([descriptorState.published, descriptorState.deprecated])(
-      "should convert %s state to active",
-      async (s) => {
-        expect(descriptorStateToItemState(s)).toBe(itemState.active);
-      }
-    );
+  describe("should convert descriptor states to token-generation-readmodel states", async () => {
+    it.each([
+      descriptorState.published,
+      descriptorState.deprecated,
+      descriptorState.archiving,
+    ])("should convert %s state to active", async (s) => {
+      expect(descriptorStateToItemState(s)).toBe(itemState.active);
+    });
 
     it.each([
       descriptorState.archived,
       descriptorState.draft,
       descriptorState.suspended,
+      descriptorState.archivingSuspended,
+      descriptorState.waitingForApproval,
     ])("should convert %s state to inactive", async (s) => {
       expect(descriptorStateToItemState(s)).toBe(itemState.inactive);
     });
@@ -320,9 +359,8 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const previousTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const previousTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(previousTokenGenStatesEntries).toEqual([]);
       const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
         {
@@ -335,9 +373,8 @@ describe("utils tests", async () => {
         tokenGenStatesConsumerClient,
         dynamoDBClient
       );
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
 
       expect(retrievedTokenGenStatesEntries).toEqual([
         tokenGenStatesConsumerClient,
@@ -351,9 +388,8 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntries).toEqual([]);
       expect(
         updateDescriptorStateInTokenGenerationStatesTable(
@@ -363,9 +399,8 @@ describe("utils tests", async () => {
           genericLogger
         )
       ).resolves.not.toThrowError();
-      const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntriesAfterUpdate =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntriesAfterUpdate).toEqual([]);
     });
 
@@ -415,9 +450,8 @@ describe("utils tests", async () => {
         dynamoDBClient,
         genericLogger
       );
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,

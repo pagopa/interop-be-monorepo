@@ -51,6 +51,7 @@ import {
   systemRole,
 } from "pagopa-interop-commons";
 import {
+  asyncExchangeNotAllowed,
   invalidEServiceState,
   invalidAssertionType,
   invalidSignature,
@@ -123,7 +124,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -157,7 +158,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -194,7 +195,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -242,7 +243,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -289,7 +290,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -346,7 +347,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -403,7 +404,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -412,6 +413,59 @@ describe("authorization server tests", () => {
       platformStateValidationFailed(
         invalidEServiceState(descriptorState).detail
       )
+    );
+  });
+
+  it("should throw platformStateValidationFailed when async exchange is enabled", async () => {
+    const purposeId = generateId<PurposeId>();
+    const clientId = generateId<ClientId>();
+
+    const { jws, clientAssertion, publicKeyEncodedPem } =
+      await getMockClientAssertion({
+        standardClaimsOverride: { sub: clientId },
+        customClaims: { purposeId },
+      });
+
+    const mockRequest = await getMockTokenRequest();
+    const request: typeof mockRequest = {
+      headers: mockRequest.headers,
+      body: {
+        ...mockRequest.body,
+        client_assertion: jws,
+        client_id: clientId,
+      },
+    };
+
+    const tokenClientKidPurposePK = makeTokenGenerationStatesClientKidPurposePK(
+      {
+        clientId,
+        kid: clientAssertion.header.kid!,
+        purposeId,
+      }
+    );
+
+    const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient = {
+      ...getMockTokenGenStatesConsumerClient(tokenClientKidPurposePK),
+      publicKey: publicKeyEncodedPem,
+      asyncExchange: true,
+    };
+
+    await writeTokenGenStatesConsumerClient(
+      tokenGenStatesConsumerClient,
+      dynamoDBClient
+    );
+
+    await expect(
+      tokenService.generateToken(
+        request.headers,
+        request.body,
+        () => getMockContext({}),
+        () => {},
+        () => {},
+        () => {}
+      )
+    ).rejects.toThrowError(
+      platformStateValidationFailed(asyncExchangeNotAllowed().detail)
     );
   });
 
@@ -457,7 +511,7 @@ describe("authorization server tests", () => {
       const response = await tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -471,7 +525,7 @@ describe("authorization server tests", () => {
     const responseAfterLimitExceeded = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}
@@ -541,7 +595,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -594,7 +648,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -655,7 +709,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -688,7 +742,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -728,7 +782,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -776,7 +830,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -840,7 +894,7 @@ describe("authorization server tests", () => {
       tokenService.generateToken(
         request.headers,
         request.body,
-        getMockContext({}),
+        () => getMockContext({}),
         () => {},
         () => {},
         () => {}
@@ -902,7 +956,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({ correlationId }),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -948,6 +1002,7 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
@@ -1047,7 +1102,7 @@ describe("authorization server tests", () => {
     const result = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({ correlationId }),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -1092,6 +1147,7 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
@@ -1171,7 +1227,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({ correlationId }),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -1217,6 +1273,7 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
@@ -1224,6 +1281,9 @@ describe("authorization server tests", () => {
         parsedDecodedFileContent.expirationTime
       ),
       issuer: config.generatedInteropTokenIssuer,
+      cnf: {
+        jkt: calculateDPoPThumbprint(dpopProofJWT.header.jwk),
+      },
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
@@ -1333,7 +1393,7 @@ describe("authorization server tests", () => {
     const result = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({ correlationId }),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -1378,11 +1438,15 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
       expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
       issuer: config.generatedInteropTokenIssuer,
+      cnf: {
+        jkt: calculateDPoPThumbprint(dpopProofJWT.header.jwk),
+      },
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
@@ -1449,7 +1513,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}
@@ -1525,7 +1589,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}
@@ -1607,7 +1671,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}
@@ -1685,7 +1749,7 @@ describe("authorization server tests", () => {
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      getMockContext({}),
+      () => getMockContext({}),
       () => {},
       () => {},
       () => {}

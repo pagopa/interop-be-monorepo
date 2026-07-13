@@ -33,6 +33,7 @@ export function toGetAgreementsApiQueryParams(
 ): agreementApi.GetAgreementsQueryParams {
   return {
     consumersIds: params.consumerIds,
+    exactConsumerIdMatch: false,
     producersIds: params.producerIds,
     eservicesIds: params.eserviceIds,
     descriptorsIds: params.descriptorIds,
@@ -57,6 +58,7 @@ export function toGetPurposesApiQueryParamsForAgreement(
     states: [],
     excludeDraft: false,
     name: undefined,
+    signingStates: [],
   };
 }
 

@@ -54,7 +54,9 @@ describe("getClientAdminId", () => {
     );
 
     expect(result).toBeDefined();
-    expect(result).toEqual(mockAuthProcessResponseWithAdminId.data.adminId);
+    expect(result).toStrictEqual(
+      mockAuthProcessResponseWithAdminId.data.adminId
+    );
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.authorizationClient.client.getClient,
       params: { clientId: mockAuthProcessResponseWithAdminId.data.id },

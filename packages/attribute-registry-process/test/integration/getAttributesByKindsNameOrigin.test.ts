@@ -1,81 +1,52 @@
 /* eslint-disable functional/no-let */
 import { getMockAttribute } from "pagopa-interop-commons-test";
-import { Attribute, generateId, attributeKind } from "pagopa-interop-models";
+import { attributeKind } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
 import { addOneAttribute, readModelService } from "../integrationUtils.js";
 
 describe("getAttributesByKindsNameOrigin", () => {
-  let attribute1: Attribute;
-  let attribute2: Attribute;
-  let attribute3: Attribute;
-  let attribute4: Attribute;
-  let attribute5: Attribute;
-  let attribute6: Attribute;
-  let attribute7: Attribute;
-
-  const mockAttribute = getMockAttribute();
+  const attribute1 = {
+    ...getMockAttribute(attributeKind.certified),
+    name: "attribute 001 test",
+    origin: "IPA",
+    code: "12345A",
+  };
+  const attribute2 = {
+    ...getMockAttribute(attributeKind.certified),
+    name: "attribute 002 test",
+    origin: "IPA",
+    code: "12345B",
+  };
+  const attribute3 = {
+    ...getMockAttribute(attributeKind.certified),
+    name: "attribute 003 test",
+    origin: "IPA",
+    code: "12345C",
+  };
+  const attribute4 = {
+    ...getMockAttribute(attributeKind.declared),
+    name: "attribute 004",
+  };
+  const attribute5 = {
+    ...getMockAttribute(attributeKind.declared),
+    name: "attribute 005",
+  };
+  const attribute6 = {
+    ...getMockAttribute(attributeKind.verified),
+    name: "attribute 006",
+  };
+  const attribute7 = {
+    ...getMockAttribute(attributeKind.verified),
+    name: "attribute 007",
+  };
 
   beforeEach(async () => {
-    attribute1 = {
-      ...mockAttribute,
-      id: generateId(),
-      name: "attribute 001 test",
-      kind: attributeKind.certified,
-      origin: "IPA",
-      code: "12345A",
-    };
     await addOneAttribute(attribute1);
-
-    attribute2 = {
-      ...mockAttribute,
-      id: generateId(),
-      name: "attribute 002 test",
-      kind: attributeKind.certified,
-      origin: "IPA",
-      code: "12345B",
-    };
     await addOneAttribute(attribute2);
-
-    attribute3 = {
-      ...mockAttribute,
-      id: generateId(),
-      name: "attribute 003 test",
-      kind: attributeKind.certified,
-      origin: "IPA",
-      code: "12345C",
-    };
     await addOneAttribute(attribute3);
-
-    attribute4 = {
-      ...mockAttribute,
-      id: generateId(),
-      name: "attribute 004",
-      kind: attributeKind.declared,
-    };
     await addOneAttribute(attribute4);
-
-    attribute5 = {
-      ...mockAttribute,
-      id: generateId(),
-      name: "attribute 005",
-      kind: attributeKind.declared,
-    };
     await addOneAttribute(attribute5);
-
-    attribute6 = {
-      ...mockAttribute,
-      id: generateId(),
-      name: "attribute 006",
-      kind: attributeKind.verified,
-    };
     await addOneAttribute(attribute6);
-
-    attribute7 = {
-      ...mockAttribute,
-      id: generateId(),
-      name: "attribute 007",
-      kind: attributeKind.verified,
-    };
     await addOneAttribute(attribute7);
   });
 

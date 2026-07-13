@@ -76,6 +76,7 @@ describe("getEServiceTemplateVersions", () => {
     description: template.description,
     publishedAt: template.publishedAt,
     suspendedAt: template.suspendedAt,
+    asyncExchangeProperties: template.asyncExchangeProperties,
   });
 
   const expectedM2MTemplateVersion1 =
@@ -111,7 +112,7 @@ describe("getEServiceTemplateVersions", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTemplateResponse);
+    expect(result).toStrictEqual(m2mTemplateResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient
@@ -137,6 +138,8 @@ describe("getEServiceTemplateVersions", () => {
         description: mockApiTemplateVersion2.description,
         publishedAt: mockApiTemplateVersion2.publishedAt,
         suspendedAt: mockApiTemplateVersion2.suspendedAt,
+        asyncExchangeProperties:
+          mockApiTemplateVersion2.asyncExchangeProperties,
       };
     const m2mTemplateResponse: m2mGatewayApiV3.EServiceTemplateVersions = {
       pagination: {
@@ -157,7 +160,7 @@ describe("getEServiceTemplateVersions", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mTemplateResponse);
+    expect(result).toStrictEqual(m2mTemplateResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient

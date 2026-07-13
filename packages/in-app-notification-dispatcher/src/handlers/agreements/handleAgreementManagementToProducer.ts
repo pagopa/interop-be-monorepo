@@ -7,12 +7,12 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   retrieveTenant,
   retrieveEservice,
   getNotificationRecipients,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
 
 export async function handleAgreementManagementToProducer(
   agreementV2Msg: AgreementV2 | undefined,
@@ -24,7 +24,7 @@ export async function handleAgreementManagementToProducer(
     throw missingKafkaMessageDataError("agreement", eventType);
   }
   logger.info(
-    `Handle agreement management in-app notification for ${eventType} agreement ${agreementV2Msg.id}`
+    `Sending in-app notification for handleAgreementManagementToProducer - entityId: ${agreementV2Msg.id}, eventType: ${eventType}`
   );
 
   const agreement = fromAgreementV2(agreementV2Msg);
@@ -38,7 +38,7 @@ export async function handleAgreementManagementToProducer(
 
   if (usersWithNotifications.length === 0) {
     logger.info(
-      `No users with notifications enabled for ${eventType} agreement ${agreement.id}`
+      `No users with notifications enabled for handleAgreementManagementToProducer - entityId: ${agreement.id}, eventType: ${eventType}`
     );
     return [];
   }

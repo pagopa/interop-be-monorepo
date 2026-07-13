@@ -72,6 +72,42 @@ describe("API PUT /eservices/:eServiceId/descriptors/:descriptorId", () => {
         attributes: "invalid",
       },
     },
+    {
+      body: {
+        ...mockUpdateEServiceDescriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 2_147_483_648,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+    },
+    {
+      body: {
+        ...mockUpdateEServiceDescriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 1_000_000,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+    },
+    {
+      body: {
+        ...mockUpdateEServiceDescriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 100_000,
+        },
+      },
+    },
   ])(
     "Should return 400 if passed an invalid parameter",
     async ({ eServiceId, descriptorId, body }) => {

@@ -7,15 +7,14 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
@@ -39,7 +38,7 @@ export async function handlePurposeVersionRejectedOtherVersion(
   // Only send notification if there are multiple versions (version count > 1)
   if (purpose.versions.length <= 1) {
     logger.info(
-      `Purpose ${purpose.id} has only one version, skipping purposeVersionRejectedOtherVersion notification`
+      `Skipping email notification for handlePurposeVersionRejectedOtherVersion - entityId: ${purpose.id}, eventType: ${notificationType}, reason: purpose has only one version`
     );
     return [];
   }
@@ -48,7 +47,7 @@ export async function handlePurposeVersionRejectedOtherVersion(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeQuotaAdjustmentResponseMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
   ]);
 
   const [consumer, producer] = await Promise.all([
@@ -66,7 +65,7 @@ export async function handlePurposeVersionRejectedOtherVersion(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeVersionRejectedOtherVersion - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package eservice.v2;
+import "v2/tenant/tenant.proto";
 
 message EServiceV2 {
   string id = 1;
@@ -17,6 +18,9 @@ message EServiceV2 {
   optional bool isClientAccessDelegable = 12;
   optional string templateId = 13;
   optional bool personalData = 14;
+  optional string instanceLabel = 15;
+  optional bool asyncExchange = 16;
+  optional string archivingReason = 17;
 }
 
 message EServiceRiskAnalysisV2 {
@@ -31,6 +35,7 @@ message EServiceRiskAnalysisFormV2 {
   string version = 2;
   repeated EServiceRiskAnalysisSingleAnswerV2 singleAnswers = 3;
   repeated EServiceRiskAnalysisMultiAnswerV2 multiAnswers = 4;
+  optional tenant.v2.TenantKindV2 tenantKind = 5;
 }
 
 message EServiceRiskAnalysisSingleAnswerV2 {
@@ -45,9 +50,26 @@ message EServiceRiskAnalysisMultiAnswerV2 {
   repeated string values = 3;
 }
 
+enum AttributeCertifiedDiscreteComparatorV2 {
+  UNSPECIFIED = 0;
+  GT = 1;
+  LT = 2;
+  EQ = 3;
+  GTE = 4;
+  LTE = 5;
+  NE = 6;
+}
+
+message EServiceAttributeCertifiedDiscreteConfigV2 {
+  int32 threshold = 1;
+  AttributeCertifiedDiscreteComparatorV2 comparator = 2;
+}
+
 message EServiceAttributeValueV2 {
   string id = 1;
   bool explicitAttributeVerification = 2;
+  optional int32 dailyCallsPerConsumer = 3;
+  optional EServiceAttributeCertifiedDiscreteConfigV2 discreteConfig = 4;
 }
 
 message EServiceAttributeV2 {
@@ -86,6 +108,10 @@ message EServiceDescriptorV2 {
   EServiceAttributesV2 attributes = 18;
   repeated DescriptorRejectionReasonV2 rejectionReasons = 19;
   optional EServiceTemplateVersionRefV2 templateVersionRef = 20;
+  optional EServiceDocumentV2 asyncExchangeCallbackInterface = 21;
+  optional AsyncExchangePropertiesV2 asyncExchangeProperties = 22;
+  optional ArchivingScheduleV2 archivingSchedule = 23;
+  repeated string serverUrlsDescriptions = 24;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {
@@ -98,6 +124,14 @@ message TemplateInstanceInterfaceMetadataV2 {
 message EServiceTemplateVersionRefV2 {
   string id = 1;
   optional TemplateInstanceInterfaceMetadataV2 interfaceMetadata = 2;
+}
+
+message AsyncExchangePropertiesV2 {
+  int32 responseTime = 1;
+  int32 resourceAvailableTime = 2;
+  bool confirmation = 3;
+  bool bulk = 4;
+  int32 maxResultSet = 5;
 }
 
 message EServiceDocumentV2 {
@@ -117,6 +151,8 @@ enum EServiceDescriptorStateV2 {
   SUSPENDED = 3;
   ARCHIVED = 4;
   WAITING_FOR_APPROVAL = 5;
+  ARCHIVING = 6;
+  ARCHIVING_SUSPENDED = 7;
 }
 
 enum EServiceTechnologyV2 {
@@ -132,4 +168,15 @@ enum AgreementApprovalPolicyV2 {
 enum EServiceModeV2 {
   RECEIVE = 0;
   DELIVER = 1;
+}
+
+message ArchivingScheduleV2 {
+  int64 archivableOn = 1;
+  ArchivingScopeV2 scope = 2;
+  int64 startedAt = 3;
+}
+
+enum ArchivingScopeV2 {
+  ESERVICE = 0;
+  DESCRIPTOR = 1;
 }

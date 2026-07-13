@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -7,7 +7,6 @@ import {
 import {
   getMockedApiEservice,
   getMockWithMetadata,
-  randomBoolean,
 } from "pagopa-interop-commons-test";
 import {
   expectApiClientGetToHaveBeenCalledWith,
@@ -20,15 +19,22 @@ import {
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
+import {
+  getMockM2MAdminAppContext,
+  testToM2mGatewayApiEService,
+} from "../../mockUtils.js";
 
 describe("updatePublishedEServiceDelegation", () => {
-  const mockEService = getMockedApiEservice();
+  const mockEService: catalogApi.EService = {
+    ...getMockedApiEservice(),
+    isConsumerDelegable: true,
+    isClientAccessDelegable: true,
+  };
   const mockEServiceProcessGetResponse = getMockWithMetadata(mockEService);
 
   const mockSeed: m2mGatewayApiV3.EServiceDelegationUpdateSeed = {
-    isClientAccessDelegable: randomBoolean(),
-    isConsumerDelegable: randomBoolean(),
+    isClientAccessDelegable: true,
+    isConsumerDelegable: true,
   };
 
   const pollingTentatives = 2;
@@ -58,20 +64,10 @@ describe("updatePublishedEServiceDelegation", () => {
       getMockM2MAdminAppContext()
     );
 
-    const expectedM2MEService: m2mGatewayApiV3.EService = {
-      id: mockEService.id,
-      name: mockEService.name,
-      producerId: mockEService.producerId,
-      description: mockEService.description,
-      technology: mockEService.technology,
-      mode: mockEService.mode,
-      isSignalHubEnabled: mockEService.isSignalHubEnabled,
-      isClientAccessDelegable: mockEService.isClientAccessDelegable,
-      isConsumerDelegable: mockEService.isConsumerDelegable,
-      templateId: mockEService.templateId,
-    };
+    const expectedM2MEService: m2mGatewayApiV3.EService =
+      testToM2mGatewayApiEService(mockEService);
 
-    expect(result).toEqual(expectedM2MEService);
+    expect(result).toStrictEqual(expectedM2MEService);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.updateEServiceDelegationFlags,
@@ -96,10 +92,10 @@ describe("updatePublishedEServiceDelegation", () => {
 
   it.each([
     {
-      isClientAccessDelegable: randomBoolean(),
+      isConsumerDelegable: true,
     },
     {
-      isConsumerDelegable: randomBoolean(),
+      isClientAccessDelegable: false,
     },
     {},
   ])("Should apply patch logic when seed is partial", async (seed) => {
@@ -111,20 +107,10 @@ describe("updatePublishedEServiceDelegation", () => {
       getMockM2MAdminAppContext()
     );
 
-    const expectedM2MEService: m2mGatewayApiV3.EService = {
-      id: mockEService.id,
-      name: mockEService.name,
-      producerId: mockEService.producerId,
-      description: mockEService.description,
-      technology: mockEService.technology,
-      mode: mockEService.mode,
-      isSignalHubEnabled: mockEService.isSignalHubEnabled,
-      isClientAccessDelegable: mockEService.isClientAccessDelegable,
-      isConsumerDelegable: mockEService.isConsumerDelegable,
-      templateId: mockEService.templateId,
-    };
+    const expectedM2MEService: m2mGatewayApiV3.EService =
+      testToM2mGatewayApiEService(mockEService);
 
-    expect(result).toEqual(expectedM2MEService);
+    expect(result).toStrictEqual(expectedM2MEService);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.updateEServiceDelegationFlags,

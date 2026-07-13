@@ -16,6 +16,7 @@ import {
   EServiceRiskAnalysisV1,
   EServiceTechnologyV1,
   EServiceV1,
+  EserviceAttributes,
   RiskAnalysis,
   Technology,
   dateToBigInt,
@@ -40,6 +41,8 @@ export const toEServiceDescriptorStateV1 = (
     .with("Published", () => EServiceDescriptorStateV1.PUBLISHED)
     .with("Deprecated", () => EServiceDescriptorStateV1.DEPRECATED)
     .with("WaitingForApproval", () => EServiceDescriptorStateV1.DRAFT)
+    .with("Archiving", () => EServiceDescriptorStateV1.DEPRECATED)
+    .with("ArchivingSuspended", () => EServiceDescriptorStateV1.SUSPENDED)
     .exhaustive();
 
 export const toEServiceTechnologyV1 = (
@@ -98,7 +101,13 @@ export const toRiskAnalysisV1 = (
   createdAt: dateToBigInt(input.createdAt),
 });
 
-export const toEServiceV1 = (eservice: EService): EServiceV1 => ({
+type EServiceWithLegacyAttributes = EService & {
+  attributes?: EserviceAttributes;
+};
+
+export const toEServiceV1 = (
+  eservice: EServiceWithLegacyAttributes
+): EServiceV1 => ({
   ...eservice,
   technology: toEServiceTechnologyV1(eservice.technology),
   attributes:

@@ -108,7 +108,7 @@ describe("API /producerKeychains/{producerKeychainId}/users/{userId} authorizati
         generateId(),
         mockProducerKeychain.id
       ),
-      expectedStatus: 403,
+      expectedStatus: 404,
     },
   ])(
     "Should return $expectedStatus for $error.code",

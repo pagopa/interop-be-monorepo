@@ -56,7 +56,7 @@ describe("getProducerDelegations", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mDelegationsResponse);
+    expect(result).toStrictEqual(m2mDelegationsResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.delegationProcessClient.delegation.getDelegation,

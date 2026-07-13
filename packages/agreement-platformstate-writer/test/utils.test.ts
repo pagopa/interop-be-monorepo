@@ -252,9 +252,8 @@ describe("utils", async () => {
         consumerId: generateId(),
         eserviceId: generateId(),
       });
-      const tokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntries).toEqual([]);
       expect(
         updateAgreementStateOnTokenGenStates({
@@ -264,9 +263,8 @@ describe("utils", async () => {
           logger: genericLogger,
         })
       ).resolves.not.toThrowError();
-      const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntriesAfterUpdate =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntriesAfterUpdate).toEqual([]);
     });
 
@@ -316,9 +314,8 @@ describe("utils", async () => {
         dynamoDBClient,
         logger: genericLogger,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -369,9 +366,8 @@ describe("utils", async () => {
         updatedAt: new Date().toISOString(),
       };
 
-      const tokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntries).toEqual([]);
       expect(
         updateAgreementStateAndDescriptorInfoOnTokenGenStates({
@@ -385,9 +381,8 @@ describe("utils", async () => {
           logger: genericLogger,
         })
       ).resolves.not.toThrowError();
-      const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const tokenGenStatesEntriesAfterUpdate =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       expect(tokenGenStatesEntriesAfterUpdate).toEqual([]);
     });
 
@@ -467,9 +462,8 @@ describe("utils", async () => {
         catalogEntry,
         logger: genericLogger,
       });
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,
@@ -597,9 +591,8 @@ describe("utils", async () => {
         genericLogger
       );
 
-      const retrievedPlatformStatesEntries = await readAllPlatformStatesItems(
-        dynamoDBClient
-      );
+      const retrievedPlatformStatesEntries =
+        await readAllPlatformStatesItems(dynamoDBClient);
       const expectedPlatformStatesAgreement: PlatformStatesAgreementEntry = {
         ...platformStatesAgreement1,
         state: itemState.inactive,
@@ -657,9 +650,8 @@ describe("utils", async () => {
         genericLogger
       );
 
-      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
-        dynamoDBClient
-      );
+      const retrievedTokenGenStatesEntries =
+        await readAllTokenGenStatesItems(dynamoDBClient);
       const expectedTokenGenStatesConsumerClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,

@@ -1,30 +1,50 @@
-import {
-  NewNotification,
-  EServiceEventEnvelopeV2,
-} from "pagopa-interop-models";
+import { NewNotification, EServiceEventEnvelope } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
+import { handleEserviceStateChangedToProducer } from "./handleEserviceStateChangedToProducer.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
 import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
+import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
+import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
+import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
+import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
 
 export async function handleEServiceEvent(
-  decodedMessage: EServiceEventEnvelopeV2,
+  decodedMessage: EServiceEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorActivated"
+        ),
+      },
+      async (msg) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceStateChangedToProducer(msg, logger, readModelService),
+          handleEserviceStateChangedToConsumer(msg, logger, readModelService),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
     .with(
       {
         type: P.union(
           "EServiceNameUpdated",
           "EServiceDescriptionUpdated",
           "EServiceDescriptorPublished",
-          "EServiceDescriptorSuspended",
-          "EServiceDescriptorActivated",
           "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceDescriptorDocumentAdded",
           "EServiceDescriptorDocumentUpdated",
           "EServiceNameUpdatedByTemplateUpdate",
@@ -64,8 +84,53 @@ export async function handleEServiceEvent(
     )
     .with(
       {
+        type: "EServiceDescriptorArchived",
+      },
+      (msg) => handleEserviceArchivingToProducer(msg, logger, readModelService)
+    )
+    .with(
+      {
         type: P.union(
-          "EServiceDescriptorArchived",
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceArchivingScheduled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingCompleted"
+        ),
+      },
+      async (msg) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingToProducer(msg, logger, readModelService),
+          handleEserviceArchivingToConsumer(msg, logger, readModelService),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceArchivingCanceled"
+        ),
+      },
+      async (msg) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingCanceledToProducer(
+            msg,
+            logger,
+            readModelService
+          ),
+          handleEserviceArchivingCanceledToConsumer(
+            msg,
+            logger,
+            readModelService
+          ),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
@@ -76,6 +141,7 @@ export async function handleEServiceEvent(
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
           "EServiceRiskAnalysisDeleted",
           "EServiceIsConsumerDelegableEnabled",
           "EServiceIsConsumerDelegableDisabled",
@@ -84,17 +150,23 @@ export async function handleEServiceEvent(
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
           "EServiceDescriptorInterfaceAdded",
+          "EServiceDescriptorInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceDescriptorAgreementApprovalPolicyUpdated",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
-          "EServiceDescriptorDocumentDeleted"
+          "EServiceDescriptorDocumentDeleted",
+          "EServiceInstanceLabelUpdated",
+          "MaintenanceEServicePersonalDataFlagReset",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {
         logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
+          `Skipping in-app notification for event ${decodedMessage.type}`
         );
         return [];
       }

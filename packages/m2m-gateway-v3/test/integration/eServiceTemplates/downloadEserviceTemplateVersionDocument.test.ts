@@ -65,7 +65,7 @@ describe("downloadEServiceTemplateVersionDocument", () => {
           genericLogger
         )
       ).at(0)
-    ).toEqual(mockDocument.path);
+    ).toStrictEqual(mockDocument.path);
 
     const templateId = generateId<EServiceTemplateId>();
     const versionId = generateId<EServiceTemplateVersionId>();

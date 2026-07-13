@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiAttribute,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
@@ -42,7 +43,8 @@ describe("POST /verifiedAttributes router test", () => {
   ) =>
     request(api)
       .post(`${appBasePath}/verifiedAttributes`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

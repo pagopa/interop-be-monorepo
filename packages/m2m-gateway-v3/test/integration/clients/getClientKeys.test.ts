@@ -130,7 +130,7 @@ describe("getClientKeys", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mClientJWKsResponse);
+    expect(result).toStrictEqual(m2mClientJWKsResponse);
 
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetClientKeys,

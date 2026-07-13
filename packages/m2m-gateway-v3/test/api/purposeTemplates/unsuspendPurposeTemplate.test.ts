@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiPurposeTemplate,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -26,7 +27,8 @@ describe("POST /purposeTemplates/:purposeTemplateId/unsuspend router test", () =
   ) =>
     request(api)
       .post(`${appBasePath}/purposeTemplates/${purposeTemplateId}/unsuspend`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];

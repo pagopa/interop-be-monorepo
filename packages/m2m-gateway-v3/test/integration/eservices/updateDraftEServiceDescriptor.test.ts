@@ -84,9 +84,11 @@ describe("updateDraftEService", () => {
       deprecatedAt: mockDescriptor.deprecatedAt,
       archivedAt: mockDescriptor.archivedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockDescriptor.archivingSchedule,
+      asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
     };
 
-    expect(result).toEqual(expectedM2MDescriptor);
+    expect(result).toStrictEqual(expectedM2MDescriptor);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,

@@ -1,4 +1,3 @@
-/* eslint-disable fp/no-delete */
 /* eslint-disable functional/immutable-data */
 import {
   decodeProtobufPayload,
@@ -251,16 +250,15 @@ describe("reject agreement", () => {
         payload: agreementEvent.data,
       }).agreement;
 
-      /* We must delete some properties because the rejection
-    sets them to undefined thus and the protobuf
-    serialization strips them from the payload */
-      delete agreement.suspendedByConsumer;
-      delete agreement.suspendedByProducer;
-      delete agreement.suspendedByPlatform;
       const expectedAgreementRejected: Agreement = {
         ...agreement,
         state: agreementState.rejected,
         rejectionReason: "Rejected by producer due to test reasons",
+        // The rejection sets these suspension flags to undefined, and the
+        // protobuf serialization strips them from the payload
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        suspendedByPlatform: undefined,
         // Keeps only not revoked attributes that are matching in descriptor and tenant
         verifiedAttributes: [
           { id: tenantVerifiedAttribute.id },
@@ -278,7 +276,7 @@ describe("reject agreement", () => {
         },
       };
 
-      expect(sortAgreementAttributes(actualAgreementRejected)).toMatchObject(
+      expect(sortAgreementAttributes(actualAgreementRejected)).toEqual(
         sortAgreementAttributes(toAgreementV2(expectedAgreementRejected))
       );
       expect(sortAgreement(rejectAgreementReponse)).toEqual({

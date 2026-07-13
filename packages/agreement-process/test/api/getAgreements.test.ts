@@ -21,6 +21,7 @@ describe("API GET /agreements test", () => {
     consumersIds: `${generateId()},${generateId()}`,
     producersIds: `${generateId()},${generateId()}`,
     descriptorsIds: `${generateId()},${generateId()}`,
+    exactConsumerIdMatch: false,
   };
 
   const agreements: ListResult<Agreement> = {
@@ -56,6 +57,8 @@ describe("API GET /agreements test", () => {
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.REVIEWER_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

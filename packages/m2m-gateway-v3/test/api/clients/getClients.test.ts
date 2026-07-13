@@ -3,6 +3,7 @@ import {
   generateToken,
   getMockedApiConsumerPartialClient,
   getMockedApiConsumerFullClient,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -61,7 +62,8 @@ describe("GET /clients router test", () => {
   ) =>
     request(api)
       .get(`${appBasePath}/clients`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .query(query)
       .send();
 

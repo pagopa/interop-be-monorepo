@@ -31,7 +31,9 @@ import {
   eserviceNotFound,
   tenantKindNotFound,
   tenantNotFound,
+  invalidFreeOfChargeReason,
   purposeFromTemplateCannotBeModified,
+  riskAnalysisFormCannotBeUpdated,
 } from "../../src/model/domain/errors.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
 
@@ -47,15 +49,13 @@ describe("API POST /purposes/{purposeId} test", () => {
     ),
   };
   const mockPurpose: Purpose = getMockPurpose();
-  const isRiskAnalysisValid = true;
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
+    purposeToApiPurpose(mockPurpose)
   );
 
   const processResponse = getMockWithMetadata({
     purpose: mockPurpose,
-    isRiskAnalysisValid,
   });
   beforeEach(() => {
     purposeService.updatePurpose = vi.fn().mockResolvedValue(processResponse);
@@ -99,6 +99,11 @@ describe("API POST /purposes/{purposeId} test", () => {
     { error: missingFreeOfChargeReason(), expectedStatus: 400 },
     { error: riskAnalysisValidationFailed([]), expectedStatus: 400 },
     { error: purposeNotInDraftState(mockPurpose.id), expectedStatus: 400 },
+    {
+      error: invalidFreeOfChargeReason(false, "Some reason"),
+      expectedStatus: 400,
+    },
+
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     {
       error: tenantIsNotTheDelegatedConsumer(
@@ -114,6 +119,10 @@ describe("API POST /purposes/{purposeId} test", () => {
     },
     {
       error: purposeFromTemplateCannotBeModified(generateId(), generateId()),
+      expectedStatus: 409,
+    },
+    {
+      error: riskAnalysisFormCannotBeUpdated(mockPurpose.id),
       expectedStatus: 409,
     },
     { error: eserviceNotFound(generateId()), expectedStatus: 500 },

@@ -16,12 +16,15 @@ vars {
   host-m2m-gw-v3: http://localhost:4600/m2m-gateway/v3
   host-auth-server: http://localhost:3300
   JWT-M2M: Bearer {{process.env.JWT-M2M}}
+  DPOP-JWT-M2M: DPoP {{process.env.JWT-M2M}}
   JWT2: Bearer {{process.env.JWT2}}
   host-template: http://localhost:3900
   host-notification-config: http://localhost:4100
   JWT-API-SEC: Bearer {{process.env.JWT-API-SEC}}
   JWT-M2M-ADMIN: Bearer {{process.env.JWT-M2M-ADMIN}}
+  DPOP-JWT-M2M-ADMIN: DPoP {{process.env.JWT-M2M-ADMIN}}
   JWT2-M2M-ADMIN: Bearer {{process.env.JWT2-M2M-ADMIN}}
+  DPOP-PROOF: {{process.env.DPOP-PROOF}}
   host-in-app-notification: http://localhost:4200
   host-m2m-event-manager: http://localhost:4400
   create-dpop-proof-path: {{process.env.DPOP_SCRIPT_PATH}}

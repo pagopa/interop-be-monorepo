@@ -20,6 +20,7 @@ import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js"
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
   purposeVersionDocumentNotFound,
+  purposeVersionDocumentNotReady,
   purposeVersionNotFound,
 } from "../../../src/model/errors.js";
 import { config } from "../../../src/config/config.js";
@@ -119,7 +120,7 @@ On multiple lines.`;
     );
   });
 
-  it("Should throw purposeVersionDocumentNotFound in case the returned purpose version has no risk analysis", async () => {
+  it("Should throw purposeVersionDocumentNotFound in case the returned purpose version has no risk analysis and is in DRAFT state", async () => {
     mockGetPurpose.mockResolvedValueOnce({
       ...mockPurposeProcessResponse,
       data: {
@@ -127,6 +128,7 @@ On multiple lines.`;
         versions: [
           {
             ...mockApiPurposeVersion,
+            state: "DRAFT",
             riskAnalysis: undefined,
           },
         ],
@@ -140,6 +142,62 @@ On multiple lines.`;
       )
     ).rejects.toThrowError(
       purposeVersionDocumentNotFound(
+        unsafeBrandId(mockPurposeProcessResponse.data.id),
+        unsafeBrandId(mockApiPurposeVersion.id)
+      )
+    );
+  });
+
+  it("Should throw purposeVersionDocumentNotReady in case the returned purpose version is ACTIVE but has no risk analysis", async () => {
+    mockGetPurpose.mockResolvedValueOnce({
+      ...mockPurposeProcessResponse,
+      data: {
+        ...mockPurposeProcessResponse.data,
+        versions: [
+          {
+            ...mockApiPurposeVersion,
+            state: "ACTIVE",
+            riskAnalysis: undefined,
+          },
+        ],
+      },
+    });
+    await expect(
+      purposeService.downloadPurposeVersionRiskAnalysisDocument(
+        unsafeBrandId(mockPurposeProcessResponse.data.id),
+        unsafeBrandId(mockApiPurposeVersion.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      purposeVersionDocumentNotReady(
+        unsafeBrandId(mockPurposeProcessResponse.data.id),
+        unsafeBrandId(mockApiPurposeVersion.id)
+      )
+    );
+  });
+
+  it("Should throw purposeVersionDocumentNotReady in case the returned purpose version is SUSPENDED but has no risk analysis", async () => {
+    mockGetPurpose.mockResolvedValueOnce({
+      ...mockPurposeProcessResponse,
+      data: {
+        ...mockPurposeProcessResponse.data,
+        versions: [
+          {
+            ...mockApiPurposeVersion,
+            state: "SUSPENDED",
+            riskAnalysis: undefined,
+          },
+        ],
+      },
+    });
+    await expect(
+      purposeService.downloadPurposeVersionRiskAnalysisDocument(
+        unsafeBrandId(mockPurposeProcessResponse.data.id),
+        unsafeBrandId(mockApiPurposeVersion.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrowError(
+      purposeVersionDocumentNotReady(
         unsafeBrandId(mockPurposeProcessResponse.data.id),
         unsafeBrandId(mockApiPurposeVersion.id)
       )

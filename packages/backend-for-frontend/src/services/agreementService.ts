@@ -6,7 +6,7 @@ import { randomUUID } from "crypto";
 import {
   FileManager,
   getAllFromPaginated,
-  isFeatureFlagEnabled,
+  isValidFile,
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -46,6 +46,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
 import { getTenantById } from "./delegationService.js";
+import { invalidFileUploadError } from "pagopa-interop-models";
 
 export async function getAllAgreements(
   agreementProcessClient: agreementApi.AgreementProcessClient,
@@ -58,6 +59,7 @@ export async function getAllAgreements(
         headers,
         queries: {
           ...getAgreementsQueryParams,
+          exactConsumerIdMatch: true,
           offset,
           limit,
         },
@@ -113,6 +115,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds: [ctx.authData.organizationId],
+            exactConsumerIdMatch: false,
             producersIds,
             states,
           },
@@ -159,6 +162,7 @@ export function agreementServiceBuilder(
             showOnlyUpgradeable,
             eservicesIds,
             consumersIds,
+            exactConsumerIdMatch: false,
             states,
           },
           headers: ctx.headers,
@@ -195,6 +199,10 @@ export function agreementServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<Buffer> {
       logger.info(`Adding consumer document to agreement ${agreementId}`);
+
+      if (!(await isValidFile(doc.doc))) {
+        throw invalidFileUploadError();
+      }
 
       const documentPath = `${config.consumerDocumentsPath}/${agreementId}`;
       const documentContent = Buffer.from(await doc.doc.arrayBuffer());
@@ -436,7 +444,7 @@ export function agreementServiceBuilder(
       });
     },
 
-    async activateAgreement(
+    async approveAgreement(
       agreementId: string,
       delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
@@ -446,7 +454,26 @@ export function agreementServiceBuilder(
           delegationId ? ` with delegation ${delegationId}` : ""
         }`
       );
-      const agreement = await agreementProcessClient.activateAgreement(
+      const agreement = await agreementProcessClient.approveAgreement(
+        { delegationId },
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+      return enrichAgreement(agreement, clients, ctx);
+    },
+    async unsuspendAgreement(
+      agreementId: string,
+      delegationId: string | undefined,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(
+        `Unsuspending agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
+      const agreement = await agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },
@@ -642,6 +669,7 @@ export const getLatestAgreementsOnDescriptor = async (
     headers,
     {
       consumersIds: [consumerId],
+      exactConsumerIdMatch: false,
       eservicesIds: [eservice.id],
       descriptorsIds: [descriptorId],
     }
@@ -677,6 +705,7 @@ export const getLatestAgreementsOnDescriptor = async (
 export const getLatestAgreement = async (
   agreementProcessClient: agreementApi.AgreementProcessClient,
   consumerId: string,
+  exactConsumerIdMatch: boolean,
   eservice: catalogApi.EService,
   headers: Headers
 ): Promise<agreementApi.Agreement | undefined> => {
@@ -686,6 +715,7 @@ export const getLatestAgreement = async (
     {
       consumersIds: [consumerId],
       eservicesIds: [eservice.id],
+      exactConsumerIdMatch,
     }
   );
 
@@ -756,12 +786,12 @@ async function enrichAgreementListEntry(
     const currentDescriptor = getCurrentDescriptor(eservice, agreement);
 
     const delegate = delegation
-      ? cachedTenants.get(delegation.delegateId) ??
+      ? (cachedTenants.get(delegation.delegateId) ??
         (await getTenantById(
           clients.tenantProcessClient,
           ctx.headers,
           delegation.delegateId
-        ))
+        )))
       : undefined;
 
     agreementsResult.push({
@@ -838,6 +868,10 @@ export async function enrichAgreement(
     attributes,
     agreement.certifiedAttributes.map((attr) => attr.id)
   );
+  const agreementCertifiedDiscreteAttrs = filterAttributes(
+    attributes,
+    agreement.certifiedDiscreteAttributes.map((attr) => attr.id)
+  );
   const agreementDeclaredAttrs = filterAttributes(
     attributes,
     agreement.declaredAttributes.map((attr) => attr.id)
@@ -898,6 +932,9 @@ export async function enrichAgreement(
     state: agreement.state,
     verifiedAttributes: agreementVerifiedAttrs.map((a) => toBffAttribute(a)),
     certifiedAttributes: agreementCertifiedAttrs.map((a) => toBffAttribute(a)),
+    certifiedDiscreteAttributes: agreementCertifiedDiscreteAttrs.map((a) =>
+      toBffAttribute(a)
+    ),
     declaredAttributes: agreementDeclaredAttrs.map((a) => toBffAttribute(a)),
     suspendedByConsumer: agreement.suspendedByConsumer,
     suspendedByProducer: agreement.suspendedByProducer,
@@ -911,12 +948,7 @@ export async function enrichAgreement(
     suspendedAt: agreement.suspendedAt,
     consumerNotes: agreement.consumerNotes,
     rejectionReason: agreement.rejectionReason,
-    isDocumentReady: isFeatureFlagEnabled(
-      config,
-      "featureFlagUseSignedDocument"
-    )
-      ? agreement.signedContract !== undefined
-      : agreement.contract !== undefined,
+    isDocumentReady: agreement.signedContract !== undefined,
   };
 }
 
@@ -935,11 +967,17 @@ function descriptorAttributesIds(
 function tenantAttributesIds(tenant: tenantApi.Tenant): string[] {
   const verifiedIds = tenant.attributes.map((attr) => attr.verified?.id);
   const certifiedIds = tenant.attributes.map((attr) => attr.certified?.id);
+  const certifiedDiscreteIds = tenant.attributes.map(
+    (attr) => attr.certifiedDiscrete?.id
+  );
   const declaredIds = tenant.attributes.map((attr) => attr.declared?.id);
 
-  return [...verifiedIds, ...certifiedIds, ...declaredIds].filter(
-    (x): x is string => x !== undefined
-  );
+  return [
+    ...verifiedIds,
+    ...certifiedIds,
+    ...certifiedDiscreteIds,
+    ...declaredIds,
+  ].filter((x): x is string => x !== undefined);
 }
 
 async function getConsumerProducerEserviceDelegation(

@@ -194,8 +194,8 @@ describe("suspend agreement", () => {
         ...expectedStamps,
       },
     };
-    expect(actualAgreementSuspended).toEqual(
-      toAgreementV2(expectedAgreementSuspended)
+    expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
+      sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
     );
     expect(sortAgreement(suspendAgreementResponse)).toEqual({
       data: sortAgreement(expectedAgreementSuspended),
@@ -311,8 +311,8 @@ describe("suspend agreement", () => {
         },
       },
     };
-    expect(actualAgreementSuspended).toEqual(
-      toAgreementV2(expectedAgreementSuspended)
+    expect(sortAgreementV2(actualAgreementSuspended)).toEqual(
+      sortAgreementV2(toAgreementV2(expectedAgreementSuspended))
     );
     expect(sortAgreement(suspendAgreementResponse)).toEqual({
       data: sortAgreement(expectedAgreementSuspended),
@@ -403,10 +403,10 @@ describe("suspend agreement", () => {
     const expectedSuspensionFlags = {
       suspendedByConsumer: isConsumer
         ? true
-        : agreement.suspendedByConsumer ?? false,
+        : (agreement.suspendedByConsumer ?? false),
       suspendedByProducer: !isConsumer
         ? true
-        : agreement.suspendedByProducer ?? false,
+        : (agreement.suspendedByProducer ?? false),
     };
     const expectedAgreementSuspended: Agreement = {
       ...agreement,

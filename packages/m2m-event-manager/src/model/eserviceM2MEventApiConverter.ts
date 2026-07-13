@@ -73,6 +73,10 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_ATTRIBUTES_UPDATED"
     )
     .with(
+      "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
+      () => "ESERVICE_DESCRIPTOR_ATTRIBUTE_DAILY_CALLS_PER_CONSUMER_UPDATED"
+    )
+    .with(
       "EServiceDescriptorSubmittedByDelegate",
       () => "ESERVICE_DESCRIPTOR_SUBMITTED_BY_DELEGATE"
     )
@@ -125,12 +129,51 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_DESCRIPTOR_INTERFACE_DELETED"
     )
     .with(
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+      () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED"
+    )
+    .with(
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+      () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED"
+    )
+    .with(
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+      () => "ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED"
+    )
+    .with(
       "EServicePersonalDataFlagUpdatedAfterPublication",
       () => "ESERVICE_PERSONAL_DATA_FLAG_UPDATED_AFTER_PUBLICATION"
     )
     .with(
       "EServicePersonalDataFlagUpdatedByTemplateUpdate",
       () => "ESERVICE_PERSONAL_DATA_FLAG_UPDATED_BY_TEMPLATE_UPDATE"
+    )
+    .with(
+      "EServiceInstanceLabelUpdated",
+      () => "ESERVICE_INSTANCE_LABEL_UPDATED"
+    )
+    .with(
+      "EServiceDescriptorArchivingScheduled",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED"
+    )
+    .with(
+      "EServiceDescriptorArchivingCanceled",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_CANCELED"
+    )
+    .with(
+      "EServiceDescriptorArchivingCompleted",
+      () => "ESERVICE_DESCRIPTOR_ARCHIVING_COMPLETED"
+    )
+    .with("EServiceArchivingScheduled", () => "ESERVICE_ARCHIVING_SCHEDULED")
+    .with("EServiceArchivingCanceled", () => "ESERVICE_ARCHIVING_CANCELED")
+    .with("EServiceArchivingCompleted", () => "ESERVICE_ARCHIVING_COMPLETED")
+    .with(
+      "MaintenanceEServicePersonalDataFlagReset",
+      () => "MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET"
+    )
+    .with(
+      "MaintenanceEServiceDescriptorUnarchived",
+      () => "MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED"
     )
     .exhaustive();
 }

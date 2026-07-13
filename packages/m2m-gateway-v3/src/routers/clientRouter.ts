@@ -12,6 +12,7 @@ import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
 import { makeApiProblem } from "../model/errors.js";
 import { ClientService } from "../services/clientService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
+import { getClientErrorMapper } from "../utils/errorMappers.js";
 
 const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 
@@ -42,6 +43,23 @@ const clientRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/clients", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+        const client = await clientService.createClient(req.body, ctx);
+        return res.status(200).send(m2mGatewayApiV3.Client.parse(client));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating client with name ${req.body.name}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/clients/:clientId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
       try {
@@ -55,9 +73,29 @@ const clientRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          emptyErrorMapper,
+          getClientErrorMapper,
           ctx,
           `Error retrieving client with id ${req.params.clientId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .delete("/clients/:clientId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        await clientService.deleteClient(
+          unsafeBrandId(req.params.clientId),
+          ctx
+        );
+        return res.status(200).send({});
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error deleting client with id ${req.params.clientId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }
@@ -95,7 +133,7 @@ const clientRouter = (
           req.body,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -117,7 +155,7 @@ const clientRouter = (
           unsafeBrandId(req.params.purposeId),
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -160,7 +198,7 @@ const clientRouter = (
           req.body,
           ctx
         );
-        return res.status(200).send(key);
+        return res.status(200).send(m2mGatewayApiV3.Key.parse(key));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -181,7 +219,7 @@ const clientRouter = (
           req.params.keyId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -225,7 +263,7 @@ const clientRouter = (
           req.body.userId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -246,7 +284,7 @@ const clientRouter = (
           req.params.userId,
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

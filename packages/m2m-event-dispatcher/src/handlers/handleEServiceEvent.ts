@@ -72,7 +72,12 @@ async function handleEServiceEventV2(
             "EServiceRiskAnalysisUpdated",
             "EServiceRiskAnalysisDeleted",
             "EServicePersonalDataFlagUpdatedAfterPublication",
-            "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+            "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+            "EServiceInstanceLabelUpdated",
+            "EServiceArchivingScheduled",
+            "EServiceArchivingCanceled",
+            "EServiceArchivingCompleted",
+            "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
         async (event) => {
@@ -111,6 +116,7 @@ async function handleEServiceEventV2(
             "EServiceDraftDescriptorDeleted",
             "EServiceDraftDescriptorUpdated",
             "EServiceDescriptorAttributesUpdated",
+            "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
             "EServiceDescriptorSubmittedByDelegate",
             "EServiceDescriptorRejectedByDelegator",
             "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
@@ -123,7 +129,14 @@ async function handleEServiceEventV2(
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorInterfaceUpdated",
-            "EServiceDescriptorInterfaceDeleted"
+            "EServiceDescriptorInterfaceDeleted",
+            "EServiceDescriptorArchivingScheduled",
+            "EServiceDescriptorArchivingCanceled",
+            "EServiceDescriptorArchivingCompleted",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+            "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+            "MaintenanceEServiceDescriptorUnarchived"
           ),
         },
         async (event) => {
@@ -146,6 +159,11 @@ async function handleEServiceEventV2(
           );
         }
       )
+      .with({ type: "MaintenanceEServiceRiskAnalysisSetTenantKind" }, () => {
+        logger.info(
+          `Skipping M2M event creation for ${decodedMessage.type} message`
+        );
+      })
       .exhaustive()
   );
 }

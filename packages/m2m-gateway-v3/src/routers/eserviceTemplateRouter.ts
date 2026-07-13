@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
@@ -26,7 +27,8 @@ import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
 const eserviceTemplateRouter = (
   ctx: ZodiosContext,
-  eserviceTemplateService: EserviceTemplateService
+  eserviceTemplateService: EserviceTemplateService,
+  kmsClient: KMSClient
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
   const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 
@@ -143,7 +145,7 @@ const eserviceTemplateRouter = (
           unsafeBrandId(req.params.templateId),
           ctx
         );
-        return res.status(204).send();
+        return res.status(200).send({});
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -274,7 +276,7 @@ const eserviceTemplateRouter = (
             ctx
           );
 
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -585,7 +587,12 @@ const eserviceTemplateRouter = (
               ctx
             );
 
-          return sendDownloadedDocumentAsFormData(file, res);
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -611,7 +618,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.documentId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -693,7 +700,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.riskAnalysisId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -904,7 +911,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.attributeId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -929,7 +936,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.attributeId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -954,7 +961,7 @@ const eserviceTemplateRouter = (
             unsafeBrandId(req.params.attributeId),
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -979,7 +986,7 @@ const eserviceTemplateRouter = (
             req.body,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1004,7 +1011,7 @@ const eserviceTemplateRouter = (
             req.body,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
@@ -1030,7 +1037,7 @@ const eserviceTemplateRouter = (
             req.body,
             ctx
           );
-          return res.status(204).send();
+          return res.status(200).send({});
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

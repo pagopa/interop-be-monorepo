@@ -1,24 +1,28 @@
 import {
   AgreementApprovalPolicy,
+  AttributeCertifiedDiscreteComparator,
+  AttributeId,
   AttributeKind,
   attributeKind,
   EServiceMode,
   EServiceTemplate,
   EServiceTemplateId,
-  EServiceTemplateRiskAnalysis,
   EServiceTemplateVersion,
   EServiceTemplateVersionState,
+  RiskAnalysis,
   stringToDate,
   Technology,
-  TenantKind,
   unsafeBrandId,
   WithMetadata,
+  type EServiceTemplateAttribute,
+  type EServiceTemplateAttributeCertifiedDiscrete,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateRiskAnalysisSQL,
   EServiceTemplateSQL,
+  EServiceTemplateVersionAsyncExchangePropertiesSQL,
   EServiceTemplateVersionAttributeSQL,
   EServiceTemplateVersionDocumentSQL,
   EServiceTemplateVersionInterfaceSQL,
@@ -27,7 +31,6 @@ import {
 import { match } from "ts-pattern";
 import {
   aggregateRiskAnalysisForm,
-  attributesSQLtoAttributes,
   documentSQLtoDocument,
 } from "../catalog/aggregators.js";
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
@@ -35,27 +38,37 @@ import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 export const aggregateEServiceTemplateRiskAnalysis = (
   riskAnalysisSQL: EServiceTemplateRiskAnalysisSQL,
   answers: EServiceTemplateRiskAnalysisAnswerSQL[]
-): EServiceTemplateRiskAnalysis => ({
+): RiskAnalysis => ({
   id: unsafeBrandId(riskAnalysisSQL.id),
   name: riskAnalysisSQL.name,
   createdAt: stringToDate(riskAnalysisSQL.createdAt),
   riskAnalysisForm: aggregateRiskAnalysisForm(riskAnalysisSQL, answers),
-  tenantKind: TenantKind.parse(riskAnalysisSQL.tenantKind),
 });
 
 export const aggregateEServiceTemplateVersion = ({
   versionSQL,
-  interfaceSQL,
+  interfacesSQL,
   documentsSQL,
   attributesSQL,
+  asyncExchangePropertiesSQL,
 }: {
   versionSQL: EServiceTemplateVersionSQL;
-  interfaceSQL: EServiceTemplateVersionInterfaceSQL | undefined;
+  interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
+  asyncExchangePropertiesSQL:
+    | EServiceTemplateVersionAsyncExchangePropertiesSQL
+    | undefined;
 }): EServiceTemplateVersion => {
-  const parsedInterface = interfaceSQL
-    ? documentSQLtoDocument(interfaceSQL)
+  const mainInterfaceSQL = interfacesSQL.find((i) => i.kind === "INTERFACE");
+  const callbackInterfaceSQL = interfacesSQL.find(
+    (i) => i.kind === "ASYNC_EXCHANGE_CALLBACK_INTERFACE"
+  );
+  const parsedInterface = mainInterfaceSQL
+    ? documentSQLtoDocument(mainInterfaceSQL)
+    : undefined;
+  const asyncExchangeCallbackInterfaceDoc = callbackInterfaceSQL
+    ? documentSQLtoDocument(callbackInterfaceSQL)
     : undefined;
 
   const {
@@ -65,7 +78,7 @@ export const aggregateEServiceTemplateVersion = ({
   } = attributesSQL.reduce(
     (acc, attributeSQL) =>
       match(AttributeKind.parse(attributeSQL.kind))
-        .with(attributeKind.certified, () => ({
+        .with(attributeKind.certified, attributeKind.certifiedDiscrete, () => ({
           ...acc,
           certified: [...acc.certified, attributeSQL],
         }))
@@ -84,9 +97,15 @@ export const aggregateEServiceTemplateVersion = ({
       verified: new Array<EServiceTemplateVersionAttributeSQL>(),
     }
   );
-  const certifiedAttributes = attributesSQLtoAttributes(certifiedAttributesSQL);
-  const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
-  const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
+  const certifiedAttributes = templateAttributesSQLtoTemplateAttributes(
+    certifiedAttributesSQL
+  );
+  const declaredAttributes = templateAttributesSQLtoTemplateAttributes(
+    declaredAttributesSQL
+  );
+  const verifiedAttributes = templateAttributesSQLtoTemplateAttributes(
+    verifiedAttributesSQL
+  );
 
   return {
     id: unsafeBrandId(versionSQL.id),
@@ -107,6 +126,21 @@ export const aggregateEServiceTemplateVersion = ({
       verified: verifiedAttributes,
     },
     ...(parsedInterface ? { interface: parsedInterface } : {}),
+    ...(asyncExchangeCallbackInterfaceDoc
+      ? { asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc }
+      : {}),
+    ...(asyncExchangePropertiesSQL
+      ? {
+          asyncExchangeProperties: {
+            responseTime: asyncExchangePropertiesSQL.responseTime,
+            resourceAvailableTime:
+              asyncExchangePropertiesSQL.resourceAvailableTime,
+            confirmation: asyncExchangePropertiesSQL.confirmation,
+            bulk: asyncExchangePropertiesSQL.bulk,
+            maxResultSet: asyncExchangePropertiesSQL.maxResultSet,
+          },
+        }
+      : {}),
     ...(versionSQL.description ? { description: versionSQL.description } : {}),
     ...(versionSQL.agreementApprovalPolicy
       ? {
@@ -135,12 +169,13 @@ export const aggregateEServiceTemplate = ({
   interfacesSQL,
   attributesSQL,
   documentsSQL,
+  asyncExchangePropertiesSQL,
 }: EServiceTemplateItemsSQL): WithMetadata<EServiceTemplate> => {
   const interfacesSQLByVersionId = interfacesSQL.reduce((acc, i) => {
     const versionId = i.versionId;
-    acc.set(versionId, i);
+    acc.set(versionId, [...(acc.get(versionId) || []), i]);
     return acc;
-  }, new Map<string, EServiceTemplateVersionInterfaceSQL>());
+  }, new Map<string, EServiceTemplateVersionInterfaceSQL[]>());
   const documentsSQLByVersionId = documentsSQL.reduce((acc, doc) => {
     const versionId = doc.versionId;
     acc.set(versionId, [...(acc.get(versionId) || []), doc]);
@@ -151,12 +186,20 @@ export const aggregateEServiceTemplate = ({
     acc.set(versionId, [...(acc.get(versionId) || []), attr]);
     return acc;
   }, new Map<string, EServiceTemplateVersionAttributeSQL[]>());
+  const asyncExchangePropertiesSQLByVersionId =
+    asyncExchangePropertiesSQL.reduce((acc, a) => {
+      acc.set(a.versionId, a);
+      return acc;
+    }, new Map<string, EServiceTemplateVersionAsyncExchangePropertiesSQL>());
   const versions = versionsSQL.map((versionSQL) =>
     aggregateEServiceTemplateVersion({
       versionSQL,
-      interfaceSQL: interfacesSQLByVersionId.get(versionSQL.id),
+      interfacesSQL: interfacesSQLByVersionId.get(versionSQL.id) || [],
       documentsSQL: documentsSQLByVersionId.get(versionSQL.id) || [],
       attributesSQL: attributesSQLByVersionId.get(versionSQL.id) || [],
+      asyncExchangePropertiesSQL: asyncExchangePropertiesSQLByVersionId.get(
+        versionSQL.id
+      ),
     })
   );
 
@@ -193,6 +236,9 @@ export const aggregateEServiceTemplate = ({
           personalData: eserviceTemplateSQL.personalData,
         }
       : {}),
+    ...(eserviceTemplateSQL.asyncExchange !== null
+      ? { asyncExchange: eserviceTemplateSQL.asyncExchange }
+      : {}),
   };
   return {
     data: eserviceTemplate,
@@ -208,6 +254,7 @@ export const aggregateEServiceTemplateArray = ({
   attributesSQL,
   interfacesSQL,
   documentsSQL,
+  asyncExchangePropertiesSQL,
 }: {
   eserviceTemplatesSQL: EServiceTemplateSQL[];
   riskAnalysesSQL: EServiceTemplateRiskAnalysisSQL[];
@@ -216,6 +263,7 @@ export const aggregateEServiceTemplateArray = ({
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
+  asyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL[];
 }): Array<WithMetadata<EServiceTemplate>> => {
   const riskAnalysesSQLByEServiceTemplateId =
     createEServiceTemplateSQLPropertyMap(riskAnalysesSQL);
@@ -229,6 +277,8 @@ export const aggregateEServiceTemplateArray = ({
     createEServiceTemplateSQLPropertyMap(interfacesSQL);
   const documentsSQLByEServiceTemplateId =
     createEServiceTemplateSQLPropertyMap(documentsSQL);
+  const asyncExchangePropertiesSQLByEServiceTemplateId =
+    createEServiceTemplateSQLPropertyMap(asyncExchangePropertiesSQL);
 
   return eserviceTemplatesSQL.map((eserviceTemplateSQL) => {
     const eserviceTemplateId = unsafeBrandId<EServiceTemplateId>(
@@ -249,6 +299,10 @@ export const aggregateEServiceTemplateArray = ({
         documentsSQLByEServiceTemplateId.get(eserviceTemplateId) || [],
       attributesSQL:
         attributesSQLByEServiceTemplateId.get(eserviceTemplateId) || [],
+      asyncExchangePropertiesSQL:
+        asyncExchangePropertiesSQLByEServiceTemplateId.get(
+          eserviceTemplateId
+        ) || [],
     });
   });
 };
@@ -259,8 +313,9 @@ const createEServiceTemplateSQLPropertyMap = <
     | EServiceTemplateVersionInterfaceSQL
     | EServiceTemplateVersionDocumentSQL
     | EServiceTemplateVersionAttributeSQL
+    | EServiceTemplateVersionAsyncExchangePropertiesSQL
     | EServiceTemplateRiskAnalysisSQL
-    | EServiceTemplateRiskAnalysisAnswerSQL
+    | EServiceTemplateRiskAnalysisAnswerSQL,
 >(
   items: T[]
 ): Map<EServiceTemplateId, T[]> =>
@@ -285,6 +340,7 @@ export const toEServiceTemplateAggregator = (
     attribute: EServiceTemplateVersionAttributeSQL | null;
     riskAnalysis: EServiceTemplateRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceTemplateRiskAnalysisAnswerSQL | null;
+    asyncExchangeProperties: EServiceTemplateVersionAsyncExchangePropertiesSQL | null;
   }>
 ): EServiceTemplateItemsSQL => {
   const {
@@ -295,6 +351,7 @@ export const toEServiceTemplateAggregator = (
     interfacesSQL,
     documentsSQL,
     attributesSQL,
+    asyncExchangePropertiesSQL,
   } = toEServiceTemplateAggregatorArray(queryRes);
 
   throwIfMultiple(eserviceTemplatesSQL, "e-service template");
@@ -307,6 +364,7 @@ export const toEServiceTemplateAggregator = (
     attributesSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
+    asyncExchangePropertiesSQL,
   };
 };
 
@@ -319,6 +377,7 @@ export const toEServiceTemplateAggregatorArray = (
     attribute: EServiceTemplateVersionAttributeSQL | null;
     riskAnalysis: EServiceTemplateRiskAnalysisSQL | null;
     riskAnalysisAnswer: EServiceTemplateRiskAnalysisAnswerSQL | null;
+    asyncExchangeProperties: EServiceTemplateVersionAsyncExchangePropertiesSQL | null;
   }>
 ): {
   eserviceTemplatesSQL: EServiceTemplateSQL[];
@@ -328,6 +387,7 @@ export const toEServiceTemplateAggregatorArray = (
   attributesSQL: EServiceTemplateVersionAttributeSQL[];
   interfacesSQL: EServiceTemplateVersionInterfaceSQL[];
   documentsSQL: EServiceTemplateVersionDocumentSQL[];
+  asyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL[];
 } => {
   const eserviceIdSet = new Set<string>();
   const eserviceTemplatesSQL: EServiceTemplateSQL[] = [];
@@ -336,7 +396,7 @@ export const toEServiceTemplateAggregatorArray = (
   const versionsSQL: EServiceTemplateVersionSQL[] = [];
 
   const interfaceIdSet = new Set<string>();
-  const interfacesSQL: EServiceTemplateVersionDocumentSQL[] = [];
+  const interfacesSQL: EServiceTemplateVersionInterfaceSQL[] = [];
 
   const documentIdSet = new Set<string>();
   const documentsSQL: EServiceTemplateVersionDocumentSQL[] = [];
@@ -349,6 +409,10 @@ export const toEServiceTemplateAggregatorArray = (
 
   const riskAnalysisAnswerIdSet = new Set<string>();
   const riskAnalysisAnswersSQL: EServiceTemplateRiskAnalysisAnswerSQL[] = [];
+
+  const asyncExchangePropertiesIdSet = new Set<string>();
+  const asyncExchangePropertiesSQL: EServiceTemplateVersionAsyncExchangePropertiesSQL[] =
+    [];
 
   // eslint-disable-next-line sonarjs/cognitive-complexity
   queryRes.forEach((row) => {
@@ -395,6 +459,16 @@ export const toEServiceTemplateAggregatorArray = (
         // eslint-disable-next-line functional/immutable-data
         attributesSQL.push(attributeSQL);
       }
+
+      const asyncExchangePropsSQL = row.asyncExchangeProperties;
+      if (
+        asyncExchangePropsSQL &&
+        !asyncExchangePropertiesIdSet.has(asyncExchangePropsSQL.versionId)
+      ) {
+        asyncExchangePropertiesIdSet.add(asyncExchangePropsSQL.versionId);
+        // eslint-disable-next-line functional/immutable-data
+        asyncExchangePropertiesSQL.push(asyncExchangePropsSQL);
+      }
     }
 
     const riskAnalysisSQL = row.riskAnalysis;
@@ -425,5 +499,43 @@ export const toEServiceTemplateAggregatorArray = (
     attributesSQL,
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
+    asyncExchangePropertiesSQL,
   };
+};
+
+export const templateAttributesSQLtoTemplateAttributes = (
+  attributesSQL: EServiceTemplateVersionAttributeSQL[]
+): Array<
+  Array<EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete>
+> => {
+  const attributesMap = new Map<
+    number,
+    Array<
+      EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+    >
+  >();
+  attributesSQL.forEach((current) => {
+    const currentAttribute = {
+      id: unsafeBrandId<AttributeId>(current.attributeId),
+      explicitAttributeVerification: current.explicitAttributeVerification,
+      ...(current.threshold != null && current.comparator != null
+        ? {
+            discreteConfig: {
+              threshold: current.threshold,
+              comparator: AttributeCertifiedDiscreteComparator.parse(
+                current.comparator
+              ),
+            },
+          }
+        : undefined),
+    };
+    const group = attributesMap.get(current.groupId);
+    if (group) {
+      attributesMap.set(current.groupId, [...group, currentAttribute]);
+    } else {
+      attributesMap.set(current.groupId, [currentAttribute]);
+    }
+  });
+
+  return Array.from(attributesMap.values());
 };

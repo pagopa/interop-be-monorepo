@@ -65,6 +65,9 @@ function toOutboundDescriptorV2(
     templateVersionRef:
       descriptor.templateVersionRef &&
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
+    asyncExchangeCallbackInterface: undefined,
+    asyncExchangeProperties: undefined,
+    serverUrlsDescriptions: undefined,
   };
 }
 
@@ -74,6 +77,8 @@ function toOutboundEServiceV2(
   return {
     ...eservice,
     riskAnalysis: undefined,
+    asyncExchange: undefined,
+    instanceLabel: undefined,
     descriptors: eservice.descriptors.map(toOutboundDescriptorV2),
     templateId: eservice.templateId,
   };
@@ -99,6 +104,11 @@ export function toOutboundEventV2(
       { type: "EServiceSignalHubDisabled" },
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
+      { type: "EServiceInstanceLabelUpdated" },
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingCanceled" },
+      { type: "EServiceArchivingCompleted" },
+      { type: "MaintenanceEServicePersonalDataFlagReset" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -153,6 +163,10 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorApprovedByDelegator" },
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorArchivingScheduled" },
+      { type: "EServiceDescriptorArchivingCanceled" },
+      { type: "EServiceDescriptorArchivingCompleted" },
+      { type: "MaintenanceEServiceDescriptorUnarchived" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -214,7 +228,30 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisAdded" },
       { type: "EServiceRiskAnalysisDeleted" },
       { type: "EServiceRiskAnalysisUpdated" },
+      // TODO: Propagate async exchange callback interface events when @pagopa/interop-outbound-models is updated
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
+      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
+      { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
       () => undefined
+    )
+    .with(
+      { type: "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated" },
+      (msg) => ({
+        event_version: msg.event_version,
+        type: msg.type,
+        version: msg.version,
+        data: {
+          descriptorId: msg.data.descriptorId,
+          attributeId: msg.data.attributeId,
+          dailyCallsPerConsumer: msg.data.dailyCallsPerConsumer,
+          eservice:
+            msg.data.eservice && toOutboundEServiceV2(msg.data.eservice),
+        },
+        stream_id: msg.stream_id,
+        streamVersion: msg.version,
+        timestamp: new Date(),
+      })
     )
     .exhaustive();
 }

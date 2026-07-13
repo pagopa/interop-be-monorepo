@@ -25,7 +25,7 @@ export type AuthRole = z.infer<typeof AuthRole>;
 
 type ContainsAuthRole<
   Arr extends AuthRole[],
-  V extends AuthRole
+  V extends AuthRole,
 > = Arr extends [infer Head, ...infer Tail extends AuthRole[]]
   ? Head extends V
     ? true
@@ -79,7 +79,7 @@ type AllowedAuthData<AdmittedRoles extends NonEmptyArray<AuthRole>> =
   -------------------------------------------------------
  */
 export function validateAuthorization<
-  AdmittedRoles extends NonEmptyArray<AuthRole>
+  AdmittedRoles extends NonEmptyArray<AuthRole>,
 >(
   ctx: AppContext,
   admittedAuthRoles: AdmittedRoles
@@ -178,9 +178,12 @@ function isSystemRole(role: AuthRole): role is SystemRole {
     )
     .with(
       authRole.ADMIN_ROLE,
+      authRole.REVIEWER_ROLE,
       authRole.SECURITY_ROLE,
       authRole.API_ROLE,
       authRole.SUPPORT_ROLE,
+      authRole.REVIEWER_ROLE,
+      authRole.VIEWER_ROLE,
       () => false
     )
     .exhaustive();
@@ -190,9 +193,12 @@ function isUserRole(role: AuthRole): role is UserRole {
   return match(role)
     .with(
       authRole.ADMIN_ROLE,
+      authRole.REVIEWER_ROLE,
       authRole.SECURITY_ROLE,
       authRole.API_ROLE,
       authRole.SUPPORT_ROLE,
+      authRole.REVIEWER_ROLE,
+      authRole.VIEWER_ROLE,
       () => true
     )
     .with(

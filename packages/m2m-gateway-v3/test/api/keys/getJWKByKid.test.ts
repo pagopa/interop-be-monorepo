@@ -3,6 +3,7 @@ import request from "supertest";
 import {
   generateToken,
   getMockClientJWKKey,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { api, mockKeyService } from "../../vitest.api.setup.js";
@@ -18,7 +19,8 @@ describe("GET /keys/{keyId} router test", () => {
   const makeRequest = async (token: string, keyId: string) =>
     request(api)
       .get(`${appBasePath}/keys/${keyId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const authorizedRoles: AuthRole[] = [

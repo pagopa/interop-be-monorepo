@@ -1,6 +1,11 @@
 import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
+import {
+  AuthRole,
+  authRole,
+  calculateIntegrityRest02DigestFromBody,
+  IntegrityRest02SignedHeaders,
+} from "pagopa-interop-commons";
 import request from "supertest";
 import { generateId } from "pagopa-interop-models";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -12,13 +17,26 @@ import {
 import { api, mockAgreementService } from "../../vitest.api.setup.js";
 import { agreementContractNotFound } from "../../../src/model/errors.js";
 
+function decodeJwtPayload(token: string): Record<string, unknown> {
+  const [, payload] = token.split(".");
+
+  if (!payload) {
+    throw new Error("Invalid JWT structure");
+  }
+
+  const decoded = Buffer.from(payload, "base64url").toString("utf8");
+
+  return JSON.parse(decoded);
+}
+
 describe("GET /agreements/:agreementId/contract router test", () => {
   const mockDownloadedDoc = getMockDownloadedDocument();
 
   const makeRequest = async (token: string, agreementId: string) =>
     request(api)
       .get(`${appBasePath}/agreements/${agreementId}/contract`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .buffer(true)
       .parse(testMultipartResponseParser);
 
@@ -35,10 +53,36 @@ describe("GET /agreements/:agreementId/contract router test", () => {
         .mockResolvedValue(mockDownloadedDoc);
 
       const token = generateToken(role);
+      const clientId = decodeJwtPayload(token).client_id as string;
       const res = await makeRequest(token, generateId());
 
       expect(res.status).toBe(200);
       await testExpectedMultipartResponse(mockDownloadedDoc, res);
+      // Test Integrity Rest 02 headers
+      expect(res.headers).toHaveProperty("digest");
+      expect(res.headers).toHaveProperty("agid-jwt-signature");
+      const digest = res.headers.digest;
+      const calcDigest = calculateIntegrityRest02DigestFromBody({
+        body: res.text,
+      });
+      expect(digest).toBe(`SHA-256=${calcDigest}`);
+      const decoded = decodeJwtPayload(res.headers["agid-jwt-signature"]);
+      const signedHeadersRaw = decoded.signed_headers;
+      const signedHeadersParse =
+        IntegrityRest02SignedHeaders.safeParse(signedHeadersRaw);
+      expect(signedHeadersParse.success).toBe(true);
+      const signedHeaders = signedHeadersParse.data;
+      expect(signedHeaders).toHaveLength(3);
+      expect(signedHeaders).toContainEqual({ digest: `SHA-256=${calcDigest}` });
+      expect(signedHeaders).toContainEqual({
+        "content-type": res.headers["content-type"],
+      });
+      expect(signedHeaders).toContainEqual({
+        "x-correlation-id": res.headers["x-correlation-id"],
+      });
+      expect(clientId).toBeDefined();
+      expect(decoded).toHaveProperty("client_id");
+      expect(decoded.client_id).toBe(clientId);
     }
   );
 

@@ -1,5 +1,5 @@
 import {
-  AuthorizationEventEnvelopeV2,
+  AuthorizationEventEnvelope,
   NewNotification,
 } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
@@ -9,13 +9,19 @@ import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedTo
 import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
 import { handleClientKeyAddedDeletedToClientUsers } from "./handleClientKeyAddedDeletedToClientUsers.js";
 import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "./handleProducerKeychainKeyAddedDeletedToClientUsers.js";
+import { handleAsyncEserviceWithoutKeychain } from "./handleAsyncEserviceWithoutKeychain.js";
+import { handleProducerKeychainNoKeysForAsyncEservice } from "./handleProducerKeychainNoKeysForAsyncEservice.js";
 
 export async function handleAuthorizationEvent(
-  decodedMessage: AuthorizationEventEnvelopeV2,
+  decodedMessage: AuthorizationEventEnvelope,
   logger: Logger,
   readModelService: ReadModelServiceSQL
 ): Promise<NewNotification[]> {
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       {
         type: P.union("ClientPurposeAdded", "ClientPurposeRemoved"),
@@ -52,7 +58,6 @@ export async function handleAuthorizationEvent(
       {
         type: P.union(
           "ProducerKeychainKeyAdded",
-          "ProducerKeychainKeyDeleted",
           "ProducerKeychainUserDeleted"
         ),
       },
@@ -63,6 +68,24 @@ export async function handleAuthorizationEvent(
           readModelService
         )
     )
+    .with({ type: "ProducerKeychainKeyDeleted" }, async (msg) => {
+      const [existingNotifications, newNotifications] = await Promise.all([
+        handleProducerKeychainKeyAddedDeletedToClientUsers(
+          msg,
+          logger,
+          readModelService
+        ),
+        handleProducerKeychainNoKeysForAsyncEservice(
+          msg,
+          logger,
+          readModelService
+        ),
+      ]);
+      return [...existingNotifications, ...newNotifications];
+    })
+    .with({ type: "ProducerKeychainEServiceRemoved" }, (msg) =>
+      handleAsyncEserviceWithoutKeychain(msg, logger, readModelService)
+    )
     .with(
       {
         type: P.union(
@@ -72,7 +95,6 @@ export async function handleAuthorizationEvent(
           "ClientUserAdded",
           "ClientAdminRoleRevoked",
           "ClientAdminRemoved",
-          "ProducerKeychainEServiceRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
           "ProducerKeychainUserAdded"
@@ -80,7 +102,7 @@ export async function handleAuthorizationEvent(
       },
       () => {
         logger.info(
-          `No need to send an in-app notification for ${decodedMessage.type} message`
+          `Skipping in-app notification for event ${decodedMessage.type}`
         );
         return [];
       }

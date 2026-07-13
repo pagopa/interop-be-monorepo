@@ -1,7 +1,7 @@
 import {
   AttributeId,
   EmailNotificationMessagePayload,
-  TenantEventV2,
+  TenantEvent,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
@@ -10,9 +10,10 @@ import { handleTenantCertifiedAttributeAssigned } from "./handleTenantCertifiedA
 import { handleTenantCertifiedAttributeRevoked } from "./handleTenantCertifiedAttributeRevoked.js";
 import { handleTenantVerifiedAttributeAssigned } from "./handleTenantVerifiedAttributeAssigned.js";
 import { handleTenantVerifiedAttributeRevoked } from "./handleTenantVerifiedAttributeRevoked.js";
+import { handleTenantCertifiedAttributeUpdated } from "./handleTenantCertifiedAttributeUpdated.js";
 
 export async function handleTenantEvent(
-  params: HandlerParams<typeof TenantEventV2>
+  params: HandlerParams<typeof TenantEvent>
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     decodedMessage,
@@ -22,8 +23,13 @@ export async function handleTenantEvent(
     correlationId,
   } = params;
   return match(decodedMessage)
+    .with({ event_version: 1 }, () => {
+      logger.info(`Skipping V1 event ${decodedMessage.type} message`);
+      return [];
+    })
     .with(
       { type: "TenantCertifiedAttributeAssigned" },
+      { type: "TenantCertifiedDiscreteAttributeAssigned" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedAttributeAssigned({
           tenantV2Msg: tenant,
@@ -36,8 +42,21 @@ export async function handleTenantEvent(
     )
     .with(
       { type: "TenantCertifiedAttributeRevoked" },
+      { type: "TenantCertifiedDiscreteAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedAttributeRevoked({
+          tenantV2Msg: tenant,
+          attributeId: unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "TenantCertifiedDiscreteAttributeUpdated" },
+      ({ data: { tenant, attributeId } }) =>
+        handleTenantCertifiedAttributeUpdated({
           tenantV2Msg: tenant,
           attributeId: unsafeBrandId<AttributeId>(attributeId),
           logger,
@@ -88,12 +107,14 @@ export async function handleTenantEvent(
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted"
         ),
       },
       () => {
         logger.info(
-          `No need to send an email notification for ${decodedMessage.type} message`
+          `Skipping email notification for event ${decodedMessage.type}`
         );
         return [];
       }

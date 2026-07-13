@@ -4,6 +4,7 @@ import {
   delegationKind,
   delegationState,
   NotificationType,
+  ProducerKeychainId,
   TenantNotificationConfig,
   UserRole,
 } from "pagopa-interop-models";
@@ -28,6 +29,7 @@ import {
   CatalogReadModelService,
   DelegationReadModelService,
   NotificationConfigReadModelService,
+  ProducerKeychainReadModelService,
   PurposeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
@@ -48,6 +50,8 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist = [],
+  producerKeychainReadModelServiceSQL,
 }: {
   readModelDB: DrizzleReturnType;
   agreementReadModelServiceSQL: AgreementReadModelService;
@@ -57,8 +61,11 @@ export function readModelServiceBuilderSQL({
   tenantReadModelServiceSQL: TenantReadModelService;
   notificationConfigReadModelServiceSQL: NotificationConfigReadModelService;
   purposeReadModelServiceSQL: PurposeReadModelService;
+  notificationTypeBlocklist?: NotificationType[];
+  producerKeychainReadModelServiceSQL: ProducerKeychainReadModelService;
 }) {
   return {
+    notificationTypeBlocklist,
     async getEServiceById(id: EServiceId): Promise<EService | undefined> {
       return (await catalogReadModelServiceSQL.getEServiceById(id))?.data;
     },
@@ -74,37 +81,41 @@ export function readModelServiceBuilderSQL({
     },
     async getTenantsById(tenantIds: TenantId[]): Promise<Tenant[]> {
       return await readModelDB.transaction(async (tx) =>
-        (
-          await tenantReadModelServiceSQL.getTenantsByIds(tenantIds, tx)
-        ).map((tenantWithMetadata) => tenantWithMetadata.data)
+        (await tenantReadModelServiceSQL.getTenantsByIds(tenantIds, tx)).map(
+          (tenantWithMetadata) => tenantWithMetadata.data
+        )
       );
     },
     async getAgreementsByEserviceId(
-      eserviceId: EServiceId
+      eserviceId: EServiceId,
+      { includeArchived = false }: { includeArchived?: boolean } = {}
     ): Promise<Agreement[] | undefined> {
+      const states = [
+        agreementState.active,
+        agreementState.suspended,
+        agreementState.pending,
+        ...(includeArchived ? [agreementState.archived] : []),
+      ];
       return (
         await agreementReadModelServiceSQL.getAgreementsByFilter(
           and(
             eq(agreementInReadmodelAgreement.eserviceId, eserviceId),
-            inArray(agreementInReadmodelAgreement.state, [
-              agreementState.active,
-              agreementState.suspended,
-              agreementState.pending,
-            ])
+            inArray(agreementInReadmodelAgreement.state, states)
           )
         )
       ).map((agreement: WithMetadata<Agreement>) => agreement.data);
     },
     async getTenantUsersWithNotificationEnabled(
       tenantIds: TenantId[],
-      notificationName: NotificationType
+      notificationName: NotificationType,
+      notificationChannel: "inApp" | "email"
     ): Promise<
       Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
     > {
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,
         notificationName,
-        "email"
+        notificationChannel
       );
     },
     async getTenantNotificationConfigByTenantId(
@@ -154,6 +165,17 @@ export function readModelServiceBuilderSQL({
     ): Promise<EService[]> {
       return await catalogReadModelServiceSQL.getEServicesByFilter(
         eq(eserviceInReadmodelCatalog.templateId, templateId)
+      );
+    },
+    async eserviceExistsInOtherProducerKeychains(
+      eserviceId: EServiceId,
+      producerId: TenantId,
+      excludeKeychainId: ProducerKeychainId
+    ): Promise<boolean> {
+      return producerKeychainReadModelServiceSQL.eserviceExistsInOtherProducerKeychains(
+        eserviceId,
+        producerId,
+        excludeKeychainId
       );
     },
   };

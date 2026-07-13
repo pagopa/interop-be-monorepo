@@ -80,7 +80,7 @@ function enhanceZodiosClientWithMetadata<TClient>(
 }
 
 export function createZodiosClientEnhancedWithMetadata<
-  Api extends ZodiosEndpointDefinitions
+  Api extends ZodiosEndpointDefinitions,
 >(
   createClientFunction: (
     baseUrl: string,

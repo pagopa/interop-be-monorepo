@@ -30,9 +30,11 @@ import {
   eServiceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
   interfaceAlreadyExists,
+  invalidDelegationFlags,
   notValidDescriptorState,
   originNotCompliant,
   templateMissingRequiredRiskAnalysis,
+  templateVersionMissingAsyncExchangeProperties,
   tenantKindNotFound,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
@@ -150,6 +152,17 @@ describe("API /templates/{templateId}/eservices authorization test", () => {
         eServiceTemplate.id,
         publishedVersion.id
       ),
+      expectedStatus: 400,
+    },
+    {
+      error: templateVersionMissingAsyncExchangeProperties(
+        eServiceTemplate.id,
+        publishedVersion.id
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidDelegationFlags(true, false),
       expectedStatus: 400,
     },
   ])(

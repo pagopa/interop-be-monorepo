@@ -48,7 +48,7 @@ describe("getDeclaredAttribute", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mAttributeResponse);
+    expect(result).toStrictEqual(m2mAttributeResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetAttribute,
       params: { attributeId: mockAttributeProcessResponse.data.id },

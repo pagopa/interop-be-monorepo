@@ -1,7 +1,4 @@
 /* eslint-disable sonarjs/no-identical-functions */
-import { fileURLToPath } from "url";
-import fs from "fs";
-import path from "path";
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
@@ -9,19 +6,21 @@ import {
   decodeKafkaMessage,
   logger,
 } from "pagopa-interop-commons";
+import { registerEmailTemplatePartials } from "pagopa-interop-notification-commons";
 import {
-  AgreementEventV2,
+  AgreementEvent,
+  AuthorizationEvent,
   CorrelationId,
-  EServiceEventV2,
   DelegationEventV2,
+  EServiceEvent,
+  EServiceTemplateEventV2,
+  EmailNotificationMessagePayload,
+  NotificationType,
+  PurposeEvent,
+  TenantEvent,
   generateId,
   genericInternalError,
-  PurposeEventV2,
   unsafeBrandId,
-  AuthorizationEventV2,
-  EmailNotificationMessagePayload,
-  TenantEventV2,
-  EServiceTemplateEventV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import {
@@ -33,6 +32,7 @@ import {
   notificationConfigReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   delegationReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { z } from "zod";
 import { config } from "./config/config.js";
@@ -69,6 +69,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   readModelDB,
@@ -79,28 +81,16 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist:
+    config.notificationTypeBlocklist as NotificationType[],
+  producerKeychainReadModelServiceSQL,
 });
 
 const emailNotificationDispatcherService =
   emailNotificationDispatcherServiceBuilder();
 
 const templateService = buildHTMLTemplateService();
-
-const filename = fileURLToPath(import.meta.url);
-const dirname = path.dirname(filename);
-function registerPartial(name: string, path: string): void {
-  const buffer = fs.readFileSync(`${dirname}/${path}`);
-  templateService.registerPartial(name, buffer.toString());
-}
-
-registerPartial(
-  "common-header",
-  "/resources/templates/headers/common-header.hbs"
-);
-registerPartial(
-  "common-footer",
-  "/resources/templates/footers/common-footer.hbs"
-);
+registerEmailTemplatePartials(templateService);
 
 function processMessage(topicHandlers: TopicNames) {
   return async (messagePayload: EachMessagePayload): Promise<void> => {
@@ -151,23 +141,21 @@ function processMessage(topicHandlers: TopicNames) {
 
     const emailNotificationPayloads = await match(messagePayload.topic)
       .with(catalogTopic, async () =>
-        handleWith(EServiceEventV2, handleEServiceEvent)
+        handleWith(EServiceEvent, handleEServiceEvent)
       )
       .with(agreementTopic, async () =>
-        handleWith(AgreementEventV2, handleAgreementEvent)
+        handleWith(AgreementEvent, handleAgreementEvent)
       )
       .with(purposeTopic, async () =>
-        handleWith(PurposeEventV2, handlePurposeEvent)
+        handleWith(PurposeEvent, handlePurposeEvent)
       )
       .with(delegationTopic, async () =>
         handleWith(DelegationEventV2, handleDelegationEvent)
       )
       .with(authorizationTopic, async () =>
-        handleWith(AuthorizationEventV2, handleAuthorizationEvent)
+        handleWith(AuthorizationEvent, handleAuthorizationEvent)
       )
-      .with(tenantTopic, async () =>
-        handleWith(TenantEventV2, handleTenantEvent)
-      )
+      .with(tenantTopic, async () => handleWith(TenantEvent, handleTenantEvent))
       .with(eserviceTemplateTopic, async () =>
         handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
       )

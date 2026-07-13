@@ -17,6 +17,7 @@ import {
   PurposeTemplateEServiceLinkedV2,
   PurposeTemplateId,
   Tenant,
+  dateToBigInt,
   descriptorState,
   generateId,
   purposeTemplateState,
@@ -28,6 +29,7 @@ import { describe, expect, it, vi } from "vitest";
 import { config } from "../../src/config/config.js";
 import {
   eserviceAlreadyAssociatedError,
+  eserviceIsInstanceOfEServiceTemplateError,
   eserviceNotFound,
   invalidDescriptorStateError,
   missingDescriptorError,
@@ -38,7 +40,6 @@ import {
   associationEServicesForPurposeTemplateFailed,
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
-  tenantNotAllowed,
   tooManyEServicesForPurposeTemplate,
 } from "../../src/model/domain/errors.js";
 import { ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION } from "../../src/services/validators.js";
@@ -146,11 +147,12 @@ describe("linkEservicesToPurposeTemplate", () => {
       payload: lastWrittenEvent.data,
     });
 
-    expect(lastWrittenPayload.purposeTemplate).toEqual(
-      toPurposeTemplateV2(purposeTemplate)
-    );
-    expect(lastWrittenPayload.eservice).toEqual(toEServiceV2(eService2));
-    expect(lastWrittenPayload.descriptorId).toBe(descriptor2.id);
+    expect(lastWrittenPayload).toEqual({
+      purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+      eservice: toEServiceV2(eService2),
+      descriptorId: descriptor2.id,
+      createdAt: dateToBigInt(new Date()),
+    });
 
     vi.useRealTimers();
   });
@@ -444,7 +446,7 @@ describe("linkEservicesToPurposeTemplate", () => {
     );
   });
 
-  it("should throw tenantNotAllowed when user is not the creator of the purpose template", async () => {
+  it("should throw purposeTemplateNotFound when user is not the creator of the purpose template", async () => {
     const differentTenant: Tenant = {
       ...getMockTenant(),
       kind: targetTenantKind.PA,
@@ -463,7 +465,7 @@ describe("linkEservicesToPurposeTemplate", () => {
           authData: getMockAuthData(differentTenant.id),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(differentTenant.id));
+    ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
 
   it("should throw eserviceAlreadyAssociatedError when linking the same eservice twice", async () => {
@@ -508,6 +510,40 @@ describe("linkEservicesToPurposeTemplate", () => {
       associationBetweenEServiceAndPurposeTemplateAlreadyExists(
         [eserviceAlreadyAssociatedError(eService1.id, purposeTemplate.id)],
         [eService1.id],
+        purposeTemplate.id
+      )
+    );
+  });
+
+  it("should throw associationEServicesForPurposeTemplateFailed when the eservice is an instance of an e-service template", async () => {
+    const templateOrigin = generateId<EService["templateId"] & string>();
+    const eserviceInstance: EService = {
+      ...eService1,
+      id: generateId<EServiceId>(),
+      templateId: templateOrigin,
+    };
+
+    await addOneTenant(tenant);
+    await addOnePurposeTemplate(purposeTemplate);
+    await addOneEService(eserviceInstance);
+
+    await expect(
+      purposeTemplateService.linkEservicesToPurposeTemplate(
+        purposeTemplate.id,
+        [eserviceInstance.id],
+        getMockContext({
+          authData: getMockAuthData(tenant.id),
+        })
+      )
+    ).rejects.toThrowError(
+      associationEServicesForPurposeTemplateFailed(
+        [
+          eserviceIsInstanceOfEServiceTemplateError(
+            eserviceInstance.id,
+            templateOrigin
+          ),
+        ],
+        [eserviceInstance.id],
         purposeTemplate.id
       )
     );

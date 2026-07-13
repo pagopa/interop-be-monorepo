@@ -7,15 +7,14 @@ import {
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
-  retrieveEService,
+  retrieveEservice,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-  PurposeHandlerParams,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
 
 const notificationType: NotificationType = "purposeActivatedRejectedToConsumer";
@@ -39,7 +38,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
   // Only send notification if there is only one version (version count = 1)
   if (purpose.versions.length !== 1) {
     logger.info(
-      `Purpose ${purpose.id} has more than one version, skipping purposeVersionRejectedFirstVersion notification`
+      `Skipping email notification for handlePurposeVersionRejectedFirstVersion - entityId: ${purpose.id}, eventType: ${notificationType}, reason: purpose has more than one version`
     );
     return [];
   }
@@ -48,7 +47,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
     retrieveHTMLTemplate(
       eventMailTemplateType.purposeVersionRejectedMailTemplate
     ),
-    retrieveEService(purpose.eserviceId, readModelService),
+    retrieveEservice(purpose.eserviceId, readModelService),
     retrieveTenant(purpose.consumerId, readModelService),
   ]);
 
@@ -64,7 +63,7 @@ export async function handlePurposeVersionRejectedFirstVersion(
 
   if (targets.length === 0) {
     logger.info(
-      `No targets found for tenant. Purpose ${purpose.id}, no emails to dispatch.`
+      `No users with email notifications enabled for handlePurposeVersionRejectedFirstVersion - entityId: ${purpose.id}, eventType: ${notificationType}`
     );
     return [];
   }

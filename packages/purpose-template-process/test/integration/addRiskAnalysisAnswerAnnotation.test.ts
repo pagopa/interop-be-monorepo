@@ -12,6 +12,7 @@ import {
 import {
   PurposeTemplate,
   PurposeTemplateDraftUpdatedV2,
+  toPurposeTemplateV2,
   targetTenantKind,
   generateId,
   TenantId,
@@ -25,7 +26,6 @@ import {
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerNotFound,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurposeTemplate,
@@ -93,21 +93,28 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
       docs: [],
     });
 
-    expect(writtenPayload.purposeTemplate).toBeDefined();
-    expect(
-      writtenPayload.purposeTemplate!.purposeRiskAnalysisForm
-    ).toBeDefined();
-
-    // Verify that the annotation was added to the correct answer
-    const riskAnalysisForm =
-      writtenPayload.purposeTemplate!.purposeRiskAnalysisForm!;
-    const annotatedAnswer = riskAnalysisForm.singleAnswers.find(
-      (answer) => answer.id === answerId
-    );
-    expect(annotatedAnswer?.annotation).toBeDefined();
-    expect(annotatedAnswer?.annotation?.text).toBe(
-      validRiskAnalysisAnswerAnnotationRequest.text
-    );
+    expect(writtenPayload).toEqual({
+      purposeTemplate: {
+        ...toPurposeTemplateV2({
+          ...mockPurposeTemplate,
+          updatedAt: new Date(),
+        }),
+        purposeRiskAnalysisForm: expect.objectContaining({
+          version: mockPurposeTemplate.purposeRiskAnalysisForm!.version,
+          singleAnswers: expect.arrayContaining([
+            expect.objectContaining({
+              id: answerId,
+              annotation: expect.objectContaining({
+                text: validRiskAnalysisAnswerAnnotationRequest.text,
+                docs: [],
+              }),
+            }),
+          ]),
+          multiAnswers:
+            mockPurposeTemplate.purposeRiskAnalysisForm!.multiAnswers,
+        }),
+      },
+    });
 
     vi.useRealTimers();
   });
@@ -296,7 +303,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
     vi.useRealTimers();
   });
 
-  it("should throw tenantNotAllowed if the requester is not the creator", async () => {
+  it("should throw purposeTemplateNotFound if the requester is not the creator", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
@@ -322,7 +329,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
           authData: getMockAuthData(differentCreatorId),
         })
       )
-    ).rejects.toThrowError(tenantNotAllowed(differentCreatorId));
+    ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
 
     vi.useRealTimers();
   });

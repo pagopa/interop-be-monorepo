@@ -10,22 +10,19 @@
     ".": "./dist/index.js"
   },
   "scripts": {
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:autofix": "eslint . --ext .ts,.tsx --fix",
-    "format:check": "prettier --check src",
-    "format:write": "prettier --write src",
-    "build": "tsc && pnpm run copy-sql-files && cpx './src/pdf-generator/paged.polyfill.js' './dist/pdf-generator'",
-    "check": "tsc --project tsconfig.check.json",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "build": "tsc && pnpm run copy-sql-files",
     "copy-sql-files": "cp ./src/repositories/sql/*.sql dist/repositories/sql"
   },
   "dependencies": {
     "@apidevtools/swagger-parser": "catalog:",
+    "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/client-kms": "catalog:",
     "@aws-sdk/client-s3": "catalog:",
     "@aws-sdk/client-sesv2": "catalog:",
     "@aws-sdk/client-sqs": "catalog:",
     "@aws-sdk/s3-request-presigner": "catalog:",
-    "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "@types/adm-zip": "catalog:",
     "@types/multer": "catalog:",
@@ -36,9 +33,11 @@
     "connection-string": "catalog:",
     "date-fns": "catalog:",
     "date-fns-tz": "catalog:",
+    "drizzle-orm": "catalog:",
     "express": "catalog:",
     "fast-xml-parser": "catalog:",
     "handlebars": "catalog:",
+    "istextorbinary": "catalog:",
     "jsonwebtoken": "catalog:",
     "jwks-rsa": "catalog:",
     "kafkajs": "catalog:",
@@ -47,23 +46,21 @@
     "nodemailer": "catalog:",
     "pagopa-interop-models": "workspace:*",
     "pg-promise": "catalog:",
-    "puppeteer": "catalog:",
     "rate-limiter-flexible": "catalog:",
     "redis": "catalog:",
     "ts-pattern": "catalog:",
     "winston": "catalog:",
     "yaml": "catalog:",
     "zod": "catalog:",
-    "zod-validation-error": "catalog:",
-    "drizzle-orm": "catalog:"
+    "zod-validation-error": "catalog:"
   },
   "devDependencies": {
     "@types/express": "catalog:",
     "@types/jsonwebtoken": "catalog:",
     "@types/node": "catalog:",
     "@types/nodemailer": "catalog:",
-    "cpx2": "catalog:",
-    "prettier": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "typescript": "catalog:"
   }
 }

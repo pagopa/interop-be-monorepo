@@ -6,6 +6,7 @@ import {
   mockM2MAdminClientId,
   getMockedApiConsumerFullClient,
   getMockedApiAttribute,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
@@ -23,7 +24,8 @@ describe("m2mAuthDataValidationMiddleware", () => {
   const makeRequest = async (token: string) =>
     request(api)
       .get(`${appBasePath}/certifiedAttributes/${generateId()}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
   // ^ using GET /certifiedAttributes/:attributeId as a dummy endpoint to test the middleware
 

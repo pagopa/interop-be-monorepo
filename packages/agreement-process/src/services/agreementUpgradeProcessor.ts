@@ -4,7 +4,6 @@ import {
   CreateEvent,
   UIAuthData,
   M2MAdminAuthData,
-  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -20,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import {
   matchingCertifiedAttributes,
+  matchingCertifiedDiscreteAttributes,
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   verifyConflictingAgreements,
@@ -30,10 +30,8 @@ import {
   toCreateEventAgreementUpgraded,
 } from "../model/domain/toEvent.js";
 import { ActiveDelegations } from "../model/domain/models.js";
-import { config } from "../config/config.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
-import { ContractBuilder } from "./agreementContractBuilder.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export async function createUpgradeOrNewDraft({
@@ -41,13 +39,11 @@ export async function createUpgradeOrNewDraft({
   eservice,
   newDescriptor,
   consumer,
-  producer,
   readModelService,
   canBeUpgraded,
   copyFile,
   authData,
   activeDelegations,
-  contractBuilder,
   correlationId,
   logger,
 }: {
@@ -55,13 +51,11 @@ export async function createUpgradeOrNewDraft({
   eservice: EService;
   newDescriptor: Descriptor;
   consumer: Tenant;
-  producer: Tenant;
   readModelService: ReadModelServiceSQL;
   canBeUpgraded: boolean;
   copyFile: FileManager["copy"];
   authData: UIAuthData | M2MAdminAuthData;
   activeDelegations: ActiveDelegations;
-  contractBuilder: ContractBuilder;
   correlationId: CorrelationId;
   logger: Logger;
 }): Promise<[Agreement, Array<CreateEvent<AgreementEvent>>]> {
@@ -103,6 +97,10 @@ export async function createUpgradeOrNewDraft({
         consumer
       ),
       certifiedAttributes: matchingCertifiedAttributes(newDescriptor, consumer),
+      certifiedDiscreteAttributes: matchingCertifiedDiscreteAttributes(
+        newDescriptor,
+        consumer
+      ),
       declaredAttributes: matchingDeclaredAttributes(newDescriptor, consumer),
       suspendedByConsumer: agreement.data.suspendedByConsumer,
       suspendedByProducer: agreement.data.suspendedByProducer,
@@ -116,40 +114,6 @@ export async function createUpgradeOrNewDraft({
       },
     };
 
-    if (isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder")) {
-      logger.info(
-        `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
-      );
-      const contract = await contractBuilder.createContract(
-        upgraded,
-        eservice,
-        consumer,
-        producer,
-        activeDelegations
-      );
-
-      const upgradedWithContract: Agreement = {
-        ...upgraded,
-        contract,
-      };
-
-      return [
-        upgradedWithContract,
-        [
-          toCreateEventAgreementArchivedByUpgrade(
-            archived,
-            agreement.metadata.version,
-            correlationId
-          ),
-          toCreateEventAgreementUpgraded(upgradedWithContract, correlationId),
-        ],
-      ];
-    }
-
-    // If the contract-builder feature is disabled, return the upgraded agreement without a contract
-    logger.info(
-      `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: skipping document generation`
-    );
     return [
       upgraded,
       [
@@ -192,6 +156,7 @@ export async function createUpgradeOrNewDraft({
       contract: undefined,
       verifiedAttributes: [],
       certifiedAttributes: [],
+      certifiedDiscreteAttributes: [],
       declaredAttributes: [],
       /* We copy suspendedByProducer, suspendedByProducer, suspendedAt, and
       the corresponding stamps, even if this is a Draft Agreement and suspension

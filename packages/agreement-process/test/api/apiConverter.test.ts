@@ -4,10 +4,18 @@ import {
   unsafeBrandId,
   badRequestError,
   CompactTenant,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { agreementApi } from "pagopa-interop-api-clients";
 import { describe, it, expect } from "vitest";
-import { fromApiCompactTenant } from "../../src/model/domain/apiConverter.js";
+import {
+  agreementToApiAgreement,
+  fromApiCompactTenant,
+} from "../../src/model/domain/apiConverter.js";
+import {
+  getMockAgreement,
+  getMockAgreementAttribute,
+} from "pagopa-interop-commons-test";
 import {
   getMockApiTenantCertifiedAttribute,
   getMockApiTenantDeclaredAttribute,
@@ -22,6 +30,14 @@ describe("fromApiCompactTenant API converter", () => {
         getMockApiTenantCertifiedAttribute(),
         getMockApiTenantDeclaredAttribute(),
         getMockApiTenantVerifiedAttribute(),
+        {
+          certifiedDiscrete: {
+            id: generateId(),
+            assignmentTimestamp: new Date().toISOString(),
+            revocationTimestamp: new Date().toISOString(),
+            discreteValue: 42,
+          },
+        },
       ],
     };
 
@@ -66,18 +82,21 @@ describe("fromApiCompactTenant API converter", () => {
                 apiCompactTenant.attributes[2].verified!.verifiedBy[0].id
               ),
               verificationDate: new Date(
-                apiCompactTenant.attributes[2].verified!.verifiedBy[0].verificationDate
+                apiCompactTenant.attributes[2].verified!.verifiedBy[0]
+                  .verificationDate
               ),
               expirationDate: apiCompactTenant.attributes[2].verified!
                 .verifiedBy[0].expirationDate
                 ? new Date(
-                    apiCompactTenant.attributes[2].verified!.verifiedBy[0].expirationDate
+                    apiCompactTenant.attributes[2].verified!.verifiedBy[0]
+                      .expirationDate
                   )
                 : undefined,
               extensionDate: apiCompactTenant.attributes[2].verified!
                 .verifiedBy[0].extensionDate
                 ? new Date(
-                    apiCompactTenant.attributes[2].verified!.verifiedBy[0].extensionDate
+                    apiCompactTenant.attributes[2].verified!.verifiedBy[0]
+                      .extensionDate
                   )
                 : undefined,
             },
@@ -88,25 +107,48 @@ describe("fromApiCompactTenant API converter", () => {
                 apiCompactTenant.attributes[2].verified!.revokedBy[0].id
               ),
               verificationDate: new Date(
-                apiCompactTenant.attributes[2].verified!.revokedBy[0].verificationDate
+                apiCompactTenant.attributes[2].verified!.revokedBy[0]
+                  .verificationDate
               ),
               revocationDate: new Date(
-                apiCompactTenant.attributes[2].verified!.revokedBy[0].revocationDate
+                apiCompactTenant.attributes[2].verified!.revokedBy[0]
+                  .revocationDate
               ),
               expirationDate: apiCompactTenant.attributes[2].verified!
                 .revokedBy[0].expirationDate
                 ? new Date(
-                    apiCompactTenant.attributes[2].verified!.revokedBy[0].expirationDate
+                    apiCompactTenant.attributes[2].verified!.revokedBy[0]
+                      .expirationDate
                   )
                 : undefined,
               extensionDate: apiCompactTenant.attributes[2].verified!
                 .revokedBy[0].extensionDate
                 ? new Date(
-                    apiCompactTenant.attributes[2].verified!.revokedBy[0].extensionDate
+                    apiCompactTenant.attributes[2].verified!.revokedBy[0]
+                      .extensionDate
                   )
                 : undefined,
             },
           ],
+        },
+        {
+          type: tenantAttributeType.CERTIFIED_DISCRETE,
+          id: unsafeBrandId(
+            apiCompactTenant.attributes[3].certifiedDiscrete!.id
+          ),
+          assignmentTimestamp: new Date(
+            apiCompactTenant.attributes[3].certifiedDiscrete!
+              .assignmentTimestamp
+          ),
+          revocationTimestamp: apiCompactTenant.attributes[3].certifiedDiscrete!
+            .revocationTimestamp
+            ? new Date(
+                apiCompactTenant.attributes[3].certifiedDiscrete!
+                  .revocationTimestamp
+              )
+            : undefined,
+          discreteValue:
+            apiCompactTenant.attributes[3].certifiedDiscrete!.discreteValue,
         },
       ],
     };
@@ -136,5 +178,21 @@ describe("fromApiCompactTenant API converter", () => {
         )}`
       )
     );
+  });
+});
+
+describe("agreementToApiAgreement API converter", () => {
+  it("converts certified discrete agreement attributes", () => {
+    const certifiedDiscreteAttribute = getMockAgreementAttribute();
+    const agreement = {
+      ...getMockAgreement(),
+      certifiedDiscreteAttributes: [certifiedDiscreteAttribute],
+    };
+
+    const actualAgreement = agreementToApiAgreement(agreement);
+
+    expect(actualAgreement.certifiedDiscreteAttributes).toStrictEqual([
+      certifiedDiscreteAttribute,
+    ]);
   });
 });

@@ -15,7 +15,8 @@ params:path {
 }
 
 headers {
-  Authorization: {{JWT-M2M-ADMIN}}
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
 }
 
 body:json {
@@ -27,7 +28,14 @@ body:json {
       "voucherLifespan": 86400,
       "dailyCallsPerConsumer": 100,
       "dailyCallsTotal": 100,
-      "agreementApprovalPolicy": "AUTOMATIC"
+      "agreementApprovalPolicy": "AUTOMATIC",
+      "asyncExchangeProperties": {
+        "responseTime": 60,
+        "resourceAvailableTime": 120,
+        "confirmation": false,
+        "bulk": false,
+        "maxResultSet": 100
+      }
   }
 }
 

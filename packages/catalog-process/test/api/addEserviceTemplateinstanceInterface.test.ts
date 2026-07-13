@@ -53,11 +53,17 @@ describe("addEServiceTemplateInstanceInterface", () => {
     contactUrl: "https://contact.url",
     contactEmail: "john.doe@example.com",
     termsAndConditionsUrl: "https://terms.url",
-    serverUrls: ["https://server1.com", "https://server2.com"],
+    serverUrls: [
+      { url: "https://server1.com", description: "Primary REST server" },
+      { url: "https://server2.com" },
+    ],
   };
 
   const soapBody: catalogApi.TemplateInstanceInterfaceSOAPSeed = {
-    serverUrls: ["https://soap.server1.com", "https://soap.server2.com"],
+    serverUrls: [
+      { url: "https://soap.server1.com", description: "Primary SOAP server" },
+      { url: "https://soap.server2.com" },
+    ],
   };
 
   const makeRequest = async (
@@ -209,7 +215,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       type InvalidCase = [
         body: unknown,
         eServiceId: EServiceId | string,
-        descriptorId: DescriptorId | string
+        descriptorId: DescriptorId | string,
       ];
 
       const invalidCases: InvalidCase[] = [

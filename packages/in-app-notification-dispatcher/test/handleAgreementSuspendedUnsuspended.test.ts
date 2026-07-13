@@ -16,13 +16,16 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { getNotificationRecipients } from "../src/handlers/handlerCommons.js";
+import {
+  getNotificationRecipients,
+  tenantNotFound,
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
 import {
   AgreementSuspendedUnsuspendedEventType,
   handleAgreementSuspendedUnsuspended,
 } from "../src/handlers/agreements/handleAgreementSuspendedUnsuspended.js";
-import { tenantNotFound } from "../src/models/errors.js";
-import { inAppTemplates } from "../src/templates/inAppTemplates.js";
+
 import {
   addOneAgreement,
   addOneEService,
@@ -240,10 +243,10 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         expectedAudience === "producer"
           ? producerUsers
           : expectedAudience === "consumer"
-          ? consumerUsers
-          : expectedAudience === "both"
-          ? [...producerUsers, ...consumerUsers]
-          : [];
+            ? consumerUsers
+            : expectedAudience === "both"
+              ? [...producerUsers, ...consumerUsers]
+              : [];
 
       expect(notifications).toHaveLength(expectedUsers.length);
 

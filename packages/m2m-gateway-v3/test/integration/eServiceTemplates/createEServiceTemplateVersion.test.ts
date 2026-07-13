@@ -76,6 +76,7 @@ describe("createEServiceTemplateVersion", () => {
         deprecatedAt: mockVersion.deprecatedAt,
         publishedAt: mockVersion.publishedAt,
         suspendedAt: mockVersion.suspendedAt,
+        asyncExchangeProperties: mockVersion.asyncExchangeProperties,
       };
 
     const result = await eserviceTemplateService.createEServiceTemplateVersion(
@@ -84,7 +85,7 @@ describe("createEServiceTemplateVersion", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(m2mEServiceTemplateVersionResponse);
+    expect(result).toStrictEqual(m2mEServiceTemplateVersionResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.eserviceTemplateProcessClient

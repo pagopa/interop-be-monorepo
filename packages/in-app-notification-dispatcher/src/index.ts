@@ -3,18 +3,19 @@ import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, Logger, logger } from "pagopa-interop-commons";
 import {
-  AgreementEventV2,
-  AuthorizationEventV2,
+  AgreementEvent,
+  AuthorizationEvent,
   CorrelationId,
   DelegationEventV2,
-  EServiceEventV2,
+  EServiceEvent,
   EServiceTemplateEventV2,
   EventEnvelope,
+  NewNotification,
+  NotificationType,
+  PurposeEvent,
+  TenantEvent,
   generateId,
   genericInternalError,
-  NewNotification,
-  PurposeEventV2,
-  TenantEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -25,6 +26,7 @@ import {
   delegationReadModelServiceBuilder,
   makeDrizzleConnection,
   notificationConfigReadModelServiceBuilder,
+  producerKeychainReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
@@ -67,6 +69,8 @@ const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
 const notificationConfigReadModelServiceSQL =
   notificationConfigReadModelServiceBuilder(readModelDB);
 const purposeReadModelServiceSQL = purposeReadModelServiceBuilder(readModelDB);
+const producerKeychainReadModelServiceSQL =
+  producerKeychainReadModelServiceBuilder(readModelDB);
 
 const readModelService = readModelServiceBuilderSQL({
   agreementReadModelServiceSQL,
@@ -76,6 +80,9 @@ const readModelService = readModelServiceBuilderSQL({
   tenantReadModelServiceSQL,
   notificationConfigReadModelServiceSQL,
   purposeReadModelServiceSQL,
+  notificationTypeBlocklist:
+    config.notificationTypeBlocklist as NotificationType[],
+  producerKeychainReadModelServiceSQL,
 });
 
 const notificationDB = drizzle(
@@ -137,23 +144,21 @@ function processMessage(topicNames: TopicNames) {
 
     const notifications = await match(messagePayload.topic)
       .with(catalogTopic, async () =>
-        handleWith(EServiceEventV2, handleEServiceEvent)
+        handleWith(EServiceEvent, handleEServiceEvent)
       )
       .with(agreementTopic, async () =>
-        handleWith(AgreementEventV2, handleAgreementEvent)
+        handleWith(AgreementEvent, handleAgreementEvent)
       )
       .with(purposeTopic, async () =>
-        handleWith(PurposeEventV2, handlePurposeEvent)
+        handleWith(PurposeEvent, handlePurposeEvent)
       )
       .with(delegationTopic, async () =>
         handleWith(DelegationEventV2, handleDelegationEvent)
       )
       .with(authorizationTopic, async () =>
-        handleWith(AuthorizationEventV2, handleAuthorizationEvent)
+        handleWith(AuthorizationEvent, handleAuthorizationEvent)
       )
-      .with(tenantTopic, async () =>
-        handleWith(TenantEventV2, handleTenantEvent)
-      )
+      .with(tenantTopic, async () => handleWith(TenantEvent, handleTenantEvent))
       .with(eserviceTemplateTopic, async () =>
         handleWith(EServiceTemplateEventV2, handleEServiceTemplateEvent)
       )

@@ -4,7 +4,6 @@ import { randomUUID } from "crypto";
 import {
   bffApi,
   attributeRegistryApi,
-  catalogApi,
   eserviceTemplateApi,
   inAppNotificationApi,
   tenantApi,
@@ -50,7 +49,6 @@ export function eserviceTemplateServiceBuilder(
   eserviceTemplateClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   tenantProcessClient: TenantProcessClient,
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,
-  catalogProcessClient: catalogApi.CatalogProcessClient,
   inAppNotificationManagerClient: inAppNotificationApi.InAppNotificationManagerClient,
   fileManager: FileManager
 ) {
@@ -285,19 +283,6 @@ export function eserviceTemplateServiceBuilder(
         },
       });
 
-      const isAlreadyInstantiated =
-        (
-          await catalogProcessClient.getEServices({
-            headers,
-            queries: {
-              templatesIds: [eserviceTemplate.id],
-              producersIds: [callerTenant.id],
-              limit: 1,
-              offset: 0,
-            },
-          })
-        ).totalCount > 0;
-
       const hasRequesterRiskAnalysis = match(eserviceTemplate.mode)
         .with(eserviceTemplateApi.EServiceMode.Values.DELIVER, () => null)
         .with(eserviceTemplateApi.EServiceMode.Values.RECEIVE, () =>
@@ -337,7 +322,13 @@ export function eserviceTemplateServiceBuilder(
           eserviceTemplate,
           creatorTenant
         ),
-        isAlreadyInstantiated,
+        asyncExchangeProperties:
+          eserviceTemplateVersion.asyncExchangeProperties,
+        asyncExchangeCallbackInterface:
+          eserviceTemplateVersion.asyncExchangeCallbackInterface &&
+          toBffCatalogApiDescriptorDoc(
+            eserviceTemplateVersion.asyncExchangeCallbackInterface
+          ),
         ...(hasRequesterRiskAnalysis !== null && { hasRequesterRiskAnalysis }),
       };
     },
@@ -647,6 +638,10 @@ export function eserviceTemplateServiceBuilder(
               },
             }
           );
+        },
+        {
+          maxFileSizeBytes: config.maxFileSizeBytes,
+          maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
         },
         ctx.logger
       );

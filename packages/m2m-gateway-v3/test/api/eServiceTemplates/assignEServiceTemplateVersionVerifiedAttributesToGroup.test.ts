@@ -3,6 +3,7 @@ import {
   generateToken,
   getMockedApiEServiceTemplate,
   getMockedApiAttribute,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import request from "supertest";
@@ -67,13 +68,14 @@ describe("POST /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttr
       .post(
         `${appBasePath}/eserviceTemplates/${templateId}/versions/${versionId}/verifiedAttributes/groups/${groupIndex}/attributes`
       )
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
 
   it.each(authorizedRoles)(
-    "Should return 204 and assign verified attributes to group for user with role %s",
+    "Should return 200 and assign verified attributes to group for user with role %s",
     async (role) => {
       mockEServiceTemplateService.assignEServiceTemplateVersionVerifiedAttributesToGroup =
         vi.fn().mockResolvedValue(mockResponse);
@@ -87,7 +89,8 @@ describe("POST /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttr
         mockAttributeSeed
       );
 
-      expect(res.status).toBe(204);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({});
       expect(
         mockEServiceTemplateService.assignEServiceTemplateVersionVerifiedAttributesToGroup
       ).toHaveBeenCalledWith(

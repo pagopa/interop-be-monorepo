@@ -69,7 +69,7 @@ describe("rejectDelegatedEServiceDescriptor", () => {
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toEqual(mockM2MEserviceDescriptorResponse);
+    expect(result).toStrictEqual(mockM2MEserviceDescriptorResponse);
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:
         mockInteropBeClients.catalogProcessClient

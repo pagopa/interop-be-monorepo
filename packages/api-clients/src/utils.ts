@@ -19,7 +19,7 @@ type QueryParameters<T extends ZodiosEndpointParameter[]> = {
 // Similar to ZodiosQueryParamsByAlias but resolve an issue with array types inference
 export type QueryParametersByAlias<
   T extends ZodiosEndpointDefinition[],
-  K extends T[number]["alias"]
+  K extends T[number]["alias"],
 > = T[number] extends infer U
   ? U extends { alias: K; parameters: ZodiosEndpointParameter[] }
     ? MakeUndefinedOptional<QueryParameters<U["parameters"]>>

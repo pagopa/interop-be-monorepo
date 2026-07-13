@@ -123,9 +123,16 @@ export async function handlePurposeTemplateMessageV2(
             eserviceId: msg.data.eservice.id,
             descriptorId: msg.data.descriptorId,
             deleted: true,
-          } satisfies z.input<typeof PurposeTemplateEServiceDescriptorDeletingSchema>)
+          } satisfies z.input<
+            typeof PurposeTemplateEServiceDescriptorDeletingSchema
+          >)
         );
       })
+      .with(
+        { type: "PurposeTemplateEServiceTemplateLinked" },
+        { type: "PurposeTemplateEServiceTemplateUnlinked" },
+        () => Promise.resolve()
+      )
       .exhaustive();
   }
 

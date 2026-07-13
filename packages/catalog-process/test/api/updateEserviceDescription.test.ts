@@ -108,7 +108,7 @@ describe("API /eservices/{eServiceId}/description/update authorization test", ()
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         mockEService.templateId!
       ),
-      expectedStatus: 403,
+      expectedStatus: 400,
     },
     {
       error: eServiceUpdateSameDescriptionConflict(mockEService.id),

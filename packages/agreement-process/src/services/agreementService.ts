@@ -10,7 +10,6 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   Ownership,
-  PDFGenerator,
   UIAuthData,
   WithLogger,
   eventRepository,
@@ -74,7 +73,6 @@ import {
   UpdateAgreementSeed,
 } from "../model/domain/models.js";
 import {
-  toCreateEventAgreementActivated,
   toCreateEventAgreementAdded,
   toCreateEventAgreementArchivedByConsumer,
   toCreateEventAgreementArchivedByRevokedDelegation,
@@ -89,6 +87,7 @@ import {
   toCreateEventDraftAgreementUpdated,
   toCreateEventAgreementDocumentGenerated,
   toCreateEventAgreementSignedContractGenerated,
+  toCreateEventAgreementActivated,
 } from "../model/domain/toEvent.js";
 import {
   agreementArchivableStates,
@@ -111,7 +110,7 @@ import {
   matchingDeclaredAttributes,
   matchingVerifiedAttributes,
   validateActivationOnDescriptor,
-  validateActiveOrPendingAgreement,
+  validateActiveSuspendedOrPendingAgreement,
   validateCertifiedAttributes,
   validateCreationOnDescriptor,
   validateSubmitOnDescriptor,
@@ -119,6 +118,8 @@ import {
   verifySubmissionConflictingAgreements,
   assertRequesterCanActAsConsumer,
   getOrganizationRole,
+  assertAgreementIsPending,
+  assertAgreementIsSuspended,
 } from "../model/domain/agreement-validators.js";
 import { config } from "../config/config.js";
 import {
@@ -126,10 +127,6 @@ import {
   createActivationEvent,
   createActivationUpdateAgreementSeed,
 } from "./agreementActivationProcessor.js";
-import {
-  ContractBuilder,
-  contractBuilder,
-} from "./agreementContractBuilder.js";
 import { createStamp } from "./agreementStampUtils.js";
 import {
   agreementStateByFlags,
@@ -151,7 +148,7 @@ import {
 import { createUpgradeOrNewDraft } from "./agreementUpgradeProcessor.js";
 import {
   AgreementEServicesQueryFilters,
-  AgreementQueryFilters,
+  AgreementQueryFiltersWithExactConsumerIdMatch,
 } from "./readModelService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -178,7 +175,7 @@ const retrieveAgreement = async (
   return agreement;
 };
 
-export const retrieveTenant = async (
+const retrieveTenant = async (
   tenantId: TenantId,
   readModelService: ReadModelServiceSQL
 ): Promise<Tenant> => {
@@ -189,7 +186,7 @@ export const retrieveTenant = async (
   return tenant;
 };
 
-export const retrieveDescriptor = (
+const retrieveDescriptor = (
   descriptorId: DescriptorId,
   eservice: EService
 ): Descriptor => {
@@ -235,13 +232,143 @@ const getActiveConsumerAndProducerDelegations = async (
 export function agreementServiceBuilder(
   dbInstance: DB,
   readModelService: ReadModelServiceSQL,
-  fileManager: FileManager,
-  pdfGenerator: PDFGenerator
+  fileManager: FileManager
 ) {
   const repository = eventRepository(dbInstance, agreementEventToBinaryData);
+
+  const performAgreementActivation = async (
+    agreement: WithMetadata<Agreement>,
+    agreementOwnership: Ownership,
+    authData: UIAuthData | M2MAdminAuthData,
+    activeDelegations: ActiveDelegations,
+    correlationId: string & z.BRAND<"CorrelationId">,
+    isFirstActivation: boolean
+  ): Promise<WithMetadata<Agreement>> => {
+    const eservice = await retrieveEService(
+      agreement.data.eserviceId,
+      readModelService
+    );
+
+    const descriptor = validateActivationOnDescriptor(
+      eservice,
+      agreement.data.descriptorId
+    );
+
+    const consumer = await retrieveTenant(
+      agreement.data.consumerId,
+      readModelService
+    );
+
+    /* nextAttributesState VS targetDestinationState
+    -- targetDestinationState is the state where the caller wants to go (active, in this case)
+    -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
+    */
+    const targetDestinationState = agreementState.active;
+    const nextStateByAttributes = nextStateByAttributesFSM(
+      agreement.data,
+      descriptor,
+      consumer
+    );
+
+    const suspendedByPlatform = suspendedByPlatformFlag(nextStateByAttributes);
+
+    const setToMissingCertifiedAttributesByPlatformEvent =
+      maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
+        agreement,
+        nextStateByAttributes,
+        suspendedByPlatform,
+        correlationId
+      );
+    if (setToMissingCertifiedAttributesByPlatformEvent) {
+      /* In this case, it means that one of the certified attributes is not
+        valid anymore. We put the agreement in the missingCertifiedAttributes state
+        and fail the activation */
+      await repository.createEvent(
+        setToMissingCertifiedAttributesByPlatformEvent
+      );
+      throw agreementActivationFailed(agreement.data.id);
+    }
+
+    const { suspendedByConsumer, suspendedByProducer } = getSuspensionFlags(
+      agreementOwnership,
+      agreement.data,
+      authData,
+      targetDestinationState,
+      activeDelegations
+    );
+
+    const newState = agreementStateByFlags(
+      nextStateByAttributes,
+      suspendedByProducer,
+      suspendedByConsumer,
+      suspendedByPlatform
+    );
+
+    failOnActivationFailure(newState, agreement.data);
+
+    const updatedAgreementSeed: UpdateAgreementSeed =
+      createActivationUpdateAgreementSeed({
+        isFirstActivation,
+        newState,
+        descriptor,
+        consumer,
+        eservice,
+        authData,
+        agreement: agreement.data,
+        suspendedByConsumer,
+        suspendedByProducer,
+        suspendedByPlatform,
+        activeDelegations,
+        agreementOwnership,
+      });
+
+    const updatedAgreementWithoutContract: Agreement = {
+      ...agreement.data,
+      ...updatedAgreementSeed,
+    };
+
+    const suspendedByPlatformChanged =
+      agreement.data.suspendedByPlatform !==
+      updatedAgreementWithoutContract.suspendedByPlatform;
+
+    const activationEvents = await createActivationEvent(
+      isFirstActivation,
+      updatedAgreementWithoutContract,
+      agreement.data.suspendedByPlatform,
+      suspendedByPlatformChanged,
+      agreement.metadata.version,
+      agreementOwnership,
+      descriptor,
+      consumer,
+      correlationId
+    );
+
+    const archiveEvents = await archiveRelatedToAgreements(
+      agreement.data,
+      authData,
+      activeDelegations,
+      readModelService,
+      correlationId
+    );
+
+    const createdEvents = await repository.createEvents([
+      ...activationEvents,
+      ...archiveEvents,
+    ]);
+
+    return {
+      data: updatedAgreementWithoutContract,
+      metadata: {
+        version:
+          createdEvents.latestNewVersions.get(
+            updatedAgreementWithoutContract.id
+          ) ?? 0,
+      },
+    };
+  };
   return {
     async getAgreements(
-      filters: AgreementQueryFilters,
+      filters: AgreementQueryFiltersWithExactConsumerIdMatch,
       limit: number,
       offset: number,
       {
@@ -332,6 +459,7 @@ export function agreementServiceBuilder(
         state: agreementState.draft,
         verifiedAttributes: [],
         certifiedAttributes: [],
+        certifiedDiscreteAttributes: [],
         declaredAttributes: [],
         consumerDocuments: [],
         createdAt: new Date(),
@@ -538,11 +666,6 @@ export function agreementServiceBuilder(
         agreement.data.descriptorId
       );
 
-      const producer = await retrieveTenant(
-        agreement.data.producerId,
-        readModelService
-      );
-
       const nextStateByAttributes = nextStateByAttributesFSM(
         agreement.data,
         descriptor,
@@ -551,6 +674,20 @@ export function agreementServiceBuilder(
 
       const suspendedByPlatform = suspendedByPlatformFlag(
         nextStateByAttributes
+      );
+
+      const suspendedByProducer = suspendedByProducerFlag(
+        agreement.data,
+        authData.organizationId,
+        nextStateByAttributes,
+        activeDelegations.producerDelegation?.delegateId
+      );
+
+      const suspendedByConsumer = suspendedByConsumerFlag(
+        agreement.data,
+        authData.organizationId,
+        nextStateByAttributes,
+        activeDelegations.consumerDelegation?.delegateId
       );
 
       const setToMissingCertifiedAttributesByPlatformEvent =
@@ -574,15 +711,12 @@ export function agreementServiceBuilder(
 
       const newState = agreementStateByFlags(
         nextStateByAttributes,
-        // TODO this should actually recalculate flags and consider them
-        // in the calculation of the new state, otherwise a suspended agreement
-        // that was upgraded will become active - https://pagopa.atlassian.net/browse/IMN-626
-        undefined,
-        undefined,
+        suspendedByProducer,
+        suspendedByConsumer,
         suspendedByPlatform
       );
 
-      validateActiveOrPendingAgreement(agreement.data.id, newState);
+      validateActiveSuspendedOrPendingAgreement(agreement.data.id, newState);
 
       const updateSeed = createSubmissionUpdateAgreementSeed(
         descriptor,
@@ -604,62 +738,16 @@ export function agreementServiceBuilder(
         })
       ).filter((a: WithMetadata<Agreement>) => a.data.id !== agreement.data.id);
 
-      const hasRelatedAgreements = agreements.length > 0;
-      const updatedAgreement = {
+      const submittedAgreement: Agreement = {
         ...agreement.data,
         ...updateSeed,
       };
 
-      const contractBuilderInstance = contractBuilder(
-        readModelService,
-        pdfGenerator,
-        fileManager,
-        config,
-        logger
-      );
-
-      const isFirstActivation =
-        updatedAgreement.state === agreementState.active &&
-        !hasRelatedAgreements;
-
-      const submittedAgreement = await addContractOnFirstActivation(
-        isFirstActivation,
-        contractBuilderInstance,
-        eservice,
-        consumer,
-        producer,
-        updatedAgreement,
-        activeDelegations,
-        logger
-      );
-
-      const agreementEvent =
-        submittedAgreement.state === agreementState.active
-          ? toCreateEventAgreementActivated(
-              submittedAgreement,
-              agreement.metadata.version,
-              correlationId
-            )
-          : toCreateEventAgreementSubmitted(
-              submittedAgreement,
-              agreement.metadata.version,
-              correlationId
-            );
-
-      const archivedAgreementsUpdates: Array<CreateEvent<AgreementEvent>> =
-        /*
-          This condition can only check if state is ACTIVE
-          at this point the SUSPENDED state is not available
-          after validateActiveOrPendingAgreement validation.
-
-          TODO: this will not be true anymore if https://pagopa.atlassian.net/browse/IMN-626
-          is confirmed and gets fixed - the agreement could also be in SUSPENDED state.
-          Remove the comment at that point.
-        */
+      const archiveEvents: Array<CreateEvent<AgreementEvent>> =
         isActiveOrSuspended(submittedAgreement.state)
-          ? agreements.map((agreement) =>
+          ? agreements.map((a) =>
               createAgreementArchivedByUpgradeEvent(
-                agreement,
+                a,
                 authData,
                 activeDelegations,
                 correlationId
@@ -667,10 +755,26 @@ export function agreementServiceBuilder(
             )
           : [];
 
-      const createdEvents = await repository.createEvents([
-        agreementEvent,
-        ...archivedAgreementsUpdates,
-      ]);
+      const submissionEvents: Array<CreateEvent<AgreementEvent>> =
+        submittedAgreement.state === agreementState.active
+          ? [
+              toCreateEventAgreementActivated(
+                submittedAgreement,
+                agreement.metadata.version,
+                correlationId
+              ),
+              ...archiveEvents,
+            ]
+          : [
+              toCreateEventAgreementSubmitted(
+                submittedAgreement,
+                agreement.metadata.version,
+                correlationId
+              ),
+              ...archiveEvents,
+            ];
+
+      const createdEvents = await repository.createEvents(submissionEvents);
 
       return {
         data: submittedAgreement,
@@ -750,11 +854,6 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const producer = await retrieveTenant(
-        agreementToBeUpgraded.data.producerId,
-        readModelService
-      );
-
       const isSelfConsumer =
         eservice.producerId === agreementToBeUpgraded.data.consumerId;
 
@@ -776,14 +875,6 @@ export function agreementServiceBuilder(
         consumer.attributes
       );
 
-      const contractBuilderInstance = contractBuilder(
-        readModelService,
-        pdfGenerator,
-        fileManager,
-        config,
-        logger
-      );
-
       const canBeUpgraded = isSelfConsumer || (verifiedValid && declaredValid);
 
       const [agreement, events] = await createUpgradeOrNewDraft({
@@ -791,13 +882,11 @@ export function agreementServiceBuilder(
         newDescriptor,
         eservice,
         consumer,
-        producer,
         readModelService,
         canBeUpgraded,
         copyFile: fileManager.copy,
         authData,
         activeDelegations,
-        contractBuilder: contractBuilderInstance,
         correlationId,
         logger,
       });
@@ -878,6 +967,7 @@ export function agreementServiceBuilder(
         id,
         verifiedAttributes: [],
         certifiedAttributes: [],
+        certifiedDiscreteAttributes: [],
         declaredAttributes: [],
         state: agreementState.draft,
         createdAt: new Date(),
@@ -1224,7 +1314,7 @@ export function agreementServiceBuilder(
       );
       return { data: rejectedAgreement, metadata: { version: newVersion } };
     },
-    async activateAgreement(
+    async approveAgreement(
       {
         agreementId,
         delegationId,
@@ -1239,20 +1329,14 @@ export function agreementServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(
-        `Activating agreement ${agreementId}${
+        `Approving agreement ${agreementId}${
           delegationId ? ` with delegation ${delegationId}` : ""
         }`
       );
 
-      const contractBuilderInstance = contractBuilder(
-        readModelService,
-        pdfGenerator,
-        fileManager,
-        config,
-        logger
-      );
-
       const agreement = await retrieveAgreement(agreementId, readModelService);
+
+      assertAgreementIsPending(agreement.data);
 
       assertActivableState(agreement.data);
 
@@ -1261,170 +1345,77 @@ export function agreementServiceBuilder(
         readModelService
       );
 
-      const agreementOwnership = ((): Ownership => {
-        if (agreement.data.state === agreementState.pending) {
-          if (
-            delegationId &&
-            delegationId !== activeDelegations.producerDelegation?.id
-          ) {
-            throw tenantIsNotTheDelegate(authData.organizationId);
-          }
+      if (
+        delegationId &&
+        delegationId !== activeDelegations.producerDelegation?.id
+      ) {
+        throw tenantIsNotTheDelegate(authData.organizationId);
+      }
+      assertRequesterCanActAsProducer(
+        agreement.data,
+        authData,
+        activeDelegations.producerDelegation
+      );
 
-          assertRequesterCanActAsProducer(
-            agreement.data,
-            authData,
-            activeDelegations.producerDelegation
-          );
-          return ownership.PRODUCER;
-        } else {
-          return getOrganizationRole(
-            agreement.data,
-            delegationId,
-            activeDelegations,
-            authData
-          );
-        }
-      })();
+      return performAgreementActivation(
+        agreement,
+        ownership.PRODUCER,
+        authData,
+        activeDelegations,
+        correlationId,
+        true
+      );
+    },
+    async unsuspendAgreement(
+      {
+        agreementId,
+        delegationId,
+      }: {
+        agreementId: AgreementId;
+        delegationId?: DelegationId | undefined;
+      },
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Agreement>> {
+      logger.info(
+        `Unsuspending agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
 
-      const eservice = await retrieveEService(
-        agreement.data.eserviceId,
+      const agreement = await retrieveAgreement(agreementId, readModelService);
+      assertAgreementIsSuspended(agreement.data);
+
+      assertActivableState(agreement.data);
+
+      const activeDelegations = await getActiveConsumerAndProducerDelegations(
+        agreement.data,
         readModelService
       );
 
-      const descriptor = validateActivationOnDescriptor(
-        eservice,
-        agreement.data.descriptorId
-      );
-
-      const [consumer, producer] = await Promise.all([
-        retrieveTenant(agreement.data.consumerId, readModelService),
-        retrieveTenant(agreement.data.producerId, readModelService),
-      ]);
-
-      /* nextAttributesState VS targetDestinationState
-      -- targetDestinationState is the state where the caller wants to go (active, in this case)
-      -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
-      */
-      const targetDestinationState = agreementState.active;
-      const nextStateByAttributes = nextStateByAttributesFSM(
+      const agreementOwnership = getOrganizationRole(
         agreement.data,
-        descriptor,
-        consumer
-      );
-
-      const suspendedByPlatform = suspendedByPlatformFlag(
-        nextStateByAttributes
-      );
-
-      const setToMissingCertifiedAttributesByPlatformEvent =
-        maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
-          agreement,
-          nextStateByAttributes,
-          suspendedByPlatform,
-          correlationId
-        );
-      if (setToMissingCertifiedAttributesByPlatformEvent) {
-        /* In this case, it means that one of the certified attributes is not
-          valid anymore. We put the agreement in the missingCertifiedAttributes state
-          and fail the activation */
-        await repository.createEvent(
-          setToMissingCertifiedAttributesByPlatformEvent
-        );
-        throw agreementActivationFailed(agreement.data.id);
-      }
-
-      const { suspendedByConsumer, suspendedByProducer } = getSuspensionFlags(
-        agreementOwnership,
-        agreement.data,
-        authData,
-        targetDestinationState,
-        activeDelegations
-      );
-
-      const newState = agreementStateByFlags(
-        nextStateByAttributes,
-        suspendedByProducer,
-        suspendedByConsumer,
-        suspendedByPlatform
-      );
-
-      failOnActivationFailure(newState, agreement.data);
-
-      const isFirstActivation =
-        agreement.data.state === agreementState.pending &&
-        newState === agreementState.active;
-
-      const updatedAgreementSeed: UpdateAgreementSeed =
-        createActivationUpdateAgreementSeed({
-          isFirstActivation,
-          newState,
-          descriptor,
-          consumer,
-          eservice,
-          authData,
-          agreement: agreement.data,
-          suspendedByConsumer,
-          suspendedByProducer,
-          suspendedByPlatform,
-          activeDelegations,
-          agreementOwnership,
-        });
-
-      const updatedAgreementWithoutContract: Agreement = {
-        ...agreement.data,
-        ...updatedAgreementSeed,
-      };
-
-      const updatedAgreement: Agreement = await addContractOnFirstActivation(
-        isFirstActivation,
-        contractBuilderInstance,
-        eservice,
-        consumer,
-        producer,
-        updatedAgreementWithoutContract,
+        delegationId,
         activeDelegations,
-        logger
+        authData
       );
 
-      const suspendedByPlatformChanged =
-        agreement.data.suspendedByPlatform !==
-        updatedAgreement.suspendedByPlatform;
-
-      const activationEvents = await createActivationEvent(
-        isFirstActivation,
-        updatedAgreement,
-        agreement.data.suspendedByPlatform,
-        suspendedByPlatformChanged,
-        agreement.metadata.version,
+      return performAgreementActivation(
+        agreement,
         agreementOwnership,
-        correlationId
-      );
-
-      const archiveEvents = await archiveRelatedToAgreements(
-        agreement.data,
         authData,
         activeDelegations,
-        readModelService,
-        correlationId
+        correlationId,
+        false
       );
-
-      const createdEvents = await repository.createEvents([
-        ...activationEvents,
-        ...archiveEvents,
-      ]);
-
-      return {
-        data: updatedAgreement,
-        metadata: {
-          version:
-            createdEvents.latestNewVersions.get(updatedAgreement.id) ?? 0,
-        },
-      };
     },
     async archiveAgreement(
       agreementId: AgreementId,
       { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
-    ): Promise<Agreement> {
+    ): Promise<WithMetadata<Agreement>> {
       logger.info(`Archiving agreement ${agreementId}`);
 
       const agreement = await retrieveAgreement(agreementId, readModelService);
@@ -1457,7 +1448,7 @@ export function agreementServiceBuilder(
         },
       };
 
-      await repository.createEvent(
+      const { newVersion } = await repository.createEvent(
         toCreateEventAgreementArchivedByConsumer(
           updatedAgreement,
           agreement.metadata.version,
@@ -1465,7 +1456,12 @@ export function agreementServiceBuilder(
         )
       );
 
-      return updatedAgreement;
+      return {
+        data: updatedAgreement,
+        metadata: {
+          version: newVersion,
+        },
+      };
     },
     async internalArchiveAgreementAfterDelegationRevocation(
       agreementId: AgreementId,
@@ -1553,7 +1549,13 @@ export function agreementServiceBuilder(
           eservice.producerId === consumer.id || // in case the consumer is also the producer, we don't need to check the attributes
           certifiedAttributesSatisfied(
             descriptor.attributes,
-            consumer.attributes
+            consumer.attributes,
+            {
+              certifiedDiscreteEnabled: isFeatureFlagEnabled(
+                config,
+                "featureFlagAttributeCertifiedDiscrete"
+              ),
+            }
           ),
       };
     },
@@ -1752,43 +1754,6 @@ function maybeCreateSetToMissingCertifiedAttributesByPlatformEvent(
     );
   }
   return undefined;
-}
-
-// eslint-disable-next-line max-params
-async function addContractOnFirstActivation(
-  isFirstActivation: boolean,
-  contractBuilder: ContractBuilder,
-  eservice: EService,
-  consumer: Tenant,
-  producer: Tenant,
-  agreement: Agreement,
-  activeDelegations: ActiveDelegations,
-  logger: Logger
-): Promise<Agreement> {
-  if (
-    isFeatureFlagEnabled(config, "featureFlagAgreementsContractBuilder") &&
-    isFirstActivation
-  ) {
-    logger.info(
-      `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: processing document generation`
-    );
-    const contract = await contractBuilder.createContract(
-      agreement,
-      eservice,
-      consumer,
-      producer,
-      activeDelegations
-    );
-
-    return {
-      ...agreement,
-      contract,
-    };
-  }
-  logger.info(
-    `featureFlagAgreementsContractBuilder is ${config.featureFlagAgreementsContractBuilder}: skipping document generation`
-  );
-  return agreement;
 }
 
 async function getConsumerFromDelegationOrRequester(

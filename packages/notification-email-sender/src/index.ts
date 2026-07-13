@@ -131,8 +131,10 @@ export async function handleCatalogMessage(
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
+          "MaintenanceEServiceRiskAnalysisSetTenantKind",
           "EServiceRiskAnalysisDeleted",
           "EServiceDescriptorAttributesUpdated",
+          "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceDescriptionUpdated",
           "EServiceNameUpdated",
           "EServiceDescriptorSubmittedByDelegate",
@@ -152,7 +154,21 @@ export async function handleCatalogMessage(
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
           "EServicePersonalDataFlagUpdatedAfterPublication",
-          "EServicePersonalDataFlagUpdatedByTemplateUpdate"
+          "EServicePersonalDataFlagUpdatedByTemplateUpdate",
+          // TODO: Handle async exchange callback interface events if notification is needed
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+          "EServiceInstanceLabelUpdated",
+          // FIXME these events will be managed with "WORK ITEM 10"
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceArchivingCompleted",
+          "MaintenanceEServicePersonalDataFlagReset",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {
@@ -239,7 +255,14 @@ export async function handlePurposeMessage(
           "PurposeDeletedByRevokedDelegation",
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisDocumentGenerated",
-          "RiskAnalysisSignedDocumentGenerated"
+          "RiskAnalysisSignedDocumentGenerated",
+          "MaintenancePurposeRiskAnalysisSetTenantKind",
+          "PurposeRiskAnalysisWorkflowCreated",
+          "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => {

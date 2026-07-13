@@ -71,7 +71,7 @@ const createAgreementSQLPropertyMap = <
     | AgreementConsumerDocumentSQL
     | AgreementContractSQL
     | AgreementAttributeSQL
-    | AgreementSignedContractSQL
+    | AgreementSignedContractSQL,
 >(
   items: T[]
 ): Map<AgreementId, T[]> =>
@@ -93,45 +93,58 @@ export const aggregateAgreement = ({
   attributesSQL,
   signedContractSQL,
 }: AgreementItemsSQL): WithMetadata<Agreement> => {
-  const { verifiedAttributes, certifiedAttributes, declaredAttributes } =
-    attributesSQL.reduce(
-      (
-        acc: {
-          verifiedAttributes: AgreementAttribute[];
-          certifiedAttributes: AgreementAttribute[];
-          declaredAttributes: AgreementAttribute[];
-        },
-        a
-      ) =>
-        match(AttributeKind.parse(a.kind))
-          .with(attributeKind.verified, () => ({
-            ...acc,
-            verifiedAttributes: [
-              ...acc.verifiedAttributes,
-              { id: unsafeBrandId<AttributeId>(a.attributeId) },
-            ],
-          }))
-          .with(attributeKind.certified, () => ({
-            ...acc,
-            certifiedAttributes: [
-              ...acc.certifiedAttributes,
-              { id: unsafeBrandId<AttributeId>(a.attributeId) },
-            ],
-          }))
-          .with(attributeKind.declared, () => ({
-            ...acc,
-            declaredAttributes: [
-              ...acc.declaredAttributes,
-              { id: unsafeBrandId<AttributeId>(a.attributeId) },
-            ],
-          }))
-          .exhaustive(),
-      {
-        verifiedAttributes: [],
-        certifiedAttributes: [],
-        declaredAttributes: [],
-      }
-    );
+  const {
+    verifiedAttributes,
+    certifiedAttributes,
+    certifiedDiscreteAttributes,
+    declaredAttributes,
+  } = attributesSQL.reduce(
+    (
+      acc: {
+        verifiedAttributes: AgreementAttribute[];
+        certifiedAttributes: AgreementAttribute[];
+        certifiedDiscreteAttributes: AgreementAttribute[];
+        declaredAttributes: AgreementAttribute[];
+      },
+      a
+    ) =>
+      match(AttributeKind.parse(a.kind))
+        .with(attributeKind.verified, () => ({
+          ...acc,
+          verifiedAttributes: [
+            ...acc.verifiedAttributes,
+            { id: unsafeBrandId<AttributeId>(a.attributeId) },
+          ],
+        }))
+        .with(attributeKind.certified, () => ({
+          ...acc,
+          certifiedAttributes: [
+            ...acc.certifiedAttributes,
+            { id: unsafeBrandId<AttributeId>(a.attributeId) },
+          ],
+        }))
+        .with(attributeKind.certifiedDiscrete, () => ({
+          ...acc,
+          certifiedDiscreteAttributes: [
+            ...acc.certifiedDiscreteAttributes,
+            { id: unsafeBrandId<AttributeId>(a.attributeId) },
+          ],
+        }))
+        .with(attributeKind.declared, () => ({
+          ...acc,
+          declaredAttributes: [
+            ...acc.declaredAttributes,
+            { id: unsafeBrandId<AttributeId>(a.attributeId) },
+          ],
+        }))
+        .exhaustive(),
+    {
+      verifiedAttributes: [],
+      certifiedAttributes: [],
+      certifiedDiscreteAttributes: [],
+      declaredAttributes: [],
+    }
+  );
 
   const consumerDocuments: AgreementDocument[] = consumerDocumentsSQL.map(
     documentSQLtoDocument
@@ -146,7 +159,7 @@ export const aggregateAgreement = ({
     upgrade: upgradeStampSQL,
     archiving: archivingStampSQL,
   } = stampsSQL.reduce(
-    (acc: { [key in AgreementStampKind]?: AgreementStampSQL }, stamp) =>
+    (acc: Partial<Record<AgreementStampKind, AgreementStampSQL>>, stamp) =>
       match(AgreementStampKind.parse(stamp.kind))
         .with(AgreementStampKind.enum.submission, () => ({
           ...acc,
@@ -189,6 +202,7 @@ export const aggregateAgreement = ({
     state: AgreementState.parse(agreementSQL.state),
     verifiedAttributes,
     certifiedAttributes,
+    certifiedDiscreteAttributes,
     declaredAttributes,
     ...(agreementSQL.suspendedByConsumer !== null
       ? {

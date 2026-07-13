@@ -3,6 +3,7 @@ import {
   generateToken,
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -25,7 +26,8 @@ describe("GET /purpose/:purposeId/versions/:versionId router test", () => {
   ) =>
     request(api)
       .get(`${appBasePath}/purposes/${purposeId}/versions/${versionId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const mockApiPurposeVersion = getMockedApiPurposeVersion();

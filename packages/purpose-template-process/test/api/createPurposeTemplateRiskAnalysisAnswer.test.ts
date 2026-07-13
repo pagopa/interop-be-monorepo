@@ -24,7 +24,6 @@ import {
   purposeTemplateRiskAnalysisFormNotFound,
   purposeTemplateStateConflict,
   riskAnalysisTemplateValidationFailed,
-  tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 
 const {
@@ -213,10 +212,6 @@ describe("API POST /purposeTemplates/:id/riskAnalysis/answers", () => {
         [purposeTemplateState.published]
       ),
       expectedStatus: HTTP_STATUS_CONFLICT,
-    },
-    {
-      error: tenantNotAllowed(generateId()),
-      expectedStatus: HTTP_STATUS_FORBIDDEN,
     },
     {
       error: hyperlinkDetectionError("Invalid hyperlink in answer"),

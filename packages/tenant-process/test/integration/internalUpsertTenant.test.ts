@@ -60,6 +60,7 @@ describe("internalUpsertTenant", async () => {
   afterAll(() => {
     vi.useRealTimers();
   });
+
   it("Should add the certified attribute if the Tenant doesn't have it", async () => {
     const mockTenant: Tenant = {
       ...getMockTenant(),
@@ -109,8 +110,12 @@ describe("internalUpsertTenant", async () => {
       ],
     };
 
-    expect(writtenPayload.tenant).toEqual(toTenantV2(expectedTenant));
-    expect(returnedTenant).toEqual(expectedTenant);
+    expect(writtenPayload).toEqual({
+      attributeId: attribute1.id,
+      tenant: toTenantV2(expectedTenant),
+    });
+    expect(returnedTenant.data).toEqual(expectedTenant);
+    expect(returnedTenant.metadata.version).toBe(1);
   });
 
   it("Should re-assign the attributes if they were revoked", async () => {
@@ -204,12 +209,17 @@ describe("internalUpsertTenant", async () => {
     };
 
     const tenantV2 = toTenantV2(expectedTenant);
-    expect(writtenPayload.tenant).toEqual({
-      ...tenantV2,
-      attributes: expect.arrayContaining(tenantV2.attributes),
+    expect(writtenPayload).toEqual({
+      attributeId: attribute2.id,
+      tenant: {
+        ...tenantV2,
+        attributes: expect.arrayContaining(tenantV2.attributes),
+      },
     });
-    expect(sortTenant(returnedTenant)).toEqual(sortTenant(expectedTenant));
+    expect(sortTenant(returnedTenant.data)).toEqual(sortTenant(expectedTenant));
+    expect(returnedTenant.metadata.version).toBe(2);
   });
+
   it("Should throw certifiedAttributeAlreadyAssigned if the attribute was already assigned", async () => {
     const tenantAlreadyAssigned: Tenant = {
       ...getMockTenant(),
@@ -239,6 +249,7 @@ describe("internalUpsertTenant", async () => {
       )
     );
   });
+
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
     const mockTenant: Tenant = {
       ...getMockTenant(),
@@ -259,6 +270,7 @@ describe("internalUpsertTenant", async () => {
       )
     );
   });
+
   it("Should throw attributeNotFound error if the attribute doesn't exist", async () => {
     const mockTenant: Tenant = {
       ...getMockTenant(),
@@ -278,5 +290,109 @@ describe("internalUpsertTenant", async () => {
         `${tenantSeed.certifiedAttributes[0].origin}/${tenantSeed.certifiedAttributes[0].code}`
       )
     );
+  });
+
+  it("Should add the remoteId if the Tenant doesn't have it", async () => {
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      externalId: {
+        origin: "IPA",
+        value: "123456",
+      },
+      kind: tenantKind.PA,
+      remoteIds: [],
+    };
+
+    const remoteIdSeed = {
+      origin: "ISTAT",
+      value: "12345",
+      assignmentTimestamp: new Date().toISOString(),
+    };
+
+    const seedWithRemoteId: tenantApi.InternalTenantSeed = {
+      ...tenantSeed,
+      certifiedAttributes: [],
+      remoteIds: [remoteIdSeed],
+    };
+
+    await addOneTenant(mockTenant);
+
+    const returnedTenant = await tenantService.internalUpsertTenant(
+      seedWithRemoteId,
+      getMockContextInternal({})
+    );
+
+    const writtenEvent = await readEventByStreamIdAndVersion(
+      mockTenant.id,
+      1,
+      "tenant",
+      postgresDB
+    );
+
+    if (!writtenEvent) {
+      fail("Update failed: tenant not found in event-store");
+    }
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockTenant.id,
+      version: "1",
+      type: "TenantRemoteIdAssigned",
+    });
+
+    const expectedRemoteId = {
+      origin: "ISTAT",
+      value: "12345",
+      assignmentTimestamp: new Date(remoteIdSeed.assignmentTimestamp),
+    };
+
+    expect(returnedTenant.data.remoteIds).toBeDefined();
+    expect(returnedTenant.data.remoteIds).toContainEqual(expectedRemoteId);
+    expect(returnedTenant.metadata.version).toBe(1);
+  });
+
+  it("Should NOT add the remoteId if the Tenant already has it", async () => {
+    const remoteIdSeed = {
+      origin: "ISTAT",
+      value: "12345",
+      assignmentTimestamp: new Date().toISOString(),
+    };
+
+    const mockTenant: Tenant = {
+      ...getMockTenant(),
+      externalId: { origin: "IPA", value: "123456" },
+      kind: tenantKind.PA,
+      remoteIds: [
+        {
+          origin: "ISTAT",
+          value: "12345",
+          assignmentTimestamp: new Date(remoteIdSeed.assignmentTimestamp),
+        },
+      ],
+    };
+
+    const seedWithRemoteId: tenantApi.InternalTenantSeed = {
+      ...tenantSeed,
+      certifiedAttributes: [],
+      remoteIds: [remoteIdSeed],
+    };
+
+    await addOneTenant(mockTenant);
+
+    const returnedTenant = await tenantService.internalUpsertTenant(
+      seedWithRemoteId,
+      getMockContextInternal({})
+    );
+
+    expect(returnedTenant.metadata.version).toBe(0);
+    expect(returnedTenant.data.remoteIds).toHaveLength(1);
+
+    await expect(
+      readEventByStreamIdAndVersion(
+        mockTenant.id,
+        returnedTenant.metadata.version + 1,
+        "tenant",
+        postgresDB
+      )
+    ).rejects.toThrowError();
   });
 });

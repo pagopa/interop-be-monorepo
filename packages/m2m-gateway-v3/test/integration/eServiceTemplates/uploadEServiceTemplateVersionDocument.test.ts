@@ -12,6 +12,7 @@ import {
   getMockedApiEserviceDoc,
   getMockedApiEServiceTemplate,
   getMockWithMetadata,
+  getMockedPdfBuffer,
 } from "pagopa-interop-commons-test";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -41,7 +42,7 @@ describe("uploadEServiceTemplateVersionDocument", () => {
     mockAddDocumentResponse.metadata.version
   );
 
-  const mockFileBuffer = Buffer.from("test content");
+  const mockFileBuffer = getMockedPdfBuffer();
   const mockFileUpload: m2mGatewayApiV3.FileUploadMultipart = {
     file: new File([mockFileBuffer], mockAddDocumentResponse.data.name, {
       type: mockAddDocumentResponse.data.contentType,
@@ -113,9 +114,9 @@ describe("uploadEServiceTemplateVersionDocument", () => {
         config.eserviceTemplateDocumentsContainer,
         genericLogger
       )
-    ).toEqual([matchExpectedPath]);
+    ).toStrictEqual([matchExpectedPath]);
 
-    expect(result).toEqual(m2mEServiceDocumentResponse);
+    expect(result).toStrictEqual(m2mEServiceDocumentResponse);
 
     expectApiClientPostToHaveBeenCalledWith({
       mockPost:

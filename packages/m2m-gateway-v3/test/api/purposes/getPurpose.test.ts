@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   generateToken,
   getMockedApiPurpose,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -19,7 +20,8 @@ describe("GET /purpose/:purposeId router test", () => {
   const makeRequest = async (token: string, purposeId: string) =>
     request(api)
       .get(`${appBasePath}/purposes/${purposeId}`)
-      .set("Authorization", `Bearer ${token}`)
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .send();
 
   const mockApiPurpose = getMockedApiPurpose();

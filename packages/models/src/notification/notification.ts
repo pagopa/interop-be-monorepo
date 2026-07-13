@@ -14,6 +14,7 @@ export const NotificationType = z.enum([
   "clientAddedRemovedToProducer", // 05: Associazione di un client da parte del fruitore
   "purposeStatusChangedToProducer", // 07: Variazione stato di una finalità
   "templateStatusChangedToProducer", // 09: Variazione stato template
+  "eserviceStateChangedToProducer", // 10: Processo di archiviazione e-service (lato Erogazione)
   "agreementSuspendedUnsuspendedToConsumer", // 13: Sospensione o riattivazione richiesta di fruizione
   "eserviceStateChangedToConsumer", // 11: Variazione di stato e-service
   "agreementActivatedRejectedToConsumer", // 12: Attivazione o rifiuto richiesta di fruizione
@@ -76,9 +77,7 @@ export type NewNotification = z.infer<typeof NewNotification>;
 
 const notificationsByTypeResults = Object.fromEntries(
   NotificationType.options.map((key) => [key, z.number()])
-) as {
-  [K in (typeof NotificationType.options)[number]]: z.ZodNumber;
-};
+) as Record<(typeof NotificationType.options)[number], z.ZodNumber>;
 
 export const NotificationsByType = z.object({
   results: z.object(notificationsByTypeResults),

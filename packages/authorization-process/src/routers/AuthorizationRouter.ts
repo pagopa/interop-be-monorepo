@@ -79,6 +79,8 @@ const authorizationRouter = (
     SUPPORT_ROLE,
     API_ROLE,
     INTERNAL_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
@@ -89,14 +91,16 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const client = await authorizationService.createConsumerClient(
-          {
-            clientSeed: req.body,
-          },
-          ctx
-        );
+        const { data: client, metadata } =
+          await authorizationService.createConsumerClient(
+            {
+              clientSeed: req.body,
+            },
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -269,7 +273,7 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         await authorizationService.deleteClient(
           {
@@ -395,15 +399,16 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE, M2M_ADMIN_ROLE]);
 
-        const key = await authorizationService.createKey(
+        const { data: key, metadata } = await authorizationService.createKey(
           {
             clientId: unsafeBrandId(req.params.clientId),
             keySeed: req.body,
           },
           ctx
         );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(authorizationApi.Key.parse(keyToApiKey(key)));
@@ -464,7 +469,6 @@ const authorizationRouter = (
           },
           ctx
         );
-
         return res
           .status(200)
           .send(authorizationApi.Key.parse(keyToApiKey(key)));
@@ -477,16 +481,24 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE, M2M_ADMIN_ROLE]);
 
-        await authorizationService.deleteClientKeyById(
-          {
-            clientId: unsafeBrandId(req.params.clientId),
-            keyIdToRemove: unsafeBrandId(req.params.keyId),
-          },
-          ctx
-        );
-        return res.status(204).send();
+        const { data: client, metadata } =
+          await authorizationService.deleteClientKeyById(
+            {
+              clientId: unsafeBrandId(req.params.clientId),
+              keyIdToRemove: unsafeBrandId(req.params.keyId),
+            },
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(
+            authorizationApi.FullClient.parse(
+              clientToApiFullVisibilityClient(client)
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -639,9 +651,9 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const producerKeychain =
+        const { data: producerKeychain, metadata } =
           await authorizationService.createProducerKeychain(
             {
               producerKeychainSeed: req.body,
@@ -649,6 +661,7 @@ const authorizationRouter = (
             ctx
           );
 
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(
@@ -673,6 +686,7 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
+          API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
@@ -710,6 +724,46 @@ const authorizationRouter = (
             totalCount: producerKeychains.totalCount,
           })
         );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getProducerKeychainsErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/producerKeychains/eservices/:eserviceId/flags", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          SECURITY_ROLE,
+          API_ROLE,
+          M2M_ROLE,
+          SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
+        ]);
+
+        const producerKeychainEServiceFlags =
+          await authorizationService.getProducerKeychainEServiceFlags(
+            {
+              eserviceId: unsafeBrandId<EServiceId>(req.params.eserviceId),
+              producerId: unsafeBrandId<TenantId>(req.query.producerId),
+            },
+            ctx
+          );
+
+        return res
+          .status(200)
+          .send(
+            authorizationApi.ProducerKeychainEServiceFlags.parse(
+              producerKeychainEServiceFlags
+            )
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -764,7 +818,7 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         await authorizationService.deleteProducerKeychain(
           {
@@ -885,15 +939,17 @@ const authorizationRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [ADMIN_ROLE, SECURITY_ROLE, M2M_ADMIN_ROLE]);
 
-        const key = await authorizationService.createProducerKeychainKey(
-          {
-            producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-            keySeed: req.body,
-          },
-          ctx
-        );
+        const { data: key, metadata } =
+          await authorizationService.createProducerKeychainKey(
+            {
+              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
+              keySeed: req.body,
+            },
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
         return res
           .status(200)
           .send(authorizationApi.Key.parse(keyToApiKey(key)));
@@ -984,16 +1040,28 @@ const authorizationRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-          await authorizationService.removeProducerKeychainKeyById(
-            {
-              producerKeychainId: unsafeBrandId(req.params.producerKeychainId),
-              keyIdToRemove: unsafeBrandId(req.params.keyId),
-            },
-            ctx
-          );
-          return res.status(204).send();
+          const { data: updatedProducerKeychain, metadata } =
+            await authorizationService.removeProducerKeychainKeyById(
+              {
+                producerKeychainId: unsafeBrandId(
+                  req.params.producerKeychainId
+                ),
+                keyIdToRemove: unsafeBrandId(req.params.keyId),
+              },
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              authorizationApi.FullProducerKeychain.parse(
+                producerKeychainToApiFullVisibilityProducerKeychain(
+                  updatedProducerKeychain
+                )
+              )
+            );
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

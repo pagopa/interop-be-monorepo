@@ -8,6 +8,7 @@ import {
   getMockEServiceTemplateVersion,
   getMockAuthData,
   readEventByStreamIdAndVersion,
+  getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
   EServiceTemplateVersionAddedV2,
@@ -20,10 +21,12 @@ import {
   generateId,
   EServiceTemplateVersionDocumentAddedV2,
   AttributeId,
+  attributeKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
+  attributeDiscreteConfigNotAllowed,
   attributeNotFound,
   draftEServiceTemplateVersionAlreadyExists,
   eserviceTemplateNotFound,
@@ -146,8 +149,9 @@ describe("createEServiceTemplateVersion", async () => {
     };
     const expectedEServiceTemplateAfterDocumentAddition: EServiceTemplate = {
       ...expectedEServiceTemplateAfterVersionCreation,
-      versions: expectedEServiceTemplateAfterVersionCreation.versions.map((d) =>
-        d.id === newVersion.id ? { ...newVersion, docs: [mockDocument] } : d
+      versions: expectedEServiceTemplateAfterVersionCreation.versions.map(
+        (d) =>
+          d.id === newVersion.id ? { ...newVersion, docs: [mockDocument] } : d
       ),
     };
 
@@ -341,4 +345,65 @@ describe("createEServiceTemplateVersion", async () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
+  it.each([attributeKind.declared, attributeKind.verified])(
+    "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
+    async (kind) => {
+      const nonCertifiedAttribute = getMockAttribute(kind);
+      await addOneAttribute(nonCertifiedAttribute);
+
+      const existingVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(),
+        interface: getMockDocument(),
+        state: eserviceTemplateVersionState.published,
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...getMockEServiceTemplate(),
+        versions: [existingVersion],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+
+      const eserviceTemplateVersionSeed =
+        buildCreateVersionSeed(existingVersion);
+      await expect(
+        eserviceTemplateService.createEServiceTemplateVersion(
+          eserviceTemplate.id,
+          {
+            ...eserviceTemplateVersionSeed,
+            attributes: {
+              certified: [],
+              declared:
+                kind === attributeKind.declared
+                  ? [
+                      [
+                        {
+                          id: nonCertifiedAttribute.id,
+                          explicitAttributeVerification: false,
+                          discreteConfig: { threshold: 1, comparator: "GT" },
+                        },
+                      ],
+                    ]
+                  : [],
+              verified:
+                kind === attributeKind.verified
+                  ? [
+                      [
+                        {
+                          id: nonCertifiedAttribute.id,
+                          explicitAttributeVerification: false,
+                          discreteConfig: { threshold: 1, comparator: "GT" },
+                        },
+                      ],
+                    ]
+                  : [],
+            },
+          },
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        attributeDiscreteConfigNotAllowed(nonCertifiedAttribute.id)
+      );
+    }
+  );
 });

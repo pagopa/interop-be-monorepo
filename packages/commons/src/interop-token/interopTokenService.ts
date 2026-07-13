@@ -5,6 +5,8 @@ import {
   DescriptorId,
   EServiceId,
   generateId,
+  InteractionId,
+  InteractionState,
   JWKKeyRS256,
   JWKKeyES256,
   PurposeId,
@@ -21,10 +23,12 @@ import { dateToSeconds } from "../utils/date.js";
 import { calculateDPoPThumbprint } from "../auth/jwk.js";
 import {
   InteropApiToken,
+  InteropAsyncConsumerToken,
   InteropConsumerToken,
   InteropInternalToken,
   InteropJwtApiCommonPayload,
   InteropJwtApiPayload,
+  InteropJwtAsyncConsumerPayload,
   InteropJwtConsumerPayload,
   InteropJwtHeader,
   InteropJwtUIPayload,
@@ -33,7 +37,7 @@ import {
   InteropJwtInternalPayload,
   InteropJwtApiDPoPPayload,
   AgidIntegrityRest02TokenPayload,
-  IntegrityRest02SignedHeader,
+  IntegrityRest02SignedHeaders,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
 import {
@@ -320,6 +324,99 @@ export class InteropTokenGenerator {
     };
   }
 
+  public async generateInteropAsyncConsumerToken({
+    sub,
+    audience,
+    purposeId,
+    tokenDurationInSeconds,
+    digest,
+    producerId,
+    consumerId,
+    eserviceId,
+    descriptorId,
+    interactionId,
+    urlCallback,
+    scope,
+    dpopJWK,
+    now,
+  }: {
+    sub: ClientId;
+    audience: string[];
+    purposeId: PurposeId;
+    tokenDurationInSeconds: number;
+    digest: ClientAssertionDigest | undefined;
+    producerId: TenantId;
+    consumerId: TenantId;
+    eserviceId: EServiceId;
+    descriptorId: DescriptorId;
+    interactionId: InteractionId;
+    urlCallback?: string;
+    scope: InteractionState;
+    dpopJWK?: JWKKeyRS256 | JWKKeyES256;
+    // Optional reference instant for iat/nbf/exp. When the caller has already
+    // captured `now` (e.g. to validate a time window that must match the
+    // token's iat), it can pass it here to avoid the sub-second drift that
+    // would otherwise occur by calling `new Date()` again inside this method.
+    now?: Date;
+  }): Promise<InteropAsyncConsumerToken> {
+    if (
+      !this.config.generatedInteropTokenKid ||
+      !this.config.generatedInteropTokenIssuer
+    ) {
+      throw Error(
+        "AuthorizationServerTokenGenerationConfig not provided or incomplete"
+      );
+    }
+
+    const currentTimestamp = dateToSeconds(now ?? new Date());
+
+    const header: InteropJwtHeader = {
+      alg: JWT_HEADER_ALG,
+      use: JWT_HEADER_USE,
+      typ: JWT_HEADER_TYP,
+      kid: this.config.generatedInteropTokenKid,
+    };
+
+    const payload: InteropJwtAsyncConsumerPayload = {
+      jti: generateId(),
+      iss: this.config.generatedInteropTokenIssuer,
+      aud: audience,
+      client_id: sub,
+      sub,
+      iat: currentTimestamp,
+      nbf: currentTimestamp,
+      exp: currentTimestamp + tokenDurationInSeconds,
+      purposeId,
+      ...(digest ? { digest } : {}),
+      producerId,
+      consumerId,
+      eserviceId,
+      descriptorId,
+      interactionId,
+      ...(urlCallback ? { urlCallback } : {}),
+      scope,
+      ...(dpopJWK
+        ? {
+            cnf: {
+              jkt: calculateDPoPThumbprint(dpopJWK),
+            },
+          }
+        : {}),
+    };
+
+    const serializedToken = await this.createAndSignToken({
+      header,
+      payload: toSerializedInteropJwtPayload(payload),
+      keyId: this.config.generatedInteropTokenKid,
+    });
+
+    return {
+      header,
+      payload,
+      serialized: serializedToken,
+    };
+  }
+
   /**
    * Generates an Agid-JWT-Signature for Integrity REST 02 responses.
    *
@@ -331,12 +428,10 @@ export class InteropTokenGenerator {
    */
   public async generateAgidIntegrityRest02Token({
     signedHeaders,
-    aud,
-    sub,
+    clientId,
   }: {
-    signedHeaders: IntegrityRest02SignedHeader;
-    aud: string | undefined;
-    sub: string | undefined;
+    signedHeaders: IntegrityRest02SignedHeaders;
+    clientId: string | undefined;
   }): Promise<string> {
     if (
       !this.config.integrityRestSignatureKid ||
@@ -356,14 +451,12 @@ export class InteropTokenGenerator {
     const payload: AgidIntegrityRest02TokenPayload = {
       jti: generateId(),
       iss: this.config.integrityRestSignatureIssuer,
-      aud: aud ? [aud] : [],
       iat: currentTimestamp,
-      nbf: currentTimestamp,
       exp:
         currentTimestamp +
         (this.config.integrityRestSignatureSecondsDuration ?? 100),
       signed_headers: signedHeaders,
-      sub,
+      ...(clientId ? { client_id: clientId } : {}),
     };
     return await this.createAndSignToken({
       header,

@@ -4,6 +4,7 @@ import {
   generateToken,
   getMockedApiPartialProducerKeychain,
   getMockedApiFullProducerKeychain,
+  getMockDPoPProof,
 } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
@@ -26,7 +27,8 @@ describe("GET /producerKeychains/:keychainId route test", () => {
   ) =>
     request(api)
       .get(`${appBasePath}/producerKeychains/${keychainId}`)
-      .set("Authorization", `Bearer ${token}`);
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS);
 
   const authorizedRoles: AuthRole[] = [
     authRole.M2M_ROLE,
