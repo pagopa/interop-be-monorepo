@@ -26,10 +26,15 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
   const mockM2MEServiceDescriptor: m2mGatewayApiV3.EServiceDescriptor =
     toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
 
+  const mockSeed: m2mGatewayApiV3.GracePeriodDaysSeed = {
+    gracePeriodDays: 60,
+  };
+
   const makeRequest = async (
     token: string,
     eserviceId: string = mockApiEservice.id,
-    descriptorId: string = mockApiDescriptor.id
+    descriptorId: string = mockApiDescriptor.id,
+    body: m2mGatewayApiV3.GracePeriodDaysSeed = mockSeed
   ) =>
     request(api)
       .post(
@@ -37,7 +42,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
       )
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
-      .send();
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -80,6 +85,20 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
     const res = await makeRequest(token, mockApiEservice.id, "INVALID_ID");
     expect(res.status).toBe(400);
   });
+
+  it.each([-1, 0, 1, 29])(
+    "Should return 400 for invalid gracePeriodDays %s",
+    async (gracePeriodDays) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        { gracePeriodDays: gracePeriodDays as m2mGatewayApiV3.GracePeriodDays }
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([
     missingMetadata(),

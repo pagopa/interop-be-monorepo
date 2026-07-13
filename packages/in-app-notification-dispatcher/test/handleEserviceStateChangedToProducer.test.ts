@@ -38,6 +38,7 @@ describe("handleEserviceStateChangedToProducer", () => {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.descriptor,
+      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
     },
   };
 
@@ -48,6 +49,7 @@ describe("handleEserviceStateChangedToProducer", () => {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.eservice,
+      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
     },
   };
 
