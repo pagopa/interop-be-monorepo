@@ -98,6 +98,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -209,6 +210,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -229,6 +231,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -316,6 +319,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -336,6 +340,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -416,6 +421,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
         },
       };
 

@@ -62,6 +62,7 @@ describe("E-service aggregator", () => {
       scope: archivingScope.descriptor,
       archivableOn: new Date(),
       startedAt: new Date(),
+      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
     };
 
     const descriptor: Descriptor = {

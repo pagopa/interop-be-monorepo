@@ -39,7 +39,8 @@ describe("cancel archiving of a descriptor", () => {
     archivableOn: new Date(),
     startedAt: new Date(),
     scope: archivingScope.descriptor,
-  };
+    gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+  } as const;
 
   it("should write on event-store to restore deprecated state for a descriptor in archiving state", async () => {
     const descriptor1: Descriptor = {
@@ -159,7 +160,8 @@ describe("cancel archiving of a descriptor", () => {
       archivableOn: new Date(),
       startedAt: new Date(),
       scope: archivingScope.eservice,
-    };
+      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+    } as const;
     const descriptor1: Descriptor = {
       ...mockDescriptor,
       interface: mockDocument,
@@ -320,6 +322,7 @@ describe("cancel archiving of a descriptor", () => {
         archivableOn: new Date(),
         startedAt: new Date(),
         scope: archivingScope.eservice,
+        gracePeriodDays: 30, // This value will be updated in subsequent PRs.
       },
     };
     const descriptor2: Descriptor = {

@@ -107,6 +107,7 @@ describe("schedule archiving of a descriptor", () => {
             )
           ),
           scope: "Descriptor",
+          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -226,6 +227,7 @@ describe("schedule archiving of a descriptor", () => {
         archivableOn: expectedArchivableOn,
         startedAt: startedAt,
         scope: ArchivingScope.Enum.Descriptor,
+        gracePeriodDays: 30, // This value will be updated in subsequent PRs.
       };
 
       const expectedDescriptor1: Descriptor = {
