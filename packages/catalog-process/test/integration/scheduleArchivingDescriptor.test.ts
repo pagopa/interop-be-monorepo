@@ -17,6 +17,7 @@ import {
   delegationState,
   EService,
   toEServiceV2,
+  GracePeriodDays,
   operationForbidden,
   EServiceDescriptorArchivingScheduledV2,
   generateId,
@@ -37,8 +38,12 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import * as dateCalculator from "../../src/utilities/dateCalculator.js";
+import { config } from "../../src/config/config.js";
 
 describe("schedule archiving of a descriptor", () => {
+  const gracePeriodDays =
+    config.gracePeriodArchivingEServiceDays as GracePeriodDays;
+
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
@@ -107,7 +112,7 @@ describe("schedule archiving of a descriptor", () => {
             )
           ),
           scope: "Descriptor",
-          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+          gracePeriodDays, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -227,7 +232,7 @@ describe("schedule archiving of a descriptor", () => {
         archivableOn: expectedArchivableOn,
         startedAt: startedAt,
         scope: ArchivingScope.Enum.Descriptor,
-        gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+        gracePeriodDays, // This value will be updated in subsequent PRs.
       };
 
       const expectedDescriptor1: Descriptor = {

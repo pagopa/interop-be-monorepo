@@ -16,6 +16,7 @@ import {
   delegationKind,
   delegationState,
   EService,
+  GracePeriodDays,
   toEServiceV2,
   operationForbidden,
   generateId,
@@ -33,8 +34,12 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { config } from "../../src/config/config.js";
 
 describe("schedule archiving of an EService", () => {
+  const gracePeriodDays =
+    config.gracePeriodArchivingEServiceDays as GracePeriodDays;
+
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
@@ -98,7 +103,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+          gracePeriodDays, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -210,7 +215,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+          gracePeriodDays, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -231,7 +236,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+          gracePeriodDays, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -319,7 +324,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+          gracePeriodDays, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -340,7 +345,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+          gracePeriodDays, // This value will be updated in subsequent PRs.
         },
       };
 
@@ -421,7 +426,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+          gracePeriodDays, // This value will be updated in subsequent PRs.
         },
       };
 
