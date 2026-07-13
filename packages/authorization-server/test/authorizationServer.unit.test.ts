@@ -22,10 +22,8 @@ import {
 } from "pagopa-interop-models";
 import {} from "pagopa-interop-client-assertion-validation";
 import { genericLogger } from "pagopa-interop-commons";
-import {
-  fallbackAudit,
-  retrieveKey,
-} from "../src/utilities/tokenServiceHelpers.js";
+import { retrieveKey } from "../src/utilities/tokenServiceHelpers.js";
+import { fallbackAudit } from "../src/utilities/audit.js";
 import {
   fallbackAuditFailed,
   incompleteTokenGenerationStatesConsumerClient,
@@ -34,7 +32,7 @@ import {
 import { config } from "../src/config/config.js";
 import { dynamoDBClient, fileManager } from "./integrationUtils.js";
 import {
-  getMockAuditMessage,
+  getMockConsumerTokenAuditMessage,
   mockKMSClient,
   mockProducer,
 } from "./mockUtils.js";
@@ -295,7 +293,7 @@ describe("unit tests", () => {
 
   describe("fallbackAudit", () => {
     it("should write the audit message to the file storage", async () => {
-      const mockAuditMessage = getMockAuditMessage();
+      const mockAuditMessage = getMockConsumerTokenAuditMessage();
 
       const fileListBeforeAudit = await fileManager.listFiles(
         config.s3Bucket,
@@ -324,7 +322,7 @@ describe("unit tests", () => {
     });
 
     it("should throw fallbackAuditFailed in case of unsuccessful file write operation", async () => {
-      const mockAuditMessage = getMockAuditMessage();
+      const mockAuditMessage = getMockConsumerTokenAuditMessage();
 
       mockProducer.send.mockImplementationOnce(async () => Promise.reject());
       vi.spyOn(fileManager, "storeBytes").mockImplementationOnce(() =>

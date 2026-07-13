@@ -37,7 +37,7 @@ type GeneratedAuditDetails =
   | GeneratedConsumerTokenAuditDetails
   | GeneratedApiTokenAuditDetails;
 
-export const buildAuditMessageBodyForConsumerToken = ({
+const buildAuditMessageBodyForConsumerToken = ({
   generatedToken,
   clientAssertion,
   dpop,
@@ -113,6 +113,7 @@ export const buildAuditMessageBodyForConsumerToken = ({
   ...(interaction ? { interaction } : {}),
 });
 
+/** @lintignore TODO: PIN-10579 */
 export const buildAuditMessageBodyForApiToken = ({
   generatedToken,
   clientAssertion,
