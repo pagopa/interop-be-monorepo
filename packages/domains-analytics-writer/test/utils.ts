@@ -46,6 +46,11 @@ export const dbContext: DBContext = {
   pgp: analyticsPostgresDB.$config.pgp,
 };
 
+await dbContext.conn.none(`
+  ALTER TABLE domains.eservice_descriptor_archiving_schedule
+  ADD COLUMN IF NOT EXISTS grace_period_days INTEGER;
+`);
+
 export const attributeTables: AttributeDbTable[] = [AttributeDbTable.attribute];
 
 export const catalogTables: CatalogDbTable[] = [

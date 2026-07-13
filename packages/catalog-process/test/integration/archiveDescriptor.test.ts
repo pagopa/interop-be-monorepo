@@ -86,6 +86,7 @@ describe("archive descriptor", () => {
       archivableOn: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
       startedAt: new Date(new Date().getTime() - 91 * 24 * 60 * 60 * 1000),
       scope: "Descriptor",
+      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
     };
 
     const descriptor: Descriptor = {
