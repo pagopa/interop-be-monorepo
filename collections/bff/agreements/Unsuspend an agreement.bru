@@ -1,11 +1,11 @@
 meta {
-  name: Activate an agreement
+  name: Unsuspend an agreement
   type: http
   seq: 1
 }
 
 post {
-  url: {{host-bff}}/agreements/:agreementId/activate
+  url: {{host-bff}}/agreements/:agreementId/unsuspend
   body: none
   auth: none
 }

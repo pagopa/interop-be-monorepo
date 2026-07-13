@@ -201,24 +201,50 @@ describe("database test", async () => {
         declared: [],
         verified: [],
       };
+      const emptyAttributes: EserviceAttributes = {
+        certified: [],
+        declared: [],
+        verified: [],
+      };
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.draft,
-        attributes,
+        attributes: emptyAttributes,
       };
       const eservice: EService = {
         ...mockEService,
-        attributes,
         descriptors: [descriptor],
       };
-      await catalogWriterService.upsertEService(eservice, 1);
+      const legacyEServiceWithAttributes = {
+        ...eservice,
+        attributes,
+      };
+      const eserviceAddedPayload: EServiceAddedV1 = {
+        eservice: toEServiceV1(legacyEServiceWithAttributes),
+      };
+      const eserviceAddedMessage: EServiceEventEnvelope = {
+        sequence_num: 1,
+        stream_id: mockEService.id,
+        version: 1,
+        type: "EServiceAdded",
+        event_version: 1,
+        data: eserviceAddedPayload,
+        log_date: new Date(),
+      };
+      await handleMessageV1(eserviceAddedMessage, catalogWriterService);
+
+      const retrievedEserviceBeforeMove =
+        await catalogReadModelService.getEServiceById(mockEService.id);
+
+      expect(retrievedEserviceBeforeMove?.data).toEqual(eservice);
+      expect(retrievedEserviceBeforeMove?.metadata).toEqual({ version: 1 });
+
       const expectedDescriptor = {
         ...descriptor,
         attributes,
       };
       const updatedEService: EService = {
         ...mockEService,
-        attributes: undefined,
         descriptors: [expectedDescriptor],
       };
       const payload: MovedAttributesFromEserviceToDescriptorsV1 = {
@@ -1677,6 +1703,7 @@ export const getMockDescriptor = (): Descriptor => ({
   dailyCallsTotal: 1000,
   createdAt: new Date(),
   serverUrls: ["pagopa.it"],
+  serverUrlsDescriptions: [],
   agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],
