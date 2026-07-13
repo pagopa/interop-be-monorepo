@@ -959,6 +959,7 @@ const eservicesRouter = (
             await catalogService.scheduleEServiceDescriptorArchiving(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
+              req.body,
               ctx
             );
 
