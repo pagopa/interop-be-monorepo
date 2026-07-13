@@ -747,11 +747,11 @@ export function catalogServiceBuilder(
     },
     scheduleArchiveEService: async (
       eServiceId: EServiceId,
-      archiveReason: bffApi.EServiceArchivingReasonSeed,
+      seed: bffApi.EServiceArchivingSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Scheduling archive for EService ${eServiceId}`);
-      await catalogProcessClient.scheduleEServiceArchiving(archiveReason, {
+      await catalogProcessClient.scheduleEServiceArchiving(seed, {
         headers,
         params: {
           eServiceId,
@@ -1392,21 +1392,19 @@ export function catalogServiceBuilder(
     scheduleArchiveEserviceDescriptor: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
+      seed: catalogApi.GracePeriodDaysSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
         `Scheduling descriptor ${descriptorId} of EService ${eServiceId}`
       );
-      await catalogProcessClient.scheduleEServiceDescriptorArchiving(
-        undefined,
-        {
-          headers,
-          params: {
-            eServiceId,
-            descriptorId,
-          },
-        }
-      );
+      await catalogProcessClient.scheduleEServiceDescriptorArchiving(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
     },
 
     cancelEServiceDescriptorArchiving: async (

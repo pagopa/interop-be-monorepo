@@ -69,7 +69,8 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    descriptorId: DescriptorId
+    descriptorId: DescriptorId,
+    body: catalogApi.GracePeriodDaysSeed
   ) =>
     request(api)
       .post(
@@ -77,7 +78,11 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .send(body);
+
+  const gracePeriodDaysSeed: catalogApi.GracePeriodDaysSeed = {
+    gracePeriodDays: 60,
+  };
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -88,7 +93,12 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token, mockEService.id, descriptor.id);
+      const res = await makeRequest(
+        token,
+        mockEService.id,
+        descriptor.id,
+        gracePeriodDaysSeed
+      );
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockApiEservice);
@@ -102,7 +112,12 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockEService.id, descriptor.id);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      descriptor.id,
+      gracePeriodDaysSeed
+    );
 
     expect(res.status).toBe(403);
   });
@@ -132,7 +147,12 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
         .mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, mockEService.id, descriptor.id);
+      const res = await makeRequest(
+        token,
+        mockEService.id,
+        descriptor.id,
+        gracePeriodDaysSeed
+      );
 
       expect(res.status).toBe(expectedStatus);
     }
@@ -149,8 +169,21 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        descriptorId as DescriptorId
+        descriptorId as DescriptorId,
+        gracePeriodDaysSeed
       );
+
+      expect(res.status).toBe(400);
+    }
+  );
+
+  it.each([0, -1, 1, 29, 31, 1066])(
+    "Should return 400 if passed invalid gracePeriodDays: %s",
+    async (gracePeriodDays) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id, descriptor.id, {
+        gracePeriodDays,
+      } as catalogApi.GracePeriodDaysSeed);
 
       expect(res.status).toBe(400);
     }
