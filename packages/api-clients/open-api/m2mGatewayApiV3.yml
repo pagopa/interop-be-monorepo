@@ -2822,7 +2822,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
+              $ref: "#/components/schemas/EServiceArchivingSeed"
       responses:
         "200":
           description: Archiving process of an E-Service scheduled successfully
@@ -4127,6 +4127,12 @@ paths:
       summary: Schedule the archiving process for an E-Service Descriptor
       description: Schedules an archiving of an E-Service Descriptor that is in Deprecated or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.
       operationId: scheduleArchiveEserviceDescriptor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GracePeriodDaysSeed"
       responses:
         "200":
           description: Archiving process of an E-Service Descriptor scheduled successfully
@@ -12330,6 +12336,12 @@ components:
           format: date-time
         scope:
           $ref: "#/components/schemas/ArchivingScope"
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+      required:
+        - archivableOn
+        - startedAt
+        - scope
     ArchivingScope:
       type: string
       description: Archiving Scope
@@ -13606,16 +13618,33 @@ components:
         createdAt:
           type: string
           format: date-time
-    EServiceArchivingReasonSeed:
+    GracePeriodDays:
+      description: Number of days for the archiving grace period
+      type: integer
+      format: int32
+      enum: [30, 60, 90, 120]
+    GracePeriodDaysSeed:
       type: object
       additionalProperties: false
+      properties:
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+      required:
+       - gracePeriodDays
+    EServiceArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Archiving Reason and Grace Period Days
       properties:
         archivingReason:
           type: string
           minLength: 10
           maxLength: 250
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
       required:
         - archivingReason
+        - gracePeriodDays
     Tenant:
       description: Tenant model
       type: object

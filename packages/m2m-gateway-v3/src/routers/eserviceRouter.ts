@@ -876,6 +876,7 @@ const eserviceRouter = (
             await eserviceService.scheduleArchiveEserviceDescriptor(
               unsafeBrandId(req.params.eserviceId),
               unsafeBrandId(req.params.descriptorId),
+              req.body,
               ctx
             );
           return res

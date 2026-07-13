@@ -357,6 +357,7 @@ const catalogRouter = (
           await catalogService.scheduleArchiveEserviceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
+            req.body,
             ctx
           );
           return res.status(204).send();

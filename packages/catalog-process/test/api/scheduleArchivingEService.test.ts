@@ -42,8 +42,9 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
 
   const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
 
-  const archivingReasonSeed: catalogApi.EServiceArchivingReasonSeed = {
+  const archivingReasonSeed: catalogApi.EServiceArchivingSeed = {
     archivingReason: "No longer needed",
+    gracePeriodDays: 60,
   };
 
   catalogService.scheduleEServiceArchiving = vi
@@ -53,7 +54,7 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    body: catalogApi.EServiceArchivingReasonSeed = archivingReasonSeed
+    body: catalogApi.EServiceArchivingSeed = archivingReasonSeed
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/scheduleArchive`)
@@ -122,9 +123,14 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
 
   it.each([
     [{}, mockEService.id],
-    [{ archivingReason: "Some reason" }, "invalidId"],
-    [{ archivingReason: 1 }, mockEService.id],
-    [{ archivingReason: "too short" }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: 60 }, "invalidId"],
+    [{ archivingReason: 1, gracePeriodDays: 60 }, mockEService.id],
+    [{ archivingReason: "too short", gracePeriodDays: 60 }, mockEService.id],
+    [{ archivingReason: "Some reason" }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: -1 }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: 0 }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: 1 }, mockEService.id],
+    [{ archivingReason: "Some reason", gracePeriodDays: 29 }, mockEService.id],
   ])(
     "Should return 400 if passed invalid params: %s",
     async (body, eServiceId) => {
@@ -132,7 +138,7 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        body as catalogApi.EServiceArchivingReasonSeed
+        body as catalogApi.EServiceArchivingSeed
       );
 
       expect(res.status).toBe(400);
