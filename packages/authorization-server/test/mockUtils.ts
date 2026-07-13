@@ -9,6 +9,7 @@ import {
   generateId,
   ClientId,
   GeneratedConsumerTokenAuditDetails,
+  GeneratedApiTokenAuditDetails,
   EServiceId,
   DescriptorId,
   AgreementId,
@@ -27,6 +28,9 @@ if (!dpopConfig) {
 }
 
 export const mockProducer = {
+  send: vi.fn(),
+};
+export const mockApiProducer = {
   send: vi.fn(),
 };
 export const mockKMSClient = {
@@ -56,6 +60,41 @@ export const getMockTokenRequest = async (
   },
   body: await getMockAccessTokenRequest(),
 });
+
+export const getMockApiTokenAuditMessage =
+  (): GeneratedApiTokenAuditDetails => {
+    const correlationId = generateId();
+    const clientId = generateId<ClientId>();
+    const organizationId = generateId<TenantId>();
+    const kid = "kid";
+    const clientAssertionJti = generateId();
+
+    return {
+      correlationId,
+      subject: clientId,
+      audience: "pagopa.it",
+      algorithm: algorithm.RS256,
+      clientId,
+      keyId: kid,
+      typ: "at+jwt",
+      jwtId: generateId(),
+      issuedAt: dateToSeconds(new Date()),
+      issuer: "interop jwt issuer",
+      expirationTime: dateToSeconds(new Date()),
+      organizationId,
+      notBefore: 0,
+      clientAssertion: {
+        subject: clientId,
+        audience: "pagopa.it",
+        algorithm: algorithm.RS256,
+        keyId: kid,
+        jwtId: clientAssertionJti,
+        issuedAt: dateToSeconds(new Date()),
+        issuer: organizationId,
+        expirationTime: dateToSeconds(new Date()),
+      },
+    };
+  };
 
 export const getMockConsumerTokenAuditMessage =
   (): GeneratedConsumerTokenAuditDetails => {
