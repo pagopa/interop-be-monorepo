@@ -68,6 +68,7 @@ import {
   archivingScope,
   ArchivingScope,
   AsyncExchangeProperties,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -4651,6 +4652,7 @@ async function processDescriptorArchiving(
       config.gracePeriodArchivingEServiceDays
     ),
     scope,
+    gracePeriodDays: config.gracePeriodArchivingEServiceDays as GracePeriodDays, // This will change in the future to be configurable per descriptor, for now we use the global config value),
   };
 
   return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);
