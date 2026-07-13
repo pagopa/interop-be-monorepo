@@ -23,7 +23,6 @@ import {
 } from "../../model/domain/errors.js";
 import {
   logTokenGenerationInfo,
-  publishAudit,
   retrieveAsyncCatalogEntry,
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
@@ -35,6 +34,7 @@ import type {
   AsyncGeneratedTokenData,
   ScopeHandlerContext,
 } from "../asyncTokenService.js";
+import { publishConsumerTokenAudit } from "../../utilities/audit.js";
 
 export const handleGetResource = async (
   ctx: ScopeHandlerContext
@@ -222,7 +222,7 @@ export const handleGetResource = async (
   });
 
   // 11. Publish audit (consumer-side)
-  await publishAudit({
+  await publishConsumerTokenAudit({
     producer,
     generatedToken: token,
     key,
