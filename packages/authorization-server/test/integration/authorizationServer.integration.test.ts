@@ -1860,7 +1860,7 @@ describe("authorization server tests", () => {
     const parsedAuditSent = JSON.parse(actualMessageSent.value);
 
     const expectedMessageBody: GeneratedApiTokenAuditDetails = {
-      jwtId: generateId(),
+      jwtId: result.token!.payload.jti,
       correlationId,
       issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
@@ -1958,7 +1958,7 @@ describe("authorization server tests", () => {
     const parsedAuditSent = JSON.parse(actualMessageSent.value);
 
     const expectedMessageBody: GeneratedApiTokenAuditDetails = {
-      jwtId: generateId(),
+      jwtId: result.token!.payload.jti,
       correlationId,
       issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
