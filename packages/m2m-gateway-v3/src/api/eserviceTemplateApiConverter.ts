@@ -2,7 +2,7 @@ import {
   eserviceTemplateApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
-import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
+import { riskAnalysisAnswersToApiAnswers } from "pagopa-interop-commons";
 
 export function toM2MGatewayEServiceTemplate(
   template: eserviceTemplateApi.EServiceTemplate
@@ -46,9 +46,14 @@ export function toM2MGatewayApiEServiceTemplateRiskAnalysis(
     id: riskAnalysis.id,
     name: riskAnalysis.name,
     createdAt: riskAnalysis.createdAt,
-    riskAnalysisForm: toM2MGatewayApiRiskAnalysisForm(
-      riskAnalysis.riskAnalysisForm
-    ),
+    riskAnalysisForm: {
+      id: riskAnalysis.riskAnalysisForm.id,
+      version: riskAnalysis.riskAnalysisForm.version,
+      answers: riskAnalysisAnswersToApiAnswers(
+        riskAnalysis.riskAnalysisForm.singleAnswers,
+        riskAnalysis.riskAnalysisForm.multiAnswers
+      ),
+    },
     tenantKind: riskAnalysis.tenantKind,
   };
 }

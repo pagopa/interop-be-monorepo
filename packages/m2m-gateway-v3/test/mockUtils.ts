@@ -18,6 +18,7 @@ import {
   agreementApi,
   authorizationApi,
   catalogApi,
+  eserviceTemplateApi,
   m2mEventApi,
   m2mGatewayApiV3,
   purposeApi,
@@ -109,8 +110,14 @@ export const buildEserviceTemplateRiskAnalysisSeed = (
 };
 
 export function testToM2MEServiceRiskAnalysisAnswers(
-  riskAnalysisForm: catalogApi.EServiceRiskAnalysis["riskAnalysisForm"]
+  riskAnalysisForm:
+    | catalogApi.EServiceRiskAnalysis["riskAnalysisForm"]
+    | eserviceTemplateApi.EServiceTemplateRiskAnalysis["riskAnalysisForm"]
 ): m2mGatewayApiV3.EServiceRiskAnalysis["riskAnalysisForm"]["answers"] {
+  if ("answers" in riskAnalysisForm) {
+    return riskAnalysisForm.answers;
+  }
+
   const expectedSingleAnswers = riskAnalysisForm.singleAnswers.reduce<
     Record<string, string[]>
   >((singleAnswersMap, { key, value }) => {

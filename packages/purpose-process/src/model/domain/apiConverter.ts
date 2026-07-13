@@ -7,10 +7,8 @@ import {
   PurposeVersionSignedDocument,
   PurposeVersionState,
   ReviewerWorkflow,
-  RiskAnalysisMultiAnswer,
   RiskAnalysisReviewMode,
   RiskAnalysisSigningState,
-  RiskAnalysisSingleAnswer,
   purposeVersionState,
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
@@ -26,50 +24,22 @@ import {
   FormQuestionRules,
   RiskAnalysisFormRules,
   ValidationOption,
+  riskAnalysisAnswersToApiAnswers,
 } from "pagopa-interop-commons";
 import { purposeApi } from "pagopa-interop-api-clients";
 import { RemainingDailyCalls } from "./models.js";
 
-const singleAnswersToApiSingleAnswers = (
-  singleAnswers: RiskAnalysisSingleAnswer[]
-): Record<string, string[]> =>
-  singleAnswers.reduce<Record<string, string[]>>((acc, curr) => {
-    if (!curr.value) {
-      return acc;
-    }
-    // eslint-disable-next-line functional/immutable-data
-    acc[curr.key] = [curr.value];
-    return acc;
-  }, {});
-
-const multiAnswersToApiMultiAnswers = (
-  multiAnswers: RiskAnalysisMultiAnswer[]
-): Record<string, string[]> =>
-  multiAnswers.reduce<Record<string, string[]>>((acc, curr) => {
-    if (curr.values.length === 0) {
-      return acc;
-    }
-    // eslint-disable-next-line functional/immutable-data
-    acc[curr.key] = curr.values;
-    return acc;
-  }, {});
-
 const riskAnalysisFormToApiRiskAnalysisForm = (
   riskAnalysisForm: PurposeRiskAnalysisForm
-): purposeApi.RiskAnalysisForm => {
-  const apiSingleAnswersMap = singleAnswersToApiSingleAnswers(
-    riskAnalysisForm.singleAnswers
-  );
-  const apiMultiAnswersMap = multiAnswersToApiMultiAnswers(
+): purposeApi.RiskAnalysisForm => ({
+  version: riskAnalysisForm.version,
+  answers: riskAnalysisAnswersToApiAnswers(
+    riskAnalysisForm.singleAnswers,
     riskAnalysisForm.multiAnswers
-  );
-  return {
-    version: riskAnalysisForm.version,
-    answers: { ...apiSingleAnswersMap, ...apiMultiAnswersMap },
-    riskAnalysisId: riskAnalysisForm.riskAnalysisId,
-    tenantKind: riskAnalysisForm.tenantKind,
-  };
-};
+  ),
+  riskAnalysisId: riskAnalysisForm.riskAnalysisId,
+  tenantKind: riskAnalysisForm.tenantKind,
+});
 
 const purposeVersionStateToApiPurposeVersionState = (
   state: PurposeVersionState

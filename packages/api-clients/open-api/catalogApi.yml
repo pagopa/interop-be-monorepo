@@ -3474,55 +3474,22 @@ components:
       required:
         - id
         - version
-        - singleAnswers
-        - multiAnswers
+        - answers
       properties:
         id:
           type: string
           format: uuid
         version:
           type: string
-        singleAnswers:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceRiskAnalysisSingleAnswer"
-        multiAnswers:
-          type: array
-          items:
-            $ref: "#/components/schemas/EServiceRiskAnalysisMultiAnswer"
+        answers:
+          additionalProperties:
+            type: array
+            items:
+              type: string
+              minLength: 1
+              maxLength: 2000
         tenantKind:
           $ref: "#/components/schemas/TenantKind"
-    EServiceRiskAnalysisSingleAnswer:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - key
-      properties:
-        id:
-          type: string
-          format: uuid
-        key:
-          type: string
-        value:
-          type: string
-    EServiceRiskAnalysisMultiAnswer:
-      type: object
-      additionalProperties: false
-      required:
-        - id
-        - key
-        - values
-      properties:
-        id:
-          type: string
-          format: uuid
-        key:
-          type: string
-        values:
-          type: array
-          items:
-            type: string
     EServiceConsumers:
       type: object
       additionalProperties: false
