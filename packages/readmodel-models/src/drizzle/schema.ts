@@ -495,6 +495,7 @@ export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
         withTimezone: true,
         mode: "string",
       }).notNull(),
+      gracePeriodDays: integer("grace_period_days").notNull(),
     },
     (table) => [
       foreignKey({

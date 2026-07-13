@@ -13,6 +13,7 @@ import {
   EServiceRiskAnalysisFormV2,
   EServiceTechnologyV2,
   EServiceV2,
+  GracePeriodDaysV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -40,6 +41,7 @@ import {
   eserviceMode,
   technology,
   type EServiceAttributeCertifiedDiscreteConfig,
+  type GracePeriodDays,
 } from "./eservice.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
@@ -176,6 +178,16 @@ export const toEServiceDescriptorArchivingScopeV2 = (
     .with(archivingScope.descriptor, () => ArchivingScopeV2.DESCRIPTOR)
     .exhaustive();
 
+export const toGracePeriodDaysV2 = (
+  input: GracePeriodDays
+): GracePeriodDaysV2 =>
+  match(input)
+    .with(30, () => GracePeriodDaysV2.GRACE_PERIOD_30_DAYS)
+    .with(60, () => GracePeriodDaysV2.GRACE_PERIOD_60_DAYS)
+    .with(90, () => GracePeriodDaysV2.GRACE_PERIOD_90_DAYS)
+    .with(120, () => GracePeriodDaysV2.GRACE_PERIOD_120_DAYS)
+    .exhaustive();
+
 export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   ...input,
   version: BigInt(input.version),
@@ -204,6 +216,9 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
         startedAt: dateToBigInt(input.archivingSchedule.startedAt),
         scope: toEServiceDescriptorArchivingScopeV2(
           input.archivingSchedule.scope
+        ),
+        gracePeriodDays: toGracePeriodDaysV2(
+          input.archivingSchedule.gracePeriodDays
         ),
       }
     : undefined,
