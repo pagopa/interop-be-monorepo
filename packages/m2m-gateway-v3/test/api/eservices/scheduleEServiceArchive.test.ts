@@ -17,8 +17,9 @@ import { config } from "../../../src/config/config.js";
 describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
   const mockEService: catalogApi.EService = getMockedApiEservice();
 
-  const mockSeed: m2mGatewayApiV3.EServiceArchivingReasonSeed = {
+  const mockSeed: m2mGatewayApiV3.EServiceArchivingSeed = {
     archivingReason: "test reason",
+    gracePeriodDays: 60,
   };
 
   const mockM2MEService: m2mGatewayApiV3.EService =
@@ -27,7 +28,7 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
   const makeRequest = async (
     token: string,
     eserviceId: string = mockEService.id,
-    body: m2mGatewayApiV3.EServiceArchivingReasonSeed = mockSeed
+    body: m2mGatewayApiV3.EServiceArchivingSeed = mockSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/${eserviceId}/scheduleArchive`)
@@ -71,19 +72,35 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
     expect(res.status).toBe(400);
   });
 
-  it.each([{ invalidParam: "invalidValue" }, { ...mockSeed, extraParam: -1 }])(
-    "Should return 400 if passed invalid seed (seed #%#)",
-    async (seed) => {
-      const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        mockEService.id,
-        seed as m2mGatewayApiV3.EServiceArchivingReasonSeed
-      );
+  it.each([
+    { invalidParam: "invalidValue" },
+    { ...mockSeed, extraParam: -1 },
+    {
+      ...mockSeed,
+      gracePeriodDays: -1,
+    },
+    {
+      ...mockSeed,
+      gracePeriodDays: 0,
+    },
+    {
+      ...mockSeed,
+      gracePeriodDays: 1,
+    },
+    {
+      ...mockSeed,
+      gracePeriodDays: 29,
+    },
+  ])("Should return 400 if passed invalid seed (seed #%#)", async (seed) => {
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      seed as m2mGatewayApiV3.EServiceArchivingSeed
+    );
 
-      expect(res.status).toBe(400);
-    }
-  );
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     missingMetadata(),
