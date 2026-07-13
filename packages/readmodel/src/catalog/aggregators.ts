@@ -132,10 +132,12 @@ export const aggregateDescriptor = ({
   const declaredAttributes = attributesSQLtoAttributes(declaredAttributesSQL);
   const verifiedAttributes = attributesSQLtoAttributes(verifiedAttributesSQL);
 
-  const rejectionReasonsArray = rejectionReasonsSQL.map((rejectionReason) => ({
-    rejectionReason: rejectionReason.rejectionReason,
-    rejectedAt: stringToDate(rejectionReason.rejectedAt),
-  }));
+  const rejectionReasonsArray = rejectionReasonsSQL
+    .map((rejectionReason) => ({
+      rejectionReason: rejectionReason.rejectionReason,
+      rejectedAt: stringToDate(rejectionReason.rejectedAt),
+    }))
+    .sort((r1, r2) => r1.rejectedAt.getTime() - r2.rejectedAt.getTime());
   const rejectionReasons =
     rejectionReasonsArray.length > 0 ? rejectionReasonsArray : undefined;
 
