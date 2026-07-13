@@ -140,6 +140,12 @@ export const getContextsAllowedToSeeInactiveDescriptors = (
       userRoles: [userRole.SUPPORT_ROLE],
     },
   }),
+  getMockContext({
+    authData: {
+      ...getMockAuthData(producerOrDelegateId),
+      userRoles: [userRole.VIEWER_ROLE],
+    },
+  }),
   getMockContextM2M({
     organizationId: producerOrDelegateId,
   }),

@@ -35,9 +35,9 @@ const toCatalogDescriptorStateV1 = (input: DescriptorState): string =>
     .with(descriptorState.deprecated, () => "Deprecated")
     .with(descriptorState.suspended, () => "Suspended")
     .with(descriptorState.archived, () => "Archived")
-    .with(descriptorState.waitingForApproval, () => "WaitingForApproval")
-    .with(descriptorState.archiving, () => "Archiving")
-    .with(descriptorState.archivingSuspended, () => "ArchivingSuspended")
+    .with(descriptorState.waitingForApproval, () => "Draft")
+    .with(descriptorState.archiving, () => "Deprecated")
+    .with(descriptorState.archivingSuspended, () => "Suspended")
     .exhaustive();
 
 const toAgreementApprovalPolicyV1 = (input: AgreementApprovalPolicy): string =>
@@ -130,11 +130,6 @@ export const toCatalogItemV1 = (
   name: event.name,
   description: event.description,
   technology: toCatalogItemTechnologyV1(event.technology),
-  attributes: {
-    certified: toCatalogAttributeValueV1(event?.attributes?.certified),
-    declared: toCatalogAttributeValueV1(event?.attributes?.declared),
-    verified: toCatalogAttributeValueV1(event?.attributes?.verified),
-  },
   descriptors: toCatalogDescriptorV1(event.descriptors),
   createdAt: event.createdAt.toISOString(),
   riskAnalysis: toCatalogItemRiskAnalysisV1(event.riskAnalysis),

@@ -25,7 +25,7 @@ import {
   descriptorNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
-import { handleEserviceDescriptorSuspended } from "../src/handlers/eservices/handleEserviceDescriptorSuspended.js";
+import { handleEserviceDescriptorSuspendedToConsumer } from "../src/handlers/eservices/handleEserviceDescriptorSuspendedToConsumer.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -35,7 +35,7 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handleEserviceDescriptorSuspended", async () => {
+describe("handleEserviceDescriptorSuspendedToConsumer", async () => {
   const producerId = generateId<TenantId>();
   const consumerIds = [generateId<TenantId>(), generateId<TenantId>()];
   const eserviceId = generateId<EServiceId>();
@@ -79,7 +79,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-      handleEserviceDescriptorSuspended({
+      handleEserviceDescriptorSuspendedToConsumer({
         eserviceV2Msg: undefined,
         descriptorId: descriptor.id,
         logger,
@@ -102,7 +102,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
     };
 
     await expect(() =>
-      handleEserviceDescriptorSuspended({
+      handleEserviceDescriptorSuspendedToConsumer({
         eserviceV2Msg: toEServiceV2(eserviceWithUnknownProducer),
         descriptorId: descriptor.id,
         logger,
@@ -117,7 +117,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
     const nonExistentDescriptorId = generateId<DescriptorId>();
 
     await expect(() =>
-      handleEserviceDescriptorSuspended({
+      handleEserviceDescriptorSuspendedToConsumer({
         eserviceV2Msg: toEServiceV2(eservice),
         descriptorId: nonExistentDescriptorId,
         logger,
@@ -129,7 +129,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
   });
 
   it("should skip event if no consumer is present for the eservice", async () => {
-    const messages = await handleEserviceDescriptorSuspended({
+    const messages = await handleEserviceDescriptorSuspendedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,
@@ -153,7 +153,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorSuspended({
+    const messages = await handleEserviceDescriptorSuspendedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,
@@ -214,7 +214,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorSuspended({
+    const messages = await handleEserviceDescriptorSuspendedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,
@@ -258,7 +258,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleEserviceDescriptorSuspended({
+    const messages = await handleEserviceDescriptorSuspendedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,
@@ -293,7 +293,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleEserviceDescriptorSuspended({
+    const messages = await handleEserviceDescriptorSuspendedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,
@@ -326,7 +326,7 @@ describe("handleEserviceDescriptorSuspended", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorSuspended({
+    const messages = await handleEserviceDescriptorSuspendedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,

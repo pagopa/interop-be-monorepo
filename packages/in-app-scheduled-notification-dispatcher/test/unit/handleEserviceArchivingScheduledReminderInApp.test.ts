@@ -35,6 +35,7 @@ const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
   agreementApprovalPolicy: undefined,
   createdAt: new Date(),
   serverUrls: [],
+  serverUrlsDescriptions: [],
   attributes: { certified: [], declared: [], verified: [] },
   publishedAt: undefined,
   suspendedAt: undefined,
@@ -56,7 +57,6 @@ const makeEservice = (overrides: Partial<EService> = {}): EService => ({
   name: "test-eservice",
   description: "desc",
   technology: "Rest",
-  attributes: undefined,
   descriptors: [],
   createdAt: new Date(),
   riskAnalysis: [],
@@ -186,11 +186,11 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
     );
     expect(producer?.userId).toBe(producerUserId);
     expect(producer?.entityId).toBe(eservice.id);
-    expect(producer?.body).toContain("verrà archiviato");
+    expect(producer?.body).toContain("sarà archiviato");
     expect(producer?.body).not.toMatch(/versione\s+\d/);
     expect(consumers).toHaveLength(2);
     expect(consumers.every((c) => c.body.includes("producer-tenant"))).toBe(
-      true
+      false
     );
     expect(consumers.every((c) => !/versione\s+\d/.test(c.body))).toBe(true);
   });

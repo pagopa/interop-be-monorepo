@@ -104,6 +104,8 @@ import {
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotInSignedState,
+  reviewerWorkflowNotAllowedForDelegatedPurpose,
+  reviewerWorkflowNotAllowedForReceiveMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -553,6 +555,21 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertRequesterIsConsumer(purpose.data, authData);
+
+      assertPurposeIsNotFromTemplate(purpose.data);
+
+      if (purpose.data.delegationId !== undefined) {
+        throw reviewerWorkflowNotAllowedForDelegatedPurpose(purposeId);
+      }
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      if (eservice.mode === eserviceMode.receive) {
+        throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
+      }
 
       if (purpose.data.reviewerWorkflow !== undefined) {
         throw reviewerWorkflowConflict(purposeId);
@@ -1446,6 +1463,12 @@ export function purposeServiceBuilder(
           createdAt: new Date(),
           state: purposeVersionState.waitingForApproval,
           dailyCalls: seed.dailyCalls,
+          stamps: {
+            creation: {
+              who: authData.userId,
+              when: new Date(),
+            },
+          },
         };
 
         const updatedPurpose = {
@@ -1623,6 +1646,7 @@ export function purposeServiceBuilder(
               return changePurposeVersionToWaitForApprovalFromDraftLogic(
                 purpose,
                 purposeVersion,
+                authData,
                 correlationId
               );
             }
@@ -2737,6 +2761,7 @@ const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
 function changePurposeVersionToWaitForApprovalFromDraftLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
+  authData: UIAuthData | M2MAdminAuthData,
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
@@ -2746,6 +2771,12 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
     ...purposeVersion,
     state: purposeVersionState.waitingForApproval,
     updatedAt: new Date(),
+    stamps: {
+      creation: {
+        who: authData.userId,
+        when: new Date(),
+      },
+    },
   };
 
   const updatedPurpose: Purpose = replacePurposeVersion(

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DescriptorId,
+  EServiceDescriptorStateV2,
   EServiceDocumentId,
   EServiceEventEnvelopeV2,
   EServiceId,
@@ -60,6 +61,7 @@ const eservice = toEServiceV2({
       agreementApprovalPolicy: "Automatic",
       createdAt: new Date("2026-05-22T07:50:00.000Z"),
       serverUrls: ["https://example.com/callback"],
+      serverUrlsDescriptions: [],
       attributes: {
         certified: [],
         declared: [],
@@ -90,6 +92,34 @@ const getEnvelope = (
     eservice,
   },
 });
+
+const getDescriptorStateEnvelope = (
+  state:
+    | typeof EServiceDescriptorStateV2.ARCHIVING
+    | typeof EServiceDescriptorStateV2.ARCHIVING_SUSPENDED
+): EServiceEventEnvelopeV2 => {
+  const eserviceWithDescriptorState = {
+    ...eservice,
+    descriptors: eservice.descriptors.map((descriptor) => ({
+      ...descriptor,
+      state,
+    })),
+  };
+
+  return {
+    sequence_num: 1,
+    stream_id: eserviceId,
+    version: 1,
+    correlation_id: generateId(),
+    log_date: new Date("2026-05-22T08:10:00.000Z"),
+    event_version: 2,
+    type: "EServiceDescriptorArchivingScheduled",
+    data: {
+      descriptorId,
+      eservice: eserviceWithDescriptorState,
+    },
+  };
+};
 
 describe("toCatalogItemEventNotification", () => {
   it("should convert async exchange callback interface added events using the callback interface document", () => {
@@ -125,6 +155,34 @@ describe("toCatalogItemEventNotification", () => {
           asyncExchangeCallbackInterfaceDocument.uploadDate.toISOString(),
       },
       serverUrls: [],
+    });
+  });
+
+  it("should map descriptor state archiving to Deprecated for v1 compatibility", () => {
+    const result = toCatalogItemEventNotification(
+      getDescriptorStateEnvelope(EServiceDescriptorStateV2.ARCHIVING)
+    );
+
+    expect(result).toMatchObject({
+      eServiceId: eserviceId,
+      catalogDescriptor: {
+        id: descriptorId,
+        state: "Deprecated",
+      },
+    });
+  });
+
+  it("should map descriptor state archivingSuspended to Suspended for v1 compatibility", () => {
+    const result = toCatalogItemEventNotification(
+      getDescriptorStateEnvelope(EServiceDescriptorStateV2.ARCHIVING_SUSPENDED)
+    );
+
+    expect(result).toMatchObject({
+      eServiceId: eserviceId,
+      catalogDescriptor: {
+        id: descriptorId,
+        state: "Suspended",
+      },
     });
   });
 });
