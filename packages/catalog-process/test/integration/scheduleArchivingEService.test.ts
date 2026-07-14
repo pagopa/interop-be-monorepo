@@ -36,6 +36,7 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { calculateArchivableOn } from "../../src/utilities/dateCalculator.js";
 
 describe("schedule archiving of an EService", () => {
   const mockEService = getMockEService();
@@ -370,38 +371,64 @@ describe("schedule archiving of an EService", () => {
     }
   );
 
-  it("Should throw gracePeriodDaysLowerThanDescriptor if the grace period days is lower than the descriptor grace period days", async () => {
+  it("Should not throw gracePeriodDaysLowerThanDescriptor if the grace period days is equal to the descriptor grace period days", async () => {
     const activeDescriptor: Descriptor = {
       ...mockDescriptor,
-      id: generateId(),
       version: "2",
       state: descriptorState.published,
-      publishedAt: new Date(),
-      interface: getMockDocument(),
     };
 
-    const higherArchivableOn = new Date();
-    higherArchivableOn.setUTCDate(new Date().getUTCDate() + 90 + 1);
-    const archivingSchedule: ArchivingSchedule = {
-      archivableOn: higherArchivableOn,
-      startedAt: new Date(),
-      scope: "EService",
-      gracePeriodDays: GracePeriodDays.parse(90),
+    const descriptorArchivingSchedule: ArchivingSchedule = {
+      ...calculateArchivableOn(new Date(), mockGracePeriodDays),
+      scope: "Descriptor",
     };
     const archivingDescriptor: Descriptor = {
-      ...mockDescriptor,
-      id: generateId(),
+      ...getMockDescriptor(),
       version: "1",
       state: descriptorState.archiving,
-      archivingSchedule,
+      archivingSchedule: descriptorArchivingSchedule,
     };
     const eservice: EService = {
       ...mockEService,
       descriptors: [activeDescriptor, archivingDescriptor],
     };
-    const expectedArchivableOn = new Date();
-    expectedArchivableOn.setUTCDate(
-      new Date().getUTCDate() + mockGracePeriodDays + 1
+    await addOneEService(eservice);
+    await expect(
+      catalogService.scheduleEServiceArchiving(
+        eservice.id,
+        {
+          archivingReason: mockArchivingReason,
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.not.toThrow();
+  });
+
+  it("Should throw gracePeriodDaysLowerThanDescriptor if the grace period days is lower than the descriptor grace period days", async () => {
+    const activeDescriptor: Descriptor = {
+      ...mockDescriptor,
+      version: "2",
+      state: descriptorState.published,
+    };
+
+    const descriptorArchivingSchedule: ArchivingSchedule = {
+      ...calculateArchivableOn(new Date(), GracePeriodDays.parse(90)),
+      scope: "Descriptor",
+    };
+    const archivingDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      version: "1",
+      state: descriptorState.archiving,
+      archivingSchedule: descriptorArchivingSchedule,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [activeDescriptor, archivingDescriptor],
+    };
+    const expectedEServiceArchivingSchedule = calculateArchivableOn(
+      new Date(),
+      mockGracePeriodDays
     );
     await addOneEService(eservice);
     await expect(
@@ -417,8 +444,8 @@ describe("schedule archiving of an EService", () => {
       gracePeriodDaysLowerThanDescriptor(
         eservice.id,
         archivingDescriptor.id,
-        expectedArchivableOn,
-        archivingSchedule.archivableOn
+        expectedEServiceArchivingSchedule.archivableOn,
+        descriptorArchivingSchedule.archivableOn
       )
     );
   });

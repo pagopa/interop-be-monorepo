@@ -1256,6 +1256,7 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       logger.info(`Archiving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
+      const requestDate = new Date();
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
@@ -1267,11 +1268,13 @@ export function catalogServiceBuilder(
       assertEServiceArchivable(eservice.data);
 
       assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        requestDate,
         eservice.data,
         body.gracePeriodDays
       );
 
       const updatedEService = await processEserviceArchiving(
+        requestDate,
         eservice.data,
         body,
         fileManager,
@@ -4570,6 +4573,7 @@ export function catalogServiceBuilder(
 }
 
 async function processEserviceArchiving(
+  requestDate: Date,
   eservice: EService,
   body: catalogApi.EServiceArchivingSeed,
   fileManager: FileManager,
@@ -4590,7 +4594,6 @@ async function processEserviceArchiving(
       )
     : eservice;
 
-  const requestDate = new Date();
   const descriptors = await Promise.all(
     eserviceAfterCleanup.descriptors.map((descriptor) =>
       match(descriptor.state)
