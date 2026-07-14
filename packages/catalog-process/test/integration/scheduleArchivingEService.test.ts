@@ -149,7 +149,7 @@ describe("schedule archiving of an EService", () => {
           },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
-      ).rejects.toThrowError(notValidEServiceState(eservice.id));
+      ).rejects.toThrow(notValidEServiceState(eservice.id));
     }
   );
 
@@ -413,7 +413,7 @@ describe("schedule archiving of an EService", () => {
         },
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       gracePeriodDaysLowerThanDescriptor(
         eservice.id,
         archivingDescriptor.id,
@@ -511,7 +511,7 @@ describe("schedule archiving of an EService", () => {
         },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
-    ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+    ).rejects.toThrow(eServiceNotFound(mockEService.id));
   });
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
@@ -534,7 +534,7 @@ describe("schedule archiving of an EService", () => {
         },
         getMockContext({})
       )
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrow(operationForbidden);
   });
 
   it.each([delegationState.active, delegationState.waitingForApproval])(
@@ -568,7 +568,7 @@ describe("schedule archiving of an EService", () => {
             authData: getMockAuthData(eservice.producerId),
           })
         )
-      ).rejects.toThrowError(
+      ).rejects.toThrow(
         eserviceArchivingWithActiveOrPendingDelegation(
           eservice.id,
           delegation.id
