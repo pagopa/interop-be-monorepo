@@ -17,6 +17,8 @@ import {
   EServiceEventV2,
   EServiceIdDescriptorId,
   generateId,
+  GracePeriodDays,
+  gracePeriodDays,
   missingKafkaMessageDataError,
   toEServiceV2,
   UserId,
@@ -39,25 +41,17 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
   const userId = generateId<UserId>();
   const { logger } = getMockContext({});
 
-  const descriptor: Descriptor = {
+  const getDescriptor = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.published),
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.descriptor,
-      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
-
-  const eservice: EService = {
-    ...getMockEService(),
-    producerId: producerTenant.id,
-    descriptors: [descriptor],
-  };
-
-  const agreement = {
-    ...getMockAgreement(eservice.id, consumerTenant.id, agreementState.active),
-  };
+  });
 
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
 
@@ -66,10 +60,8 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
     mockGetNotificationRecipients.mockResolvedValue([
       { userId, tenantId: consumerTenant.id },
     ]);
-    await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
-    await addOneAgreement(agreement);
   });
 
   it("throws missingKafkaMessageDataError when eservice is undefined", async () => {
@@ -87,51 +79,91 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
     );
   });
 
-  it("emits a notification for EServiceDescriptorArchivingCanceled (descriptor scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorArchivingCanceled",
-      data: {
-        eservice: toEServiceV2(eservice),
-        descriptorId: descriptor.id,
-      } satisfies EServiceDescriptorArchivingCanceledV2,
-    };
-    const notifications = await handleEserviceArchivingCanceledToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0]).toEqual({
-      userId,
-      tenantId: consumerTenant.id,
-      notificationType: "eserviceStateChangedToConsumer",
-      entityId: EServiceIdDescriptorId.parse(`${eservice.id}/${descriptor.id}`),
-      body: inAppTemplates.eserviceArchivingCanceledDescriptorToConsumer(
-        eservice.name,
-        descriptor.version
-      ),
-    });
-  });
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceDescriptorArchivingCanceled (descriptor scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const descriptor = getDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+      await addOneAgreement({
+        ...getMockAgreement(
+          eservice.id,
+          consumerTenant.id,
+          agreementState.active
+        ),
+      });
 
-  it("emits a notification for EServiceArchivingCanceled (eservice scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceArchivingCanceled",
-      data: {
-        eservice: toEServiceV2(eservice),
-      } satisfies EServiceArchivingCanceledV2,
-    };
-    const notifications = await handleEserviceArchivingCanceledToConsumer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingCanceledEserviceToConsumer(eservice.name)
-    );
-  });
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorArchivingCanceled",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: descriptor.id,
+        } satisfies EServiceDescriptorArchivingCanceledV2,
+      };
+      const notifications = await handleEserviceArchivingCanceledToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0]).toEqual({
+        userId,
+        tenantId: consumerTenant.id,
+        notificationType: "eserviceStateChangedToConsumer",
+        entityId: EServiceIdDescriptorId.parse(
+          `${eservice.id}/${descriptor.id}`
+        ),
+        body: inAppTemplates.eserviceArchivingCanceledDescriptorToConsumer(
+          eservice.name,
+          descriptor.version
+        ),
+      });
+    }
+  );
+
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceArchivingCanceled (eservice scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const descriptor = getDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+      await addOneAgreement({
+        ...getMockAgreement(
+          eservice.id,
+          consumerTenant.id,
+          agreementState.active
+        ),
+      });
+
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceArchivingCanceled",
+        data: {
+          eservice: toEServiceV2(eservice),
+        } satisfies EServiceArchivingCanceledV2,
+      };
+      const notifications = await handleEserviceArchivingCanceledToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].body).toBe(
+        inAppTemplates.eserviceArchivingCanceledEserviceToConsumer(
+          eservice.name
+        )
+      );
+    }
+  );
 
   it("returns no notifications when there are no agreements", async () => {
     const otherEservice: EService = {
