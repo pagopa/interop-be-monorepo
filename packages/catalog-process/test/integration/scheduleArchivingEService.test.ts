@@ -17,6 +17,7 @@ import {
   delegationState,
   EService,
   GracePeriodDays,
+  gracePeriodDays as gracePeriodDaysValues,
   toEServiceV2,
   operationForbidden,
   generateId,
@@ -34,6 +35,7 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { calculateArchivableOn } from "../../src/utilities/dateCalculator.js";
 import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("schedule archiving of an EService", () => {
@@ -104,7 +106,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays, // This value will be updated in subsequent PRs.
+          gracePeriodDays,
         },
       };
 
@@ -119,6 +121,42 @@ describe("schedule archiving of an EService", () => {
         data: expectedEService,
         metadata: { version: parseInt(writtenEvent.version, 10) },
       });
+    }
+  );
+
+  it.each([...gracePeriodDaysValues])(
+    "should compute archivableOn from the requested gracePeriodDays (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const seed: catalogApi.EServiceArchivingSeed = {
+        gracePeriodDays: gracePeriodDaysValue,
+        archivingReason: mockArchivingReason,
+      };
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: descriptorState.published,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      const { data } = await catalogService.scheduleEServiceArchiving(
+        eservice.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+      const actualArchivingSchedule = data.descriptors[0].archivingSchedule!;
+      const { archivableOn: expectedArchivableOn } = calculateArchivableOn(
+        actualArchivingSchedule.startedAt,
+        gracePeriodDaysValue
+      );
+
+      expect(actualArchivingSchedule.archivableOn).toEqual(
+        expectedArchivableOn
+      );
     }
   );
 
@@ -212,7 +250,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays, // This value will be updated in subsequent PRs.
+          gracePeriodDays,
         },
       };
 
@@ -233,7 +271,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays, // This value will be updated in subsequent PRs.
+          gracePeriodDays,
         },
       };
 
@@ -319,7 +357,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
-          gracePeriodDays, // This value will be updated in subsequent PRs.
+          gracePeriodDays,
         },
       };
 
