@@ -10,11 +10,14 @@ import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
   EServiceId,
   archivingScope,
   generateId,
+  GracePeriodDays,
+  gracePeriodDays,
   missingKafkaMessageDataError,
   TenantId,
   toEServiceV2,
@@ -33,33 +36,35 @@ describe("handleEserviceDescriptorSuspendedToProducer", () => {
   const producerId = generateId<TenantId>();
   const producerTenant = { ...getMockTenant(producerId), name: "Producer T" };
 
-  const archivingDescriptor: Descriptor = {
+  const archivingDescriptorId = generateId<DescriptorId>();
+  const archivingDescriptorEserviceScopeId = generateId<DescriptorId>();
+
+  const getArchivingDescriptor = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.archivingSuspended),
+    id: archivingDescriptorId,
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.descriptor,
-      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
+  });
 
-  const archivingDescriptorEserviceScope: Descriptor = {
+  const getArchivingDescriptorEserviceScope = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.archiving),
+    id: archivingDescriptorEserviceScopeId,
     version: "2",
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.eservice,
-      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
-
-  const eservice: EService = {
-    ...getMockEService(),
-    name: "Test E-service",
-    producerId,
-    descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
-  };
+  });
 
   const users = [
     getMockUser(producerTenant.id),
@@ -75,7 +80,6 @@ describe("handleEserviceDescriptorSuspendedToProducer", () => {
     /<p>\s*La versione <strong>\d+<\/strong> dell'e-service <strong>\s*[^<]+\s*<\/strong> è al momento sospesa\. I fruitori non potranno più scambiare dati con questa versione\.<\/p>[\s\n]*<p>L'e-service è in fase di archiviazione e sarà archiviato definitivamente il giorno <strong>\d{2}\/\d{2}\/\d{4}<\/strong>\.<\/p>/;
 
   beforeEach(async () => {
-    await addOneEService(eservice);
     await addOneTenant(producerTenant);
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
@@ -94,7 +98,7 @@ describe("handleEserviceDescriptorSuspendedToProducer", () => {
     await expect(() =>
       handleEserviceDescriptorSuspendedToProducer({
         eserviceV2Msg: undefined,
-        descriptorId: archivingDescriptor.id,
+        descriptorId: archivingDescriptorId,
         logger,
         templateService,
         readModelService,
@@ -105,37 +109,65 @@ describe("handleEserviceDescriptorSuspendedToProducer", () => {
     );
   });
 
-  it("emits one email per producer user with the expected subject and body when archivingSchedule is present on the descriptor (scope descriptor)", async () => {
-    const messages = await handleEserviceDescriptorSuspendedToProducer({
-      eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: archivingDescriptor.id,
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages).toHaveLength(users.length);
-    expect(messages[0].email.subject).toBe(
-      `Una versione di "${eservice.name}" è stata sospesa`
-    );
-    expect(messages[0].email.body).toMatch(expectedDescriptorMessageBody);
-  });
+  it.each([...gracePeriodDays])(
+    "emits one email per producer user with the expected subject and body when archivingSchedule is present on the descriptor (scope descriptor, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(gracePeriodDaysValue);
+      const archivingDescriptorEserviceScope =
+        getArchivingDescriptorEserviceScope(30);
+      const eservice: EService = {
+        ...getMockEService(),
+        name: "Test E-service",
+        producerId,
+        descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
+      };
+      await addOneEService(eservice);
 
-  it("emits one email per producer user with the expected subject and body when archivingSchedule is present on the descriptor (scope eservice)", async () => {
-    const messages = await handleEserviceDescriptorSuspendedToProducer({
-      eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: archivingDescriptorEserviceScope.id,
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages).toHaveLength(users.length);
-    expect(messages[0].email.subject).toBe(
-      `Una versione di "${eservice.name}" è stata sospesa`
-    );
-    expect(messages[0].email.body).toMatch(expectedEserviceMessageBody);
-  });
+      const messages = await handleEserviceDescriptorSuspendedToProducer({
+        eserviceV2Msg: toEServiceV2(eservice),
+        descriptorId: archivingDescriptor.id,
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+      expect(messages).toHaveLength(users.length);
+      expect(messages[0].email.subject).toBe(
+        `Una versione di "${eservice.name}" è stata sospesa`
+      );
+      expect(messages[0].email.body).toMatch(expectedDescriptorMessageBody);
+    }
+  );
+
+  it.each([...gracePeriodDays])(
+    "emits one email per producer user with the expected subject and body when archivingSchedule is present on the descriptor (scope eservice, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(30);
+      const archivingDescriptorEserviceScope =
+        getArchivingDescriptorEserviceScope(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        name: "Test E-service",
+        producerId,
+        descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
+      };
+      await addOneEService(eservice);
+
+      const messages = await handleEserviceDescriptorSuspendedToProducer({
+        eserviceV2Msg: toEServiceV2(eservice),
+        descriptorId: archivingDescriptorEserviceScope.id,
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+      expect(messages).toHaveLength(users.length);
+      expect(messages[0].email.subject).toBe(
+        `Una versione di "${eservice.name}" è stata sospesa`
+      );
+      expect(messages[0].email.body).toMatch(expectedEserviceMessageBody);
+    }
+  );
 
   it("emits no email per producer user when archivingSchedule is absent on the descriptor (routine auto-archive)", async () => {
     const routineDescriptor: Descriptor = {
