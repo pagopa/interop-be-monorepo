@@ -455,7 +455,27 @@ export function getMockedApiEServiceTemplate({
     isSignalHubEnabled: generateMock(z.boolean().optional()),
     riskAnalysis: [
       {
-        ...getMockedApiRiskAnalysis(),
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+        name: generateMock(z.string().length(10)),
+        riskAnalysisForm: {
+          id: generateId(),
+          version: "0",
+          singleAnswers: [
+            {
+              id: generateId(),
+              key: generateMock(z.string()),
+              value: generateMock(z.string()),
+            },
+          ],
+          multiAnswers: [
+            {
+              id: generateId(),
+              key: generateMock(z.string()),
+              values: generateMock(z.array(z.string())),
+            },
+          ],
+        },
         tenantKind: generateMock(eserviceTemplateApi.TenantKind),
       },
     ],
@@ -470,21 +490,8 @@ export function getMockedApiRiskAnalysis(): catalogApi.EServiceRiskAnalysis {
     name: generateMock(z.string().length(10)),
     riskAnalysisForm: {
       id: generateId(),
-      multiAnswers: [
-        {
-          id: generateId(),
-          key: generateMock(z.string()),
-          values: generateMock(z.array(z.string())),
-        },
-      ],
-      singleAnswers: [
-        {
-          id: generateId(),
-          key: generateMock(z.string()),
-          value: generateMock(z.string()),
-        },
-      ],
       version: "0",
+      answers: generateMock(z.record(z.array(z.string()))),
     },
   };
 }

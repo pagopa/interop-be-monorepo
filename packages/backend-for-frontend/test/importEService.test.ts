@@ -241,6 +241,143 @@ describe("importEService", () => {
       });
       fs.unlinkSync(zipPath);
     });
+
+    it("should import the risk analysis of a configuration in the answers map format", async () => {
+      const answers = {
+        purpose: ["INSTITUTIONAL"],
+        institutionalPurpose: ["MyPurpose"],
+        personalDataTypes: ["OTHER"],
+      };
+
+      const configurationWithRiskAnalysis = {
+        ...configuration,
+        riskAnalysis: [
+          {
+            name: "my risk analysis",
+            riskAnalysisForm: { version: "1.0", answers },
+          },
+        ],
+      };
+
+      const mockCreateRiskAnalysis = vi.fn().mockResolvedValue(undefined);
+      mockCatalogProcessClient.createRiskAnalysis = mockCreateRiskAnalysis;
+
+      const zipWithRa = new AdmZip();
+      zipWithRa.addFile(
+        jsonFilename,
+        Buffer.from(JSON.stringify(configurationWithRiskAnalysis))
+      );
+
+      const zipPath = path.join(__dirname, "test_ra_answers.zip");
+      zipWithRa.writeZip(zipPath);
+
+      const raFileResource: bffApi.FileResource = {
+        filename: "test_ra_answers.zip",
+        url: "/import/folder",
+      };
+
+      await fileManager.storeBytes(
+        {
+          bucket: config.importEserviceContainer,
+          path: `${config.importEservicePath}`,
+          resourceId: `${tenantId}`,
+          name: `${raFileResource.filename}`,
+          content: fs.readFileSync(zipPath),
+        },
+        genericLogger
+      );
+
+      await catalogService.importEService(raFileResource, bffMockContext);
+
+      expect(mockCreateRiskAnalysis).toHaveBeenCalledWith(
+        {
+          name: "my risk analysis",
+          riskAnalysisForm: { version: "1.0", answers },
+        },
+        {
+          headers: bffMockContext.headers,
+          params: { eServiceId: baseEService.id },
+        }
+      );
+
+      fs.unlinkSync(zipPath);
+    });
+
+    it("should import the risk analysis of a configuration in the legacy single/multi answers format", async () => {
+      const configurationWithLegacyRiskAnalysis = {
+        ...configuration,
+        riskAnalysis: [
+          {
+            name: "legacy risk analysis",
+            riskAnalysisForm: {
+              version: "1.0",
+              singleAnswers: [
+                { key: "purpose", value: "INSTITUTIONAL" },
+                { key: "institutionalPurpose", value: "MyPurpose" },
+                { key: "missingValue" },
+                { key: "nullValue", value: null },
+              ],
+              multiAnswers: [
+                { key: "personalDataTypes", values: ["OTHER"] },
+                { key: "emptyValues", values: [] },
+              ],
+            },
+          },
+        ],
+      };
+
+      const mockCreateRiskAnalysis = vi.fn().mockResolvedValue(undefined);
+      mockCatalogProcessClient.createRiskAnalysis = mockCreateRiskAnalysis;
+
+      const zipWithRa = new AdmZip();
+      zipWithRa.addFile(
+        jsonFilename,
+        Buffer.from(JSON.stringify(configurationWithLegacyRiskAnalysis))
+      );
+
+      const zipPath = path.join(__dirname, "test_ra_legacy.zip");
+      zipWithRa.writeZip(zipPath);
+
+      const raFileResource: bffApi.FileResource = {
+        filename: "test_ra_legacy.zip",
+        url: "/import/folder",
+      };
+
+      await fileManager.storeBytes(
+        {
+          bucket: config.importEserviceContainer,
+          path: `${config.importEservicePath}`,
+          resourceId: `${tenantId}`,
+          name: `${raFileResource.filename}`,
+          content: fs.readFileSync(zipPath),
+        },
+        genericLogger
+      );
+
+      await catalogService.importEService(raFileResource, bffMockContext);
+
+      // legacy single/multi answers are converted to the map format,
+      // skipping the answers with no value
+      expect(mockCreateRiskAnalysis).toHaveBeenCalledWith(
+        {
+          name: "legacy risk analysis",
+          riskAnalysisForm: {
+            version: "1.0",
+            answers: {
+              purpose: ["INSTITUTIONAL"],
+              institutionalPurpose: ["MyPurpose"],
+              personalDataTypes: ["OTHER"],
+            },
+          },
+        },
+        {
+          headers: bffMockContext.headers,
+          params: { eServiceId: baseEService.id },
+        }
+      );
+
+      fs.unlinkSync(zipPath);
+    });
   });
   describe("error case", () => {
     it("should throw invalidZipStructure error when file name is not configuration.json", async () => {

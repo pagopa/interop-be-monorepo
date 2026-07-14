@@ -102,6 +102,22 @@ export function riskAnalysisValidatedFormToNewRiskAnalysisForm(
   };
 }
 
+export function riskAnalysisAnswersToApiAnswers(
+  singleAnswers: Array<{ key: string; value?: string }>,
+  multiAnswers: Array<{ key: string; values: string[] }>
+): Record<string, string[]> {
+  const singleAnswersMap = singleAnswers.reduce<Record<string, string[]>>(
+    (acc, { key, value }) => (value ? { ...acc, [key]: [value] } : acc),
+    {}
+  );
+  const multiAnswersMap = multiAnswers.reduce<Record<string, string[]>>(
+    (acc, { key, values }) =>
+      values.length === 0 ? acc : { ...acc, [key]: values },
+    {}
+  );
+  return { ...singleAnswersMap, ...multiAnswersMap };
+}
+
 export function riskAnalysisFormToRiskAnalysisFormToValidate(
   form: RiskAnalysisForm
 ): RiskAnalysisFormToValidate {

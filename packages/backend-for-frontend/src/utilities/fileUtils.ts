@@ -112,14 +112,7 @@ function buildJsonConfig(
       name: ra.name,
       riskAnalysisForm: {
         version: ra.riskAnalysisForm.version,
-        singleAnswers: ra.riskAnalysisForm.singleAnswers.map((sa) => ({
-          key: sa.key,
-          value: sa.value,
-        })),
-        multiAnswers: ra.riskAnalysisForm.multiAnswers.map((ma) => ({
-          key: ma.key,
-          values: ma.values,
-        })),
+        answers: ra.riskAnalysisForm.answers,
       },
     })),
   };

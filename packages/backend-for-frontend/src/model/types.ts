@@ -158,11 +158,21 @@ const ConfigurationMultiAnswer = z.object({
 });
 type ConfigurationMultiAnswer = z.infer<typeof ConfigurationMultiAnswer>;
 
-const ConfigurationRiskAnalysisForm = z.object({
+const ConfigurationRiskAnalysisFormAnswersMap = z.object({
+  version: z.string(),
+  answers: z.record(z.array(z.string())),
+});
+
+const ConfigurationRiskAnalysisFormLegacy = z.object({
   version: z.string(),
   singleAnswers: z.array(ConfigurationSingleAnswer),
   multiAnswers: z.array(ConfigurationMultiAnswer),
 });
+
+const ConfigurationRiskAnalysisForm = z.union([
+  ConfigurationRiskAnalysisFormAnswersMap,
+  ConfigurationRiskAnalysisFormLegacy,
+]);
 
 export const ConfigurationRiskAnalysis = z.object({
   name: z.string(),

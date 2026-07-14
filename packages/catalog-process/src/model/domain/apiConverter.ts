@@ -16,6 +16,7 @@ import {
   ArchivingScope,
 } from "pagopa-interop-models";
 import { catalogApi } from "pagopa-interop-api-clients";
+import { riskAnalysisAnswersToApiAnswers } from "pagopa-interop-commons";
 import { match } from "ts-pattern";
 
 export function technologyToApiTechnology(
@@ -235,8 +236,10 @@ export const eServiceToApiEService = (
     riskAnalysisForm: {
       id: riskAnalysis.riskAnalysisForm.id,
       version: riskAnalysis.riskAnalysisForm.version,
-      singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
-      multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
+      answers: riskAnalysisAnswersToApiAnswers(
+        riskAnalysis.riskAnalysisForm.singleAnswers,
+        riskAnalysis.riskAnalysisForm.multiAnswers
+      ),
       tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
     },
   })),

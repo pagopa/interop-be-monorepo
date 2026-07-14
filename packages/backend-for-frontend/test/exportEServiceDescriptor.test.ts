@@ -16,6 +16,7 @@ import {
 } from "pagopa-interop-api-clients";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { AuthData } from "pagopa-interop-commons";
+import AdmZip from "adm-zip";
 import type {
   AuthorizationProcessClient,
   DelegationProcessClient,
@@ -265,6 +266,70 @@ describe("exportEServiceDescriptor", () => {
         filename: zipFileName,
         url: mockPresignedUrl,
       });
+    });
+
+    it("should export the risk analysis using the answers map format", async () => {
+      const answers = {
+        purpose: ["INSTITUTIONAL"],
+        institutionalPurpose: ["MyPurpose"],
+        personalDataTypes: ["OTHER"],
+      };
+
+      const eServiceWithRiskAnalysis: catalogApi.EService = {
+        ...baseEService,
+        riskAnalysis: [
+          {
+            id: generateId(),
+            name: "my risk analysis",
+            createdAt: new Date(mockDate).toISOString(),
+            riskAnalysisForm: {
+              id: generateId(),
+              version: "1.0",
+              answers,
+              tenantKind: "PA",
+            },
+          },
+        ],
+      };
+
+      const { service } = createTestCatalogService(
+        eServiceWithRiskAnalysis,
+        []
+      );
+
+      const storeBytesSpy = vi
+        .spyOn(fileManager, "storeBytes")
+        .mockResolvedValue("mockResourceId");
+      vi.spyOn(fileManager, "generateGetPresignedUrl").mockResolvedValue(
+        "https://mockpresignedurl.com/file.zip"
+      );
+      vi.spyOn(fileManager, "get").mockResolvedValue(
+        Buffer.from("mock interface content")
+      );
+
+      await service.exportEServiceDescriptor(
+        eServiceId,
+        descriptorId,
+        bffMockContext
+      );
+
+      const storedZip = new AdmZip(storeBytesSpy.mock.calls[0][0].content);
+      const configurationEntry = storedZip.getEntry(
+        `${eServiceId}_${descriptorId}/configuration.json`
+      );
+      const exportedConfiguration = JSON.parse(
+        configurationEntry!.getData().toString()
+      );
+
+      expect(exportedConfiguration.riskAnalysis).toEqual([
+        {
+          name: "my risk analysis",
+          riskAnalysisForm: {
+            version: "1.0",
+            answers,
+          },
+        },
+      ]);
     });
   });
 });

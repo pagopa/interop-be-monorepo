@@ -15,7 +15,10 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { getRulesetExpiration } from "pagopa-interop-commons";
+import {
+  getRulesetExpiration,
+  riskAnalysisAnswersToApiAnswers,
+} from "pagopa-interop-commons";
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
@@ -202,36 +205,10 @@ export function toBffCatalogApiEserviceRiskAnalysis(
   riskAnalysis: catalogApi.EServiceRiskAnalysis,
   rulesetExpiration: string | undefined
 ): bffApi.EServiceRiskAnalysis {
-  const answers: bffApi.RiskAnalysisForm["answers"] =
-    riskAnalysis.riskAnalysisForm.singleAnswers
-      .concat(
-        riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
-          multiAnswer.values.map((answerValue) => ({
-            id: multiAnswer.id,
-            value: answerValue,
-            key: multiAnswer.key,
-          }))
-        )
-      )
-      .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
-        const key = answer.key;
-        if (!answers[key]) {
-          answers[key] = [];
-        }
-
-        if (answer.value) {
-          answers[key] = [...answers[key], answer.value];
-        } else {
-          answers[key] = [];
-        }
-
-        return answers;
-      }, {});
-
   const riskAnalysisForm: bffApi.RiskAnalysisForm = {
     riskAnalysisId: riskAnalysis.id,
     version: riskAnalysis.riskAnalysisForm.version,
-    answers,
+    answers: riskAnalysis.riskAnalysisForm.answers,
   };
 
   return {
@@ -246,40 +223,27 @@ export function toBffCatalogApiEserviceRiskAnalysis(
 export function toBffCatalogApiEserviceRiskAnalysisSeed(
   riskAnalysis: ConfigurationRiskAnalysis
 ): bffApi.EServiceRiskAnalysisSeed {
+  const { riskAnalysisForm } = riskAnalysis;
+
+  // Backward compatibility: configuration files exported before the alignment
+  // to the map format still carry single/multi answers instead of `answers`.
   const answers: bffApi.RiskAnalysisForm["answers"] =
-    riskAnalysis.riskAnalysisForm.singleAnswers
-      .concat(
-        riskAnalysis.riskAnalysisForm.multiAnswers.flatMap((multiAnswer) =>
-          multiAnswer.values.map((answerValue) => ({
-            value: answerValue,
-            key: multiAnswer.key,
-          }))
-        )
-      )
-      // eslint-disable-next-line sonarjs/no-identical-functions
-      .reduce((answers: bffApi.RiskAnalysisForm["answers"], answer) => {
-        const key = answer.key;
-        if (!answers[key]) {
-          answers[key] = [];
-        }
-
-        if (answer.value) {
-          answers[key] = [...answers[key], answer.value];
-        } else {
-          answers[key] = [];
-        }
-
-        return answers;
-      }, {});
-
-  const riskAnalysisForm: bffApi.RiskAnalysisForm = {
-    version: riskAnalysis.riskAnalysisForm.version,
-    answers,
-  };
+    "answers" in riskAnalysisForm
+      ? riskAnalysisForm.answers
+      : riskAnalysisAnswersToApiAnswers(
+          riskAnalysisForm.singleAnswers.map((a) => ({
+            key: a.key,
+            value: a.value ?? undefined,
+          })),
+          riskAnalysisForm.multiAnswers
+        );
 
   return {
     name: riskAnalysis.name,
-    riskAnalysisForm,
+    riskAnalysisForm: {
+      version: riskAnalysisForm.version,
+      answers,
+    },
   };
 }
 
