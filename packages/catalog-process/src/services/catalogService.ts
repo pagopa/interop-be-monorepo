@@ -526,15 +526,15 @@ async function parseAndCheckAttributesOfKind(
   const attributes =
     kind === attributeKind.certified
       ? [
-        ...(await readModelService.getAttributesByIds(
-          attributesSeedIds,
-          attributeKind.certified
-        )),
-        ...(await readModelService.getAttributesByIds(
-          attributesSeedIds,
-          attributeKind.certifiedDiscrete
-        )),
-      ]
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
       : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
@@ -615,14 +615,14 @@ async function innerCreateEService(
   }: {
     seed: catalogApi.EServiceSeed;
     template:
-    | {
-      id: EServiceTemplateId;
-      versionId: EServiceTemplateVersionId;
-      attributes: EserviceAttributes;
-      riskAnalysis: RiskAnalysis[] | undefined;
-      asyncExchangeProperties?: AsyncExchangeProperties;
-    }
-    | undefined;
+      | {
+          id: EServiceTemplateId;
+          versionId: EServiceTemplateVersionId;
+          attributes: EserviceAttributes;
+          riskAnalysis: RiskAnalysis[] | undefined;
+          asyncExchangeProperties?: AsyncExchangeProperties;
+        }
+      | undefined;
     instanceLabel?: string | undefined;
   },
   readModelService: ReadModelServiceSQL,
@@ -849,23 +849,23 @@ async function innerAddDocumentToEserviceEvent(
 
   const event = isInterface
     ? toCreateEventEServiceInterfaceAdded(
-      eService.data.id,
-      eService.metadata.version,
-      eventPayload,
-      ctx.correlationId
-    )
-    : isAsyncExchangeCallbackInterface
-      ? toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded(
         eService.data.id,
         eService.metadata.version,
         eventPayload,
         ctx.correlationId
       )
+    : isAsyncExchangeCallbackInterface
+      ? toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded(
+          eService.data.id,
+          eService.metadata.version,
+          eventPayload,
+          ctx.correlationId
+        )
       : toCreateEventEServiceDocumentAdded(
-        eService.metadata.version,
-        eventPayload,
-        ctx.correlationId
-      );
+          eService.metadata.version,
+          eventPayload,
+          ctx.correlationId
+        );
 
   return {
     eService: updatedEService,
@@ -1297,8 +1297,10 @@ export function catalogServiceBuilder(
       ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Document>> {
       ctx.logger.info(
-        `Creating EService Document ${document.documentId.toString()} of kind ${document.kind
-        }, name ${document.fileName}, path ${document.filePath
+        `Creating EService Document ${document.documentId.toString()} of kind ${
+          document.kind
+        }, name ${document.fileName}, path ${
+          document.filePath
         } for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
 
@@ -1379,19 +1381,19 @@ export function catalogServiceBuilder(
         descriptors: eservice.data.descriptors.map((d: Descriptor) =>
           d.id === descriptorId
             ? {
-              ...d,
-              interface:
-                d.interface?.id === documentId ? undefined : d.interface,
-              serverUrls: isInterface ? [] : d.serverUrls,
-              serverUrlsDescriptions: isInterface
-                ? []
-                : d.serverUrlsDescriptions,
-              docs: d.docs.filter((doc) => doc.id !== documentId),
-              asyncExchangeCallbackInterface:
-                d.asyncExchangeCallbackInterface?.id === documentId
-                  ? undefined
-                  : d.asyncExchangeCallbackInterface,
-            }
+                ...d,
+                interface:
+                  d.interface?.id === documentId ? undefined : d.interface,
+                serverUrls: isInterface ? [] : d.serverUrls,
+                serverUrlsDescriptions: isInterface
+                  ? []
+                  : d.serverUrlsDescriptions,
+                docs: d.docs.filter((doc) => doc.id !== documentId),
+                asyncExchangeCallbackInterface:
+                  d.asyncExchangeCallbackInterface?.id === documentId
+                    ? undefined
+                    : d.asyncExchangeCallbackInterface,
+              }
             : d
         ),
       };
@@ -1404,24 +1406,24 @@ export function catalogServiceBuilder(
 
       const event = isInterface
         ? toCreateEventEServiceInterfaceDeleted(
-          eserviceId,
-          eservice.metadata.version,
-          eventPayload,
-          correlationId
-        )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted(
             eserviceId,
             eservice.metadata.version,
             eventPayload,
             correlationId
           )
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted(
+              eserviceId,
+              eservice.metadata.version,
+              eventPayload,
+              correlationId
+            )
           : toCreateEventEServiceDocumentDeleted(
-            eserviceId,
-            eservice.metadata.version,
-            eventPayload,
-            correlationId
-          );
+              eserviceId,
+              eservice.metadata.version,
+              eventPayload,
+              correlationId
+            );
 
       const createdEvent = await repository.createEvent(event);
 
@@ -1483,7 +1485,7 @@ export function catalogServiceBuilder(
           (d) =>
             d.id !== documentId &&
             d.prettyName.toLowerCase() ===
-            apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
+              apiEServiceDescriptorDocumentUpdateSeed.prettyName.toLowerCase()
         )
       ) {
         throw documentPrettyNameDuplicate(
@@ -1502,15 +1504,15 @@ export function catalogServiceBuilder(
         descriptors: eservice.data.descriptors.map((d: Descriptor) =>
           d.id === descriptorId
             ? {
-              ...d,
-              interface: isInterface ? updatedDocument : d.interface,
-              docs: d.docs.map((doc) =>
-                doc.id === documentId ? updatedDocument : doc
-              ),
-              asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
-                ? updatedDocument
-                : d.asyncExchangeCallbackInterface,
-            }
+                ...d,
+                interface: isInterface ? updatedDocument : d.interface,
+                docs: d.docs.map((doc) =>
+                  doc.id === documentId ? updatedDocument : doc
+                ),
+                asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
+                  ? updatedDocument
+                  : d.asyncExchangeCallbackInterface,
+              }
             : d
         ),
       };
@@ -1523,24 +1525,24 @@ export function catalogServiceBuilder(
 
       const event = isInterface
         ? toCreateEventEServiceInterfaceUpdated(
-          eserviceId,
-          eservice.metadata.version,
-          eventPayload,
-          correlationId
-        )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated(
             eserviceId,
             eservice.metadata.version,
             eventPayload,
             correlationId
           )
+        : isAsyncExchangeCallbackInterface
+          ? toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated(
+              eserviceId,
+              eservice.metadata.version,
+              eventPayload,
+              correlationId
+            )
           : toCreateEventEServiceDocumentUpdated(
-            eserviceId,
-            eservice.metadata.version,
-            eventPayload,
-            correlationId
-          );
+              eserviceId,
+              eservice.metadata.version,
+              eventPayload,
+              correlationId
+            );
 
       await repository.createEvent(event);
       return updatedDocument;
@@ -1614,17 +1616,17 @@ export function catalogServiceBuilder(
         asyncExchangeProperties:
           asyncExchangeEnabled && eserviceDescriptorSeed.asyncExchangeProperties
             ? {
-              responseTime:
-                eserviceDescriptorSeed.asyncExchangeProperties.responseTime,
-              resourceAvailableTime:
-                eserviceDescriptorSeed.asyncExchangeProperties
-                  .resourceAvailableTime,
-              confirmation:
-                eserviceDescriptorSeed.asyncExchangeProperties.confirmation,
-              bulk: eserviceDescriptorSeed.asyncExchangeProperties.bulk,
-              maxResultSet:
-                eserviceDescriptorSeed.asyncExchangeProperties.maxResultSet,
-            }
+                responseTime:
+                  eserviceDescriptorSeed.asyncExchangeProperties.responseTime,
+                resourceAvailableTime:
+                  eserviceDescriptorSeed.asyncExchangeProperties
+                    .resourceAvailableTime,
+                confirmation:
+                  eserviceDescriptorSeed.asyncExchangeProperties.confirmation,
+                bulk: eserviceDescriptorSeed.asyncExchangeProperties.bulk,
+                maxResultSet:
+                  eserviceDescriptorSeed.asyncExchangeProperties.maxResultSet,
+              }
             : undefined,
       });
 
@@ -1881,17 +1883,17 @@ export function catalogServiceBuilder(
         asyncExchangeProperties:
           asyncExchangeEnabled && descriptor.asyncExchangeProperties
             ? {
-              ...descriptor.asyncExchangeProperties,
-              responseTime:
-                seed.asyncExchangeProperties?.responseTime ??
-                descriptor.asyncExchangeProperties.responseTime,
-              resourceAvailableTime:
-                seed.asyncExchangeProperties?.resourceAvailableTime ??
-                descriptor.asyncExchangeProperties.resourceAvailableTime,
-              maxResultSet:
-                seed.asyncExchangeProperties?.maxResultSet ??
-                descriptor.asyncExchangeProperties.maxResultSet,
-            }
+                ...descriptor.asyncExchangeProperties,
+                responseTime:
+                  seed.asyncExchangeProperties?.responseTime ??
+                  descriptor.asyncExchangeProperties.responseTime,
+                resourceAvailableTime:
+                  seed.asyncExchangeProperties?.resourceAvailableTime ??
+                  descriptor.asyncExchangeProperties.resourceAvailableTime,
+                maxResultSet:
+                  seed.asyncExchangeProperties?.maxResultSet ??
+                  descriptor.asyncExchangeProperties.maxResultSet,
+              }
             : descriptor.asyncExchangeProperties,
       };
 
@@ -2186,26 +2188,26 @@ export function catalogServiceBuilder(
       const clonedInterfacePath =
         descriptor.interface !== undefined
           ? await fileManager.copy(
-            config.s3Bucket,
-            descriptor.interface.path,
-            config.eserviceDocumentsPath,
-            clonedInterfaceId,
-            descriptor.interface.name,
-            logger
-          )
+              config.s3Bucket,
+              descriptor.interface.path,
+              config.eserviceDocumentsPath,
+              clonedInterfaceId,
+              descriptor.interface.name,
+              logger
+            )
           : undefined;
 
       const clonedInterfaceDocument: Document | undefined =
         descriptor.interface !== undefined && clonedInterfacePath !== undefined
           ? {
-            id: clonedInterfaceId,
-            name: descriptor.interface.name,
-            contentType: descriptor.interface.contentType,
-            prettyName: descriptor.interface.prettyName,
-            path: clonedInterfacePath,
-            checksum: descriptor.interface.checksum,
-            uploadDate: new Date(),
-          }
+              id: clonedInterfaceId,
+              name: descriptor.interface.name,
+              contentType: descriptor.interface.contentType,
+              prettyName: descriptor.interface.prettyName,
+              path: clonedInterfacePath,
+              checksum: descriptor.interface.checksum,
+              uploadDate: new Date(),
+            }
           : undefined;
 
       const clonedDocuments = await Promise.all(
@@ -2295,19 +2297,19 @@ export function catalogServiceBuilder(
       const event =
         archivingKindSeed.kind === "AUTOMATIC"
           ? toCreateEventEServiceDescriptorArchived(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
-          )
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            )
           : toCreateEventEServiceDescriptorArchivingCompleted(
-            eserviceId,
-            eservice.metadata.version,
-            descriptorId,
-            newEservice,
-            correlationId
-          );
+              eserviceId,
+              eservice.metadata.version,
+              descriptorId,
+              newEservice,
+              correlationId
+            );
 
       await repository.createEvent(event);
     },
@@ -3004,15 +3006,15 @@ export function catalogServiceBuilder(
           ? undefined
           : isConsumerDelegable
             ? toCreateEventEServiceIsConsumerDelegableEnabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            )
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              )
             : toCreateEventEServiceIsConsumerDelegableDisabled(
-              eservice.metadata.version,
-              updatedEservice,
-              correlationId
-            );
+                eservice.metadata.version,
+                updatedEservice,
+                correlationId
+              );
 
       const clientAccessEventVersion =
         eservice.metadata.version + (consumerDelegableEvent ? 1 : 0);
@@ -3022,15 +3024,15 @@ export function catalogServiceBuilder(
           ? undefined
           : isClientAccessDelegable
             ? toCreateEventEServiceIsClientAccessDelegableEnabled(
-              clientAccessEventVersion,
-              updatedEservice,
-              correlationId
-            )
+                clientAccessEventVersion,
+                updatedEservice,
+                correlationId
+              )
             : toCreateEventEServiceIsClientAccessDelegableDisabled(
-              clientAccessEventVersion,
-              updatedEservice,
-              correlationId
-            );
+                clientAccessEventVersion,
+                updatedEservice,
+                correlationId
+              );
 
       const events = [
         consumerDelegableEvent,
@@ -4022,21 +4024,21 @@ export function catalogServiceBuilder(
             riskAnalysis,
             asyncExchangeProperties:
               isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
-                template.asyncExchange === true &&
-                publishedVersion.asyncExchangeProperties
+              template.asyncExchange === true &&
+              publishedVersion.asyncExchangeProperties
                 ? {
-                  ...publishedVersion.asyncExchangeProperties,
-                  responseTime:
-                    seed.asyncExchangeProperties?.responseTime ??
-                    publishedVersion.asyncExchangeProperties.responseTime,
-                  resourceAvailableTime:
-                    seed.asyncExchangeProperties?.resourceAvailableTime ??
-                    publishedVersion.asyncExchangeProperties
-                      .resourceAvailableTime,
-                  maxResultSet:
-                    seed.asyncExchangeProperties?.maxResultSet ??
-                    publishedVersion.asyncExchangeProperties.maxResultSet,
-                }
+                    ...publishedVersion.asyncExchangeProperties,
+                    responseTime:
+                      seed.asyncExchangeProperties?.responseTime ??
+                      publishedVersion.asyncExchangeProperties.responseTime,
+                    resourceAvailableTime:
+                      seed.asyncExchangeProperties?.resourceAvailableTime ??
+                      publishedVersion.asyncExchangeProperties
+                        .resourceAvailableTime,
+                    maxResultSet:
+                      seed.asyncExchangeProperties?.maxResultSet ??
+                      publishedVersion.asyncExchangeProperties.maxResultSet,
+                  }
                 : undefined,
           },
           instanceLabel: parsedInstanceLabel,
@@ -4230,8 +4232,8 @@ export function catalogServiceBuilder(
       const agreementApprovalPolicySeed =
         eserviceInstanceDescriptorSeed.agreementApprovalPolicy
           ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-            eserviceInstanceDescriptorSeed.agreementApprovalPolicy
-          )
+              eserviceInstanceDescriptorSeed.agreementApprovalPolicy
+            )
           : undefined;
 
       assertConsistentDailyCalls(eserviceInstanceDescriptorSeed);
@@ -4448,15 +4450,15 @@ export function catalogServiceBuilder(
       const updatedDescriptor =
         latestDescriptor.archivingSchedule?.scope === archivingScope.eservice
           ? {
-            ...descriptor,
-            archivingSchedule: latestDescriptor.archivingSchedule,
-          }
+              ...descriptor,
+              archivingSchedule: latestDescriptor.archivingSchedule,
+            }
           : updateDescriptorState(
-            { ...descriptor, archivingSchedule: undefined },
-            descriptor.state === descriptorState.archivingSuspended
-              ? descriptorState.suspended
-              : descriptorState.deprecated
-          );
+              { ...descriptor, archivingSchedule: undefined },
+              descriptor.state === descriptorState.archivingSuspended
+                ? descriptorState.suspended
+                : descriptorState.deprecated
+            );
 
       const updatedEService = replaceDescriptor(
         eservice.data,
@@ -4581,11 +4583,11 @@ async function processEserviceArchiving(
 
   const eserviceAfterCleanup = draftOrWaiting
     ? await deleteInactiveDescriptorLogic(
-      eservice,
-      draftOrWaiting,
-      fileManager,
-      logger
-    )
+        eservice,
+        draftOrWaiting,
+        fileManager,
+        logger
+      )
     : eservice;
 
   const requestDate = new Date();
@@ -4671,11 +4673,11 @@ async function createOpenApiInterfaceByTemplate(
   serverUrls: Array<{ url: string; description?: string }>,
   eserviceInstanceInterfaceRestData:
     | {
-      contactEmail: string;
-      contactName: string;
-      contactUrl?: string;
-      termsAndConditionsUrl?: string;
-    }
+        contactEmail: string;
+        contactName: string;
+        contactUrl?: string;
+        termsAndConditionsUrl?: string;
+      }
     | undefined,
   bucket: string,
   fileManager: FileManager,
@@ -5085,11 +5087,11 @@ function hasCertifiedAttributeConfigurationChanged(
         getEServiceAttributeDiscreteConfig(descriptorAttribute);
       return (
         seedAttribute?.dailyCallsPerConsumer !==
-        descriptorAttribute.dailyCallsPerConsumer ||
+          descriptorAttribute.dailyCallsPerConsumer ||
         seedAttribute?.discreteConfig?.threshold !==
-        descriptorDiscreteConfig?.threshold ||
+          descriptorDiscreteConfig?.threshold ||
         seedAttribute?.discreteConfig?.comparator !==
-        descriptorDiscreteConfig?.comparator
+          descriptorDiscreteConfig?.comparator
       );
     });
   });
@@ -5178,13 +5180,13 @@ async function updateDraftEService(
   eserviceId: EServiceId,
   typeAndSeed:
     | {
-      type: "put";
-      seed: catalogApi.UpdateEServiceSeed;
-    }
+        type: "put";
+        seed: catalogApi.UpdateEServiceSeed;
+      }
     | {
-      type: "patch";
-      seed: catalogApi.PatchUpdateEServiceSeed;
-    },
+        type: "patch";
+        seed: catalogApi.PatchUpdateEServiceSeed;
+      },
   readModelService: ReadModelServiceSQL,
   fileManager: FileManager,
   repository: ReturnType<typeof eventRepository<EServiceEvent>>,
@@ -5258,9 +5260,9 @@ async function updateDraftEService(
   // - personalData flag is changed from true to false or vice versa
   const checkedRiskAnalysis =
     updatedMode === eserviceMode.deliver ||
-      (typeAndSeed.seed.personalData != null &&
-        eservice.data.personalData != null &&
-        typeAndSeed.seed.personalData !== eservice.data.personalData)
+    (typeAndSeed.seed.personalData != null &&
+      eservice.data.personalData != null &&
+      typeAndSeed.seed.personalData !== eservice.data.personalData)
       ? []
       : eservice.data.riskAnalysis;
 
@@ -5319,12 +5321,12 @@ async function updateDraftEService(
     riskAnalysis: checkedRiskAnalysis,
     descriptors: interfaceHasToBeDeleted
       ? eservice.data.descriptors.map((d) => ({
-        ...d,
-        interface: undefined,
-        asyncExchangeCallbackInterface: undefined,
-        serverUrls: [],
-        serverUrlsDescriptions: [],
-      }))
+          ...d,
+          interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
+          serverUrls: [],
+          serverUrlsDescriptions: [],
+        }))
       : eservice.data.descriptors,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
     isConsumerDelegable: updatedIsConsumerDelegable,
@@ -5409,13 +5411,13 @@ async function updateDraftDescriptor(
 
   const updatedAttributes = attributes
     ? await parseAndCheckAttributes(
-      {
-        certified: attributes.certified ?? descriptor.attributes.certified,
-        declared: attributes.declared ?? descriptor.attributes.declared,
-        verified: attributes.verified ?? descriptor.attributes.verified,
-      },
-      readModelService
-    )
+        {
+          certified: attributes.certified ?? descriptor.attributes.certified,
+          declared: attributes.declared ?? descriptor.attributes.declared,
+          verified: attributes.verified ?? descriptor.attributes.verified,
+        },
+        readModelService
+      )
     : descriptor.attributes;
 
   assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
@@ -5427,8 +5429,8 @@ async function updateDraftDescriptor(
 
   const updatedAgreementApprovalPolicy = agreementApprovalPolicy
     ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-      agreementApprovalPolicy
-    )
+        agreementApprovalPolicy
+      )
     : descriptor.agreementApprovalPolicy;
 
   const asyncExchangeEnabled =
