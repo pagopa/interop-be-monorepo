@@ -172,7 +172,7 @@ describe("async token service - start_interaction", () => {
 
   it("should generate token for start_interaction scope", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { jws, clientId } = await setupConsumerClient();
@@ -198,7 +198,7 @@ describe("async token service - start_interaction", () => {
 
   it("should create an interaction record in DynamoDB", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { jws, clientId, purpose, tokenClientPurposeEntry } =
@@ -247,7 +247,7 @@ describe("async token service - start_interaction", () => {
 
   it("should include digest in token when client assertion has digest", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const digest = { alg: "SHA256", value: "a".repeat(64) };
@@ -370,7 +370,7 @@ describe("async token service - start_interaction", () => {
 
   it("should generate DPoP token when DPoP proof is provided", async () => {
     mockProducer.send.mockImplementationOnce(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { jws, clientId } = await setupConsumerClient();
