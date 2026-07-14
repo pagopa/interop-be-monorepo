@@ -34,16 +34,19 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import { config } from "../../src/config/config.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("schedule archiving of an EService", () => {
-  const gracePeriodDays =
-    config.gracePeriodArchivingEServiceDays as GracePeriodDays;
+  const gracePeriodDays: GracePeriodDays = 90;
 
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
   const mockArchivingReason = "Test reason";
+  const mockSeed: catalogApi.EServiceArchivingSeed = {
+    gracePeriodDays,
+    archivingReason: mockArchivingReason,
+  };
 
   it.each([
     {
@@ -70,9 +73,7 @@ describe("schedule archiving of an EService", () => {
       const scheduleEServiceArchivingResponse =
         await catalogService.scheduleEServiceArchiving(
           eservice.id,
-          {
-            archivingReason: mockArchivingReason,
-          },
+          mockSeed,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
 
@@ -143,12 +144,10 @@ describe("schedule archiving of an EService", () => {
       expect(
         catalogService.scheduleEServiceArchiving(
           eservice.id,
-          {
-            archivingReason: mockArchivingReason,
-          },
+          mockSeed,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
-      ).rejects.toThrowError(notValidEServiceState(eservice.id));
+      ).rejects.toThrow(notValidEServiceState(eservice.id));
     }
   );
 
@@ -182,9 +181,7 @@ describe("schedule archiving of an EService", () => {
       const scheduleEServiceArchivingResponse =
         await catalogService.scheduleEServiceArchiving(
           eservice.id,
-          {
-            archivingReason: mockArchivingReason,
-          },
+          mockSeed,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
 
@@ -289,9 +286,7 @@ describe("schedule archiving of an EService", () => {
       const scheduleEServiceArchivingResponse =
         await catalogService.scheduleEServiceArchiving(
           eservice.id,
-          {
-            archivingReason: mockArchivingReason,
-          },
+          mockSeed,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
 
@@ -393,9 +388,7 @@ describe("schedule archiving of an EService", () => {
       const scheduleEServiceArchivingResponse =
         await catalogService.scheduleEServiceArchiving(
           eservice.id,
-          {
-            archivingReason: mockArchivingReason,
-          },
+          mockSeed,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
 
@@ -448,12 +441,10 @@ describe("schedule archiving of an EService", () => {
     expect(
       catalogService.scheduleEServiceArchiving(
         mockEService.id,
-        {
-          archivingReason: mockArchivingReason,
-        },
+        mockSeed,
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
-    ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+    ).rejects.toThrow(eServiceNotFound(mockEService.id));
   });
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
@@ -470,12 +461,10 @@ describe("schedule archiving of an EService", () => {
     expect(
       catalogService.scheduleEServiceArchiving(
         eservice.id,
-        {
-          archivingReason: mockArchivingReason,
-        },
+        mockSeed,
         getMockContext({})
       )
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrow(operationForbidden);
   });
 
   it.each([delegationState.active, delegationState.waitingForApproval])(
@@ -501,12 +490,12 @@ describe("schedule archiving of an EService", () => {
       await expect(
         catalogService.scheduleEServiceArchiving(
           eservice.id,
-          { archivingReason: mockArchivingReason },
+          mockSeed,
           getMockContext({
             authData: getMockAuthData(eservice.producerId),
           })
         )
-      ).rejects.toThrowError(
+      ).rejects.toThrow(
         eserviceArchivingWithActiveOrPendingDelegation(
           eservice.id,
           delegation.id

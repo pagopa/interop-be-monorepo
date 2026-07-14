@@ -24,6 +24,10 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 
 describe("scheduleArchiveEServiceDescriptor", () => {
+  const mockSeed: catalogApi.GracePeriodDaysSeed = {
+    gracePeriodDays: 60,
+  };
+
   const mockApiDescriptor: catalogApi.EServiceDescriptor = {
     ...getMockedApiEserviceDescriptor(),
     state: "DEPRECATED",
@@ -56,6 +60,7 @@ describe("scheduleArchiveEServiceDescriptor", () => {
     const result = await eserviceService.scheduleArchiveEserviceDescriptor(
       unsafeBrandId(mockApiEservice.id),
       unsafeBrandId(mockApiDescriptor.id),
+      mockSeed,
       getMockM2MAdminAppContext()
     );
 
@@ -71,6 +76,7 @@ describe("scheduleArchiveEServiceDescriptor", () => {
         eServiceId: mockApiEservice.id,
         descriptorId: mockApiDescriptor.id,
       },
+      body: mockSeed,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
@@ -96,9 +102,10 @@ describe("scheduleArchiveEServiceDescriptor", () => {
       eserviceService.scheduleArchiveEserviceDescriptor(
         unsafeBrandId(mockApiEservice.id),
         unsafeBrandId(mockApiDescriptor.id),
+        mockSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingMetadata());
+    ).rejects.toThrow(missingMetadata());
   });
 
   it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
@@ -111,9 +118,10 @@ describe("scheduleArchiveEServiceDescriptor", () => {
       eserviceService.scheduleArchiveEserviceDescriptor(
         unsafeBrandId(mockApiEservice.id),
         unsafeBrandId(mockApiDescriptor.id),
+        mockSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingMetadata());
+    ).rejects.toThrow(missingMetadata());
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
@@ -128,9 +136,10 @@ describe("scheduleArchiveEServiceDescriptor", () => {
       eserviceService.scheduleArchiveEserviceDescriptor(
         unsafeBrandId(mockApiEservice.id),
         unsafeBrandId(mockApiDescriptor.id),
+        mockSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       pollingMaxRetriesExceeded(
         config.defaultPollingMaxRetries,
         config.defaultPollingRetryDelay

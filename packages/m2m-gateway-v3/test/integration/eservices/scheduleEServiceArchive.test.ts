@@ -28,8 +28,9 @@ describe("scheduleArchiveEService", () => {
   const mockEService = getMockedApiEservice();
   const mockEServiceProcessGetResponse = getMockWithMetadata(mockEService);
 
-  const mockSeed: m2mGatewayApiV3.EServiceArchivingReasonSeed = {
+  const mockSeed: m2mGatewayApiV3.EServiceArchivingSeed = {
     archivingReason: "test reason",
+    gracePeriodDays: 60,
   };
 
   const mockScheduleEServiceArchive = vi
@@ -94,7 +95,7 @@ describe("scheduleArchiveEService", () => {
         mockSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingMetadata());
+    ).rejects.toThrow(missingMetadata());
   });
 
   it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
@@ -109,7 +110,7 @@ describe("scheduleArchiveEService", () => {
         mockSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingMetadata());
+    ).rejects.toThrow(missingMetadata());
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
@@ -126,7 +127,7 @@ describe("scheduleArchiveEService", () => {
         mockSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       pollingMaxRetriesExceeded(
         config.defaultPollingMaxRetries,
         config.defaultPollingRetryDelay
