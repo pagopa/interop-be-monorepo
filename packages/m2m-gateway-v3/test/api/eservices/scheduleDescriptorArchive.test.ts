@@ -60,6 +60,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
       ).toHaveBeenCalledWith(
         mockApiEservice.id,
         mockApiDescriptor.id,
+        mockSeed,
         expect.any(Object) // context
       );
       expect(res.status).toBe(200);
