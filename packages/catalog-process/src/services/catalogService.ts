@@ -2203,6 +2203,35 @@ export function catalogServiceBuilder(
             }
           : undefined;
 
+      const clonedAsyncExchangeCallbackInterfaceId =
+        generateId<EServiceDocumentId>();
+      const clonedAsyncExchangeCallbackInterfacePath =
+        descriptor.asyncExchangeCallbackInterface !== undefined
+          ? await fileManager.copy(
+              config.s3Bucket,
+              descriptor.asyncExchangeCallbackInterface.path,
+              config.eserviceDocumentsPath,
+              clonedAsyncExchangeCallbackInterfaceId,
+              descriptor.asyncExchangeCallbackInterface.name,
+              logger
+            )
+          : undefined;
+
+      const clonedAsyncExchangeCallbackInterfaceDocument: Document | undefined =
+        descriptor.asyncExchangeCallbackInterface !== undefined &&
+        clonedAsyncExchangeCallbackInterfacePath !== undefined
+          ? {
+              id: clonedAsyncExchangeCallbackInterfaceId,
+              name: descriptor.asyncExchangeCallbackInterface.name,
+              contentType:
+                descriptor.asyncExchangeCallbackInterface.contentType,
+              prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
+              path: clonedAsyncExchangeCallbackInterfacePath,
+              checksum: descriptor.asyncExchangeCallbackInterface.checksum,
+              uploadDate: new Date(),
+            }
+          : undefined;
+
       const clonedDocuments = await Promise.all(
         descriptor.docs.map(async (doc: Document) => {
           const clonedDocumentId = generateId<EServiceDocumentId>();
@@ -2242,6 +2271,8 @@ export function catalogServiceBuilder(
             id: generateId(),
             version: "1",
             interface: clonedInterfaceDocument,
+            asyncExchangeCallbackInterface:
+              clonedAsyncExchangeCallbackInterfaceDocument,
             docs: clonedDocuments,
             state: descriptorState.draft,
             createdAt: new Date(),
