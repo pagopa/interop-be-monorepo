@@ -928,12 +928,12 @@ export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
 }
 
 export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
+  requestDate: Date,
   eservice: EService,
   gracePeriodDays: GracePeriodDays
 ): void {
-  const today = new Date();
   const { archivableOn: requestedArchivableOn } = calculateArchivableOn(
-    today,
+    requestDate,
     gracePeriodDays
   );
 
