@@ -9,12 +9,9 @@ import {
   generateId,
   CorrelationId,
   genericInternalError,
-  UserId,
-  unsafeBrandId,
-  SelfcareId,
-  selfcareUserEventType,
   relationshipStatus,
   BaseUsersEventPayload,
+  UsersEventPayload,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { authorizationApi } from "pagopa-interop-api-clients";
@@ -65,28 +62,30 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
           return;
         }
 
-        const userEventPayload = BaseUsersEventPayload.parse(jsonPayload);
+        // Validate first so a malformed payload fails loudly while a missing
+        // userId is skipped; only then apply the shared transform.
+        const baseEventPayload = BaseUsersEventPayload.parse(jsonPayload);
+        if (baseEventPayload.user.userId == null) {
+          loggerInstance.warn(
+            `Skipping message for partition ${partition} with offset ${message.offset} - Missing userId.`
+          );
+          return;
+        }
+
+        const userEventPayload = UsersEventPayload.parse(jsonPayload);
 
         return match(userEventPayload)
-          .with({ user: { userId: P.nullish } }, () => {
-            loggerInstance.warn(
-              `Skipping message for partition ${partition} with offset ${message.offset} - Missing userId.`
-            );
-          })
           .with(
             {
-              eventType: selfcareUserEventType.update,
+              eventType: P.union("update", "delete"),
               user: {
-                userId: P.string,
-                productRole: P.when((role) => role === userRole.ADMIN_ROLE),
+                productRole: userRole.ADMIN_ROLE,
                 relationshipStatus: P.not(relationshipStatus.active),
               },
             },
             async (payload) => {
-              const eventUserId = unsafeBrandId<UserId>(payload.user.userId);
-              const selfcareId = unsafeBrandId<SelfcareId>(
-                payload.institutionId
-              );
+              const eventUserId = payload.user.userId;
+              const selfcareId = payload.institutionId;
               const token = (await refreshableToken.get()).serialized;
               const tenantId =
                 await readModelService.getTenantIdBySelfcareId(selfcareId);
@@ -130,8 +129,10 @@ export function selfcareClientUsersUpdaterProcessorBuilder(
             }
           )
           .otherwise(() => {
+            // baseEventPayload.eventType: log the raw event type, not the
+            // simplified one.
             loggerInstance.info(
-              `Skipping message for partition ${partition} with offset ${message.offset} - Event type is ${userEventPayload.eventType}, user productRole is ${userEventPayload.user.productRole} and relationshipStatus is ${userEventPayload.user.relationshipStatus}.`
+              `Skipping message for partition ${partition} with offset ${message.offset} - Event type is ${baseEventPayload.eventType}, user productRole is ${userEventPayload.user.productRole} and relationshipStatus is ${userEventPayload.user.relationshipStatus}.`
             );
           });
       } catch (err) {

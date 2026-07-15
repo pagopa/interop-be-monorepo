@@ -4,12 +4,12 @@ import {
   generateId,
   CorrelationId,
   TenantId,
+  UsersEventPayload,
 } from "pagopa-interop-models";
 import { EachMessagePayload } from "kafkajs";
 import { match } from "ts-pattern";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { isAxiosError } from "axios";
-import { UsersEventPayload } from "../model/UsersEventPayload.js";
 import { userRoleToApiUserRole } from "../model/apiConverter.js";
 import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";

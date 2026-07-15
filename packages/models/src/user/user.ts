@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { UserId, TenantId } from "../brandedIds.js";
+import { match, P } from "ts-pattern";
+import { UserId, TenantId, SelfcareId, unsafeBrandId } from "../brandedIds.js";
 
 export const userRole = {
   ADMIN_ROLE: "admin",
@@ -68,3 +69,38 @@ export const BaseUsersEventPayload = z.object({
   user: BaseUser,
 });
 export type BaseUsersEventPayload = z.infer<typeof BaseUsersEventPayload>;
+
+// Shared transform: brands the ids and simplifies the event type.
+// relationshipStatus is kept in the output because selfcare-client-users-updater
+// needs the distinction that the simplified event type would otherwise drop.
+export const UsersEventPayload = BaseUsersEventPayload.transform((data) => {
+  const { userId } = data.user;
+  if (userId == null) {
+    throw new Error("UserId is required and cannot be null or undefined.");
+  }
+
+  const eventType = match([data.eventType, data.user.relationshipStatus])
+    .with([selfcareUserEventType.add, P.any], () => "add" as const)
+    .with(
+      [selfcareUserEventType.update, P.not(relationshipStatus.deleted)],
+      () => "update" as const
+    )
+    .with(
+      [selfcareUserEventType.update, relationshipStatus.deleted],
+      () => "delete" as const
+    )
+    .exhaustive();
+
+  return {
+    id: data.id,
+    institutionId: unsafeBrandId<SelfcareId>(data.institutionId),
+    productId: data.productId,
+    user: {
+      userId: unsafeBrandId<UserId>(userId),
+      productRole: data.user.productRole,
+      relationshipStatus: data.user.relationshipStatus,
+    },
+    eventType,
+  };
+});
+export type UsersEventPayload = z.infer<typeof UsersEventPayload>;

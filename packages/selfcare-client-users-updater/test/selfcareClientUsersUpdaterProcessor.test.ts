@@ -206,6 +206,59 @@ describe("selfcareClientUsersUpdaterProcessor", () => {
     expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
   });
 
+  it("should throw an error if payload has an invalid shape", async () => {
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          JSON.stringify({
+            ...correctEventPayload,
+            productId: config.interopProduct,
+            user: {
+              ...correctEventPayload.user,
+              relationshipStatus: "NOT_A_VALID_STATUS",
+            },
+          })
+        ),
+      },
+    };
+
+    await expect(() =>
+      selfcareClientUsersUpdaterProcessor.processMessage(message)
+    ).rejects.toThrowError(/Error.*partition.*offset.*Reason/);
+
+    expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
+  });
+
+  it("should skip message with missing userId", async () => {
+    const message: EachMessagePayload = {
+      ...kafkaMessagePayload,
+      message: {
+        ...kafkaMessagePayload.message,
+        value: Buffer.from(
+          JSON.stringify({
+            ...correctEventPayload,
+            productId: config.interopProduct,
+            user: {
+              ...correctEventPayload.user,
+              userId: null,
+              productRole: userRole.ADMIN_ROLE,
+              relationshipStatus: relationshipStatus.deleted,
+            },
+          })
+        ),
+      },
+    };
+
+    await selfcareClientUsersUpdaterProcessor.processMessage(message);
+
+    expect(refreshableInternalTokenSpy).toBeCalledTimes(0);
+    expect(
+      authorizationProcessClientMock.client.internalRemoveClientAdmin
+    ).not.toHaveBeenCalled();
+  });
+
   it("should skip valid admin user with ACTIVE relationshipStatus", async () => {
     const message: EachMessagePayload = {
       ...kafkaMessagePayload,

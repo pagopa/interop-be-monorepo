@@ -8,12 +8,12 @@ import {
   CorrelationId,
   SelfcareId,
   UserId,
+  UsersEventPayload,
 } from "pagopa-interop-models";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { RefreshableInteropToken } from "pagopa-interop-commons";
 import { AxiosError } from "axios";
 import { processUserEvent } from "../src/services/messageProcessor.js";
-import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 import { ReadModelServiceSQL } from "../src/services/readModelServiceSQL.js";
 
 vi.mock("pagopa-interop-commons", async (importOriginal) => {
@@ -99,10 +99,8 @@ describe("processUserEvent", () => {
     productId: "prod-123",
     user: {
       userId,
-      name: "John",
-      familyName: "Doe",
-      email: "john.doe@example.com",
       productRole: "admin" as const,
+      relationshipStatus: "ACTIVE" as const,
     },
   };
 
