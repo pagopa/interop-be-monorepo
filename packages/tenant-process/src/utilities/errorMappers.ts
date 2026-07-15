@@ -177,6 +177,7 @@ export const verifyVerifiedAttributeErrorMapper = (
       "attributeVerificationNotAllowed",
       () => HTTP_STATUS_FORBIDDEN
     )
+    .with("attributeAlreadyVerified", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeVerifiedAttributeErrorMapper = (

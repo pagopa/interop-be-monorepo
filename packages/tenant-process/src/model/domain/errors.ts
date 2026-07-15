@@ -41,6 +41,7 @@ const errorCodes = {
   invalidTenantFeature: "0031",
   certifiedDiscreteAttributeAlreadyAssigned: "0032",
   tenantNotFoundByRemoteId: "0033",
+  attributeAlreadyVerified: "0034",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -255,6 +256,19 @@ export function attributeAlreadyRevoked(
     title: "Attribute is already revoked",
   });
 }
+
+export function attributeAlreadyVerified(
+  tenantId: TenantId,
+  verifierId: TenantId,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Attribute ${attributeId} has been already verified for ${tenantId} by ${verifierId}`,
+    code: "attributeAlreadyVerified",
+    title: "Attribute is already verified",
+  });
+}
+
 export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Mail ${mailId} not found`,

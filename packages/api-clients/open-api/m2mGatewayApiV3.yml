@@ -8346,6 +8346,7 @@ paths:
       summary: |
         Assign a Verified Attribute to a Tenant with yourself as verifier.
         If the attribute is already assigned, you will be added to the list of verifiers.
+        If you are already a verifier, the request will fail with a conflict response.
       description: Assign a Verified Attribute to a Tenant
       operationId: assignTenantVerifiedAttribute
       requestBody:
@@ -8380,6 +8381,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /tenants/{tenantId}/verifiedAttributes/{attributeId}:

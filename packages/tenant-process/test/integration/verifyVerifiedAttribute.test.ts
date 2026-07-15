@@ -18,6 +18,7 @@ import {
   AttributeId,
   TenantVerifier,
   TenantRevoker,
+  WithMetadata,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import {
@@ -31,6 +32,7 @@ import {
   getMockContext,
 } from "pagopa-interop-commons-test";
 import {
+  attributeAlreadyVerified,
   tenantNotFound,
   attributeVerificationNotAllowed,
   verifiedAttributeSelfVerificationNotAllowed,
@@ -293,6 +295,92 @@ describe("verifyVerifiedAttribute", async () => {
       });
     }
   );
+
+  it("Should throw attributeAlreadyVerified if the attribute is already verified by the same tenant", async () => {
+    const existingVerifier: TenantVerifier = {
+      ...getMockVerifiedBy(),
+      id: requesterTenant.id,
+    };
+    const tenantWithAlreadyVerifiedAttribute: Tenant = {
+      ...targetTenant,
+      attributes: [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attribute.id,
+          verifiedBy: [existingVerifier],
+          revokedBy: [],
+        },
+      ],
+    };
+
+    await addOneTenant(requesterTenant);
+    await addOneTenant(tenantWithAlreadyVerifiedAttribute);
+    await addOneAttribute(attribute);
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
+
+    await expect(
+      tenantService.verifyVerifiedAttribute(
+        {
+          tenantId: tenantWithAlreadyVerifiedAttribute.id,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
+        },
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+      )
+    ).rejects.toThrowError(
+      attributeAlreadyVerified(
+        tenantWithAlreadyVerifiedAttribute.id,
+        requesterTenant.id,
+        tenantAttributeSeedId
+      )
+    );
+  });
+
+  it("Should verify the attribute again if it was revoked by the same tenant", async () => {
+    const existingRevoker: TenantRevoker = {
+      ...getMockRevokedBy(),
+      id: requesterTenant.id,
+    };
+    const tenantWithRevokedAttribute: Tenant = {
+      ...targetTenant,
+      attributes: [
+        {
+          ...getMockVerifiedTenantAttribute(),
+          id: attribute.id,
+          verifiedBy: [],
+          revokedBy: [existingRevoker],
+        },
+      ],
+    };
+
+    await addOneTenant(requesterTenant);
+    await addOneTenant(tenantWithRevokedAttribute);
+    await addOneAttribute(attribute);
+    await addOneEService(eService1);
+    await addOneAgreement(agreementEservice1);
+
+    const result: WithMetadata<Tenant> =
+      await tenantService.verifyVerifiedAttribute(
+        {
+          tenantId: tenantWithRevokedAttribute.id,
+          attributeId: tenantAttributeSeedId,
+          agreementId: agreementEservice1.id,
+        },
+        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+      );
+
+    expect(result.data.attributes).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: attribute.id,
+          verifiedBy: [expect.objectContaining({ id: requesterTenant.id })],
+          revokedBy: [],
+        }),
+      ])
+    );
+  });
+
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
     await addOneEService(eService1);
     await addOneAgreement(agreementEservice1);

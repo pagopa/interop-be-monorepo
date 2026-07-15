@@ -75,6 +75,7 @@ import {
   toCreateEventTenantCertifiedDiscreteAttributeAssigned,
 } from "../model/domain/toEvent.js";
 import {
+  attributeAlreadyVerified,
   attributeAlreadyRevoked,
   attributeDoesNotBelongToCertifier,
   attributeNotFound,
@@ -894,6 +895,15 @@ export function tenantServiceBuilder(
         (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
       );
+
+      const isAlreadyVerifiedByTenant: boolean =
+        verifiedTenantAttribute?.verifiedBy.some(
+          (verifier) => verifier.id === verifierId
+        ) ?? false;
+
+      if (isAlreadyVerifiedByTenant) {
+        throw attributeAlreadyVerified(tenantId, verifierId, attributeId);
+      }
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,

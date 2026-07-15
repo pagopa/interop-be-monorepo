@@ -4,7 +4,8 @@ import { bffApi } from "pagopa-interop-api-clients";
 import { TenantId, generateId } from "pagopa-interop-models";
 import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import request from "supertest";
+import request, { Response as SupertestResponse } from "supertest";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { api, clients } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiVerifiedTenantAttributeSeed } from "../../mockUtils.js";
@@ -33,6 +34,43 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
+  });
+
+  it("Should propagate 409 when the attribute is already verified by the same tenant", async () => {
+    const upstreamStatus: number = 409;
+    const upstreamError: AxiosError = new AxiosError(
+      "upstream error",
+      String(upstreamStatus),
+      undefined,
+      undefined,
+      {
+        status: upstreamStatus,
+        data: {
+          type: "about:blank",
+          title: "Attribute is already verified",
+          status: upstreamStatus,
+          detail: "Attribute is already verified by the same tenant",
+          correlationId: "test-correlation-id",
+          errors: [
+            {
+              code: "001-0034",
+              detail: "Attribute is already verified by the same tenant",
+            },
+          ],
+        },
+        statusText: "",
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      }
+    );
+    clients.tenantProcessClient.tenantAttribute.verifyVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(upstreamError);
+
+    const token: string = generateToken(authRole.ADMIN_ROLE);
+    const res: SupertestResponse = await makeRequest(token);
+
+    expect(res.status).toBe(upstreamStatus);
   });
 
   it.each([

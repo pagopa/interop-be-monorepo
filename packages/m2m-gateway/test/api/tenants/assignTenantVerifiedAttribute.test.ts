@@ -11,7 +11,8 @@ import {
   pollingMaxRetriesExceeded,
 } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
+import request, { Response as SupertestResponse } from "supertest";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
@@ -88,6 +89,43 @@ describe("POST /tenants/:tenantId/verifiedAttributes router test", () => {
     const res = await makeRequest(token, mockSeed, "invalid_id" as TenantId);
 
     expect(res.status).toBe(400);
+  });
+
+  it("Should propagate 409 when the attribute is already verified by the same tenant", async () => {
+    const upstreamStatus: number = 409;
+    const upstreamError: AxiosError = new AxiosError(
+      "upstream error",
+      String(upstreamStatus),
+      undefined,
+      undefined,
+      {
+        status: upstreamStatus,
+        data: {
+          type: "about:blank",
+          title: "Attribute is already verified",
+          status: upstreamStatus,
+          detail: "Attribute is already verified by the same tenant",
+          correlationId: "test-correlation-id",
+          errors: [
+            {
+              code: "001-0034",
+              detail: "Attribute is already verified by the same tenant",
+            },
+          ],
+        },
+        statusText: "",
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      }
+    );
+    mockTenantService.assignTenantVerifiedAttribute = vi
+      .fn()
+      .mockRejectedValue(upstreamError);
+
+    const token: string = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res: SupertestResponse = await makeRequest(token);
+
+    expect(res.status).toBe(upstreamStatus);
   });
 
   it.each([

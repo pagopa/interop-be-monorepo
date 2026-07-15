@@ -13,6 +13,7 @@ import { api, tenantService } from "../vitest.api.setup.js";
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   agreementNotFound,
+  attributeAlreadyVerified,
   attributeNotFound,
   attributeVerificationNotAllowed,
   descriptorNotFoundInEservice,
@@ -87,6 +88,10 @@ describe("API POST /tenants/{tenantId}/attributes/verified test", () => {
     {
       error: attributeVerificationNotAllowed(generateId(), generateId()),
       expectedStatus: 403,
+    },
+    {
+      error: attributeAlreadyVerified(generateId(), generateId(), generateId()),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",
