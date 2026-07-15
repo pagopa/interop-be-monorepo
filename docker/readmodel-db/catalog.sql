@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   agreement_approval_policy VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   server_urls VARCHAR ARRAY NOT NULL,
+  server_urls_descriptions VARCHAR ARRAY NOT NULL,
   published_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
