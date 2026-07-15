@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import {
   FileManager,
   getAllFromPaginated,
+  isValidFile,
   removeDuplicates,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -45,6 +46,7 @@ import { getAllBulkAttributes } from "./attributeService.js";
 import { enhanceTenantAttributes } from "./tenantService.js";
 import { isAgreementUpgradable } from "./validators.js";
 import { getTenantById } from "./delegationService.js";
+import { invalidFileUploadError } from "pagopa-interop-models";
 
 export async function getAllAgreements(
   agreementProcessClient: agreementApi.AgreementProcessClient,
@@ -197,6 +199,10 @@ export function agreementServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<Buffer> {
       logger.info(`Adding consumer document to agreement ${agreementId}`);
+
+      if (!(await isValidFile(doc.doc))) {
+        throw invalidFileUploadError();
+      }
 
       const documentPath = `${config.consumerDocumentsPath}/${agreementId}`;
       const documentContent = Buffer.from(await doc.doc.arrayBuffer());
@@ -438,7 +444,7 @@ export function agreementServiceBuilder(
       });
     },
 
-    async activateAgreement(
+    async approveAgreement(
       agreementId: string,
       delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
@@ -448,7 +454,26 @@ export function agreementServiceBuilder(
           delegationId ? ` with delegation ${delegationId}` : ""
         }`
       );
-      const agreement = await agreementProcessClient.activateAgreement(
+      const agreement = await agreementProcessClient.approveAgreement(
+        { delegationId },
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+      return enrichAgreement(agreement, clients, ctx);
+    },
+    async unsuspendAgreement(
+      agreementId: string,
+      delegationId: string | undefined,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(
+        `Unsuspending agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
+      const agreement = await agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },

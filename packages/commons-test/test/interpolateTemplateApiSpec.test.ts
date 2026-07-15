@@ -16,8 +16,8 @@ describe("interpolateTemplateApiSpec", async () => {
   };
 
   const serverUrls = [
-    "http://server1.example.com",
-    "http://server2.example.com",
+    { url: "http://server1.example.com" },
+    { url: "http://server2.example.com" },
   ];
 
   const eserviceInstanceInterfaceRestData = {
@@ -90,6 +90,29 @@ describe("interpolateTemplateApiSpec", async () => {
       .trim();
 
     expect(normalizedFileContent).toBe(normalizedExpectedContent);
+  });
+  it("should inject the per-server description into the REST servers", async () => {
+    const serverUrlsWithDescriptions = [
+      { url: "http://server1.example.com", description: "Primary server" },
+      { url: "http://server2.example.com" },
+    ];
+
+    const result: File = await interpolateTemplateApiSpec(
+      eservice,
+      file,
+      interfaceFileInfo,
+      serverUrlsWithDescriptions,
+      eserviceInstanceInterfaceRestData
+    );
+
+    const parsedJson = JSON.parse(
+      new TextDecoder().decode(await result.arrayBuffer())
+    );
+
+    expect(parsedJson.servers).toEqual([
+      { url: "http://server1.example.com", description: "Primary server" },
+      { url: "http://server2.example.com" },
+    ]);
   });
   it("should throw invalidInterfaceData error for unsupported file type", async () => {
     const interfaceFileInfo = {
