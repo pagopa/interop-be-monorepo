@@ -127,7 +127,7 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateSeed"
         required: true
       responses:
-        "200":
+        "201":
           description: EService template created
           headers:
             X-Metadata-Version:
@@ -335,7 +335,7 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionSeed"
         required: true
       responses:
-        "200":
+        "201":
           description: EService template version created.
           headers:
             X-Metadata-Version:
@@ -773,7 +773,7 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateEServiceTemplateVersionDocumentSeed"
       responses:
-        "200":
+        "201":
           description: EService Template Document created
           headers:
             X-Metadata-Version:
@@ -1014,7 +1014,7 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceTemplateRiskAnalysisSeed"
       responses:
-        "200":
+        "201":
           description: EService Template Risk Analysis created
           headers:
             X-Metadata-Version:

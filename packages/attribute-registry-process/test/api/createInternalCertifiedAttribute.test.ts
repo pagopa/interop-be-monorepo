@@ -35,11 +35,11 @@ describe("API /internal/certifiedAttributes authorization test", () => {
       .set("X-Correlation-Id", generateId())
       .send(mockInternalCertifiedAttributeSeed);
 
-  it("Should return 200 for user with role Internal", async () => {
+  it("Should return 201 for user with role Internal", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
     const res = await makeRequest(token);
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(201);
     expect(res.body).toEqual(apiAttribute);
   });
 

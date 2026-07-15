@@ -50,11 +50,11 @@ describe("API /clientsConsumer authorization test", () => {
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 with a full client for user with role %s",
+    "Should return 201 with a full client for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, clientSeed);
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(testToFullClient(mockClient.data));
     }
   );

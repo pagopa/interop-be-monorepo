@@ -128,7 +128,7 @@ paths:
               $ref: "#/components/schemas/TenantNotificationConfigSeed"
         required: true
       responses:
-        "200":
+        "201":
           description: The tenant's newly created notification configuration
           content:
             application/json:

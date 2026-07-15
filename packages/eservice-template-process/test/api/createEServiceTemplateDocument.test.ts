@@ -74,11 +74,11 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents"
     authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 201 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token);
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(apiDocument);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()

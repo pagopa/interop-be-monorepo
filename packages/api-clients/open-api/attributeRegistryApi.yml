@@ -41,7 +41,7 @@ paths:
         - attribute
       operationId: createCertifiedAttribute
       responses:
-        "200":
+        "201":
           description: Certified attribute created
           headers:
             X-Metadata-Version:
@@ -85,7 +85,7 @@ paths:
         - attribute
       operationId: createDeclaredAttribute
       responses:
-        "200":
+        "201":
           description: Declared attribute created
           headers:
             X-Metadata-Version:
@@ -129,7 +129,7 @@ paths:
         - attribute
       operationId: createVerifiedAttribute
       responses:
-        "200":
+        "201":
           description: Verified attribute created
           headers:
             X-Metadata-Version:
@@ -173,7 +173,7 @@ paths:
         - attribute
       operationId: createInternalCertifiedAttribute
       responses:
-        "200":
+        "201":
           description: Certified attribute created
           content:
             application/json:
@@ -215,7 +215,7 @@ paths:
       operationId: createInternalCertifiedDiscreteAttribute
       description: Creates the certified discrete attribute passed as payload
       responses:
-        "200":
+        "201":
           description: Certified discrete attribute created
           content:
             application/json:

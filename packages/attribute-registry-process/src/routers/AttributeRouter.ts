@@ -275,7 +275,7 @@ const attributeRouter = (
 
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .send(attributeRegistryApi.Attribute.parse(toApiAttribute(data)));
       } catch (error) {
         const errorRes = makeApiProblem(
@@ -298,7 +298,7 @@ const attributeRouter = (
         setMetadataVersionHeader(res, metadata);
 
         return res
-          .status(200)
+          .status(201)
           .send(
             attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
           );
@@ -323,7 +323,7 @@ const attributeRouter = (
         setMetadataVersionHeader(res, metadata);
 
         return res
-          .status(200)
+          .status(201)
           .send(
             attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
           );
@@ -348,7 +348,7 @@ const attributeRouter = (
             ctx
           );
         return res
-          .status(200)
+          .status(201)
           .send(
             attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
           );
@@ -374,7 +374,7 @@ const attributeRouter = (
           );
 
         return res
-          .status(200)
+          .status(201)
           .send(
             attributeRegistryApi.Attribute.parse(toApiAttribute(attribute))
           );

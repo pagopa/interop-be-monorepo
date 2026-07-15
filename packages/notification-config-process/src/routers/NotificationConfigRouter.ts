@@ -154,7 +154,7 @@ const notificationConfigRouter = (
             ctx
           );
         return res
-          .status(200)
+          .status(201)
           .send(
             notificationConfigApi.TenantNotificationConfig.parse(
               tenantNotificationConfigToApiTenantNotificationConfig(

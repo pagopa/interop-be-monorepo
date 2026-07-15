@@ -141,12 +141,12 @@ const eserviceTemplatesRouter = (
         setMetadataVersionHeader(res, metadata);
 
         return res
+          .status(201)
           .send(
             eserviceTemplateApi.EServiceTemplate.parse(
               eserviceTemplateToApiEServiceTemplate(eserviceTemplate)
             )
-          )
-          .status(200);
+          );
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
@@ -319,7 +319,7 @@ const eserviceTemplatesRouter = (
           ctx
         );
         setMetadataVersionHeader(res, metadata);
-        return res.status(200).send(
+        return res.status(201).send(
           eserviceTemplateApi.CreatedEServiceTemplateVersion.parse({
             eserviceTemplate:
               eserviceTemplateToApiEServiceTemplate(eserviceTemplate),
@@ -530,7 +530,7 @@ const eserviceTemplatesRouter = (
             );
           setMetadataVersionHeader(res, metadata);
           return res
-            .status(200)
+            .status(201)
             .send(
               eserviceTemplateApi.EServiceDoc.parse(
                 documentToApiDocument(document)
@@ -658,7 +658,7 @@ const eserviceTemplatesRouter = (
           ctx
         );
         setMetadataVersionHeader(res, metadata);
-        return res.status(200).send(
+        return res.status(201).send(
           eserviceTemplateApi.CreatedEServiceTemplateRiskAnalysis.parse({
             eserviceTemplate:
               eserviceTemplateToApiEServiceTemplate(eserviceTemplate),
