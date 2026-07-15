@@ -192,7 +192,7 @@ paths:
               $ref: "#/components/schemas/EServiceSeed"
         required: true
       responses:
-        "200":
+        "201":
           description: EService created
           headers:
             X-Metadata-Version:
@@ -496,7 +496,7 @@ paths:
             schema:
               $ref: "#/components/schemas/InstanceEServiceSeed"
       responses:
-        "200":
+        "201":
           description: EService created from template
           content:
             application/json:
@@ -648,7 +648,7 @@ paths:
               $ref: "#/components/schemas/EServiceDescriptorSeed"
         required: true
       responses:
-        "200":
+        "201":
           description: EService Descriptor created.
           headers:
             X-Metadata-Version:
@@ -687,7 +687,7 @@ paths:
               $ref: "#/components/schemas/EServiceInstanceDescriptorSeed"
         required: true
       responses:
-        "200":
+        "201":
           description: EService Instance Descriptor created.
           content:
             application/json:
@@ -1365,7 +1365,7 @@ paths:
             schema:
               $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
       responses:
-        "200":
+        "201":
           description: EService Document created
           headers:
             X-Metadata-Version:
@@ -1737,7 +1737,7 @@ paths:
             schema:
               $ref: "#/components/schemas/EServiceRiskAnalysisSeed"
       responses:
-        "200":
+        "201":
           description: EService Risk Analysis created
           headers:
             X-Metadata-Version:
