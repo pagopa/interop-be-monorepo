@@ -24,7 +24,6 @@ import {
   generateId,
   ArchivingSchedule,
   ArchivingScope,
-  GracePeriodDays,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
 import {
@@ -40,6 +39,7 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import * as dateCalculator from "../../src/utilities/dateCalculator.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("schedule archiving of a descriptor", () => {
   const mockEService = getMockEService();
