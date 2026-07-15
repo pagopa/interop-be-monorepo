@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { generateToken } from "pagopa-interop-commons-test";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import {
+  generateId,
+  invalidInterfaceFileDetected,
+  pollingMaxRetriesExceeded,
+} from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
@@ -149,6 +153,26 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       expect(res.status).toBe(400);
     }
   );
+
+  it("Should return 400 in case of invalidInterfaceFileDetected error", async () => {
+    mockEserviceService.uploadEServiceDescriptorInterface = vi
+      .fn()
+      .mockRejectedValue(
+        invalidInterfaceFileDetected({
+          id: generateId(),
+          isEserviceTemplate: false,
+        })
+      );
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId(),
+      generateId(),
+      mockFileUpload
+    );
+
+    expect(res.status).toBe(400);
+  });
 
   it.each([
     missingMetadata(),

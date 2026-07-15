@@ -243,6 +243,28 @@ describe("retrieveServerUrlsAPI", () => {
       retrieveServerUrlsAPI(invalidDoc, "INTERFACE", "Rest", resource)
     ).rejects.toThrow(invalidInterfaceFileDetected(resource));
   });
+  it("should throw invalidInterfaceFileDetected for OpenAPI 3.x REST interface without servers", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noServersDoc = {
+      name: "test.yaml",
+      text: vi.fn().mockResolvedValue("openapi: 3.0.0\n"),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noServersDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+  });
+  it("should throw invalidInterfaceFileDetected for OpenAPI 2.0 REST interface without host", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noHostDoc = {
+      name: "test.json",
+      text: vi.fn().mockResolvedValue(JSON.stringify({ openapi: "2.0" })),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noHostDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+  });
   it("should return an empty array for DOCUMENT kind", async () => {
     const documentDoc = {
       ...mockFile,
