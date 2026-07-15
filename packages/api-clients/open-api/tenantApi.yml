@@ -1183,6 +1183,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          description: Attribute already assigned to the Tenant
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /tenants/{tenantId}/attributes/certifiedDiscrete/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1223,6 +1229,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Tenant Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Attribute already revoked for the Tenant
           content:
             application/problem+json:
               schema:
