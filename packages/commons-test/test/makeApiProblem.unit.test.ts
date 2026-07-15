@@ -7,6 +7,7 @@ import {
   badRequestError,
   commonErrorCodes,
   emptyErrorMapper,
+  eventConflictError,
   featureFlagNotEnabled,
   makeApiProblemBuilder,
   serviceErrorCode,
@@ -60,6 +61,7 @@ const {
   HTTP_STATUS_FORBIDDEN,
   HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_NOT_IMPLEMENTED,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 const defaultTestErrorMapper = (
@@ -130,6 +132,7 @@ describe("makeApiProblem", () => {
     [unauthorizedError("test"), HTTP_STATUS_FORBIDDEN],
     [featureFlagNotEnabled("test"), HTTP_STATUS_NOT_IMPLEMENTED],
     [tooManyRequestsError("test"), HTTP_STATUS_TOO_MANY_REQUESTS],
+    [eventConflictError("test", "test"), HTTP_STATUS_CONFLICT],
   ])(
     "Should create a Problem from the $title common ApiError using the common default error mapper to map the status code",
     (error, expectedStatus) => {
