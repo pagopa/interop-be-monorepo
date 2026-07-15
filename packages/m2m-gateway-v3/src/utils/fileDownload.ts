@@ -6,7 +6,7 @@ import {
   buildIntegrityRest02SignedHeaders,
   FileManager,
   Logger,
-  CORRELATION_ID_HEADER,
+  LOWER_CASE_CORRELATION_ID_HEADER,
 } from "pagopa-interop-commons";
 import { Response } from "express";
 import { FormDataEncoder } from "form-data-encoder";
@@ -70,7 +70,9 @@ export async function sendDownloadedDocumentAsFormData(
   const contentEncoding = res.getHeader("Content-Encoding")?.toString();
 
   const tokenGenerator = getInteropTokenGenerator(kmsClient);
-  const correlationId = res.getHeader(CORRELATION_ID_HEADER)?.toString();
+  const correlationId = res
+    .getHeader(LOWER_CASE_CORRELATION_ID_HEADER)
+    ?.toString();
   if (!correlationId) {
     throw new Error("Missing correlation id");
   }

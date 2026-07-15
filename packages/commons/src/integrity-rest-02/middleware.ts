@@ -8,7 +8,7 @@ import {
   JsonSpaces,
 } from "./digest.js";
 import { buildIntegrityRest02SignedHeaders } from "./headers.js";
-import { CORRELATION_ID_HEADER } from "../auth/headers.js";
+import { LOWER_CASE_CORRELATION_ID_HEADER } from "../auth/headers.js";
 
 // The context may or may not be present (e.g if the user is not authorised)
 interface AuthData {
@@ -55,9 +55,9 @@ export function integrityRest02Middleware(
       }
       void (async (): Promise<void> => {
         try {
-          const correlationId = res.getHeader(CORRELATION_ID_HEADER) as
-            | string
-            | undefined;
+          const correlationId = res.getHeader(
+            LOWER_CASE_CORRELATION_ID_HEADER
+          ) as string | undefined;
           if (!correlationId) {
             throw new Error(
               "Integrity REST 02 middleware should not be used for responses without a correlation id"

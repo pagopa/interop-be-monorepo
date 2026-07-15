@@ -12,7 +12,7 @@ import {
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { systemRole, UserRole } from "../auth/roles.js";
-import { CORRELATION_ID_HEADER } from "../auth/headers.js";
+import { LOWER_CASE_CORRELATION_ID_HEADER } from "../auth/headers.js";
 
 // Zod utility to parse a non-empty comma-separated string and transform it
 // (e.g. `"foo,bar,baz"`) into an array whose elements are validated
@@ -301,7 +301,7 @@ export const ContentEncodingHeader = z
 export type ContentEncodingHeader = z.infer<typeof ContentEncodingHeader>;
 export const CorrelationIdHeader = z
   .object({
-    [CORRELATION_ID_HEADER]: z.string(),
+    [LOWER_CASE_CORRELATION_ID_HEADER]: z.string(),
   })
   .strict();
 export type CorrelationIdHeader = z.infer<typeof CorrelationIdHeader>;

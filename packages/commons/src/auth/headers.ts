@@ -7,9 +7,12 @@ import {
 import { z } from "zod";
 import { Logger } from "../logging/index.js";
 
+export const CORRELATION_ID_HEADER = "X-Correlation-Id";
+export const LOWER_CASE_CORRELATION_ID_HEADER =
+  CORRELATION_ID_HEADER.toLowerCase();
+
 export function parseCorrelationIdHeader(req: Request): string | undefined {
   // Node lowercases incoming header names, so match the lowercased form
-  const LOWER_CASE_CORRELATION_ID_HEADER = CORRELATION_ID_HEADER.toLowerCase();
   const parsed = z
     .object({ [LOWER_CASE_CORRELATION_ID_HEADER]: z.string() })
     .safeParse(req.headers);
@@ -110,5 +113,3 @@ export function setMetadataVersionHeader(
 ): void {
   res.set(METADATA_VERSION_HEADER, metadata.version.toString());
 }
-
-export const CORRELATION_ID_HEADER = "X-Correlation-Id";
