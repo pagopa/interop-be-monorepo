@@ -707,7 +707,7 @@ async function innerCreateEService(
         seed.descriptor.agreementApprovalPolicy
       ),
     serverUrls: [],
-    serverUrlsDescriptions: [],
+    serverUrlsDescriptions: undefined,
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -903,7 +903,7 @@ function createNextDescriptor(
     dailyCallsTotal: seed.dailyCallsTotal,
     agreementApprovalPolicy: seed.agreementApprovalPolicy,
     serverUrls: [],
-    serverUrlsDescriptions: [],
+    serverUrlsDescriptions: undefined,
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -5315,7 +5315,7 @@ async function updateDraftEService(
           interface: undefined,
           asyncExchangeCallbackInterface: undefined,
           serverUrls: [],
-          serverUrlsDescriptions: [],
+          serverUrlsDescriptions: undefined,
         }))
       : eservice.data.descriptors,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
