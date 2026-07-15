@@ -11,6 +11,7 @@ import {
 import * as decodeModule from "../../../src/utils/decodeSQSEventMessage.js";
 
 import { zipBuffer } from "../../../src/utils/compression.js";
+import { config } from "../../../src/config/config.js";
 
 describe("sqsMessageHandler", () => {
   const mockCorrelationId = "mock-correlation-id" as CorrelationId;
@@ -56,7 +57,7 @@ describe("sqsMessageHandler", () => {
     expect(mockDbService.saveSignatureReference).toHaveBeenCalledWith(
       {
         safeStorageId: "mock-key",
-        fileKind: "VOUCHER_AUDIT",
+        fileKind: config.fileKind,
         fileName: "my-audit-file.json",
         correlationId: mockCorrelationId,
         path: "path/to",
