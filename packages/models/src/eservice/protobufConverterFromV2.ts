@@ -251,6 +251,10 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
         ),
       }
     : undefined,
+  serverUrlsDescriptions:
+    input.serverUrlsDescriptions.length > 0
+      ? input.serverUrlsDescriptions
+      : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (
