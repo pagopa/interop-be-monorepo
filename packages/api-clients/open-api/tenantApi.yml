@@ -1562,14 +1562,14 @@ components:
         id:
           type: string
           format: uuid
-        certifiedDiscreteThreshold:
+        certifiedDiscreteValue:
           type: integer
           format: int32
           minimum: 1
           maximum: 1000000000
       required:
         - id
-        - certifiedDiscreteThreshold
+        - certifiedDiscreteValue
     TenantUnitType:
       type: string
       enum:

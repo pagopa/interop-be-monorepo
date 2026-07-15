@@ -11,7 +11,7 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 describe("API POST /tenants/:tenantId/attributes/certifiedDiscrete test", () => {
   const attributeSeed: bffApi.CertifiedDiscreteTenantAttributeSeed = {
     id: generateId(),
-    certifiedDiscreteThreshold: 100,
+    certifiedDiscreteValue: 100,
   };
 
   beforeEach(() => {
@@ -39,8 +39,8 @@ describe("API POST /tenants/:tenantId/attributes/certifiedDiscrete test", () => 
   it.each([
     { tenantId: "invalid" },
     { body: {} },
-    { body: { id: "invalid", certifiedDiscreteThreshold: 10 } },
-    { body: { id: generateId(), certifiedDiscreteThreshold: 0 } },
+    { body: { id: "invalid", certifiedDiscreteValue: 10 } },
+    { body: { id: generateId(), certifiedDiscreteValue: 0 } },
     { body: { ...attributeSeed, extraField: 1 } },
   ])(
     "Should return 400 if passed invalid data: %s",

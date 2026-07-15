@@ -689,7 +689,7 @@ export function tenantServiceBuilder(
                 type: tenantAttributeType.CERTIFIED_DISCRETE,
                 assignmentTimestamp: now,
                 revocationTimestamp: undefined,
-                discreteValue: tenantAttributeSeed.certifiedDiscreteThreshold,
+                discreteValue: tenantAttributeSeed.certifiedDiscreteValue,
               },
             ],
             updatedAt: now,
@@ -705,8 +705,7 @@ export function tenantServiceBuilder(
                     ...a,
                     assignmentTimestamp: now,
                     revocationTimestamp: undefined,
-                    discreteValue:
-                      tenantAttributeSeed.certifiedDiscreteThreshold,
+                    discreteValue: tenantAttributeSeed.certifiedDiscreteValue,
                   }
                 : a
             ),

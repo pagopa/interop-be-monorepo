@@ -22,7 +22,7 @@ import {
 describe("API POST /tenants/{tenantId}/attributes/certifiedDiscrete test", () => {
   const tenantAttributeSeed: tenantApi.CertifiedDiscreteTenantAttributeSeed = {
     id: generateId(),
-    certifiedDiscreteThreshold: 100,
+    certifiedDiscreteValue: 100,
   };
   const tenant: Tenant = getMockTenant();
 
@@ -107,8 +107,8 @@ describe("API POST /tenants/{tenantId}/attributes/certifiedDiscrete test", () =>
   it.each([
     { tenantId: "invalid" as TenantId },
     { body: {} },
-    { body: { id: "invalid", certifiedDiscreteThreshold: 10 } },
-    { body: { id: generateId(), certifiedDiscreteThreshold: 0 } },
+    { body: { id: "invalid", certifiedDiscreteValue: 10 } },
+    { body: { id: generateId(), certifiedDiscreteValue: 0 } },
     { body: { ...tenantAttributeSeed, extraField: 1 } },
   ])(
     "Should return 400 if passed invalid data: %s",
