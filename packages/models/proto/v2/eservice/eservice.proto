@@ -50,10 +50,26 @@ message EServiceRiskAnalysisMultiAnswerV2 {
   repeated string values = 3;
 }
 
+enum AttributeCertifiedDiscreteComparatorV2 {
+  UNSPECIFIED = 0;
+  GT = 1;
+  LT = 2;
+  EQ = 3;
+  GTE = 4;
+  LTE = 5;
+  NE = 6;
+}
+
+message EServiceAttributeCertifiedDiscreteConfigV2 {
+  int32 threshold = 1;
+  AttributeCertifiedDiscreteComparatorV2 comparator = 2;
+}
+
 message EServiceAttributeValueV2 {
   string id = 1;
   bool explicitAttributeVerification = 2;
   optional int32 dailyCallsPerConsumer = 3;
+  optional EServiceAttributeCertifiedDiscreteConfigV2 discreteConfig = 4;
 }
 
 message EServiceAttributeV2 {
@@ -95,6 +111,7 @@ message EServiceDescriptorV2 {
   optional EServiceDocumentV2 asyncExchangeCallbackInterface = 21;
   optional AsyncExchangePropertiesV2 asyncExchangeProperties = 22;
   optional ArchivingScheduleV2 archivingSchedule = 23;
+  repeated string serverUrlsDescriptions = 24;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {

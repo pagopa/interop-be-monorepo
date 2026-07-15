@@ -180,6 +180,7 @@ export const descriptorToApiDescriptor = (
     descriptor.agreementApprovalPolicy
   ),
   serverUrls: descriptor.serverUrls,
+  serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
   publishedAt: descriptor.publishedAt?.toJSON(),
   suspendedAt: descriptor.suspendedAt?.toJSON(),
   deprecatedAt: descriptor.deprecatedAt?.toJSON(),
@@ -236,6 +237,7 @@ export const eServiceToApiEService = (
       version: riskAnalysis.riskAnalysisForm.version,
       singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
       multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
+      tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
     },
   })),
   descriptors: eservice.descriptors.map(descriptorToApiDescriptor),

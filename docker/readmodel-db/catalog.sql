@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   agreement_approval_policy VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   server_urls VARCHAR ARRAY NOT NULL,
+  server_urls_descriptions VARCHAR ARRAY NOT NULL,
   published_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
@@ -119,6 +120,8 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_attribute (
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
   daily_calls_per_consumer INTEGER,
+  certified_discrete_threshold INTEGER,
+  certified_discrete_comparator VARCHAR,
   PRIMARY KEY (attribute_id, descriptor_id, group_id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

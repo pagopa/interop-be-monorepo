@@ -46,12 +46,63 @@ export type AgreementApprovalPolicy = z.infer<typeof AgreementApprovalPolicy>;
 export const EServiceAttribute = z.object({
   id: AttributeId,
   explicitAttributeVerification: z.boolean(),
-  dailyCallsPerConsumer: z.number().int().min(1).max(1000000000).optional(),
 });
 export type EServiceAttribute = z.infer<typeof EServiceAttribute>;
 
+export const EServiceAttributeCertified = EServiceAttribute.extend({
+  dailyCallsPerConsumer: z.number().int().min(1).max(1000000000).optional(),
+});
+export type EServiceAttributeCertified = z.infer<
+  typeof EServiceAttributeCertified
+>;
+
+export const attributeCertifiedDiscreteComparator = {
+  GT: "GT",
+  LT: "LT",
+  EQ: "EQ",
+  GTE: "GTE",
+  LTE: "LTE",
+  NE: "NE",
+} as const;
+export const AttributeCertifiedDiscreteComparator = z.enum([
+  Object.values(attributeCertifiedDiscreteComparator)[0],
+  ...Object.values(attributeCertifiedDiscreteComparator).slice(1),
+]);
+export type AttributeCertifiedDiscreteComparator = z.infer<
+  typeof AttributeCertifiedDiscreteComparator
+>;
+
+export const EServiceAttributeCertifiedDiscreteConfig = z.object({
+  threshold: z.number().int().min(1).max(1000000000),
+  comparator: AttributeCertifiedDiscreteComparator,
+});
+export type EServiceAttributeCertifiedDiscreteConfig = z.infer<
+  typeof EServiceAttributeCertifiedDiscreteConfig
+>;
+
+export const EServiceAttributeCertifiedDiscrete =
+  EServiceAttributeCertified.extend({
+    discreteConfig: EServiceAttributeCertifiedDiscreteConfig,
+  });
+export type EServiceAttributeCertifiedDiscrete = z.infer<
+  typeof EServiceAttributeCertifiedDiscrete
+>;
+export type EServiceCertifiedAttribute =
+  | EServiceAttribute
+  | EServiceAttributeCertified
+  | EServiceAttributeCertifiedDiscrete;
+
+export const getEServiceAttributeDiscreteConfig = (
+  attribute: EServiceCertifiedAttribute
+): EServiceAttributeCertifiedDiscreteConfig | undefined =>
+  "discreteConfig" in attribute ? attribute.discreteConfig : undefined;
+
 export const EServiceAttributes = z.object({
-  certified: z.array(z.array(EServiceAttribute)),
+  certified: z.array(
+    z.array(
+      z.union([EServiceAttributeCertifiedDiscrete, EServiceAttributeCertified])
+    )
+  ),
   declared: z.array(z.array(EServiceAttribute)),
   verified: z.array(z.array(EServiceAttribute)),
 });
@@ -136,6 +187,7 @@ export const Descriptor = z.object({
   agreementApprovalPolicy: AgreementApprovalPolicy.optional(),
   createdAt: z.coerce.date(),
   serverUrls: z.array(z.string()),
+  serverUrlsDescriptions: z.array(z.string()),
   publishedAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
   deprecatedAt: z.coerce.date().optional(),
@@ -165,7 +217,6 @@ export const EService = z.object({
   name: z.string(),
   description: z.string(),
   technology: Technology,
-  attributes: EServiceAttributes.optional(),
   descriptors: z.array(Descriptor),
   createdAt: z.coerce.date(),
   riskAnalysis: z.array(RiskAnalysis),

@@ -20,6 +20,7 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 import {
+  isFeatureFlagEnabled,
   M2MAdminAuthData,
   M2MAuthData,
   ownership,
@@ -31,7 +32,9 @@ import {
   filterCertifiedAttributes,
   filterDeclaredAttributes,
   filterVerifiedAttributes,
+  matchesCertifiedDiscreteAttribute,
 } from "pagopa-interop-agreement-lifecycle";
+import { config } from "../../config/config.js";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   agreementActivationFailed,
@@ -53,6 +56,7 @@ import {
 import {
   ActiveDelegations,
   CertifiedAgreementAttribute,
+  CertifiedDiscreteAgreementAttribute,
   DeclaredAgreementAttribute,
   VerifiedAgreementAttribute,
 } from "./models.js";
@@ -354,6 +358,22 @@ export const assertRequesterCanActAsConsumer = (
   }
 };
 
+export function assertAgreementIsPending(
+  agreement: Pick<Agreement, "state" | "id">
+): void {
+  if (agreement.state !== agreementState.pending) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+}
+
+export function assertAgreementIsSuspended(
+  agreement: Pick<Agreement, "state" | "id">
+): void {
+  if (agreement.state !== agreementState.suspended) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+}
+
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
@@ -444,7 +464,12 @@ export const validateCertifiedAttributes = ({
   consumer: Tenant;
 }): void => {
   if (
-    !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes)
+    !certifiedAttributesSatisfied(descriptor.attributes, consumer.attributes, {
+      certifiedDiscreteEnabled: isFeatureFlagEnabled(
+        config,
+        "featureFlagAttributeCertifiedDiscrete"
+      ),
+    })
   ) {
     throw missingCertifiedAttributesError(descriptor.id, consumer.id);
   }
@@ -538,6 +563,33 @@ export const matchingCertifiedAttributes = (
     descriptor.attributes.certified,
     certifiedAttributes
   ).map((id) => ({ id }) as CertifiedAgreementAttribute);
+};
+
+export const matchingCertifiedDiscreteAttributes = (
+  descriptor: Descriptor,
+  consumer: Tenant
+): CertifiedDiscreteAgreementAttribute[] => {
+  if (!isFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete")) {
+    return [];
+  }
+
+  const matchedIds = descriptor.attributes.certified
+    .flat()
+    .filter(
+      (descriptorAttribute) =>
+        "discreteConfig" in descriptorAttribute &&
+        consumer.attributes.some((tenantAttribute) =>
+          matchesCertifiedDiscreteAttribute(
+            descriptorAttribute,
+            tenantAttribute
+          )
+        )
+    )
+    .map((descriptorAttribute) => descriptorAttribute.id);
+
+  return [...new Set(matchedIds)].map(
+    (id) => ({ id }) as CertifiedDiscreteAgreementAttribute
+  );
 };
 
 export const matchingDeclaredAttributes = (

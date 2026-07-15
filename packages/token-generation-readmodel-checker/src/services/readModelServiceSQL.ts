@@ -64,6 +64,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         versionDocumentsSQL: [],
         versionStampsSQL: [],
         versionSignedDocumentsSQL: [],
+        reviewersSQL: [],
       }).map((p) => p.data);
     },
 

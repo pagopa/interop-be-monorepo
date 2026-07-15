@@ -901,13 +901,166 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-  "/agreements/{agreementId}/activate":
+  "/agreements/{agreementId}/approve":
     post:
       tags:
         - agreements
       summary: Activate an agreement
       description: returns the updated agreement
-      operationId: activateAgreement
+      operationId: approveAgreement
+      parameters:
+        - name: agreementId
+          in: path
+          description: The identifier of the agreement
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
+      responses:
+        "200":
+          description: Agreement flagged as activated. It could still be Suspended if other parties have suspended the agreement
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Agreement not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/agreements/{agreementId}/unsuspend":
+    post:
+      tags:
+        - agreements
+      summary: Activate a suspended agreement
+      description: returns the updated agreement
+      operationId: unsuspendAgreement
       parameters:
         - name: agreementId
           in: path
@@ -9565,6 +9718,92 @@ paths:
                 type: integer
                 format: int32
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposes/riskAnalysis/assignments:
+    get:
+      tags:
+        - purposes
+      operationId: getRiskAnalysisAssignments
+      description: Retrieve purposes with reviewer workflow assignments
+      parameters:
+        - in: query
+          name: eservicesIds
+          description: comma separated sequence of EService IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
+          name: signingStates
+          description: comma separated sequence of risk analysis signing states
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/RiskAnalysisSigningState"
+            default: []
+          explode: false
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Risk analysis assignments retrieved
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purposes"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
   /purposes/{purposeId}/clone:
     parameters:
       - name: purposeId
@@ -10182,6 +10421,511 @@ paths:
               description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
         "404":
           description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposes/{purposeId}/riskAnalysis/assign:
+    parameters:
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposes
+      operationId: assignRiskAnalysisReviewer
+      description: Assign reviewer mode and reviewers to the purpose risk analysis
+      summary: Assign risk analysis reviewer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisAssignmentSeed"
+        required: true
+      responses:
+        "204":
+          description: No Content
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposes/{purposeId}/riskAnalysis/submit:
+    parameters:
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposes
+      operationId: submitRiskAnalysis
+      description: Validate and submit the risk analysis form for reviewer signing
+      summary: Submit risk analysis for signing
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSubmissionSeed"
+        required: true
+      responses:
+        "204":
+          description: Risk analysis submitted for signing
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /purposes/{purposeId}/riskAnalysis/sign:
+    parameters:
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposes
+      operationId: signRiskAnalysis
+      description: Sign/approve the risk analysis as a reviewer
+      summary: Sign risk analysis
+      responses:
+        "204":
+          description: Risk analysis signed
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposes/{purposeId}/riskAnalysis/reject:
+    parameters:
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - purposes
+      operationId: rejectRiskAnalysis
+      description: Reject the risk analysis as a reviewer (AdminWritesReviewerSigns mode only)
+      summary: Reject risk analysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisRejectionSeed"
+        required: true
+      responses:
+        "204":
+          description: Risk analysis rejected
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  /purposes/{purposeId}/riskAnalysis/form:
+    parameters:
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - purposes
+      operationId: editRiskAnalysisForm
+      description: Edit the risk analysis form as a reviewer (ReviewerWritesReviewerSigns mode only)
+      summary: Edit risk analysis form
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        required: true
+      responses:
+        "204":
+          description: Risk analysis form updated
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -12447,7 +13191,10 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
-          description: comma separated sequence of e-service IDs
+          description: >-
+            comma separated sequence of e-service IDs. For e-services that are
+            instances of an e-service template, purpose templates linked to the
+            originating e-service template are also returned.
           schema:
             type: array
             items:
@@ -27299,7 +28046,15 @@ components:
         serverUrls:
           type: array
           items:
-            type: string
+            type: object
+            additionalProperties: false
+            required:
+              - url
+            properties:
+              url:
+                type: string
+              description:
+                type: string
         templateRef:
           $ref: "#/components/schemas/EServiceTemplateRef"
         asyncExchangeProperties:
@@ -27505,6 +28260,11 @@ components:
           description: "set of the certified attributes belonging to this agreement, if any."
           items:
             $ref: "#/components/schemas/CertifiedAttribute"
+        certifiedDiscreteAttributes:
+          type: array
+          description: "set of the certified discrete attributes belonging to this agreement, if any."
+          items:
+            $ref: "#/components/schemas/CertifiedDiscreteAttribute"
         declaredAttributes:
           type: array
           description: "set of the declared attributes belonging to this agreement, if any."
@@ -27547,6 +28307,7 @@ components:
         - state
         - verifiedAttributes
         - certifiedAttributes
+        - certifiedDiscreteAttributes
         - declaredAttributes
         - consumerDocuments
         - createdAt
@@ -27713,9 +28474,12 @@ components:
           format: uuid
         name:
           type: string
+        kind:
+          $ref: "#/components/schemas/AttributeKind"
       required:
         - id
         - name
+        - kind
     CompactAgreement:
       type: object
       additionalProperties: false
@@ -27761,6 +28525,19 @@ components:
         archivableOn:
           type: string
           format: date-time
+    TemplateInstanceInterfaceServerUrlSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
     TemplateInstanceInterfaceRESTSeed:
       type: object
       additionalProperties: false
@@ -27783,8 +28560,7 @@ components:
         serverUrls:
           type: array
           items:
-            type: string
-            format: uri
+            $ref: "#/components/schemas/TemplateInstanceInterfaceServerUrlSeed"
     TemplateInstanceInterfaceSOAPSeed:
       type: object
       additionalProperties: false
@@ -27794,8 +28570,7 @@ components:
         serverUrls:
           type: array
           items:
-            type: string
-            format: uri
+            $ref: "#/components/schemas/TemplateInstanceInterfaceServerUrlSeed"
     TemplateInstanceInterfaceMetadata:
       type: object
       additionalProperties: false
@@ -28307,6 +29082,8 @@ components:
         rulesetExpiration:
           type: string
           format: date-time
+        reviewerWorkflow:
+          $ref: "#/components/schemas/ReviewerWorkflow"
       required:
         - id
         - title
@@ -29422,16 +30199,21 @@ components:
           type: string
         explicitAttributeVerification:
           type: boolean
+        kind:
+          $ref: "#/components/schemas/AttributeKind"
         dailyCallsPerConsumer:
           type: integer
           format: int32
           minimum: 1
           maximum: 1000000000
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - name
         - description
         - explicitAttributeVerification
+        - kind
     DescriptorAttributesSeed:
       type: object
       additionalProperties: false
@@ -29472,9 +30254,34 @@ components:
           format: int32
           minimum: 1
           maximum: 1000000000
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - explicitAttributeVerification
+    AttributeCertifiedDiscreteComparator:
+      type: string
+      enum:
+        - GT
+        - LT
+        - EQ
+        - GTE
+        - LTE
+        - NE
+    EServiceAttributeCertifiedDiscreteConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        threshold:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        comparator:
+          $ref: "#/components/schemas/AttributeCertifiedDiscreteComparator"
+      required:
+        - threshold
+        - comparator
     CertifiedAttributeSeed:
       title: AttributeSeed
       type: object
@@ -29591,11 +30398,14 @@ components:
           format: uuid
         attributeName:
           type: string
+        kind:
+          $ref: "#/components/schemas/AttributeKind"
       required:
         - tenantId
         - tenantName
         - attributeId
         - attributeName
+        - kind
     RequesterCertifiedAttributes:
       type: object
       additionalProperties: false
@@ -29614,6 +30424,28 @@ components:
       type: object
       additionalProperties: false
       description: Models a certified attribute registry entry as payload response
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: uniquely identifies the attribute on the registry
+        description:
+          type: string
+        name:
+          type: string
+        creationTime:
+          type: string
+          format: date-time
+      required:
+        - id
+        - description
+        - name
+        - creationTime
+    CertifiedDiscreteAttribute:
+      title: CertifiedDiscreteAttribute
+      type: object
+      additionalProperties: false
+      description: Models a certified discrete attribute registry entry as payload response
       properties:
         id:
           type: string
@@ -29670,6 +30502,7 @@ components:
         - CERTIFIED
         - DECLARED
         - VERIFIED
+        - CERTIFIED_DISCRETE
     Attributes:
       title: Attributes
       type: object
@@ -29839,6 +30672,10 @@ components:
           $ref: "#/components/schemas/TenantUnitType"
         selfcareInstitutionType:
           type: string
+        remoteIds:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantRemoteId"
       required:
         - id
         - externalId
@@ -29875,6 +30712,9 @@ components:
       type: object
       additionalProperties: false
       properties:
+        kind:
+          type: string
+          enum: [DECLARED]
         id:
           type: string
           format: uuid
@@ -29892,6 +30732,7 @@ components:
           type: string
           format: uuid
       required:
+        - kind
         - id
         - name
         - description
@@ -29943,9 +30784,21 @@ components:
         - isDelegatedConsumerFeatureEnabled
         - isDelegatedProducerFeatureEnabled
     CertifiedTenantAttribute:
+      oneOf:
+        - $ref: "#/components/schemas/StandardCertifiedTenantAttribute"
+        - $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+      discriminator:
+        propertyName: kind
+        mapping:
+          CERTIFIED: "#/components/schemas/StandardCertifiedTenantAttribute"
+          CERTIFIED_DISCRETE: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+    StandardCertifiedTenantAttribute:
       type: object
       additionalProperties: false
       properties:
+        kind:
+          type: string
+          enum: [CERTIFIED]
         id:
           type: string
           format: uuid
@@ -29960,14 +30813,65 @@ components:
           type: string
           format: date-time
       required:
+        - kind
         - id
         - name
         - description
+        - assignmentTimestamp
+    CertifiedDiscreteTenantAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        kind:
+          type: string
+          enum: [CERTIFIED_DISCRETE]
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        assignmentTimestamp:
+          type: string
+          format: date-time
+        revocationTimestamp:
+          type: string
+          format: date-time
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - kind
+        - id
+        - name
+        - description
+        - assignmentTimestamp
+        - discreteValue
+    TenantRemoteId:
+      type: object
+      additionalProperties: false
+      properties:
+        origin:
+          type: string
+        value:
+          type: string
+        assignmentTimestamp:
+          type: string
+          format: date-time
+      required:
+        - origin
+        - value
         - assignmentTimestamp
     VerifiedTenantAttribute:
       type: object
       additionalProperties: false
       properties:
+        kind:
+          type: string
+          enum: [VERIFIED]
         id:
           type: string
           format: uuid
@@ -29987,6 +30891,7 @@ components:
           items:
             $ref: "#/components/schemas/TenantRevoker"
       required:
+        - kind
         - id
         - name
         - description
@@ -30457,9 +31362,13 @@ components:
         responseTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         confirmation:
           type: boolean
         bulk:
@@ -30467,6 +31376,8 @@ components:
         maxResultSet:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 99999
     AsyncExchangePropertiesInstanceSeed:
       type: object
       additionalProperties: false
@@ -30474,12 +31385,18 @@ components:
         responseTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         maxResultSet:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 99999
     EServiceTemplateVersionDetails:
       type: object
       additionalProperties: false
@@ -30603,6 +31520,8 @@ components:
           type: boolean
         personalData:
           type: boolean
+        asyncExchange:
+          type: boolean
     EServiceTemplateSeed:
       type: object
       additionalProperties: false
@@ -30651,8 +31570,8 @@ components:
           type: string
           minLength: 1
           maxLength: 12
-        asyncExchange:
-          type: boolean
+        asyncExchangeProperties:
+          $ref: "#/components/schemas/AsyncExchangePropertiesInstanceSeed"
     VersionSeedForEServiceTemplateCreation:
       required:
         - voucherLifespan
@@ -30869,6 +31788,8 @@ components:
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
     EServiceTemplateAttributesSeed:
+      type: object
+      additionalProperties: false
       properties:
         certified:
           type: array
@@ -30901,6 +31822,8 @@ components:
           format: uuid
         explicitAttributeVerification:
           type: boolean
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
         - explicitAttributeVerification
@@ -30986,6 +31909,7 @@ components:
         - clientAddedRemovedToProducer
         - purposeStatusChangedToProducer
         - templateStatusChangedToProducer
+        - eserviceStateChangedToProducer
         - agreementSuspendedUnsuspendedToConsumer
         - eserviceStateChangedToConsumer
         - agreementActivatedRejectedToConsumer
@@ -31012,6 +31936,8 @@ components:
         purposeStatusChangedToProducer:
           type: boolean
         templateStatusChangedToProducer:
+          type: boolean
+        eserviceStateChangedToProducer:
           type: boolean
         agreementSuspendedUnsuspendedToConsumer:
           type: boolean
@@ -31346,6 +32272,87 @@ components:
         - "TRUE"
         - "FALSE"
         - DEFINED
+    RiskAnalysisReviewMode:
+      type: string
+      description: Risk analysis review mode
+      enum:
+        - ADMIN_WRITES_REVIEWER_SIGNS
+        - REVIEWER_WRITES_REVIEWER_SIGNS
+    RiskAnalysisSigningState:
+      type: string
+      description: Risk analysis signing state
+      enum:
+        - DRAFT
+        - ASSIGNED
+        - SUBMITTED
+        - SIGNED
+        - REJECTED
+    ReviewerWorkflow:
+      type: object
+      additionalProperties: false
+      description: Reviewer workflow state for a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        reviewers:
+          type: array
+          items:
+            $ref: "#/components/schemas/CompactUser"
+        signingState:
+          $ref: "#/components/schemas/RiskAnalysisSigningState"
+        signedBy:
+          type: string
+          format: uuid
+        rejectionReason:
+          type: string
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - reviewMode
+        - reviewerIds
+        - signingState
+    RiskAnalysisAssignmentSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+        - reviewMode
+        - reviewerIds
+    RiskAnalysisSubmissionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to submit the risk analysis form for reviewer signing
+      properties:
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+      required:
+        - riskAnalysisForm
+    RiskAnalysisRejectionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to reject the risk analysis with a reason
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - rejectionReason
     ProblemError:
       properties:
         code:

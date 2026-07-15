@@ -43,6 +43,8 @@ import {
   EService,
   EServiceAttribute,
   EserviceAttributes,
+  EServiceCertifiedAttribute,
+  getEServiceAttributeDiscreteConfig,
   EServiceDocumentId,
   EServiceEvent,
   EServiceId,
@@ -188,6 +190,8 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertNoExistingProducerDelegationForDescriptorArchiving,
+  assertNoExistingProducerDelegationForEServiceArchiving,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -210,6 +214,8 @@ import {
   assertAsyncExchangeBulkAllowedForDescriptor,
   assertAsyncExchangeReadyForPublication,
   assertDailyCallsForCertifiedAttributesOnly,
+  assertDiscreteConfigForCertifiedAttributesOnly,
+  assertCertifiedDiscreteConfigUnchanged,
   assertAttributeDailyCallsConsistentWithTotal,
   assertEserviceIsNotInArchivingOrArchivedState,
   assertDescriptorArchivable,
@@ -515,10 +521,19 @@ async function parseAndCheckAttributesOfKind(
     .flat()
     .map(({ id }) => id);
 
-  const attributes = await readModelService.getAttributesByIds(
-    attributesSeedIds,
-    kind
-  );
+  const attributes =
+    kind === attributeKind.certified
+      ? [
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
+      : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
   attributesSeedIds.forEach((attributeId) => {
@@ -526,6 +541,36 @@ async function parseAndCheckAttributesOfKind(
       throw attributeNotFound(attributeId);
     }
   });
+
+  if (kind === attributeKind.certified) {
+    const hasCertifiedDiscreteConfig = parsedAttributesSeed
+      .flat()
+      .some((seedAttribute) => seedAttribute.discreteConfig !== undefined);
+    const hasCertifiedDiscreteAttribute = attributes.some(
+      (attribute) => attribute.kind === attributeKind.certifiedDiscrete
+    );
+
+    if (hasCertifiedDiscreteConfig || hasCertifiedDiscreteAttribute) {
+      assertFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete");
+    }
+
+    const attributesById = new Map(
+      attributes.map((attribute) => [attribute.id, attribute])
+    );
+
+    parsedAttributesSeed.flat().forEach((seedAttribute) => {
+      const attribute = attributesById.get(seedAttribute.id);
+
+      if (
+        (attribute?.kind === attributeKind.certifiedDiscrete &&
+          seedAttribute.discreteConfig === undefined) ||
+        (attribute?.kind === attributeKind.certified &&
+          seedAttribute.discreteConfig !== undefined)
+      ) {
+        throw attributeNotFound(seedAttribute.id);
+      }
+    });
+  }
 
   return parsedAttributesSeed;
 }
@@ -611,7 +656,6 @@ async function innerCreateEService(
     description: seed.description,
     technology: apiTechnologyToTechnology(seed.technology),
     mode: apiEServiceModeToEServiceMode(seed.mode),
-    attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: template?.riskAnalysis ?? [],
@@ -663,6 +707,7 @@ async function innerCreateEService(
         seed.descriptor.agreementApprovalPolicy
       ),
     serverUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -780,6 +825,9 @@ async function innerAddDocumentToEserviceEvent(
     interface: isInterface ? createdDocument : descriptor.interface,
     docs: isDocument ? [...descriptor.docs, createdDocument] : descriptor.docs,
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
+    serverUrlsDescriptions: isInterface
+      ? (documentSeed.serverUrlsDescriptions ?? [])
+      : descriptor.serverUrlsDescriptions,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
     asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
       ? createdDocument
@@ -855,6 +903,7 @@ function createNextDescriptor(
     dailyCallsTotal: seed.dailyCallsTotal,
     agreementApprovalPolicy: seed.agreementApprovalPolicy,
     serverUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -1205,7 +1254,13 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       logger.info(`Archiving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
+
       assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      await assertNoExistingProducerDelegationForEServiceArchiving(
+        eserviceId,
+        readModelService
+      );
 
       assertEServiceArchivable(eservice.data);
 
@@ -1323,6 +1378,9 @@ export function catalogServiceBuilder(
                 interface:
                   d.interface?.id === documentId ? undefined : d.interface,
                 serverUrls: isInterface ? [] : d.serverUrls,
+                serverUrlsDescriptions: isInterface
+                  ? []
+                  : d.serverUrlsDescriptions,
                 docs: d.docs.filter((doc) => doc.id !== documentId),
                 asyncExchangeCallbackInterface:
                   d.asyncExchangeCallbackInterface?.id === documentId
@@ -1522,6 +1580,7 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls(eserviceDescriptorSeed);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
@@ -1778,23 +1837,25 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(seed);
 
+      const parsedSeedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : undefined;
+
       const asyncExchangeEnabled =
         isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
         eservice.data.asyncExchange === true;
 
-      if (seed.attributes) {
+      if (parsedSeedAttributes) {
+        assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes);
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
           eservice.data.templateId,
           descriptor.attributes,
-          seed.attributes
+          parsedSeedAttributes
         );
       }
 
-      const updatedAttributes = seed.attributes
-        ? await parseAndCheckAttributes(seed.attributes, readModelService)
-        : descriptor.attributes;
-
+      const updatedAttributes = parsedSeedAttributes ?? descriptor.attributes;
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         updatedAttributes,
@@ -2094,19 +2155,14 @@ export function catalogServiceBuilder(
       );
 
       const currentDate = new Date();
-      const suffix = ` - clone - ${dateAtRomeZone(
-        currentDate
-      )} ${timeAtRomeZone(currentDate)}`;
+      const suffix = ` - clone - ${dateAtRomeZone(currentDate)} ${timeAtRomeZone(currentDate)}`;
       const dots = "...";
       const maxNameLength = 60; // same value as in the api spec (EServiceSeed)
       const prefixLengthAllowance = maxNameLength - suffix.length - dots.length;
       const clonedEServiceName =
         eservice.data.name.length + suffix.length <= maxNameLength
           ? `${eservice.data.name}${suffix}`
-          : `${eservice.data.name.slice(
-              0,
-              prefixLengthAllowance
-            )}${dots}${suffix}`;
+          : `${eservice.data.name.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
 
       await assertEServiceNameAvailableForProducer(
         clonedEServiceName,
@@ -2177,7 +2233,6 @@ export function catalogServiceBuilder(
         name: clonedEServiceName,
         description: eservice.data.description,
         technology: eservice.data.technology,
-        attributes: eservice.data.attributes,
         createdAt: new Date(),
         riskAnalysis: eservice.data.riskAnalysis,
         mode: eservice.data.mode,
@@ -2362,6 +2417,8 @@ export function catalogServiceBuilder(
         : descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2408,6 +2465,12 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      await assertNoExistingProducerDelegationForDescriptorArchiving(
+        eserviceId,
+        descriptorId,
+        readModelService
+      );
 
       assertDescriptorArchivable(descriptor, eservice.data);
 
@@ -2465,18 +2528,21 @@ export function catalogServiceBuilder(
       assertDescriptorUpdatableAfterPublish(descriptor);
       assertConsistentDailyCalls(seed);
 
-      if (seed.attributes) {
+      const parsedSeedAttributes = seed.attributes
+        ? await parseAndCheckAttributes(seed.attributes, readModelService)
+        : undefined;
+
+      if (parsedSeedAttributes) {
+        assertDiscreteConfigForCertifiedAttributesOnly(parsedSeedAttributes);
         assertTemplateInstanceAttributeStructureUnchanged(
           eserviceId,
           eservice.data.templateId,
           descriptor.attributes,
-          seed.attributes
+          parsedSeedAttributes
         );
       }
 
-      const updatedAttributes = seed.attributes
-        ? await parseAndCheckAttributes(seed.attributes, readModelService)
-        : descriptor.attributes;
+      const updatedAttributes = parsedSeedAttributes ?? descriptor.attributes;
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
 
@@ -3266,7 +3332,8 @@ export function catalogServiceBuilder(
         descriptor,
         seed
       );
-      const hasDailyCallsChanged = hasCertifiedAttributeDailyCallsChanged(
+
+      const hasConfigurationChanged = hasCertifiedAttributeConfigurationChanged(
         eserviceId,
         descriptor,
         seed
@@ -3278,12 +3345,14 @@ export function catalogServiceBuilder(
       );
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, parsedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         descriptor.dailyCallsTotal
       );
 
-      if (newAttributes.length === 0 && !hasDailyCallsChanged) {
+      if (newAttributes.length === 0 && !hasConfigurationChanged) {
         throw unchangedAttributes(eserviceId, descriptorId);
       }
 
@@ -3565,10 +3634,11 @@ export function catalogServiceBuilder(
         descriptor,
         seed
       );
-
-      if (newAttributes.length === 0) {
-        return;
-      }
+      const hasConfigurationChanged = hasCertifiedAttributeConfigurationChanged(
+        eserviceId,
+        descriptor,
+        seed
+      );
 
       const parsedAttributes = await parseAndCheckAttributes(
         seed,
@@ -3579,6 +3649,10 @@ export function catalogServiceBuilder(
         parsedAttributes,
         descriptor.attributes
       );
+
+      if (newAttributes.length === 0 && !hasConfigurationChanged) {
+        return;
+      }
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -4572,7 +4646,10 @@ async function processDescriptorArchiving(
   requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(requestDate, config.gracePeriodArchivingEService),
+    ...calculateArchivableOn(
+      requestDate,
+      config.gracePeriodArchivingEServiceDays
+    ),
     scope,
   };
 
@@ -4583,7 +4660,7 @@ async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  serverUrls: string[],
+  serverUrls: Array<{ url: string; description?: string }>,
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;
@@ -4632,7 +4709,7 @@ async function createOpenApiInterfaceByTemplate(
       filePath,
       prettyName,
       kind,
-      serverUrls,
+      extractedServerUrls,
       contentType,
       checksum
     ) =>
@@ -4647,7 +4724,10 @@ async function createOpenApiInterfaceByTemplate(
           fileName,
           contentType,
           checksum,
-          serverUrls,
+          serverUrls: extractedServerUrls,
+          serverUrlsDescriptions: extractedServerUrls.map(
+            (_, index) => serverUrls[index]?.description ?? ""
+          ),
           interfaceTemplateMetadata: eserviceInstanceInterfaceRestData,
         },
         ctx
@@ -4791,18 +4871,18 @@ const processDescriptorPublication = async (
 };
 
 /**
- * Retains the existing `dailyCallsPerConsumer` value on the certified attribute.
+ * Retains the existing `dailyCallsPerConsumer` value on certified attributes.
  * Used with template instances. This ensures that when a template updates and
- * propagates its attributes to its instances, any custom threshold configured
- * on the instance is preserved instead of being cleared.
+ * propagates its attributes to its instances, any custom differentiated
+ * threshold configured on the instance is preserved instead of being cleared.
  */
 function retainCurrentCertifiedDailyCalls(
   incomingAttributes: EserviceAttributes,
   currentAttributes: EserviceAttributes
 ): EserviceAttributes {
   function isMatchingCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroup: EServiceAttribute[]
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroup: EServiceCertifiedAttribute[]
   ): boolean {
     return currentGroup.every((currentAttribute) =>
       incomingGroup.some(
@@ -4812,10 +4892,10 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function findMatchingCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroups: EServiceAttribute[][],
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroups: EServiceCertifiedAttribute[][],
     usedCurrentGroupIndexes: Set<number>
-  ): EServiceAttribute[] | undefined {
+  ): EServiceCertifiedAttribute[] | undefined {
     for (const [groupIndex, currentGroup] of currentGroups.entries()) {
       if (usedCurrentGroupIndexes.has(groupIndex)) {
         continue;
@@ -4833,19 +4913,23 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function findCurrentCertifiedAttribute(
-    incomingAttribute: EServiceAttribute,
-    currentGroup: EServiceAttribute[] | undefined
-  ): EServiceAttribute | undefined {
+    incomingAttribute: EServiceCertifiedAttribute,
+    currentGroup: EServiceCertifiedAttribute[] | undefined
+  ): EServiceCertifiedAttribute | undefined {
     return currentGroup?.find(
       (currentAttribute) => currentAttribute.id === incomingAttribute.id
     );
   }
 
   function retainCurrentDailyCallsPerConsumer(
-    incomingAttribute: EServiceAttribute,
-    currentAttribute: EServiceAttribute | undefined
-  ): EServiceAttribute {
-    const currentDailyCalls = currentAttribute?.dailyCallsPerConsumer;
+    incomingAttribute: EServiceCertifiedAttribute,
+    currentAttribute: EServiceCertifiedAttribute | undefined
+  ): EServiceCertifiedAttribute {
+    const currentDailyCalls =
+      currentAttribute && "dailyCallsPerConsumer" in currentAttribute
+        ? currentAttribute.dailyCallsPerConsumer
+        : undefined;
+
     if (currentDailyCalls === undefined) {
       return incomingAttribute;
     }
@@ -4857,9 +4941,9 @@ function retainCurrentCertifiedDailyCalls(
   }
 
   function retainCurrentDailyCallsInCertifiedGroup(
-    incomingGroup: EServiceAttribute[],
-    currentGroup: EServiceAttribute[] | undefined
-  ): EServiceAttribute[] {
+    incomingGroup: EServiceCertifiedAttribute[],
+    currentGroup: EServiceCertifiedAttribute[] | undefined
+  ): EServiceCertifiedAttribute[] {
     return incomingGroup.map((incomingAttribute) => {
       const currentAttribute = findCurrentCertifiedAttribute(
         incomingAttribute,
@@ -4966,7 +5050,7 @@ function updateEServiceDescriptorAttributeInAdd(
   ].map(unsafeBrandId<AttributeId>);
 }
 
-function hasCertifiedAttributeDailyCallsChanged(
+function hasCertifiedAttributeConfigurationChanged(
   eserviceId: EServiceId,
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
@@ -4989,9 +5073,15 @@ function hasCertifiedAttributeDailyCallsChanged(
         (attribute) => attribute.id === descriptorAttribute.id
       );
 
+      const descriptorDiscreteConfig =
+        getEServiceAttributeDiscreteConfig(descriptorAttribute);
       return (
         seedAttribute?.dailyCallsPerConsumer !==
-        descriptorAttribute.dailyCallsPerConsumer
+          descriptorAttribute.dailyCallsPerConsumer ||
+        seedAttribute?.discreteConfig?.threshold !==
+          descriptorDiscreteConfig?.threshold ||
+        seedAttribute?.discreteConfig?.comparator !==
+          descriptorDiscreteConfig?.comparator
       );
     });
   });
@@ -5137,9 +5227,13 @@ async function updateDraftEService(
     await Promise.all(
       eservice.data.descriptors.map(async (d) => {
         if (d.interface !== undefined) {
-          return await fileManager.delete(
+          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
+        }
+
+        if (d.asyncExchangeCallbackInterface !== undefined) {
+          await fileManager.delete(
             config.s3Bucket,
-            d.interface.path,
+            d.asyncExchangeCallbackInterface.path,
             logger
           );
         }
@@ -5219,7 +5313,9 @@ async function updateDraftEService(
       ? eservice.data.descriptors.map((d) => ({
           ...d,
           interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
           serverUrls: [],
+          serverUrlsDescriptions: [],
         }))
       : eservice.data.descriptors,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
@@ -5315,6 +5411,7 @@ async function updateDraftDescriptor(
     : descriptor.attributes;
 
   assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
+  assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
   assertAttributeDailyCallsConsistentWithTotal(
     updatedAttributes,
     updatedDailyCallsTotal

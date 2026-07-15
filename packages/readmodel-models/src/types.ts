@@ -52,10 +52,12 @@ import {
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantMailInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
   tenantNotificationConfigInReadmodelNotificationConfig,
   tenantVerifiedAttributeInReadmodelTenant,
   tenantVerifiedAttributeRevokerInReadmodelTenant,
@@ -66,6 +68,7 @@ import {
   purposeVersionStampInReadmodelPurpose,
   agreementSignedContractInReadmodelAgreement,
   purposeVersionSignedDocumentInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
@@ -210,6 +213,12 @@ export type TenantVerifiedAttributeRevokerSQL = InferSelectModel<
 export type TenantFeatureSQL = InferSelectModel<
   typeof tenantFeatureInReadmodelTenant
 >;
+export type TenantCertifiedDiscreteAttributeSQL = InferSelectModel<
+  typeof tenantCertifiedDiscreteAttributeInReadmodelTenant
+>;
+export type TenantRemoteIdSQL = InferSelectModel<
+  typeof tenantRemoteIdInReadmodelTenant
+>;
 export type TenantItemsSQL = {
   tenantSQL: TenantSQL;
   mailsSQL: TenantMailSQL[];
@@ -219,6 +228,8 @@ export type TenantItemsSQL = {
   verifiedAttributeVerifiersSQL: TenantVerifiedAttributeVerifierSQL[];
   verifiedAttributeRevokersSQL: TenantVerifiedAttributeRevokerSQL[];
   featuresSQL: TenantFeatureSQL[];
+  certifiedDiscreteAttributesSQL: TenantCertifiedDiscreteAttributeSQL[];
+  remoteIdsSQL: TenantRemoteIdSQL[];
 };
 
 export type PurposeSQL = InferSelectModel<typeof purposeInReadmodelPurpose>;
@@ -241,6 +252,9 @@ export type PurposeRiskAnalysisAnswerSQL = InferSelectModel<
 export type PurposeVersionStampSQL = InferSelectModel<
   typeof purposeVersionStampInReadmodelPurpose
 >;
+export type RiskAnalysisReviewerSQL = InferSelectModel<
+  typeof riskAnalysisReviewerInReadmodelPurpose
+>;
 export type PurposeItemsSQL = {
   purposeSQL: PurposeSQL;
   riskAnalysisFormSQL: PurposeRiskAnalysisFormSQL | undefined;
@@ -249,6 +263,7 @@ export type PurposeItemsSQL = {
   versionDocumentsSQL: PurposeVersionDocumentSQL[];
   versionStampsSQL: PurposeVersionStampSQL[];
   versionSignedDocumentsSQL: PurposeVersionSignedDocumentSQL[];
+  reviewersSQL: RiskAnalysisReviewerSQL[];
 };
 
 export type ClientSQL = InferSelectModel<typeof clientInReadmodelClient>;

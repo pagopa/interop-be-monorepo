@@ -63,9 +63,11 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
@@ -88,6 +90,7 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  tenantRemoteIdInReadmodelTenant,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 import { and, eq, lte } from "drizzle-orm";
@@ -693,6 +696,7 @@ export const upsertPurpose = async (
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
     await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
@@ -731,6 +735,12 @@ export const upsertPurpose = async (
         .insert(purposeVersionDocumentInReadmodelPurpose)
         .values(versionSignedDocumentSQL);
     }
+
+    for (const reviewerSQL of reviewersSQL) {
+      await tx
+        .insert(riskAnalysisReviewerInReadmodelPurpose)
+        .values(reviewerSQL);
+    }
   });
 };
 
@@ -743,11 +753,13 @@ export const upsertTenant = async (
     tenantSQL,
     mailsSQL,
     certifiedAttributesSQL,
+    certifiedDiscreteAttributesSQL,
     declaredAttributesSQL,
     verifiedAttributesSQL,
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
     featuresSQL,
+    remoteIdsSQL,
   } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
   await readModelDB.transaction(async (tx) => {
@@ -778,6 +790,12 @@ export const upsertTenant = async (
         .values(certifiedAttributeSQL);
     }
 
+    for (const certifiedDiscreteAttributeSQL of certifiedDiscreteAttributesSQL) {
+      await tx
+        .insert(tenantCertifiedDiscreteAttributeInReadmodelTenant)
+        .values(certifiedDiscreteAttributeSQL);
+    }
+
     for (const declaredAttributeSQL of declaredAttributesSQL) {
       await tx
         .insert(tenantDeclaredAttributeInReadmodelTenant)
@@ -804,6 +822,9 @@ export const upsertTenant = async (
 
     for (const featureSQL of featuresSQL) {
       await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
+    }
+    for (const remoteIdSQL of remoteIdsSQL) {
+      await tx.insert(tenantRemoteIdInReadmodelTenant).values(remoteIdSQL);
     }
   });
 };

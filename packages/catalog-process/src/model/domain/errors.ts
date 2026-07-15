@@ -79,6 +79,10 @@ const errorCodes = {
   notValidEServiceState: "0062",
   eserviceNotInArchiving: "0063",
   eServiceAlreadyArchived: "0064",
+  attributeDiscreteConfigNotAllowed: "0065",
+  certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
+  eserviceDescriptorWithActiveOrPendingDelegation: "0067",
+  eserviceArchivingWithActiveOrPendingDelegation: "0068",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -283,9 +287,7 @@ export function riskAnalysisValidationFailed(
   issues: RiskAnalysisValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis validation failed. Reasons: [${issues
-      .map((i) => i.detail)
-      .join(", ")}]`,
+    detail: `Risk analysis validation failed. Reasons: [${issues.map((i) => i.detail).join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
   });
@@ -392,6 +394,29 @@ export function eserviceWithActiveOrPendingDelegation(
     detail: `E-service ${eserviceId} can't be deleted with an active or pending delegation ${delegationId}`,
     code: "eserviceWithActiveOrPendingDelegation",
     title: "E-service with active or pending delegation",
+  });
+}
+
+export function eserviceArchivingWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceArchivingWithActiveOrPendingDelegation",
+    title: "E-service archiving with active or pending delegation",
+  });
+}
+
+export function eserviceDescriptorWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} descriptor ${descriptorId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceDescriptorWithActiveOrPendingDelegation",
+    title: "E-service descriptor with active or pending delegation",
   });
 }
 
@@ -668,6 +693,26 @@ export function attributeDailyCallsNotAllowed(
     detail: `Custom daily calls are not allowed for non-certified attribute ${attributeId}`,
     code: "attributeDailyCallsNotAllowed",
     title: "Custom daily calls not allowed for non-certified attribute",
+  });
+}
+
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedDiscreteAttributeConfigCannotBeChanged(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The discrete configuration for the certified attribute ${attributeId} cannot be changed`,
+    code: "certifiedDiscreteAttributeConfigCannotBeChanged",
+    title: "Certified discrete attribute config cannot be changed",
   });
 }
 

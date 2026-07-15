@@ -16523,8 +16523,11 @@ paths:
           explode: false
         - in: query
           name: eserviceIds
-          description: Filter Purpose Templates by E-Service IDs. If not specified, return
-            Purpose Templates for any E-Service.
+          description: >-
+            Filter Purpose Templates by E-Service IDs. If not specified, return
+            Purpose Templates for any E-Service. For e-services that are
+            instances of an e-service template, purpose templates linked to the
+            originating e-service template are also returned.
           schema:
             type: array
             items:
@@ -19588,6 +19591,12 @@ components:
             - PURPOSE_CLONED
             - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
             - RISK_ANALYSIS_DOCUMENT_GENERATED
+            - PURPOSE_RISK_ANALYSIS_WORKFLOW_CREATED
+            - PURPOSE_RISK_ANALYSIS_ASSIGNED
+            - PURPOSE_RISK_ANALYSIS_SUBMITTED
+            - PURPOSE_RISK_ANALYSIS_SIGNED
+            - PURPOSE_RISK_ANALYSIS_REJECTED
+            - PURPOSE_RISK_ANALYSIS_FORM_EDITED
         eventTimestamp:
           type: string
           format: date-time
@@ -19633,6 +19642,9 @@ components:
             - MAINTENANCE_TENANT_UPDATED
             - TENANT_CERTIFIED_ATTRIBUTE_ASSIGNED
             - TENANT_CERTIFIED_ATTRIBUTE_REVOKED
+            - TENANT_CERTIFIED_DISCRETE_ATTRIBUTE_ASSIGNED
+            - TENANT_CERTIFIED_DISCRETE_ATTRIBUTE_REVOKED
+            - TENANT_CERTIFIED_DISCRETE_ATTRIBUTE_UPDATED
             - TENANT_DECLARED_ATTRIBUTE_ASSIGNED
             - TENANT_DECLARED_ATTRIBUTE_REVOKED
             - TENANT_DELEGATED_CONSUMER_FEATURE_ADDED
@@ -19648,6 +19660,7 @@ components:
             - TENANT_VERIFIED_ATTRIBUTE_EXPIRATION_UPDATED
             - TENANT_VERIFIED_ATTRIBUTE_EXTENSION_UPDATED
             - TENANT_VERIFIED_ATTRIBUTE_REVOKED
+            - TENANT_REMOTE_ID_ASSIGNED
         eventTimestamp:
           type: string
           format: date-time
@@ -21161,9 +21174,13 @@ components:
         responseTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         confirmation:
           type: boolean
         bulk:
@@ -21171,6 +21188,8 @@ components:
         maxResultSet:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 99999
     EServiceTechnology:
       type: string
       description: API Technology

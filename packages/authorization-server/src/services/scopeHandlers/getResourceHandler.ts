@@ -7,6 +7,7 @@ import {
   clientKindTokenGenStates,
   genericInternalError,
   interactionState,
+  isInteractionStateAllowedForScope,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
 import {
@@ -27,7 +28,6 @@ import {
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
 import {
-  isInteractionStateAllowedForScope,
   readInteraction,
   updateInteractionState,
 } from "../../utilities/interactionsUtils.js";

@@ -47,6 +47,8 @@ import {
   purposeTemplateState,
   PurposeTemplate,
   PurposeRiskAnalysisForm,
+  riskAnalysisSigningState,
+  riskAnalysisReviewMode,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
@@ -67,6 +69,7 @@ import {
   tenantIsNotTheDelegate,
   purposeTemplateNotFound,
   riskAnalysisTenantKindMismatch,
+  reviewerWorkflowNotInSignedState,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -201,6 +204,8 @@ describe("activatePurposeVersion", () => {
     });
 
     expect(updatedVersion.riskAnalysis).toBeDefined();
+
+    expect(updatedVersion.stamps?.creation.who).toEqual(consumerUserId);
 
     expect({
       ...writtenPayload,
@@ -600,13 +605,14 @@ describe("activatePurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
+    const authData = getMockAuthData(mockConsumer.id);
     const activateResponse = await purposeService.activatePurposeVersion(
       {
         purposeId: purpose.id,
         versionId: purposeVersion.id,
         delegationId: undefined,
       },
-      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      getMockContext({ authData })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -625,7 +631,16 @@ describe("activatePurposeVersion", () => {
     const expectedPurpose: Purpose = {
       ...purpose,
       versions: [
-        { ...purposeVersion, state: purposeVersionState.waitingForApproval },
+        {
+          ...purposeVersion,
+          state: purposeVersionState.waitingForApproval,
+          stamps: {
+            creation: {
+              who: authData.userId,
+              when: new Date(),
+            },
+          },
+        },
       ],
       updatedAt: new Date(),
     };
@@ -1973,5 +1988,104 @@ describe("activatePurposeVersion", () => {
     }).rejects.toThrowError(
       purposeTemplateNotFound(purpose.purposeTemplateId!)
     );
+  });
+
+  it.each(
+    Object.values(riskAnalysisSigningState).filter(
+      (s) => s !== riskAnalysisSigningState.signed
+    )
+  )(
+    "should throw reviewerWorkflowNotInSignedState when reviewerWorkflow exists and signingState is %s",
+    async (signingState) => {
+      const purpose: Purpose = {
+        ...mockPurpose,
+        reviewerWorkflow: {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+          signingState,
+          sentToReviewerAt: new Date(),
+        },
+      };
+
+      await addOnePurpose(purpose);
+      await addOneEService(mockEService);
+      await addOneAgreement(mockAgreement);
+      await addOneTenant(mockConsumer);
+      await addOneTenant(mockProducer);
+
+      expect(
+        purposeService.activatePurposeVersion(
+          {
+            purposeId: purpose.id,
+            versionId: mockPurposeVersion.id,
+            delegationId: undefined,
+          },
+          getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+        )
+      ).rejects.toThrowError(reviewerWorkflowNotInSignedState(purpose.id));
+    }
+  );
+
+  it("should not throw reviewerWorkflowNotInSignedState when reviewerWorkflow exists and signingState is signed", async () => {
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.waitingForApproval,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+      reviewerWorkflow: {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState: riskAnalysisSigningState.signed,
+        sentToReviewerAt: new Date(),
+      },
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    await expect(
+      purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: purposeVersion.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+      )
+    ).resolves.not.toThrow();
+  });
+
+  it("should not throw reviewerWorkflowNotInSignedState when reviewerWorkflow is absent", async () => {
+    const purposeVersion: PurposeVersion = {
+      ...mockPurposeVersion,
+      state: purposeVersionState.waitingForApproval,
+    };
+    const purpose: Purpose = {
+      ...mockPurpose,
+      versions: [purposeVersion],
+      reviewerWorkflow: undefined,
+    };
+
+    await addOnePurpose(purpose);
+    await addOneEService(mockEService);
+    await addOneAgreement(mockAgreement);
+    await addOneTenant(mockConsumer);
+    await addOneTenant(mockProducer);
+
+    await expect(
+      purposeService.activatePurposeVersion(
+        {
+          purposeId: purpose.id,
+          versionId: purposeVersion.id,
+          delegationId: undefined,
+        },
+        getMockContext({ authData: getMockAuthData(mockProducer.id, userId) })
+      )
+    ).resolves.not.toThrow();
   });
 });

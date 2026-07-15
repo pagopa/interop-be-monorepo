@@ -10,6 +10,9 @@ import {
   TenantOnboardDetailsUpdatedV2,
   TenantCertifiedAttributeAssignedV2,
   TenantCertifiedAttributeRevokedV2,
+  TenantCertifiedDiscreteAttributeAssignedV2,
+  TenantCertifiedDiscreteAttributeRevokedV2,
+  TenantCertifiedDiscreteAttributeUpdatedV2,
   TenantDeclaredAttributeAssignedV2,
   TenantDeclaredAttributeRevokedV2,
   TenantVerifiedAttributeAssignedV2,
@@ -30,10 +33,13 @@ import {
   VerifiedTenantAttribute,
   tenantAttributeType,
   CertifiedTenantAttribute,
+  TenantRemoteIdAssignedV2,
+  CertifiedDiscreteTenantAttribute,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
+  getCustomMockCertifiedDiscreteTenantAttribute,
   getCustomMockCertifiedTenantAttribute,
   getCustomMockDeclaredTenantAttribute,
   tenantReadModelService,
@@ -182,6 +188,171 @@ describe("Tenant Events V2", async () => {
     expect(retrievedTenant?.data).toStrictEqual(
       tenantWithRevokedCertifiedAttribute
     );
+    expect(retrievedTenant?.metadata).toStrictEqual({
+      version: 2,
+    });
+  });
+  it("TenantCertifiedDiscreteAttributeAssigned", async () => {
+    await tenantWriterService.upsertTenant(mockTenant, 1);
+
+    const certifiedDiscreteAttribute =
+      getCustomMockCertifiedDiscreteTenantAttribute();
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      attributes: [certifiedDiscreteAttribute],
+    };
+    const payload: TenantCertifiedDiscreteAttributeAssignedV2 = {
+      tenant: toTenantV2(updatedTenant),
+      attributeId: certifiedDiscreteAttribute.id,
+    };
+
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "TenantCertifiedDiscreteAttributeAssigned",
+      data: payload,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
+      version: 2,
+    });
+  });
+  it("TenantCertifiedDiscreteAttributeRevoked", async () => {
+    const certifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
+      ...getCustomMockCertifiedDiscreteTenantAttribute(),
+    };
+    const tenantWithDiscreteAttribute: Tenant = {
+      ...mockTenant,
+      attributes: [certifiedDiscreteAttribute],
+    };
+    await tenantWriterService.upsertTenant(tenantWithDiscreteAttribute, 1);
+
+    const revokedCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+      {
+        ...certifiedDiscreteAttribute,
+        revocationTimestamp: new Date(),
+      };
+
+    const tenantWithRevokedDiscreteAttribute: Tenant = {
+      ...tenantWithDiscreteAttribute,
+      attributes: [revokedCertifiedDiscreteAttribute],
+    };
+
+    const payload: TenantCertifiedDiscreteAttributeRevokedV2 = {
+      tenant: toTenantV2(tenantWithRevokedDiscreteAttribute),
+      attributeId: certifiedDiscreteAttribute.id,
+    };
+
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "TenantCertifiedDiscreteAttributeRevoked",
+      data: payload,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(
+      tenantWithRevokedDiscreteAttribute
+    );
+    expect(retrievedTenant?.metadata).toStrictEqual({
+      version: 2,
+    });
+  });
+  it("TenantCertifiedDiscreteAttributeUpdated", async () => {
+    const certifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
+      ...getCustomMockCertifiedDiscreteTenantAttribute(),
+      discreteValue: 100,
+    };
+    const tenantWithDiscreteAttribute: Tenant = {
+      ...mockTenant,
+      attributes: [certifiedDiscreteAttribute],
+    };
+    await tenantWriterService.upsertTenant(tenantWithDiscreteAttribute, 1);
+
+    const updatedCertifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+      {
+        ...certifiedDiscreteAttribute,
+        discreteValue: 200,
+      };
+
+    const tenantWithUpdatedDiscreteAttribute: Tenant = {
+      ...tenantWithDiscreteAttribute,
+      attributes: [updatedCertifiedDiscreteAttribute],
+    };
+
+    const payload: TenantCertifiedDiscreteAttributeUpdatedV2 = {
+      tenant: toTenantV2(tenantWithUpdatedDiscreteAttribute),
+      attributeId: certifiedDiscreteAttribute.id,
+      previousValue: 100,
+      newValue: 200,
+    };
+
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "TenantCertifiedDiscreteAttributeUpdated",
+      data: payload,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(
+      tenantWithUpdatedDiscreteAttribute
+    );
+    expect(retrievedTenant?.metadata).toStrictEqual({
+      version: 2,
+    });
+  });
+  it("preserves existing certified discrete attributes across non-discrete events", async () => {
+    const certifiedDiscreteAttribute =
+      getCustomMockCertifiedDiscreteTenantAttribute();
+    const tenantWithDiscreteAttribute: Tenant = {
+      ...mockTenant,
+      attributes: [certifiedDiscreteAttribute],
+    };
+    await tenantWriterService.upsertTenant(tenantWithDiscreteAttribute, 1);
+
+    const certifiedAttribute = getCustomMockCertifiedTenantAttribute();
+    const updatedTenant: Tenant = {
+      ...tenantWithDiscreteAttribute,
+      attributes: [certifiedAttribute, certifiedDiscreteAttribute],
+    };
+    const payload: TenantCertifiedAttributeAssignedV2 = {
+      tenant: toTenantV2(updatedTenant),
+      attributeId: certifiedAttribute.id,
+    };
+
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "TenantCertifiedAttributeAssigned",
+      data: payload,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
     expect(retrievedTenant?.metadata).toStrictEqual({
       version: 2,
     });
@@ -663,6 +834,90 @@ describe("Tenant Events V2", async () => {
     const message: TenantEventEnvelopeV2 = {
       ...mockMessage,
       type: "MaintenanceTenantUpdated",
+      data: payload,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
+      version: 2,
+    });
+  });
+  it("TenantRemoteIdAssigned", async () => {
+    const tenant: Tenant = {
+      ...mockTenant,
+      remoteIds: [],
+    };
+    await tenantWriterService.upsertTenant(tenant, 1);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      remoteIds: [
+        {
+          origin: "ISTAT",
+          value: "12345",
+          assignmentTimestamp: new Date(),
+        },
+      ],
+    };
+
+    const payload: TenantRemoteIdAssignedV2 = {
+      tenant: toTenantV2(updatedTenant),
+    };
+
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "TenantRemoteIdAssigned",
+      data: payload,
+      version: 2,
+    };
+
+    await handleMessageV2(message, tenantWriterService);
+
+    const retrievedTenant = await tenantReadModelService.getTenantById(
+      mockTenant.id
+    );
+
+    expect(retrievedTenant?.data).toStrictEqual(updatedTenant);
+    expect(retrievedTenant?.metadata).toStrictEqual({
+      version: 2,
+    });
+  });
+  it("MaintenanceTenantRemoteIdDeleted", async () => {
+    const deletedRemoteId = {
+      origin: "ISTAT",
+      value: "12345",
+      assignmentTimestamp: new Date(),
+    };
+    const notDeletedRemoteId = {
+      origin: "OTHER",
+      value: "67890",
+      assignmentTimestamp: new Date(),
+    };
+    const tenant: Tenant = {
+      ...mockTenant,
+      remoteIds: [deletedRemoteId, notDeletedRemoteId],
+    };
+    await tenantWriterService.upsertTenant(tenant, 1);
+
+    const updatedTenant: Tenant = {
+      ...mockTenant,
+      remoteIds: [notDeletedRemoteId],
+    };
+
+    const payload = {
+      tenant: toTenantV2(updatedTenant),
+    };
+
+    const message: TenantEventEnvelopeV2 = {
+      ...mockMessage,
+      type: "MaintenanceTenantRemoteIdDeleted",
       data: payload,
       version: 2,
     };

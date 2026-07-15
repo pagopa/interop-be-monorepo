@@ -43,6 +43,27 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
     origin: certifierId,
   };
 
+  const certifiedAttributeANAC: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified ANAC Attribute",
+    origin: "ANAC",
+  };
+  const certifiedAttributeIPA: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified IPA Attribute",
+    origin: "IPA",
+  };
+  const certifiedAttributeIVASS: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified IVASS Attribute",
+    origin: "IVASS",
+  };
+  const certifiedAttributeISTAT: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified ISTAT Attribute",
+    origin: "ISTAT",
+  };
+
   const targetTenant: Tenant = {
     ...getMockTenant(targetTenantId),
     name: "Target Tenant",
@@ -66,6 +87,10 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
     await addOneTenant(targetTenant);
     await addOneTenant(certifierTenant);
     await addOneAttribute(attribute);
+    await addOneAttribute(certifiedAttributeANAC);
+    await addOneAttribute(certifiedAttributeIPA);
+    await addOneAttribute(certifiedAttributeIVASS);
+    await addOneAttribute(certifiedAttributeISTAT);
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -223,7 +248,53 @@ describe("handleTenantCertifiedAttributeAssigned", async () => {
         })
         .exhaustive();
       expect(message.email.body).toContain(attribute.name);
-      expect(message.email.body).toContain(attribute.name);
     });
   });
+
+  it.each<{
+    certifiedAttribute: Attribute;
+  }>([
+    {
+      certifiedAttribute: certifiedAttributeANAC,
+    },
+    {
+      certifiedAttribute: certifiedAttributeIVASS,
+    },
+    {
+      certifiedAttribute: certifiedAttributeIPA,
+    },
+    {
+      certifiedAttribute: certifiedAttributeISTAT,
+    },
+  ])(
+    "should generate a complete and correct message for certified origin $certifiedAttribute.origin",
+    async ({ certifiedAttribute }) => {
+      const messages = await handleTenantCertifiedAttributeAssigned({
+        tenantV2Msg: toTenantV2(targetTenant),
+        attributeId: certifiedAttribute.id,
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+
+      expect(messages.length).toBe(2);
+      messages.forEach((message) => {
+        expect(message.email.body).toContain("<!-- Footer -->");
+        expect(message.email.body).toContain("<!-- Title & Main Message -->");
+        expect(message.email.body).toContain(
+          `Hai ricevuto un nuovo attributo certificato`
+        );
+        match(message.type)
+          .with("User", () => {
+            expect(message.email.body).toContain("{{ recipientName }}");
+          })
+          .with("Tenant", () => {
+            expect(message.email.body).toContain(targetTenant.name);
+          })
+          .exhaustive();
+        expect(message.email.body).toContain(certifiedAttribute.name);
+      });
+    }
+  );
 });

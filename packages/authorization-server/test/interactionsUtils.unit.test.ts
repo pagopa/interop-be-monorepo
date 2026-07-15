@@ -12,6 +12,7 @@ import {
   generateId,
   Interaction,
   InteractionId,
+  isInteractionStateAllowedForScope,
   makeInteractionPK,
   PurposeId,
   TenantId,
@@ -19,7 +20,6 @@ import {
 import { dateToSeconds } from "pagopa-interop-commons";
 import {
   createInteraction,
-  isInteractionStateAllowedForScope,
   readInteraction,
   updateInteractionState,
 } from "../src/utilities/interactionsUtils.js";
@@ -159,8 +159,8 @@ describe("interactions utils", () => {
       consumerId: generateId<TenantId>(),
       eServiceId,
       descriptorId: generateId<DescriptorId>(),
-      state: "callback_invocation",
-      callbackInvocationTokenIssuedAt: new Date().toISOString(),
+      state: "start_interaction",
+      startInteractionTokenIssuedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       ttl: dateToSeconds(new Date()) + ttlSeconds,
     };
@@ -251,7 +251,7 @@ describe("interactions utils", () => {
         currentState: "callback_invocation",
         scope: "confirmation",
       })
-    ).toBe(false);
+    ).toBe(true);
 
     expect(
       isInteractionStateAllowedForScope({

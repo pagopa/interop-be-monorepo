@@ -24,6 +24,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { api, catalogService } from "../vitest.api.setup.js";
 import {
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
@@ -211,6 +212,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     },
     {
       error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
     {

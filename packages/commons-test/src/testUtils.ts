@@ -81,6 +81,13 @@ import {
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
   EServiceTemplateAttribute,
+  CertifiedDiscreteTenantAttribute,
+  TenantRemoteId,
+  EServiceAttributeCertifiedDiscrete,
+  EServiceTemplateAttributeCertifiedDiscrete,
+  EServiceAttributeCertifiedDiscreteConfig,
+  attributeCertifiedDiscreteComparator,
+  tenantAttributeType,
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
@@ -121,6 +128,12 @@ import {
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswerV2,
   RiskAnalysisTemplateMultiAnswerV2,
+  EServiceV2,
+  EServiceTemplateV2,
+  EServiceRiskAnalysisV2,
+  EServiceTemplateRiskAnalysisV2,
+  EServiceRiskAnalysisSingleAnswerV2,
+  EServiceRiskAnalysisMultiAnswerV2,
   AgreementSignedContract,
   PurposeVersionSignedDocument,
   DelegationSignedContractDocument,
@@ -231,7 +244,6 @@ export const getMockEServiceAttribute = (
 ): EServiceAttribute => ({
   ...generateMock(EServiceAttribute),
   id: attributeId,
-  dailyCallsPerConsumer: undefined,
 });
 
 export const getMockEServiceTemplateAttribute = (
@@ -293,6 +305,44 @@ export const getMockDeclaredTenantAttribute = (
   id: attributeId,
 });
 
+export const getMockCertifiedDiscreteTenantAttribute = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): CertifiedDiscreteTenantAttribute => ({
+  id: attributeId,
+  type: tenantAttributeType.CERTIFIED_DISCRETE,
+  assignmentTimestamp: new Date(),
+  revocationTimestamp: undefined,
+  discreteValue: 42,
+});
+
+export const getMockTenantRemoteId = (): TenantRemoteId => ({
+  origin: "ISTAT",
+  value: generateId(),
+  assignmentTimestamp: new Date(),
+});
+
+export const getMockEServiceAttributeCertifiedDiscreteConfig =
+  (): EServiceAttributeCertifiedDiscreteConfig => ({
+    threshold: 1000,
+    comparator: attributeCertifiedDiscreteComparator.GTE,
+  });
+
+export const getMockEServiceAttributeCertifiedDiscrete = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceAttributeCertifiedDiscrete => ({
+  id: attributeId,
+  explicitAttributeVerification: false,
+  discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
+});
+
+export const getMockEServiceTemplateAttributeCertifiedDiscrete = (
+  attributeId: AttributeId = generateId<AttributeId>()
+): EServiceTemplateAttributeCertifiedDiscrete => ({
+  id: attributeId,
+  explicitAttributeVerification: false,
+  discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
+});
+
 export const getMockTenant = (
   tenantId: TenantId = generateId<TenantId>(),
   attributes: TenantAttribute[] = []
@@ -348,6 +398,7 @@ export const getMockAgreement = (
   eserviceId,
   consumerId,
   state,
+  certifiedDiscreteAttributes: [],
   stamps: getMockAgreementStamps(),
 });
 
@@ -460,6 +511,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   dailyCallsTotal: 1000,
   createdAt: new Date(),
   serverUrls: ["pagopa.it"],
+  serverUrlsDescriptions: [],
   agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],
@@ -1115,6 +1167,11 @@ export const sortAgreement = <
             sortBy<AgreementAttribute>((att) => att.id)
           )
         : [],
+      certifiedDiscreteAttributes: agreement.certifiedDiscreteAttributes
+        ? [...agreement.certifiedDiscreteAttributes].sort(
+            sortBy<AgreementAttribute>((att) => att.id)
+          )
+        : [],
       declaredAttributes: agreement.declaredAttributes
         ? [...agreement.declaredAttributes].sort(
             sortBy<AgreementAttribute>((att) => att.id)
@@ -1289,6 +1346,11 @@ export const sortAgreementV2 = <T extends AgreementV2 | undefined>(
         sortBy<CertifiedAttributeV2>((att) => att.id)
       )
     : [],
+  certifiedDiscreteAttributes: agreement?.certifiedDiscreteAttributes
+    ? [...agreement.certifiedDiscreteAttributes].sort(
+        sortBy<CertifiedAttributeV2>((att) => att.id)
+      )
+    : [],
   declaredAttributes: agreement?.declaredAttributes
     ? [...agreement.declaredAttributes].sort(
         sortBy<DeclaredAttributeV2>((att) => att.id)
@@ -1349,6 +1411,60 @@ export const sortEService = <
 
 export const sortEServices = (eservices: EService[]): EService[] =>
   eservices.map(sortEService);
+
+// Risk analyses and their answers are read from the readmodel without a
+// deterministic ORDER BY, so their order is not guaranteed. Sort them (and the
+// answers within each form) before order-sensitive comparisons on V2 payloads.
+const sortRiskAnalysisV2 = <
+  T extends EServiceRiskAnalysisV2 | EServiceTemplateRiskAnalysisV2,
+>(
+  riskAnalysis: T
+): T => ({
+  ...riskAnalysis,
+  ...(riskAnalysis.riskAnalysisForm
+    ? {
+        riskAnalysisForm: {
+          ...riskAnalysis.riskAnalysisForm,
+          singleAnswers: [...riskAnalysis.riskAnalysisForm.singleAnswers].sort(
+            sortBy<EServiceRiskAnalysisSingleAnswerV2>((answer) => answer.key)
+          ),
+          multiAnswers: [...riskAnalysis.riskAnalysisForm.multiAnswers].sort(
+            sortBy<EServiceRiskAnalysisMultiAnswerV2>((answer) => answer.key)
+          ),
+        },
+      }
+    : {}),
+});
+
+export const sortEServiceV2 = <T extends EServiceV2 | undefined>(
+  eservice: T
+): T => {
+  if (!eservice) {
+    return eservice;
+  }
+  return {
+    ...eservice,
+    riskAnalysis: [...eservice.riskAnalysis]
+      .sort(sortBy<EServiceRiskAnalysisV2>((ra) => ra.id))
+      .map(sortRiskAnalysisV2),
+  };
+};
+
+export const sortEServiceTemplateV2 = <
+  T extends EServiceTemplateV2 | undefined,
+>(
+  eserviceTemplate: T
+): T => {
+  if (!eserviceTemplate) {
+    return eserviceTemplate;
+  }
+  return {
+    ...eserviceTemplate,
+    riskAnalysis: [...eserviceTemplate.riskAnalysis]
+      .sort(sortBy<EServiceTemplateRiskAnalysisV2>((ra) => ra.id))
+      .map(sortRiskAnalysisV2),
+  };
+};
 
 export const getMockContextInternal = ({
   serviceName,
@@ -1461,6 +1577,25 @@ export const readFileContent = async (fileName: string): Promise<string> => {
   const htmlTemplateBuffer = await fs.readFile(`${dirname}/${templatePath}`);
   return htmlTemplateBuffer.toString();
 };
+
+export const readFileContentAsBuffer = async (
+  fileName: string
+): Promise<Buffer> => {
+  const filename = fileURLToPath(import.meta.url);
+  const dirname = path.dirname(filename);
+  const templatePath = `../test/resources/${fileName}`;
+
+  const buffer = await fs.readFile(`${dirname}/${templatePath}`);
+  return buffer;
+};
+
+export const getMockedPdfBuffer = (): Buffer =>
+  Buffer.from([0x25, 0x50, 0x44, 0x46, 0x2d]);
+
+// with the default the last 5 bytes will still be contained
+// in the valid pdf header window
+export const getPaddedMockedPdfBuffer = (padding: number = 1019): Buffer =>
+  Buffer.from([...Array(padding).fill(0xff), 0x25, 0x50, 0x44, 0x46, 0x2d]);
 
 export function createDummyStub<T>(): T {
   return {} as T;

@@ -122,6 +122,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           ...d,
           audience: JSON.parse(d.audience),
           serverUrls: JSON.parse(d.serverUrls),
+          serverUrlsDescriptions: JSON.parse(d.serverUrlsDescriptions),
         })),
         interfacesSQL,
         documentsSQL,
@@ -194,6 +195,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         TenantDbTable.tenant_certified_attribute
       );
+      const certifiedDiscreteAttributesSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_certified_discrete_attribute
+      );
       const declaredAttributesSQL = await getManyFromDb(
         dbContext,
         TenantDbTable.tenant_declared_attribute
@@ -214,15 +219,21 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         TenantDbTable.tenant_feature
       );
+      const remoteIdsSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_remote_id
+      );
       return aggregateTenantArray({
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       });
     },
 
@@ -256,6 +267,11 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         PurposeDbTable.purpose_version_signed_document
       );
 
+      const reviewersSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_reviewer
+      );
+
       return aggregatePurposeArray({
         purposesSQL,
         riskAnalysisFormsSQL,
@@ -267,6 +283,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       });
     },
 

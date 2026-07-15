@@ -62,11 +62,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           tenant: tenantInReadmodelTenant,
           mail: sql<null>`NULL`,
           certifiedAttribute: sql<null>`NULL`,
+          certifiedDiscreteAttribute: sql<null>`NULL`,
           declaredAttribute: sql<null>`NULL`,
           verifiedAttribute: sql<null>`NULL`,
           verifier: sql<null>`NULL`,
           revoker: sql<null>`NULL`,
           feature: sql<null>`NULL`,
+          remoteId: sql<null>`NULL`,
         })
         .from(tenantInReadmodelTenant)
         .where(isNotNull(tenantInReadmodelTenant.selfcareId));
@@ -219,6 +221,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purposeRiskAnalysisAnswer: sql<null>`NULL`,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: sql<null>`NULL`,
         })
         .from(purposeInReadmodelPurpose)
         .innerJoin(subquery, eq(purposeInReadmodelPurpose.id, subquery.id))

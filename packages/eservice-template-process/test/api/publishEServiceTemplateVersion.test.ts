@@ -28,6 +28,7 @@ import {
   riskAnalysisValidationFailed,
   missingRiskAnalysis,
   missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
 
@@ -138,6 +139,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
     },
     {
       error: missingAsyncExchangeProperties(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: missingAsyncExchangeCallbackInterface(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),
