@@ -1,3 +1,4 @@
+import { CORRELATION_ID_HEADER } from "../auth/headers.js";
 import { IntegrityRest02SignedHeaders } from "../interop-token/models.js";
 
 /**
@@ -19,7 +20,7 @@ export function buildIntegrityRest02SignedHeaders({
 }): IntegrityRest02SignedHeaders {
   const headers: IntegrityRest02SignedHeaders = [
     { digest: `SHA-256=${digest}` },
-    { "x-correlation-id": correlationId },
+    { [CORRELATION_ID_HEADER]: correlationId },
     ...(contentType ? [{ "content-type": contentType }] : []),
     ...(contentEncoding ? [{ "content-encoding": contentEncoding }] : []),
   ];

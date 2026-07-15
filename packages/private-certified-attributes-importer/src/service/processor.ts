@@ -6,6 +6,7 @@ import {
   RefreshableInteropToken,
   InteropHeaders,
   waitForReadModelMetadataVersion,
+  CORRELATION_ID_HEADER,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -173,7 +174,7 @@ async function syncAttribute({
           aExternalId: attribute.code!,
         },
         headers: {
-          "X-Correlation-Id": context.correlationId,
+          [CORRELATION_ID_HEADER]: context.correlationId,
           Authorization: `Bearer ${context.bearerToken}`,
           "Content-Type": false,
         },
@@ -190,7 +191,7 @@ async function syncAttribute({
           aExternalId: attribute.code!,
         },
         headers: {
-          "X-Correlation-Id": context.correlationId,
+          [CORRELATION_ID_HEADER]: context.correlationId,
           Authorization: `Bearer ${context.bearerToken}`,
           "Content-Type": false,
         },

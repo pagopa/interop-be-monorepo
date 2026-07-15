@@ -1,4 +1,9 @@
-import { delay, logger, RefreshableInteropToken } from "pagopa-interop-commons";
+import {
+  delay,
+  logger,
+  RefreshableInteropToken,
+  CORRELATION_ID_HEADER,
+} from "pagopa-interop-commons";
 import {
   genericInternalError,
   generateId,
@@ -75,7 +80,7 @@ export async function processUserEvent(
           },
           {
             headers: {
-              "X-Correlation-Id": correlationId,
+              [CORRELATION_ID_HEADER]: correlationId,
               Authorization: `Bearer ${serialized}`,
             },
           }
@@ -101,7 +106,7 @@ export async function processUserEvent(
               userRole: userRoleToApiUserRole(productRole),
             },
             headers: {
-              "X-Correlation-Id": correlationId,
+              [CORRELATION_ID_HEADER]: correlationId,
               Authorization: `Bearer ${serialized}`,
             },
           }

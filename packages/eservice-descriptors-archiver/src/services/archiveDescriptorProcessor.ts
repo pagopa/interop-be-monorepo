@@ -1,4 +1,8 @@
-import { Logger, RefreshableInteropToken } from "pagopa-interop-commons";
+import {
+  Logger,
+  RefreshableInteropToken,
+  CORRELATION_ID_HEADER,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   CorrelationId,
@@ -78,7 +82,7 @@ export async function archiveDescriptorForArchivedAgreement(
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const getHeaders = (correlationId: CorrelationId, token: string) => ({
-    "X-Correlation-Id": correlationId,
+    [CORRELATION_ID_HEADER]: correlationId,
     Authorization: `Bearer ${token}`,
   });
 

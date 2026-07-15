@@ -1,5 +1,9 @@
 import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
-import { retry, WithLogger } from "pagopa-interop-commons";
+import {
+  retry,
+  WithLogger,
+  CORRELATION_ID_HEADER,
+} from "pagopa-interop-commons";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -323,7 +327,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
             clients,
             id,
             tenant.selfcareId,
-            ctx.headers["X-Correlation-Id"]
+            ctx.headers[CORRELATION_ID_HEADER]
           )
         )
       );

@@ -14,6 +14,7 @@ import {
   UIAuthData,
   userRole,
   validateRiskAnalysis,
+  CORRELATION_ID_HEADER,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -902,7 +903,7 @@ export const assertUserSelfcareReviewerPrivileges = async ({
         productRoles: userRole.REVIEWER_ROLE,
       },
       headers: {
-        "X-Correlation-Id": correlationId,
+        [CORRELATION_ID_HEADER]: correlationId,
       },
     });
   if (users.length === 0) {

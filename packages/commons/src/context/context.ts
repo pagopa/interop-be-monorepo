@@ -16,7 +16,10 @@ import {
 } from "pagopa-interop-models";
 import { AuthData } from "../auth/authData.js";
 import { genericLogger, Logger, logger } from "../logging/index.js";
-import { parseCorrelationIdHeader } from "../auth/headers.js";
+import {
+  CORRELATION_ID_HEADER,
+  parseCorrelationIdHeader,
+} from "../auth/headers.js";
 
 export type AppContext<A extends AuthData = AuthData> = {
   serviceName: string;
@@ -64,7 +67,7 @@ export const contextMiddleware =
 
       if (!correlationIdHeader) {
         const problem = makeApiProblem(
-          missingHeader("X-Correlation-Id"),
+          missingHeader(CORRELATION_ID_HEADER),
           () => constants.HTTP_STATUS_BAD_REQUEST,
           {
             logger: genericLogger,
@@ -76,11 +79,11 @@ export const contextMiddleware =
       }
 
       setCtx(correlationIdHeader);
-      res.header("X-Correlation-Id", correlationIdHeader);
+      res.header(CORRELATION_ID_HEADER, correlationIdHeader);
     } else {
       const correlationId = generateId<CorrelationId>();
       setCtx(correlationId);
-      res.header("X-Correlation-Id", correlationId);
+      res.header(CORRELATION_ID_HEADER, correlationId);
     }
 
     return next();

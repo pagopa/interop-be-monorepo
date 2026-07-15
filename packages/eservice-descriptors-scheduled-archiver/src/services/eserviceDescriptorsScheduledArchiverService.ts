@@ -2,7 +2,12 @@
 
 import { AxiosError } from "axios";
 import pLimit from "p-limit";
-import { Logger, RefreshableInteropToken, retry } from "pagopa-interop-commons";
+import {
+  Logger,
+  RefreshableInteropToken,
+  retry,
+  CORRELATION_ID_HEADER,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   DescriptorId,
@@ -15,7 +20,7 @@ import { config } from "../config/config.js";
 import { ArchivableDescriptorRef, Headers } from "../models/models.js";
 
 const getHeaders = (correlationId: CorrelationId, token: string): Headers => ({
-  "X-Correlation-Id": correlationId,
+  [CORRELATION_ID_HEADER]: correlationId,
   Authorization: `Bearer ${token}`,
 });
 

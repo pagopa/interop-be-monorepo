@@ -4,7 +4,7 @@ import {
   tenantApi,
   ZodiosClientWithMetadata,
 } from "pagopa-interop-api-clients";
-import { Logger } from "pagopa-interop-commons";
+import { Logger, CORRELATION_ID_HEADER } from "pagopa-interop-commons";
 import { InteropContext } from "../model/interopContextModel.js";
 
 type MetadataVersion = {
@@ -42,7 +42,7 @@ export class TenantProcessService {
             aExternalId: attributeExternalId,
           },
           headers: {
-            "X-Correlation-Id": context.correlationId,
+            [CORRELATION_ID_HEADER]: context.correlationId,
             Authorization: `Bearer ${context.bearerToken}`,
             "Content-Type": false,
           },
@@ -80,7 +80,7 @@ export class TenantProcessService {
             aExternalId: attributeExternalId,
           },
           headers: {
-            "X-Correlation-Id": context.correlationId,
+            [CORRELATION_ID_HEADER]: context.correlationId,
             Authorization: `Bearer ${context.bearerToken}`,
             "Content-Type": false,
           },

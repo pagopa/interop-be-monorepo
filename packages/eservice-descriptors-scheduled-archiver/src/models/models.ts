@@ -6,6 +6,7 @@ import {
   EServiceId,
 } from "pagopa-interop-models";
 import { z } from "zod";
+import { CORRELATION_ID_HEADER } from "pagopa-interop-commons";
 
 const ArchivableDescriptorRef = z.object({
   eserviceId: EServiceId,
@@ -41,7 +42,7 @@ export type EServicesWithUnarchivableDescriptors = z.infer<
 >;
 
 const Headers = z.object({
-  "X-Correlation-Id": CorrelationId,
+  [CORRELATION_ID_HEADER]: CorrelationId,
   Authorization: z.string(),
 });
 export type Headers = z.infer<typeof Headers>;

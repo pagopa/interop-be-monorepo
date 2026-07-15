@@ -8,6 +8,7 @@ import {
   JsonSpaces,
 } from "./digest.js";
 import { buildIntegrityRest02SignedHeaders } from "./headers.js";
+import { CORRELATION_ID_HEADER } from "../auth/headers.js";
 
 // The context may or may not be present (e.g if the user is not authorised)
 interface AuthData {
@@ -54,7 +55,7 @@ export function integrityRest02Middleware(
       }
       void (async (): Promise<void> => {
         try {
-          const correlationId = res.getHeader("x-correlation-id") as
+          const correlationId = res.getHeader(CORRELATION_ID_HEADER) as
             | string
             | undefined;
           if (!correlationId) {

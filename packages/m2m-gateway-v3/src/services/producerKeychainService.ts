@@ -3,7 +3,11 @@ import {
   ProducerKeychainId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { retry, WithLogger } from "pagopa-interop-commons";
+import {
+  retry,
+  WithLogger,
+  CORRELATION_ID_HEADER,
+} from "pagopa-interop-commons";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
@@ -307,7 +311,7 @@ export function producerKeychainServiceBuilder(
             clients,
             id,
             tenant.selfcareId,
-            ctx.headers["X-Correlation-Id"]
+            ctx.headers[CORRELATION_ID_HEADER]
           )
         )
       );

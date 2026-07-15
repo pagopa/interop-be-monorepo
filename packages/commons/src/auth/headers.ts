@@ -9,11 +9,11 @@ import { Logger } from "../logging/index.js";
 
 export function parseCorrelationIdHeader(req: Request): string | undefined {
   const parsed = z
-    .object({ "x-correlation-id": z.string() })
+    .object({ [CORRELATION_ID_HEADER]: z.string() })
     .safeParse(req.headers);
 
   if (parsed.success) {
-    return parsed.data["x-correlation-id"];
+    return parsed.data[CORRELATION_ID_HEADER];
   }
   return undefined;
 }
@@ -108,3 +108,5 @@ export function setMetadataVersionHeader(
 ): void {
   res.set(METADATA_VERSION_HEADER, metadata.version.toString());
 }
+
+export const CORRELATION_ID_HEADER = "X-Correlation-Id";
