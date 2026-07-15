@@ -8,12 +8,14 @@ import { z } from "zod";
 import { Logger } from "../logging/index.js";
 
 export function parseCorrelationIdHeader(req: Request): string | undefined {
+  // Node lowercases incoming header names, so match the lowercased form
+  const LOWER_CASE_CORRELATION_ID_HEADER = CORRELATION_ID_HEADER.toLowerCase();
   const parsed = z
-    .object({ [CORRELATION_ID_HEADER]: z.string() })
+    .object({ [LOWER_CASE_CORRELATION_ID_HEADER]: z.string() })
     .safeParse(req.headers);
 
   if (parsed.success) {
-    return parsed.data[CORRELATION_ID_HEADER];
+    return parsed.data[LOWER_CASE_CORRELATION_ID_HEADER];
   }
   return undefined;
 }
