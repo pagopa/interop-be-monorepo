@@ -102,7 +102,7 @@ async function internalCreateEvent<T extends Event>(
       );
     }
 
-    throw genericInternalError(`Error creating multiple events: ${error}`);
+    throw genericInternalError(`Error creating event: ${error}`);
   }
 }
 
