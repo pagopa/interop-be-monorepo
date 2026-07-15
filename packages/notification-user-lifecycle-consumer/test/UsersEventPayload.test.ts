@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import {
   selfcareUserEventType,
   relationshipStatus,
+  UsersEventPayload,
 } from "pagopa-interop-models";
-import { UsersEventPayload } from "../src/model/UsersEventPayload.js";
 
 describe("UsersEventPayload", () => {
   describe("ADD event", () => {
@@ -35,6 +35,7 @@ describe("UsersEventPayload", () => {
         user: {
           userId: "123e4567-e89b-12d3-a456-426614174000",
           productRole: "admin" as const,
+          relationshipStatus: relationshipStatus.active,
         },
       });
     });
@@ -50,6 +51,27 @@ describe("UsersEventPayload", () => {
       };
 
       expect(() => UsersEventPayload.parse(invalidEvent)).toThrow();
+    });
+
+    it("should throw when userId is null", () => {
+      const eventWithoutUserId = {
+        id: "event-125",
+        institutionId: "inst-123",
+        productId: "prod-123",
+        eventType: selfcareUserEventType.add,
+        user: {
+          userId: null,
+          name: "John",
+          familyName: "Doe",
+          email: "john.doe@example.com",
+          productRole: "admin" as const,
+          relationshipStatus: relationshipStatus.active,
+          role: "admin" as const,
+          mobilePhone: "1234567890",
+        },
+      };
+
+      expect(() => UsersEventPayload.parse(eventWithoutUserId)).toThrow();
     });
   });
 
@@ -82,6 +104,7 @@ describe("UsersEventPayload", () => {
         user: {
           userId: "123e4567-e89b-12d3-a456-426614174000",
           productRole: "admin" as const,
+          relationshipStatus: relationshipStatus.active,
         },
       });
     });
@@ -116,6 +139,7 @@ describe("UsersEventPayload", () => {
         user: {
           userId: "123e4567-e89b-12d3-a456-426614174000",
           productRole: "admin" as const,
+          relationshipStatus: relationshipStatus.deleted,
         },
       });
     });
