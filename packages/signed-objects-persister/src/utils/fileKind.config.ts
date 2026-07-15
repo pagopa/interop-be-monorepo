@@ -19,6 +19,7 @@ export const FILE_KIND_CONFIG = Object.freeze({
     process: "delegation",
   },
   VOUCHER_AUDIT: { bucket: config.auditBucket, process: null },
+  M2M_VOUCHER_AUDIT: { bucket: config.m2mAuditBucket, process: null },
   EVENT_JOURNAL: { bucket: config.eventsBucket, process: null },
 });
 
@@ -28,6 +29,7 @@ const FILE_KIND_KEYS = [
   "AGREEMENT_CONTRACT",
   "DELEGATION_CONTRACT",
   "VOUCHER_AUDIT",
+  "M2M_VOUCHER_AUDIT",
   "EVENT_JOURNAL",
 ] as const;
 
