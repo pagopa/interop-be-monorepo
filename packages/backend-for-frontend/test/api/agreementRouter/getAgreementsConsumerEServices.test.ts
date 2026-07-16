@@ -57,6 +57,15 @@ describe("API GET /consumers/agreements/eservices", () => {
     expect(res.body).toEqual(mockCompactEServicesLight);
   });
 
+  it("Should not constrain agreementStates upstream (consumer must still see own Drafts)", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    await makeRequest(token);
+    const mock = vi.mocked(
+      clients.agreementProcessClient.getAgreementsEServices
+    );
+    expect(mock.mock.calls[0][0].queries.agreementStates).toBeUndefined();
+  });
+
   it.each([
     { query: {} },
     { query: { offset: 0 } },

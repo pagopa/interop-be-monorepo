@@ -27,4 +27,5 @@ export type AgreementEServicesQueryFilters = {
   eserviceName: string | undefined;
   consumerIds: TenantId[];
   producerIds: TenantId[];
+  agreementStates: AgreementState[];
 };

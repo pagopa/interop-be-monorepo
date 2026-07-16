@@ -58,6 +58,30 @@ describe("API GET /producers/agreements/eservices", () => {
     expect(res.body).toEqual(mockCompactEServicesLight);
   });
 
+  it("Should forward a non-Draft agreementStates filter to the upstream client", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    await makeRequest(token);
+    const mock = vi.mocked(
+      clients.agreementProcessClient.getAgreementsEServices
+    );
+    expect(mock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        queries: expect.objectContaining({
+          agreementStates: expect.arrayContaining([
+            "ACTIVE",
+            "ARCHIVED",
+            "PENDING",
+            "SUSPENDED",
+            "REJECTED",
+          ]),
+        }),
+      })
+    );
+    const passedStates = mock.mock.calls[0][0].queries.agreementStates;
+    expect(passedStates).not.toContain("DRAFT");
+    expect(passedStates).not.toContain("MISSING_CERTIFIED_ATTRIBUTES");
+  });
+
   it.each([
     { query: {} },
     { query: { offset: 0 } },

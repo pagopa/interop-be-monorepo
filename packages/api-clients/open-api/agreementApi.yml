@@ -1104,6 +1104,15 @@ paths:
             default: []
           explode: false
         - in: query
+          name: agreementStates
+          description: comma separated sequence of agreement states to filter on
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/AgreementState"
+            default: []
+          explode: false
+        - in: query
           name: offset
           required: true
           schema:
