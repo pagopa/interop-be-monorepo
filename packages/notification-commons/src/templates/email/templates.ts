@@ -62,6 +62,8 @@ export const eventMailTemplateType = {
     "new-purpose-version-waiting-for-approval-mail",
   eserviceTemplateVersionSuspendedToCreatorMailTemplate:
     "eservice-template-version-suspended-to-creator-mail",
+  eserviceTemplateVersionActivatedToCreatorMailTemplate:
+    "eservice-template-version-activated-to-creator-mail",
   eserviceTemplateVersionPublishedMailTemplate:
     "eservice-template-version-published-mail",
   eserviceTemplateNameUpdatedMailTemplate:

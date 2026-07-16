@@ -7,6 +7,7 @@ import {
 import { match, P } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleEServiceTemplateVersionSuspendedToCreator } from "./handleEserviceTemplateVersionSuspendedToCreator.js";
+import { handleEServiceTemplateVersionActivatedToCreator } from "./handleEserviceTemplateVersionActivatedToCreator.js";
 import { handleEServiceTemplateVersionPublished } from "./handleEserviceTemplateVersionPublished.js";
 import { handleEServiceTemplateNameUpdated } from "./handleEserviceTemplateNameUpdated.js";
 import { handleEServiceTemplateVersionSuspendedToInstantiator } from "./handleEserviceTemplateVersionSuspendedToInstantiator.js";
@@ -62,6 +63,20 @@ export async function handleEServiceTemplateEvent(
         })
     )
     .with(
+      { type: "EServiceTemplateVersionActivated" },
+      async ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) =>
+        handleEServiceTemplateVersionActivatedToCreator({
+          eserviceTemplateV2Msg: eserviceTemplate,
+          eserviceTemplateVersionId: unsafeBrandId<EServiceTemplateVersionId>(
+            eserviceTemplateVersionId
+          ),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       { type: "EServiceTemplateNameUpdated" },
       async ({ data: { eserviceTemplate, oldName } }) =>
         handleEServiceTemplateNameUpdated({
@@ -96,7 +111,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionQuotasUpdated",
           "EServiceTemplateVersionAdded",
           "EServiceTemplateVersionAttributesUpdated",
-          "EServiceTemplateVersionActivated",
           "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
           "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
