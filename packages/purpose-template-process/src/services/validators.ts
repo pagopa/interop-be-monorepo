@@ -59,12 +59,6 @@ import {
   purposeTemplateEServiceTemplatePersonalDataFlagMismatch,
   PurposeTemplateValidationIssue,
   PurposeTemplateValidationResult,
-  unexpectedAssociationEServiceError,
-  unexpectedAssociationEServiceTemplateError,
-  unexpectedEServiceError,
-  unexpectedEServiceTemplateError,
-  unexpectedUnassociationEServiceError,
-  unexpectedUnassociationEServiceTemplateError,
   validPurposeTemplateResult,
 } from "../errors/purposeTemplateValidationErrors.js";
 import {
@@ -423,7 +417,7 @@ export const assertAnswerExistsInRiskAnalysisTemplate = (
  * For each eservice id:
  * - Promise.fulfilled: return the eservice if found
  * - Promise.fulfilled: return validation issue with the eservice id if not found
- * - Promise.rejected: return a validation issue with the eservice id and the error message
+ * - Promise.rejected: re-throw the original error (infra failure surfaces as 500 via default mapper)
  * Finally, return the validation issues and the valid eservices
  *
  * @param eserviceIds the list of eservice ids to validate
@@ -477,13 +471,9 @@ async function validateEServiceExistence(
             validEservices: [...acc.validEservices, res.value],
           };
         })
-        .with({ status: "rejected" }, (res) => ({
-          ...acc,
-          validationIssues: [
-            ...acc.validationIssues,
-            unexpectedEServiceError(res.reason.message, eserviceIds[index]),
-          ],
-        }))
+        .with({ status: "rejected" }, (res) => {
+          throw res.reason;
+        })
         .exhaustive(),
     {
       validationIssues: new Array<PurposeTemplateValidationIssue>(),
@@ -522,7 +512,7 @@ async function getEServiceAssociationResults(
  * Validate the associations between the eservices and the purpose template
  * For each eservice:
  * - Promise.fulfilled: return error if the eservice is already associated with the purpose template
- * - Promise.rejected: return a validation issue with the eservice id and the error message
+ * - Promise.rejected: re-throw the original error (infra failure surfaces as 500 via default mapper)
  * Finally, return the validation issues
  *
  * @param validEservices the list of valid eservices
@@ -543,10 +533,7 @@ async function validateEServiceAssociations(
 
   return associationValidationResults.flatMap((result, index) => {
     if (result.status === "rejected") {
-      throw unexpectedAssociationEServiceError(
-        result.reason.message,
-        validEservices[index].id
-      );
+      throw result.reason;
     }
 
     if (result.status === "fulfilled" && result.value !== undefined) {
@@ -565,7 +552,7 @@ async function validateEServiceAssociations(
  * Validate the disassociations between the eservices and the purpose template
  * For each eservice:
  * - Promise.fulfilled: return error if the eservice is not associated with the purpose template
- * - Promise.rejected: return a validation issue with the eservice id and the error message
+ * - Promise.rejected: re-throw the original error (infra failure surfaces as 500 via default mapper)
  * Finally, return the validation issues
  *
  * @param validEservices the list of valid eservices
@@ -593,10 +580,7 @@ async function validateEServiceDisassociations(
 
   eServiceAssociationResults.forEach((result, index) => {
     if (result.status === "rejected") {
-      throw unexpectedUnassociationEServiceError(
-        result.reason.message,
-        validEservices[index].id
-      );
+      throw result.reason;
     }
 
     if (result.value === undefined) {
@@ -958,7 +942,7 @@ export async function validateEservicesDisassociations(
  * Validate the existence of e-service templates by their ids.
  * For each eservice template:
  * - Promise.fulfilled: return error if not found, or mismatch on the personalData flag
- * - Promise.rejected: return a validation issue
+ * - Promise.rejected: re-throw the original error (infra failure surfaces as 500 via default mapper)
  * Finally, return the valid e-service templates and the validation issues.
  */
 async function validateEServiceTemplateExistence(
@@ -1007,16 +991,9 @@ async function validateEServiceTemplateExistence(
             validEServiceTemplates: [...acc.validEServiceTemplates, res.value],
           };
         })
-        .with({ status: "rejected" }, (res) => ({
-          ...acc,
-          validationIssues: [
-            ...acc.validationIssues,
-            unexpectedEServiceTemplateError(
-              res.reason.message,
-              eserviceTemplateIds[index]
-            ),
-          ],
-        }))
+        .with({ status: "rejected" }, (res) => {
+          throw res.reason;
+        })
         .exhaustive(),
     {
       validationIssues: new Array<PurposeTemplateValidationIssue>(),
@@ -1046,10 +1023,7 @@ async function validateEServiceTemplateAssociations(
 
   return associationResults.flatMap((result, index) => {
     if (result.status === "rejected") {
-      throw unexpectedAssociationEServiceTemplateError(
-        result.reason.message,
-        validEServiceTemplates[index].id
-      );
+      throw result.reason;
     }
 
     if (result.status === "fulfilled" && result.value !== undefined) {
@@ -1213,16 +1187,9 @@ async function validateEServiceTemplateExistenceForDisassociation(
             validEServiceTemplates: [...acc.validEServiceTemplates, res.value],
           };
         })
-        .with({ status: "rejected" }, (res) => ({
-          ...acc,
-          validationIssues: [
-            ...acc.validationIssues,
-            unexpectedEServiceTemplateError(
-              res.reason.message,
-              eserviceTemplateIds[index]
-            ),
-          ],
-        }))
+        .with({ status: "rejected" }, (res) => {
+          throw res.reason;
+        })
         .exhaustive(),
     {
       validationIssues: new Array<PurposeTemplateValidationIssue>(),
@@ -1260,10 +1227,7 @@ async function validateEServiceTemplateDisassociations(
 
   associationResults.forEach((result, index) => {
     if (result.status === "rejected") {
-      throw unexpectedUnassociationEServiceTemplateError(
-        result.reason.message,
-        validEServiceTemplates[index].id
-      );
+      throw result.reason;
     }
 
     if (result.value === undefined) {
