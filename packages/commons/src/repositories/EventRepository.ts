@@ -92,9 +92,13 @@ async function internalCreateEvent<T extends Event>(
       async (t) => await insertEventInTransaction(t, toBinaryData, createEvent)
     );
   } catch (error) {
-    const e = error as { code?: string };
+    const e = error as { code?: string; constraint?: string };
 
-    if (e?.code && e.code === PG_DUPLICATE_KEY_ERROR) {
+    if (
+      e?.code &&
+      e.code === PG_DUPLICATE_KEY_ERROR &&
+      e.constraint === "events_stream_id_version_key"
+    ) {
       throw eventConflictError(
         createEvent.correlationId,
         createEvent?.streamId,
@@ -137,9 +141,13 @@ async function internalCreateEvents<T extends Event>(
       latestNewVersions,
     };
   } catch (error) {
-    const e = error as { code?: string };
+    const e = error as { code?: string; constraint?: string };
 
-    if (e?.code && e.code === PG_DUPLICATE_KEY_ERROR) {
+    if (
+      e?.code &&
+      e.code === PG_DUPLICATE_KEY_ERROR &&
+      e.constraint === "events_stream_id_version_key"
+    ) {
       const lastEvent = createEvents[lastProcessedItemIndex];
       throw eventConflictError(
         lastEvent.correlationId,
