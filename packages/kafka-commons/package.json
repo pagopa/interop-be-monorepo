@@ -1,0 +1,28 @@
+{
+  "name": "kafka-commons",
+  "type": "module",
+  "scripts": {
+    "dev": "tsc --watch",
+    "typecheck": "tsc",
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@confluentinc/kafka-javascript": "catalog:",
+    "aws-msk-iam-sasl-signer-js": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
+    "pagopa-interop-models": "workspace:*",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
+    "typescript": "catalog:"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./utils": "./src/utils/utils.ts",
+    "./config": "./src/config/config.ts"
+  }
+}
