@@ -26,7 +26,7 @@ import {
   clientKindTokenGenStates,
   CorrelationId,
   EServiceId,
-  GeneratedTokenAuditDetails,
+  GeneratedConsumerTokenAuditDetails,
   generateId,
   itemState,
   makeGSIPKClientIdKid,
@@ -943,7 +943,7 @@ describe("authorization server tests", () => {
     );
 
     const fileListBeforeAudit = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListBeforeAudit).toHaveLength(0);
@@ -966,7 +966,7 @@ describe("authorization server tests", () => {
     const ymdDate = formatDateyyyyMMdd(date);
 
     const fileListAfterAudit = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListAfterAudit).toHaveLength(1);
@@ -975,7 +975,7 @@ describe("authorization server tests", () => {
     expect(split[0]).toEqual(`token-details/${ymdDate}/${ymdDate}`);
 
     const fileContent = await fileManager.get(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       file,
       genericLogger
     );
@@ -983,7 +983,7 @@ describe("authorization server tests", () => {
     const decodedFileContent = Buffer.from(fileContent).toString();
     const parsedDecodedFileContent = JSON.parse(decodedFileContent);
 
-    const expectedMessageBody: GeneratedTokenAuditDetails = {
+    const expectedMessageBody: GeneratedConsumerTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
       issuedAt: secondsToMilliseconds(parsedDecodedFileContent.issuedAt),
@@ -1117,7 +1117,7 @@ describe("authorization server tests", () => {
     });
 
     const fileList = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileList).toHaveLength(0);
@@ -1128,7 +1128,7 @@ describe("authorization server tests", () => {
 
     const parsedAuditSent = JSON.parse(actualMessageSent.value);
 
-    const expectedMessageBody: GeneratedTokenAuditDetails = {
+    const expectedMessageBody: GeneratedConsumerTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
       issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
@@ -1214,7 +1214,7 @@ describe("authorization server tests", () => {
     );
 
     const fileListBeforeAudit = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListBeforeAudit).toHaveLength(0);
@@ -1237,7 +1237,7 @@ describe("authorization server tests", () => {
     const ymdDate = formatDateyyyyMMdd(date);
 
     const fileListAfterAudit = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListAfterAudit).toHaveLength(1);
@@ -1246,7 +1246,7 @@ describe("authorization server tests", () => {
     expect(split[0]).toEqual(`token-details/${ymdDate}/${ymdDate}`);
 
     const fileContent = await fileManager.get(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       file,
       genericLogger
     );
@@ -1254,7 +1254,7 @@ describe("authorization server tests", () => {
     const decodedFileContent = Buffer.from(fileContent).toString();
     const parsedDecodedFileContent = JSON.parse(decodedFileContent);
 
-    const expectedMessageBody: GeneratedTokenAuditDetails = {
+    const expectedMessageBody: GeneratedConsumerTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
       issuedAt: secondsToMilliseconds(parsedDecodedFileContent.issuedAt),
@@ -1408,7 +1408,7 @@ describe("authorization server tests", () => {
     });
 
     const fileList = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileList).toHaveLength(0);
@@ -1419,7 +1419,7 @@ describe("authorization server tests", () => {
 
     const parsedAuditSent = JSON.parse(actualMessageSent.value);
 
-    const expectedMessageBody: GeneratedTokenAuditDetails = {
+    const expectedMessageBody: GeneratedConsumerTokenAuditDetails = {
       jwtId: generateId(),
       correlationId,
       issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
@@ -1505,7 +1505,7 @@ describe("authorization server tests", () => {
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
     const fileListBefore = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListBefore).toHaveLength(0);
@@ -1520,7 +1520,7 @@ describe("authorization server tests", () => {
     );
 
     const fileListAfter = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListAfter).toHaveLength(0);
@@ -1581,7 +1581,7 @@ describe("authorization server tests", () => {
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
     const fileListBefore = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListBefore).toHaveLength(0);
@@ -1596,7 +1596,7 @@ describe("authorization server tests", () => {
     );
 
     const fileListAfter = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListAfter).toHaveLength(0);
@@ -1663,7 +1663,7 @@ describe("authorization server tests", () => {
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
     const fileListBefore = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListBefore).toHaveLength(0);
@@ -1678,7 +1678,7 @@ describe("authorization server tests", () => {
     );
 
     const fileListAfter = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListAfter).toHaveLength(0);
@@ -1741,7 +1741,7 @@ describe("authorization server tests", () => {
     await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
 
     const fileListBefore = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListBefore).toHaveLength(0);
@@ -1756,7 +1756,7 @@ describe("authorization server tests", () => {
     );
 
     const fileListAfter = await fileManager.listFiles(
-      config.s3Bucket,
+      config.s3BucketConsumerTokenAuditFallback,
       genericLogger
     );
     expect(fileListAfter).toHaveLength(0);
