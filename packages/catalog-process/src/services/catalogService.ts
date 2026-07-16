@@ -257,6 +257,7 @@ import {
   getLatestActiveArchivingRequest,
   getLatestArchivingRequest,
   hasActiveArchivingRequest,
+  removeActiveArchivingRequest,
   updateLatestActiveArchivingRequest,
 } from "../utilities/archivingRequests.js";
 
@@ -3388,6 +3389,51 @@ export function catalogServiceBuilder(
 
       const event = await repository.createEvent(
         toCreateEventEServiceArchivingRequestedByDelegate(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async removeDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Submitting delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+      assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: removeActiveArchivingRequest(
+          eservice.data.delegatedArchivingRequest
+        ),
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestRejectedByDelegator(
           eservice.metadata.version,
           updatedEService,
           correlationId
