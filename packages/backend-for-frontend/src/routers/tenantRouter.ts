@@ -294,7 +294,9 @@ const tenantRouter = (
           const attributeId = unsafeBrandId<AttributeId>(
             req.params.attributeId
           );
-          const agreementId = unsafeBrandId<AgreementId>(req.body.agreementId);
+          const agreementId: AgreementId = unsafeBrandId<AgreementId>(
+            req.query.agreementId
+          );
           await tenantService.revokeVerifiedAttribute(
             tenantId,
             attributeId,

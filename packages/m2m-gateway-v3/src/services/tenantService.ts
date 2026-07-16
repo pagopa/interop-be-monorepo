@@ -488,11 +488,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
 
       const response =
         await clients.tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
-          {
-            agreementId,
-          },
+          undefined,
           {
             params: { tenantId, attributeId },
+            queries: { agreementId },
             headers,
           }
         );

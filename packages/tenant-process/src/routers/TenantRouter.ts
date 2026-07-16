@@ -984,7 +984,7 @@ const tenantsRouter = (
               {
                 tenantId: unsafeBrandId(req.params.tenantId),
                 attributeId: unsafeBrandId(req.params.attributeId),
-                agreementId: unsafeBrandId(req.body.agreementId),
+                agreementId: unsafeBrandId(req.query.agreementId),
               },
               ctx
             );
