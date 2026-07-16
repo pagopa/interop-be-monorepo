@@ -22,7 +22,6 @@ import {
 } from "../../model/domain/errors.js";
 import {
   logTokenGenerationInfo,
-  publishProducerAudit,
   retrieveAsyncCatalogEntry,
   retrieveProducerKey,
   retrieveTokenGenStatesEntryByPurposeId,
@@ -35,6 +34,7 @@ import type {
   AsyncGeneratedTokenData,
   ScopeHandlerContext,
 } from "../asyncTokenService.js";
+import { publishProducerAudit } from "../../utilities/audit.js";
 
 export const handleCallbackInvocation = async (
   ctx: ScopeHandlerContext
