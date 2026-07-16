@@ -255,6 +255,7 @@ export function purposeServiceBuilder(db: DBContext) {
             PurposeDbTable.purpose_risk_analysis_form,
             PurposeDbTable.purpose_risk_analysis_answer,
             PurposeDbTable.purpose_version_signed_document,
+            PurposeDbTable.purpose_risk_analysis_reviewer,
           ],
           DeletingDbTable.purpose_deleting_table
         );
