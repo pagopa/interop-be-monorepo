@@ -7,9 +7,13 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { handleCertifiedAttributeAssignedRevokedToAssignee } from "./handleCertifiedAttributeAssignedRevokedToAssignee.js";
-import { handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee } from "./handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee.js";
-import { handleVerifiedAttributeAssignedRevokedToAssignee } from "./handleVerifiedAttributeAssignedRevokedToAssignee.js";
+import { handleCertifiedAttributeAssignedToAssignee } from "./handleCertifiedAttributeAssignedToAssignee.js";
+import { handleCertifiedAttributeRevokedToAssignee } from "./handleCertifiedAttributeRevokedToAssignee.js";
+import { handleCertifiedDiscreteAttributeAssignedToAssignee } from "./handleCertifiedDiscreteAttributeAssignedToAssignee.js";
+import { handleCertifiedDiscreteAttributeRevokedToAssignee } from "./handleCertifiedDiscreteAttributeRevokedToAssignee.js";
+import { handleCertifiedDiscreteAttributeUpdatedToAssignee } from "./handleCertifiedDiscreteAttributeUpdatedToAssignee.js";
+import { handleVerifiedAttributeAssignedToAssignee } from "./handleVerifiedAttributeAssignedToAssignee.js";
+import { handleVerifiedAttributeRevokedToAssignee } from "./handleVerifiedAttributeRevokedToAssignee.js";
 
 export async function handleTenantEvent(
   decodedMessage: TenantEventEnvelope,
@@ -22,52 +26,73 @@ export async function handleTenantEvent(
       return [];
     })
     .with(
-      {
-        type: P.union(
-          "TenantCertifiedAttributeAssigned",
-          "TenantCertifiedAttributeRevoked"
-        ),
-      },
-      ({ data: { tenant, attributeId }, type }) =>
-        handleCertifiedAttributeAssignedRevokedToAssignee(
+      { type: "TenantCertifiedAttributeAssigned" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedAttributeAssignedToAssignee(
           tenant,
           unsafeBrandId<AttributeId>(attributeId),
           logger,
-          readModelService,
-          type
+          readModelService
         )
     )
     .with(
-      {
-        type: P.union(
-          "TenantCertifiedDiscreteAttributeAssigned",
-          "TenantCertifiedDiscreteAttributeRevoked",
-          "TenantCertifiedDiscreteAttributeUpdated"
-        ),
-      },
-      ({ data: { tenant, attributeId }, type }) =>
-        handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee(
+      { type: "TenantCertifiedAttributeRevoked" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedAttributeRevokedToAssignee(
           tenant,
           unsafeBrandId<AttributeId>(attributeId),
           logger,
-          readModelService,
-          type
+          readModelService
         )
     )
     .with(
-      {
-        type: P.union(
-          "TenantVerifiedAttributeAssigned",
-          "TenantVerifiedAttributeRevoked"
-        ),
-      },
-      ({ data: { tenant, attributeId }, type }) =>
-        handleVerifiedAttributeAssignedRevokedToAssignee(
+      { type: "TenantCertifiedDiscreteAttributeAssigned" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedDiscreteAttributeAssignedToAssignee(
           tenant,
           unsafeBrandId<AttributeId>(attributeId),
           logger,
-          readModelService,
-          type
+          readModelService
+        )
+    )
+    .with(
+      { type: "TenantCertifiedDiscreteAttributeRevoked" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedDiscreteAttributeRevokedToAssignee(
+          tenant,
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      { type: "TenantCertifiedDiscreteAttributeUpdated" },
+      ({ data: { tenant, attributeId } }) =>
+        handleCertifiedDiscreteAttributeUpdatedToAssignee(
+          tenant,
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      { type: "TenantVerifiedAttributeAssigned" },
+      ({ data: { tenant, attributeId } }) =>
+        handleVerifiedAttributeAssignedToAssignee(
+          tenant,
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      { type: "TenantVerifiedAttributeRevoked" },
+      ({ data: { tenant, attributeId } }) =>
+        handleVerifiedAttributeRevokedToAssignee(
+          tenant,
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService
         )
     )
     .with(
