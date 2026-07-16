@@ -212,7 +212,7 @@ const setupCallbackScenario = async (overrides?: {
   await writePlatformCatalogEntry(catalogEntry, dynamoDBClient);
 
   mockProducer.send.mockImplementationOnce(async () => [
-    { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+    { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
   ]);
 
   // Call start_interaction to create an interaction
@@ -372,7 +372,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should generate token for callback_invocation scope with entityNumber = 1", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario();
@@ -393,7 +393,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should generate token for callback_invocation with entityNumber > 1", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
@@ -410,7 +410,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should generate a token with all expected header and payload claims", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const {
@@ -472,7 +472,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should verify token claims contain scope=callback_invocation", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId, interactionId } =
@@ -493,7 +493,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should update interaction state to callback_invocation", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId, interactionId } =
@@ -513,7 +513,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should allow two calls with callback_invocation scope (self-loop)", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId, interactionId } =
@@ -544,7 +544,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw interactionIdNotProvided when interactionId is missing", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const producerKeychainId = generateId<ProducerKeychainId>();
@@ -565,7 +565,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw entityNumberNotProvided when entityNumber is missing", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const producerKeychainId = generateId<ProducerKeychainId>();
@@ -587,7 +587,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw invalidEntityNumber when entityNumber is 0", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const producerKeychainId = generateId<ProducerKeychainId>();
@@ -627,7 +627,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw producerKeychainEntryNotFound when producer key does not exist", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
@@ -641,7 +641,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw catalogEntryNotFound when catalog entry does not exist", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
@@ -655,7 +655,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw asyncExchangeResponseTimeExceeded when response time is exceeded", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId, interactionId } =
@@ -679,7 +679,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw entityNumberExceedsMaxResultSet when entityNumber exceeds maxResultSet", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
@@ -693,7 +693,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw platformStateValidationFailed when agreement state is INACTIVE", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
@@ -707,7 +707,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw platformStateValidationFailed when purpose state is INACTIVE", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
@@ -721,7 +721,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should throw platformStateValidationFailed when descriptor state is INACTIVE", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
@@ -735,7 +735,7 @@ describe("async token service - callback_invocation", () => {
 
   it("should aggregate multiple inactive state errors in platformStateValidationFailed", async () => {
     mockProducer.send.mockImplementation(async () => [
-      { topic: config.tokenAuditingTopic, partition: 0, errorCode: 0 },
+      { topic: config.consumerTokenAuditingTopic, partition: 0, errorCode: 0 },
     ]);
 
     const { producerJws, producerClientId } = await setupCallbackScenario({
