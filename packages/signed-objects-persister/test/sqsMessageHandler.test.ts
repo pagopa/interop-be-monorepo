@@ -5,6 +5,7 @@ import {
   SafeStorageService,
 } from "pagopa-interop-commons";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
+import { InternalError } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 
 import { config } from "../src/config/config.js";
@@ -321,7 +322,7 @@ describe("sqsMessageHandler", () => {
     );
   });
 
-  it("should throw an error and not call other services if the SQS message is invalid", async () => {
+  it("should skip (resolve without throwing) and not call other services if the SQS message is invalid", async () => {
     const invalidSqsMessagePayload: Message = {
       Body: JSON.stringify({ invalid: "payload" }),
     };
@@ -334,9 +335,193 @@ describe("sqsMessageHandler", () => {
         mockSafeStorageService,
         mockRefreshableToken
       )
-    ).rejects.toThrow("Invalid SQS payload");
+    ).resolves.toBeUndefined();
 
     expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
+    expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
+    expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
+  });
+
+  it("should throw an InternalError (so the message is retried, not dropped, until the reference is written) when the signature reference is missing", async () => {
+    const sqsMessageBody = {
+      version: "0",
+      id: "6e902b1c-7f55-4074-a036-749e75551f33",
+      "detail-type": "Object Created",
+      source: "aws.s3",
+      account: "123456789012",
+      time: "2025-01-01T10:00:00Z",
+      region: "eu-central-1",
+      resources: ["arn:aws:s3:::some-bucket"],
+      detail: {
+        key: "missing-reference-file-key.pdf",
+        versionId: "12345",
+        documentType: "INTEROP_LEGAL_FACTS",
+        documentStatus: "SAVED",
+        contentType: "application/pdf",
+        checksum: "mock-checksum",
+        retentionUntil: "2026-01-01T10:00:00Z",
+        tags: null,
+        client_short_code: "12345",
+      },
+    };
+
+    const sqsMessagePayload: Message = {
+      Body: JSON.stringify(sqsMessageBody),
+    };
+
+    (mockDbService.readSignatureReferenceById as Mock).mockResolvedValueOnce(
+      undefined
+    );
+
+    const rejection = expect(
+      sqsMessageHandler(
+        sqsMessagePayload,
+        mockFileManager as FileManager,
+        mockDbService,
+        mockSafeStorageService,
+        mockRefreshableToken
+      )
+    ).rejects;
+
+    await rejection.toThrow(InternalError);
+    await rejection.toThrow(sqsMessageBody.detail.key);
+
+    expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
+    expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
+    expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
+  });
+
+  it("should skip (resolve without throwing) and not call other services when the SQS message body is missing", async () => {
+    const sqsMessagePayload: Message = {};
+
+    await expect(
+      sqsMessageHandler(
+        sqsMessagePayload,
+        mockFileManager as FileManager,
+        mockDbService,
+        mockSafeStorageService,
+        mockRefreshableToken
+      )
+    ).resolves.toBeUndefined();
+
+    expect(mockDbService.readSignatureReferenceById).not.toHaveBeenCalled();
+    expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
+    expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
+    expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
+  });
+
+  it("should throw an InternalError (so the message is retried) when the fileKind is unknown", async () => {
+    const sqsMessageBody = {
+      version: "0",
+      id: "6e902b1c-7f55-4074-a036-749e75551f33",
+      "detail-type": "Object Created",
+      source: "aws.s3",
+      account: "123456789012",
+      time: "2025-01-01T10:00:00Z",
+      region: "eu-central-1",
+      resources: ["arn:aws:s3:::some-bucket"],
+      detail: {
+        key: "unknown-kind-file-key.pdf",
+        versionId: "12345",
+        documentType: "INTEROP_LEGAL_FACTS",
+        documentStatus: "SAVED",
+        contentType: "application/pdf",
+        checksum: "mock-checksum",
+        retentionUntil: "2026-01-01T10:00:00Z",
+        tags: null,
+        client_short_code: "12345",
+      },
+    };
+
+    const sqsMessagePayload: Message = {
+      Body: JSON.stringify(sqsMessageBody),
+    };
+
+    (mockDbService.readSignatureReferenceById as Mock).mockResolvedValueOnce({
+      id: sqsMessageBody.id,
+      key: sqsMessageBody.detail.key,
+      fileKind: "UNKNOWN_KIND",
+      createdAt: BigInt(123456),
+      contentType: "application/pdf",
+      subObjectId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      streamId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      path: "path/to",
+      fileName: "document.pdf",
+    });
+
+    const rejection = expect(
+      sqsMessageHandler(
+        sqsMessagePayload,
+        mockFileManager as FileManager,
+        mockDbService,
+        mockSafeStorageService,
+        mockRefreshableToken
+      )
+    ).rejects;
+
+    await rejection.toThrow(InternalError);
+    await rejection.toThrow(sqsMessageBody.detail.key);
+
+    expect(mockSafeStorageService.getFile).not.toHaveBeenCalled();
+    expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
+    expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
+  });
+
+  it("should throw an InternalError (so the message is retried) when the download URL is missing", async () => {
+    const sqsMessageBody = {
+      version: "0",
+      id: "6e902b1c-7f55-4074-a036-749e75551f33",
+      "detail-type": "Object Created",
+      source: "aws.s3",
+      account: "123456789012",
+      time: "2025-01-01T10:00:00Z",
+      region: "eu-central-1",
+      resources: ["arn:aws:s3:::some-bucket"],
+      detail: {
+        key: "missing-download-url-file-key.pdf",
+        versionId: "12345",
+        documentType: "INTEROP_LEGAL_FACTS",
+        documentStatus: "SAVED",
+        contentType: "application/pdf",
+        checksum: "mock-checksum",
+        retentionUntil: "2026-01-01T10:00:00Z",
+        tags: null,
+        client_short_code: "12345",
+      },
+    };
+
+    const sqsMessagePayload: Message = {
+      Body: JSON.stringify(sqsMessageBody),
+    };
+
+    (mockDbService.readSignatureReferenceById as Mock).mockResolvedValueOnce({
+      id: sqsMessageBody.id,
+      key: sqsMessageBody.detail.key,
+      fileKind: "RISK_ANALYSIS_DOCUMENT",
+      createdAt: BigInt(123456),
+      contentType: "application/pdf",
+      subObjectId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      streamId: "6e902b1c-7f55-4074-a036-749e75551f33",
+      path: "path/to/document.pdf",
+      fileName: "document.pdf",
+    });
+    (mockSafeStorageService.getFile as Mock).mockResolvedValueOnce({
+      download: undefined,
+    });
+
+    const rejection = expect(
+      sqsMessageHandler(
+        sqsMessagePayload,
+        mockFileManager as FileManager,
+        mockDbService,
+        mockSafeStorageService,
+        mockRefreshableToken
+      )
+    ).rejects;
+
+    await rejection.toThrow(InternalError);
+    await rejection.toThrow(sqsMessageBody.detail.key);
+
     expect(mockFileManager.resumeOrStoreBytes).not.toHaveBeenCalled();
     expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
   });

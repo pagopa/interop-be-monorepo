@@ -20,6 +20,7 @@ import {
   Client,
   clientKind,
   clientKindTokenGenStates,
+  DescriptorState,
   descriptorState,
   EService,
   generateId,
@@ -94,10 +95,12 @@ type Fixture = {
   interaction: Interaction;
 };
 
-const buildFixture = (): Fixture => {
+const buildFixture = (
+  state: DescriptorState = descriptorState.published
+): Fixture => {
   const descriptor = {
     ...getMockDescriptor(descriptorState.published),
-    state: descriptorState.published,
+    state: state,
     audience: ["pagopa.it"],
     voucherLifespan: 600,
     asyncExchangeProperties,
@@ -332,6 +335,56 @@ describe("Async Token Generation Read Model Checker tests", () => {
       })
     ).toBe(1);
   });
+
+  it.each([
+    {
+      state: descriptorState.published,
+      expectedPlatformStatesState: itemState.active,
+    },
+    {
+      state: descriptorState.suspended,
+      expectedPlatformStatesState: itemState.inactive,
+    },
+    {
+      state: descriptorState.deprecated,
+      expectedPlatformStatesState: itemState.active,
+    },
+    {
+      state: descriptorState.archiving,
+      expectedPlatformStatesState: itemState.active,
+    },
+    {
+      state: descriptorState.archivingSuspended,
+      expectedPlatformStatesState: itemState.inactive,
+    },
+  ])(
+    "should not detect differences on async exchange state in platform-states",
+    ({ state, expectedPlatformStatesState }) => {
+      const fixture = buildFixture(state);
+
+      const catalogDifferences = compareAsyncPlatformStates({
+        eservices: [fixture.eservice],
+        platformStates: [
+          {
+            PK: makePlatformStatesEServiceDescriptorPK({
+              eserviceId: fixture.eservice.id,
+              descriptorId: fixture.descriptor.id,
+            }),
+            state: expectedPlatformStatesState,
+            descriptorAudience: fixture.descriptor.audience,
+            descriptorVoucherLifespan: fixture.descriptor.voucherLifespan,
+            asyncExchange: true,
+            asyncExchangeProperties,
+            version: 1,
+            updatedAt: issuedAt,
+          },
+        ],
+        logger: genericLogger,
+      });
+
+      expect(catalogDifferences).toBe(0);
+    }
+  );
 
   it("should not detect differences when platform-states descriptor audience has different order", () => {
     const fixture = buildFixture();
