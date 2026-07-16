@@ -37,6 +37,20 @@ type GeneratedAuditDetails =
   | GeneratedConsumerTokenAuditDetails
   | GeneratedApiTokenAuditDetails;
 
+const buildAuditMessageDPopBody = (
+  dpop: DPoPProof
+): Pick<GeneratedAuditDetails, "dpop"> => ({
+  dpop: {
+    typ: dpop.header.typ,
+    alg: dpop.header.alg,
+    jwk: dpop.header.jwk,
+    htm: dpop.payload.htm,
+    htu: dpop.payload.htu,
+    iat: secondsToMilliseconds(dpop.payload.iat),
+    jti: dpop.payload.jti,
+  },
+});
+
 const buildAuditMessageBodyForConsumerToken = ({
   generatedToken,
   clientAssertion,
@@ -97,19 +111,7 @@ const buildAuditMessageBodyForConsumerToken = ({
       ? { digest: clientAssertion.payload.digest }
       : {}),
   },
-  ...(dpop
-    ? {
-        dpop: {
-          typ: dpop.header.typ,
-          alg: dpop.header.alg,
-          jwk: dpop.header.jwk,
-          htm: dpop.payload.htm,
-          htu: dpop.payload.htu,
-          iat: secondsToMilliseconds(dpop.payload.iat),
-          jti: dpop.payload.jti,
-        },
-      }
-    : {}),
+  ...(dpop ? buildAuditMessageDPopBody(dpop) : {}),
   ...(interaction ? { interaction } : {}),
 });
 
@@ -158,24 +160,9 @@ export const buildAuditMessageBodyForApiToken = ({
     jwtId: clientAssertion.payload.jti,
     keyId: clientAssertion.header.kid,
     subject: clientAssertion.payload.sub,
-    ...(clientAssertion.payload.digest
-      ? { digest: clientAssertion.payload.digest }
-      : {}),
   },
 
-  ...(dpop
-    ? {
-        dpop: {
-          typ: dpop.header.typ,
-          alg: dpop.header.alg,
-          jwk: dpop.header.jwk,
-          htm: dpop.payload.htm,
-          htu: dpop.payload.htu,
-          iat: secondsToMilliseconds(dpop.payload.iat),
-          jti: dpop.payload.jti,
-        },
-      }
-    : {}),
+  ...(dpop ? buildAuditMessageDPopBody(dpop) : {}),
 });
 
 export const fallbackAudit = async ({

@@ -19,7 +19,7 @@ export const CNFAuditDetails = z.object({
 });
 export type CNFAuditDetails = z.infer<typeof CNFAuditDetails>;
 
-export const ClientAssertionAuditDetails = z.object({
+export const ConsumerClientAssertionAuditDetails = z.object({
   jwtId: z.string(),
   issuedAt: z.number(),
   algorithm: z.string(),
@@ -30,8 +30,22 @@ export const ClientAssertionAuditDetails = z.object({
   expirationTime: z.number(),
   digest: ClientAssertionDigest.optional(),
 });
-export type ClientAssertionAuditDetails = z.infer<
-  typeof ClientAssertionAuditDetails
+export type ConsumerClientAssertionAuditDetails = z.infer<
+  typeof ConsumerClientAssertionAuditDetails
+>;
+
+export const ApiClientAssertionAuditDetails = z.object({
+  jwtId: z.string(),
+  issuedAt: z.number(),
+  algorithm: z.string(),
+  keyId: z.string(),
+  issuer: z.string(),
+  subject: ClientId,
+  audience: z.string(),
+  expirationTime: z.number(),
+});
+export type ApiClientAssertionAuditDetails = z.infer<
+  typeof ApiClientAssertionAuditDetails
 >;
 
 export const DPoPAuditDetails = z.object({
@@ -75,7 +89,7 @@ export const GeneratedConsumerTokenAuditDetails = z.object({
   issuer: z.string(),
   cnf: CNFAuditDetails.optional(),
   digest: ClientAssertionDigest.optional(),
-  clientAssertion: ClientAssertionAuditDetails,
+  clientAssertion: ConsumerClientAssertionAuditDetails,
   dpop: DPoPAuditDetails.optional(),
   interaction: InteractionAuditDetails.optional(),
 });
@@ -99,7 +113,7 @@ export const GeneratedApiTokenAuditDetails = z.object({
   expirationTime: z.number(),
   issuer: z.string(),
   cnf: CNFAuditDetails.optional(),
-  clientAssertion: ClientAssertionAuditDetails,
+  clientAssertion: ApiClientAssertionAuditDetails,
   dpop: DPoPAuditDetails.optional(),
 });
 export type GeneratedApiTokenAuditDetails = z.infer<
