@@ -15,7 +15,7 @@ import {
   attributeKind,
   TenantAttribute,
 } from "pagopa-interop-models";
-import { handleCertifiedAttributeAssignedRevokedToAssignee } from "../src/handlers/tenants/handleCertifiedAttributeAssignedRevokedToAssignee.js";
+import { handleCertifiedAttributeAssignedToAssignee } from "../src/handlers/tenants/handleCertifiedAttributeAssignedToAssignee.js";
 import {
   attributeNotFound,
   attributeOriginUndefined,
@@ -25,7 +25,7 @@ import {
 } from "pagopa-interop-notification-commons";
 import { addOneAttribute, addOneTenant, readModelService } from "./utils.js";
 
-describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
+describe("handleCertifiedAttributeAssignedToAssignee", () => {
   const certifierId = generateId();
 
   const assignee = getMockTenant();
@@ -38,15 +38,6 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
     ...getMockTenant(),
     name: "ANAC Name",
     features: [{ type: "PersistentCertifier", certifierId: "ANAC" }],
-  };
-  const ivassCertifier: Tenant = {
-    ...getMockTenant(),
-    name: "IVASS Name",
-    features: [{ type: "PersistentCertifier", certifierId: "IVASS" }],
-  };
-  const revoker: Tenant = {
-    ...getMockTenant(),
-    name: "Revoker Name",
   };
 
   const certifiedAttribute: Attribute = {
@@ -64,11 +55,6 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
     name: "Certified IPA Attribute",
     origin: "IPA",
   };
-  const certifiedAttributeIVASS: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
-    name: "Certified IVASS Attribute",
-    origin: "IVASS",
-  };
   const certifiedAttributeSELFCARE: Attribute = {
     ...getMockAttribute(attributeKind.certified),
     name: "Certified SELFCARE Attribute",
@@ -81,27 +67,22 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
 
   beforeEach(async () => {
     mockGetNotificationRecipients.mockReset();
-    // Setup test data
     await addOneTenant(assignee);
     await addOneTenant(certifier);
     await addOneTenant(anacCertifier);
-    await addOneTenant(ivassCertifier);
-    await addOneTenant(revoker);
     await addOneAttribute(certifiedAttribute);
     await addOneAttribute(certifiedAttributeANAC);
     await addOneAttribute(certifiedAttributeIPA);
-    await addOneAttribute(certifiedAttributeIVASS);
     await addOneAttribute(certifiedAttributeSELFCARE);
   });
 
   it("should throw missingKafkaMessageDataError when tenant is undefined", async () => {
     await expect(() =>
-      handleCertifiedAttributeAssignedRevokedToAssignee(
+      handleCertifiedAttributeAssignedToAssignee(
         undefined,
         generateId(),
         logger,
-        readModelService,
-        "TenantCertifiedAttributeAssigned"
+        readModelService
       )
     ).rejects.toThrow(
       missingKafkaMessageDataError("tenant", "TenantCertifiedAttributeAssigned")
@@ -111,18 +92,16 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
   it("should throw attributeNotFound when attribute is not found", async () => {
     const unknownAttributeId = generateId<AttributeId>();
 
-    // Mock notification recipients so the check doesn't exit early
     mockGetNotificationRecipients.mockResolvedValue([
       { userId: generateId(), tenantId: assignee.id },
     ]);
 
     await expect(() =>
-      handleCertifiedAttributeAssignedRevokedToAssignee(
+      handleCertifiedAttributeAssignedToAssignee(
         toTenantV2(assignee),
         unknownAttributeId,
         logger,
-        readModelService,
-        "TenantCertifiedAttributeAssigned"
+        readModelService
       )
     ).rejects.toThrow(attributeNotFound(unknownAttributeId));
   });
@@ -134,18 +113,16 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
     };
     await addOneAttribute(certifiedAttributeWithUndefinedOrigin);
 
-    // Mock notification recipients so the check doesn't exit early
     mockGetNotificationRecipients.mockResolvedValue([
       { userId: generateId(), tenantId: assignee.id },
     ]);
 
     await expect(() =>
-      handleCertifiedAttributeAssignedRevokedToAssignee(
+      handleCertifiedAttributeAssignedToAssignee(
         toTenantV2(assignee),
         certifiedAttributeWithUndefinedOrigin.id,
         logger,
-        readModelService,
-        "TenantCertifiedAttributeAssigned"
+        readModelService
       )
     ).rejects.toThrow(
       attributeOriginUndefined(certifiedAttributeWithUndefinedOrigin.id)
@@ -160,66 +137,39 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
     };
     await addOneAttribute(certifiedAttributeWithUnknownCertifier);
 
-    // Mock notification recipients so the check doesn't exit early
     mockGetNotificationRecipients.mockResolvedValue([
       { userId: generateId(), tenantId: assignee.id },
     ]);
 
-    const tenant = toTenantV2(assignee);
-
     await expect(() =>
-      handleCertifiedAttributeAssignedRevokedToAssignee(
-        tenant,
+      handleCertifiedAttributeAssignedToAssignee(
+        toTenantV2(assignee),
         certifiedAttributeWithUnknownCertifier.id,
         logger,
-        readModelService,
-        "TenantCertifiedAttributeAssigned"
+        readModelService
       )
     ).rejects.toThrow(certifierTenantNotFound(unknownCertifierId));
   });
 
-  it.each<{
-    eventType:
-      | "TenantCertifiedAttributeAssigned"
-      | "TenantCertifiedAttributeRevoked";
-    attributeId: AttributeId;
-  }>([
-    {
-      eventType: "TenantCertifiedAttributeAssigned",
-      attributeId: certifiedAttribute.id,
-    },
-    {
-      eventType: "TenantCertifiedAttributeRevoked",
-      attributeId: certifiedAttribute.id,
-    },
-  ])(
-    "should return empty array when no users have notifications enabled for event $eventType",
-    async ({ eventType, attributeId }) => {
-      mockGetNotificationRecipients.mockResolvedValue([]);
+  it("should return empty array when no users have notifications enabled", async () => {
+    mockGetNotificationRecipients.mockResolvedValue([]);
 
-      const notifications =
-        await handleCertifiedAttributeAssignedRevokedToAssignee(
-          toTenantV2(assignee),
-          attributeId,
-          logger,
-          readModelService,
-          eventType
-        );
+    const notifications = await handleCertifiedAttributeAssignedToAssignee(
+      toTenantV2(assignee),
+      certifiedAttribute.id,
+      logger,
+      readModelService
+    );
 
-      expect(notifications).toEqual([]);
-    }
-  );
+    expect(notifications).toEqual([]);
+  });
 
   it.each<{
-    eventType:
-      | "TenantCertifiedAttributeAssigned"
-      | "TenantCertifiedAttributeRevoked";
     assigneeAttributes: TenantAttribute[];
     attributeId: AttributeId;
     expectedBody: string;
   }>([
     {
-      eventType: "TenantCertifiedAttributeAssigned",
       assigneeAttributes: [],
       attributeId: certifiedAttribute.id,
       expectedBody: inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
@@ -229,7 +179,6 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
       ),
     },
     {
-      eventType: "TenantCertifiedAttributeAssigned",
       assigneeAttributes: [],
       attributeId: certifiedAttributeANAC.id,
       expectedBody: inAppTemplates.certifiedVerifiedAttributeAssignedToAssignee(
@@ -239,7 +188,6 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
       ),
     },
     {
-      eventType: "TenantCertifiedAttributeAssigned",
       assigneeAttributes: [],
       attributeId: certifiedAttributeIPA.id,
       expectedBody:
@@ -248,45 +196,16 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
         ),
     },
     {
-      eventType: "TenantCertifiedAttributeRevoked",
-      assigneeAttributes: [],
-      attributeId: certifiedAttributeIPA.id,
-      expectedBody:
-        inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
-          certifiedAttributeIPA.name
-        ),
-    },
-    {
-      eventType: "TenantCertifiedAttributeAssigned",
       assigneeAttributes: [],
       attributeId: certifiedAttributeSELFCARE.id,
       expectedBody:
         inAppTemplates.certifiedAttributeAssignedToAssigneeFromImport(
           certifiedAttributeSELFCARE.name
         ),
-    },
-    {
-      eventType: "TenantCertifiedAttributeRevoked",
-      assigneeAttributes: [],
-      attributeId: certifiedAttributeSELFCARE.id,
-      expectedBody:
-        inAppTemplates.certifiedAttributeRevokedToAssigneeFromImport(
-          certifiedAttributeSELFCARE.name
-        ),
-    },
-    {
-      eventType: "TenantCertifiedAttributeRevoked",
-      assigneeAttributes: [],
-      attributeId: certifiedAttributeIVASS.id,
-      expectedBody: inAppTemplates.certifiedVerifiedAttributeRevokedToAssignee(
-        certifiedAttributeIVASS.name,
-        "certificato",
-        "IVASS Name"
-      ),
     },
   ])(
-    "should handle $eventType event correctly",
-    async ({ eventType, assigneeAttributes, attributeId, expectedBody }) => {
+    "should handle assigned event correctly",
+    async ({ assigneeAttributes, attributeId, expectedBody }) => {
       const assigneeUsers = [
         { userId: generateId(), tenantId: assignee.id },
         { userId: generateId(), tenantId: assignee.id },
@@ -294,14 +213,12 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
 
       mockGetNotificationRecipients.mockResolvedValue(assigneeUsers);
 
-      const notifications =
-        await handleCertifiedAttributeAssignedRevokedToAssignee(
-          toTenantV2({ ...assignee, attributes: assigneeAttributes }),
-          attributeId,
-          logger,
-          readModelService,
-          eventType
-        );
+      const notifications = await handleCertifiedAttributeAssignedToAssignee(
+        toTenantV2({ ...assignee, attributes: assigneeAttributes }),
+        attributeId,
+        logger,
+        readModelService
+      );
 
       expect(notifications).toHaveLength(assigneeUsers.length);
 
@@ -319,49 +236,26 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
     }
   );
 
-  it.each<{
-    eventType:
-      | "TenantCertifiedAttributeAssigned"
-      | "TenantCertifiedAttributeRevoked";
-    assigneeAttributes: TenantAttribute[];
-    attributeId: AttributeId;
-  }>([
-    {
-      eventType: "TenantCertifiedAttributeAssigned",
-      assigneeAttributes: [],
-      attributeId: certifiedAttribute.id,
-    },
-    {
-      eventType: "TenantCertifiedAttributeRevoked",
-      assigneeAttributes: [],
-      attributeId: certifiedAttributeIPA.id,
-    },
-  ])(
-    "should generate notifications for multiple users for event $eventType",
-    async ({ eventType, assigneeAttributes, attributeId }) => {
-      const users = [
-        { userId: generateId(), tenantId: assignee.id },
-        { userId: generateId(), tenantId: assignee.id },
-        { userId: generateId(), tenantId: assignee.id },
-      ];
-      mockGetNotificationRecipients.mockResolvedValue(users);
+  it("should generate notifications for multiple users", async () => {
+    const users = [
+      { userId: generateId(), tenantId: assignee.id },
+      { userId: generateId(), tenantId: assignee.id },
+      { userId: generateId(), tenantId: assignee.id },
+    ];
+    mockGetNotificationRecipients.mockResolvedValue(users);
 
-      const notifications =
-        await handleCertifiedAttributeAssignedRevokedToAssignee(
-          toTenantV2({ ...assignee, attributes: assigneeAttributes }),
-          attributeId,
-          logger,
-          readModelService,
-          eventType
-        );
+    const notifications = await handleCertifiedAttributeAssignedToAssignee(
+      toTenantV2(assignee),
+      certifiedAttribute.id,
+      logger,
+      readModelService
+    );
 
-      expect(notifications).toHaveLength(3);
+    expect(notifications).toHaveLength(3);
 
-      // Check that all users got notifications
-      const userIds = notifications.map((n) => n.userId);
-      expect(userIds).toContain(users[0].userId);
-      expect(userIds).toContain(users[1].userId);
-      expect(userIds).toContain(users[2].userId);
-    }
-  );
+    const userIds = notifications.map((n) => n.userId);
+    expect(userIds).toContain(users[0].userId);
+    expect(userIds).toContain(users[1].userId);
+    expect(userIds).toContain(users[2].userId);
+  });
 });
