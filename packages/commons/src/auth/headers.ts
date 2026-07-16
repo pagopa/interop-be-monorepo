@@ -9,7 +9,9 @@ import { Logger } from "../logging/index.js";
 
 export const CORRELATION_ID_HEADER = "X-Correlation-Id";
 export const LOWER_CASE_CORRELATION_ID_HEADER =
-  CORRELATION_ID_HEADER.toLowerCase();
+  CORRELATION_ID_HEADER.toLowerCase() as Lowercase<
+    typeof CORRELATION_ID_HEADER
+  >;
 
 export function parseCorrelationIdHeader(req: Request): string | undefined {
   // Node lowercases incoming header names, so match the lowercased form
