@@ -27899,6 +27899,7 @@ components:
         - archivableOn
         - startedAt
         - scope
+        - gracePeriodDays
     ArchivingScope:
       type: string
       description: Archiving Scope
