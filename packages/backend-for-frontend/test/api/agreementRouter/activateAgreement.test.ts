@@ -9,11 +9,11 @@ import { getMockBffApiAgreement } from "../../mockUtils.js";
 import { agreementDescriptorNotFound } from "../../../src/model/errors.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 
-describe("API POST /agreements/:agreementId/activate", () => {
+describe("API POST /agreements/:agreementId/approve", () => {
   const mockApiAgreement = getMockBffApiAgreement();
 
   beforeEach(() => {
-    services.agreementService.activateAgreement = vi
+    services.agreementService.approveAgreement = vi
       .fn()
       .mockResolvedValue(mockApiAgreement);
   });
@@ -24,7 +24,7 @@ describe("API POST /agreements/:agreementId/activate", () => {
     delegationId?: DelegationId
   ) =>
     request(api)
-      .post(`${appBasePath}/agreements/${agreementId}/activate`)
+      .post(`${appBasePath}/agreements/${agreementId}/approve`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send({ delegationId });
@@ -37,7 +37,60 @@ describe("API POST /agreements/:agreementId/activate", () => {
   });
 
   it("Should return 404 for agreementDescriptorNotFound", async () => {
-    services.agreementService.activateAgreement = vi
+    services.agreementService.approveAgreement = vi
+      .fn()
+      .mockRejectedValue(agreementDescriptorNotFound(generateId()));
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 400 if passed an invalid agreementId", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, "invalid" as AgreementId);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed an invalid delegationId", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId<AgreementId>(),
+      "invalid" as DelegationId
+    );
+    expect(res.status).toBe(400);
+  });
+});
+
+describe("API POST /agreements/:agreementId/unsuspend", () => {
+  const mockApiAgreement = getMockBffApiAgreement();
+
+  beforeEach(() => {
+    services.agreementService.unsuspendAgreement = vi
+      .fn()
+      .mockResolvedValue(mockApiAgreement);
+  });
+
+  const makeRequest = async (
+    token: string,
+    agreementId: AgreementId = generateId(),
+    delegationId?: DelegationId
+  ) =>
+    request(api)
+      .post(`${appBasePath}/agreements/${agreementId}/unsuspend`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send({ delegationId });
+
+  it("Should return 200 if no error is thrown", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockApiAgreement);
+  });
+
+  it("Should return 404 for agreementDescriptorNotFound", async () => {
+    services.agreementService.unsuspendAgreement = vi
       .fn()
       .mockRejectedValue(agreementDescriptorNotFound(generateId()));
     const token = generateToken(authRole.ADMIN_ROLE);
