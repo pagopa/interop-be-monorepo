@@ -21,6 +21,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
+  gracePeriodDaysLowerThanDescriptor,
   notValidEServiceState,
 } from "../../src/model/domain/errors.js";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
@@ -93,6 +94,15 @@ describe("API /eservices/${eServiceId}/scheduleArchive authorization test", () =
   it.each([
     {
       error: eserviceWithoutValidDescriptors(mockEService.id),
+      expectedStatus: 400,
+    },
+    {
+      error: gracePeriodDaysLowerThanDescriptor(
+        mockEService.id,
+        mockEService.descriptors[0].id,
+        new Date(),
+        new Date()
+      ),
       expectedStatus: 400,
     },
     {
