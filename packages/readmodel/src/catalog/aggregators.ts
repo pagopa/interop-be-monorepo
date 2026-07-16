@@ -237,7 +237,7 @@ export const aggregateDescriptor = ({
             archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
             startedAt: stringToDate(archivingScheduleSQL.startedAt),
             // Legacy rows may contain null values before NOT NULL constraints are aligned.
-            gracePeriodDays: GracePeriodDays.catch(60).parse(
+            gracePeriodDays: GracePeriodDays.catch(90).parse(
               archivingScheduleSQL.gracePeriodDays
             ),
           },

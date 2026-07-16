@@ -17,6 +17,7 @@ import {
   delegationState,
   EService,
   toEServiceV2,
+  GracePeriodDays,
   operationForbidden,
   EServiceDescriptorArchivingScheduledV2,
   generateId,
