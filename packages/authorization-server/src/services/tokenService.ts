@@ -43,10 +43,10 @@ import { HttpDPoPHeader } from "../model/domain/models.js";
 import {
   deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
-  publishAudit,
   retrieveKey,
   validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
+import { publishConsumerTokenAudit } from "../utilities/audit.js";
 
 export type GeneratedTokenData =
   | {
@@ -250,7 +250,7 @@ export function tokenServiceBuilder({
               dpopJWK: dpopProofJWT?.header.jwk,
             });
 
-            await publishAudit({
+            await publishConsumerTokenAudit({
               producer,
               generatedToken: token,
               key,

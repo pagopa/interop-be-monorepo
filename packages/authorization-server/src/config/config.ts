@@ -3,7 +3,6 @@ import {
   FileManagerConfig,
   KafkaProducerConfig,
   RedisRateLimiterConfig,
-  S3Config,
   AuthorizationServerTokenGenerationConfig,
   HTTPServerConfig,
   LoggerConfig,
@@ -15,11 +14,22 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
+const S3AuditFallbackConfig = z
+  .object({
+    S3_BUCKET_CONSUMER_TOKEN_AUDIT_FALLBACK: z.string(),
+    S3_BUCKET_API_TOKEN_AUDIT_FALLBACK: z.string(),
+  })
+  .transform((c) => ({
+    s3BucketConsumerTokenAuditFallback:
+      c.S3_BUCKET_CONSUMER_TOKEN_AUDIT_FALLBACK,
+    s3BucketApiTokenAuditFallback: c.S3_BUCKET_API_TOKEN_AUDIT_FALLBACK,
+  }));
+
 const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
   .and(RedisRateLimiterConfig)
   .and(KafkaProducerConfig)
   .and(FileManagerConfig)
-  .and(S3Config)
+  .and(S3AuditFallbackConfig)
   .and(ClientAssertionValidationConfig)
   .and(
     z
