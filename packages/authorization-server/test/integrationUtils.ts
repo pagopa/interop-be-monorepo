@@ -1,14 +1,13 @@
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { afterEach, inject } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import { InteropTokenGenerator } from "pagopa-interop-commons";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
-
-import { config } from "../src/config/config.js";
-import { asyncTokenServiceBuilder } from "../src/services/asyncTokenService.js";
 import { tokenServiceBuilder } from "../src/services/tokenService.js";
-import { mockKMSClient, mockProducer } from "./mockUtils.js";
+import { asyncTokenServiceBuilder } from "../src/services/asyncTokenService.js";
+import { config } from "../src/config/config.js";
+import { mockApiProducer, mockKMSClient, mockProducer } from "./mockUtils.js";
 
 export const configTokenGenerationStates = inject(
   "tokenGenerationReadModelConfig"
@@ -49,7 +48,12 @@ export const tokenService = tokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
+  consumerTokenAuditProducer: mockProducer as unknown as Awaited<
+    ReturnType<typeof initProducer>
+  >,
+  apiTokenAuditProducer: mockApiProducer as unknown as Awaited<
+    ReturnType<typeof initProducer>
+  >,
   fileManager,
 });
 
@@ -57,6 +61,8 @@ export const asyncTokenService = asyncTokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer: mockProducer as unknown as Awaited<ReturnType<typeof initProducer>>,
+  consumerTokenAuditProducer: mockProducer as unknown as Awaited<
+    ReturnType<typeof initProducer>
+  >,
   fileManager,
 });
