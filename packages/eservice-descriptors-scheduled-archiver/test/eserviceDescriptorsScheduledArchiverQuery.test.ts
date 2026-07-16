@@ -78,6 +78,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                     toUTCMidnight(new Date(), -(30 + daysBefore))
                   ),
                   scope: "Descriptor",
+                  gracePeriodDays: 30, // This value will be updated in subsequent PRs.
                 },
               };
 
@@ -164,6 +165,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                   archivableOn: new Date(toUTCMidnight(new Date(), daysAfter)),
                   startedAt: new Date(toUTCMidnight(new Date(), -30)),
                   scope: "Descriptor",
+                  gracePeriodDays: 30, // This value will be updated in subsequent PRs.
                 },
               };
 
@@ -213,6 +215,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                   ),
                   startedAt: new Date(toUTCMidnight(new Date(), -30)),
                   scope: "Descriptor",
+                  gracePeriodDays: 30, // This value will be updated in subsequent PRs.
                 },
               };
 
@@ -296,6 +299,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), -daysBefore)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
+                gracePeriodDays: 30, // This value will be updated in subsequent PRs.
               },
             };
 
@@ -335,6 +339,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
             archivableOn: new Date(toUTCMidnight(new Date(), daysAfter)),
             startedAt: new Date(toUTCMidnight(new Date(), -30)),
             scope: "EService",
+            gracePeriodDays: 30, // This value will be updated in subsequent PRs.
           },
         };
 
@@ -391,6 +396,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
               archivableOn: new Date(toUTCMidnight(new Date(), -1)),
               startedAt: new Date(toUTCMidnight(new Date(), -30)),
               scope: "EService",
+              gracePeriodDays: 30, // This value will be updated in subsequent PRs.
             },
           };
 
@@ -446,6 +452,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), -1)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
+                gracePeriodDays: 30, // This value will be updated in subsequent PRs.
               },
             };
 
@@ -466,6 +473,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), -1)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
+                gracePeriodDays: 30, // This value will be updated in subsequent PRs.
               },
             };
 

@@ -100,6 +100,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                   archivableOn: new Date(toUTCMidnight(new Date(), 0)),
                   startedAt: new Date(toUTCMidnight(new Date(), -30)),
                   scope: "Descriptor",
+                  gracePeriodDays: 30, // This value will be updated in subsequent PRs.
                 },
               };
 
@@ -249,6 +250,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                   archivableOn: new Date(toUTCMidnight(new Date(), 1)),
                   startedAt: new Date(toUTCMidnight(new Date(), -30)),
                   scope: "Descriptor",
+                  gracePeriodDays: 30, // This value will be updated in subsequent PRs.
                 },
               };
 
@@ -314,6 +316,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), 0)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "Descriptor",
+                gracePeriodDays: 30, // This value will be updated in subsequent PRs.
               },
             };
 
@@ -442,6 +445,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), 0)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "Descriptor",
+                gracePeriodDays: 30, // This value will be updated in subsequent PRs.
               },
             };
 
@@ -565,6 +569,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), 0)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "Descriptor",
+                gracePeriodDays: 30, // This value will be updated in subsequent PRs.
               },
             };
 
@@ -675,6 +680,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), 0)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
+                gracePeriodDays: 30, // This value will be updated in subsequent PRs.
               },
             };
 
@@ -725,6 +731,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
             archivableOn: new Date(toUTCMidnight(new Date(), 1)),
             startedAt: new Date(toUTCMidnight(new Date(), -30)),
             scope: "EService",
+            gracePeriodDays: 30, // This value will be updated in subsequent PRs.
           },
         };
 
@@ -798,6 +805,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                     archivableOn: new Date(toUTCMidnight(new Date(), -1)),
                     startedAt: new Date(toUTCMidnight(new Date(), -30)),
                     scope: "EService",
+                    gracePeriodDays: 30, // This value will be updated in subsequent PRs.
                   },
                 },
               ],
@@ -911,6 +919,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), -1)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
+                gracePeriodDays: 30, // This value will be updated in subsequent PRs.
               },
             };
 
@@ -931,6 +940,7 @@ describe("EService Descriptors Scheduled Archiver Service", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), -1)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
+                gracePeriodDays: 30, // This value will be updated in subsequent PRs.
               },
             };
 

@@ -421,6 +421,7 @@ describe("EService Descriptors Archiver", async () => {
           startedAt: new Date(),
           archivableOn: new Date(),
           scope: archivingScope.eservice,
+          gracePeriodDays: 30 as const, // This value will be updated in subsequent PRs.
         };
 
         const previousDescriptor = {

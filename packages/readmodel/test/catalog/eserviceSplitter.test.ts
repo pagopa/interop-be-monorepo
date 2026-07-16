@@ -60,6 +60,7 @@ describe("E-service splitter", () => {
       scope: archivingScope.descriptor,
       archivableOn: new Date(),
       startedAt: new Date(),
+      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
     };
     const asyncExchangeFlag = true;
 
@@ -288,6 +289,7 @@ describe("E-service splitter", () => {
             archivableOn:
               descriptor.archivingSchedule.archivableOn.toISOString(),
             startedAt: descriptor.archivingSchedule.startedAt.toISOString(),
+            gracePeriodDays: descriptor.archivingSchedule.gracePeriodDays,
           };
 
     expect(eserviceSQL).toStrictEqual(expectedEServiceSQL);

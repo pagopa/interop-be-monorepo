@@ -4651,6 +4651,7 @@ async function processDescriptorArchiving(
       config.gracePeriodArchivingEServiceDays
     ),
     scope,
+    gracePeriodDays: config.gracePeriodArchivingEServiceDays,
   };
 
   return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);

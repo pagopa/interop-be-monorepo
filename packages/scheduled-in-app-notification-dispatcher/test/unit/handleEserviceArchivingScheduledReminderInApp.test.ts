@@ -47,6 +47,7 @@ const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
     archivableOn: addDays(new Date(), 7),
     startedAt: new Date(),
     scope: archivingScope.eservice,
+    gracePeriodDays: 30, // This value will be updated in subsequent PRs.
   },
   ...overrides,
 });
@@ -103,6 +104,7 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
         archivableOn: addDays(new Date(), 7),
         startedAt: new Date(),
         scope: archivingScope.descriptor,
+        gracePeriodDays: 30, // This value will be updated in subsequent PRs.
       },
     });
     const eservice = makeEservice({ descriptors: [descriptor] });
