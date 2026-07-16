@@ -34,7 +34,7 @@ import {
 import {
   assertAgreementIsPending,
   assertAgreementIsSuspended,
-} from "../utils/validators/agreementValidators.js";
+} from "../utils/validators/agreementValidator.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -235,7 +235,7 @@ export function agreementServiceBuilder(
 
       assertAgreementIsPending(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.approveAgreement(
         { delegationId },
         {
           params: { agreementId },
@@ -327,7 +327,7 @@ export function agreementServiceBuilder(
 
       assertAgreementIsSuspended(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },

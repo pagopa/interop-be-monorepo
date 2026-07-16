@@ -36,9 +36,9 @@ const toCatalogDescriptorStateV1 = (input: DescriptorState): string =>
     .with(descriptorState.deprecated, () => "Deprecated")
     .with(descriptorState.suspended, () => "Suspended")
     .with(descriptorState.archived, () => "Archived")
-    .with(descriptorState.waitingForApproval, () => "WaitingForApproval")
-    .with(descriptorState.archiving, () => "Archiving")
-    .with(descriptorState.archivingSuspended, () => "ArchivingSuspended")
+    .with(descriptorState.waitingForApproval, () => "Draft")
+    .with(descriptorState.archiving, () => "Deprecated")
+    .with(descriptorState.archivingSuspended, () => "Suspended")
     .exhaustive();
 
 const toAgreementApprovalPolicyV1 = (input: AgreementApprovalPolicy): string =>

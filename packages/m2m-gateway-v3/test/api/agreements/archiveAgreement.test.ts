@@ -94,14 +94,6 @@ describe("POST /agreements/:agreementId/archive router test", () => {
     },
     {
       error: new ApiError({
-        code: "agreementNotInExpectedState",
-        title: "Agreement not in expected state",
-        detail: "Agreement not in expected state",
-      }),
-      status: 400,
-    },
-    {
-      error: new ApiError({
         code: "tenantIsNotTheConsumer",
         title: "Tenant is not the consumer",
         detail: "Tenant is not the consumer",

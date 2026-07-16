@@ -7,7 +7,6 @@ import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
 type AgreementProcessErrorCodes =
   | "agreementNotFound"
-  | "agreementNotInExpectedState"
   | "tenantIsNotTheConsumer"
   | "tenantIsNotTheDelegateConsumer";
 
@@ -60,7 +59,6 @@ export const archiveAgreementErrorMapper = (
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegateConsumer",

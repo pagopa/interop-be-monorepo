@@ -156,6 +156,24 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
     }
   );
 
+  it("Should return 400 when the multipart Content-Type has no boundary", async () => {
+    // Reproduces PIN-10459: a client sending "Content-Type: multipart/form-data"
+    // without the boundary parameter makes busboy throw
+    // "Multipart: Boundary not found". This must be reported as a client error
+    // (400) instead of an unexpected server error (500).
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await request(api)
+      .post(
+        `${appBasePath}/eservices/${generateId()}/descriptors/${generateId()}/interface`
+      )
+      .set("Authorization", `DPoP ${token}`)
+      .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
+      .set("Content-Type", "multipart/form-data")
+      .send("file content without a multipart boundary");
+
+    expect(res.status).toBe(400);
+  });
+
   it.each([
     {
       error: new ApiError({

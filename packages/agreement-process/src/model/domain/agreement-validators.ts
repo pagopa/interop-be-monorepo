@@ -359,6 +359,22 @@ export const assertRequesterCanActAsConsumer = (
   }
 };
 
+export function assertAgreementIsPending(
+  agreement: Pick<Agreement, "state" | "id">
+): void {
+  if (agreement.state !== agreementState.pending) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+}
+
+export function assertAgreementIsSuspended(
+  agreement: Pick<Agreement, "state" | "id">
+): void {
+  if (agreement.state !== agreementState.suspended) {
+    throw agreementNotInExpectedState(agreement.id, agreement.state);
+  }
+}
+
 /* =========  VALIDATIONS ========= */
 
 const validateDescriptorState = (
