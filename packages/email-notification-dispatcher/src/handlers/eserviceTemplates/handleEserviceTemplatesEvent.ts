@@ -8,6 +8,7 @@ import { match, P } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleEServiceTemplateVersionSuspendedToCreator } from "./handleEserviceTemplateVersionSuspendedToCreator.js";
 import { handleEServiceTemplateVersionPublished } from "./handleEserviceTemplateVersionPublished.js";
+import { handleEServiceTemplateVersionPublishedToCreator } from "./handleEserviceTemplateVersionPublishedToCreator.js";
 import { handleEServiceTemplateNameUpdated } from "./handleEserviceTemplateNameUpdated.js";
 import { handleEServiceTemplateVersionSuspendedToInstantiator } from "./handleEserviceTemplateVersionSuspendedToInstantiator.js";
 
@@ -49,8 +50,9 @@ export async function handleEServiceTemplateEvent(
     )
     .with(
       { type: "EServiceTemplateVersionPublished" },
-      async ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) =>
-        handleEServiceTemplateVersionPublished({
+      async ({ data: { eserviceTemplate, eserviceTemplateVersionId } }) => [
+        // Instantiators == tenants that have instantiated an e-service from the template
+        ...(await handleEServiceTemplateVersionPublished({
           eserviceTemplateV2Msg: eserviceTemplate,
           eserviceTemplateVersionId: unsafeBrandId<EServiceTemplateVersionId>(
             eserviceTemplateVersionId
@@ -59,7 +61,19 @@ export async function handleEServiceTemplateEvent(
           readModelService,
           templateService,
           correlationId,
-        })
+        })),
+        // Creator == producer of the template
+        ...(await handleEServiceTemplateVersionPublishedToCreator({
+          eserviceTemplateV2Msg: eserviceTemplate,
+          eserviceTemplateVersionId: unsafeBrandId<EServiceTemplateVersionId>(
+            eserviceTemplateVersionId
+          ),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+      ]
     )
     .with(
       { type: "EServiceTemplateNameUpdated" },

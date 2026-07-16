@@ -64,6 +64,8 @@ export const eventMailTemplateType = {
     "eservice-template-version-suspended-to-creator-mail",
   eserviceTemplateVersionPublishedMailTemplate:
     "eservice-template-version-published-mail",
+  eserviceTemplateVersionPublishedToCreatorMailTemplate:
+    "eservice-template-version-published-to-creator-mail",
   eserviceTemplateNameUpdatedMailTemplate:
     "eservice-template-name-updated-mail",
   eserviceTemplateVersionSuspendedToInstantiatorMailTemplate:
