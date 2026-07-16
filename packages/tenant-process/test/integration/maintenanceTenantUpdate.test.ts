@@ -13,7 +13,10 @@ import {
   getMockTenant,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
-import { tenantNotFound } from "../../src/model/domain/errors.js";
+import {
+  tenantNotFound,
+  tenantUpdateVersionMismatch,
+} from "../../src/model/domain/errors.js";
 import {
   addOneTenant,
   postgresDB,
@@ -88,6 +91,26 @@ describe("maintenanceTenantUpdate", async () => {
         getMockContextMaintenance({})
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
+  });
+
+  it("Should throw tenantUpdateVersionMismatch when the provided version does not match the current tenant version", async () => {
+    const mockTenant = getMockTenant();
+    await addOneTenant(mockTenant);
+    const tenantUpdate = getMockMaintenanceTenantUpdate();
+    const wrongVersion = 99;
+
+    await expect(
+      tenantService.maintenanceTenantUpdate(
+        {
+          tenantId: mockTenant.id,
+          tenantUpdate,
+          version: wrongVersion,
+        },
+        getMockContextMaintenance({})
+      )
+    ).rejects.toThrowError(
+      tenantUpdateVersionMismatch(mockTenant.id, 0, wrongVersion)
+    );
   });
 
   it("should preserve existing features when 'features' is omitted from the update", async () => {
