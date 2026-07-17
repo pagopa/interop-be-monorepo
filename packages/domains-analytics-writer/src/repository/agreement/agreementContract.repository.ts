@@ -1,19 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AgreementContractSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
-import { AgreementContractSchema } from "../../model/agreement/agreementContract.js";
 import { AgreementDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-import { AgreementDbTable } from "../../model/db/index.js";
-import { AgreementContractSchema } from "pagopa-interop-kpi-models";
 
 export function agreementContractRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

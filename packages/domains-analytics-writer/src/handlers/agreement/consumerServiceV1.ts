@@ -2,6 +2,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import {
+  AgreementConsumerDocumentSchema,
+  AgreementContractSchema,
+  AgreementItemsSchema,
+} from "pagopa-interop-kpi-models";
+import {
   AgreementEventEnvelopeV1,
   AgreementId,
   unsafeBrandId,
@@ -17,15 +22,10 @@ import { match, P } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import { agreementServiceBuilder } from "../../service/agreementService.js";
 import { AgreementDeletingSchema } from "../../model/agreement/agreement.js";
 import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreementConsumerDocument.js";
+import { agreementServiceBuilder } from "../../service/agreementService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
-import {
-  AgreementConsumerDocumentSchema,
-  AgreementContractSchema,
-  AgreementItemsSchema,
-} from "pagopa-interop-kpi-models";
 
 export async function handleAgreementMessageV1(
   messages: AgreementEventEnvelopeV1[],

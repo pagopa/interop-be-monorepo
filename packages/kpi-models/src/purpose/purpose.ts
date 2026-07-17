@@ -4,11 +4,11 @@ import { z } from "zod";
 
 import { PurposeRiskAnalysisFormSchema } from "./purposeRiskAnalysis.js";
 import { PurposeRiskAnalysisAnswerSchema } from "./purposeRiskAnalysisAnswer.js";
+import { PurposeRiskAnalysisReviewerSchema } from "./purposeRiskAnalysisReviewer.js";
 import { PurposeVersionSchema } from "./purposeVersion.js";
 import { PurposeVersionDocumentSchema } from "./purposeVersionDocument.js";
-import { PurposeVersionStampSchema } from "./purposeVersionStamp.js";
 import { PurposeVersionSignedDocumentSchema } from "./purposeVersionSignedDocument.js";
-import { PurposeRiskAnalysisReviewerSchema } from "./purposeRiskAnalysisReviewer.js";
+import { PurposeVersionStampSchema } from "./purposeVersionStamp.js";
 
 export const PurposeSchema = createSelectSchema(
   purposeInReadmodelPurpose

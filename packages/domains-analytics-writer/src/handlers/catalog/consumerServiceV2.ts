@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
 import {
   EServiceEventEnvelopeV2,
   fromEServiceV2,
@@ -13,7 +14,6 @@ import { DBContext } from "../../db/db.js";
 import { EserviceDeletingSchema } from "../../model/catalog/eservice.js";
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
-import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
 
 export async function handleCatalogMessageV2(
   messages: EServiceEventEnvelopeV2[],

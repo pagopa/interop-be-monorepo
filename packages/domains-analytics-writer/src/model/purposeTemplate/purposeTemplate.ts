@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { PurposeTemplateSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const PurposeTemplateDeletingSchema = PurposeTemplateSchema.pick({
   id: true,

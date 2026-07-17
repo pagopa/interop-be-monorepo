@@ -1,5 +1,28 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
+  AttributeSchema,
+  AttributeDbTable,
+  AgreementItemsSchema,
+  AgreementDbTable,
+  EserviceItemsSchema,
+  CatalogDbTable,
+  ClientItemsSchema,
+  ProducerKeychainItemsSchema,
+  ClientDbTable,
+  ProducerKeychainDbTable,
+  DelegationItemsSchema,
+  DelegationDbTable,
+  EserviceTemplateItemsSchema,
+  EserviceTemplateDbTable,
+  PurposeItemsSchema,
+  PurposeDbTable,
+  PurposeTemplateItemsSchema,
+  PurposeTemplateDbTable,
+  TenantItemsSchema,
+  TenantDbTable,
+  DomainDbTableReadModels,
+} from "pagopa-interop-kpi-models";
+import {
   Agreement,
   Attribute,
   Client,
@@ -27,35 +50,13 @@ import {
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
 import { afterEach, inject } from "vitest";
 import { z } from "zod";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+
+import { DomainDbTable, DomainDbTableSchemas } from "../src/model/db/index.js";
 import {
   DBContext,
   readModelServiceBuilderKPI,
 } from "../src/services/readModelServiceKPI.js";
-import { DomainDbTable, DomainDbTableSchemas } from "../src/model/db/index.js";
-import {
-  AttributeSchema,
-  AttributeDbTable,
-  AgreementItemsSchema,
-  AgreementDbTable,
-  EserviceItemsSchema,
-  CatalogDbTable,
-  ClientItemsSchema,
-  ProducerKeychainItemsSchema,
-  ClientDbTable,
-  ProducerKeychainDbTable,
-  DelegationItemsSchema,
-  DelegationDbTable,
-  EserviceTemplateItemsSchema,
-  EserviceTemplateDbTable,
-  PurposeItemsSchema,
-  PurposeDbTable,
-  PurposeTemplateItemsSchema,
-  PurposeTemplateDbTable,
-  TenantItemsSchema,
-  TenantDbTable,
-  DomainDbTableReadModels,
-} from "pagopa-interop-kpi-models";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(

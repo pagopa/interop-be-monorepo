@@ -1,15 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
+import { PurposeVersionSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import { DeletingDbTable, PurposeDbTable } from "../../model/db/index.js";
-import {
-  PurposeVersionDeletingSchema,
-  PurposeVersionSchema,
-} from "../../model/purpose/purposeVersion.js";
+import { PurposeVersionDeletingSchema } from "../../model/purpose/purposeVersion.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
@@ -18,9 +16,6 @@ import {
   generateMergeQuery,
   generateMergeDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { PurposeVersionSchema } from "pagopa-interop-kpi-models";
-import { PurposeVersionDeletingSchema } from "../../model/purpose/purposeVersion.js";
-import { DeletingDbTable, PurposeDbTable } from "../../model/db/index.js";
 
 export function purposeVersionRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

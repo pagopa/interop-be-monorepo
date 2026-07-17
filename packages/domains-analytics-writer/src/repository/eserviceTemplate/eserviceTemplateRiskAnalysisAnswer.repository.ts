@@ -1,20 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { EserviceTemplateRiskAnalysisAnswerSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import { EserviceTemplateDbTable } from "../../model/db/index.js";
-import { EserviceTemplateRiskAnalysisAnswerSchema } from "../../model/eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.js";
 import {
   buildColumnSet,
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-
-import { EserviceTemplateDbTable } from "../../model/db/index.js";
-import { EserviceTemplateRiskAnalysisAnswerSchema } from "pagopa-interop-kpi-models";
 
 export function eserviceTemplateRiskAnalysisAnswerRepository(
   conn: DBConnection

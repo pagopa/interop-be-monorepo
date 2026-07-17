@@ -1,4 +1,3 @@
-import { clientKeyInReadmodelClient } from "pagopa-interop-readmodel-models";
 import {
   ClientSchema,
   ClientPurposeSchema,
@@ -9,6 +8,7 @@ import {
   ProducerKeychainKeySchema,
   ProducerKeychainUserSchema,
 } from "pagopa-interop-kpi-models";
+import { clientKeyInReadmodelClient } from "pagopa-interop-readmodel-models";
 
 export const ClientDbTableConfig = {
   client: ClientSchema,

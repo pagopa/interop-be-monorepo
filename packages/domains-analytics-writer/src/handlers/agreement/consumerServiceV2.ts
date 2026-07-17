@@ -1,6 +1,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
+import { AgreementItemsSchema } from "pagopa-interop-kpi-models";
 import {
   AgreementEventEnvelopeV2,
   fromAgreementV2,
@@ -11,10 +12,9 @@ import { match, P } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import { agreementServiceBuilder } from "../../service/agreementService.js";
 import { AgreementDeletingSchema } from "../../model/agreement/agreement.js";
+import { agreementServiceBuilder } from "../../service/agreementService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
-import { AgreementItemsSchema } from "pagopa-interop-kpi-models";
 
 export async function handleAgreementMessageV2(
   messages: AgreementEventEnvelopeV2[],

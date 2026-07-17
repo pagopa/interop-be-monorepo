@@ -1,18 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+import { TenantItemsSchema } from "pagopa-interop-kpi-models";
 
 import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { DeletingDbTable, TenantDbTable } from "../model/db/index.js";
-import { tenantMailRepository } from "../repository/tenant/tenantMail.repository.js";
-import { tenantCertifiedAttributeRepository } from "../repository/tenant/tenantCertifiedAttribute.repository.js";
-import { tenantDeclaredAttributeRepository } from "../repository/tenant/tenantDeclaredAttribute.repository.js";
-import { tenantVerifiedAttributeRepository } from "../repository/tenant/tenantVerifiedAttribute.repository.js";
-import { tenantVerifiedAttributeRevokerRepository } from "../repository/tenant/tenantVerifiedAttributeRevoker.repository.js";
-import { tenantVerifiedAttributeVerifierRepository } from "../repository/tenant/tenantVerifiedAttributeVerifier.repository.js";
-import { tenantFeatureRepository } from "../repository/tenant/tenantFeature.repository.js";
-import { TenantItemsSchema } from "pagopa-interop-kpi-models";
 import {
   TenantSelfcareIdSchema,
   TenantDeletingSchema,

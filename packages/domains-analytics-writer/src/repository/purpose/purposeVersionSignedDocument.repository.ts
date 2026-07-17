@@ -1,19 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
+import { PurposeVersionSignedDocumentSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import { PurposeDbTable } from "../../model/db/purpose.js";
-import { PurposeVersionSignedDocumentSchema } from "../../model/purpose/purposeVersionSignedDocument.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
-import { PurposeDbTable } from "../../model/db/purpose.js";
-import { PurposeVersionSignedDocumentSchema } from "pagopa-interop-kpi-models";
 
 export function purposeVersionSignedDocumentRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

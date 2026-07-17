@@ -2,24 +2,24 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+import {
+  PurposeItemsSchema,
+  PurposeVersionItemsSchema,
+} from "pagopa-interop-kpi-models";
 
 import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { DeletingDbTable } from "../model/db/deleting.js";
 import { PurposeDbTable } from "../model/db/purpose.js";
-import {
-  PurposeItemsSchema,
-  PurposeVersionItemsSchema,
-} from "pagopa-interop-kpi-models";
 import { PurposeDeletingSchema } from "../model/purpose/purpose.js";
 import { PurposeVersionDeletingSchema } from "../model/purpose/purposeVersion.js";
 import { purposeRepo } from "../repository/purpose/purpose.repository.js";
 import { purposeRiskAnalysisAnswerRepo } from "../repository/purpose/purposeRiskAnalysisAnswer.repository.js";
 import { purposeRiskAnalysisFormRepo } from "../repository/purpose/purposeRiskAnalysisForm.repository.js";
+import { purposeRiskAnalysisReviewerRepo } from "../repository/purpose/purposeRiskAnalysisReviewer.repository.js";
 import { purposeVersionRepo } from "../repository/purpose/purposeVersion.repository.js";
 import { purposeVersionDocumentRepo } from "../repository/purpose/purposeVersionDocument.repository.js";
 import { purposeVersionSignedDocumentRepo } from "../repository/purpose/purposeVersionSignedDocument.repository.js";
-import { purposeRiskAnalysisReviewerRepo } from "../repository/purpose/purposeRiskAnalysisReviewer.repository.js";
 import { purposeVersionStampRepo } from "../repository/purpose/purposeVersionStamp.repository.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import {

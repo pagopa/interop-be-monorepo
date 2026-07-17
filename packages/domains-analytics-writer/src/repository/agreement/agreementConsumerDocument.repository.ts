@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AgreementConsumerDocumentSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
-import {
-  AgreementConsumerDocumentSchema,
-  AgreementConsumerDocumentDeletingSchema,
-} from "../../model/agreement/agreementConsumerDocument.js";
+import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreementConsumerDocument.js";
 import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
 import {
   generateMergeQuery,
@@ -15,10 +13,6 @@ import {
   buildColumnSet,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
-import { AgreementConsumerDocumentDeletingSchema } from "../../model/agreement/agreementConsumerDocument.js";
-import { AgreementConsumerDocumentSchema } from "pagopa-interop-kpi-models";
 
 export function agreementConsumerDocumentRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

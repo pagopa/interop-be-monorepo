@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 import {
+  PurposeItemsSchema,
+  PurposeVersionItemsSchema,
+} from "pagopa-interop-kpi-models";
+import {
   fromPurposeV1,
   fromPurposeVersionV1,
   genericInternalError,
@@ -16,10 +20,6 @@ import { match, P } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import {
-  PurposeItemsSchema,
-  PurposeVersionItemsSchema,
-} from "pagopa-interop-kpi-models";
 import { PurposeDeletingSchema } from "../../model/purpose/purpose.js";
 import { PurposeVersionDeletingSchema } from "../../model/purpose/purposeVersion.js";
 import { purposeServiceBuilder } from "../../service/purposeService.js";

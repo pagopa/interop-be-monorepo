@@ -1,5 +1,17 @@
 import camelcaseKeys from "camelcase-keys";
 import {
+  AgreementDbTable,
+  AttributeDbTable,
+  CatalogDbTable,
+  ClientDbTable,
+  ProducerKeychainDbTable,
+  DelegationDbTable,
+  EserviceTemplateDbTable,
+  PurposeDbTable,
+  PurposeTemplateDbTable,
+  TenantDbTable,
+} from "pagopa-interop-kpi-models";
+import {
   Agreement,
   Attribute,
   Client,
@@ -29,18 +41,6 @@ import { IClient } from "pg-promise/typescript/pg-subset.js";
 import { z } from "zod";
 
 import { config } from "../configs/config.js";
-import {
-  AgreementDbTable,
-  AttributeDbTable,
-  CatalogDbTable,
-  ClientDbTable,
-  ProducerKeychainDbTable,
-  DelegationDbTable,
-  EserviceTemplateDbTable,
-  PurposeDbTable,
-  PurposeTemplateDbTable,
-  TenantDbTable,
-} from "pagopa-interop-kpi-models";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
 
 type DBConnection = IConnected<unknown, IClient>;

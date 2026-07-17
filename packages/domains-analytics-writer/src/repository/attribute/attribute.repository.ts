@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AttributeSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
-import { AttributeSchema } from "pagopa-interop-kpi-models";
 import { AttributeDeletingSchema } from "../../model/attribute/attribute.js";
 import { AttributeDbTable, DeletingDbTable } from "../../model/db/index.js";
 import {

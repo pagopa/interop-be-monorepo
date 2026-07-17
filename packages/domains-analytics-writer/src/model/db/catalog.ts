@@ -1,4 +1,3 @@
-import { eserviceDescriptorInReadmodelCatalog } from "pagopa-interop-readmodel-models";
 import {
   EserviceSchema,
   EserviceDescriptorSchema,
@@ -12,6 +11,7 @@ import {
   EserviceDescriptorArchivingSchema,
   EserviceDescriptorAsyncExchangePropertiesSchema,
 } from "pagopa-interop-kpi-models";
+import { eserviceDescriptorInReadmodelCatalog } from "pagopa-interop-readmodel-models";
 
 export const CatalogDbTableConfig = {
   eservice: EserviceSchema,

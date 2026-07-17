@@ -3,9 +3,6 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 
 import { genericLogger } from "pagopa-interop-commons";
-
-import { config } from "../config/config.js";
-import { DBContext } from "../db/db.js";
 import {
   ClientItemsSchema,
   ClientKeySchema,
@@ -13,20 +10,17 @@ import {
   ClientUserSchema,
   ProducerKeychainItemsSchema,
 } from "pagopa-interop-kpi-models";
+
+import { config } from "../config/config.js";
+import { DBContext } from "../db/db.js";
 import { ClientDeletingSchema } from "../model/authorization/client.js";
 import {
   ClientKeyDeletingSchema,
   ClientKeyUserMigrationSchema,
 } from "../model/authorization/clientKey.js";
-import {
-  ClientPurposeDeletingSchema,
-} from "../model/authorization/clientPurpose.js";
-import {
-  ClientUserDeletingSchema,
-} from "../model/authorization/clientUser.js";
-import {
-  ProducerKeychainDeletingSchema,
-} from "../model/authorization/producerKeychain.js";
+import { ClientPurposeDeletingSchema } from "../model/authorization/clientPurpose.js";
+import { ClientUserDeletingSchema } from "../model/authorization/clientUser.js";
+import { ProducerKeychainDeletingSchema } from "../model/authorization/producerKeychain.js";
 import {
   ClientDbTable,
   ProducerKeychainDbTable,

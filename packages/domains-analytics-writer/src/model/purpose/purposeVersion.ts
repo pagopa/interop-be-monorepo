@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { PurposeVersionSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const PurposeVersionDeletingSchema = PurposeVersionSchema.pick({
   id: true,

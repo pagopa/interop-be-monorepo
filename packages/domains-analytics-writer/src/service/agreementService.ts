@@ -2,28 +2,28 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
-
-import { config } from "../config/config.js";
-import { DBContext } from "../db/db.js";
-import { AgreementDbTable, DeletingDbTable } from "../model/db/index.js";
-import { agreementRepo } from "../repository/agreement/agreement.repository.js";
-import { agreementAttributeRepo } from "../repository/agreement/agreementAttribute.repository.js";
-import { agreementConsumerDocumentRepo } from "../repository/agreement/agreementConsumerDocument.repository.js";
-import { agreementContractRepo } from "../repository/agreement/agreementContract.repository.js";
-import { agreementStampRepo } from "../repository/agreement/agreementStamp.repository.js";
-import {
-  cleaningTargetTables,
-  mergeDeletingCascadeById,
-} from "../utils/sqlQueryHelper.js";
-import { AgreementDeletingSchema } from "../model/agreement/agreement.js";
-import { AgreementConsumerDocumentDeletingSchema } from "../model/agreement/agreementConsumerDocument.js";
-import { agreementSignedContractRepo } from "../repository/agreement/agreementSignedContract.repository.js";
 import {
   AgreementItemsSchema,
   AgreementConsumerDocumentSchema,
   AgreementContractSchema,
 } from "pagopa-interop-kpi-models";
+
+import { config } from "../config/config.js";
+import { DBContext } from "../db/db.js";
+import { AgreementDeletingSchema } from "../model/agreement/agreement.js";
+import { AgreementConsumerDocumentDeletingSchema } from "../model/agreement/agreementConsumerDocument.js";
+import { AgreementDbTable, DeletingDbTable } from "../model/db/index.js";
+import { agreementRepo } from "../repository/agreement/agreement.repository.js";
+import { agreementAttributeRepo } from "../repository/agreement/agreementAttribute.repository.js";
+import { agreementConsumerDocumentRepo } from "../repository/agreement/agreementConsumerDocument.repository.js";
+import { agreementContractRepo } from "../repository/agreement/agreementContract.repository.js";
+import { agreementSignedContractRepo } from "../repository/agreement/agreementSignedContract.repository.js";
+import { agreementStampRepo } from "../repository/agreement/agreementStamp.repository.js";
 import { batchMessages } from "../utils/batchHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 
 export function agreementServiceBuilder(db: DBContext) {
   const agreementRepository = agreementRepo(db.conn);

@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { ClientUserSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
-import {
-  ClientUserSchema,
-  ClientUserDeletingSchema,
-} from "../../model/authorization/clientUser.js";
+import { ClientUserDeletingSchema } from "../../model/authorization/clientUser.js";
 import { DeletingDbTable, ClientDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
@@ -15,9 +13,6 @@ import {
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, ClientDbTable } from "../../model/db/index.js";
-import { ClientUserSchema } from "pagopa-interop-kpi-models";
-import { ClientUserDeletingSchema } from "../../model/authorization/clientUser.js";
 
 export function clientUserRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { PurposeTemplateEServiceDescriptorSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const PurposeTemplateEServiceDescriptorDeletingSchema =
   PurposeTemplateEServiceDescriptorSchema.pick({

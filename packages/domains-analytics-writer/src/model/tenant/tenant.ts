@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { TenantSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const TenantSelfcareIdSchema = TenantSchema.pick({
   id: true,
