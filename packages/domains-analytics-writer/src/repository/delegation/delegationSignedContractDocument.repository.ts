@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { DelegationDbTable } from "../../model/db/index.js";
+import { DelegationSignedContractDocumentSchema } from "../../model/delegation/delegationSignedContractDocument.js";
 import {
   buildColumnSet,
   generateMergeQuery,

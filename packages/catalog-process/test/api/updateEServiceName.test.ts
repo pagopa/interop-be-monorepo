@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -9,15 +15,9 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceUpdateSameNameConflict,
@@ -27,6 +27,7 @@ import {
   eserviceWithoutValidDescriptors,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId}/name/update authorization test", () => {
   const descriptor: Descriptor = {

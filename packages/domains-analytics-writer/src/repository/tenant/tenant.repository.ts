@@ -1,24 +1,31 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
+
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import {
+  DeletingDbTable,
+  TenantDbPartialTable,
+  TenantDbTable,
+} from "../../model/db/index.js";
+import { TenantSchema } from "pagopa-interop-kpi-models";
 import {
   buildColumnSet,
   generateMergeDeleteQuery,
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-import { TenantSchema } from "pagopa-interop-kpi-models";
 import {
   TenantDeletingSchema,
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";
 import {
-  TenantDbTable,
-  DeletingDbTable,
-  TenantDbPartialTable,
-} from "../../model/db/index.js";
+  buildColumnSet,
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 
 export function tenantRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

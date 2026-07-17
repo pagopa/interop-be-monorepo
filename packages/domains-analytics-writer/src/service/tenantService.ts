@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
-import { DBContext } from "../db/db.js";
+
 import { config } from "../config/config.js";
-import { batchMessages } from "../utils/batchHelper.js";
-import {
-  cleaningTargetTables,
-  mergeDeletingCascadeById,
-} from "../utils/sqlQueryHelper.js";
-import { tenantRepository } from "../repository/tenant/tenant.repository.js";
+import { DBContext } from "../db/db.js";
 import { DeletingDbTable, TenantDbTable } from "../model/db/index.js";
 import { tenantMailRepository } from "../repository/tenant/tenantMail.repository.js";
 import { tenantCertifiedAttributeRepository } from "../repository/tenant/tenantCertifiedAttribute.repository.js";
@@ -23,8 +18,21 @@ import {
   TenantDeletingSchema,
 } from "../model/tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../model/tenant/tenantMail.js";
-import { tenantRemoteIdRepository } from "../repository/tenant/tenantRemoteId.repository.js";
+import { tenantRepository } from "../repository/tenant/tenant.repository.js";
+import { tenantCertifiedAttributeRepository } from "../repository/tenant/tenantCertifiedAttribute.repository.js";
 import { tenantCertifiedDiscreteAttributeRepository } from "../repository/tenant/tenantCertifiedDiscreteAttribute.repository.js";
+import { tenantDeclaredAttributeRepository } from "../repository/tenant/tenantDeclaredAttribute.repository.js";
+import { tenantFeatureRepository } from "../repository/tenant/tenantFeature.repository.js";
+import { tenantMailRepository } from "../repository/tenant/tenantMail.repository.js";
+import { tenantRemoteIdRepository } from "../repository/tenant/tenantRemoteId.repository.js";
+import { tenantVerifiedAttributeRepository } from "../repository/tenant/tenantVerifiedAttribute.repository.js";
+import { tenantVerifiedAttributeRevokerRepository } from "../repository/tenant/tenantVerifiedAttributeRevoker.repository.js";
+import { tenantVerifiedAttributeVerifierRepository } from "../repository/tenant/tenantVerifiedAttributeVerifier.repository.js";
+import { batchMessages } from "../utils/batchHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 
 export function tenantServiceBuilder(db: DBContext) {
   const tenantRepo = tenantRepository(db.conn);

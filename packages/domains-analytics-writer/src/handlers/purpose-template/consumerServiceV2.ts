@@ -6,9 +6,10 @@ import {
   fromPurposeTemplateV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
+import { splitPurposeTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { splitPurposeTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
+
 import { DBContext } from "../../db/db.js";
 import {
   PurposeTemplateItemsSchema,

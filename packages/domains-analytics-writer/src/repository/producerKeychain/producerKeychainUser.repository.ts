@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { ProducerKeychainUserSchema } from "../../model/authorization/producerKeychainUser.js";
+import { ProducerKeychainDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
   generateMergeQuery,

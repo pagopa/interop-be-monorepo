@@ -1,19 +1,19 @@
 import {
-  AgreementDocumentV2,
-  AgreementV2,
-  AgreementStampV2,
-  AgreementStampsV2,
-} from "pagopa-interop-models";
-import {
   AgreementDocumentV2 as OutboundAgreementDocumentV2,
   AgreementV2 as OutboundAgreementV2,
   AgreementStampV2 as OutboundAgreementStampV2,
   AgreementStampsV2 as OutboundAgreementStampsV2,
 } from "@pagopa/interop-outbound-models";
-import { match } from "ts-pattern";
-import { AgreementEventEnvelopeV2 } from "pagopa-interop-models";
 import { AgreementEvent as OutboundAgreementEvent } from "@pagopa/interop-outbound-models";
 import { Exact } from "pagopa-interop-commons";
+import {
+  AgreementDocumentV2,
+  AgreementV2,
+  AgreementStampV2,
+  AgreementStampsV2,
+} from "pagopa-interop-models";
+import { AgreementEventEnvelopeV2 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toOutboundStampV2(
   stamp: OutboundAgreementStampV2

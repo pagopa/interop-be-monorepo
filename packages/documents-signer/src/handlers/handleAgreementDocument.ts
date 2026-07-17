@@ -1,9 +1,3 @@
-import path from "path";
-import {
-  AgreementEventEnvelopeV2,
-  missingKafkaMessageDataError,
-} from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   FileManager,
   Logger,
@@ -11,6 +5,13 @@ import {
   SafeStorageService,
   FileCreationRequest,
 } from "pagopa-interop-commons";
+import {
+  AgreementEventEnvelopeV2,
+  missingKafkaMessageDataError,
+} from "pagopa-interop-models";
+import path from "path";
+import { match, P } from "ts-pattern";
+
 import { config } from "../config/config.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 

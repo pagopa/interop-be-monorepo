@@ -1,7 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { match, P } from "ts-pattern";
 import {
   AgreementEventEnvelopeV1,
   AgreementId,
@@ -10,12 +9,13 @@ import {
   fromAgreementV1,
   fromAgreementDocumentV1,
 } from "pagopa-interop-models";
-
 import {
   splitAgreementIntoObjectsSQL,
   agreementDocumentToAgreementDocumentSQL,
 } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
+
 import { DBContext } from "../../db/db.js";
 import { agreementServiceBuilder } from "../../service/agreementService.js";
 import { AgreementDeletingSchema } from "../../model/agreement/agreement.js";

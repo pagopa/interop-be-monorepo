@@ -1,20 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
+
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import {
+  EserviceTemplateDbTable,
+  DeletingDbTable,
+} from "../../model/db/index.js";
+import { EserviceTemplateSchema } from "pagopa-interop-kpi-models";
+import {
+  EserviceTemplateDeletingSchema,
+} from "../../model/eserviceTemplate/eserviceTemplate.js";
 import {
   buildColumnSet,
   generateMergeQuery,
   generateMergeDeleteQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-import {
-  EserviceTemplateDbTable,
-  DeletingDbTable,
-} from "../../model/db/index.js";
-import { EserviceTemplateSchema } from "pagopa-interop-kpi-models";
-import { EserviceTemplateDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplate.js";
 
 export function eserviceTemplateRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

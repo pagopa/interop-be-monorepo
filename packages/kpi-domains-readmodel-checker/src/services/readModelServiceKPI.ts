@@ -1,3 +1,4 @@
+import camelcaseKeys from "camelcase-keys";
 import {
   Agreement,
   Attribute,
@@ -23,10 +24,10 @@ import {
   aggregateEServiceTemplateArray,
   aggregatePurposeTemplateArray,
 } from "pagopa-interop-readmodel";
-import { z } from "zod";
 import { IConnected, IMain } from "pg-promise";
 import { IClient } from "pg-promise/typescript/pg-subset.js";
-import camelcaseKeys from "camelcase-keys";
+import { z } from "zod";
+
 import { config } from "../configs/config.js";
 import {
   AgreementDbTable,

@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
+import { ITask, IMain } from "pg-promise";
+
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { AgreementContractSchema } from "../../model/agreement/agreementContract.js";
+import { AgreementDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,

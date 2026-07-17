@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { DelegationDbTable } from "../../model/db/index.js";
 import { DelegationSchema } from "pagopa-interop-kpi-models";
 import {
   buildColumnSet,
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DelegationDbTable } from "../../model/db/index.js";
 
 export function delegationRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

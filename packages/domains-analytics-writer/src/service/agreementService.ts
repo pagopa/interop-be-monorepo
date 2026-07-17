@@ -2,10 +2,10 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+
+import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { AgreementDbTable, DeletingDbTable } from "../model/db/index.js";
-import { batchMessages } from "../utils/batchHelper.js";
-import { config } from "../config/config.js";
 import { agreementRepo } from "../repository/agreement/agreement.repository.js";
 import { agreementAttributeRepo } from "../repository/agreement/agreementAttribute.repository.js";
 import { agreementConsumerDocumentRepo } from "../repository/agreement/agreementConsumerDocument.repository.js";
@@ -23,6 +23,7 @@ import {
   AgreementConsumerDocumentSchema,
   AgreementContractSchema,
 } from "pagopa-interop-kpi-models";
+import { batchMessages } from "../utils/batchHelper.js";
 
 export function agreementServiceBuilder(db: DBContext) {
   const agreementRepository = agreementRepo(db.conn);

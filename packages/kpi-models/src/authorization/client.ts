@@ -1,6 +1,7 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { clientInReadmodelClient } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
+
 import { ClientKeySchema } from "./clientKey.js";
 import { ClientPurposeSchema } from "./clientPurpose.js";
 import { ClientUserSchema } from "./clientUser.js";

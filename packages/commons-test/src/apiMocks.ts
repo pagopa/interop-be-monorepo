@@ -1,3 +1,4 @@
+import { generateMock } from "@anatine/zod-mock";
 import {
   attributeRegistryApi,
   catalogApi,
@@ -9,7 +10,6 @@ import {
   eserviceTemplateApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
-import { generateMock } from "@anatine/zod-mock";
 import {
   ClientId,
   ProducerKeychainId,
@@ -17,8 +17,9 @@ import {
   algorithm,
   generateId,
 } from "pagopa-interop-models";
-import { z } from "zod";
 import { match } from "ts-pattern";
+import { z } from "zod";
+
 import {
   getMockClientJWKKey,
   getMockProducerJWKKey,

@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockKey,
@@ -7,7 +8,6 @@ import {
   getMockEService,
   getMockDescriptor,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -25,6 +25,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleProducerKeychainNoKeysForAsyncEservice } from "../src/handlers/authorization/handleProducerKeychainNoKeysForAsyncEservice.js";
 import {
   addOneTenant,

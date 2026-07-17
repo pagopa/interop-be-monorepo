@@ -2,8 +2,24 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+
+import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { DeletingDbTable, PurposeTemplateDbTable } from "../model/db/index.js";
+import {
+  PurposeTemplateDeletingSchema,
+  PurposeTemplateItemsSchema,
+} from "../model/purposeTemplate/purposeTemplate.js";
+import {
+  PurposeTemplateEServiceDescriptorDeletingSchema,
+  PurposeTemplateEServiceDescriptorSchema,
+} from "../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { purposeTemplateRepository } from "../repository/purposeTemplate/purposeTemplate.repository.js";
+import { purposeTemplateEServiceDescriptorRepository } from "../repository/purposeTemplate/purposeTemplateEServiceDescriptor.repository.js";
+import { purposeTemplateRiskAnalysisAnswerRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswer.repository.js";
+import { purposeTemplateRiskAnalysisAnswerAnnotationRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.repository.js";
+import { purposeTemplateRiskAnalysisAnswerAnnotationDocumentRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.repository.js";
+import { purposeTemplateRiskAnalysisFormRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisForm.repository.js";
 import { batchMessages } from "../utils/batchHelper.js";
 import {
   cleaningTargetTables,

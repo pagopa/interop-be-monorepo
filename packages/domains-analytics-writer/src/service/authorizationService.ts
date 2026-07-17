@@ -3,13 +3,9 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 
 import { genericLogger } from "pagopa-interop-commons";
-import { DBContext } from "../db/db.js";
-import { batchMessages } from "../utils/batchHelper.js";
-import {
-  cleaningTargetTables,
-  mergeDeletingCascadeById,
-} from "../utils/sqlQueryHelper.js";
+
 import { config } from "../config/config.js";
+import { DBContext } from "../db/db.js";
 import {
   ClientItemsSchema,
   ClientKeySchema,
@@ -18,12 +14,19 @@ import {
   ProducerKeychainItemsSchema,
 } from "pagopa-interop-kpi-models";
 import { ClientDeletingSchema } from "../model/authorization/client.js";
-import { ClientUserDeletingSchema } from "../model/authorization/clientUser.js";
-import { ClientPurposeDeletingSchema } from "../model/authorization/clientPurpose.js";
 import {
   ClientKeyDeletingSchema,
   ClientKeyUserMigrationSchema,
 } from "../model/authorization/clientKey.js";
+import {
+  ClientPurposeDeletingSchema,
+} from "../model/authorization/clientPurpose.js";
+import {
+  ClientUserDeletingSchema,
+} from "../model/authorization/clientUser.js";
+import {
+  ProducerKeychainDeletingSchema,
+} from "../model/authorization/producerKeychain.js";
 import {
   ClientDbTable,
   ProducerKeychainDbTable,
@@ -33,11 +36,15 @@ import { clientRepository } from "../repository/client/client.repository.js";
 import { clientKeyRepository } from "../repository/client/clientKey.repository.js";
 import { clientPurposeRepository } from "../repository/client/clientPurpose.repository.js";
 import { clientUserRepository } from "../repository/client/clientUser.repository.js";
-import { ProducerKeychainDeletingSchema } from "../model/authorization/producerKeychain.js";
 import { producerKeychainRepository } from "../repository/producerKeychain/producerKeychain.repository.js";
 import { producerKeychainEServiceRepository } from "../repository/producerKeychain/producerKeychainEService.repository.js";
 import { producerKeychainKeyRepository } from "../repository/producerKeychain/producerKeychainKey.js";
 import { producerKeychainUserRepository } from "../repository/producerKeychain/producerKeychainUser.repository.js";
+import { batchMessages } from "../utils/batchHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 
 export function authorizationServiceBuilder(db: DBContext) {
   const clientRepo = clientRepository(db.conn);

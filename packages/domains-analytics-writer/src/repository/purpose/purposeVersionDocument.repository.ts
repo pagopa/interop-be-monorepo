@@ -2,12 +2,15 @@
 
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
 import { config } from "../../config/config.js";
+import { DBConnection } from "../../db/db.js";
+import { PurposeDbTable } from "../../model/db/purpose.js";
+import { PurposeVersionDocumentSchema } from "../../model/purpose/purposeVersionDocument.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DBConnection } from "../../db/db.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
 import { PurposeVersionDocumentSchema } from "pagopa-interop-kpi-models";
 import { PurposeDbTable } from "../../model/db/purpose.js";

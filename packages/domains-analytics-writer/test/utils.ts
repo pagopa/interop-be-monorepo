@@ -2,13 +2,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import camelcaseKeys from "camelcase-keys";
 import { genericLogger } from "pagopa-interop-commons";
-import { inject } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { inject } from "vitest";
 import { z } from "zod";
-import { DBContext, DBConnection } from "../src/db/db.js";
+
 import { config } from "../src/config/config.js";
 import { retryConnection } from "../src/db/buildColumnSet.js";
-import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
+import { DBContext, DBConnection } from "../src/db/db.js";
 import {
   AgreementDbTable,
   AttributeDbTable,
@@ -28,6 +28,7 @@ import {
   PurposeTemplateDbTable,
   ClientDbTablePartialTable,
 } from "../src/model/db/index.js";
+import { setupDbServiceBuilder } from "../src/service/setupDbService.js";
 import { getColumnNameMapper } from "../src/utils/sqlQueryHelper.js";
 
 const { analyticsPostgresDB } = await setupTestContainersVitest(

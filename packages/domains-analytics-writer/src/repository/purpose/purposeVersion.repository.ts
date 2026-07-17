@@ -2,8 +2,14 @@
 
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { DeletingDbTable, PurposeDbTable } from "../../model/db/index.js";
+import {
+  PurposeVersionDeletingSchema,
+  PurposeVersionSchema,
+} from "../../model/purpose/purposeVersion.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,

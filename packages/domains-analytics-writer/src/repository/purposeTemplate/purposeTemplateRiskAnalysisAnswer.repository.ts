@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
+
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { PurposeTemplateDbTable } from "../../model/db/index.js";
+import { PurposeTemplateRiskAnalysisAnswerSchema } from "../../model/purposeTemplate/purposeTemplateRiskAnalysisAnswer.js";
 import {
   buildColumnSet,
   generateMergeQuery,

@@ -5,21 +5,22 @@ import {
   fromProducerKeychainV2,
   genericInternalError,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   splitClientIntoObjectsSQL,
   splitProducerKeychainIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
+
 import { DBContext } from "../../db/db.js";
-import { authorizationServiceBuilder } from "../../service/authorizationService.js";
 import {
   ClientItemsSchema,
   ProducerKeychainItemsSchema,
 } from "pagopa-interop-kpi-models";
 import { ClientDeletingSchema } from "../../model/authorization/client.js";
-import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 import { ProducerKeychainDeletingSchema } from "../../model/authorization/producerKeychain.js";
+import { authorizationServiceBuilder } from "../../service/authorizationService.js";
+import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAuthorizationEventMessageV2(
   messages: AuthorizationEventEnvelopeV2[],

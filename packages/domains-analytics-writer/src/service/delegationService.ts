@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericLogger } from "pagopa-interop-commons";
-import { DBContext } from "../db/db.js";
-import { batchMessages } from "../utils/batchHelper.js";
+
 import { config } from "../config/config.js";
+import { DBContext } from "../db/db.js";
+import { DelegationDbTable } from "../model/db/delegation.js";
 import { DelegationItemsSchema } from "pagopa-interop-kpi-models";
 import { delegationRepository } from "../repository/delegation/delegation.repository.js";
-import { delegationStampRepository } from "../repository/delegation/delegationStamp.repository.js";
 import { delegationContractDocumentRepository } from "../repository/delegation/delegationContractDocument.repository.js";
-import { cleaningTargetTables } from "../utils/sqlQueryHelper.js";
-import { DelegationDbTable } from "../model/db/delegation.js";
 import { delegationSignedContractDocumentRepository } from "../repository/delegation/delegationSignedContractDocument.repository.js";
+import { delegationStampRepository } from "../repository/delegation/delegationStamp.repository.js";
+import { batchMessages } from "../utils/batchHelper.js";
+import { cleaningTargetTables } from "../utils/sqlQueryHelper.js";
 
 export function delegationServiceBuilder(dbContext: DBContext) {
   const delegationRepo = delegationRepository(dbContext.conn);

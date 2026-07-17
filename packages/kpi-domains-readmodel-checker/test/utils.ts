@@ -12,7 +12,6 @@ import {
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   splitAgreementIntoObjectsSQL,
   splitAttributeIntoObjectsSQL,
@@ -26,6 +25,7 @@ import {
   splitPurposeTemplateIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
+import { afterEach, inject } from "vitest";
 import { z } from "zod";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import {
