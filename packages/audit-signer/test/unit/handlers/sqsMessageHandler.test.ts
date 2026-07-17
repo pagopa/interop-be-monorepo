@@ -1,16 +1,17 @@
 import "../setup.js";
+import { describe, it, beforeEach, expect, vi } from "vitest";
 import { Message } from "@aws-sdk/client-sqs";
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import { describe, it, beforeEach, expect, vi } from "vitest";
-
 import { sqsMessageHandler } from "../../../src/handlers/sqsMessageHandler.js";
-import { zipBuffer } from "../../../src/utils/compression.js";
-import * as decodeModule from "../../../src/utils/decodeSQSEventMessage.js";
 import {
   mockFileManager,
   mockDbService,
   mockSafeStorageService,
 } from "../setup.js";
+import * as decodeModule from "../../../src/utils/decodeSQSEventMessage.js";
+
+import { zipBuffer } from "../../../src/utils/compression.js";
+import { config } from "../../../src/config/config.js";
 
 describe("sqsMessageHandler", () => {
   const mockCorrelationId = "mock-correlation-id" as CorrelationId;
@@ -56,7 +57,7 @@ describe("sqsMessageHandler", () => {
     expect(mockDbService.saveSignatureReference).toHaveBeenCalledWith(
       {
         safeStorageId: "mock-key",
-        fileKind: "VOUCHER_AUDIT",
+        fileKind: config.fileKind,
         fileName: "my-audit-file.json",
         correlationId: mockCorrelationId,
         path: "path/to",
