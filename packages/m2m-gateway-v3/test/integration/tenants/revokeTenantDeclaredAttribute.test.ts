@@ -95,6 +95,7 @@ describe("revokeTenantDeclaredAttribute", () => {
         mockInteropBeClients.tenantProcessClient.tenantAttribute
           .revokeDeclaredAttribute,
       params: {
+        tenantId: mockTenantProcessResponse.data.id,
         attributeId: mockDeclaredAttribute1.id,
       },
     });

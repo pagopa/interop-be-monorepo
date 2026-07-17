@@ -909,7 +909,7 @@ const tenantsRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post("/tenants/attributes/declared", async (req, res) => {
+    .post("/tenants/:tenantId/attributes/declared", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
@@ -918,6 +918,7 @@ const tenantsRouter = (
         const { data: tenant, metadata } =
           await tenantService.addDeclaredAttribute(
             {
+              tenantId: unsafeBrandId(req.params.tenantId),
               tenantAttributeSeed: req.body,
             },
             ctx
@@ -1038,32 +1039,38 @@ const tenantsRouter = (
         }
       }
     )
-    .delete("/tenants/attributes/declared/:attributeId", async (req, res) => {
-      const ctx = fromAppContext(req.ctx);
+    .delete(
+      "/tenants/:tenantId/attributes/declared/:attributeId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
 
-      try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
-        const { data: tenant, metadata } =
-          await tenantService.revokeDeclaredAttribute(
-            { attributeId: unsafeBrandId(req.params.attributeId) },
+          const { data: tenant, metadata } =
+            await tenantService.revokeDeclaredAttribute(
+              {
+                tenantId: unsafeBrandId(req.params.tenantId),
+                attributeId: unsafeBrandId(req.params.attributeId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeDeclaredAttributeErrorMapper,
             ctx
           );
-
-        setMetadataVersionHeader(res, metadata);
-
-        return res
-          .status(200)
-          .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
-      } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          revokeDeclaredAttributeErrorMapper,
-          ctx
-        );
-        return res.status(errorRes.status).send(errorRes);
+          return res.status(errorRes.status).send(errorRes);
+        }
       }
-    });
+    );
   return [
     tenantsRouter,
     tenantsAttributeRouter,
