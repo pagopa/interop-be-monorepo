@@ -19,6 +19,7 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { inject, vi } from "vitest";
+
 import { HttpDPoPHeader } from "../src/model/domain/models.js";
 
 export const dpopConfig = inject("dpopConfig");

@@ -1,14 +1,16 @@
 import { createHash } from "crypto";
-import { match, P } from "ts-pattern";
 import { PUBLIC_ADMINISTRATIONS_TYPOLOGY } from "pagopa-interop-models";
+import { match, P } from "ts-pattern";
+
 import type { OpenDataConfig } from "../config/openDataConfig.js";
+
+import { ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY } from "./ipaCertifiedAttributesImporterService.js";
 import {
   Category,
   Institution,
   getAllCategories,
   getAllInstitutions,
 } from "./openDataExtractor.js";
-import { ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY } from "./ipaCertifiedAttributesImporterService.js";
 
 /**
  * Determine if an institution's "kind" and "category" should lead to the inclusion

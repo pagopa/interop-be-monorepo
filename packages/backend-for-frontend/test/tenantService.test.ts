@@ -1,20 +1,21 @@
-import { genericLogger, WithLogger } from "pagopa-interop-commons";
-import {
-  getMockedApiAttribute,
-  getMockedApiTenant,
-} from "pagopa-interop-commons-test";
 import {
   attributeRegistryApi,
   bffApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { genericLogger, WithLogger } from "pagopa-interop-commons";
+import {
+  getMockedApiAttribute,
+  getMockedApiTenant,
+} from "pagopa-interop-commons-test";
 import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { tenantServiceBuilder } from "../src/services/tenantService.js";
+
 import {
   tenantAttributeKind,
   toBffApiRequesterCertifiedAttributes,
 } from "../src/api/tenantApiConverter.js";
+import { tenantServiceBuilder } from "../src/services/tenantService.js";
 import { BffAppContext } from "../src/utilities/context.js";
 
 describe("tenantServiceBuilder.getTenant", () => {

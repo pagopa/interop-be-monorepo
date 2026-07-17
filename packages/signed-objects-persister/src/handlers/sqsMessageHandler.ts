@@ -1,7 +1,5 @@
-import path from "path";
-import { match, P } from "ts-pattern";
+import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Message } from "@aws-sdk/client-sqs";
-
 import {
   DocumentSignatureReference,
   FileManager,
@@ -12,7 +10,6 @@ import {
   SafeStorageService,
   SignatureServiceBuilder,
 } from "pagopa-interop-commons";
-
 import {
   AgreementDocument,
   AgreementDocumentId,
@@ -29,20 +26,20 @@ import {
   RiskAnalysisTemplateDocumentId,
   genericInternalError,
 } from "pagopa-interop-models";
+import path from "path";
+import { match, P } from "ts-pattern";
 
-import { S3ServiceException } from "@aws-sdk/client-s3";
 import { config } from "../config/config.js";
-import { FILE_KIND_CONFIG, FileKindSchema } from "../utils/fileKind.config.js";
-import { appendSignedSuffixToFileName } from "../utils/appendSignedSuffixToFileName.js";
-import { addPurposeRiskAnalysisSignedDocument } from "../utils/metadata/riskAnalysis.js";
-import { addAgreementSignedContract } from "../utils/metadata/agreement.js";
-import { addDelegationSignedContract } from "../utils/metadata/delegations.js";
-import { addPurposeTemplateSignedDocument } from "../utils/metadata/purposeTemplate.js";
-
 import {
   SqsSafeStorageBody,
   SqsSafeStorageBodySchema,
 } from "../models/sqsSafeStorageBody.js";
+import { appendSignedSuffixToFileName } from "../utils/appendSignedSuffixToFileName.js";
+import { FILE_KIND_CONFIG, FileKindSchema } from "../utils/fileKind.config.js";
+import { addAgreementSignedContract } from "../utils/metadata/agreement.js";
+import { addDelegationSignedContract } from "../utils/metadata/delegations.js";
+import { addPurposeTemplateSignedDocument } from "../utils/metadata/purposeTemplate.js";
+import { addPurposeRiskAnalysisSignedDocument } from "../utils/metadata/riskAnalysis.js";
 
 // eslint-disable-next-line max-params
 async function processMessage(

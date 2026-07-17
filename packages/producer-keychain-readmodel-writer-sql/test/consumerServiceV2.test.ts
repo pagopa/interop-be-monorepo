@@ -19,6 +19,7 @@ import {
   Key,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import { handleMessageV2 } from "../src/producerKeychainConsumerServiceV2.js";
 import {
   producerKeychainReadModelService,

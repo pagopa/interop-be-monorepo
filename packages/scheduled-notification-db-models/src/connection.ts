@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
 import { ScheduledNotificationDBConfig } from "pagopa-interop-commons";
+import pg from "pg";
+
 import { ScheduledNotificationDrizzleReturnType } from "./types.js";
 
 export const makeScheduledNotificationDrizzleConnection = (
