@@ -1,6 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { eserviceDescriptorRejectionReasonInReadmodelCatalog } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const EserviceDescriptorRejectionReasonSchema = createSelectSchema(
   eserviceDescriptorRejectionReasonInReadmodelCatalog

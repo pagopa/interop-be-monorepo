@@ -17,6 +17,7 @@ import {
 } from "pagopa-interop-models";
 import { aggregateEservice } from "pagopa-interop-readmodel";
 import { describe, expect, it } from "vitest";
+
 import {
   catalogWriterService,
   checkCompleteEService,

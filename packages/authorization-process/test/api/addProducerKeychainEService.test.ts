@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEService,
+  getMockProducerKeychain,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EService,
   EServiceId,
@@ -8,15 +14,9 @@ import {
   ProducerKeychainId,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEService,
-  getMockProducerKeychain,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   eserviceAlreadyLinkedToProducerKeychain,
   eserviceNotFound,
@@ -25,6 +25,7 @@ import {
   producerKeychainNotFound,
 } from "../../src/model/domain/errors.js";
 import { testToFullProducerKeychain } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /producerKeychains/{producerKeychainId}/eservices authorization test", () => {
   const mockProducerId: TenantId = generateId();

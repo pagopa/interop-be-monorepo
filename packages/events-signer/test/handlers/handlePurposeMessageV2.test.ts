@@ -1,18 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import {
-  PurposeEventEnvelopeV2,
-  generateId,
-  PurposeAddedV2,
-  PurposeActivatedV2,
-  PurposeArchivedV2,
-  NewPurposeVersionActivatedV2,
-  DraftPurposeUpdatedV2,
-  toPurposeV2,
-  PurposeVersion,
-} from "pagopa-interop-models";
 import {
   FileManager,
   initFileManager,
@@ -28,9 +16,22 @@ import {
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
+import {
+  PurposeEventEnvelopeV2,
+  generateId,
+  PurposeAddedV2,
+  PurposeActivatedV2,
+  PurposeArchivedV2,
+  NewPurposeVersionActivatedV2,
+  DraftPurposeUpdatedV2,
+  toPurposeV2,
+  PurposeVersion,
+} from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import { dynamoDBClient } from "../utils/utils.js";
 import { handlePurposeMessageV2 } from "../../src/handlers/handlePurposeMessageV2.js";
+import { dynamoDBClient } from "../utils/utils.js";
 
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =
