@@ -30,7 +30,7 @@ describe("POST /tenants/:tenantId/certifiedDiscreteAttributes router test", () =
 
   const mockSeed: m2mGatewayApiV3.TenantCertifiedDiscreteAttributeSeed = {
     id: generateId(),
-    certifiedDiscreteValue: 5720
+    certifiedDiscreteValue: 5720,
   };
 
   const makeRequest = async (
