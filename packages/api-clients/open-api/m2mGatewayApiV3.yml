@@ -4128,7 +4128,7 @@ paths:
       description: Schedules an archiving of an E-Service Descriptor that is in Deprecated or Suspended state, transitioning it to Archiving or ArchivingSuspended (if state was Suspended), starting the grace period.
       operationId: scheduleArchiveEserviceDescriptor
       requestBody:
-        required: true
+        required: false
         content:
           application/json:
             schema:
@@ -13624,14 +13624,13 @@ components:
       type: integer
       format: int32
       enum: [30, 60, 90, 120]
+      default: 60
     GracePeriodDaysSeed:
       type: object
       additionalProperties: false
       properties:
         gracePeriodDays:
           $ref: "#/components/schemas/GracePeriodDays"
-      required:
-       - gracePeriodDays
     EServiceArchivingSeed:
       type: object
       additionalProperties: false
@@ -13645,7 +13644,6 @@ components:
           $ref: "#/components/schemas/GracePeriodDays"
       required:
         - archivingReason
-        - gracePeriodDays
     Tenant:
       description: Tenant model
       type: object

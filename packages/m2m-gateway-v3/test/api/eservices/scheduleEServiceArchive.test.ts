@@ -66,6 +66,30 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
     expect(res.status).toBe(403);
   });
 
+  it("Should return 200 and perform service calls with undefined gracePeriodDays", async () => {
+    mockEserviceService.scheduleArchiveEService = vi
+      .fn()
+      .mockResolvedValue(mockM2MEService);
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const seed = {
+      ...mockSeed,
+      gracePeriodDays: undefined,
+    } as unknown as m2mGatewayApiV3.EServiceArchivingSeed;
+    const res = await makeRequest(token, mockEService.id, seed);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockM2MEService);
+    expect(mockEserviceService.scheduleArchiveEService).toHaveBeenCalledWith(
+      mockEService.id,
+      {
+        ...mockSeed,
+        gracePeriodDays: 60,
+      },
+      expect.any(Object) // context
+    );
+  });
+
   it("Should return 400 if passed an invalid eservice id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "invalidEServiceId");
