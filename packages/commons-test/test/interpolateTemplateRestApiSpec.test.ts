@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { interpolateTemplateRestApiSpec } from "pagopa-interop-commons";
 import {
   generateId,
   invalidInterfaceFileDetected,
 } from "pagopa-interop-models";
-import { interpolateTemplateRestApiSpec } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import { getMockEService, readFileContent } from "../src/index.js";
 
 describe("interpolateTemplateRestApiSpec", async () => {

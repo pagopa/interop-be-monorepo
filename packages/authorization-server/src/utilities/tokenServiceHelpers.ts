@@ -1,4 +1,28 @@
 import {
+  DynamoDBClient,
+  GetItemCommand,
+  GetItemCommandOutput,
+  GetItemInput,
+  QueryCommand,
+  QueryCommandOutput,
+  QueryInput,
+} from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { initProducer } from "kafka-iam-auth";
+import {
+  FileManager,
+  formatDateyyyyMMdd,
+  formatTimeHHmmss,
+  InteropAsyncConsumerToken,
+  InteropConsumerToken,
+  Logger,
+  secondsToMilliseconds,
+} from "pagopa-interop-commons";
+import {
+  verifyDPoPProof,
+  verifyDPoPProofSignature,
+} from "pagopa-interop-dpop-validation";
+import {
   AgreementId,
   AsyncClientAssertion,
   AsyncPlatformStatesCatalogEntry,
@@ -31,31 +55,8 @@ import {
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  DynamoDBClient,
-  GetItemCommand,
-  GetItemCommandOutput,
-  GetItemInput,
-  QueryCommand,
-  QueryCommandOutput,
-  QueryInput,
-} from "@aws-sdk/client-dynamodb";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
-import {
-  FileManager,
-  formatDateyyyyMMdd,
-  formatTimeHHmmss,
-  InteropAsyncConsumerToken,
-  InteropConsumerToken,
-  Logger,
-  secondsToMilliseconds,
-} from "pagopa-interop-commons";
-import { initProducer } from "kafka-iam-auth";
-import {
-  verifyDPoPProof,
-  verifyDPoPProofSignature,
-} from "pagopa-interop-dpop-validation";
+
 import { config } from "../config/config.js";
 import {
   asyncExchangePropertiesNotFound,

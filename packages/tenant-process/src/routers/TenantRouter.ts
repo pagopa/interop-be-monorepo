@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
@@ -10,7 +11,7 @@ import {
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { tenantApi } from "pagopa-interop-api-clients";
+
 import {
   apiTenantFeatureTypeToTenantFeatureType,
   toApiTenant,
@@ -18,6 +19,7 @@ import {
   toApiTenantVerifier,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { TenantService } from "../services/tenantService.js";
 import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
@@ -50,7 +52,6 @@ import {
   internalRevokeCertifiedDiscreteAttributeErrorMapper,
   internalUpdateCertifiedDiscreteAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
-import { TenantService } from "../services/tenantService.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext,

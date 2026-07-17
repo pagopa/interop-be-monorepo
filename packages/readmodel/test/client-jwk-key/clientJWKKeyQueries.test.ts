@@ -1,6 +1,7 @@
-import { describe, it, expect } from "vitest";
-import { ClientId, generateId } from "pagopa-interop-models";
 import { getMockClientJWKKey } from "pagopa-interop-commons-test";
+import { ClientId, generateId } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import { upsertClientJWKKey } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { clientJWKKeyReadModelService } from "./clientJWKKeyUtils.js";

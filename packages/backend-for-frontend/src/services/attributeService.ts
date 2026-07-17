@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+
 import {
   toApiCertifiedAttributeProcessSeed,
   toApiCertifiedDiscreteAttributeProcessSeed,
   toCompactAttribute,
 } from "../api/attributeApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { BffAppContext } from "../utilities/context.js";
 
 export async function getAllBulkAttributes(
   attributeProcessClient: attributeRegistryApi.AttributeProcessClient,

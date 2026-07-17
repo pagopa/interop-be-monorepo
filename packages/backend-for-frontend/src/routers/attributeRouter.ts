@@ -7,9 +7,10 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
-import { fromBffAppContext } from "../utilities/context.js";
 import { AttributeService } from "../services/attributeService.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,

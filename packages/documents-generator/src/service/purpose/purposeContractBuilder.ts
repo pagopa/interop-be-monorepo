@@ -1,5 +1,3 @@
-import path from "path";
-import { fileURLToPath } from "url";
 import Handlebars from "handlebars";
 import {
   FileManager,
@@ -15,7 +13,6 @@ import {
   incompatibleConfigError,
   unexpectedEmptyAnswerError,
 } from "pagopa-interop-commons";
-import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 import {
   Purpose,
   PurposeVersionDocument,
@@ -29,17 +26,20 @@ import {
   UserId,
   TenantId,
 } from "pagopa-interop-models";
+import path from "path";
 import { P, match } from "ts-pattern";
+import { fileURLToPath } from "url";
 
 import { DocumentsGeneratorConfig } from "../../config/config.js";
-import {
-  PurposeDocumentEServiceInfo,
-  RiskAnalysisDocumentPDFPayload,
-} from "../../model/purposeModels.js";
 import {
   missingRiskAnalysis,
   riskAnalysisConfigVersionNotFound,
 } from "../../model/errors.js";
+import {
+  PurposeDocumentEServiceInfo,
+  RiskAnalysisDocumentPDFPayload,
+} from "../../model/purposeModels.js";
+import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 
 const YES = "Sì";
 const NO = "No";

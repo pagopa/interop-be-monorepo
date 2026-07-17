@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/immutable-data */
 import { fail } from "assert";
-import { genericLogger } from "pagopa-interop-commons";
 import { addDays, subDays } from "date-fns";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
@@ -48,6 +48,8 @@ import {
   toAgreementStateV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import { agreementSubmissionConflictingStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -61,7 +63,6 @@ import {
   tenantIsNotTheDelegateConsumer,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addDelegationsAndDelegates,
   addOneAgreement,

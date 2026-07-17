@@ -8,12 +8,13 @@ import {
   PurposeId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   splitPurposeIntoObjectsSQL,
   splitPurposeVersionIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
+
 import { DBContext } from "../../db/db.js";
 import {
   PurposeItemsSchema,

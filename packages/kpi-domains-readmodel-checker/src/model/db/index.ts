@@ -6,27 +6,27 @@ import {
   AttributeDbTableConfig,
   AttributeDbTableReadModel,
 } from "./attribute.js";
-import { CatalogDbTableConfig, CatalogDbTableReadModel } from "./catalog.js";
 import {
   ClientDbTableConfig,
   ClientDbTableReadModel,
   ProducerKeychainDbTableConfig,
   ProducerKeychainDbTableReadModel,
 } from "./authorization.js";
+import { CatalogDbTableConfig, CatalogDbTableReadModel } from "./catalog.js";
 import {
   DelegationDbTableConfig,
   DelegationDbTableReadModel,
 } from "./delegation.js";
-import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
 import {
   EserviceTemplateDbTableConfig,
   EserviceTemplateDbTableReadModel,
 } from "./eserviceTemplate.js";
-import { TenantDbTableConfig, TenantDbTableReadModel } from "./tenant.js";
+import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
 import {
   PurposeTemplateDbTableConfig,
   PurposeTemplateDbTableReadModel,
 } from "./purposeTemplate.js";
+import { TenantDbTableConfig, TenantDbTableReadModel } from "./tenant.js";
 
 export const DomainDbTable = {
   ...AttributeDbTableConfig,

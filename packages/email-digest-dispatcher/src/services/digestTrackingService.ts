@@ -1,6 +1,7 @@
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { and, eq, gte } from "drizzle-orm";
+import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import { TenantId, UserId } from "pagopa-interop-models";
+
 import { digestEmailSent, DigestEmailSentInsert } from "../model/schema.js";
 
 export type DigestTrackingDb = NodePgDatabase<

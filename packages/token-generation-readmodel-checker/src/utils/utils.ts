@@ -1,4 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { diff } from "json-diff";
 import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -47,7 +48,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { diff } from "json-diff";
+
 import { config } from "../configs/config.js";
 import {
   ComparisonPlatformStatesAgreementEntry,
@@ -55,8 +56,8 @@ import {
   ComparisonPlatformStatesPurposeEntry,
   ComparisonTokenGenStatesGenericClient,
 } from "../models/types.js";
-import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
+import { tokenGenerationReadModelServiceBuilder } from "../services/tokenGenerationReadModelService.js";
 
 export function getLastPurposeVersion(
   purposeVersions: PurposeVersion[]

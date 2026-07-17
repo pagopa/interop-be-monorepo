@@ -5,12 +5,6 @@ import {
   setupTestContainersVitest,
   writeInEventstore,
 } from "pagopa-interop-commons-test";
-import { inject, afterEach } from "vitest";
-import {
-  catalogReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import {
   EService,
   EServiceEvent,
@@ -27,6 +21,11 @@ import {
   TenantKind,
 } from "pagopa-interop-models";
 import {
+  catalogReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
+import {
   upsertAgreement,
   upsertAttribute,
   upsertDelegation,
@@ -34,9 +33,11 @@ import {
   upsertEServiceTemplate,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
+import { inject, afterEach } from "vitest";
+
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 
 export const {
   cleanup,
