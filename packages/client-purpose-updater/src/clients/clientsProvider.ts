@@ -12,7 +12,9 @@ type PagoPAInteropBeClients = {
 export function getInteropBeClients(): PagoPAInteropBeClients {
   return {
     authorizationClient: {
-      client: authorizationApi.createClientApiClient(config.authorizationProcessUrl),
+      client: authorizationApi.createClientApiClient(
+        config.authorizationProcessUrl
+      ),
     },
   };
 }

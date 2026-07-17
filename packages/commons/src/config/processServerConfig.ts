@@ -1,28 +1,43 @@
 import { z } from "zod";
 
-import { APIEndpoint } from "../model/apiEndpoint.js";
 import { genericLogger } from "../logging/index.js";
+import { APIEndpoint } from "../model/apiEndpoint.js";
+
+type ProcessServerUrl = z.infer<typeof APIEndpoint>;
 
 /**
  * Resolves a config value that may still be provided under a deprecated env
  * variable name. Prefers the canonical key; if it is missing but the deprecated
- * key is set, it falls back to it and logs a warning so the deployment can be
- * updated. If neither is set, it registers a validation issue so the parse fails
- * as it would for any other required variable.
+ * key is set and valid, it falls back to it and logs a warning so the deployment
+ * can be updated. The deprecated value is ignored when the canonical one is set.
+ * If neither is set, it registers a validation issue so the parse fails as it
+ * would for any other required variable.
  */
-const resolveDeprecatedKeyFallback = <T>(
+const resolveDeprecatedAPIEndpointFallback = (
   ctx: z.RefinementCtx,
-  canonical: { key: string; value: T | undefined },
-  deprecated: { key: string; value: T | undefined }
-): T => {
+  canonical: { key: string; value: ProcessServerUrl | undefined },
+  deprecated: { key: string; value: unknown }
+): ProcessServerUrl => {
   if (canonical.value !== undefined) {
     return canonical.value;
   }
   if (deprecated.value !== undefined) {
+    const parsedDeprecatedValue: ReturnType<typeof APIEndpoint.safeParse> =
+      APIEndpoint.safeParse(deprecated.value);
+    if (!parsedDeprecatedValue.success) {
+      for (const issue of parsedDeprecatedValue.error.issues) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: issue.message,
+          path: [deprecated.key, ...issue.path],
+        });
+      }
+      return z.NEVER;
+    }
     genericLogger.warn(
       `Configuration is falling back to the deprecated env variable "${deprecated.key}" because "${canonical.key}" is not set. Please update the configuration to use "${canonical.key}".`
     );
-    return deprecated.value;
+    return parsedDeprecatedValue.data;
   }
   ctx.addIssue({
     code: z.ZodIssueCode.custom,
@@ -96,10 +111,10 @@ export type PurposeTemplateProcessServerConfig = z.infer<
 export const AttributeRegistryProcessServerConfig = z
   .object({
     ATTRIBUTE_REGISTRY_PROCESS_URL: APIEndpoint.optional(),
-    ATTRIBUTE_PROCESS_URL: APIEndpoint.optional(),
+    ATTRIBUTE_PROCESS_URL: z.unknown().optional(),
   })
   .transform((c, ctx) => ({
-    attributeRegistryProcessUrl: resolveDeprecatedKeyFallback(
+    attributeRegistryProcessUrl: resolveDeprecatedAPIEndpointFallback(
       ctx,
       {
         key: "ATTRIBUTE_REGISTRY_PROCESS_URL",
