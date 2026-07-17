@@ -3,19 +3,16 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import {
-  generateId,
-  AuthorizationEventEnvelopeV1,
-  Client,
-  KeysAddedV1,
-  toKeyV1,
-  ClientAddedV1,
-} from "pagopa-interop-models";
 import {
   FileManager,
   genericLogger,
   initFileManager,
+} from "pagopa-interop-commons";
+import {
+  SafeStorageService,
+  createSafeStorageApiClient,
+  SignatureServiceBuilder,
+  signatureServiceBuilder,
 } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
@@ -24,14 +21,18 @@ import {
   getMockKey,
 } from "pagopa-interop-commons-test";
 import {
-  SafeStorageService,
-  createSafeStorageApiClient,
-  SignatureServiceBuilder,
-  signatureServiceBuilder,
-} from "pagopa-interop-commons";
+  generateId,
+  AuthorizationEventEnvelopeV1,
+  Client,
+  KeysAddedV1,
+  toKeyV1,
+  ClientAddedV1,
+} from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import { dynamoDBClient } from "../utils/utils.js";
 import { handleAuthorizationMessageV1 } from "../../src/handlers/handleAuthorizationMessageV1.js";
+import { dynamoDBClient } from "../utils/utils.js";
 
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =

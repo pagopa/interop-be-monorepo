@@ -1,10 +1,11 @@
-import { WithLogger } from "pagopa-interop-commons";
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
-import { BffAppContext } from "../utilities/context.js";
+import { WithLogger } from "pagopa-interop-commons";
+
 import {
   Category,
   categoryToNotificationTypes,
 } from "../model/modelMappingUtils.js";
+import { BffAppContext } from "../utilities/context.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationServiceBuilder(

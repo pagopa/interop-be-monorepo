@@ -9,8 +9,8 @@ process.env.AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES = "1024";
 process.env.MESSAGES_TO_READ_PER_BATCH = "10";
 process.env.MAX_WAIT_KAFKA_BATCH_MILLIS = "500";
 
-import { vi } from "vitest";
 import { Logger, FileManager } from "pagopa-interop-commons";
+import { vi } from "vitest";
 
 export const mockLoggerInstance: Logger = {
   info: vi.fn(),

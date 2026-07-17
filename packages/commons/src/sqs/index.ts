@@ -13,15 +13,16 @@ import {
 } from "@aws-sdk/client-sqs";
 import { InternalError } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { LoggerConfig } from "../config/loggerConfig.js";
 import { genericLogger, Logger } from "../logging/index.js";
 import { delay } from "../utils/delay.js";
-import { validateSqsMessage } from "./queueManagerMessageValidation.js";
-import { QueueMessage } from "./queueMessage.js";
 import {
   queueManagerReceiveError,
   queueManagerSendError,
 } from "./queueManagerErrors.js";
+import { validateSqsMessage } from "./queueManagerMessageValidation.js";
+import { QueueMessage } from "./queueMessage.js";
 
 const serializeError = (error: unknown): string => {
   try {

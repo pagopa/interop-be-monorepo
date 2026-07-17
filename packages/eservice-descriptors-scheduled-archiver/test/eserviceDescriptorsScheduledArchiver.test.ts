@@ -1,18 +1,10 @@
 /* eslint-disable functional/no-let */
+import { catalogApi } from "pagopa-interop-api-clients";
+import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   getMockDescriptor,
   getMockEService,
 } from "pagopa-interop-commons-test";
-import {
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-  afterEach,
-  beforeEach,
-} from "vitest";
-import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
   Descriptor,
@@ -24,13 +16,22 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import {
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+  afterEach,
+  beforeEach,
+} from "vitest";
+
+import { ArchivableDescriptorRef } from "../src/models/models.js";
+import {
   CatalogProcessZodiosClient,
   catalogProcessClientBuilder,
 } from "../src/services/catalogProcessClient.js";
 import { eserviceDescriptorsScheduledArchiverServiceBuilder } from "../src/services/eserviceDescriptorsScheduledArchiverService.js";
-import { ArchivableDescriptorRef } from "../src/models/models.js";
 import { addOneEService, readModelService, toUTCMidnight } from "./utils.js";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("EService Descriptors Scheduled Archiver Service", async () => {
   const testCorrelationId: CorrelationId = generateId();

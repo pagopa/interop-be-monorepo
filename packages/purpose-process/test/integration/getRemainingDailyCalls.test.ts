@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { afterEach, describe, expect, it } from "vitest";
+import {
+  getMockAgreement,
+  getMockAuthData,
+  getMockContext,
+  getMockDescriptor,
+  getMockEService,
+  getMockPurpose,
+  getMockPurposeVersion,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   AttributeId,
@@ -14,21 +23,13 @@ import {
   generateId,
   purposeVersionState,
 } from "pagopa-interop-models";
-import {
-  getMockAgreement,
-  getMockAuthData,
-  getMockContext,
-  getMockDescriptor,
-  getMockEService,
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
+import { afterEach, describe, expect, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneAgreement,
   addOneEService,

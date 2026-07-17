@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
+import { createJWK } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV1,
   dateToString,
@@ -9,21 +10,20 @@ import {
   genericInternalError,
   Key,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { createJWK } from "pagopa-interop-commons";
 import { splitClientIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { DBContext } from "../../db/db.js";
-import { authorizationServiceBuilder } from "../../service/authorizationService.js";
+import {
+  ClientItemsSchema,
+  ClientDeletingSchema,
+} from "../../model/authorization/client.js";
 import {
   ClientKeyDeletingSchema,
   ClientKeySchema,
   ClientKeyUserMigrationSchema,
 } from "../../model/authorization/clientKey.js";
-import {
-  ClientItemsSchema,
-  ClientDeletingSchema,
-} from "../../model/authorization/client.js";
 import {
   ClientPurposeDeletingSchema,
   ClientPurposeSchema,
@@ -32,6 +32,7 @@ import {
   ClientUserDeletingSchema,
   ClientUserSchema,
 } from "../../model/authorization/clientUser.js";
+import { authorizationServiceBuilder } from "../../service/authorizationService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleAuthorizationMessageV1(

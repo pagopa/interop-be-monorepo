@@ -1,4 +1,3 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockKey,
@@ -12,6 +11,8 @@ import {
   ProducerKeychainId,
   TenantId,
 } from "pagopa-interop-models";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
+
 import {
   deleteAllProducerKeychainPlatformStatesEntries,
   deleteProducerKeychainPlatformStatesEntriesByEServiceId,

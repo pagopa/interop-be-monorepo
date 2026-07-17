@@ -8,6 +8,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
+
 import { SQSConsumerConfig } from "./sqsConfig.js";
 
 const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)

@@ -10,16 +10,17 @@ import {
   tenantRemoteIdInReadmodelTenant,
   tenantCertifiedDiscreteAttributeInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+
 import { TenantSchema, TenantSelfcareIdSchema } from "../tenant/tenant.js";
 import { TenantCertifiedAttributeSchema } from "../tenant/tenantCertifiedAttribute.js";
+import { TenantCertifiedDiscreteAttributeSchema } from "../tenant/tenantCertifiedDiscreteAttribute.js";
 import { TenantDeclaredAttributeSchema } from "../tenant/tenantDeclaredAttribute.js";
 import { TenantFeatureSchema } from "../tenant/tenantFeature.js";
 import { TenantMailSchema } from "../tenant/tenantMail.js";
+import { TenantRemoteIdSchema } from "../tenant/tenantRemoteId.js";
 import { TenantVerifiedAttributeSchema } from "../tenant/tenantVerifiedAttribute.js";
 import { TenantVerifiedAttributeRevokerSchema } from "../tenant/tenantVerifiedAttributeRevoker.js";
 import { TenantVerifiedAttributeVerifierSchema } from "../tenant/tenantVerifiedAttributeVerifier.js";
-import { TenantRemoteIdSchema } from "../tenant/tenantRemoteId.js";
-import { TenantCertifiedDiscreteAttributeSchema } from "../tenant/tenantCertifiedDiscreteAttribute.js";
 
 export const TenantDbPartialTableConfig = {
   tenant_self_care_id: TenantSelfcareIdSchema,

@@ -1,4 +1,6 @@
 import { z } from "zod";
+
+import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
 import {
   AgreementId,
   ClientId,
@@ -9,7 +11,6 @@ import {
   PurposeVersionId,
   TenantId,
 } from "../brandedIds.js";
-import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
 import { ClientAssertionDigest } from "../client-assertion/clientAssertionValidation.js";
 import { InteractionState } from "../token-generation-readmodel/interactions-entry.js";
 
