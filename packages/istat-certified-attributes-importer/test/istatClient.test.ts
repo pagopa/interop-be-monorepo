@@ -1,8 +1,9 @@
-import { vi, describe, it, expect, beforeEach } from "vitest";
-import axios from "axios";
 import AdmZip from "adm-zip";
-import { IstatClient } from "../src/service/istatClient.js";
+import axios from "axios";
 import { genericLogger } from "pagopa-interop-commons";
+import { vi, describe, it, expect, beforeEach } from "vitest";
+
+import { IstatClient } from "../src/service/istatClient.js";
 
 vi.mock("axios");
 const mockedAxios = vi.mocked(axios);

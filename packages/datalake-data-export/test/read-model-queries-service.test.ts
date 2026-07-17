@@ -1,6 +1,20 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable fp/no-delete */
 import {
+  getMockAgreement,
+  getMockDelegation,
+  getMockDescriptor,
+  getMockDescriptorList,
+  getMockDocument,
+  getMockEService,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+  getMockPurpose,
+  getMockPurposeVersion,
+  getMockTenant,
+  randomArrayItem,
+} from "pagopa-interop-commons-test";
+import {
   agreementState,
   DelegationId,
   delegationKind,
@@ -17,20 +31,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import {
-  getMockAgreement,
-  getMockDelegation,
-  getMockDescriptor,
-  getMockDescriptorList,
-  getMockDocument,
-  getMockEService,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockTenant,
-  randomArrayItem,
-} from "pagopa-interop-commons-test";
+
 import {
   seedAgreements,
   seedEServices,

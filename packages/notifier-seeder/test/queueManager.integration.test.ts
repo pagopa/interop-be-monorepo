@@ -1,8 +1,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 import { randomUUID } from "crypto";
-import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import {
   queueManagerReceiveError,
   queueManagerSendError,

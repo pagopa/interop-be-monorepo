@@ -2,7 +2,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  purposeIdNotProvided,
+  urlCallbackNotProvided,
+} from "pagopa-interop-client-assertion-validation";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -29,11 +32,9 @@ import {
   purposeVersionState,
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import {
-  purposeIdNotProvided,
-  urlCallbackNotProvided,
-} from "pagopa-interop-client-assertion-validation";
 import { catalogEntryNotFound } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import { deconstructGSIPK_eserviceId_descriptorId } from "../../src/utilities/tokenServiceHelpers.js";

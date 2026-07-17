@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { generateId, PurposeTemplateId } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { bffApi } from "pagopa-interop-api-clients";
 import request from "supertest";
-import { authRole } from "pagopa-interop-commons";
-import { getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor } from "../../mockUtils.js";
-import { api, services } from "../../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceDescriptorNotFound,
   eServiceNotFound,
   tenantNotFound,
 } from "../../../src/model/errors.js";
+import { getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor } from "../../mockUtils.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /purposeTemplates/:purposeTemplateId/eservices", () => {
   const mockPurposeTemplateId = generateId<PurposeTemplateId>();

@@ -1,6 +1,6 @@
-import { fileURLToPath } from "url";
 import fs from "fs/promises";
-import path from "path";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -12,7 +12,6 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
 } from "pagopa-interop-commons-test";
-import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
 import {
   delegationKind,
   delegationState,
@@ -34,16 +33,10 @@ import {
   Technology,
   TenantId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { genericLogger } from "pagopa-interop-commons";
-import {
-  catalogService,
-  addOneEService,
-  addOneEServiceTemplate,
-  fileManager,
-  addOneDelegation,
-  readLastEserviceEvent,
-} from "../integrationUtils.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import { expect, describe, it, vi, afterAll, beforeAll } from "vitest";
+
 import { config } from "../../src/config/config.js";
 import {
   eServiceDescriptorNotFound,
@@ -53,6 +46,14 @@ import {
   eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
 } from "../../src/model/domain/errors.js";
+import {
+  catalogService,
+  addOneEService,
+  addOneEServiceTemplate,
+  fileManager,
+  addOneDelegation,
+  readLastEserviceEvent,
+} from "../integrationUtils.js";
 
 const readFileContent = async (fileName: string): Promise<string> => {
   const filename = fileURLToPath(import.meta.url);

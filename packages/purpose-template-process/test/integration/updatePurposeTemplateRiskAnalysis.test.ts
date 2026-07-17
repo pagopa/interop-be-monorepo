@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   genericLogger,
   getLatestVersionFormRules,
@@ -39,7 +40,7 @@ import {
   it,
   vi,
 } from "vitest";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
+
 import { config } from "../../src/config/config.js";
 import {
   purposeTemplateNotFound,
