@@ -41,15 +41,15 @@ import {
 } from "../model/domain/errors.js";
 import { HttpDPoPHeader } from "../model/domain/models.js";
 import {
+  publishApiTokenAudit,
+  publishConsumerTokenAudit,
+} from "../utilities/audit.js";
+import {
   deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
   retrieveKey,
   validateDPoPProof,
 } from "../utilities/tokenServiceHelpers.js";
-import {
-  publishApiTokenAudit,
-  publishConsumerTokenAudit,
-} from "../utilities/audit.js";
 
 export type GeneratedTokenData =
   | {
