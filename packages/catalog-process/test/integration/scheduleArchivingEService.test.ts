@@ -157,6 +157,9 @@ describe("schedule archiving of an EService", () => {
       expect(actualArchivingSchedule.archivableOn).toEqual(
         expectedArchivableOn
       );
+      expect(actualArchivingSchedule.gracePeriodDays).toEqual(
+        gracePeriodDaysValue
+      );
     }
   );
 

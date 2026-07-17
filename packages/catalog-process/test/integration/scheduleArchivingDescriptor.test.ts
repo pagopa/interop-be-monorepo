@@ -174,6 +174,9 @@ describe("schedule archiving of a descriptor", () => {
       expect(actualArchivingSchedule.archivableOn).toEqual(
         expectedArchivableOn
       );
+      expect(actualArchivingSchedule.gracePeriodDays).toEqual(
+        gracePeriodDaysValue
+      );
     }
   );
 
