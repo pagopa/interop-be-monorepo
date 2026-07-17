@@ -1,3 +1,4 @@
+import { initProducer } from "kafka-iam-auth";
 import {
   FileManager,
   formatDateyyyyMMdd,
@@ -26,12 +27,12 @@ import {
   unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
+
+import { config } from "../config/config.js";
 import {
   fallbackAuditFailed,
   kafkaAuditingFailed,
 } from "../model/domain/errors.js";
-import { initProducer } from "kafka-iam-auth";
-import { config } from "../config/config.js";
 
 type GeneratedAuditDetails =
   | GeneratedConsumerTokenAuditDetails

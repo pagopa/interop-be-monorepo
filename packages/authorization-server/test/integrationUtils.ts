@@ -1,12 +1,13 @@
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { KMSClient } from "@aws-sdk/client-kms";
 import { initProducer } from "kafka-iam-auth";
 import { InteropTokenGenerator } from "pagopa-interop-commons";
-import { tokenServiceBuilder } from "../src/services/tokenService.js";
-import { asyncTokenServiceBuilder } from "../src/services/asyncTokenService.js";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { afterEach, inject } from "vitest";
+
 import { config } from "../src/config/config.js";
+import { asyncTokenServiceBuilder } from "../src/services/asyncTokenService.js";
+import { tokenServiceBuilder } from "../src/services/tokenService.js";
 import { mockApiProducer, mockKMSClient, mockProducer } from "./mockUtils.js";
 
 export const configTokenGenerationStates = inject(
