@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
-import { generateId } from "pagopa-interop-models";
+import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   mockTokenOrganizationId,
   mockTokenUserId,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, clients, services } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { expectedUserIdAndOrganizationId } from "../../utils.js";
+import { api, clients, services } from "../../vitest.api.setup.js";
 
 describe("API GET /userNotificationConfigs", () => {
   const userId = mockTokenUserId;

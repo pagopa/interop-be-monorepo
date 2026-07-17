@@ -1,5 +1,15 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockAttribute,
+  readLastEventByStreamId,
+  getMockDescriptor,
+  getMockEService,
+  getMockTenant,
+  getMockDelegation,
+  getMockAuthData,
+  getMockContext,
+} from "pagopa-interop-commons-test";
+import {
   generateId,
   Tenant,
   unsafeBrandId,
@@ -21,16 +31,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import {
-  getMockAttribute,
-  readLastEventByStreamId,
-  getMockDescriptor,
-  getMockEService,
-  getMockTenant,
-  getMockDelegation,
-  getMockAuthData,
-  getMockContext,
-} from "pagopa-interop-commons-test";
+
 import {
   attributeAlreadyVerified,
   tenantNotFound,

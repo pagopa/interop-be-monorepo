@@ -19,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import { aggregatePurpose } from "pagopa-interop-readmodel";
 import { describe, it, expect } from "vitest";
+
 import {
   checkCompletePurpose,
   purposeWriterService,

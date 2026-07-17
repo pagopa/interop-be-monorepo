@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
+import { ITask, IMain } from "pg-promise";
 
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import {
+  AgreementSchema,
+  AgreementDeletingSchema,
+} from "../../model/agreement/agreement.js";
+import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
@@ -11,12 +17,6 @@ import {
   generateMergeQuery,
   generateMergeDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { AgreementDbTable, DeletingDbTable } from "../../model/db/index.js";
-import { config } from "../../config/config.js";
-import {
-  AgreementSchema,
-  AgreementDeletingSchema,
-} from "../../model/agreement/agreement.js";
 
 export function agreementRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

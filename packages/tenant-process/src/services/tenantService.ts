@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   DB,
   eventRepository,
@@ -45,8 +46,36 @@ import {
   TenantRevoker,
 } from "pagopa-interop-models";
 import { ExternalId } from "pagopa-interop-models";
-import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
+
+import { fromApiTenantFeature } from "../model/domain/apiConverter.js";
+import {
+  attributeAlreadyRevoked,
+  attributeAlreadyVerified,
+  attributeDoesNotBelongToCertifier,
+  attributeNotFound,
+  attributeNotFoundInTenant,
+  attributeRevocationNotAllowed,
+  attributeVerificationNotAllowed,
+  certifiedAttributeAlreadyAssigned,
+  certifierWithExistingAttributes,
+  mailAlreadyExists,
+  mailNotFound,
+  tenantIsNotACertifier,
+  tenantNotFoundByExternalId,
+  tenantNotFoundBySelfcareId,
+  tenantNotFound,
+  tenantIsAlreadyACertifier,
+  verifiedAttributeSelfRevocationNotAllowed,
+  agreementNotFound,
+  notValidMailAddress,
+  delegationNotFound,
+  operationRestrictedToDelegate,
+  verifiedAttributeSelfVerificationNotAllowed,
+  certifiedDiscreteAttributeAlreadyAssigned,
+  tenantNotFoundByRemoteId,
+} from "../model/domain/errors.js";
+import { ApiGetTenantsFilters } from "../model/domain/models.js";
 import {
   toCreateEventTenantVerifiedAttributeExpirationUpdated,
   toCreateEventTenantVerifiedAttributeExtensionUpdated,
@@ -74,34 +103,7 @@ import {
   toCreateEventMaintenanceTenantRemoteIdDeleted,
   toCreateEventTenantCertifiedDiscreteAttributeAssigned,
 } from "../model/domain/toEvent.js";
-import {
-  attributeAlreadyVerified,
-  attributeAlreadyRevoked,
-  attributeDoesNotBelongToCertifier,
-  attributeNotFound,
-  attributeNotFoundInTenant,
-  attributeRevocationNotAllowed,
-  attributeVerificationNotAllowed,
-  certifiedAttributeAlreadyAssigned,
-  certifierWithExistingAttributes,
-  mailAlreadyExists,
-  mailNotFound,
-  tenantIsNotACertifier,
-  tenantNotFoundByExternalId,
-  tenantNotFoundBySelfcareId,
-  tenantNotFound,
-  tenantIsAlreadyACertifier,
-  verifiedAttributeSelfRevocationNotAllowed,
-  agreementNotFound,
-  notValidMailAddress,
-  delegationNotFound,
-  operationRestrictedToDelegate,
-  verifiedAttributeSelfVerificationNotAllowed,
-  certifiedDiscreteAttributeAlreadyAssigned,
-  tenantNotFoundByRemoteId,
-} from "../model/domain/errors.js";
-import { ApiGetTenantsFilters } from "../model/domain/models.js";
-import { fromApiTenantFeature } from "../model/domain/apiConverter.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertOrganizationIsInAttributeVerifiers,
   assertValidExpirationDate,
@@ -117,7 +119,6 @@ import {
   getTenantKind,
   isFeatureAssigned,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveTenant = async (
   tenantId: TenantId,
