@@ -20,6 +20,13 @@ function convertAttribute(
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
+  attributeKind: typeof attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+  logger: Logger,
+  mapThrownErrorsToNotFound?: boolean
+): m2mGatewayApiV3.CertifiedDiscreteAttribute;
+
+function convertAttribute(
+  attribute: attributeRegistryApi.Attribute,
   attributeKind: typeof attributeRegistryApi.AttributeKind.Values.DECLARED,
   logger: Logger,
   mapThrownErrorsToNotFound?: boolean
@@ -34,16 +41,12 @@ function convertAttribute(
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
-  // TODO(PIN-10074): remove this exclusion when the future M2M work item adds
-  // CERTIFIED_DISCRETE support to the M2M v3 contract.
-  attributeKind: Exclude<
-    attributeRegistryApi.AttributeKind,
-    "CERTIFIED_DISCRETE"
-  >,
+  attributeKind: attributeRegistryApi.AttributeKind,
   logger: Logger,
   mapThrownErrorsToNotFound = false
 ):
   | m2mGatewayApiV3.CertifiedAttribute
+  | m2mGatewayApiV3.CertifiedDiscreteAttribute
   | m2mGatewayApiV3.DeclaredAttribute
   | m2mGatewayApiV3.VerifiedAttribute {
   try {
@@ -56,14 +59,18 @@ function convertAttribute(
       createdAt: attribute.creationTime,
     };
     return match(attributeKind)
-      .with(attributeRegistryApi.AttributeKind.Values.CERTIFIED, () => {
-        assertAttributeOriginAndCodeAreDefined(attribute);
-        return {
-          ...baseFields,
-          code: attribute.code,
-          origin: attribute.origin,
-        };
-      })
+      .with(
+        attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+        attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+        () => {
+          assertAttributeOriginAndCodeAreDefined(attribute);
+          return {
+            ...baseFields,
+            code: attribute.code,
+            origin: attribute.origin,
+          };
+        }
+      )
       .with(
         attributeRegistryApi.AttributeKind.Values.DECLARED,
         attributeRegistryApi.AttributeKind.Values.VERIFIED,
@@ -96,6 +103,23 @@ export function toM2MGatewayApiCertifiedAttribute({
   return convertAttribute(
     attribute,
     attributeRegistryApi.AttributeKind.Values.CERTIFIED,
+    logger,
+    mapThrownErrorsToNotFound
+  );
+}
+
+export function toM2MGatewayApiCertifiedDiscreteAttribute({
+  attribute,
+  logger,
+  mapThrownErrorsToNotFound = false,
+}: {
+  attribute: attributeRegistryApi.Attribute;
+  logger: Logger;
+  mapThrownErrorsToNotFound?: boolean;
+}): m2mGatewayApiV3.CertifiedDiscreteAttribute {
+  return convertAttribute(
+    attribute,
+    attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
     logger,
     mapThrownErrorsToNotFound
   );
@@ -142,6 +166,16 @@ export function toGetCertifiedAttributesApiQueryParams(
     limit: params.limit,
     offset: params.offset,
     kinds: [attributeRegistryApi.AttributeKind.Values.CERTIFIED],
+  };
+}
+
+export function toGetCertifiedDiscreteAttributesApiQueryParams(
+  params: m2mGatewayApiV3.GetCertifiedDiscreteAttributesQueryParams
+): attributeRegistryApi.GetAttributesQueryParams {
+  return {
+    limit: params.limit,
+    offset: params.offset,
+    kinds: [attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE],
   };
 }
 

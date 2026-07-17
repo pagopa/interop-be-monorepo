@@ -530,6 +530,19 @@ export function getMockedApiCertifiedTenantAttribute({
   };
 }
 
+export function getMockedApiCertifiedDiscreteTenantAttribute({
+  revoked = false,
+}: {
+  revoked?: boolean;
+} = {}): tenantApi.CertifiedDiscreteTenantAttribute {
+  return {
+    id: generateId(),
+    assignmentTimestamp: new Date().toISOString(),
+    discreteValue: generateMock(z.number().int().min(1).max(1000000)),
+    revocationTimestamp: revoked ? new Date().toISOString() : undefined,
+  };
+}
+
 export function getMockedApiVerifiedTenantAttribute(): tenantApi.VerifiedTenantAttribute {
   return {
     id: generateId(),

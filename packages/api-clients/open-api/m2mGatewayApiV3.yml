@@ -1399,6 +1399,124 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /certifiedDiscreteAttributes:
+    get:
+      tags:
+        - attributes
+      summary: List Certified Discrete Attributes
+      description: Retrieve a list of Certified Discrete Attributes
+      operationId: getCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Certified Discrete Attributes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - attributes
+      summary: Create a certified Discrete Attribute
+      description: |
+        Create a certified Discrete Attribute
+        The Attribute must
+          - have a unique name across all Attributes in the Platform
+          - have a unique code across certified Discrete Attributes owned by the requester
+      operationId: createCertifiedDiscreteAttribute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertifiedDiscreteAttributeSeed"
+      responses:
+        "201":
+          description: Certified Discrete Attribute created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /certifiedDiscreteAttributes/{attributeId}:
+    parameters:
+      - name: attributeId
+        in: path
+        description: The ID of the Attribute to retrieve
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    get:
+      tags:
+        - attributes
+      summary: Retrieve a certified Discrete Attribute
+      description: Retrieve a certified Discrete Attribute
+      operationId: getCertifiedDiscreteAttribute
+      responses:
+        "200":
+          description: Certified Discrete attribute retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /declaredAttributes/{attributeId}:
     parameters:
       - name: attributeId
@@ -4406,6 +4524,55 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+    get:
+      tags:
+        - eservices
+      summary: List E-Service Descriptor Certified Discrete Attributes
+      description: Retrieve a list of E-Service Descriptor Certified Discrete Attributes
+      operationId: getEServiceDescriptorCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: E-Service Descriptors Certified Discrete Attributes retrieved
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/declaredAttributes:
     parameters:
       - name: eserviceId
@@ -4544,6 +4711,73 @@ paths:
         "200":
           description: E-Service Descriptor Certified Attribute assigned to the Attribute
             Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+      - name: groupIndex
+        in: path
+        description: The index of the group of attributes
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+    post:
+      tags:
+        - eservices
+      summary: Assign E-Service Descriptor Certified Discrete Attributes to a specific
+        Attribute Group
+      description: Assign a set of Certified Discrete Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Descriptor
+      operationId: assignEServiceDescriptorCertifiedDiscreteAttributesToGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Discrete Attribute assigned to the
+            Attribute Group
           content:
             application/json:
               schema:
@@ -4813,6 +5047,71 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes/{attributeId}:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+      - name: groupIndex
+        in: path
+        description: The index of the group to which the Attribute belongs
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - name: attributeId
+        in: path
+        description: The ID of the Certified Discrete Attribute
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    delete:
+      tags:
+        - eservices
+      summary: Delete an E-Service Descriptor Certified Discrete Attribute from a specific
+        Attribute Group
+      description: |
+        Delete a specific Certified Discrete Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
+        If the deleted attribute is the last one in the group, the entire group will be removed.
+      operationId: deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Discrete Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/verifiedAttributes/groups/{groupIndex}/attributes/{attributeId}:
     parameters:
       - name: eserviceId
@@ -4977,6 +5276,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceDescriptorCertifiedAttributesGroup"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+    post:
+      tags:
+        - eservices
+      summary: Create a Certified Discrete Attributes Group for an E-Service Descriptor
+      description: Create a new group of Certified Discrete Attributes for an E-Service
+        Descriptor in Draft state
+      operationId: createEServiceDescriptorCertifiedDiscreteAttributesGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
+      responses:
+        "201":
+          description: Certified Discrete Attributes Group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6300,6 +6654,56 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/certifiedDiscreteAttributes:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID of the Version
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eserviceTemplates
+      summary: List E-Service Template Version Certified Discrete Attributes
+      description: Retrieve a list of E-Service Template Version Certified Discrete Attributes
+      operationId: getEServiceTemplateVersionCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: E-Service Template Version Certified Discrete Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/declaredAttributes:
     parameters:
       - name: templateId
@@ -6440,6 +6844,74 @@ paths:
       responses:
         "200":
           description: E-Service Descriptor Certified Attribute assigned to the Attribute
+            Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: groupIndex
+        in: path
+        description: The index of the group of attributes
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Assign E-Service Template Version Certified Discrete Attribute to a specific
+        Attribute Group
+      description: Assign a set of Certified Discrete Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Template Version
+      operationId: assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Discrete Attribute assigned to the Attribute
             Group
           content:
             application/json:
@@ -6671,6 +7143,73 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes/{attributeId}:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: groupIndex
+        in: path
+        description: The index of the group to which the Attribute belongs
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - name: attributeId
+        in: path
+        description: The ID of the Certified Discrete Attribute
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    delete:
+      tags:
+        - eserviceTemplates
+      summary: Delete an E-Service Template Certified Discrete Attribute from a specific
+        Attribute Group
+      description: |
+        Delete a specific Certified Discrete Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version.
+        If the deleted attribute is the last one in the group, the entire group will be removed.
+      operationId: deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup
+      responses:
+        "200":
+          description: E-Service Template Version Certified Discrete Attribute deleted from
+            Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttributes/groups/{groupIndex}/attributes/{attributeId}:
     parameters:
       - name: templateId
@@ -6840,6 +7379,62 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttributesGroup"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/certifiedDiscreteAttributes/groups:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID of the Version
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Create Certified Discrete Attributes Group for E-Service Template Version
+      description: Create a new group of Certified Discrete Attributes for an E-Service
+        Template Version in Draft state
+      operationId: createEServiceTemplateVersionCertifiedDiscreteAttributesGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
+      responses:
+        "201":
+          description: Certified Discrete Attributes Group created for E-Service Template Version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8274,6 +8869,141 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TenantCertifiedAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /tenants/{tenantId}/certifiedDiscreteAttributes:
+    parameters:
+      - name: tenantId
+        in: path
+        description: The Tenant ID of the Certified Discrete Attributes
+        required: true
+        schema:
+          $ref: "#/components/schemas/TenantId"
+    get:
+      tags:
+        - tenants
+      summary: List Tenant Certified Discrete Attributes
+      description: Retrieve a list of Certified Discrete Attributes assigned to the Tenant
+      operationId: getTenantCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Tenant Certified Discrete Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - tenants
+      summary: Assign a Certified Discrete Attribute to a Tenant
+      description: Assign a Certified Discrete Attribute to a Tenant
+      operationId: assignTenantCertifiedDiscreteAttribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantCertifiedDiscreteAttributeSeed"
+        required: true
+      responses:
+        "200":
+          description: Certified Discrete Attribute assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /tenants/{tenantId}/certifiedDiscreteAttributes/{attributeId}:
+    parameters:
+      - name: tenantId
+        in: path
+        description: The Tenant ID of the Certified Discrete Attribute
+        required: true
+        schema:
+          $ref: "#/components/schemas/TenantId"
+      - name: attributeId
+        in: path
+        description: The Certified Discrete Attribute ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    delete:
+      tags:
+        - tenants
+      summary: Revoke a Certified Discrete Attribute from a Tenant
+      description: Revoke a Certified Discrete Attribute from a Tenant
+      operationId: revokeTenantCertifiedDiscreteAttribute
+      responses:
+        "200":
+          description: Certified Discrete Attribute revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -11506,6 +12236,36 @@ components:
       required:
         - groupIndex
         - attribute
+    EServiceTemplateVersionCertifiedDiscreteAttribute:
+      type: object
+      description: Represents an E-Service Template Version Certified Discrete attribute with
+        the index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+      required:
+        - groupIndex
+        - attribute
+    EServiceDescriptorCertifiedDiscreteAttribute:
+      type: object
+      description: Represents an E-Service Descriptor Certified Discrete attribute with the
+        index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+      required:
+        - groupIndex
+        - attribute
     EServiceDescriptorDeclaredAttribute:
       type: object
       description: Represents an E-Service Descriptor Declared attribute with the
@@ -11629,6 +12389,19 @@ components:
       required:
         - results
         - pagination
+    EServiceDescriptorCertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     EServiceTemplateVersionCertifiedAttributes:
       type: object
       additionalProperties: false
@@ -11637,6 +12410,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    EServiceTemplateVersionCertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttribute"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:
@@ -11652,6 +12438,16 @@ components:
             $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
       required:
         - attributes
+    EServiceDescriptorCertifiedDiscreteAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttribute"
+      required:
+        - attributes
     EServiceTemplateVersionCertifiedAttributesGroup:
       type: object
       additionalProperties: false
@@ -11660,6 +12456,16 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttribute"
+      required:
+        - attributes
+    EServiceTemplateVersionCertifiedDiscreteAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttribute"
       required:
         - attributes
     EServiceDescriptorDeclaredAttributes:
@@ -11787,6 +12593,95 @@ components:
         - description
         - name
         - code
+    CertifiedDiscreteAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          description: The identifier of the attribute on the source registry
+        description:
+          type: string
+        origin:
+          type: string
+          description: Identifier of the origin of this attribute, e.g. "ISTAT"
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
+      required:
+        - id
+        - name
+        - description
+        - code
+        - origin
+        - createdAt
+    CertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    CertifiedDiscreteAttributeSeed:
+      type: object
+      additionalProperties: false
+      description: Models the attribute registry entry as payload response
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: The identifier of the attribute on the source registry
+        discreteConfig:
+          $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
+      required:
+        - description
+        - name
+        - code
+    AttributeCertifiedDiscreteComparator:
+      type: string
+      enum:
+        - GT
+        - LT
+        - EQ
+        - GTE
+        - LTE
+        - NE
+    EServiceAttributeCertifiedDiscreteConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        threshold:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        comparator:
+          $ref: "#/components/schemas/AttributeCertifiedDiscreteComparator"
+      required:
+        - threshold
+        - comparator
     DeclaredAttribute:
       type: object
       additionalProperties: false
@@ -13761,6 +14656,56 @@ components:
           format: uuid
       required:
         - id
+    TenantCertifiedDiscreteAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        assignedAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - assignedAt
+        - discreteValue
+    TenantCertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    TenantCertifiedDiscreteAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - certifiedDiscreteValue
     TenantDeclaredAttribute:
       type: object
       additionalProperties: false

@@ -32,6 +32,7 @@ import {
 } from "../model/errors.js";
 import {
   toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiCertifiedDiscreteAttribute,
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
 } from "../api/attributeApiConverter.js";
@@ -1030,6 +1031,36 @@ export function eserviceTemplateServiceBuilder(
       };
     },
 
+    async createEServiceTemplateVersionCertifiedDiscreteAttributesGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      seed: m2mGatewayApiV3.EServiceTemplateVersionAttributesGroupSeed,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroup> {
+      ctx.logger.info(
+        `Creating Certified Discrete Attributes Group for E-Service Template ${templateId} Version ${versionId}`
+      );
+
+      const { attributes, groupIndex } =
+        await createEServiceTemplateVersionAttributesGroup(
+          templateId,
+          versionId,
+          seed,
+          "certified",
+          ctx
+        );
+
+      return {
+        attributes: attributes.map((attr) => ({
+          groupIndex,
+          attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+            attribute: attr,
+            logger: ctx.logger,
+          }),
+        })),
+      };
+    },
+
     async createEServiceTemplateVersionDeclaredAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
@@ -1140,6 +1171,43 @@ export function eserviceTemplateServiceBuilder(
         },
       };
     },
+    async getEserviceTemplateVersionCertifiedDiscreteAttributes(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApiV3.GetEServiceTemplateVersionCertifiedDiscreteAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributes> {
+      logger.info(
+        `Retrieving Certified Discrete Attributes for E-Service Template ${templateId} Version ${versionId}`
+      );
+
+      const eserviceTemplateVersionAttributes =
+        await retrieveEServiceTemplateVersionAttributes(
+          await retrieveEServiceTemplateById(headers, templateId),
+          versionId,
+          "certified",
+          { offset, limit },
+          headers
+        );
+
+      return {
+        results: eserviceTemplateVersionAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceTemplateVersionAttributes.totalCount,
+        },
+      };
+    },
 
     async getEserviceTemplateVersionDeclaredAttributes(
       templateId: EServiceTemplateId,
@@ -1235,6 +1303,25 @@ export function eserviceTemplateServiceBuilder(
         headers
       );
     },
+    async assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      seed: m2mGatewayApiV3.EServiceTemplateVersionAttributesGroupSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Assigning Certified Discrete Attributes to Group ${groupIndex} for E-Service template ${templateId} Version ${versionId}`
+      );
+      await assignEServiceTemplateVersionAttributesToGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        seed,
+        "certified",
+        headers
+      );
+    },
     async assignEServiceTemplateVersionDeclaredAttributesToGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
@@ -1282,6 +1369,25 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<void> {
       ctx.logger.info(
         `Deleting certified attribute ${attributeId} from group ${groupIndex} for version ${versionId} of eservice template ${templateId}`
+      );
+      await deleteEServiceTemplateVersionAttributeFromGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        attributeId,
+        "certified",
+        ctx
+      );
+    },
+    async deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting certified discrete attribute ${attributeId} from group ${groupIndex} for version ${versionId} of eservice template ${templateId}`
       );
       await deleteEServiceTemplateVersionAttributeFromGroup(
         templateId,

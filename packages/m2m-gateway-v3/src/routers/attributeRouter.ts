@@ -49,6 +49,30 @@ const attributeRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/certifiedDiscreteAttributes/:attributeId", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const attribute = await attributeService.getCertifiedDiscreteAttribute(
+          req.params.attributeId,
+          ctx
+        );
+
+        return res
+          .status(200)
+          .send(m2mGatewayApiV3.CertifiedDiscreteAttribute.parse(attribute));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getAttributeErrorMapper,
+          ctx,
+          `Error retrieving certified discrete attribute with id ${req.params.attributeId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/declaredAttributes/:attributeId", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
@@ -116,6 +140,51 @@ const attributeRouter = (
           emptyErrorMapper,
           ctx,
           "Error creating certified attribute"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/certifiedDiscreteAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+      try {
+        validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+        const attribute =
+          await attributeService.createCertifiedDiscreteAttribute(
+            req.body,
+            ctx
+          );
+        return res
+          .status(201)
+          .send(m2mGatewayApiV3.CertifiedDiscreteAttribute.parse(attribute));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error creating certified discrete attribute"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/certifiedDiscreteAttributes", async (req, res) => {
+      const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const attributes =
+          await attributeService.getCertifiedDiscreteAttributes(req.query, ctx);
+
+        return res
+          .status(200)
+          .send(m2mGatewayApiV3.CertifiedDiscreteAttributes.parse(attributes));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          "Error retrieving certified discrete attributes"
         );
         return res.status(errorRes.status).send(errorRes);
       }

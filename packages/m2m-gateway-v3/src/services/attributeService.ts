@@ -13,9 +13,11 @@ import { M2MGatewayAppContext } from "../utils/context.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {
   toGetCertifiedAttributesApiQueryParams,
+  toGetCertifiedDiscreteAttributesApiQueryParams,
   toGetDeclaredAttributesApiQueryParams,
   toGetVerifiedAttributesApiQueryParams,
   toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiCertifiedDiscreteAttribute,
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
 } from "../api/attributeApiConverter.js";
@@ -52,6 +54,27 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
       });
 
       return toM2MGatewayApiCertifiedAttribute({
+        attribute: response.data,
+        logger,
+        mapThrownErrorsToNotFound: true,
+      });
+    },
+    async getCertifiedDiscreteAttribute(
+      attributeId: string,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.CertifiedDiscreteAttribute> {
+      logger.info(
+        `Retrieving certified discrete attribute with id ${attributeId}`
+      );
+
+      const response = await clients.attributeProcessClient.getAttributeById({
+        params: {
+          attributeId,
+        },
+        headers,
+      });
+
+      return toM2MGatewayApiCertifiedDiscreteAttribute({
         attribute: response.data,
         logger,
         mapThrownErrorsToNotFound: true,
@@ -115,6 +138,29 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
         logger,
       });
     },
+    async createCertifiedDiscreteAttribute(
+      seed: m2mGatewayApiV3.CertifiedDiscreteAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.CertifiedDiscreteAttribute> {
+      logger.info(
+        `Creating certified discrete attribute with code ${seed.code} and name ${seed.name}`
+      );
+
+      const response =
+        await clients.attributeProcessClient.createCertifiedDiscreteAttribute(
+          seed,
+          {
+            headers,
+          }
+        );
+
+      const polledResource = await pollAttribute(response, headers);
+
+      return toM2MGatewayApiCertifiedDiscreteAttribute({
+        attribute: polledResource.data,
+        logger,
+      });
+    },
     async createVerifiedAttribute(
       seed: m2mGatewayApiV3.VerifiedAttributeSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
@@ -149,6 +195,36 @@ export function attributeServiceBuilder(clients: PagoPAInteropBeClients) {
       return {
         results: response.data.results.map((attribute) =>
           toM2MGatewayApiCertifiedAttribute({ attribute, logger })
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: response.data.totalCount,
+        },
+      };
+    },
+    async getCertifiedDiscreteAttributes(
+      {
+        limit,
+        offset,
+      }: m2mGatewayApiV3.GetCertifiedDiscreteAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.CertifiedDiscreteAttributes> {
+      logger.info(
+        `Retrieving certified discrete attributes with limit ${limit} and offset ${offset}`
+      );
+
+      const response = await clients.attributeProcessClient.getAttributes({
+        queries: toGetCertifiedDiscreteAttributesApiQueryParams({
+          limit,
+          offset,
+        }),
+        headers,
+      });
+
+      return {
+        results: response.data.results.map((attribute) =>
+          toM2MGatewayApiCertifiedDiscreteAttribute({ attribute, logger })
         ),
         pagination: {
           limit,

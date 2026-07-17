@@ -15,6 +15,7 @@ import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   toM2MGatewayApiTenantCertifiedAttribute,
+  toM2MGatewayApiTenantCertifiedDiscreteAttribute,
   toGetTenantsApiQueryParams,
   toM2MGatewayApiTenant,
   toM2MGatewayApiTenantVerifiedAttribute,
@@ -29,6 +30,7 @@ import {
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
 import {
   tenantCertifiedAttributeNotFound,
+  tenantCertifiedDiscreteAttributeNotFound,
   tenantDeclaredAttributeNotFound,
   tenantVerifiedAttributeNotFound,
 } from "../model/errors.js";
@@ -74,6 +76,30 @@ function retrieveCertifiedAttribute(
   }
 
   return certifiedAttribute;
+}
+
+function retrieveCertifiedDiscreteAttributes(
+  tenant: tenantApi.Tenant
+): tenantApi.CertifiedDiscreteTenantAttribute[] {
+  return tenant.attributes.map((v) => v.certifiedDiscrete).filter(isDefined);
+}
+
+function retrieveCertifiedDiscreteAttribute(
+  tenant: tenantApi.Tenant,
+  attributeId: tenantApi.CertifiedDiscreteTenantAttribute["id"]
+): tenantApi.CertifiedDiscreteTenantAttribute {
+  const certifiedDiscreteAttribute = retrieveCertifiedDiscreteAttributes(
+    tenant
+  ).find(
+    (certifiedDiscreteAttribute) =>
+      certifiedDiscreteAttribute.id === attributeId
+  );
+
+  if (!certifiedDiscreteAttribute) {
+    throw tenantCertifiedDiscreteAttributeNotFound(tenant, attributeId);
+  }
+
+  return certifiedDiscreteAttribute;
 }
 
 function retrieveVerifiedAttributes(
@@ -347,6 +373,99 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       );
 
       return toM2MGatewayApiTenantCertifiedAttribute(certifiedAttribute);
+    },
+    async getTenantCertifiedDiscreteAttributes(
+      tenantId: TenantId,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApiV3.GetTenantCertifiedDiscreteAttributesQueryParams,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.TenantCertifiedDiscreteAttributes> {
+      logger.info(
+        `Retrieving tenant ${tenantId} certified discrete attributes`
+      );
+
+      const { data: tenant } = await retrieveTenantById(tenantId, headers);
+
+      const certifiedDiscreteAttributes =
+        retrieveCertifiedDiscreteAttributes(tenant);
+
+      const paginatedCertifiedDiscreteAttributes =
+        certifiedDiscreteAttributes.slice(offset, offset + limit);
+
+      return {
+        results: paginatedCertifiedDiscreteAttributes.map(
+          toM2MGatewayApiTenantCertifiedDiscreteAttribute
+        ),
+        pagination: {
+          limit,
+          offset,
+          totalCount: certifiedDiscreteAttributes.length,
+        },
+      };
+    },
+    async assignTenantCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      {
+        id: attributeId,
+        certifiedDiscreteValue: discreteValue,
+      }: m2mGatewayApiV3.TenantCertifiedDiscreteAttributeSeed,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.TenantCertifiedDiscreteAttribute> {
+      logger.info(
+        `Assigning certified attribute ${attributeId} to tenant ${tenantId}`
+      );
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.addCertifiedDiscreteAttribute(
+          {
+            id: attributeId,
+            certifiedDiscreteValue: discreteValue,
+          },
+          {
+            params: { tenantId },
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const certifiedDiscreteAttribute = retrieveCertifiedDiscreteAttribute(
+        polledTenant,
+        attributeId
+      );
+
+      return toM2MGatewayApiTenantCertifiedDiscreteAttribute(
+        certifiedDiscreteAttribute
+      );
+    },
+    async revokeTenantCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.TenantCertifiedDiscreteAttribute> {
+      logger.info(
+        `Revoking certified discrete attribute ${attributeId} from tenant ${tenantId}`
+      );
+
+      const response =
+        await clients.tenantProcessClient.tenantAttribute.revokeCertifiedDiscreteAttributeById(
+          undefined,
+          {
+            params: { tenantId, attributeId },
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(response, headers);
+      const certifiedDiscreteAttribute = retrieveCertifiedDiscreteAttribute(
+        polledTenant,
+        attributeId
+      );
+
+      return toM2MGatewayApiTenantCertifiedDiscreteAttribute(
+        certifiedDiscreteAttribute
+      );
     },
     async getTenantVerifiedAttributes(
       tenantId: TenantId,

@@ -57,6 +57,17 @@ export function toM2MGatewayApiTenantCertifiedAttribute(
   };
 }
 
+export function toM2MGatewayApiTenantCertifiedDiscreteAttribute(
+  tenantCertifiedDiscreteAttribute: tenantApi.CertifiedDiscreteTenantAttribute
+): m2mGatewayApiV3.TenantCertifiedDiscreteAttribute {
+  return {
+    id: tenantCertifiedDiscreteAttribute.id,
+    assignedAt: tenantCertifiedDiscreteAttribute.assignmentTimestamp,
+    revokedAt: tenantCertifiedDiscreteAttribute.revocationTimestamp,
+    discreteValue: tenantCertifiedDiscreteAttribute.discreteValue,
+  };
+}
+
 export function toM2MGatewayApiTenantVerifiedAttribute(
   tenantVerifiedAttribute: tenantApi.VerifiedTenantAttribute
 ): m2mGatewayApiV3.TenantVerifiedAttribute {
