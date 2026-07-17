@@ -13631,6 +13631,8 @@ components:
       properties:
         gracePeriodDays:
           $ref: "#/components/schemas/GracePeriodDays"
+      required:
+        - gracePeriodDays
     EServiceArchivingSeed:
       type: object
       additionalProperties: false
