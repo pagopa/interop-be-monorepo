@@ -116,7 +116,7 @@ const buildAuditMessageBodyForConsumerToken = ({
   ...(interaction ? { interaction } : {}),
 });
 
-export const buildAuditMessageBodyForApiToken = ({
+const buildAuditMessageBodyForApiToken = ({
   generatedToken,
   clientAssertion,
   dpop,
