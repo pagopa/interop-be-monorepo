@@ -1,5 +1,6 @@
 import {
-  APIEndpoint,
+  AgreementProcessServerConfig,
+  PurposeProcessServerConfig,
   DelegationTopicConfig,
   KafkaConsumerConfig,
   ReadModelSQLDbConfig,
@@ -7,19 +8,10 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const APIProcessServerConfig = z
-  .object({
-    AGREEMENT_PROCESS_URL: APIEndpoint,
-    PURPOSE_PROCESS_URL: APIEndpoint,
-  })
-  .transform((c) => ({
-    agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
-    purposeProcessUrl: c.PURPOSE_PROCESS_URL,
-  }));
-
-const DelegationItemsArchiverConfig = APIProcessServerConfig.and(
-  DelegationTopicConfig
+const DelegationItemsArchiverConfig = AgreementProcessServerConfig.and(
+  PurposeProcessServerConfig
 )
+  .and(DelegationTopicConfig)
   .and(TokenGenerationConfig)
   .and(KafkaConsumerConfig)
   .and(ReadModelSQLDbConfig);
