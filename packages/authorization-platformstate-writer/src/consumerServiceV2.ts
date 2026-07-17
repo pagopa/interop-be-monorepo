@@ -1,4 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   Client,
@@ -18,7 +19,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
+
 import {
   clientKindToTokenGenerationStatesClientKind,
   deleteClientEntryFromPlatformStates,

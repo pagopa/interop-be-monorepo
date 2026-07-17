@@ -11,12 +11,19 @@ import {
   interactionState,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
+
+import type {
+  AsyncGeneratedTokenData,
+  ScopeHandlerContext,
+} from "../asyncTokenService.js";
+
 import {
   asyncClientAssertionClaimsValidationFailed,
   asyncExchangeNotEnabled,
   clientAssertionSignatureValidationFailed,
   platformStateValidationFailed,
 } from "../../model/domain/errors.js";
+import { createInteraction } from "../../utilities/interactionsUtils.js";
 import {
   deconstructGSIPK_eserviceId_descriptorId,
   logTokenGenerationInfo,
@@ -24,11 +31,6 @@ import {
   retrieveAsyncCatalogEntry,
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
-import { createInteraction } from "../../utilities/interactionsUtils.js";
-import type {
-  AsyncGeneratedTokenData,
-  ScopeHandlerContext,
-} from "../asyncTokenService.js";
 
 export const handleStartInteraction = async (
   ctx: ScopeHandlerContext

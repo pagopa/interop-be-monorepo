@@ -1,9 +1,25 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import crypto, { JsonWebKey } from "crypto";
 import { fail } from "assert";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import crypto, { JsonWebKey } from "crypto";
+import {
+  asyncExchangeNotAllowed,
+  invalidEServiceState,
+  invalidAssertionType,
+  invalidSignature,
+  issuedAtNotFound,
+} from "pagopa-interop-client-assertion-validation";
+import {
+  calculateDPoPThumbprint,
+  calculateKid,
+  dateToSeconds,
+  formatDateyyyyMMdd,
+  genericLogger,
+  secondsToMilliseconds,
+  sortJWK,
+  systemRole,
+} from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -19,6 +35,12 @@ import {
   getMockDPoPProof,
   signJWT,
 } from "pagopa-interop-commons-test";
+import {
+  invalidDPoPTyp,
+  expiredDPoPProof,
+  invalidDPoPSignature,
+  writeDPoPCache,
+} from "pagopa-interop-dpop-validation";
 import {
   AgreementId,
   algorithm,
@@ -40,29 +62,8 @@ import {
   unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
-import {
-  calculateDPoPThumbprint,
-  calculateKid,
-  dateToSeconds,
-  formatDateyyyyMMdd,
-  genericLogger,
-  secondsToMilliseconds,
-  sortJWK,
-  systemRole,
-} from "pagopa-interop-commons";
-import {
-  asyncExchangeNotAllowed,
-  invalidEServiceState,
-  invalidAssertionType,
-  invalidSignature,
-  issuedAtNotFound,
-} from "pagopa-interop-client-assertion-validation";
-import {
-  invalidDPoPTyp,
-  expiredDPoPProof,
-  invalidDPoPSignature,
-  writeDPoPCache,
-} from "pagopa-interop-dpop-validation";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,

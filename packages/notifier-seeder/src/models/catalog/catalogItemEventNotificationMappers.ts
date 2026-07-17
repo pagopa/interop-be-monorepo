@@ -13,6 +13,8 @@ import {
   eserviceMode,
   technology,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { CatalogAttributeValueV1 } from "../../protobuf-models/v1/events.js";
 import {
   CatalogDescriptorV1Notification,
@@ -20,7 +22,6 @@ import {
   CatalogItemRiskAnalysisV1Notification,
   CatalogItemV1Notification,
 } from "./catalogItemEventNotification.js";
-import { match } from "ts-pattern";
 
 const toCatalogItemTechnologyV1 = (input: Technology): string =>
   match(input)
@@ -35,9 +36,9 @@ const toCatalogDescriptorStateV1 = (input: DescriptorState): string =>
     .with(descriptorState.deprecated, () => "Deprecated")
     .with(descriptorState.suspended, () => "Suspended")
     .with(descriptorState.archived, () => "Archived")
-    .with(descriptorState.waitingForApproval, () => "WaitingForApproval")
-    .with(descriptorState.archiving, () => "Archiving")
-    .with(descriptorState.archivingSuspended, () => "ArchivingSuspended")
+    .with(descriptorState.waitingForApproval, () => "Draft")
+    .with(descriptorState.archiving, () => "Deprecated")
+    .with(descriptorState.archivingSuspended, () => "Suspended")
     .exhaustive();
 
 const toAgreementApprovalPolicyV1 = (input: AgreementApprovalPolicy): string =>

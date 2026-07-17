@@ -1,6 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema =
   createSelectSchema(

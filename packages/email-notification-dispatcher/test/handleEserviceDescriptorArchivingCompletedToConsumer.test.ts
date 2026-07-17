@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockContext,
@@ -6,7 +7,6 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -23,6 +23,7 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleEserviceDescriptorArchivingCompletedToConsumer } from "../src/handlers/eservices/handleEserviceDescriptorArchivingCompletedToConsumer.js";
 import {
   addOneAgreement,

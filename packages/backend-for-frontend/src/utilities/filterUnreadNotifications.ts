@@ -1,5 +1,6 @@
-import { WithLogger } from "pagopa-interop-commons";
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
+import { WithLogger } from "pagopa-interop-commons";
+
 import { BffAppContext } from "./context.js";
 
 export async function filterUnreadNotifications(
