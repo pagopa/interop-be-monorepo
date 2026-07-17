@@ -29,7 +29,6 @@ const context = {
   logger: genericLogger,
 } as WithLogger<BffAppContext>;
 
-// CI trigger for PIN-8874 validation.
 describe("selfcareServiceBuilder.getSelfcareInstitutionsProducts", () => {
   it("should return an empty product list when Selfcare returns a server error", async () => {
     const { service } = buildService(axiosErrorWithStatus(500));
