@@ -116,7 +116,6 @@ const buildAuditMessageBodyForConsumerToken = ({
   ...(interaction ? { interaction } : {}),
 });
 
-/** @lintignore TODO: PIN-10579 */
 export const buildAuditMessageBodyForApiToken = ({
   generatedToken,
   clientAssertion,
