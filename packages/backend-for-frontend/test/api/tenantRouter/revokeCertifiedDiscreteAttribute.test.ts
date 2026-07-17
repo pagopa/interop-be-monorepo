@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, clients } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API DELETE /tenants/{tenantId}/attributes/certifiedDiscrete/{attributeId} test", () => {
   beforeEach(() => {

@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
+import { tenantApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   AttributeId,
   generateId,
   Tenant,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockTenant,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { tenantApi } from "pagopa-interop-api-clients";
-import { api, tenantService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   attributeAlreadyRevoked,
   attributeDoesNotBelongToCertifier,
@@ -22,7 +23,7 @@ import {
   tenantIsNotACertifier,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { toApiTenant } from "../../src/model/domain/apiConverter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API DELETE /tenants/{tenantId}/attributes/certifiedDiscrete/{attributeId} test", () => {
   const tenant: Tenant = getMockTenant();
