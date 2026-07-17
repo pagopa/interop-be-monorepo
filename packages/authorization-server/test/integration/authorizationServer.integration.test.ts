@@ -1518,10 +1518,11 @@ describe("authorization server tests", () => {
     );
     expect(fileListBefore).toHaveLength(0);
 
+    const correlationId = generateId<CorrelationId>();
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      () => getMockContext({}),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -1536,6 +1537,7 @@ describe("authorization server tests", () => {
     expect(mockApiProducer.send).toHaveBeenCalledOnce();
 
     expect(response.limitReached).toBe(false);
+    expect(response.token).toBeDefined();
     expect(response.token?.payload).toMatchObject({
       role: systemRole.M2M_ROLE,
     });
@@ -1547,6 +1549,39 @@ describe("authorization server tests", () => {
       rateInterval: config.rateLimiterRateInterval,
       remainingRequests: config.rateLimiterMaxRequests - 1,
     });
+
+    const actualMessageSent = mockApiProducer.send.mock.calls[0][0]
+      .messages[0] as { key: string; value: string };
+
+    const parsedAuditSent = JSON.parse(actualMessageSent.value);
+
+    const expectedMessageBody: GeneratedApiTokenAuditDetails = {
+      jwtId: response.token!.payload.jti,
+      correlationId,
+      issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
+      clientId,
+      organizationId: tokenClientKidEntry.consumerId!,
+      algorithm: algorithm.RS256,
+      keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
+      audience: [response.token!.payload.aud].flat().join(","),
+      subject: clientId,
+      notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
+      expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
+      issuer: config.generatedInteropTokenIssuer,
+      clientAssertion: {
+        algorithm: clientAssertion.header.alg,
+        audience: [clientAssertion.payload.aud].flat().join(","),
+        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
+        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
+        issuer: clientAssertion.payload.iss!,
+        jwtId: clientAssertion.payload.jti!,
+        keyId: clientAssertion.header.kid!,
+        subject: unsafeBrandId(clientAssertion.payload.sub!),
+      },
+    };
+
+    expect(parsedAuditSent).toEqual(expectedMessageBody);
   });
 
   it("should succeed - api key with DPoP - kafka audit succeeded - M2M role", async () => {
@@ -1725,7 +1760,7 @@ describe("authorization server tests", () => {
       standardClaimsOverride: { sub: clientId },
     });
 
-    const { dpopProofJWS } = await getMockDPoPProof();
+    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
 
     const mockRequestWithDPoP = await getMockTokenRequest(true);
     const request: typeof mockRequestWithDPoP = {
@@ -1760,10 +1795,11 @@ describe("authorization server tests", () => {
     );
     expect(fileListBefore).toHaveLength(0);
 
+    const correlationId = generateId<CorrelationId>();
     const response = await tokenService.generateToken(
       request.headers,
       request.body,
-      () => getMockContext({}),
+      () => getMockContext({ correlationId }),
       () => {},
       () => {},
       () => {}
@@ -1791,7 +1827,7 @@ describe("authorization server tests", () => {
     expect(response.token?.payload).toMatchObject({
       role: systemRole.M2M_ADMIN_ROLE,
       cnf: {
-        jkt: expect.any(String),
+        jkt: calculateDPoPThumbprint(dpopProofJWT.header.jwk),
       },
     });
     expect(response.rateLimiterStatus).toEqual({
@@ -1799,61 +1835,6 @@ describe("authorization server tests", () => {
       rateInterval: config.rateLimiterRateInterval,
       remainingRequests: config.rateLimiterMaxRequests - 1,
     });
-  });
-
-  it("should succeed - api key - kafka audit message body - M2M role", async () => {
-    vi.spyOn(mockApiProducer, "send");
-    vi.spyOn(fileManager, "storeBytes");
-
-    const clientId = generateId<ClientId>();
-
-    const { jws, clientAssertion, publicKeyEncodedPem } =
-      await getMockClientAssertion({
-        standardClaimsOverride: { sub: clientId },
-      });
-
-    const mockRequest = await getMockTokenRequest();
-    const request: typeof mockRequest = {
-      headers: mockRequest.headers,
-      body: {
-        ...mockRequest.body,
-        client_assertion: jws,
-        client_id: clientId,
-      },
-    };
-
-    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
-      clientId,
-      kid: clientAssertion.header.kid!,
-    });
-
-    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenGenStatesApiClient(tokenClientKidK),
-      clientKind: clientKindTokenGenStates.api,
-      publicKey: publicKeyEncodedPem,
-    };
-
-    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
-
-    const correlationId = generateId<CorrelationId>();
-    const result = await tokenService.generateToken(
-      request.headers,
-      request.body,
-      () => getMockContext({ correlationId }),
-      () => {},
-      () => {},
-      () => {}
-    );
-
-    expect(result.limitReached).toBe(false);
-    expect(result.token).toBeDefined();
-
-    const fileList = await fileManager.listFiles(
-      config.s3BucketApiTokenAuditFallback,
-      genericLogger
-    );
-    expect(fileList).toHaveLength(0);
-    expect(fileManager.storeBytes).not.toHaveBeenCalled();
 
     const actualMessageSent = mockApiProducer.send.mock.calls[0][0]
       .messages[0] as { key: string; value: string };
@@ -1861,105 +1842,7 @@ describe("authorization server tests", () => {
     const parsedAuditSent = JSON.parse(actualMessageSent.value);
 
     const expectedMessageBody: GeneratedApiTokenAuditDetails = {
-      jwtId: result.token!.payload.jti,
-      correlationId,
-      issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
-      clientId,
-      organizationId: tokenClientKidEntry.consumerId!,
-      algorithm: algorithm.RS256,
-      keyId: config.generatedInteropTokenKid,
-      typ: "at+jwt",
-      audience: [result.token!.payload.aud].flat().join(","),
-      subject: clientId,
-      notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
-      expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
-      issuer: config.generatedInteropTokenIssuer,
-      clientAssertion: {
-        algorithm: clientAssertion.header.alg,
-        audience: [clientAssertion.payload.aud].flat().join(","),
-        expirationTime: secondsToMilliseconds(clientAssertion.payload.exp!),
-        issuedAt: secondsToMilliseconds(clientAssertion.payload.iat!),
-        issuer: clientAssertion.payload.iss!,
-        jwtId: clientAssertion.payload.jti!,
-        keyId: clientAssertion.header.kid!,
-        subject: unsafeBrandId(clientAssertion.payload.sub!),
-      },
-    };
-
-    expect(parsedAuditSent).toEqual(expectedMessageBody);
-  });
-
-  it("should succeed - api key with DPoP - kafka audit message body - M2M_ADMIN role", async () => {
-    vi.spyOn(mockApiProducer, "send");
-    vi.spyOn(fileManager, "storeBytes");
-
-    const clientId = generateId<ClientId>();
-    const clientAdminId = generateId<UserId>();
-
-    const {
-      jws: clientAssertionJWS,
-      clientAssertion,
-      publicKeyEncodedPem,
-    } = await getMockClientAssertion({
-      standardClaimsOverride: { sub: clientId },
-    });
-
-    const { dpopProofJWS, dpopProofJWT } = await getMockDPoPProof();
-
-    const mockRequestWithDPoP = await getMockTokenRequest(true);
-    const request: typeof mockRequestWithDPoP = {
-      headers: {
-        ...mockRequestWithDPoP.headers,
-        DPoP: dpopProofJWS,
-      },
-      body: {
-        ...mockRequestWithDPoP.body,
-        client_assertion: clientAssertionJWS,
-        client_id: clientId,
-      },
-    };
-
-    const tokenClientKidK = makeTokenGenerationStatesClientKidPK({
-      clientId,
-      kid: clientAssertion.header.kid!,
-    });
-
-    const tokenClientKidEntry: TokenGenerationStatesApiClient = {
-      ...getMockTokenGenStatesApiClient(tokenClientKidK),
-      clientKind: clientKindTokenGenStates.api,
-      publicKey: publicKeyEncodedPem,
-      adminId: clientAdminId,
-    };
-
-    await writeTokenGenStatesApiClient(tokenClientKidEntry, dynamoDBClient);
-
-    const correlationId = generateId<CorrelationId>();
-    const result = await tokenService.generateToken(
-      request.headers,
-      request.body,
-      () => getMockContext({ correlationId }),
-      () => {},
-      () => {},
-      () => {}
-    );
-
-    expect(result.limitReached).toBe(false);
-    expect(result.token).toBeDefined();
-
-    const fileList = await fileManager.listFiles(
-      config.s3BucketApiTokenAuditFallback,
-      genericLogger
-    );
-    expect(fileList).toHaveLength(0);
-    expect(fileManager.storeBytes).not.toHaveBeenCalled();
-
-    const actualMessageSent = mockApiProducer.send.mock.calls[0][0]
-      .messages[0] as { key: string; value: string };
-
-    const parsedAuditSent = JSON.parse(actualMessageSent.value);
-
-    const expectedMessageBody: GeneratedApiTokenAuditDetails = {
-      jwtId: result.token!.payload.jti,
+      jwtId: response.token!.payload.jti,
       correlationId,
       issuedAt: secondsToMilliseconds(parsedAuditSent.issuedAt),
       clientId,
@@ -1968,7 +1851,7 @@ describe("authorization server tests", () => {
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
       typ: "at+jwt",
-      audience: [result.token!.payload.aud].flat().join(","),
+      audience: [response.token!.payload.aud].flat().join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
       expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
