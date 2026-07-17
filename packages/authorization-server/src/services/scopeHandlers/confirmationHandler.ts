@@ -28,13 +28,13 @@ import {
   platformStateValidationFailed,
   resourceAvailableTimeExpired,
 } from "../../model/domain/errors.js";
+import { publishConsumerTokenAudit } from "../../utilities/audit.js";
 import {
   readInteraction,
   updateInteractionState,
 } from "../../utilities/interactionsUtils.js";
 import {
   logTokenGenerationInfo,
-  publishAudit,
   retrieveAsyncCatalogEntry,
   retrieveKey,
 } from "../../utilities/tokenServiceHelpers.js";
@@ -231,7 +231,7 @@ export const handleConfirmation = async (
   });
 
   // 12. Publish audit (consumer-side)
-  await publishAudit({
+  await publishConsumerTokenAudit({
     producer,
     generatedToken: token,
     key,
