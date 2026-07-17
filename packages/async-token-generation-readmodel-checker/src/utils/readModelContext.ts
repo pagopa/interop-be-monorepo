@@ -1,4 +1,5 @@
 import { Agreement, Client, EService, Purpose } from "pagopa-interop-models";
+
 import {
   ProducerKeychainReadModelEntry,
   ReadModelServiceSQL,

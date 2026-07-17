@@ -1,25 +1,26 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
+import { tenantApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockAttribute,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   Attribute,
   attributeKind,
   generateId,
   TenantAttribute,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockAttribute,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { tenantApi } from "pagopa-interop-api-clients";
-import { api, tenantService } from "../vitest.api.setup.js";
-import { getMockCertifiedTenantAttribute } from "../mockUtils.js";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   tenantIsNotACertifier,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { getMockCertifiedTenantAttribute } from "../mockUtils.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API GET /tenants/attributes/certified test", () => {
   const certifierId = generateId();

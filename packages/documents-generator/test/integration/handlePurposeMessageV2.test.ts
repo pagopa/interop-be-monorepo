@@ -1,14 +1,11 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import path from "path";
-import { fileURLToPath } from "url";
 import {
   RefreshableInteropToken,
   dateAtRomeZone,
   genericLogger,
 } from "pagopa-interop-commons";
-import { getIpaCode } from "../../src/pdf-generator/pdfGenerator.js";
 import {
   getMockAgreement,
   getMockDescriptorPublished,
@@ -33,6 +30,8 @@ import {
   toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import {
   describe,
   it,
@@ -43,6 +42,19 @@ import {
   beforeAll,
   afterAll,
 } from "vitest";
+
+import { getInteropBeClients } from "../../src/clients/clientProvider.js";
+import { config } from "../../src/config/config.js";
+import { handlePurposeMessageV2 } from "../../src/handler/handlePurposeMessageV2.js";
+import {
+  eServiceNotFound,
+  tenantKindNotFound,
+} from "../../src/model/errors.js";
+import { getIpaCode } from "../../src/pdf-generator/pdfGenerator.js";
+import {
+  RiskAnalysisDocumentBuilder,
+  riskAnalysisDocumentBuilder,
+} from "../../src/service/purpose/purposeContractBuilder.js";
 import {
   cleanup,
   pdfGenerator,
@@ -53,18 +65,6 @@ import {
   fileManager,
   readModelService,
 } from "../integrationUtils.js";
-
-import { handlePurposeMessageV2 } from "../../src/handler/handlePurposeMessageV2.js";
-import {
-  eServiceNotFound,
-  tenantKindNotFound,
-} from "../../src/model/errors.js";
-import { getInteropBeClients } from "../../src/clients/clientProvider.js";
-import { config } from "../../src/config/config.js";
-import {
-  RiskAnalysisDocumentBuilder,
-  riskAnalysisDocumentBuilder,
-} from "../../src/service/purpose/purposeContractBuilder.js";
 const clients = getInteropBeClients();
 const riskAnalysisContractInstance: RiskAnalysisDocumentBuilder =
   riskAnalysisDocumentBuilder(pdfGenerator, fileManager, config, genericLogger);

@@ -1,6 +1,6 @@
-import { match } from "ts-pattern";
-import { EService, EServiceTemplate } from "pagopa-interop-models";
 import { dateAtRomeZone } from "pagopa-interop-commons";
+import { EService, EServiceTemplate } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export type DelegationApprovedRejectedToDelegatorEventType =
   | "ProducerDelegationApproved"

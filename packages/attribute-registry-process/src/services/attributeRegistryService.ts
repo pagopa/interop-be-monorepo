@@ -1,3 +1,4 @@
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -22,8 +23,8 @@ import {
   TenantFeatureCertifier,
   Tenant,
 } from "pagopa-interop-models";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
+
+import { config } from "../config/config.js";
 import {
   tenantIsNotACertifier,
   attributeDuplicateByName,
@@ -32,7 +33,7 @@ import {
   tenantNotFound,
   attributeDuplicateByCodeOriginOrName,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
+import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveTenant = async (

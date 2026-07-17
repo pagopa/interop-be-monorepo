@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
 } from "../../multipartTestUtils.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router test", () => {
   const mockDate = new Date();

@@ -1,10 +1,11 @@
 import { authorizationApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import { M2MAuthData, WithLogger } from "pagopa-interop-commons";
 import { ClientJWKKey } from "pagopa-interop-models";
-import { ApiGatewayAppContext } from "../utilities/context.js";
+
 import { toApiGatewayClient } from "../api/authorizationApiConverter.js";
-import { clientNotFound, keyNotFound } from "../models/errors.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
+import { clientNotFound, keyNotFound } from "../models/errors.js";
+import { ApiGatewayAppContext } from "../utilities/context.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

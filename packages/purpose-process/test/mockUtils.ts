@@ -1,5 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { purposeApi } from "pagopa-interop-api-clients";
 import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidatedForm,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
+} from "pagopa-interop-commons";
+import {
+  getMockValidRiskAnalysisForm,
+  validRiskAnalysis2_0_Private,
+  getMockEService,
+  validatedRiskAnalysisTemplate3_1_Pa,
+} from "pagopa-interop-commons-test";
 import {
   Purpose,
   RiskAnalysis,
@@ -16,19 +27,8 @@ import {
   EServiceTemplateId,
   EService,
 } from "pagopa-interop-models";
-import {
-  getMockValidRiskAnalysisForm,
-  validRiskAnalysis2_0_Private,
-  getMockEService,
-  validatedRiskAnalysisTemplate3_1_Pa,
-} from "pagopa-interop-commons-test";
-import { purposeApi } from "pagopa-interop-api-clients";
-import {
-  RiskAnalysisValidatedForm,
-  riskAnalysisValidatedFormToNewRiskAnalysisForm,
-} from "pagopa-interop-commons";
-
 import { match } from "ts-pattern";
+
 import { validateAndTransformRiskAnalysis } from "../src/services/validators.js";
 
 export const buildRiskAnalysisSeed = (

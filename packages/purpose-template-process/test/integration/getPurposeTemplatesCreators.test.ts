@@ -1,14 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import {
+  getMockPurposeTemplate,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
 import {
   PurposeTemplate,
   purposeTemplateState,
   Tenant,
 } from "pagopa-interop-models";
-import {
-  getMockPurposeTemplate,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { describe, expect, it } from "vitest";
+
 import {
   addOnePurposeTemplate,
   addOneTenant,

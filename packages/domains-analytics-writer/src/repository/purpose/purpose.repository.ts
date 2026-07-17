@@ -1,21 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { ITask, IMain } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
+import { ITask, IMain } from "pg-promise";
 
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { DeletingDbTable } from "../../model/db/deleting.js";
+import { PurposeDbTable } from "../../model/db/index.js";
+import {
+  PurposeSchema,
+  PurposeDeletingSchema,
+} from "../../model/purpose/purpose.js";
 import {
   generateMergeQuery,
   generateMergeDeleteQuery,
   buildColumnSet,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-import {
-  PurposeSchema,
-  PurposeDeletingSchema,
-} from "../../model/purpose/purpose.js";
-import { DeletingDbTable } from "../../model/db/deleting.js";
-import { PurposeDbTable } from "../../model/db/index.js";
 
 export function purposeRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

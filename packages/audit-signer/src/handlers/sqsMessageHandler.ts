@@ -1,4 +1,4 @@
-import path from "path";
+import { Message } from "@aws-sdk/client-sqs";
 import {
   FileManager,
   logger,
@@ -8,16 +8,17 @@ import {
   SignatureServiceBuilder,
   formatError,
 } from "pagopa-interop-commons";
-import { Message } from "@aws-sdk/client-sqs";
 import {
   CorrelationId,
   generateId,
   genericInternalError,
 } from "pagopa-interop-models";
+import path from "path";
+
 import { config } from "../config/config.js";
-import { decodeSQSEventMessage } from "../utils/decodeSQSEventMessage.js";
 import { calculateSha256Base64 } from "../utils/checksum.js";
 import { zipBuffer } from "../utils/compression.js";
+import { decodeSQSEventMessage } from "../utils/decodeSQSEventMessage.js";
 
 // eslint-disable-next-line max-params
 async function processMessage(

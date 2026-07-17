@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockDelegation,
@@ -7,7 +8,6 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   DelegationEventEnvelopeV2,
@@ -23,6 +23,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleDelegationEvent } from "../src/handlers/delegations/handleDelegationEvent.js";
 import {
   addOneDelegation,

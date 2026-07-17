@@ -1,4 +1,5 @@
 import { initProducer } from "kafka-iam-auth";
+import { Logger } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EmailNotificationMessagePayload,
@@ -6,7 +7,6 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 
 type KafkaProducer = Awaited<ReturnType<typeof initProducer>>;
 

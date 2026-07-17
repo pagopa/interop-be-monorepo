@@ -3,21 +3,22 @@ import {
   EmailNotificationMessagePayload,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleAgreementActivatedToConsumer } from "./handleAgreementActivatedToConsumer.js";
-import { handleAgreementRejected } from "./handleAgreementRejected.js";
-import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
-import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
-import { handleAgreementSuspendedByConsumer } from "./handleAgreementSuspendedByConsumer.js";
-import { handleAgreementSuspendedByPlatformToProducer } from "./handleAgreementSuspendedByPlatformToProducer.js";
-import { handleAgreementUnsuspendedByConsumer } from "./handleAgreementUnsuspendedByConsumer.js";
-import { handleAgreementUnsuspendedByPlatformToProducer } from "./handleAgreementUnsuspendedByPlatformToProducer.js";
 import { handleAgreementActivatedToProducer } from "./handleAgreementActivatedToProducer.js";
 import { handleAgreementArchivedByConsumer } from "./handleAgreementArchivedByConsumer.js";
-import { handleAgreementUnsuspendedByProducer } from "./handleAgreementUnsuspendedByProducer.js";
+import { handleAgreementRejected } from "./handleAgreementRejected.js";
+import { handleAgreementSubmitted } from "./handleAgreementSubmitted.js";
+import { handleAgreementSuspendedByConsumer } from "./handleAgreementSuspendedByConsumer.js";
 import { handleAgreementSuspendedByPlatformToConsumer } from "./handleAgreementSuspendedByPlatformToConsumer.js";
-import { handleAgreementUnsuspendedByPlatformToConsumer } from "./handleAgreementUnsuspendedByPlatformToConsumer.js";
+import { handleAgreementSuspendedByPlatformToProducer } from "./handleAgreementSuspendedByPlatformToProducer.js";
 import { handleAgreementSuspendedByProducer } from "./handleAgreementSuspendedByProducer.js";
+import { handleAgreementUnsuspendedByConsumer } from "./handleAgreementUnsuspendedByConsumer.js";
+import { handleAgreementUnsuspendedByPlatformToConsumer } from "./handleAgreementUnsuspendedByPlatformToConsumer.js";
+import { handleAgreementUnsuspendedByPlatformToProducer } from "./handleAgreementUnsuspendedByPlatformToProducer.js";
+import { handleAgreementUnsuspendedByProducer } from "./handleAgreementUnsuspendedByProducer.js";
+import { handleAgreementUpgraded } from "./handleAgreementUpgraded.js";
 
 export async function handleAgreementEvent(
   params: HandlerParams<typeof AgreementEvent>
