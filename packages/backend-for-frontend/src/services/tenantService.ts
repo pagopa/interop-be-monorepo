@@ -17,9 +17,7 @@ import {
   CorrelationId,
   TenantId,
 } from "pagopa-interop-models";
-import { BffAppContext } from "../utilities/context.js";
-import { config } from "../config/config.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
+
 import {
   RegistryAttributesMap,
   tenantAttributeKind,
@@ -31,6 +29,9 @@ import {
   toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
 } from "../api/tenantApiConverter.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
+import { BffAppContext } from "../utilities/context.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(

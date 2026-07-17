@@ -1,16 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import { eserviceDescriptorNotFound } from "../../../src/model/errors.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("GET /eservices/:eserviceId/descriptors/:descriptorId router test", () => {
   const mockApiEserviceDescriptor = getMockedApiEserviceDescriptor();

@@ -1,14 +1,15 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+import { Message } from "@aws-sdk/client-sqs";
 import {
   FileManager,
   RefreshableInteropToken,
   SafeStorageService,
 } from "pagopa-interop-commons";
-import { Message } from "@aws-sdk/client-sqs";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
 import { InternalError } from "pagopa-interop-models";
-import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
+
 import { config } from "../src/config/config.js";
+import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
 
 vi.mock("../src/config/config.js", () => ({
   config: {

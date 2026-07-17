@@ -1,4 +1,5 @@
 import { generateId } from "pagopa-interop-models";
+
 import { TenantDigestData } from "../src/services/digestDataService.js";
 
 /**

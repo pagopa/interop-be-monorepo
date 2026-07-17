@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { EachMessagePayload } from "kafkajs";
 import { InteropInternalToken, userRole } from "pagopa-interop-commons";
-import { Client, generateId, Tenant, UserId } from "pagopa-interop-models";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
+import { Client, generateId, Tenant, UserId } from "pagopa-interop-models";
 import { clientReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { upsertClient, upsertTenant } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const correctEventPayload = {

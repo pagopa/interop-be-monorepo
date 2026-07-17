@@ -9,13 +9,13 @@ import {
   genericInternalError,
   fromEServiceV1,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   splitDescriptorIntoObjectsSQL,
   splitEserviceIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { catalogServiceBuilder } from "../../service/catalogService.js";
+
 import { DBContext } from "../../db/db.js";
 import {
   EserviceDeletingSchema,
@@ -35,6 +35,7 @@ import {
   EserviceDescriptorInterfaceItemsSchema,
   EserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
+import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleCatalogMessageV1(

@@ -1,24 +1,25 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { CorrelationId, TenantId } from "pagopa-interop-models";
+import { isAxiosError } from "axios";
 import {
   bffApi,
   selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
 import { WithLogger, CORRELATION_ID_HEADER } from "pagopa-interop-commons";
-import { missingSelfcareId, userNotFound } from "../model/errors.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+import { CorrelationId, TenantId } from "pagopa-interop-models";
+
 import {
   toApiSelfcareInstitution,
   toApiSelfcareProduct,
   toApiSelfcareUser,
   toBffApiCompactUser,
 } from "../api/selfcareApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
+import { missingSelfcareId, userNotFound } from "../model/errors.js";
+import { BffAppContext } from "../utilities/context.js";
 import { assertRequesterCanRetrieveUsers } from "./validators.js";
-import { isAxiosError } from "axios";
 
 const isAxiosNotFoundError = (error: unknown): boolean =>
   isAxiosError(error) && error.response?.status === 404;

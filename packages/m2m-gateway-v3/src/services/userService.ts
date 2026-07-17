@@ -1,15 +1,16 @@
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   M2MAdminAuthData,
   WithLogger,
   CORRELATION_ID_HEADER,
 } from "pagopa-interop-commons";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { TenantId, UserId } from "pagopa-interop-models";
+
 import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { userNotFound } from "../model/errors.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
-import { userNotFound } from "../model/errors.js";
 
 export type GetUsersQueryParams = {
   roles: string[];

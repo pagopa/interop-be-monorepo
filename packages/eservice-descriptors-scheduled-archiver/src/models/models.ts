@@ -1,3 +1,4 @@
+import { CORRELATION_ID_HEADER } from "pagopa-interop-commons";
 import {
   ArchivingScope,
   CorrelationId,
@@ -6,7 +7,6 @@ import {
   EServiceId,
 } from "pagopa-interop-models";
 import { z } from "zod";
-import { CORRELATION_ID_HEADER } from "pagopa-interop-commons";
 
 const ArchivableDescriptorRef = z.object({
   eserviceId: EServiceId,

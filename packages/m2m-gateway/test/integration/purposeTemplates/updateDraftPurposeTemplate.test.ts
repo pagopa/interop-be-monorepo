@@ -1,14 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import {
+  getMockedApiPurposeTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   pollingMaxRetriesExceeded,
   tenantKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  getMockedApiPurposeTemplate,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientGetToHaveBeenNthCalledWith,
@@ -17,9 +21,6 @@ import {
   mockPollingResponse,
   purposeTemplateService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("updateDraftPurposeTemplate", () => {

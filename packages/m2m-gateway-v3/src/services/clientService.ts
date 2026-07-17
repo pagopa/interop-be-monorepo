@@ -1,33 +1,34 @@
-import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   retry,
   WithLogger,
   CORRELATION_ID_HEADER,
 } from "pagopa-interop-commons";
-import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import {
+  toGetClientsApiQueryParams,
+  toM2MGatewayApiConsumerClient,
+} from "../api/clientApiConverter.js";
+import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
+import {
+  toGetPurposesApiQueryParamsForClient,
+  toM2MGatewayApiPurpose,
+} from "../api/purposeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
-import { clientAdminIdNotFound, clientNotFound } from "../model/errors.js";
 import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { config } from "../config/config.js";
+import { clientAdminIdNotFound, clientNotFound } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
-import {
-  toGetClientsApiQueryParams,
-  toM2MGatewayApiConsumerClient,
-} from "../api/clientApiConverter.js";
-import {
-  toGetPurposesApiQueryParamsForClient,
-  toM2MGatewayApiPurpose,
-} from "../api/purposeApiConverter.js";
-import { toM2MJWK, toM2MKey } from "../api/keysApiConverter.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 import { getSelfcareUserById } from "./userService.js";
-import { config } from "../config/config.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
 

@@ -1,3 +1,4 @@
+import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 import {
   ApiError,
   DelegationId,
@@ -16,7 +17,6 @@ import {
   UserId,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
 
 const errorCodes = {
   purposeNotFound: "0001",

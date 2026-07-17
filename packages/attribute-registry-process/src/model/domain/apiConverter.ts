@@ -1,5 +1,5 @@
-import { AttributeKind, Attribute, attributeKind } from "pagopa-interop-models";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import { AttributeKind, Attribute, attributeKind } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 const toApiAttributeKind = (

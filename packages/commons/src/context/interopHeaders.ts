@@ -1,5 +1,6 @@
 import { CorrelationId } from "pagopa-interop-models";
 import { z } from "zod";
+
 import { CORRELATION_ID_HEADER } from "../auth/headers.js";
 
 export const InteropHeaders = z.object({

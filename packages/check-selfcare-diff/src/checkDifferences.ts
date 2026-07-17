@@ -1,7 +1,7 @@
 import { isNotNull } from "drizzle-orm";
-import { CORRELATION_ID_HEADER } from "pagopa-interop-commons";
 import pLimit from "p-limit";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import { CORRELATION_ID_HEADER } from "pagopa-interop-commons";
 import {
   generateId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
@@ -12,6 +12,7 @@ import {
   tenantNotificationConfigInReadmodelNotificationConfig,
   userNotificationConfigInReadmodelNotificationConfig,
 } from "pagopa-interop-readmodel-models";
+
 import { CheckDiffConfig } from "./config/config.js";
 
 type UserWithRoles = { id: string; roles: string[] };

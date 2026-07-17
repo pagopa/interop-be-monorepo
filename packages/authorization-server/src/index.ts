@@ -1,15 +1,16 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { initProducer } from "kafka-iam-auth";
 import {
   initFileManager,
   initRedisRateLimiter,
   InteropTokenGenerator,
   startServer,
 } from "pagopa-interop-commons";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { initProducer } from "kafka-iam-auth";
-import { config } from "./config/config.js";
+
 import { createApp } from "./app.js";
-import { tokenServiceBuilder } from "./services/tokenService.js";
+import { config } from "./config/config.js";
 import { asyncTokenServiceBuilder } from "./services/asyncTokenService.js";
+import { tokenServiceBuilder } from "./services/tokenService.js";
 
 const dynamoDBClient = new DynamoDBClient();
 const redisRateLimiter = await initRedisRateLimiter({

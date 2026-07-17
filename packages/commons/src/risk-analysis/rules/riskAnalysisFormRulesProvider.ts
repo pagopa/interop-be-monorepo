@@ -5,13 +5,14 @@ import {
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { pa1 } from "./PA/1.0.js";
 import { pa2 } from "./PA/2.0.js";
 import { pa3 } from "./PA/3.0.js";
+import { pa31 } from "./PA/3.1.js";
 import { private1 } from "./PRIVATE/1.0.js";
 import { private2 } from "./PRIVATE/2.0.js";
 import { RiskAnalysisFormRules } from "./riskAnalysisFormRules.js";
-import { pa31 } from "./PA/3.1.js";
 
 export const formRules = {
   PA_1_0: "PA-1.0",

@@ -1,5 +1,7 @@
-import { Request, Response, NextFunction } from "express";
 import { KMSClient } from "@aws-sdk/client-kms";
+import { Request, Response, NextFunction } from "express";
+
+import { LOWER_CASE_CORRELATION_ID_HEADER } from "../auth/headers.js";
 import { IntegrityRest02SignatureConfig } from "../config/index.js";
 import { InteropTokenGenerator } from "../interop-token/interopTokenService.js";
 import {
@@ -8,7 +10,6 @@ import {
   JsonSpaces,
 } from "./digest.js";
 import { buildIntegrityRest02SignedHeaders } from "./headers.js";
-import { LOWER_CASE_CORRELATION_ID_HEADER } from "../auth/headers.js";
 
 // The context may or may not be present (e.g if the user is not authorised)
 interface AuthData {

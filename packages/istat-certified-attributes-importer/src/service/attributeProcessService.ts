@@ -1,6 +1,7 @@
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { CORRELATION_ID_HEADER } from "pagopa-interop-commons";
 import { Attribute, unsafeBrandId, attributeKind } from "pagopa-interop-models";
+
 import { InteropContext } from "../model/interopContextModel.js";
 
 export class AttributeProcessService {

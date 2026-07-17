@@ -1,17 +1,18 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   EServiceTemplateEventEnvelopeV2,
   fromEServiceTemplateV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
-import { assertEServiceTemplateExistsInEvent } from "../services/validators.js";
+
+import { toEServiceTemplateM2MEventSQL } from "../models/eserviceTemplateM2MEventAdapterSQL.js";
 import {
   createEServiceTemplateM2MEvent,
   createEServiceTemplateVersionM2MEvent,
 } from "../services/event-builders/eserviceTemplateM2MEventBuilder.js";
-import { toEServiceTemplateM2MEventSQL } from "../models/eserviceTemplateM2MEventAdapterSQL.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
+import { assertEServiceTemplateExistsInEvent } from "../services/validators.js";
 
 export async function handleEServiceTemplateEvent(
   decodedMessage: EServiceTemplateEventEnvelopeV2,
