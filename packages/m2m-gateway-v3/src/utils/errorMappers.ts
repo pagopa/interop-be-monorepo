@@ -211,7 +211,6 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
       "interfaceExtractingSoapFieldValueError",
       "interfaceExtractingInfoError",
       "soapFileParsingError",
-      "openapiVersionNotRecognized",
       "invalidServerUrl",
       "openapiVersionNotRecognized",
       "eServiceAsyncExchangeNotEnabled",
