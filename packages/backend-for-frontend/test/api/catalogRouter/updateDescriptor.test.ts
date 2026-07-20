@@ -94,7 +94,6 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/update", () 
           [
             {
               id: certifiedAttributeId,
-              explicitAttributeVerification: false,
               dailyCallsPerConsumer: 500,
             },
           ],
@@ -116,7 +115,6 @@ describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/update", () 
             [
               {
                 id: certifiedAttributeId,
-                explicitAttributeVerification: false,
                 dailyCallsPerConsumer: 500,
               },
             ],

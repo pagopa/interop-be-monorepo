@@ -1623,9 +1623,6 @@ export const eserviceDescriptorAttributeInReadmodelCatalog =
       eserviceId: uuid("eservice_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       descriptorId: uuid("descriptor_id").notNull(),
-      explicitAttributeVerification: boolean(
-        "explicit_attribute_verification"
-      ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
       dailyCallsPerConsumer: integer("daily_calls_per_consumer"),
@@ -1666,9 +1663,6 @@ export const eserviceTemplateVersionAttributeInReadmodelEserviceTemplate =
       eserviceTemplateId: uuid("eservice_template_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       versionId: uuid("version_id").notNull(),
-      explicitAttributeVerification: boolean(
-        "explicit_attribute_verification"
-      ).notNull(),
       kind: varchar().notNull(),
       groupId: integer("group_id").notNull(),
       threshold: integer("certified_discrete_threshold"),

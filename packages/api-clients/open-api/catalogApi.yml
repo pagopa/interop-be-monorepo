@@ -3223,8 +3223,6 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
         dailyCallsPerConsumer:
           type: integer
           format: int32
@@ -3234,7 +3232,6 @@ components:
           $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
-        - explicitAttributeVerification
     AttributeCertifiedDiscreteComparator:
       type: string
       enum:
@@ -3807,8 +3804,6 @@ components:
         id:
           type: string
           format: uuid
-        explicitAttributeVerification:
-          type: boolean
         dailyCallsPerConsumer:
           type: integer
           format: int32
@@ -3817,7 +3812,6 @@ components:
           $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfig"
       required:
         - id
-        - explicitAttributeVerification
     Attributes:
       properties:
         certified:

@@ -21,17 +21,14 @@ import { api, mockEserviceService } from "../../vitest.api.setup.js";
 describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttributes router test", () => {
   const attribute1: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute2: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute3: catalogApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
   const bulkAttribute1: m2mGatewayApiV3.CertifiedAttribute = {
     code: "code1",

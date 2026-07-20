@@ -101,7 +101,6 @@ export const toEServiceAttributeV2 = (
 ): EServiceAttributeV2 => ({
   values: input.map((i) => ({
     id: i.id,
-    explicitAttributeVerification: i.explicitAttributeVerification,
   })),
 });
 
@@ -147,7 +146,6 @@ export const toEServiceAttributeCertifiedV2 = (
 ): EServiceAttributeV2 => ({
   values: input.map((attribute) => ({
     id: attribute.id,
-    explicitAttributeVerification: attribute.explicitAttributeVerification,
     dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
     ...("discreteConfig" in attribute
       ? {

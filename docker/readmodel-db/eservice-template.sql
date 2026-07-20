@@ -73,7 +73,6 @@ CREATE TABLE IF NOT EXISTS readmodel_eservice_template.eservice_template_version
   eservice_template_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   version_id UUID NOT NULL REFERENCES readmodel_eservice_template.eservice_template_version (id) ON DELETE CASCADE,
-  explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR NOT NULL,
   group_id INTEGER NOT NULL,
   certified_discrete_threshold INTEGER,

@@ -166,7 +166,6 @@ function toBffCatalogApiDescriptorAttribute(
     id: attribute.id,
     name: foundAttribute.name,
     description: foundAttribute.description,
-    explicitAttributeVerification: attribute.explicitAttributeVerification,
     kind: toBffAttributeKind(foundAttribute.kind),
     ...(attribute.dailyCallsPerConsumer !== undefined
       ? { dailyCallsPerConsumer: attribute.dailyCallsPerConsumer }

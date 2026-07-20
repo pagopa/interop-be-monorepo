@@ -59,7 +59,6 @@ describe("revokeVerifiedAttribute", async () => {
         [
           {
             id: verifiedAttribute.id,
-            explicitAttributeVerification: false,
           },
         ],
       ],

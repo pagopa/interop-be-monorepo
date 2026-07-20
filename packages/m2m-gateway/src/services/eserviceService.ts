@@ -177,7 +177,6 @@ export function eserviceServiceBuilder(
       ...descriptor.attributes[attributeKind],
       seed.attributeIds.map((id) => ({
         id,
-        explicitAttributeVerification: false,
       })),
     ];
 
@@ -330,7 +329,6 @@ export function eserviceServiceBuilder(
       ...attributeGroup,
       ...seed.attributeIds.map((id) => ({
         id,
-        explicitAttributeVerification: false,
       })),
     ];
     const updatedGroups = [

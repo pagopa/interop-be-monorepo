@@ -45,7 +45,7 @@ describe("API POST /templates/:templateId/versions", () => {
     ...buildCreateVersionSeed(mockVersion),
     attributes: {
       certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
+      declared: [[{ id: attribute.id }]],
       verified: [],
     },
   };
@@ -57,7 +57,7 @@ describe("API POST /templates/:templateId/versions", () => {
     id: mockVersion.id,
     attributes: {
       certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
+      declared: [[{ id: attribute.id }]],
       verified: [],
     },
   };

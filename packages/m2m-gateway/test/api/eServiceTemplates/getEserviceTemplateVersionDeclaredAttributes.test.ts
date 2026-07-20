@@ -20,17 +20,14 @@ import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/declaredAttributes router test", () => {
   const attribute1: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute2: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
 
   const attribute3: eserviceTemplateApi.Attribute = {
     id: generateId(),
-    explicitAttributeVerification: false,
   };
   const bulkAttribute1: m2mGatewayApi.DeclaredAttribute = {
     id: attribute1.id,

@@ -58,7 +58,7 @@ export const toEServiceAttributeV1 = (
 ): EServiceAttributeV1 => ({
   group: input.map((i) => ({
     id: i.id,
-    explicitAttributeVerification: i.explicitAttributeVerification,
+    explicitAttriuteVerification: false,
   })),
 });
 

@@ -203,7 +203,6 @@ export function eserviceTemplateServiceBuilder(
       ...version.attributes[attributeKind],
       seed.attributeIds.map((id) => ({
         id,
-        explicitAttributeVerification: false,
       })),
     ];
     const newAttributes = {
@@ -347,7 +346,6 @@ export function eserviceTemplateServiceBuilder(
       ...attributeGroup,
       ...seed.attributeIds.map((id) => ({
         id,
-        explicitAttributeVerification: false,
       })),
     ];
     const updatedGroups = [

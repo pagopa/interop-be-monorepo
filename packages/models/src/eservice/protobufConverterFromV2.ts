@@ -115,7 +115,7 @@ export const fromEServiceModeV2 = (input: EServiceModeV2): EServiceMode => {
 export const fromEServiceAttributeV2 = (
   input: EServiceAttributeV2
 ): EServiceAttribute[] =>
-  input.values.map((a) => ({ ...a, id: unsafeBrandId(a.id) }));
+  input.values.map((a) => ({ id: unsafeBrandId(a.id) }));
 
 const fromAttributeCertifiedDiscreteComparatorV2 = (
   input: AttributeCertifiedDiscreteComparatorV2
@@ -153,7 +153,6 @@ export const fromEServiceAttributeCertifiedV2 = (
   input.values.map((attribute) => {
     const common: EServiceAttributeCertified = {
       id: unsafeBrandId(attribute.id),
-      explicitAttributeVerification: attribute.explicitAttributeVerification,
       dailyCallsPerConsumer: attribute.dailyCallsPerConsumer,
     };
     return attribute.discreteConfig != null
