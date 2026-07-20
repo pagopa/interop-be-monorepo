@@ -85,7 +85,11 @@ const getInterfaceFileType = (
 
 const retrieveServerUrlsRestAPI = (
   fileType: EserviceRestInterfaceType,
-  file: string
+  file: string,
+  resource: {
+    id: string;
+    isEserviceTemplate: boolean;
+  }
 ): string[] => {
   const openApi = parseOpenApi(fileType, file);
   const { data: version, error } = z.string().safeParse(openApi.openapi);
@@ -94,9 +98,9 @@ const retrieveServerUrlsRestAPI = (
     throw openapiVersionNotRecognized("nd");
   }
   return match(version)
-    .with("2.0", () => retrieveServerUrlsOpenApiV2(openApi))
+    .with("2.0", () => retrieveServerUrlsOpenApiV2(openApi, resource))
     .with(P.string.startsWith("3."), () =>
-      retriesceServerUrlsOpenApiV3(openApi)
+      retriesceServerUrlsOpenApiV3(openApi, resource)
     )
     .otherwise(() => {
       throw openapiVersionNotRecognized(version);
@@ -310,7 +314,7 @@ export const retrieveServerUrlsAPI = async (
           technology: technology.rest,
           fileType: P.union("json", "yaml"),
         },
-        (f) => retrieveServerUrlsRestAPI(f.fileType, fileContent)
+        (f) => retrieveServerUrlsRestAPI(f.fileType, fileContent, resource)
       )
       .with(
         {

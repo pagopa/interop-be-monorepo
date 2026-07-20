@@ -1,6 +1,7 @@
 import YAML from "yaml";
 import { match } from "ts-pattern";
 import { z } from "zod";
+import { invalidServerUrl } from "pagopa-interop-models";
 import {
   eserviceInterfaceAllowedFileType,
   EserviceRestInterfaceType,
@@ -16,7 +17,11 @@ export const parseOpenApi = (
     .with("yaml", () => YAML.parse(file))
     .exhaustive();
 export const retrieveServerUrlsOpenApiV2 = (
-  openApi: Record<string, unknown>
+  openApi: Record<string, unknown>,
+  resource: {
+    id: string;
+    isEserviceTemplate: boolean;
+  }
 ): string[] => {
   const { data, error } = z
     .object({
@@ -26,20 +31,24 @@ export const retrieveServerUrlsOpenApiV2 = (
     .safeParse(openApi);
 
   if (error) {
-    throw error;
+    throw invalidServerUrl(resource);
   }
 
   return [data.host];
 };
 
 export const retriesceServerUrlsOpenApiV3 = (
-  openApi: Record<string, unknown>
+  openApi: Record<string, unknown>,
+  resource: {
+    id: string;
+    isEserviceTemplate: boolean;
+  }
 ): string[] => {
   const { data: servers, error } = z
     .array(z.object({ url: z.string() }))
     .safeParse(openApi.servers);
   if (error) {
-    throw error;
+    throw invalidServerUrl(resource);
   }
 
   return servers.flatMap((s) => s.url);
