@@ -167,6 +167,8 @@ servers:
   });
 
   it("Should throw invalidContentTypeDetected in case the file uploaded has an invalid content type", async () => {
+    mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
+
     const invalidFile = new File(
       [mockFileUpload.file],
       mockFileUpload.file.name,
@@ -201,6 +203,8 @@ servers:
   });
 
   it("Should throw invalidServerUrl in case the server urls are invalid", async () => {
+    mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
+
     const invalidServerUrls = ["invalidserverurl", "invalidserverurl2"];
     const mockFileBuffer = Buffer.from(
       `
