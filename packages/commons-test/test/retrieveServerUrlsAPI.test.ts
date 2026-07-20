@@ -1,4 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
 import { retrieveServerUrlsAPI } from "pagopa-interop-commons";
 import {
   generateId,
@@ -8,6 +7,8 @@ import {
   openapiVersionNotRecognized,
   technology,
 } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import { readFileContent } from "../src/index.js";
 
 describe("retrieveServerUrlsAPI", () => {

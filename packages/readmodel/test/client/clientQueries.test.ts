@@ -1,11 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import {
   Client,
   generateId,
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+
 import { upsertClient } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { clientReadModelService } from "./clientUtils.js";

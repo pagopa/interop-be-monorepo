@@ -1,9 +1,25 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import crypto, { JsonWebKey } from "crypto";
 import { fail } from "assert";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import crypto, { JsonWebKey } from "crypto";
+import {
+  asyncExchangeNotAllowed,
+  invalidEServiceState,
+  invalidAssertionType,
+  invalidSignature,
+  issuedAtNotFound,
+} from "pagopa-interop-client-assertion-validation";
+import {
+  calculateDPoPThumbprint,
+  calculateKid,
+  dateToSeconds,
+  formatDateyyyyMMdd,
+  genericLogger,
+  secondsToMilliseconds,
+  sortJWK,
+  systemRole,
+} from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -19,6 +35,12 @@ import {
   getMockDPoPProof,
   signJWT,
 } from "pagopa-interop-commons-test";
+import {
+  invalidDPoPTyp,
+  expiredDPoPProof,
+  invalidDPoPSignature,
+  writeDPoPCache,
+} from "pagopa-interop-dpop-validation";
 import {
   AgreementId,
   algorithm,
@@ -40,29 +62,8 @@ import {
   unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
-import {
-  calculateDPoPThumbprint,
-  calculateKid,
-  dateToSeconds,
-  formatDateyyyyMMdd,
-  genericLogger,
-  secondsToMilliseconds,
-  sortJWK,
-  systemRole,
-} from "pagopa-interop-commons";
-import {
-  asyncExchangeNotAllowed,
-  invalidEServiceState,
-  invalidAssertionType,
-  invalidSignature,
-  issuedAtNotFound,
-} from "pagopa-interop-client-assertion-validation";
-import {
-  invalidDPoPTyp,
-  expiredDPoPProof,
-  invalidDPoPSignature,
-  writeDPoPCache,
-} from "pagopa-interop-dpop-validation";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
 import {
   clientAssertionRequestValidationFailed,
@@ -1002,6 +1003,7 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
@@ -1146,6 +1148,7 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
@@ -1271,6 +1274,7 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientKidPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientKidPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedDecodedFileContent.notBefore),
@@ -1278,6 +1282,9 @@ describe("authorization server tests", () => {
         parsedDecodedFileContent.expirationTime
       ),
       issuer: config.generatedInteropTokenIssuer,
+      cnf: {
+        jkt: calculateDPoPThumbprint(dpopProofJWT.header.jwk),
+      },
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),
@@ -1432,11 +1439,15 @@ describe("authorization server tests", () => {
       purposeVersionId: tokenClientPurposeEntry.purposeVersionId!,
       algorithm: algorithm.RS256,
       keyId: config.generatedInteropTokenKid,
+      typ: "at+jwt",
       audience: tokenClientPurposeEntry.descriptorAudience!.join(","),
       subject: clientId,
       notBefore: secondsToMilliseconds(parsedAuditSent.notBefore),
       expirationTime: secondsToMilliseconds(parsedAuditSent.expirationTime),
       issuer: config.generatedInteropTokenIssuer,
+      cnf: {
+        jkt: calculateDPoPThumbprint(dpopProofJWT.header.jwk),
+      },
       clientAssertion: {
         algorithm: clientAssertion.header.alg,
         audience: [clientAssertion.payload.aud].flat().join(","),

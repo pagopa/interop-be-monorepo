@@ -1,8 +1,7 @@
 /* eslint-disable max-params */
-import { randomUUID } from "crypto";
-import { Readable } from "stream";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import AdmZip from "adm-zip";
+import { randomUUID } from "crypto";
 import mime from "mime";
 import {
   ApiError,
@@ -15,16 +14,19 @@ import {
   invalidContentTypeDetected,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
+  invalidFileUploadError,
   invalidServerUrl,
   openapiVersionNotRecognized,
   technology,
   Technology,
 } from "pagopa-interop-models";
+import { Readable } from "stream";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { calculateChecksum } from "../utils/fileUtils.js";
+
 import { FileManager } from "../file-manager/fileManager.js";
 import { Logger } from "../logging/index.js";
+import { calculateChecksum, isValidFile } from "../utils/fileUtils.js";
 import {
   parseOpenApi,
   restApiFileToBuffer,
@@ -111,7 +113,7 @@ export const interpolateTemplateApiSpec = async (
     contentType: string;
     prettyName: string;
   },
-  serverUrls: string[],
+  serverUrls: Array<{ url: string; description?: string }>,
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;
@@ -159,7 +161,7 @@ export const interpolateTemplateRestApiSpec = async (
     contactEmail?: string;
     contactUrl?: string;
     termsAndConditionsUrl?: string;
-    serverUrls: string[];
+    serverUrls: Array<{ url: string; description?: string }>;
   }
 ): Promise<File> => {
   const fileType = getInterfaceFileType(interfaceFileInfo.name);
@@ -187,8 +189,9 @@ export const interpolateTemplateRestApiSpec = async (
     email: eserviceInstanceInterfaceData.contactEmail,
     url: eserviceInstanceInterfaceData.contactUrl,
   };
-  jsonApi.servers = eserviceInstanceInterfaceData.serverUrls.map((url) => ({
-    url,
+  jsonApi.servers = eserviceInstanceInterfaceData.serverUrls.map((server) => ({
+    url: server.url,
+    ...(server.description ? { description: server.description } : {}),
   }));
   /* eslint-enable */
 
@@ -220,7 +223,7 @@ export const interpolateTemplateSoapApiSpec = async (
     prettyName: string;
   },
   eserviceInstanceInterfaceData: {
-    serverUrls: string[];
+    serverUrls: Array<{ url: string; description?: string }>;
   }
 ): Promise<File> => {
   const fileType = getInterfaceFileType(interfaceFileInfo.name);
@@ -246,10 +249,11 @@ export const interpolateTemplateSoapApiSpec = async (
     this data is not present in the final WSDL file
   ========================================================= */
 
-  const urlsPorts = eserviceInstanceInterfaceData.serverUrls.map((url) => ({
+  const urlsPorts = eserviceInstanceInterfaceData.serverUrls.map((server) => ({
     "soap:address": {
-      location: url,
+      location: server.url,
     },
+    ...(server.description ? { "wsdl:documentation": server.description } : {}),
   }));
 
   // eslint-disable-next-line functional/immutable-data
@@ -426,6 +430,10 @@ export async function verifyAndCreateDocument<T>(
     throw contentTooLargeError(
       `File size ${doc.size} bytes exceeds maximum allowed size of ${maxSizeForKind} bytes`
     );
+  }
+
+  if (!(await isValidFile(doc))) {
+    throw invalidFileUploadError();
   }
 
   const serverUrls = await retrieveServerUrlsAPI(

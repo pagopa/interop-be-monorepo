@@ -1,7 +1,5 @@
-import path from "path";
-import { match, P } from "ts-pattern";
+import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Message } from "@aws-sdk/client-sqs";
-
 import {
   DocumentSignatureReference,
   FileManager,
@@ -12,7 +10,6 @@ import {
   SafeStorageService,
   SignatureServiceBuilder,
 } from "pagopa-interop-commons";
-
 import {
   AgreementDocument,
   AgreementDocumentId,
@@ -27,21 +24,22 @@ import {
   bigIntToDate,
   RiskAnalysisTemplateDocument,
   RiskAnalysisTemplateDocumentId,
+  genericInternalError,
 } from "pagopa-interop-models";
+import path from "path";
+import { match, P } from "ts-pattern";
 
-import { S3ServiceException } from "@aws-sdk/client-s3";
 import { config } from "../config/config.js";
-import { FILE_KIND_CONFIG, FileKindSchema } from "../utils/fileKind.config.js";
-import { appendSignedSuffixToFileName } from "../utils/appendSignedSuffixToFileName.js";
-import { addPurposeRiskAnalysisSignedDocument } from "../utils/metadata/riskAnalysis.js";
-import { addAgreementSignedContract } from "../utils/metadata/agreement.js";
-import { addDelegationSignedContract } from "../utils/metadata/delegations.js";
-import { addPurposeTemplateSignedDocument } from "../utils/metadata/purposeTemplate.js";
-
 import {
   SqsSafeStorageBody,
   SqsSafeStorageBodySchema,
 } from "../models/sqsSafeStorageBody.js";
+import { appendSignedSuffixToFileName } from "../utils/appendSignedSuffixToFileName.js";
+import { FILE_KIND_CONFIG, FileKindSchema } from "../utils/fileKind.config.js";
+import { addAgreementSignedContract } from "../utils/metadata/agreement.js";
+import { addDelegationSignedContract } from "../utils/metadata/delegations.js";
+import { addPurposeTemplateSignedDocument } from "../utils/metadata/purposeTemplate.js";
+import { addPurposeRiskAnalysisSignedDocument } from "../utils/metadata/riskAnalysis.js";
 
 // eslint-disable-next-line max-params
 async function processMessage(
@@ -62,18 +60,24 @@ async function processMessage(
     );
 
     if (!signature) {
-      throw new Error(`Missing signature reference for message ${id}`);
+      throw genericInternalError(
+        `Missing signature reference for fileKey ${fileKey} (message ${id})`
+      );
     }
 
     const { fileKind } = signature;
 
     if (!(fileKind in FILE_KIND_CONFIG)) {
-      throw new Error(`Unknown fileKind: ${fileKind}`);
+      throw genericInternalError(
+        `Unknown fileKind '${fileKind}' for fileKey ${fileKey} (message ${id})`
+      );
     }
     const signatureFileKind = FileKindSchema.parse(fileKind);
     const fileRef = await safeStorageService.getFile(fileKey, false, logger);
     if (!fileRef.download?.url) {
-      throw new Error(`Missing download URL for fileKey: ${fileKey}`);
+      throw genericInternalError(
+        `Missing download URL for fileKey: ${fileKey}`
+      );
     }
     const fileContent = await safeStorageService.downloadFileContent(
       fileRef.download.url,
@@ -251,7 +255,8 @@ export const sqsMessageHandler = async (
 
   try {
     if (!messagePayload.Body) {
-      throw new Error("Missing SQS message body");
+      logInstance.warn("Skipping non-processable message: missing SQS body");
+      return;
     }
 
     logInstance.info(`SQS message body: ${messagePayload.Body}`);
@@ -261,8 +266,10 @@ export const sqsMessageHandler = async (
     );
 
     if (!parsed.success) {
-      logInstance.error(`Invalid SQS message: ${parsed.error.message}`);
-      throw new Error("Invalid SQS payload");
+      logInstance.warn(
+        `Skipping non-processable message: invalid SQS payload: ${parsed.error.message}. Body: ${messagePayload.Body}`
+      );
+      return;
     }
 
     const messageData = parsed.data;

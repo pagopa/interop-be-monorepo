@@ -1,4 +1,28 @@
 import {
+  DynamoDBClient,
+  GetItemCommand,
+  GetItemCommandOutput,
+  GetItemInput,
+  QueryCommand,
+  QueryCommandOutput,
+  QueryInput,
+} from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { initProducer } from "kafka-iam-auth";
+import {
+  FileManager,
+  formatDateyyyyMMdd,
+  formatTimeHHmmss,
+  InteropAsyncConsumerToken,
+  InteropConsumerToken,
+  Logger,
+  secondsToMilliseconds,
+} from "pagopa-interop-commons";
+import {
+  verifyDPoPProof,
+  verifyDPoPProofSignature,
+} from "pagopa-interop-dpop-validation";
+import {
   AgreementId,
   AsyncClientAssertion,
   AsyncPlatformStatesCatalogEntry,
@@ -31,31 +55,8 @@ import {
   TokenGenerationStatesGenericClient,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  DynamoDBClient,
-  GetItemCommand,
-  GetItemCommandOutput,
-  GetItemInput,
-  QueryCommand,
-  QueryCommandOutput,
-  QueryInput,
-} from "@aws-sdk/client-dynamodb";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { match } from "ts-pattern";
-import {
-  FileManager,
-  formatDateyyyyMMdd,
-  formatTimeHHmmss,
-  InteropAsyncConsumerToken,
-  InteropConsumerToken,
-  Logger,
-  secondsToMilliseconds,
-} from "pagopa-interop-commons";
-import { initProducer } from "kafka-iam-auth";
-import {
-  verifyDPoPProof,
-  verifyDPoPProofSignature,
-} from "pagopa-interop-dpop-validation";
+
 import { config } from "../config/config.js";
 import {
   asyncExchangePropertiesNotFound,
@@ -260,11 +261,16 @@ const buildAuditMessageBody = ({
   purposeVersionId: unsafeBrandId(purposeVersionId),
   algorithm: generatedToken.header.alg,
   keyId: generatedToken.header.kid,
+  typ: generatedToken.header.typ,
   audience: [generatedToken.payload.aud].flat().join(","),
   subject: generatedToken.payload.sub,
   notBefore: secondsToMilliseconds(generatedToken.payload.nbf),
   expirationTime: secondsToMilliseconds(generatedToken.payload.exp),
   issuer: generatedToken.payload.iss,
+  ...(generatedToken.payload.cnf ? { cnf: generatedToken.payload.cnf } : {}),
+  ...(generatedToken.payload.digest
+    ? { digest: generatedToken.payload.digest }
+    : {}),
   clientAssertion: {
     algorithm: clientAssertion.header.alg,
     audience: [clientAssertion.payload.aud].flat().join(","),
@@ -274,6 +280,9 @@ const buildAuditMessageBody = ({
     jwtId: clientAssertion.payload.jti,
     keyId: clientAssertion.header.kid,
     subject: clientAssertion.payload.sub,
+    ...(clientAssertion.payload.digest
+      ? { digest: clientAssertion.payload.digest }
+      : {}),
   },
   ...(dpop
     ? {

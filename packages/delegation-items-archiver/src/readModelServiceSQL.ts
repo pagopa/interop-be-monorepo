@@ -1,3 +1,4 @@
+import { and, eq, exists, inArray } from "drizzle-orm";
 import {
   Agreement,
   agreementState,
@@ -10,7 +11,6 @@ import {
   AgreementReadModelService,
   PurposeReadModelService,
 } from "pagopa-interop-readmodel";
-import { and, eq, exists, inArray } from "drizzle-orm";
 import {
   agreementInReadmodelAgreement,
   purposeInReadmodelPurpose,

@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
+import { KafkaMessage } from "kafkajs";
+import {
+  formatDateyyyyMMdd,
+  formatTimeHHmmss,
+  genericLogger,
+} from "pagopa-interop-commons";
 import {
   algorithm,
   GeneratedTokenAuditDetails,
   generateId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  formatDateyyyyMMdd,
-  formatTimeHHmmss,
-  genericLogger,
-} from "pagopa-interop-commons";
-import { KafkaMessage } from "kafkajs";
+
 import { handleMessages } from ".././src/consumerService.js";
 import { config } from "../src/config/config.js";
 import { fileManager } from "./utils.js";
@@ -161,6 +162,7 @@ const getMockAuditDetails = (): GeneratedTokenAuditDetails => ({
   algorithm: algorithm.RS256,
   clientId: generateId(),
   keyId: generateId(),
+  typ: "at+jwt",
   purposeVersionId: generateId(),
   jwtId: generateId(),
   issuedAt: new Date().getMilliseconds(),

@@ -1,5 +1,6 @@
 import path from "path";
 import { match } from "ts-pattern";
+
 import { FileKind, FileKindSchema } from "./fileKind.config.js";
 
 export const appendSignedSuffixToFileName = (

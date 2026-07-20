@@ -19,6 +19,7 @@ import {
   genericInternalError,
 } from "pagopa-interop-models";
 import { inject, vi } from "vitest";
+
 import { HttpDPoPHeader } from "../src/model/domain/models.js";
 
 export const dpopConfig = inject("dpopConfig");
@@ -80,6 +81,7 @@ export const getMockAuditMessage = (): GeneratedTokenAuditDetails => {
     algorithm: algorithm.RS256,
     clientId,
     keyId: kid,
+    typ: "at+jwt",
     purposeVersionId,
     jwtId: generateId(),
     issuedAt: dateToSeconds(new Date()),
