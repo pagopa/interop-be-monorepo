@@ -22,6 +22,7 @@ import {
   GeneratedConsumerTokenAuditDetails,
   generateId,
   InteractionAuditDetails,
+  PurposeId,
   PurposeVersionId,
   TenantId,
   unsafeBrandId,
@@ -69,12 +70,12 @@ const buildAuditMessageBodyForConsumerToken = ({
   clientAssertion: ClientAssertion | AsyncClientAssertion;
   dpop: DPoPProof | undefined;
   correlationId: CorrelationId;
-  organizationId: string;
-  agreementId: string;
+  organizationId: TenantId;
+  agreementId: AgreementId;
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
-  purposeId: string;
-  purposeVersionId: string;
+  purposeId: PurposeId;
+  purposeVersionId: PurposeVersionId;
   interaction?: InteractionAuditDetails;
 }): GeneratedConsumerTokenAuditDetails => ({
   jwtId: generatedToken.payload.jti,
@@ -316,7 +317,7 @@ export const publishProducerAudit = async ({
   agreementId: AgreementId;
   eserviceId: EServiceId;
   descriptorId: DescriptorId;
-  purposeId: string;
+  purposeId: PurposeId;
   purposeVersionId: PurposeVersionId;
   clientAssertion: AsyncClientAssertion;
   dpop: DPoPProof | undefined;
