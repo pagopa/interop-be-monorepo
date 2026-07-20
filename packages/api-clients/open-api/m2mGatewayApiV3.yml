@@ -13620,7 +13620,7 @@ components:
           type: string
           format: date-time
     GracePeriodDays:
-      description: Number of days for the archiving grace period
+      description: Number of 24 hours periods for the archiving grace period
       type: integer
       format: int32
       enum: [30, 60, 90, 120]
