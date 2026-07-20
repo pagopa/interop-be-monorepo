@@ -1,4 +1,5 @@
-import { match } from "ts-pattern";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
+import { authRole, notificationAdmittedRoles } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockAuthData,
@@ -6,8 +7,6 @@ import {
   getMockNotificationConfig,
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test";
-import { authRole, notificationAdmittedRoles } from "pagopa-interop-commons";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   generateId,
   TenantId,
@@ -19,16 +18,18 @@ import {
   UserRole,
   userRole,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+
+import {
+  notificationConfigNotAllowedForUserRoles,
+  userNotificationConfigNotFound,
+} from "../../src/model/domain/errors.js";
 import {
   addOneUserNotificationConfig,
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
-import {
-  notificationConfigNotAllowedForUserRoles,
-  userNotificationConfigNotFound,
-} from "../../src/model/domain/errors.js";
 
 describe("updateUserNotificationConfig", () => {
   const userId: UserId = generateId();

@@ -1,8 +1,7 @@
 /* eslint-disable max-params */
-import { randomUUID } from "crypto";
-import { Readable } from "stream";
 import SwaggerParser from "@apidevtools/swagger-parser";
 import AdmZip from "adm-zip";
+import { randomUUID } from "crypto";
 import mime from "mime";
 import {
   ApiError,
@@ -21,11 +20,13 @@ import {
   technology,
   Technology,
 } from "pagopa-interop-models";
+import { Readable } from "stream";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { calculateChecksum, isValidFile } from "../utils/fileUtils.js";
+
 import { FileManager } from "../file-manager/fileManager.js";
 import { Logger } from "../logging/index.js";
+import { calculateChecksum, isValidFile } from "../utils/fileUtils.js";
 import {
   parseOpenApi,
   restApiFileToBuffer,

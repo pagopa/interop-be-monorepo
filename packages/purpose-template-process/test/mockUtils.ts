@@ -1,10 +1,10 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { getMockValidRiskAnalysisFormTemplate } from "pagopa-interop-commons-test";
 import {
   RiskAnalysisFormTemplate,
   RiskAnalysisTemplateAnswerAnnotationDocument,
   targetTenantKind,
 } from "pagopa-interop-models";
-import { getMockValidRiskAnalysisFormTemplate } from "pagopa-interop-commons-test";
 
 function toAnswerDocumentToValidate(
   document: RiskAnalysisTemplateAnswerAnnotationDocument

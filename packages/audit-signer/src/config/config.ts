@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   FileManagerConfig,
   LoggerConfig,
@@ -6,6 +5,8 @@ import {
   SafeStorageApiConfig,
   DynamoDBClientConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
+
 import { SQSConsumerConfig } from "./sqsConfig.js";
 
 const AuditSignerConfig = SQSConsumerConfig.and(FileManagerConfig)

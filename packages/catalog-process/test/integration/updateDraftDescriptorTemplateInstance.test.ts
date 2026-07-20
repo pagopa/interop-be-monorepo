@@ -32,6 +32,8 @@ import {
   attributeCertifiedDiscreteComparator,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -51,7 +53,6 @@ import {
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
 import { buildUpdateDescriptorSeed } from "../mockUtils.js";
-import { config } from "../../src/config/config.js";
 
 describe("update draft descriptor instance", () => {
   const mockDescriptor = getMockDescriptor();

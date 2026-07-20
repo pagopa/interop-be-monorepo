@@ -5,15 +5,16 @@ import {
   fromEServiceV2,
   genericInternalError,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import { splitEserviceIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { catalogServiceBuilder } from "../../service/catalogService.js";
+
 import { DBContext } from "../../db/db.js";
 import {
   EserviceItemsSchema,
   EserviceDeletingSchema,
 } from "../../model/catalog/eservice.js";
+import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleCatalogMessageV2(

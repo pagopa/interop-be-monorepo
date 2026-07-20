@@ -1,17 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import {
-  invalidInterfaceFileDetected,
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockedApiEserviceDoc,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  invalidInterfaceFileDetected,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -20,9 +24,6 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("uploadEServiceDescriptorInterface", () => {

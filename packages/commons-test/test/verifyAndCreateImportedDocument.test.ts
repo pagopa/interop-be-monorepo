@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import AdmZip from "adm-zip";
 import {
   genericLogger,
   verifyAndCreateImportedDocument,
@@ -9,7 +9,8 @@ import {
   genericError,
   Technology,
 } from "pagopa-interop-models";
-import AdmZip from "adm-zip";
+import { describe, it, expect, vi } from "vitest";
+
 import { getMockEService } from "../src/index.js";
 import { fileManager, s3Bucket } from "./utils.js";
 

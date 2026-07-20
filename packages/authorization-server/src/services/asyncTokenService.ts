@@ -1,9 +1,23 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { IncomingHttpHeaders } from "http";
+import { initProducer } from "kafka-iam-auth";
+import { authorizationServerApi } from "pagopa-interop-api-clients";
 import {
   validateRequestParameters,
   verifyAsyncClientAssertion,
 } from "pagopa-interop-client-assertion-validation";
-import { authorizationServerApi } from "pagopa-interop-api-clients";
+import {
+  AuthServerAppContext,
+  FileManager,
+  InteropAsyncConsumerToken,
+  InteropApiToken,
+  InteropTokenGenerator,
+  Logger,
+  RateLimiter,
+  RateLimiterStatus,
+  WithLogger,
+} from "pagopa-interop-commons";
+import { checkDPoPCache } from "pagopa-interop-dpop-validation";
 import {
   AsyncClientAssertion,
   ClientId,
@@ -16,22 +30,9 @@ import {
   TenantId,
   TokenGenerationStatesApiClient,
 } from "pagopa-interop-models";
-import {
-  AuthServerAppContext,
-  FileManager,
-  InteropAsyncConsumerToken,
-  InteropApiToken,
-  InteropTokenGenerator,
-  Logger,
-  RateLimiter,
-  RateLimiterStatus,
-  WithLogger,
-} from "pagopa-interop-commons";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { initProducer } from "kafka-iam-auth";
 import { match } from "ts-pattern";
+
 import { config } from "../config/config.js";
-import { checkDPoPCache } from "pagopa-interop-dpop-validation";
 import {
   asyncRequestValidationFailed,
   clientAssertionValidationFailed,
