@@ -547,10 +547,13 @@ describe("addEServiceTemplateInstanceInterface", () => {
       ).rejects.toThrow(eserviceInterfaceDataNotValid());
     });
 
-    it("should throw an invalidInterfaceData if provided serverUrls are invalid", async () => {
+    it("should throw invalidInterfaceData if the template interface file has an unrecognized extension", async () => {
       const authData = getMockAuthData();
       const eserviceId = generateId<EServiceId>();
-      const interfaceDoc = getMockDocument();
+      const interfaceDoc: Document = {
+        ...getMockDocument(),
+        name: "interface.txt",
+      };
 
       const interfacePath = await fileManager.storeBytes(
         {
@@ -600,12 +603,18 @@ describe("addEServiceTemplateInstanceInterface", () => {
         catalogService.addEServiceTemplateInstanceInterface(
           eserviceId,
           mockDescriptor.id,
+          "Rest",
           {
-            contactName: "Jhon Doe",
+            contactName: "John Doe",
             contactUrl: "https://fun.tester.johnny.info",
             contactEmail: "johnnyd@funnytester.com",
             termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
-            serverUrls: ["wwwinvalidcom"],
+            serverUrls: [
+              {
+                url: "https://valid-server.example.com",
+                description: "Valid server description",
+              },
+            ],
           },
           getMockContext({ authData })
         )

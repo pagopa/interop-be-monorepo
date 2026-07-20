@@ -291,7 +291,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       expectedStatus: 400,
     },
   ])(
-    "Should return $expectedStatus in case of $error",
+    "Should return $expectedStatus in case of $error.code",
     async ({ error, expectedStatus }) => {
       mockEserviceService.uploadEServiceDescriptorInterface = vi
         .fn()

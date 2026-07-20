@@ -276,11 +276,21 @@ describe("addEServiceTemplateInstanceInterface", () => {
           eservice.id,
           descriptor.id,
         ]);
+        invalidCases.push([
+          { ...restBody, serverUrls: ["wwwinvalidcom"] },
+          eservice.id,
+          descriptor.id,
+        ]);
       }
 
       if (technology === "Soap") {
         invalidCases.push([
           { serverUrls: "not-an-array" },
+          eservice.id,
+          descriptor.id,
+        ]);
+        invalidCases.push([
+          { serverUrls: ["wwwinvalidcom"] },
           eservice.id,
           descriptor.id,
         ]);
