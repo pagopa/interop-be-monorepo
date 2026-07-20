@@ -50,6 +50,7 @@ import {
   eserviceInterfaceDataNotValid,
   eServiceNotAnInstance,
   eServiceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
 } from "../../src/model/domain/errors.js";
@@ -144,6 +145,34 @@ describe("addEServiceTemplateInstanceInterface", () => {
   });
 
   describe("Invalid data input (Rest/Soap)", () => {
+    it("should throw an eserviceTemplateInterfaceTechnologyMismatch when adding a SOAP interface to a REST template instance", async () => {
+      const interfaceDocumentFile = {
+        ...getMockDocument(),
+        name: "test.openapi.3.0.2.yaml",
+        contentType: "yaml",
+        path: `${config.eserviceDocumentsPath}`,
+      };
+
+      const { eservice, descriptor, template } =
+        await initEserviceTemplateInstance(descriptorState.draft, "Rest", {
+          doc: interfaceDocumentFile,
+          content: await readFileContent("test.openapi.3.0.2.yaml"),
+        });
+
+      await expect(
+        catalogService.addEServiceTemplateInstanceInterface(
+          eservice.id,
+          descriptor.id,
+          {
+            serverUrls: [{ url: "https://soap.server.com" }],
+          },
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrow(
+        eserviceTemplateInterfaceTechnologyMismatch(template.id, "Rest", "Soap")
+      );
+    });
+
     it("should throw an eServiceNotFound if the e-service does not exist", async () => {
       const eserviceId = generateId<EServiceId>();
       await expect(
