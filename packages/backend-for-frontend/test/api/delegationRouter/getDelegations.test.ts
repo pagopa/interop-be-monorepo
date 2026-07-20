@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { authRole } from "pagopa-interop-commons";
+import { authRole, AuthRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
@@ -41,11 +41,30 @@ describe("API GET /delegations", () => {
       .set("X-Correlation-Id", generateId())
       .query(query);
 
-  it("Should return 200 for user with role Admin", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.SECURITY_ROLE,
+    authRole.SUPPORT_ROLE,
+    authRole.REVIEWER_ROLE,
+    authRole.VIEWER_ROLE,
+  ];
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(mockCompactDelegations);
+    }
+  );
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
     const res = await makeRequest(token);
-    expect(res.status).toBe(200);
-    expect(res.body).toEqual(mockCompactDelegations);
+    expect(res.status).toBe(403);
   });
 
   it("Should return 404 for delegationNotFound", async () => {
