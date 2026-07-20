@@ -1,3 +1,4 @@
+import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 import {
   FileManagerConfig,
   KafkaProducerConfig,
@@ -13,7 +14,6 @@ import {
   DPoPConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
-import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 
 const AuthorizationServerConfig = HTTPServerConfig.and(LoggerConfig)
   .and(RedisRateLimiterConfig)

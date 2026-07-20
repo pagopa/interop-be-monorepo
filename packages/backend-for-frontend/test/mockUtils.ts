@@ -1,3 +1,4 @@
+import { generateMock } from "@anatine/zod-mock";
 import {
   attributeRegistryApi,
   authorizationApi,
@@ -22,10 +23,10 @@ import {
   PurposeVersionId,
   PurposeTemplateId,
 } from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
+
 import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
+import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
 
 export const getMockBffApiDelegation = (): bffApi.Delegation & {
   id: DelegationId;

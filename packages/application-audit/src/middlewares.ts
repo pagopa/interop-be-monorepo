@@ -2,16 +2,6 @@
 import { RequestHandler, Request } from "express";
 import { initProducer } from "kafka-iam-auth";
 import {
-  ApplicationAuditBeginRequest,
-  ApplicationAuditEndRequest,
-  ApplicationAuditEndRequestSessionTokenExchange,
-  ApplicationAuditEndRequestAuthServer,
-  ApplicationAuditPhase,
-  fallbackApplicationAuditingFailed,
-  genericInternalError,
-  kafkaApplicationAuditingFailed,
-} from "pagopa-interop-models";
-import {
   AppContext,
   ApplicationAuditProducerConfig,
   AuthData,
@@ -27,6 +17,16 @@ import {
   QueueManager,
   readAuthDataFromJwtToken,
 } from "pagopa-interop-commons";
+import {
+  ApplicationAuditBeginRequest,
+  ApplicationAuditEndRequest,
+  ApplicationAuditEndRequestSessionTokenExchange,
+  ApplicationAuditEndRequestAuthServer,
+  ApplicationAuditPhase,
+  fallbackApplicationAuditingFailed,
+  genericInternalError,
+  kafkaApplicationAuditingFailed,
+} from "pagopa-interop-models";
 import { z } from "zod";
 
 export function parseAmznTraceIdHeader(req: Request): string | undefined {

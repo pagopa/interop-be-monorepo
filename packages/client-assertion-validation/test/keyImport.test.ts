@@ -1,8 +1,8 @@
 import { KeyObject } from "crypto";
-import { describe, expect, it } from "vitest";
 import * as jose from "jose";
 import { createPublicKey, decodeBase64ToPem } from "pagopa-interop-commons";
 import { algorithm } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
 
 describe("key import", async () => {
   const encodedPEM =

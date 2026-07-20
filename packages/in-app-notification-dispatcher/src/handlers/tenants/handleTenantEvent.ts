@@ -1,11 +1,12 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   NewNotification,
   TenantEventEnvelope,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleCertifiedAttributeAssignedRevokedToAssignee } from "./handleCertifiedAttributeAssignedRevokedToAssignee.js";
 import { handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee } from "./handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee.js";

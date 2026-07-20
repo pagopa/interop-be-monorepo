@@ -4,6 +4,7 @@ import {
   bffApi,
   catalogApi,
 } from "pagopa-interop-api-clients";
+
 import { isAgreementUpgradable } from "../services/validators.js";
 
 export function toBffCompactOrganization(

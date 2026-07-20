@@ -4,6 +4,7 @@ import {
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import {
   PurposeAndVersionIdNotification,
   PurposeEventNotification,

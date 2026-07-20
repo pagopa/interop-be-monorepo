@@ -2,7 +2,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach } from "vitest";
+import {
+  getMockTenant,
+  getMockTenantMail,
+  getMockCertifiedTenantAttribute,
+  getMockDeclaredTenantAttribute,
+  getMockVerifiedTenantAttribute,
+  toTenantV1,
+  getMockTenantRemoteId,
+  getMockCertifiedDiscreteTenantAttribute,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   TenantCreatedV1,
@@ -26,16 +35,8 @@ import {
   TenantOnboardedV2,
   TenantRemoteId,
 } from "pagopa-interop-models";
-import {
-  getMockTenant,
-  getMockTenantMail,
-  getMockCertifiedTenantAttribute,
-  getMockDeclaredTenantAttribute,
-  getMockVerifiedTenantAttribute,
-  toTenantV1,
-  getMockTenantRemoteId,
-  getMockCertifiedDiscreteTenantAttribute,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, beforeEach } from "vitest";
+
 import { handleTenantMessageV1 } from "../src/handlers/tenant/consumerServiceV1.js";
 import { handleTenantMessageV2 } from "../src/handlers/tenant/consumerServiceV2.js";
 import { TenantDbTable } from "../src/model/db/index.js";

@@ -1,5 +1,4 @@
 import { generateMock } from "@anatine/zod-mock";
-import { describe, expect, it, vi } from "vitest";
 import {
   authorizationApi,
   catalogApi,
@@ -14,6 +13,8 @@ import {
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { clientNotFound } from "../src/model/errors.js";
 import { clientServiceBuilder } from "../src/services/clientService.js";

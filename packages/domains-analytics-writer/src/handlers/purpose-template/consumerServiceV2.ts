@@ -6,19 +6,20 @@ import {
   fromPurposeTemplateV2,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
+import { splitPurposeTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { splitPurposeTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
+
 import { DBContext } from "../../db/db.js";
 import {
   PurposeTemplateDeletingSchema,
   PurposeTemplateItemsSchema,
 } from "../../model/purposeTemplate/purposeTemplate.js";
-import { purposeTemplateServiceBuilder } from "../../service/purposeTemplateService.js";
 import {
   PurposeTemplateEServiceDescriptorDeletingSchema,
   PurposeTemplateEServiceDescriptorSchema,
 } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { purposeTemplateServiceBuilder } from "../../service/purposeTemplateService.js";
 
 export async function handlePurposeTemplateMessageV2(
   messages: PurposeTemplateEventEnvelope[],

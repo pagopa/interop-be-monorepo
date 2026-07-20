@@ -1,26 +1,27 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import {
   authorizationApi,
   bffApi,
   SelfcareV2UsersClient,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
+
 import {
   toAuthorizationKeySeed,
   toBffApiCompactClient,
 } from "../api/authorizationApiConverter.js";
+import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {
   clientNotFound,
   eServiceNotFound,
   purposeNotFound,
 } from "../model/errors.js";
+import { BffAppContext } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { assertClientVisibilityIsFull } from "./validators.js";

@@ -1,8 +1,13 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import {
+  DeleteItemCommand,
+  DynamoDBClient,
+  UpdateItemCommand,
+} from "@aws-sdk/client-dynamodb";
 import { fail } from "assert";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { interactionIdNotProvided } from "pagopa-interop-client-assertion-validation";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -36,13 +41,9 @@ import {
   TenantId,
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
-import {
-  DeleteItemCommand,
-  DynamoDBClient,
-  UpdateItemCommand,
-} from "@aws-sdk/client-dynamodb";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import { interactionIdNotProvided } from "pagopa-interop-client-assertion-validation";
 import { interactionNotFound } from "../../src/model/domain/errors.js";
 import { readInteraction } from "../../src/utilities/interactionsUtils.js";
 import {

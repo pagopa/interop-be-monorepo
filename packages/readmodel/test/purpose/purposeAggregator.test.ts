@@ -1,4 +1,9 @@
-import { describe, expect, it } from "vitest";
+import {
+  getMockPurpose,
+  getMockPurposeVersion,
+  getMockPurposeVersionDocument,
+  getMockValidRiskAnalysisForm,
+} from "pagopa-interop-commons-test";
 import {
   DelegationId,
   generateId,
@@ -13,12 +18,8 @@ import {
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockPurposeVersionDocument,
-  getMockValidRiskAnalysisForm,
-} from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+
 import { aggregatePurpose } from "../../src/purpose/aggregators.js";
 import { splitPurposeIntoObjectsSQL } from "../../src/purpose/splitters.js";
 

@@ -1,15 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import {
-  pollingMaxRetriesExceeded,
-  tenantKind,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockedApiEservice,
   getMockValidRiskAnalysis,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import {
+  pollingMaxRetriesExceeded,
+  tenantKind,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  eserviceRiskAnalysisNotFound,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -17,12 +24,6 @@ import {
   mockPollingResponse,
   eserviceService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import {
-  eserviceRiskAnalysisNotFound,
-  missingMetadata,
-} from "../../../src/model/errors.js";
 import {
   buildRiskAnalysisSeed,
   getMockM2MAdminAppContext,
