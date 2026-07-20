@@ -113,6 +113,7 @@ describe("POST /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocum
     { ...mockFileUpload, filename: undefined },
     { ...mockFileUpload, prettyName: undefined },
     { ...mockFileUpload, answerId: undefined },
+    { ...mockFileUpload, contentType: "text/html" },
   ])(
     "Should return 400 if passed an invalid multipart body",
     async (multipartFields) => {
