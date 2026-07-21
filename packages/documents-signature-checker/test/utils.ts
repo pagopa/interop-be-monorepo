@@ -1,22 +1,22 @@
+import { genericLogger } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
 import {
   Agreement,
   dateToString,
   Delegation,
   Purpose,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import {
-  upsertAgreement,
-  upsertDelegation,
-} from "pagopa-interop-readmodel/testUtils";
 import {
   purposeInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+import {
+  upsertAgreement,
+  upsertDelegation,
+} from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
 
 export const { cleanup, readModelDB, fileManager } =
   await setupTestContainersVitest(

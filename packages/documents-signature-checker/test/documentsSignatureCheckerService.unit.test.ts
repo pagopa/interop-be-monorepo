@@ -1,5 +1,6 @@
 import type { FileManager, Logger } from "pagopa-interop-commons";
 import type { DrizzleReturnType } from "pagopa-interop-readmodel-models";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const getAgreementsContracts = vi.fn();

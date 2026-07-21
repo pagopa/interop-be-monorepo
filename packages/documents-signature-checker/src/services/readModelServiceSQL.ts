@@ -1,3 +1,4 @@
+import { and, eq, gte, lt } from "drizzle-orm";
 import {
   agreementContractInReadmodelAgreement,
   agreementSignedContractInReadmodelAgreement,
@@ -7,7 +8,6 @@ import {
   purposeVersionSignedDocumentInReadmodelPurpose,
   type DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, gte, lt } from "drizzle-orm";
 
 export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
   return {

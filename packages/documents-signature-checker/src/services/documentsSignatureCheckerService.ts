@@ -1,11 +1,13 @@
 import type { FileManager, Logger } from "pagopa-interop-commons";
 import type { DrizzleReturnType } from "pagopa-interop-readmodel-models";
+
 import type {
   DocumentCheckIssue,
   DocumentEntityType,
   EntityTypeReport,
   JobReport,
 } from "../models/report.js";
+
 import { readModelServiceBuilderSQL } from "./readModelServiceSQL.js";
 import {
   assertSignedContentMatchesUnsigned,
