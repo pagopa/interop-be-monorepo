@@ -15,7 +15,6 @@ import {
   Tenant,
   toDelegationV2,
 } from "pagopa-interop-models";
-import { afterAll, afterEach, inject, vi } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -28,6 +27,8 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterAll, afterEach, inject, vi } from "vitest";
+
 import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 

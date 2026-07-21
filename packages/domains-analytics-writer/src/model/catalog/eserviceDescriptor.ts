@@ -1,13 +1,14 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { eserviceDescriptorInReadmodelCatalog } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
+
+import { EserviceDescriptorArchivingSchema } from "./eserviceDescriptorArchiving.js";
+import { EserviceDescriptorAsyncExchangePropertiesSchema } from "./eserviceDescriptorAsyncExchangeProperties.js";
 import { EserviceDescriptorAttributeSchema } from "./eserviceDescriptorAttribute.js";
 import { EserviceDescriptorDocumentSchema } from "./eserviceDescriptorDocument.js";
 import { EserviceDescriptorInterfaceSchema } from "./eserviceDescriptorInterface.js";
 import { EserviceDescriptorRejectionReasonSchema } from "./eserviceDescriptorRejection.js";
 import { EserviceDescriptorTemplateVersionRefSchema } from "./eserviceDescriptorTemplateVersionRef.js";
-import { EserviceDescriptorArchivingSchema } from "./eserviceDescriptorArchiving.js";
-import { EserviceDescriptorAsyncExchangePropertiesSchema } from "./eserviceDescriptorAsyncExchangeProperties.js";
 
 export const EserviceDescriptorSchema = createSelectSchema(
   eserviceDescriptorInReadmodelCatalog

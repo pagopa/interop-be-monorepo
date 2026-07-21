@@ -1,19 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   delegationApi,
   m2mGatewayApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
-import { generateId } from "pagopa-interop-models";
 import { getMockedApiDelegation } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { unexpectedDelegationKind } from "../../../src/model/errors.js";
 import {
   delegationService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { unexpectedDelegationKind } from "../../../src/model/errors.js";
 
 describe("getProducerDelegations", () => {
   const mockParams: m2mGatewayApi.GetProducerDelegationsQueryParams = {

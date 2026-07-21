@@ -1,5 +1,5 @@
-import { Delegation, DelegationId } from "pagopa-interop-models";
 import { eq, and, lte } from "drizzle-orm";
+import { Delegation, DelegationId } from "pagopa-interop-models";
 import {
   checkMetadataVersion,
   splitDelegationIntoObjectsSQL,

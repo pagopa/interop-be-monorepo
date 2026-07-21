@@ -1,25 +1,26 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test/index.js";
 import {
   generateId,
   invalidContentTypeDetected,
   invalidInterfaceFileDetected,
 } from "pagopa-interop-models";
 import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
-import { api, services } from "../../vitest.api.setup.js";
-import {
-  getMockBffApiCreatedEServiceDescriptor,
-  getMockBffApiFileResource,
-} from "../../mockUtils.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceDescriptorNotFound,
   invalidZipStructure,
   notValidDescriptor,
 } from "../../../src/model/errors.js";
+import {
+  getMockBffApiCreatedEServiceDescriptor,
+  getMockBffApiFileResource,
+} from "../../mockUtils.js";
+import { api, services } from "../../vitest.api.setup.js";
 const mockFileResource = getMockBffApiFileResource();
 const mockCreatedEServiceDescriptor = getMockBffApiCreatedEServiceDescriptor();
 

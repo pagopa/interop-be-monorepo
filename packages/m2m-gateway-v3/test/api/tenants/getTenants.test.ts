@@ -1,18 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiTenant,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { generateMock } from "@anatine/zod-mock";
+import { describe, it, expect, vi } from "vitest";
 import { z } from "zod";
-import { api, mockTenantService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import { taxCodeAndIPACodeConflict } from "../../../src/model/errors.js";
+import { api, mockTenantService } from "../../vitest.api.setup.js";
 
 describe("GET /tenants route test", () => {
   const mockApiTenant1 = getMockedApiTenant();

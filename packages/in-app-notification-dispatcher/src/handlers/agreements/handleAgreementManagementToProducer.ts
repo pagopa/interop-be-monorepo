@@ -5,14 +5,15 @@ import {
   missingKafkaMessageDataError,
   NewNotification,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   inAppTemplates,
   retrieveTenant,
   retrieveEservice,
   getNotificationRecipients,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleAgreementManagementToProducer(
   agreementV2Msg: AgreementV2 | undefined,

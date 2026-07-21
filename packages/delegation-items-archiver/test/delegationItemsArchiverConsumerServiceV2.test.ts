@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/no-let */
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+import { genericLogger, RefreshableInteropToken } from "pagopa-interop-commons";
+import {
+  getMockAgreement,
+  getMockDelegation,
+  getMockPurpose,
+  getMockPurposeVersion,
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   agreementState,
@@ -14,14 +22,7 @@ import {
   toDelegationV2,
 } from "pagopa-interop-models";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { genericLogger, RefreshableInteropToken } from "pagopa-interop-commons";
-import {
-  getMockAgreement,
-  getMockDelegation,
-  getMockPurpose,
-  getMockPurposeVersion,
-} from "pagopa-interop-commons-test";
-import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+
 import { handleMessageV2 } from "../src/delegationItemsArchiverConsumerServiceV2.js";
 import { addOneAgreement, addOnePurpose, readModelService } from "./utils.js";
 

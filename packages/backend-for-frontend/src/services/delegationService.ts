@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { isAxiosError } from "axios";
 import {
   bffApi,
   catalogApi,
@@ -12,24 +13,24 @@ import {
   WithLogger,
 } from "pagopa-interop-commons";
 import { DelegationContractId, DelegationId } from "pagopa-interop-models";
-import { isAxiosError } from "axios";
 import { match } from "ts-pattern";
-import {
-  DelegationProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+
 import {
   DelegationsQueryParams,
   toBffDelegationApiCompactDelegation,
   toBffDelegationApiDelegation,
 } from "../api/delegationApiConverter.js";
 import {
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
+import {
   delegationContractNotFound,
   delegationNotFound,
 } from "../model/errors.js";
-import { BffAppContext, Headers } from "../utilities/context.js";
-import { config } from "../config/config.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 
 // eslint-disable-next-line max-params
