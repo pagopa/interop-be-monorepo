@@ -100,8 +100,7 @@ export type GetPurposeTemplateEServiceTemplatesFilters = {
 
 const getPurposeTemplatesFilters = (
   filters: GetPurposeTemplatesFilters,
-  authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
-  resolvedEServiceTemplateIds: EServiceTemplateId[]
+  authData: UIAuthData | M2MAuthData | M2MAdminAuthData
 ): SQL | undefined => {
   const {
     purposeTitle,
@@ -133,12 +132,13 @@ const getPurposeTemplatesFilters = (
         )
       : undefined;
 
+  // Template-based purpose templates reference an e-service template, not a
+  // concrete e-service. To match by the eserviceIds filter we resolve the
+  // eserviceId -> templateId link directly in SQL via the catalog join added
+  // to the query below (see the leftJoin on eserviceInReadmodelCatalog).
   const templateEserviceMatch =
-    resolvedEServiceTemplateIds.length > 0
-      ? inArray(
-          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
-          resolvedEServiceTemplateIds
-        )
+    eserviceIds.length > 0
+      ? inArray(eserviceInReadmodelCatalog.id, eserviceIds)
       : undefined;
 
   const eserviceIdsFilter = or(concreteEserviceMatch, templateEserviceMatch);
@@ -270,23 +270,7 @@ export function readModelServiceBuilderSQL({
       { limit, offset }: { limit: number; offset: number },
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData
     ): Promise<ListResult<PurposeTemplate>> {
-      const resolvedEServiceTemplateIds: EServiceTemplateId[] =
-        filters.eserviceIds.length > 0
-          ? (
-              await Promise.all(
-                filters.eserviceIds.map((id) =>
-                  catalogReadModelServiceSQL.getEServiceById(id)
-                )
-              )
-            )
-              .map((e) => e?.data.templateId)
-              .filter(
-                (templateId): templateId is EServiceTemplateId =>
-                  templateId !== undefined
-              )
-          : [];
-
-      const subquery = readModelDB
+      const subqueryBase = readModelDB
         .select(
           withTotalCount({
             purposeTemplateId: purposeTemplateInReadmodelPurposeTemplate.id,
@@ -314,13 +298,24 @@ export function readModelServiceBuilderSQL({
             purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate.purposeTemplateId
           )
         )
-        .where(
-          getPurposeTemplatesFilters(
-            filters,
-            authData,
-            resolvedEServiceTemplateIds
-          )
-        )
+        .$dynamic();
+
+      // Resolve eserviceId -> templateId inline via the catalog table so that
+      // template-based purpose templates can be matched by the eserviceIds
+      // filter without a separate N+1 round of getEServiceById calls.
+      const subqueryWithCatalog =
+        filters.eserviceIds.length > 0
+          ? subqueryBase.leftJoin(
+              eserviceInReadmodelCatalog,
+              eq(
+                eserviceInReadmodelCatalog.templateId,
+                eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId
+              )
+            )
+          : subqueryBase;
+
+      const subquery = subqueryWithCatalog
+        .where(getPurposeTemplatesFilters(filters, authData))
         .groupBy(purposeTemplateInReadmodelPurposeTemplate.id)
         .orderBy(
           ascLower(purposeTemplateInReadmodelPurposeTemplate.purposeTitle)
