@@ -46,6 +46,7 @@ import {
   EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const documentSQLtoDocument = (
@@ -183,6 +184,7 @@ export const aggregateDescriptor = ({
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
+    serverUrlsDescriptions: descriptorSQL.serverUrlsDescriptions,
     attributes: {
       certified: certifiedAttributes,
       declared: declaredAttributes,

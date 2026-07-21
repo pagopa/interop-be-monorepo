@@ -20,6 +20,7 @@ import {
   UserId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
 import {
   apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,

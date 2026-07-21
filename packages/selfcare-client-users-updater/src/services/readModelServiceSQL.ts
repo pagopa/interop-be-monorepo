@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import {
   Client,
   UserId,
@@ -7,7 +8,6 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { ClientReadModelService } from "pagopa-interop-readmodel";
-import { and, eq } from "drizzle-orm";
 import {
   clientInReadmodelClient,
   DrizzleReturnType,

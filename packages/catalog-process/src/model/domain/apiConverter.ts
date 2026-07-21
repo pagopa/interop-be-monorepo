@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   AgreementApprovalPolicy,
   DescriptorState,
@@ -15,7 +16,6 @@ import {
   archivingScope,
   ArchivingScope,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 
 export function technologyToApiTechnology(
@@ -180,6 +180,7 @@ export const descriptorToApiDescriptor = (
     descriptor.agreementApprovalPolicy
   ),
   serverUrls: descriptor.serverUrls,
+  serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
   publishedAt: descriptor.publishedAt?.toJSON(),
   suspendedAt: descriptor.suspendedAt?.toJSON(),
   deprecatedAt: descriptor.deprecatedAt?.toJSON(),

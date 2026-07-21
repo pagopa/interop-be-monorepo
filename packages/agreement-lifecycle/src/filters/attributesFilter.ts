@@ -9,6 +9,7 @@ import {
   VerifiedTenantAttribute,
   tenantAttributeType,
 } from "pagopa-interop-models";
+
 import { isVerificationRevoked } from "../utils/verifiedAttributes.js";
 
 export const filterVerifiedAttributes = (

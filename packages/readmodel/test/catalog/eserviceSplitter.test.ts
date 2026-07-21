@@ -19,7 +19,6 @@ import {
   generateId,
   tenantKind,
 } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
 import {
   EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAsyncExchangePropertiesSQL,
@@ -33,6 +32,8 @@ import {
   EServiceRiskAnalysisSQL,
   EServiceSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, it, expect } from "vitest";
+
 import { splitEserviceIntoObjectsSQL } from "../../src/catalog/splitters.js";
 import { generateEServiceRiskAnalysisAnswersSQL } from "./eserviceUtils.js";
 
@@ -194,6 +195,7 @@ describe("E-service splitter", () => {
       dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
       dailyCallsTotal: descriptor.dailyCallsTotal,
       serverUrls: descriptor.serverUrls,
+      serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
     };
 
     const expectedAsyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL =
@@ -438,6 +440,7 @@ describe("E-service splitter", () => {
       dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
       dailyCallsTotal: descriptor.dailyCallsTotal,
       serverUrls: descriptor.serverUrls,
+      serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
     };
 
     const expectedDocumentSQL: EServiceDescriptorDocumentSQL = {

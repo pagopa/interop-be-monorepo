@@ -11,12 +11,13 @@ import {
   toTenantNotificationConfigV2,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+
+import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneTenantNotificationConfig,
   notificationConfigService,
   readLastNotificationConfigEvent,
 } from "../integrationUtils.js";
-import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 
 describe("deleteTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();

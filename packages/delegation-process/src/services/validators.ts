@@ -1,4 +1,10 @@
 import {
+  isFeatureFlagEnabled,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
+import {
   CertifiedTenantAttribute,
   Delegation,
   delegationKind,
@@ -14,12 +20,8 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  isFeatureFlagEnabled,
-  M2MAdminAuthData,
-  M2MAuthData,
-  UIAuthData,
-} from "pagopa-interop-commons";
+
+import { config } from "../config/config.js";
 import {
   delegationAlreadyExists,
   delegationRelatedAgreementExists,
@@ -32,7 +34,6 @@ import {
   delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 /* ========= STATES ========= */

@@ -12,6 +12,7 @@ import {
   getMockAgreement,
   getMockEServiceAttributes,
 } from "pagopa-interop-commons-test";
+import { getMockDelegation } from "pagopa-interop-commons-test";
 import {
   TenantId,
   EService,
@@ -25,9 +26,10 @@ import {
   delegationKind,
   EServiceTemplateId,
 } from "pagopa-interop-models";
-import { beforeEach, expect, describe, it } from "vitest";
-import { getMockDelegation } from "pagopa-interop-commons-test";
 import { match } from "ts-pattern";
+import { beforeEach, expect, describe, it } from "vitest";
+
+import { PersonalDataFilter } from "../../src/model/domain/models.js";
 import {
   addOneEService,
   addOneTenant,
@@ -37,7 +39,6 @@ import {
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
 import { getContextsAllowedToSeeInactiveDescriptors } from "../mockUtils.js";
-import { PersonalDataFilter } from "../../src/model/domain/models.js";
 
 describe("get eservices", () => {
   const organizationId1: TenantId = generateId();

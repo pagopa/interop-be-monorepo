@@ -30,13 +30,18 @@ import {
   EServiceDocumentId,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../../src/model/domain/constants.js";
 import {
   eServiceNotFound,
   eServiceNotAnInstance,
   eServiceTemplateNotFound,
   eServiceAlreadyUpgraded,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   fileManager,
   addOneEService,
@@ -45,10 +50,6 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
-import {
-  DEFAULT_DAILY_CALLS_PER_CONSUMER,
-  DEFAULT_DAILY_CALLS_TOTAL,
-} from "../../src/model/domain/constants.js";
 
 describe("upgrade eservice template instance", () => {
   const mockEService = getMockEService();
@@ -199,6 +200,7 @@ describe("upgrade eservice template instance", () => {
       agreementApprovalPolicy: secondTemplateVersion.agreementApprovalPolicy,
       attributes: secondTemplateVersion.attributes,
       serverUrls: [],
+      serverUrlsDescriptions: [],
       publishedAt: undefined,
       suspendedAt: undefined,
       deprecatedAt: undefined,
@@ -384,6 +386,7 @@ describe("upgrade eservice template instance", () => {
       agreementApprovalPolicy: secondTemplateVersion.agreementApprovalPolicy,
       attributes: secondTemplateVersion.attributes,
       serverUrls: [],
+      serverUrlsDescriptions: [],
       publishedAt: undefined,
       suspendedAt: undefined,
       deprecatedAt: undefined,
