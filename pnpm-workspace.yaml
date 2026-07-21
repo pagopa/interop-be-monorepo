@@ -26,9 +26,6 @@ catalog:
   "@protobuf-ts/protoc": 2.9.4
   "@protobuf-ts/runtime": 2.9.4
   "@stoplight/spectral-cli": 6.15.0
-  "@testcontainers/kafka": 11.14.0
-  "@testcontainers/minio": 11.14.0
-  "@testcontainers/postgresql": 11.14.0
   "@tsconfig/node-lts": 20.1.3
   "@tsconfig/strictest": 2.0.5
   "@types/adm-zip": 0.5.7
