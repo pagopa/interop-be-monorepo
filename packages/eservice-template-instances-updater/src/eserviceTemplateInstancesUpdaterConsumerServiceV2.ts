@@ -1,5 +1,14 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { randomUUID } from "crypto";
+import { catalogApi } from "pagopa-interop-api-clients";
+import {
+  FileManager,
+  getInteropHeaders,
+  InteropHeaders,
+  Logger,
+  logger,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   Descriptor,
@@ -15,15 +24,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  FileManager,
-  getInteropHeaders,
-  InteropHeaders,
-  Logger,
-  logger,
-  RefreshableInteropToken,
-} from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
+
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 import { config } from "./config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";

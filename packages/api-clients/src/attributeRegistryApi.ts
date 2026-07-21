@@ -1,4 +1,5 @@
 import { ZodiosBodyByPath } from "@zodios/core";
+
 import * as attributeRegistryApi from "./generated/attributeRegistryApi.js";
 import { QueryParametersByAlias } from "./utils.js";
 

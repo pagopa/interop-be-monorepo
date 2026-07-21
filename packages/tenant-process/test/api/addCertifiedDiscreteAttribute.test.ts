@@ -1,0 +1,126 @@
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { tenantApi } from "pagopa-interop-api-clients";
+import { authRole, AuthRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import { generateId, Tenant, TenantId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toApiTenant } from "../../src/model/domain/apiConverter.js";
+import {
+  attributeDoesNotBelongToCertifier,
+  attributeNotFound,
+  certifiedDiscreteAttributeAlreadyAssigned,
+  tenantIsNotACertifier,
+  tenantNotFound,
+} from "../../src/model/domain/errors.js";
+import { api, tenantService } from "../vitest.api.setup.js";
+
+describe("API POST /tenants/{tenantId}/attributes/certifiedDiscrete test", () => {
+  const tenantAttributeSeed: tenantApi.CertifiedDiscreteTenantAttributeSeed = {
+    id: generateId(),
+    certifiedDiscreteValue: 100,
+  };
+  const tenant: Tenant = getMockTenant();
+
+  const serviceResponse = getMockWithMetadata(tenant);
+  const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
+
+  beforeEach(() => {
+    tenantService.addCertifiedDiscreteAttribute = vi
+      .fn()
+      .mockResolvedValue(serviceResponse);
+  });
+
+  const authorizedRoles: AuthRole[] = [
+    authRole.ADMIN_ROLE,
+    authRole.M2M_ROLE,
+    authRole.M2M_ADMIN_ROLE,
+  ];
+
+  const makeRequest = async (
+    token: string,
+    tenantId: TenantId = tenant.id,
+    body: tenantApi.CertifiedDiscreteTenantAttributeSeed = tenantAttributeSeed
+  ) =>
+    request(api)
+      .post(`/tenants/${tenantId}/attributes/certifiedDiscrete`)
+      .set("Authorization", `Bearer ${token}`)
+      .set("X-Correlation-Id", generateId())
+      .send(body);
+
+  it.each(authorizedRoles)(
+    "Should return 200 for user with role %s",
+    async (role) => {
+      const token = generateToken(role);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual(apiResponse);
+      expect(res.headers["x-metadata-version"]).toBe(
+        serviceResponse.metadata.version.toString()
+      );
+    }
+  );
+
+  it.each(
+    Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
+  )("Should return 403 for user with role %s", async (role) => {
+    const token = generateToken(role);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(403);
+  });
+
+  it.each([
+    { error: tenantNotFound(tenant.id), expectedStatus: 404 },
+    { error: tenantIsNotACertifier(tenant.id), expectedStatus: 403 },
+    { error: attributeNotFound(generateId()), expectedStatus: 400 },
+    {
+      error: attributeDoesNotBelongToCertifier(
+        generateId(),
+        generateId(),
+        tenant.id
+      ),
+      expectedStatus: 403,
+    },
+    {
+      error: certifiedDiscreteAttributeAlreadyAssigned(
+        generateId(),
+        generateId()
+      ),
+      expectedStatus: 409,
+    },
+  ])(
+    "Should return $expectedStatus for $error.code",
+    async ({ error, expectedStatus }) => {
+      tenantService.addCertifiedDiscreteAttribute = vi
+        .fn()
+        .mockRejectedValue(error);
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token);
+      expect(res.status).toBe(expectedStatus);
+    }
+  );
+
+  it.each([
+    { tenantId: "invalid" as TenantId },
+    { body: {} },
+    { body: { id: "invalid", certifiedDiscreteValue: 10 } },
+    { body: { id: generateId(), certifiedDiscreteValue: 0 } },
+    { body: { ...tenantAttributeSeed, extraField: 1 } },
+  ])(
+    "Should return 400 if passed invalid data: %s",
+    async ({ tenantId, body }) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        tenantId,
+        body as tenantApi.CertifiedDiscreteTenantAttributeSeed
+      );
+      expect(res.status).toBe(400);
+    }
+  );
+});

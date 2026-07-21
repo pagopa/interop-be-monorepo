@@ -1,6 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { describe, expect, it } from "vitest";
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   CorrelationId,
   DescriptorId,
@@ -11,7 +11,8 @@ import {
   generateId,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { CreateEvent } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import { getMockDescriptor, getMockEService } from "../src/testUtils.js";
 import { repository } from "./utils.js";
 

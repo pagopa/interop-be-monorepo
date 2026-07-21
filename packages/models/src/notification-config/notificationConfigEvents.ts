@@ -1,6 +1,7 @@
-import { z } from "zod";
 import { match } from "ts-pattern";
+import { z } from "zod";
 
+import { EventEnvelope } from "../events/events.js";
 import {
   TenantNotificationConfigCreatedV2,
   TenantNotificationConfigUpdatedV2,
@@ -12,7 +13,6 @@ import {
   UserNotificationConfigRoleRemovedV2,
 } from "../gen/v2/notification-config/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 
 export const NotificationConfigEventV2 = z.discriminatedUnion("type", [
   z.object({

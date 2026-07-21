@@ -8,14 +8,15 @@ import {
   purposeVersionStampInReadmodelPurpose,
   riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+
 import { PurposeSchema } from "../purpose/purpose.js";
 import { PurposeRiskAnalysisFormSchema } from "../purpose/purposeRiskAnalysis.js";
 import { PurposeRiskAnalysisAnswerSchema } from "../purpose/purposeRiskAnalysisAnswer.js";
 import { PurposeRiskAnalysisReviewerSchema } from "../purpose/purposeRiskAnalysisReviewer.js";
 import { PurposeVersionSchema } from "../purpose/purposeVersion.js";
 import { PurposeVersionDocumentSchema } from "../purpose/purposeVersionDocument.js";
-import { PurposeVersionStampSchema } from "../purpose/purposeVersionStamp.js";
 import { PurposeVersionSignedDocumentSchema } from "../purpose/purposeVersionSignedDocument.js";
+import { PurposeVersionStampSchema } from "../purpose/purposeVersionStamp.js";
 
 export const PurposeDbTableConfig = {
   purpose: PurposeSchema,

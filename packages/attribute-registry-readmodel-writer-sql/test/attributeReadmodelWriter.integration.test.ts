@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import { getMockAttribute } from "pagopa-interop-commons-test";
 import {
   Attribute,
@@ -7,6 +6,8 @@ import {
   attributeKind,
   toAttributeV1,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { handleMessage } from "../src/attributeRegistryConsumerService.js";
 import { attributeReadModelService, attributeWriterService } from "./utils.js";
 

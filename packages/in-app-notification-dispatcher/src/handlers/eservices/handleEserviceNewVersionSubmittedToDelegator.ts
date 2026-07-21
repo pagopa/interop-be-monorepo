@@ -1,17 +1,18 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   NewNotification,
   EServiceV2,
   missingKafkaMessageDataError,
   fromEServiceV2,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   inAppTemplates,
   getNotificationRecipients,
   retrieveTenant,
   activeProducerDelegationNotFound,
 } from "pagopa-interop-notification-commons";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleEserviceNewVersionSubmittedToDelegator(
   eserviceV2Msg: EServiceV2 | undefined,

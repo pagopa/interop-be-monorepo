@@ -1,5 +1,6 @@
 import { and, eq, isNull, lt, lte } from "drizzle-orm";
 import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-models";
+
 import { isStale } from "./staleness.js";
 import {
   RunScheduledDeliveryBatchCounters,

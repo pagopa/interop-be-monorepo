@@ -1,4 +1,5 @@
 import { FileManager, logger, streamToString } from "pagopa-interop-commons";
+
 import { BffProcessConfig } from "../config/config.js";
 
 export default async function getAllowList(

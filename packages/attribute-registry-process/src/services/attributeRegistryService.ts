@@ -1,3 +1,4 @@
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -22,8 +23,8 @@ import {
   TenantFeatureCertifier,
   Tenant,
 } from "pagopa-interop-models";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
+
+import { config } from "../config/config.js";
 import {
   tenantIsNotACertifier,
   attributeDuplicateByName,
@@ -32,7 +33,7 @@ import {
   tenantNotFound,
   attributeDuplicateByCodeOriginOrName,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
+import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveTenant = async (
@@ -301,6 +302,65 @@ export function attributeRegistryServiceBuilder(
 
       return {
         data: newCertifiedAttribute,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+
+    async createCertifiedDiscreteAttribute(
+      apiCertifiedDiscreteAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Attribute>> {
+      logger.info(
+        `Creating certified discrete attribute with code ${apiCertifiedDiscreteAttributeSeed.code}`
+      );
+      const certifierId = await getCertifierId(
+        authData.organizationId,
+        readModelService
+      );
+      const duplicatedAttribute =
+        await readModelService.getAttributeByCodeOriginOrName(
+          apiCertifiedDiscreteAttributeSeed.code,
+          apiCertifiedDiscreteAttributeSeed.name,
+          certifierId
+        );
+
+      if (duplicatedAttribute) {
+        throw attributeDuplicateByCodeOriginOrName(
+          apiCertifiedDiscreteAttributeSeed.name,
+          apiCertifiedDiscreteAttributeSeed.code,
+          certifierId
+        );
+      }
+
+      const newCertifiedDiscreteAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.certifiedDiscrete,
+        name: apiCertifiedDiscreteAttributeSeed.name,
+        description: apiCertifiedDiscreteAttributeSeed.description,
+        creationTime: new Date(),
+        code: apiCertifiedDiscreteAttributeSeed.code,
+        origin: certifierId,
+      };
+
+      logger.info(
+        `Certified discrete attribute created with id ${newCertifiedDiscreteAttribute.id}`
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventAttributeAdded(
+          newCertifiedDiscreteAttribute,
+          correlationId
+        )
+      );
+
+      return {
+        data: newCertifiedDiscreteAttribute,
         metadata: {
           version: event.newVersion,
         },

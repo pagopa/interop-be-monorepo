@@ -1,5 +1,6 @@
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import { Attribute, unsafeBrandId, attributeKind } from "pagopa-interop-models";
+
 import { InteropContext } from "../model/interopContextModel.js";
 
 export class AttributeProcessService {
