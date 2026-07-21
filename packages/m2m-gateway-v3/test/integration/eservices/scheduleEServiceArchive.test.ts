@@ -28,7 +28,7 @@ describe("scheduleArchiveEService", () => {
   const mockEService = getMockedApiEservice();
   const mockEServiceProcessGetResponse = getMockWithMetadata(mockEService);
 
-  const mockSeed: m2mGatewayApiV3.EServiceArchivingSeed = {
+  const mockSeed: m2mGatewayApiV3.EServiceArchivingReasonSeed = {
     archivingReason: "test reason",
     gracePeriodDays: 60,
   };
@@ -91,7 +91,7 @@ describe("scheduleArchiveEService", () => {
   )("Should succeed and perform service calls with body %s", async (body) => {
     const result = await eserviceService.scheduleArchiveEService(
       unsafeBrandId(mockEService.id),
-      body as m2mGatewayApiV3.EServiceArchivingSeed,
+      body as m2mGatewayApiV3.EServiceArchivingReasonSeed,
       getMockM2MAdminAppContext()
     );
 
@@ -124,7 +124,7 @@ describe("scheduleArchiveEService", () => {
     async (body) => {
       const result = await eserviceService.scheduleArchiveEService(
         unsafeBrandId(mockEService.id),
-        body as m2mGatewayApiV3.EServiceArchivingSeed,
+        body as m2mGatewayApiV3.EServiceArchivingReasonSeed,
         getMockM2MAdminAppContext()
       );
 

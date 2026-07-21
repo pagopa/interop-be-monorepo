@@ -755,7 +755,7 @@ export function eserviceServiceBuilder(
 
     async scheduleArchiveEService(
       eserviceId: EServiceId,
-      seed: m2mGatewayApiV3.EServiceArchivingSeed,
+      seed: m2mGatewayApiV3.EServiceArchivingReasonSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EService> {
       logger.info(`Scheduling archive for eservice with id ${eserviceId}`);
