@@ -46,7 +46,6 @@ describe("API GET /purposes/{purposeId}/remainingDailyCalls test", () => {
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.M2M_ADMIN_ROLE,
-    authRole.REVIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(
