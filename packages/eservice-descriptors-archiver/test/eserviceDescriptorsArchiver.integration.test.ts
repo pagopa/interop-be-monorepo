@@ -9,12 +9,14 @@ import {
   CorrelationId,
   DescriptorState,
   EServiceId,
+  GracePeriodDays,
   TenantId,
   agreementState,
   archivingScope,
   descriptorState,
   generateId,
   genericInternalError,
+  gracePeriodDays,
 } from "pagopa-interop-models";
 import {
   beforeAll,
@@ -413,15 +415,23 @@ describe("EService Descriptors Archiver", async () => {
       }
     );
 
-    it.each([descriptorState.archiving, descriptorState.archivingSuspended])(
-      "should not call archive Descriptor when Descriptor is %s, is the latest version, archiving scope is EService and has no active agreements",
-      async (state) => {
+    it.each(
+      [descriptorState.archiving, descriptorState.archivingSuspended].flatMap(
+        (state) =>
+          gracePeriodDays.map(
+            (g) => [state, g] as [DescriptorState, GracePeriodDays]
+          )
+      )
+    )(
+      "should not call archive Descriptor when Descriptor is %s, is the latest version, archiving scope is EService and has no active agreements (gracePeriodDays: %s)",
+      async (state, gracePeriodDaysValue) => {
         const producerId: TenantId = generateId();
 
         const eserviceArchivingSchedule = {
           startedAt: new Date(),
           archivableOn: new Date(),
           scope: archivingScope.eservice,
+          gracePeriodDays: gracePeriodDaysValue,
         };
 
         const previousDescriptor = {

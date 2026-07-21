@@ -20,6 +20,8 @@ import {
   EServiceTemplateVersionRef,
   fromEServiceV2,
   generateId,
+  GracePeriodDays,
+  gracePeriodDays,
   tenantKind,
   toEServiceV2,
 } from "pagopa-interop-models";
@@ -32,104 +34,108 @@ import { readModelDB } from "../utils.js";
 import { catalogReadModelService } from "./eserviceUtils.js";
 
 describe("E-service aggregator", () => {
-  it("should convert eservice SQL items into an eservice", () => {
-    const certifiedAttribute = getMockEServiceAttribute();
-    const certifiedDiscreteAttribute =
-      getMockEServiceAttributeCertifiedDiscrete();
-    const doc = getMockDocument();
-    const interfaceDoc = getMockDocument();
-    const rejectionReason = getMockDescriptorRejectionReason();
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
-    const publishedAt = new Date();
-    const suspendedAt = new Date();
-    const deprecatedAt = new Date();
-    const archivedAt = new Date();
-    const isSignalHubEnabled = true;
-    const isClientAccessDelegable = true;
-    const isConsumerDelegable = true;
-    const templateId = generateId<EServiceTemplateId>();
-    const templateVersionRef: EServiceTemplateVersionRef = {
-      id: generateId(),
-      interfaceMetadata: {
-        contactName: "contact name",
-        contactEmail: "contact email",
-        contactUrl: "contact url",
-        termsAndConditionsUrl: "terms and conditions url",
-      },
-    };
-    const personalData = true;
-    const archivingSchedule: ArchivingSchedule = {
-      scope: archivingScope.descriptor,
-      archivableOn: new Date(),
-      startedAt: new Date(),
-    };
+  it.each([...gracePeriodDays])(
+    "should convert eservice SQL items into an eservice (gracePeriodDays: %d)",
+    (gracePeriodDaysValue: GracePeriodDays) => {
+      const certifiedAttribute = getMockEServiceAttribute();
+      const certifiedDiscreteAttribute =
+        getMockEServiceAttributeCertifiedDiscrete();
+      const doc = getMockDocument();
+      const interfaceDoc = getMockDocument();
+      const rejectionReason = getMockDescriptorRejectionReason();
+      const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
+      const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+      const publishedAt = new Date();
+      const suspendedAt = new Date();
+      const deprecatedAt = new Date();
+      const archivedAt = new Date();
+      const isSignalHubEnabled = true;
+      const isClientAccessDelegable = true;
+      const isConsumerDelegable = true;
+      const templateId = generateId<EServiceTemplateId>();
+      const templateVersionRef: EServiceTemplateVersionRef = {
+        id: generateId(),
+        interfaceMetadata: {
+          contactName: "contact name",
+          contactEmail: "contact email",
+          contactUrl: "contact url",
+          termsAndConditionsUrl: "terms and conditions url",
+        },
+      };
+      const personalData = true;
+      const archivingSchedule: ArchivingSchedule = {
+        scope: archivingScope.descriptor,
+        archivableOn: new Date(),
+        startedAt: new Date(),
+        gracePeriodDays: gracePeriodDaysValue,
+      };
 
-    const descriptor: Descriptor = {
-      ...getMockDescriptor(),
-      attributes: {
-        certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
-        declared: [],
-        verified: [],
-      },
-      docs: [doc],
-      interface: interfaceDoc,
-      rejectionReasons: [rejectionReason],
-      description: "description test",
-      publishedAt,
-      suspendedAt,
-      deprecatedAt,
-      archivedAt,
-      agreementApprovalPolicy: agreementApprovalPolicy.automatic,
-      templateVersionRef,
-      archivingSchedule,
-    };
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(),
+        attributes: {
+          certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
+          declared: [],
+          verified: [],
+        },
+        docs: [doc],
+        interface: interfaceDoc,
+        rejectionReasons: [rejectionReason],
+        description: "description test",
+        publishedAt,
+        suspendedAt,
+        deprecatedAt,
+        archivedAt,
+        agreementApprovalPolicy: agreementApprovalPolicy.automatic,
+        templateVersionRef,
+        archivingSchedule,
+      };
 
-    const eservice: EService = {
-      ...getMockEService(),
-      descriptors: [descriptor],
-      riskAnalysis: [riskAnalysis1, riskAnalysis2],
-      isSignalHubEnabled,
-      isClientAccessDelegable,
-      isConsumerDelegable,
-      templateId,
-      personalData,
-      archivingReason: "archiving reason",
-    };
+      const eservice: EService = {
+        ...getMockEService(),
+        descriptors: [descriptor],
+        riskAnalysis: [riskAnalysis1, riskAnalysis2],
+        isSignalHubEnabled,
+        isClientAccessDelegable,
+        isConsumerDelegable,
+        templateId,
+        personalData,
+        archivingReason: "archiving reason",
+      };
 
-    const {
-      eserviceSQL,
-      riskAnalysesSQL,
-      riskAnalysisAnswersSQL,
-      descriptorsSQL,
-      attributesSQL,
-      interfacesSQL,
-      documentsSQL,
-      rejectionReasonsSQL,
-      templateVersionRefsSQL,
-      archivingSchedulesSQL,
-      asyncExchangePropertiesSQL,
-    } = splitEserviceIntoObjectsSQL(eservice, 1);
+      const {
+        eserviceSQL,
+        riskAnalysesSQL,
+        riskAnalysisAnswersSQL,
+        descriptorsSQL,
+        attributesSQL,
+        interfacesSQL,
+        documentsSQL,
+        rejectionReasonsSQL,
+        templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
+      } = splitEserviceIntoObjectsSQL(eservice, 1);
 
-    const aggregatedEservice = aggregateEservice({
-      eserviceSQL,
-      riskAnalysesSQL,
-      riskAnalysisAnswersSQL,
-      descriptorsSQL,
-      attributesSQL,
-      interfacesSQL,
-      documentsSQL,
-      rejectionReasonsSQL,
-      templateVersionRefsSQL,
-      archivingSchedulesSQL,
-      asyncExchangePropertiesSQL,
-    });
+      const aggregatedEservice = aggregateEservice({
+        eserviceSQL,
+        riskAnalysesSQL,
+        riskAnalysisAnswersSQL,
+        descriptorsSQL,
+        attributesSQL,
+        interfacesSQL,
+        documentsSQL,
+        rejectionReasonsSQL,
+        templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
+      });
 
-    expect(aggregatedEservice).toStrictEqual({
-      data: eservice,
-      metadata: { version: 1 },
-    });
-  });
+      expect(aggregatedEservice).toStrictEqual({
+        data: eservice,
+        metadata: { version: 1 },
+      });
+    }
+  );
 
   it("should convert an incomplete eservice items into an eservice(undefined -> null)", () => {
     const eservice = getMockEService();
