@@ -94,6 +94,10 @@ export const addCertifiedAttributeErrorMapper = (
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("attributeDoesNotBelongToCertifier", () => HTTP_STATUS_FORBIDDEN)
     .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "certifiedDiscreteAttributeAlreadyAssigned",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addDeclaredAttributeErrorMapper = (

@@ -350,6 +350,22 @@ export function tenantServiceBuilder(
         headers,
       });
     },
+    async addCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      seed: bffApi.CertifiedDiscreteTenantAttributeSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Adding certified discrete attribute ${seed.id} to tenant ${tenantId}`
+      );
+      await tenantProcessClient.tenantAttribute.addCertifiedDiscreteAttribute(
+        seed,
+        {
+          params: { tenantId },
+          headers,
+        }
+      );
+    },
     async addDeclaredAttribute(
       seed: bffApi.DeclaredTenantAttributeSeed,
       { authData, logger, headers }: WithLogger<BffAppContext>
@@ -423,6 +439,22 @@ export function tenantServiceBuilder(
         `Revoking certified attribute ${attributeId} for tenant ${tenantId}`
       );
       await tenantProcessClient.tenantAttribute.revokeCertifiedAttributeById(
+        undefined,
+        {
+          params: { tenantId, attributeId },
+          headers,
+        }
+      );
+    },
+    async revokeCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Revoking certified discrete attribute ${attributeId} for tenant ${tenantId}`
+      );
+      await tenantProcessClient.tenantAttribute.revokeCertifiedDiscreteAttributeById(
         undefined,
         {
           params: { tenantId, attributeId },
