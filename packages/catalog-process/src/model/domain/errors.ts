@@ -12,6 +12,7 @@ import {
   RiskAnalysisId,
   TenantId,
   TenantKind,
+  Technology,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -83,6 +84,7 @@ const errorCodes = {
   certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
   eserviceDescriptorWithActiveOrPendingDelegation: "0067",
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
+  eserviceTemplateInterfaceTechnologyMismatch: "0069",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -490,6 +492,18 @@ export function eserviceTemplateInterfaceNotFound(
     detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
     code: "eserviceTemplateInterfaceNotFound",
     title: "EService template interface document not found",
+  });
+}
+
+export function eserviceTemplateInterfaceTechnologyMismatch(
+  eserviceTemplateId: EServiceTemplateId,
+  templateTechnology: Technology,
+  interfaceTechnology: Technology
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${eserviceTemplateId} has technology ${templateTechnology}, which is incompatible with interface technology ${interfaceTechnology}`,
+    code: "eserviceTemplateInterfaceTechnologyMismatch",
+    title: "EService template interface technology mismatch",
   });
 }
 

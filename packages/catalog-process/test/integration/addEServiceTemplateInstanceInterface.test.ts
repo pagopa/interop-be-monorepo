@@ -50,6 +50,7 @@ import {
   eserviceInterfaceDataNotValid,
   eServiceNotAnInstance,
   eServiceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eserviceTemplateInterfaceNotFound,
   eServiceTemplateNotFound,
 } from "../../src/model/domain/errors.js";
@@ -144,12 +145,73 @@ describe("addEServiceTemplateInstanceInterface", () => {
   });
 
   describe("Invalid data input (Rest/Soap)", () => {
+    it("should throw an eserviceTemplateInterfaceTechnologyMismatch when adding a SOAP interface to a REST template instance", async () => {
+      const interfaceDocumentFile = {
+        ...getMockDocument(),
+        name: "test.openapi.3.0.2.yaml",
+        contentType: "yaml",
+        path: `${config.eserviceDocumentsPath}`,
+      };
+
+      const { eservice, descriptor, template } =
+        await initEserviceTemplateInstance(descriptorState.draft, "Rest", {
+          doc: interfaceDocumentFile,
+          content: await readFileContent("test.openapi.3.0.2.yaml"),
+        });
+
+      await expect(
+        catalogService.addEServiceTemplateInstanceInterface(
+          eservice.id,
+          descriptor.id,
+          "Soap",
+          {
+            serverUrls: [{ url: "https://soap.server.com" }],
+          },
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrow(
+        eserviceTemplateInterfaceTechnologyMismatch(template.id, "Rest", "Soap")
+      );
+    });
+
+    it("should throw an eserviceTemplateInterfaceTechnologyMismatch when adding a REST interface to a SOAP template instance", async () => {
+      const interfaceDocumentFile = {
+        ...getMockDocument(),
+        name: "interface-test.wsdl",
+        contentType: "wsdl",
+        path: `${config.eserviceDocumentsPath}`,
+      };
+
+      const { eservice, descriptor, template } =
+        await initEserviceTemplateInstance(descriptorState.draft, "Soap", {
+          doc: interfaceDocumentFile,
+          content: await readFileContent("interface-test.wsdl"),
+        });
+
+      await expect(
+        catalogService.addEServiceTemplateInstanceInterface(
+          eservice.id,
+          descriptor.id,
+          "Rest",
+          {
+            contactName: "John Doe",
+            contactEmail: "john.doe@example.com",
+            serverUrls: [{ url: "https://rest.server.com" }],
+          },
+          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        )
+      ).rejects.toThrow(
+        eserviceTemplateInterfaceTechnologyMismatch(template.id, "Soap", "Rest")
+      );
+    });
+
     it("should throw an eServiceNotFound if the e-service does not exist", async () => {
       const eserviceId = generateId<EServiceId>();
       await expect(
         catalogService.addEServiceTemplateInstanceInterface(
           eserviceId,
           generateId(),
+          "Rest",
           {
             contactName: "Jhon Doe",
             contactUrl: "https://fun.tester.johnny.info",
@@ -178,6 +240,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         catalogService.addEServiceTemplateInstanceInterface(
           mockEService.id,
           invalidDescriptorId,
+          "Rest",
           {
             contactName: "Jhon Doe",
             contactUrl: "https://fun.tester.johnny.info",
@@ -252,6 +315,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         catalogService.addEServiceTemplateInstanceInterface(
           eserviceId,
           mockDescriptor.id,
+          "Rest",
           {
             contactName: "Jhon Doe",
             contactUrl: "https://fun.tester.johnny.info",
@@ -281,6 +345,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         catalogService.addEServiceTemplateInstanceInterface(
           eserviceId,
           mockDescriptor.id,
+          "Rest",
           {
             contactName: "Jhon Doe",
             contactUrl: "https://fun.tester.johnny.info",
@@ -344,6 +409,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         catalogService.addEServiceTemplateInstanceInterface(
           eserviceId,
           mockDescriptor.id,
+          "Rest",
           {
             contactName: "Jhon Doe",
             contactUrl: "https://fun.tester.johnny.info",
@@ -396,6 +462,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         catalogService.addEServiceTemplateInstanceInterface(
           eserviceId,
           mockDescriptor.id,
+          "Rest",
           {
             contactName: "Jhon Doe",
             contactUrl: "https://fun.tester.johnny.info",
@@ -466,6 +533,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         catalogService.addEServiceTemplateInstanceInterface(
           eserviceId,
           mockDescriptor.id,
+          "Rest",
           {
             contactName: "Jhon Doe",
             contactUrl: "https://fun.tester.johnny.info",
@@ -521,6 +589,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const res = await catalogService.addEServiceTemplateInstanceInterface(
         eservice.id,
         descriptor.id,
+        "Rest",
         requestPayload,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
@@ -617,6 +686,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const res = await catalogService.addEServiceTemplateInstanceInterface(
         eservice.id,
         descriptor.id,
+        "Rest",
         requestPayload,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
@@ -706,6 +776,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const res = await catalogService.addEServiceTemplateInstanceInterface(
         eservice.id,
         descriptor.id,
+        "Soap",
         requestPayload,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
@@ -793,6 +864,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const res = await catalogService.addEServiceTemplateInstanceInterface(
         eservice.id,
         descriptor.id,
+        "Soap",
         requestPayload,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       );
