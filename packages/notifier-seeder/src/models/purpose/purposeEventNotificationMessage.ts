@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { PurposeEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { PurposeEventNotification } from "./purposeEventNotification.js";
 

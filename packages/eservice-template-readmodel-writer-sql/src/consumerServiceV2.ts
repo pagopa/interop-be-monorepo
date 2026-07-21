@@ -5,6 +5,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { EServiceTemplateWriterService } from "./eserviceTemplateWriterService.js";
 
 export async function handleMessageV2(

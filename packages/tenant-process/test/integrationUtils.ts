@@ -1,4 +1,11 @@
 import {
+  ReadEvent,
+  StoredEvent,
+  readLastEventByStreamId,
+  setupTestContainersVitest,
+  writeInEventstore,
+} from "pagopa-interop-commons-test";
+import {
   Agreement,
   EService,
   Tenant,
@@ -8,14 +15,6 @@ import {
   Attribute,
   Delegation,
 } from "pagopa-interop-models";
-import {
-  ReadEvent,
-  StoredEvent,
-  readLastEventByStreamId,
-  setupTestContainersVitest,
-  writeInEventstore,
-} from "pagopa-interop-commons-test";
-import { inject, afterEach } from "vitest";
 import {
   tenantReadModelServiceBuilder,
   agreementReadModelServiceBuilder,
@@ -34,6 +33,8 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { inject, afterEach } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { tenantServiceBuilder } from "../src/services/tenantService.js";
 

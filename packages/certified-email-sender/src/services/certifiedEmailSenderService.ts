@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
+import Mail from "nodemailer/lib/mailer/index.js";
 import {
   EmailManagerPEC,
   HtmlTemplateService,
@@ -23,8 +22,10 @@ import {
   tenantMailKind,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import { z } from "zod";
-import Mail from "nodemailer/lib/mailer/index.js";
+
 import {
   agreementStampDateNotFound,
   descriptorNotFound,

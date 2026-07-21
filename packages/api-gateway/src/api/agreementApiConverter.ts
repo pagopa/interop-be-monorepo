@@ -1,5 +1,6 @@
 import { agreementApi, apiGatewayApi } from "pagopa-interop-api-clients";
 import { Logger } from "pagopa-interop-commons";
+
 import { assertAgreementStateNotDraft } from "../services/validators.js";
 
 const allowedAgreementStates: apiGatewayApi.AgreementState[] = [

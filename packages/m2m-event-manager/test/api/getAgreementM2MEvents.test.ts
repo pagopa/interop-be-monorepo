@@ -1,19 +1,20 @@
-import { describe, it, expect, vi } from "vitest";
 import { m2mEventApi } from "pagopa-interop-api-clients";
-import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   AgreementM2MEventType,
   generateId,
   m2mEventVisibility,
 } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toApiAgreementM2MEventType } from "../../src/model/agreementM2MEventApiConverter.js";
 import {
   generateM2MEventId,
   getMockedAgreementM2MEvent,
 } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { toApiAgreementM2MEventType } from "../../src/model/agreementM2MEventApiConverter.js";
 
 describe("API /events/agreements test", () => {
   const mockAgreementM2MEvents = AgreementM2MEventType.options
