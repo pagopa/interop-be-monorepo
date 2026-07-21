@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import { and, asc, eq, inArray, isNotNull, isNull, or, sql } from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
@@ -44,6 +44,7 @@ import {
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
@@ -52,6 +53,14 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
+
+const certifiedAttributeKind: {
+  standard: tenantApi.CertifiedAttributeKind;
+  discrete: tenantApi.CertifiedAttributeKind;
+} = {
+  standard: "CERTIFIED",
+  discrete: "CERTIFIED_DISCRETE",
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params
 export function readModelServiceBuilderSQL(
@@ -407,40 +416,74 @@ export function readModelServiceBuilderSQL(
       limit: number;
     }): Promise<ListResult<tenantApi.CertifiedAttribute>> {
       const res = await readModelDB
-        .selectDistinct(
+        .select(
           withTotalCount({
             id: tenantInReadmodelTenant.id,
             name: tenantInReadmodelTenant.name,
-            nameLowerCase: lowerCase(tenantInReadmodelTenant.name),
-            attributeId: tenantCertifiedAttributeInReadmodelTenant.attributeId,
+            attributeId: attributeInReadmodelAttribute.id,
             attributeName: attributeInReadmodelAttribute.name,
+            kind: sql<tenantApi.CertifiedAttributeKind>`CASE
+              WHEN ${attributeInReadmodelAttribute.kind} = ${attributeKind.certified}
+                THEN ${certifiedAttributeKind.standard}
+              ELSE ${certifiedAttributeKind.discrete}
+            END`.as("kind"),
           })
         )
-        .from(tenantCertifiedAttributeInReadmodelTenant)
-        .innerJoin(
-          attributeInReadmodelAttribute,
+        .from(attributeInReadmodelAttribute)
+        .leftJoin(
+          tenantCertifiedAttributeInReadmodelTenant,
           and(
             eq(
               tenantCertifiedAttributeInReadmodelTenant.attributeId,
               attributeInReadmodelAttribute.id
             ),
-            eq(attributeInReadmodelAttribute.origin, certifierId),
             eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
             isNull(
               tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
             )
           )
         )
+        .leftJoin(
+          tenantCertifiedDiscreteAttributeInReadmodelTenant,
+          and(
+            eq(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId,
+              attributeInReadmodelAttribute.id
+            ),
+            eq(
+              attributeInReadmodelAttribute.kind,
+              attributeKind.certifiedDiscrete
+            ),
+            isNull(
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.revocationTimestamp
+            )
+          )
+        )
         .innerJoin(
           tenantInReadmodelTenant,
-          eq(
-            tenantCertifiedAttributeInReadmodelTenant.tenantId,
-            tenantInReadmodelTenant.id
+          or(
+            eq(
+              tenantInReadmodelTenant.id,
+              tenantCertifiedAttributeInReadmodelTenant.tenantId
+            ),
+            eq(
+              tenantInReadmodelTenant.id,
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId
+            )
+          )
+        )
+        .where(
+          and(
+            eq(attributeInReadmodelAttribute.origin, certifierId),
+            inArray(attributeInReadmodelAttribute.kind, [
+              attributeKind.certified,
+              attributeKind.certifiedDiscrete,
+            ])
           )
         )
         .orderBy(
           ascLower(tenantInReadmodelTenant.name),
-          attributeInReadmodelAttribute.name
+          asc(attributeInReadmodelAttribute.name)
         )
         .limit(limit)
         .offset(offset);
@@ -451,6 +494,7 @@ export function readModelServiceBuilderSQL(
           name: row.name,
           attributeId: row.attributeId,
           attributeName: row.attributeName,
+          kind: row.kind,
         })),
         res[0]?.totalCount
       );
