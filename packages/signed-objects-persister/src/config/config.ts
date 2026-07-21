@@ -29,11 +29,13 @@ const SignedObjectsPersisterConfig = SQSConsumerConfig.and(LoggerConfig)
       .object({
         S3_BUCKET_SIGNED_DOCUMENTS: z.string(),
         S3_BUCKET_AUDIT: z.string(),
+        S3_BUCKET_M2M_AUDIT: z.string(),
         S3_BUCKET_EVENTS: z.string(),
       })
       .transform((c) => ({
         signedDocumentsBucket: c.S3_BUCKET_SIGNED_DOCUMENTS,
         auditBucket: c.S3_BUCKET_AUDIT,
+        m2mAuditBucket: c.S3_BUCKET_M2M_AUDIT,
         eventsBucket: c.S3_BUCKET_EVENTS,
       }))
   );
