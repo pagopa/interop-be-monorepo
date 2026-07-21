@@ -352,8 +352,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.22-manual-archiving-grace.0
-        version: 1.8.22-manual-archiving-grace.0
+        specifier: 1.8.22-manual-archiving-grace.1
+        version: 1.8.22-manual-archiving-grace.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1440,8 +1440,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.22-manual-archiving-grace.0
-        version: 1.8.22-manual-archiving-grace.0
+        specifier: 1.8.22-manual-archiving-grace.1
+        version: 1.8.22-manual-archiving-grace.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2360,8 +2360,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.22-manual-archiving-grace.0
-        version: 1.8.22-manual-archiving-grace.0
+        specifier: 1.8.22-manual-archiving-grace.1
+        version: 1.8.22-manual-archiving-grace.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3239,8 +3239,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.22-manual-archiving-grace.0
-        version: 1.8.22-manual-archiving-grace.0
+        specifier: 1.8.22-manual-archiving-grace.1
+        version: 1.8.22-manual-archiving-grace.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5318,8 +5318,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.22-manual-archiving-grace.0
-        version: 1.8.22-manual-archiving-grace.0
+        specifier: 1.8.22-manual-archiving-grace.1
+        version: 1.8.22-manual-archiving-grace.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5559,8 +5559,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.22-manual-archiving-grace.0
-        version: 1.8.22-manual-archiving-grace.0
+        specifier: 1.8.22-manual-archiving-grace.1
+        version: 1.8.22-manual-archiving-grace.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -6388,8 +6388,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.22-manual-archiving-grace.0
-        version: 1.8.22-manual-archiving-grace.0
+        specifier: 1.8.22-manual-archiving-grace.1
+        version: 1.8.22-manual-archiving-grace.1
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -8051,8 +8051,8 @@ packages:
     peerDependencies:
       eslint: ^9.39.2
 
-  '@pagopa/interop-outbound-models@1.8.22-manual-archiving-grace.0':
-    resolution: {integrity: sha512-+a8HdU9H83zHewvXKImtdHFOrrhbrClqiv+BV0I8ObSgIctNrx0HzKmw06ysBG6XZmWuTFmbEPWrFafzMgu1Xg==}
+  '@pagopa/interop-outbound-models@1.8.22-manual-archiving-grace.1':
+    resolution: {integrity: sha512-lQJH9spKXn53/FzoOEpYbkCV+pfv9VqlS2zjo29UJSgNOhFI2h3M0qtmvnTZ8D2ud2eg+hmnQ/4k/m6HXxcdlw==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -14564,7 +14564,7 @@ snapshots:
       - supports-color
       - vitest
 
-  '@pagopa/interop-outbound-models@1.8.22-manual-archiving-grace.0':
+  '@pagopa/interop-outbound-models@1.8.22-manual-archiving-grace.1':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0

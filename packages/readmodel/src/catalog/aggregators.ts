@@ -236,7 +236,8 @@ export const aggregateDescriptor = ({
             scope: ArchivingScope.parse(archivingScheduleSQL.scope),
             archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
             startedAt: stringToDate(archivingScheduleSQL.startedAt),
-            gracePeriodDays: GracePeriodDays.parse(
+            // Legacy rows may contain null values before NOT NULL constraints are aligned.
+            gracePeriodDays: GracePeriodDays.catch(90).parse(
               archivingScheduleSQL.gracePeriodDays
             ),
           },

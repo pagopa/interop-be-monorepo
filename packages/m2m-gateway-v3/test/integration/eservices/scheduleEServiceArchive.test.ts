@@ -28,7 +28,7 @@ describe("scheduleArchiveEService", () => {
   const mockEService = getMockedApiEservice();
   const mockEServiceProcessGetResponse = getMockWithMetadata(mockEService);
 
-  const mockSeed: m2mGatewayApiV3.EServiceArchivingSeed = {
+  const mockSeed: m2mGatewayApiV3.EServiceArchivingReasonSeed = {
     archivingReason: "test reason",
     gracePeriodDays: 60,
   };
@@ -82,6 +82,66 @@ describe("scheduleArchiveEService", () => {
       mockInteropBeClients.catalogProcessClient.getEServiceById
     ).toHaveBeenCalledTimes(2);
   });
+
+  it.each(
+    [30, 60, 90, 120].map((gracePeriodDays) => ({
+      ...mockSeed,
+      gracePeriodDays,
+    }))
+  )("Should succeed and perform service calls with body %s", async (body) => {
+    const result = await eserviceService.scheduleArchiveEService(
+      unsafeBrandId(mockEService.id),
+      body as m2mGatewayApiV3.EServiceArchivingReasonSeed,
+      getMockM2MAdminAppContext()
+    );
+
+    const expectedM2MEService: m2mGatewayApiV3.EService =
+      testToM2mGatewayApiEService(mockEService);
+
+    expect(result).toStrictEqual(expectedM2MEService);
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost:
+        mockInteropBeClients.catalogProcessClient.scheduleEServiceArchiving,
+      params: {
+        eServiceId: mockEService.id,
+      },
+      body,
+    });
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
+      params: { eServiceId: expectedM2MEService.id },
+    });
+    expect(
+      mockInteropBeClients.catalogProcessClient.getEServiceById
+    ).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    { ...mockSeed, gracePeriodDays: undefined },
+    { archivingReason: mockSeed.archivingReason },
+  ])(
+    "Should succeed and call process with default gracePeriodDays when body is %s",
+    async (body) => {
+      const result = await eserviceService.scheduleArchiveEService(
+        unsafeBrandId(mockEService.id),
+        body as m2mGatewayApiV3.EServiceArchivingReasonSeed,
+        getMockM2MAdminAppContext()
+      );
+
+      const expectedM2MEService: m2mGatewayApiV3.EService =
+        testToM2mGatewayApiEService(mockEService);
+
+      expect(result).toStrictEqual(expectedM2MEService);
+      expectApiClientPostToHaveBeenCalledWith({
+        mockPost:
+          mockInteropBeClients.catalogProcessClient.scheduleEServiceArchiving,
+        params: {
+          eServiceId: mockEService.id,
+        },
+        body: mockSeed,
+      });
+    }
+  );
 
   it("Should throw missingMetadata in case the eservice returned by the POST call has no metadata", async () => {
     mockScheduleEServiceArchive.mockResolvedValueOnce({

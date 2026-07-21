@@ -17,7 +17,7 @@ import { config } from "../../../src/config/config.js";
 describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
   const mockEService: catalogApi.EService = getMockedApiEservice();
 
-  const mockSeed: m2mGatewayApiV3.EServiceArchivingSeed = {
+  const mockSeed: m2mGatewayApiV3.EServiceArchivingReasonSeed = {
     archivingReason: "test reason",
     gracePeriodDays: 60,
   };
@@ -28,7 +28,7 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
   const makeRequest = async (
     token: string,
     eserviceId: string = mockEService.id,
-    body: m2mGatewayApiV3.EServiceArchivingSeed = mockSeed
+    body: m2mGatewayApiV3.EServiceArchivingReasonSeed = mockSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/${eserviceId}/scheduleArchive`)
@@ -66,6 +66,30 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
     expect(res.status).toBe(403);
   });
 
+  it("Should return 200 and perform service calls with undefined gracePeriodDays", async () => {
+    mockEserviceService.scheduleArchiveEService = vi
+      .fn()
+      .mockResolvedValue(mockM2MEService);
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const seed = {
+      ...mockSeed,
+      gracePeriodDays: undefined,
+    } as unknown as m2mGatewayApiV3.EServiceArchivingReasonSeed;
+    const res = await makeRequest(token, mockEService.id, seed);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockM2MEService);
+    expect(mockEserviceService.scheduleArchiveEService).toHaveBeenCalledWith(
+      mockEService.id,
+      {
+        ...mockSeed,
+        gracePeriodDays: 60,
+      },
+      expect.any(Object) // context
+    );
+  });
+
   it("Should return 400 if passed an invalid eservice id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, "invalidEServiceId");
@@ -96,7 +120,7 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
     const res = await makeRequest(
       token,
       mockEService.id,
-      seed as m2mGatewayApiV3.EServiceArchivingSeed
+      seed as m2mGatewayApiV3.EServiceArchivingReasonSeed
     );
 
     expect(res.status).toBe(400);
