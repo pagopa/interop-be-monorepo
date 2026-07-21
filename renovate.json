@@ -6,13 +6,20 @@
     ":rebaseStalePrs",
     ":dependencyDashboard"
   ],
-  "prConcurrentLimit": 2,
   "labels": [
     "dependencies"
   ],
   "ignorePaths": [
     "docker/docker-compose.yml"
   ],
+  "internalChecksFilter": "strict",
+  "internalChecksAsSuccess": true,
+  "prCreation": "immediate",
+  "minimumReleaseAge": null,
+  "minimumReleaseAgeBehaviour": "timestamp-required",
+  "prConcurrentLimit": 4,
+  "branchConcurrentLimit": 4,
+  "prHourlyLimit": 0,
   "packageRules": [
     {
       "groupName": "protobuf-ts monorepo",
@@ -25,6 +32,16 @@
       "matchDepTypes": [
         "devDependencies"
       ]
+    },
+    {
+      "matchDatasources": ["npm"],
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "matchPackageNames": ["*"],
+      "prCreation": "immediate",
+      "internalChecksFilter": "strict",
+      "internalChecksAsSuccess": true
     }
   ],
   "major": {
@@ -41,7 +58,9 @@
     "enabled": true
   },
   "lockFileMaintenance": {
-    "enabled": true
+    "enabled": true,
+    "prCreation": "immediate",
+    "minimumReleaseAge": null
   },
   "rollback": {
     "enabled": true
