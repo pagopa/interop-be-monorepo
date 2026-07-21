@@ -24,8 +24,9 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { splitEserviceIntoObjectsSQL } from "../../src/catalog/splitters.js";
+
 import { aggregateEservice } from "../../src/catalog/aggregators.js";
+import { splitEserviceIntoObjectsSQL } from "../../src/catalog/splitters.js";
 import { upsertEService } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { catalogReadModelService } from "./eserviceUtils.js";

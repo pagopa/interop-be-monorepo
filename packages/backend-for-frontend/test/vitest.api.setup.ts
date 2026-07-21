@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
+import { vi } from "vitest";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
@@ -50,16 +50,6 @@ vi.mock("pagopa-interop-commons", async () => {
 });
 
 import {
-  jwtFromAuthHeader,
-  genericLogger,
-  readAuthDataFromJwtToken,
-  decodeJwtToken,
-  AppContext,
-  RateLimiter,
-  initFileManager,
-  rateLimiterMiddleware,
-} from "pagopa-interop-commons";
-import {
   agreementApi,
   attributeRegistryApi,
   catalogApi,
@@ -71,11 +61,23 @@ import {
   SelfcareV2UsersClient,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
+import {
+  jwtFromAuthHeader,
+  genericLogger,
+  readAuthDataFromJwtToken,
+  decodeJwtToken,
+  AppContext,
+  RateLimiter,
+  initFileManager,
+  rateLimiterMiddleware,
+} from "pagopa-interop-commons";
+
 import type {
   AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
+
 import { createApp, createServices } from "../src/app.js";
 import { config } from "../src/config/config.js";
 

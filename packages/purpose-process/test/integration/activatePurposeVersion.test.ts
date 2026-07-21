@@ -3,6 +3,10 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  validateRiskAnalysis,
+} from "pagopa-interop-commons";
+import {
   getMockPurposeVersion,
   getMockPurpose,
   getMockTenant,
@@ -51,10 +55,7 @@ import {
   riskAnalysisReviewMode,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-  validateRiskAnalysis,
-} from "pagopa-interop-commons";
+
 import {
   tenantKindNotFound,
   missingRiskAnalysis,

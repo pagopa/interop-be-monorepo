@@ -51,6 +51,8 @@ import {
   it,
   vi,
 } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import { agreementCreationConflictingStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementAlreadyExists,
@@ -70,7 +72,6 @@ import {
   agreementService,
   readLastAgreementEvent,
 } from "../integrationUtils.js";
-import { config } from "../../src/config/config.js";
 
 /**
  * Executes the generic agreement expectation for agreement creation process,
