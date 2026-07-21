@@ -69,6 +69,7 @@ export function toM2MGatewayApiEServiceDescriptor(
           archivableOn: descriptor.archivingSchedule.archivableOn,
           startedAt: descriptor.archivingSchedule.startedAt,
           scope: descriptor.archivingSchedule.scope,
+          gracePeriodDays: descriptor.archivingSchedule.gracePeriodDays,
         }
       : undefined,
     asyncExchangeProperties: descriptor.asyncExchangeProperties,

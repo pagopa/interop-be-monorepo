@@ -27,10 +27,15 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
   const mockM2MEServiceDescriptor: m2mGatewayApiV3.EServiceDescriptor =
     toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
 
+  const mockSeed: m2mGatewayApiV3.GracePeriodDaysSeed = {
+    gracePeriodDays: 60,
+  };
+
   const makeRequest = async (
     token: string,
-    eserviceId: string = mockApiEservice.id,
-    descriptorId: string = mockApiDescriptor.id
+    eserviceId: string,
+    descriptorId: string,
+    body: m2mGatewayApiV3.GracePeriodDaysSeed | undefined
   ) =>
     request(api)
       .post(
@@ -38,7 +43,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
       )
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
-      .send();
+      .send(body);
 
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
   it.each(authorizedRoles)(
@@ -49,13 +54,19 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
         .mockResolvedValue(mockM2MEServiceDescriptor);
 
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        undefined
+      );
 
       expect(
         mockEserviceService.scheduleArchiveEserviceDescriptor
       ).toHaveBeenCalledWith(
         mockApiEservice.id,
         mockApiDescriptor.id,
+        {},
         expect.any(Object) // context
       );
       expect(res.status).toBe(200);
@@ -66,21 +77,83 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token);
+    const res = await makeRequest(
+      token,
+      mockApiEservice.id,
+      mockApiDescriptor.id,
+      mockSeed
+    );
     expect(res.status).toBe(403);
   });
 
+  it.each([30, 60, 90, 120, undefined])(
+    "Should return 200 when gracePeriodDays is %s",
+    async (gracePeriodDays) => {
+      mockEserviceService.scheduleArchiveEserviceDescriptor = vi
+        .fn()
+        .mockResolvedValue(mockM2MEServiceDescriptor);
+
+      const seed: m2mGatewayApiV3.GracePeriodDaysSeed = {
+        gracePeriodDays: gracePeriodDays as
+          | m2mGatewayApiV3.GracePeriodDays
+          | undefined,
+      };
+
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        seed
+      );
+
+      expect(
+        mockEserviceService.scheduleArchiveEserviceDescriptor
+      ).toHaveBeenCalledWith(
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        gracePeriodDays ? seed : {},
+        expect.any(Object) // context
+      );
+      expect(res.status).toBe(200);
+    }
+  );
+
   it("Should return 400 if passed an invalid eservice id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, "invalidEServiceId");
+    const res = await makeRequest(
+      token,
+      "invalidEServiceId",
+      mockApiDescriptor.id,
+      mockSeed
+    );
     expect(res.status).toBe(400);
   });
 
   it("Should return 400 for invalid descriptor id", async () => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token, mockApiEservice.id, "INVALID_ID");
+    const res = await makeRequest(
+      token,
+      mockApiEservice.id,
+      "INVALID_ID",
+      mockSeed
+    );
     expect(res.status).toBe(400);
   });
+
+  it.each([-1, 0, 1, 29])(
+    "Should return 400 for invalid gracePeriodDays %s",
+    async (gracePeriodDays) => {
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        { gracePeriodDays: gracePeriodDays as m2mGatewayApiV3.GracePeriodDays }
+      );
+      expect(res.status).toBe(400);
+    }
+  );
 
   it.each([
     missingMetadata(),
@@ -93,7 +166,12 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
+    const res = await makeRequest(
+      token,
+      mockApiEservice.id,
+      mockApiDescriptor.id,
+      mockSeed
+    );
 
     expect(res.status).toBe(500);
   });
@@ -110,7 +188,12 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive 
         .fn()
         .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
-      const res = await makeRequest(token);
+      const res = await makeRequest(
+        token,
+        mockApiEservice.id,
+        mockApiDescriptor.id,
+        mockSeed
+      );
 
       expect(res.status).toBe(500);
     }
