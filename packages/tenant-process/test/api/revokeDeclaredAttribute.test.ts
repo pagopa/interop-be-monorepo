@@ -6,7 +6,13 @@ import {
   getMockTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AttributeId, generateId, Tenant } from "pagopa-interop-models";
+import {
+  AttributeId,
+  generateId,
+  operationForbidden,
+  Tenant,
+  TenantId,
+} from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
@@ -17,7 +23,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
-describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
+describe("API DELETE /tenants/{tenantId}/attributes/declared/{attributeId} test", () => {
   const tenant: Tenant = getMockTenant();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
@@ -29,10 +35,11 @@ describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
 
   const makeRequest = async (
     token: string,
-    attributeId: AttributeId = generateId()
+    attributeId: AttributeId = generateId(),
+    tenantId: TenantId = tenant.id
   ) =>
     request(api)
-      .delete(`/tenants/attributes/declared/${attributeId}`)
+      .delete(`/tenants/${tenantId}/attributes/declared/${attributeId}`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId());
 
@@ -64,6 +71,7 @@ describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
   it.each([
     { error: tenantNotFound(tenant.id), expectedStatus: 404 },
     { error: attributeNotFound(generateId()), expectedStatus: 400 },
+    { error: operationForbidden, expectedStatus: 403 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -77,6 +85,16 @@ describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
   it("Should return 400 if passed an invalid attribute id", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as AttributeId);
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed an invalid tenant id", async () => {
+    const token: string = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      generateId<AttributeId>(),
+      "invalid" as TenantId
+    );
     expect(res.status).toBe(400);
   });
 });
