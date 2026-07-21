@@ -78,6 +78,7 @@ const delegationRouter = (
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
+          API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,

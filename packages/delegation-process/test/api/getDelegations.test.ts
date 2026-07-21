@@ -58,6 +58,7 @@ describe("API GET /delegations test", () => {
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
+    authRole.API_ROLE,
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
