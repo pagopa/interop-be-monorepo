@@ -464,7 +464,10 @@ export function readModelServiceBuilderSQL(
       const attributesWithMetadata =
         await attributeReadModelService.getAttributesByFilter(
           and(
-            eq(attributeInReadmodelAttribute.kind, attributeKind.certified),
+            inArray(attributeInReadmodelAttribute.kind, [
+              attributeKind.certified,
+              attributeKind.certifiedDiscrete,
+            ]),
             eq(attributeInReadmodelAttribute.origin, certifierId)
           )
         );
