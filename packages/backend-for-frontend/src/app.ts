@@ -142,7 +142,7 @@ export async function createServices(
 ): Promise<BFFServices> {
   const interopTokenGenerator = new InteropTokenGenerator(config);
 
-  const consentTypeMap: Map<bffApi.ConsentType, string> = new Map([
+  const consentTypeMap = new Map<bffApi.ConsentType, string>([
     [bffApi.ConsentType.Values.PP, config.privacyNoticesPpUuid],
     [bffApi.ConsentType.Values.TOS, config.privacyNoticesTosUuid],
   ]);

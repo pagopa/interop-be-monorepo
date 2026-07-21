@@ -628,19 +628,19 @@ export function missingHeader(headerName?: string): ApiError<CommonErrorCodes> {
   });
 }
 
-export const badBearerToken: ApiError<CommonErrorCodes> = new ApiError({
+export const badBearerToken = new ApiError<CommonErrorCodes>({
   detail: `Bad Bearer Token format in Authorization header`,
   code: "badBearerToken",
   title: "Bad Bearer Token format",
 });
 
-export const badDPoPToken: ApiError<CommonErrorCodes> = new ApiError({
+export const badDPoPToken = new ApiError<CommonErrorCodes>({
   detail: `Bad Authorization header: expected scheme "DPoP" with a valid token`,
   code: "badDPoPToken",
   title: "Bad DPoP Token format",
 });
 
-export const operationForbidden: ApiError<CommonErrorCodes> = new ApiError({
+export const operationForbidden = new ApiError<CommonErrorCodes>({
   detail: `Insufficient privileges`,
   code: "operationForbidden",
   title: "Insufficient privileges",
@@ -724,7 +724,7 @@ export function invalidPublicKey(): ApiError<CommonErrorCodes> {
 
 export function invalidKeyLength(
   length: number | undefined,
-  minLength: number = 2048
+  minLength = 2048
 ): ApiError<CommonErrorCodes> {
   return new ApiError({
     detail: `Invalid RSA key length: ${length} bits. It must be at least ${minLength}`,

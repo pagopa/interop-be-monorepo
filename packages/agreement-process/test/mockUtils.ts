@@ -31,7 +31,7 @@ import { config } from "../src/config/config.js";
 
 export function getMockConsumerDocument(
   agreementId: AgreementId,
-  name: string = "mockDocument"
+  name = "mockDocument"
 ): AgreementDocument {
   const id = generateId<AgreementDocumentId>();
   return {

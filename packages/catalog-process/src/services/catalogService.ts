@@ -504,7 +504,7 @@ async function parseAndCheckAttributesOfKind(
   readModelService: ReadModelServiceSQL
 ): Promise<EServiceAttribute[][]> {
   const parsedAttributesSeed = attributesSeedForKind.map((group) => {
-    const groupAttributesIdsFound: Set<AttributeId> = new Set();
+    const groupAttributesIdsFound = new Set<AttributeId>();
     return group.map((att) => {
       const id = unsafeBrandId<AttributeId>(att.id);
       if (groupAttributesIdsFound.has(id)) {

@@ -1,7 +1,7 @@
 import { AxiosError, AxiosHeaders, AxiosInstance, AxiosResponse } from "axios";
 import { genericLogger } from "pagopa-interop-commons";
 
-function getPrefix(headers?: AxiosHeaders, clientName: string = ""): string {
+function getPrefix(headers?: AxiosHeaders, clientName = ""): string {
   const correlationId = headers?.["X-Correlation-Id"];
   return correlationId
     ? `[CID=${correlationId}][${clientName}]`

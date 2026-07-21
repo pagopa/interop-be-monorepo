@@ -32,7 +32,7 @@ const invalidDescriptorState: catalogApi.EServiceDescriptorState[] = [
 
 export function getLatestActiveDescriptor(
   eservice: catalogApi.EService,
-  includeArchived: boolean = false
+  includeArchived = false
 ): catalogApi.EServiceDescriptor | undefined {
   return eservice.descriptors
     .filter(
@@ -112,8 +112,10 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
   } as const;
 
-export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
-  new Set(["certifiedVerifiedAttributeAssignedRevokedToAssignee"]);
+export const notificationTypesWithoutEntityIdInDeepLink =
+  new Set<NotificationType>([
+    "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+  ]);
 
 export const Category = z.enum([
   "Subscribers",

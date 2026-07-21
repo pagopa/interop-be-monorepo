@@ -51,7 +51,7 @@ const getMockAccessTokenRequest =
   };
 
 export const getMockTokenRequest = async (
-  withDPoPProof: boolean = false
+  withDPoPProof = false
 ): Promise<{
   headers: IncomingHttpHeaders & HttpDPoPHeader;
   body: authorizationServerApi.AccessTokenRequest;
