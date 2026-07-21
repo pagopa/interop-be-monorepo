@@ -83,7 +83,7 @@ jobs:
                     owner,
                     repo,
                     issue_number: pr.number,
-                    body: `${marker}\n⚠️ @${pr.user.login} This PR now has merge conflicts with \`${detail.base.ref}\`. Please rebase or merge the target branch to resolve them.`,
+                    body: `${marker}\n⚠️ @${pr.user.login} This PR now has merge conflicts with \`${detail.base.ref}\`. Please merge the target branch to resolve them.`,
                   });
                 }
               } else if (existing) {
