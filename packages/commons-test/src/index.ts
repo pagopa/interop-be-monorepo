@@ -14,3 +14,6 @@ export * from "./tokenGenerationReadmodelUtils.js";
 export * from "./mockedPayloadForToken.js";
 export * from "./apiMocks.js";
 export * from "./jwksServer.js";
+
+export * from "./testcontainers/index.js";
+export * from "./utils/dbIsolation.js";

@@ -21,7 +21,8 @@ import { z } from "zod";
 
 export const writeTokenGenStatesApiClient = async (
   tokenGenStatesEntry: TokenGenerationStatesApiClient,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  tableNameSuffix?: string
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -53,7 +54,7 @@ export const writeTokenGenStatesApiClient = async (
           }
         : {}),
     },
-    TableName: "token-generation-states",
+    TableName: `token-generation-states-${tableNameSuffix ?? ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -61,7 +62,8 @@ export const writeTokenGenStatesApiClient = async (
 
 export const writeTokenGenStatesConsumerClient = async (
   tokenGenStatesEntry: TokenGenerationStatesConsumerClient,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  tableNameSuffix?: string
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -185,17 +187,18 @@ export const writeTokenGenStatesConsumerClient = async (
           }
         : {}),
     },
-    TableName: "token-generation-states",
+    TableName: `token-generation-states-${tableNameSuffix ?? ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
 };
 
 export const readAllTokenGenStatesItems = async (
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  tableNameSuffix?: string
 ): Promise<TokenGenerationStatesGenericClient[]> => {
   const readInput: ScanInput = {
-    TableName: "token-generation-states",
+    TableName: `token-generation-states-${tableNameSuffix ?? ""}`,
   };
   const commandQuery = new ScanCommand(readInput);
   const data = await dynamoDBClient.send(commandQuery);
@@ -223,10 +226,11 @@ export const readAllTokenGenStatesItems = async (
 };
 
 export const readAllPlatformStatesItems = async (
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  tableNameSuffix?: string
 ): Promise<PlatformStatesGenericEntry[]> => {
   const readInput: ScanInput = {
-    TableName: "platform-states",
+    TableName: `platform-states-${tableNameSuffix ?? ""}`,
   };
   const commandQuery = new ScanCommand(readInput);
   const data = await dynamoDBClient.send(commandQuery);
@@ -255,7 +259,8 @@ export const readAllPlatformStatesItems = async (
 
 export const writePlatformCatalogEntry = async (
   catalogEntry: PlatformStatesCatalogEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  tableNameSuffix?: string
 ): Promise<void> => {
   const item: PutItemInput["Item"] = {
     PK: {
@@ -309,7 +314,7 @@ export const writePlatformCatalogEntry = async (
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
     Item: item,
-    TableName: "platform-states",
+    TableName: `platform-states-${tableNameSuffix ?? ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -317,7 +322,8 @@ export const writePlatformCatalogEntry = async (
 
 export const writePlatformPurposeEntry = async (
   purposeEntry: PlatformStatesPurposeEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  tableNameSuffix?: string
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -344,7 +350,7 @@ export const writePlatformPurposeEntry = async (
         S: purposeEntry.updatedAt,
       },
     },
-    TableName: "platform-states",
+    TableName: `platform-states-${tableNameSuffix ?? ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -352,7 +358,8 @@ export const writePlatformPurposeEntry = async (
 
 export const writePlatformAgreementEntry = async (
   agreementEntry: PlatformStatesAgreementEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  tableNameSuffix?: string
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -382,7 +389,7 @@ export const writePlatformAgreementEntry = async (
         S: agreementEntry.producerId,
       },
     },
-    TableName: "platform-states",
+    TableName: `platform-states-${tableNameSuffix ?? ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -390,7 +397,8 @@ export const writePlatformAgreementEntry = async (
 
 export const writePlatformStatesClientEntry = async (
   clientEntry: PlatformStatesClientEntry,
-  dynamoDBClient: DynamoDBClient
+  dynamoDBClient: DynamoDBClient,
+  tableNameSuffix?: string
 ): Promise<void> => {
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
@@ -419,7 +427,7 @@ export const writePlatformStatesClientEntry = async (
         S: clientEntry.updatedAt,
       },
     },
-    TableName: "platform-states",
+    TableName: `platform-states-${tableNameSuffix ?? ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);

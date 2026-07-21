@@ -3,8 +3,6 @@ import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockTokenGenStatesConsumerClient,
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
   readAllTokenGenStatesItems,
   writeTokenGenStatesConsumerClient,
   writePlatformCatalogEntry,
@@ -19,16 +17,7 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import {
   deleteCatalogEntry,
@@ -38,15 +27,9 @@ import {
   updateDescriptorStateInTokenGenerationStatesTable,
   upsertPlatformStatesCatalogEntry,
 } from "../src/utils.js";
-import { dynamoDBClient } from "./utils.js";
+import { dynamoDBClient, dynamoDbTablesSuffix } from "./setup.js";
 
 describe("utils tests", async () => {
-  beforeEach(async () => {
-    await buildDynamoDBTables(dynamoDBClient);
-  });
-  afterEach(async () => {
-    await deleteDynamoDBTables(dynamoDBClient);
-  });
   const mockDate = new Date();
   beforeAll(() => {
     vi.useFakeTimers();
@@ -62,7 +45,7 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      expect(
+      await expect(
         updateDescriptorStateInPlatformStatesEntry(
           dynamoDBClient,
           primaryKey,
@@ -70,7 +53,7 @@ describe("utils tests", async () => {
           1,
           genericLogger
         )
-      ).rejects.toThrowError(ConditionalCheckFailedException);
+      ).rejects.toThrow(ConditionalCheckFailedException);
       const catalogEntry = await readCatalogEntry(primaryKey, dynamoDBClient);
       expect(catalogEntry).toBeUndefined();
     });
@@ -93,7 +76,8 @@ describe("utils tests", async () => {
       ).toBeUndefined();
       await writePlatformCatalogEntry(
         previousCatalogStateEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        dynamoDbTablesSuffix
       );
       await updateDescriptorStateInPlatformStatesEntry(
         dynamoDBClient,
@@ -247,7 +231,8 @@ describe("utils tests", async () => {
       };
       await writePlatformCatalogEntry(
         previousCatalogStateEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        dynamoDbTablesSuffix
       );
       const retrievedCatalogEntry = await readCatalogEntry(
         primaryKey,
@@ -264,9 +249,9 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      expect(
+      await expect(
         deleteCatalogEntry(primaryKey, dynamoDBClient, genericLogger)
-      ).resolves.not.toThrowError();
+      ).resolves.not.toThrow();
     });
 
     it("should delete the entry if it exists", async () => {
@@ -284,7 +269,8 @@ describe("utils tests", async () => {
       };
       await writePlatformCatalogEntry(
         previousCatalogStateEntry,
-        dynamoDBClient
+        dynamoDBClient,
+        dynamoDbTablesSuffix
       );
       await deleteCatalogEntry(primaryKey, dynamoDBClient, genericLogger);
       const retrievedCatalogEntry = await readCatalogEntry(
@@ -338,14 +324,16 @@ describe("utils tests", async () => {
         };
       await writeTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient,
-        dynamoDBClient
+        dynamoDBClient,
+        dynamoDbTablesSuffix
       );
-      expect(
+      await expect(
         writeTokenGenStatesConsumerClient(
           tokenGenStatesConsumerClient,
-          dynamoDBClient
+          dynamoDBClient,
+          dynamoDbTablesSuffix
         )
-      ).rejects.toThrowError(ConditionalCheckFailedException);
+      ).rejects.toThrow(ConditionalCheckFailedException);
     });
 
     it("should write if previous entry doesn't exist", async () => {
@@ -360,8 +348,10 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const previousTokenGenStatesEntries =
-        await readAllTokenGenStatesItems(dynamoDBClient);
+      const previousTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient,
+        dynamoDbTablesSuffix
+      );
       expect(previousTokenGenStatesEntries).toEqual([]);
       const tokenGenStatesConsumerClient: TokenGenerationStatesConsumerClient =
         {
@@ -372,10 +362,13 @@ describe("utils tests", async () => {
         };
       await writeTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient,
-        dynamoDBClient
+        dynamoDBClient,
+        dynamoDbTablesSuffix
       );
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesItems(dynamoDBClient);
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient,
+        dynamoDbTablesSuffix
+      );
 
       expect(retrievedTokenGenStatesEntries).toEqual([
         tokenGenStatesConsumerClient,
@@ -389,19 +382,23 @@ describe("utils tests", async () => {
         eserviceId: generateId(),
         descriptorId: generateId(),
       });
-      const tokenGenStatesEntries =
-        await readAllTokenGenStatesItems(dynamoDBClient);
+      const tokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient,
+        dynamoDbTablesSuffix
+      );
       expect(tokenGenStatesEntries).toEqual([]);
-      expect(
+      await expect(
         updateDescriptorStateInTokenGenerationStatesTable(
           eserviceId_descriptorId,
           itemState.inactive,
           dynamoDBClient,
           genericLogger
         )
-      ).resolves.not.toThrowError();
-      const tokenGenStatesEntriesAfterUpdate =
-        await readAllTokenGenStatesItems(dynamoDBClient);
+      ).resolves.not.toThrow();
+      const tokenGenStatesEntriesAfterUpdate = await readAllTokenGenStatesItems(
+        dynamoDBClient,
+        dynamoDbTablesSuffix
+      );
       expect(tokenGenStatesEntriesAfterUpdate).toEqual([]);
     });
 
@@ -425,7 +422,8 @@ describe("utils tests", async () => {
         };
       await writeTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient1,
-        dynamoDBClient
+        dynamoDBClient,
+        dynamoDbTablesSuffix
       );
 
       const tokenGenStatesEntryPK2 =
@@ -443,7 +441,8 @@ describe("utils tests", async () => {
         };
       await writeTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient2,
-        dynamoDBClient
+        dynamoDBClient,
+        dynamoDbTablesSuffix
       );
       await updateDescriptorStateInTokenGenerationStatesTable(
         eserviceId_descriptorId,
@@ -451,8 +450,10 @@ describe("utils tests", async () => {
         dynamoDBClient,
         genericLogger
       );
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesItems(dynamoDBClient);
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient,
+        dynamoDbTablesSuffix
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,

@@ -5,12 +5,10 @@ import {
   getMockEService,
   getMockDocument,
   getMockTokenGenStatesConsumerClient,
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
   readAllTokenGenStatesItems,
   writePlatformCatalogEntry,
+  writeTokenGenStatesConsumerClient,
 } from "pagopa-interop-commons-test";
-import { writeTokenGenStatesConsumerClient } from "pagopa-interop-commons-test";
 import {
   Descriptor,
   EService,
@@ -25,28 +23,13 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { readCatalogEntry } from "../src/utils.js";
-import { dynamoDBClient } from "./utils.js";
+import { dynamoDBClient, dynamoDbTablesSuffix } from "./setup.js";
 
 describe("V1 events", async () => {
-  beforeEach(async () => {
-    await buildDynamoDBTables(dynamoDBClient);
-  });
-  afterEach(async () => {
-    await deleteDynamoDBTables(dynamoDBClient);
-  });
   const mockDate = new Date();
   beforeAll(() => {
     vi.useFakeTimers();
@@ -105,7 +88,8 @@ describe("V1 events", async () => {
           };
         await writeTokenGenStatesConsumerClient(
           tokenGenStatesConsumerClient1,
-          dynamoDBClient
+          dynamoDBClient,
+          dynamoDbTablesSuffix
         );
 
         const tokenGenStatesEntryPK2 =
@@ -123,7 +107,8 @@ describe("V1 events", async () => {
           };
         await writeTokenGenStatesConsumerClient(
           tokenGenStatesConsumerClient2,
-          dynamoDBClient
+          dynamoDBClient,
+          dynamoDbTablesSuffix
         );
 
         await handleMessageV1(message, dynamoDBClient, genericLogger);
@@ -147,8 +132,10 @@ describe("V1 events", async () => {
         expect(retrievedEntry).toEqual(expectedEntry);
 
         // token-generation-states
-        const retrievedTokenGenStatesEntries =
-          await readAllTokenGenStatesItems(dynamoDBClient);
+        const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+          dynamoDBClient,
+          dynamoDbTablesSuffix
+        );
         const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
           {
             ...tokenGenStatesConsumerClient1,
@@ -209,7 +196,11 @@ describe("V1 events", async () => {
             version: 1,
             updatedAt: new Date().toISOString(),
           };
-          await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
+          await writePlatformCatalogEntry(
+            previousStateEntry,
+            dynamoDBClient,
+            dynamoDbTablesSuffix
+          );
 
           // token-generation-states
           const tokenGenStatesEntryPK1 =
@@ -231,7 +222,8 @@ describe("V1 events", async () => {
             };
           await writeTokenGenStatesConsumerClient(
             tokenGenStatesConsumerClient1,
-            dynamoDBClient
+            dynamoDBClient,
+            dynamoDbTablesSuffix
           );
 
           const tokenGenStatesEntryPK2 =
@@ -249,7 +241,8 @@ describe("V1 events", async () => {
             };
           await writeTokenGenStatesConsumerClient(
             tokenGenStatesConsumerClient2,
-            dynamoDBClient
+            dynamoDBClient,
+            dynamoDbTablesSuffix
           );
 
           await handleMessageV1(message, dynamoDBClient, genericLogger);
@@ -267,7 +260,10 @@ describe("V1 events", async () => {
 
           // token-generation-states
           const retrievedTokenGenStatesEntries =
-            await readAllTokenGenStatesItems(dynamoDBClient);
+            await readAllTokenGenStatesItems(
+              dynamoDBClient,
+              dynamoDbTablesSuffix
+            );
           const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
             {
               ...tokenGenStatesConsumerClient1,
@@ -330,7 +326,8 @@ describe("V1 events", async () => {
         };
         await writePlatformCatalogEntry(
           previousCatalogStateEntry,
-          dynamoDBClient
+          dynamoDBClient,
+          dynamoDbTablesSuffix
         );
 
         // token-generation-states
@@ -353,7 +350,8 @@ describe("V1 events", async () => {
           };
         await writeTokenGenStatesConsumerClient(
           tokenGenStatesConsumerClient1,
-          dynamoDBClient
+          dynamoDBClient,
+          dynamoDbTablesSuffix
         );
 
         const tokenGenStatesEntryPK2 =
@@ -371,7 +369,8 @@ describe("V1 events", async () => {
           };
         await writeTokenGenStatesConsumerClient(
           tokenGenStatesConsumerClient2,
-          dynamoDBClient
+          dynamoDBClient,
+          dynamoDbTablesSuffix
         );
 
         await handleMessageV1(message, dynamoDBClient, genericLogger);
@@ -383,8 +382,10 @@ describe("V1 events", async () => {
         expect(retrievedCatalogEntry).toEqual(previousCatalogStateEntry);
 
         // token-generation-states
-        const retrievedTokenGenStatesEntries =
-          await readAllTokenGenStatesItems(dynamoDBClient);
+        const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+          dynamoDBClient,
+          dynamoDbTablesSuffix
+        );
         expect(retrievedTokenGenStatesEntries).toEqual(
           expect.arrayContaining([
             tokenGenStatesConsumerClient1,
@@ -434,7 +435,11 @@ describe("V1 events", async () => {
             version: 1,
             updatedAt: new Date().toISOString(),
           };
-          await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
+          await writePlatformCatalogEntry(
+            previousStateEntry,
+            dynamoDBClient,
+            dynamoDbTablesSuffix
+          );
 
           // token-generation-states
           const tokenGenStatesEntryPK1 =
@@ -456,7 +461,8 @@ describe("V1 events", async () => {
             };
           await writeTokenGenStatesConsumerClient(
             tokenGenStatesConsumerClient1,
-            dynamoDBClient
+            dynamoDBClient,
+            dynamoDbTablesSuffix
           );
 
           const tokenGenStatesEntryPK2 =
@@ -474,7 +480,8 @@ describe("V1 events", async () => {
             };
           await writeTokenGenStatesConsumerClient(
             tokenGenStatesConsumerClient2,
-            dynamoDBClient
+            dynamoDBClient,
+            dynamoDbTablesSuffix
           );
           await handleMessageV1(message, dynamoDBClient, genericLogger);
 
@@ -491,7 +498,10 @@ describe("V1 events", async () => {
 
           // token-generation-states
           const retrievedTokenGenStatesEntries =
-            await readAllTokenGenStatesItems(dynamoDBClient);
+            await readAllTokenGenStatesItems(
+              dynamoDBClient,
+              dynamoDbTablesSuffix
+            );
           const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
             {
               ...tokenGenStatesConsumerClient1,
@@ -552,7 +562,11 @@ describe("V1 events", async () => {
             updatedAt: new Date().toISOString(),
           };
 
-          await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
+          await writePlatformCatalogEntry(
+            previousStateEntry,
+            dynamoDBClient,
+            dynamoDbTablesSuffix
+          );
 
           // token-generation-states
           const tokenGenStatesEntryPK1 =
@@ -580,7 +594,8 @@ describe("V1 events", async () => {
             };
           await writeTokenGenStatesConsumerClient(
             tokenGenStatesConsumerClient1,
-            dynamoDBClient
+            dynamoDBClient,
+            dynamoDbTablesSuffix
           );
           const tokenGenStatesConsumerClient2: TokenGenerationStatesConsumerClient =
             {
@@ -591,7 +606,8 @@ describe("V1 events", async () => {
             };
           await writeTokenGenStatesConsumerClient(
             tokenGenStatesConsumerClient2,
-            dynamoDBClient
+            dynamoDBClient,
+            dynamoDbTablesSuffix
           );
 
           await handleMessageV1(message, dynamoDBClient, genericLogger);
@@ -604,7 +620,10 @@ describe("V1 events", async () => {
 
           // token-generation-states
           const retrievedTokenGenStatesEntries =
-            await readAllTokenGenStatesItems(dynamoDBClient);
+            await readAllTokenGenStatesItems(
+              dynamoDBClient,
+              dynamoDbTablesSuffix
+            );
           expect(retrievedTokenGenStatesEntries).toEqual(
             expect.arrayContaining([
               tokenGenStatesConsumerClient1,
@@ -697,7 +716,11 @@ describe("V1 events", async () => {
         version: 1,
         updatedAt: new Date().toISOString(),
       };
-      await writePlatformCatalogEntry(previousStateEntry, dynamoDBClient);
+      await writePlatformCatalogEntry(
+        previousStateEntry,
+        dynamoDBClient,
+        dynamoDbTablesSuffix
+      );
 
       // token-generation-states
       const tokenGenStatesEntryPK1 =
@@ -719,7 +742,8 @@ describe("V1 events", async () => {
         };
       await writeTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient1,
-        dynamoDBClient
+        dynamoDBClient,
+        dynamoDbTablesSuffix
       );
 
       const tokenGenStatesEntryPK2 =
@@ -737,7 +761,8 @@ describe("V1 events", async () => {
         };
       await writeTokenGenStatesConsumerClient(
         tokenGenStatesConsumerClient2,
-        dynamoDBClient
+        dynamoDBClient,
+        dynamoDbTablesSuffix
       );
 
       await handleMessageV1(message, dynamoDBClient, genericLogger);
@@ -746,8 +771,10 @@ describe("V1 events", async () => {
       expect(retrievedEntry).toBeUndefined();
 
       // token-generation-states
-      const retrievedTokenGenStatesEntries =
-        await readAllTokenGenStatesItems(dynamoDBClient);
+      const retrievedTokenGenStatesEntries = await readAllTokenGenStatesItems(
+        dynamoDBClient,
+        dynamoDbTablesSuffix
+      );
       const expectedTokenGenStatesConsumeClient1: TokenGenerationStatesConsumerClient =
         {
           ...tokenGenStatesConsumerClient1,

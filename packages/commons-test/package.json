@@ -15,7 +15,11 @@
     "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "devDependencies": {
+    "@aws-sdk/client-s3": "catalog:",
     "@anatine/zod-mock": "catalog:",
     "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/client-kms": "catalog:",
@@ -23,6 +27,9 @@
     "@aws-sdk/util-dynamodb": "catalog:",
     "@faker-js/faker": "catalog:",
     "@protobuf-ts/runtime": "catalog:",
+    "@testcontainers/kafka": "catalog:",
+    "@testcontainers/minio": "catalog:",
+    "@testcontainers/postgresql": "catalog:",
     "@types/adm-zip": "catalog:",
     "@types/jsonwebtoken": "catalog:",
     "@types/node": "catalog:",
@@ -35,6 +42,8 @@
     "eslint": "catalog:",
     "jose": "catalog:",
     "jsonwebtoken": "catalog:",
+    "kafka-iam-auth": "workspace:*",
+    "kafkajs": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
