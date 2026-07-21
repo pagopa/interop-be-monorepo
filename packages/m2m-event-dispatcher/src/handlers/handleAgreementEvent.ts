@@ -1,15 +1,16 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AgreementEventEnvelope,
   AgreementEventEnvelopeV2,
   fromAgreementV2,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
-import { assertAgreementExistsInEvent } from "../services/validators.js";
+
 import { toAgreementM2MEventSQL } from "../models/agreementM2MEventAdapterSQL.js";
 import { createAgreementM2MEvent } from "../services/event-builders/agreementM2MEventBuilder.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
+import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
+import { assertAgreementExistsInEvent } from "../services/validators.js";
 
 export async function handleAgreementEvent(
   agreementEvent: AgreementEventEnvelope,

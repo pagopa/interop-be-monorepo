@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { ClientId, KeyM2MEventId, TenantId } from "../brandedIds.js";
+
 import { AuthorizationEvent } from "../authorization/authorizationEvents.js";
+import { ClientId, KeyM2MEventId, TenantId } from "../brandedIds.js";
 import {
   m2mEventVisibility,
   M2MEventVisibility,

@@ -1,7 +1,6 @@
 /* eslint-disable functional/no-let */
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { Agreement, Purpose } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   agreementReadModelServiceBuilder,
   purposeReadModelServiceBuilder,
@@ -10,6 +9,8 @@ import {
   upsertAgreement,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

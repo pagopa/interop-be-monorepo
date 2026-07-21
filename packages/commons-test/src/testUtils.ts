@@ -1,10 +1,27 @@
 /* eslint-disable fp/no-delete */
-import crypto from "crypto";
-import { fail } from "assert";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import { generateMock } from "@anatine/zod-mock";
+import { fail } from "assert";
+import crypto from "crypto";
+import fs from "fs/promises";
+import * as jose from "jose";
+import {
+  AppContext,
+  dateToSeconds,
+  genericLogger,
+  keyToClientJWKKey,
+  keyToProducerJWKKey,
+  InternalAuthData,
+  M2MAuthData,
+  MaintenanceAuthData,
+  systemRole,
+  UIAuthData,
+  UserRole,
+  userRole,
+  WithLogger,
+  UIClaims,
+  M2MAdminAuthData,
+  createJWK,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementState,
@@ -140,27 +157,10 @@ import {
   SelfcareId,
   archivingScope,
 } from "pagopa-interop-models";
-import {
-  AppContext,
-  dateToSeconds,
-  genericLogger,
-  keyToClientJWKKey,
-  keyToProducerJWKKey,
-  InternalAuthData,
-  M2MAuthData,
-  MaintenanceAuthData,
-  systemRole,
-  UIAuthData,
-  UserRole,
-  userRole,
-  WithLogger,
-  UIClaims,
-  M2MAdminAuthData,
-  createJWK,
-} from "pagopa-interop-commons";
-import { z } from "zod";
-import * as jose from "jose";
+import path from "path";
 import { match } from "ts-pattern";
+import { fileURLToPath } from "url";
+import { z } from "zod";
 
 export function expectPastTimestamp(timestamp: bigint): boolean {
   return new Date(Number(timestamp)) <= new Date();
@@ -511,6 +511,7 @@ export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
   dailyCallsTotal: 1000,
   createdAt: new Date(),
   serverUrls: ["pagopa.it"],
+  serverUrlsDescriptions: [],
   agreementApprovalPolicy: "Automatic",
   attributes: {
     certified: [],

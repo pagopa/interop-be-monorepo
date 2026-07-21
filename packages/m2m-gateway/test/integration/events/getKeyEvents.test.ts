@@ -1,13 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
 import { m2mEventApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId } from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   eventService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 
 describe("getKeyEvents integration", () => {
   const events: m2mEventApi.KeyM2MEvent[] = [

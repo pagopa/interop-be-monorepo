@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { generateId, TenantId } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   getMockContextM2M,
   getMockProducerKeychain,
   getMockProducerJWKKey,
 } from "pagopa-interop-commons-test";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import { generateId, TenantId } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import {
   producerJwkNotFound,
   tenantNotAllowedOnProducerKeychain,

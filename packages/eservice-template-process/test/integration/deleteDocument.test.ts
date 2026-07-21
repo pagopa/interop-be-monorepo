@@ -19,6 +19,7 @@ import {
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
 import { vi, expect, describe, it } from "vitest";
+
 import { config } from "../../src/config/config.js";
 import {
   eserviceTemplateDocumentNotFound,

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { logger } from "pagopa-interop-commons";
 import {
   ScheduledNotificationRow,
@@ -7,6 +6,8 @@ import {
   schedulableEventType,
   ScheduledNotificationDrizzleReturnType,
 } from "pagopa-interop-scheduled-notification-db-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { runScheduledDeliveryBatch } from "../src/scheduled/runScheduledDeliveryBatch.js";
 
 const log = logger({

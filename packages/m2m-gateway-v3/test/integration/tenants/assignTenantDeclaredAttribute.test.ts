@@ -1,17 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
 import {
   delegationApi,
   m2mGatewayApiV3,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import {
-  TenantId,
-  generateId,
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
-import { z } from "zod";
 import {
   getMockedApiDeclaredTenantAttribute,
   getMockedApiDelegation,
@@ -19,12 +11,14 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
-  expectApiClientGetToHaveBeenCalledWith,
-  expectApiClientPostToHaveBeenCalledWith,
-  mockInteropBeClients,
-  mockPollingResponse,
-  tenantService,
-} from "../../integrationUtils.js";
+  TenantId,
+  generateId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { z } from "zod";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import {
@@ -33,6 +27,13 @@ import {
   requesterIsNotTheDelegateConsumer,
   tenantDeclaredAttributeNotFound,
 } from "../../../src/model/errors.js";
+import {
+  expectApiClientGetToHaveBeenCalledWith,
+  expectApiClientPostToHaveBeenCalledWith,
+  mockInteropBeClients,
+  mockPollingResponse,
+  tenantService,
+} from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("assignTenantDeclaredAttribute", () => {

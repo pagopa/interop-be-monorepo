@@ -19,8 +19,8 @@ import {
 } from "../gen/v2/purpose/purpose.js";
 import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
-import { bigIntToDate } from "../utils.js";
 import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
+import { bigIntToDate } from "../utils.js";
 import {
   Purpose,
   PurposeVersion,

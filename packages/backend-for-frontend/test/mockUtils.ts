@@ -1,3 +1,4 @@
+import { generateMock } from "@anatine/zod-mock";
 import {
   attributeRegistryApi,
   authorizationApi,
@@ -22,10 +23,10 @@ import {
   PurposeVersionId,
   PurposeTemplateId,
 } from "pagopa-interop-models";
-import { generateMock } from "@anatine/zod-mock";
 import { z } from "zod";
-import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
+
 import { tenantAttributeKind } from "../src/api/tenantApiConverter.js";
+import { GetSessionTokenReturnType } from "../src/services/authorizationService.js";
 
 export const getMockBffApiDelegation = (): bffApi.Delegation & {
   id: DelegationId;
@@ -181,7 +182,16 @@ export const getMockBffApiProducerEServiceDescriptor =
     rejectionReasons: generateMock(
       z.array(bffApi.DescriptorRejectionReason).optional()
     ),
-    serverUrls: generateMock(z.array(z.string().url()).optional()),
+    serverUrls: generateMock(
+      z
+        .array(
+          z.object({
+            url: z.string().url(),
+            description: z.string().optional(),
+          })
+        )
+        .optional()
+    ),
     templateRef: generateMock(bffApi.EServiceTemplateRef.optional()),
     delegation: generateMock(bffApi.DelegationWithCompactTenants.optional()),
   });
@@ -341,12 +351,26 @@ export const getMockBffApiTemplateInstanceInterfaceRESTSeed =
     contactEmail: generateMock(z.string().email()),
     contactUrl: generateMock(z.string().url().optional()),
     termsAndConditionsUrl: generateMock(z.string().url().optional()),
-    serverUrls: generateMock(z.array(z.string().url())),
+    serverUrls: generateMock(
+      z.array(
+        z.object({
+          url: z.string().url(),
+          description: z.string().min(10).max(250).optional(),
+        })
+      )
+    ),
   });
 
 export const getMockBffApiTemplateInstanceInterfaceSOAPSeed =
   (): bffApi.TemplateInstanceInterfaceSOAPSeed => ({
-    serverUrls: generateMock(z.array(z.string().url())),
+    serverUrls: generateMock(
+      z.array(
+        z.object({
+          url: z.string().url(),
+          description: z.string().min(10).max(250).optional(),
+        })
+      )
+    ),
   });
 
 export const getMockBffApiEServiceRiskAnalysisSeed =

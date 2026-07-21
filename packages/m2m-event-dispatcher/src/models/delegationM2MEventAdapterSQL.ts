@@ -1,13 +1,13 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
+  ConsumerDelegationM2MEventSQL,
+  ProducerDelegationM2MEventSQL,
+} from "pagopa-interop-m2m-event-db-models";
+import {
   ConsumerDelegationM2MEvent,
   ProducerDelegationM2MEvent,
   dateToString,
 } from "pagopa-interop-models";
-import {
-  ConsumerDelegationM2MEventSQL,
-  ProducerDelegationM2MEventSQL,
-} from "pagopa-interop-m2m-event-db-models";
 
 export function toConsumerDelegationM2MEventSQL(
   event: ConsumerDelegationM2MEvent

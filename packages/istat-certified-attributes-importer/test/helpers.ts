@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import {
   Attribute,
   AttributeId,
@@ -6,9 +7,6 @@ import {
   WithMetadata,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { inject, vi } from "vitest";
-import { InteropContext } from "../src/model/interopContextModel.js";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
 import {
   tenantReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
@@ -17,8 +15,11 @@ import {
   upsertAttribute,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { readModelQueriesBuilderSQL } from "../src/service/readModelServiceSQL.js";
+import { inject, vi } from "vitest";
+
 import { ISTAT_ATTRIBUTE_SEED } from "../src/config/constants.js";
+import { InteropContext } from "../src/model/interopContextModel.js";
+import { readModelQueriesBuilderSQL } from "../src/service/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
   undefined,

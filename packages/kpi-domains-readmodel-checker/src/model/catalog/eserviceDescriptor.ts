@@ -1,11 +1,11 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { eserviceDescriptorInReadmodelCatalog } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const EserviceDescriptorSchema = createSelectSchema(
   eserviceDescriptorInReadmodelCatalog
 )
-  .omit({ audience: true, serverUrls: true })
+  .omit({ audience: true, serverUrls: true, serverUrlsDescriptions: true })
   .extend({
     deleted: z.boolean().default(false).optional(),
     audience: z
@@ -13,6 +13,10 @@ export const EserviceDescriptorSchema = createSelectSchema(
       .transform((val) => JSON.stringify(val))
       .pipe(z.string()),
     serverUrls: z
+      .array(z.string())
+      .transform((val) => JSON.stringify(val))
+      .pipe(z.string()),
+    serverUrlsDescriptions: z
       .array(z.string())
       .transform((val) => JSON.stringify(val))
       .pipe(z.string()),
