@@ -2822,7 +2822,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceArchivingSeed"
+              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
       responses:
         "200":
           description: Archiving process of an E-Service scheduled successfully
@@ -13631,7 +13631,7 @@ components:
       properties:
         gracePeriodDays:
           $ref: "#/components/schemas/GracePeriodDays"
-    EServiceArchivingSeed:
+    EServiceArchivingReasonSeed:
       type: object
       additionalProperties: false
       description: Archiving Reason and Grace Period Days
