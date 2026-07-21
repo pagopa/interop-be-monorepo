@@ -22,7 +22,7 @@ const errorCodes = {
   eServiceDocumentNotFound: "0004",
   eServiceNotFound: "0005",
   draftDescriptorAlreadyExists: "0006",
-  eServiceNameDuplicateForProducer: "007",
+  eServiceNameDuplicateForProducer: "0007",
   originNotCompliant: "0008",
   attributeNotFound: "0009",
   inconsistentDailyCalls: "0010",
