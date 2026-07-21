@@ -1,6 +1,7 @@
 import { initFileManager, logger } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
+
 import { config } from "./config/config.js";
 import { documentsSignatureCheckerServiceBuilder } from "./services/documentsSignatureCheckerService.js";
 

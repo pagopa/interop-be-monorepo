@@ -1,6 +1,7 @@
 import { OctetString } from "asn1js";
 import * as pkijs from "pkijs";
 import { beforeAll, describe, expect, it } from "vitest";
+
 import { inspectSignedCms } from "../src/utils/signedCmsUtils.js";
 import { createCorruptedP7m, createValidP7m } from "./p7mTestHelper.js";
 

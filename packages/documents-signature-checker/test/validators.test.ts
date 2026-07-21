@@ -1,6 +1,8 @@
 /* eslint-disable functional/no-let */
 import { beforeAll, describe, expect, it } from "vitest";
+
 import type { DocumentToCheck } from "../src/services/validators.js";
+
 import {
   assertSignedContentMatchesUnsigned,
   assertSignedFileExists,

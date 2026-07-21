@@ -7,7 +7,7 @@
  */
 /* eslint-disable functional/no-let */
 import { execSync } from "node:child_process";
-import { beforeAll, describe, inject, it } from "vitest";
+import { getMockAgreement } from "pagopa-interop-commons-test";
 import {
   generateId,
   AgreementDocument,
@@ -15,15 +15,16 @@ import {
   AgreementSignedContract,
   agreementState,
 } from "pagopa-interop-models";
-import { getMockAgreement } from "pagopa-interop-commons-test";
 import { agreementSignedContractInReadmodelAgreement } from "pagopa-interop-readmodel-models";
-import { readModelDB, seedAgreement, uploadToS3 } from "./utils.js";
+import { beforeAll, describe, inject, it } from "vitest";
+
+import { config } from "../src/config/config.js";
 import {
   createCorruptedP7m,
   createP7mWithEmptyContent,
   createValidP7m,
 } from "./p7mTestHelper.js";
-import { config } from "../src/config/config.js";
+import { readModelDB, seedAgreement, uploadToS3 } from "./utils.js";
 
 // All documents dated yesterday → always within the default look-back window
 const DOCUMENT_DATE = new Date();

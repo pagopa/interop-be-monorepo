@@ -1,5 +1,14 @@
 /* eslint-disable functional/no-let */
-import { beforeAll, describe, expect, it, vi } from "vitest";
+import type { Logger } from "pagopa-interop-commons";
+
+import {
+  getMockAgreement,
+  getMockDelegation,
+  getMockPurpose,
+  getMockPurposeVersion,
+  getMockPurposeVersionDocument,
+  getMockPurposeVersionSignedDocument,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   AgreementDocument,
@@ -19,15 +28,15 @@ import {
   PurposeVersionSignedDocument,
   purposeVersionState,
 } from "pagopa-interop-models";
-import type { Logger } from "pagopa-interop-commons";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+
+import { config } from "../src/config/config.js";
+import { documentsSignatureCheckerServiceBuilder } from "../src/services/documentsSignatureCheckerService.js";
 import {
-  getMockAgreement,
-  getMockDelegation,
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockPurposeVersionDocument,
-  getMockPurposeVersionSignedDocument,
-} from "pagopa-interop-commons-test";
+  createCorruptedP7m,
+  createP7mWithEmptyContent,
+  createValidP7m,
+} from "./p7mTestHelper.js";
 import {
   readModelDB,
   seedAgreement,
@@ -36,13 +45,6 @@ import {
   uploadToS3,
   fileManager,
 } from "./utils.js";
-import {
-  createCorruptedP7m,
-  createP7mWithEmptyContent,
-  createValidP7m,
-} from "./p7mTestHelper.js";
-import { config } from "../src/config/config.js";
-import { documentsSignatureCheckerServiceBuilder } from "../src/services/documentsSignatureCheckerService.js";
 
 const UNSIGNED_PDF = Buffer.from(
   "%PDF-1.4 test unsigned document for signature verification"
