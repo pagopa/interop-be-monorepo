@@ -84,11 +84,11 @@ import {
   eServiceAlreadyArchived,
   gracePeriodDaysLowerThanDescriptor,
 } from "../model/domain/errors.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
-import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor

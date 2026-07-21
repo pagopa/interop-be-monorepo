@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { catalogApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
@@ -6,7 +7,6 @@ import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive", () => {

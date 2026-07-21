@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -32,14 +33,13 @@ import {
   gracePeriodDaysLowerThanDescriptor,
   notValidEServiceState,
 } from "../../src/model/domain/errors.js";
+import { calculateArchivableOn } from "../../src/utilities/dateCalculator.js";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import { calculateArchivableOn } from "../../src/utilities/dateCalculator.js";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("schedule archiving of an EService", () => {
   const mockEService = getMockEService();
