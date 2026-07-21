@@ -9,8 +9,6 @@ import {
   Agreement,
   AgreementEventV2,
   CorrelationId,
-  Descriptor,
-  Tenant,
   WithMetadata,
   agreementState,
 } from "pagopa-interop-models";
@@ -26,36 +24,24 @@ import {
 } from "../model/domain/toEvent.js";
 import { getSuspensionFlags } from "./agreementService.js";
 import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
-import {
-  agreementStateByFlags,
-  nextStateByAttributesFSM,
-} from "./agreementStateProcessor.js";
 
 export function createSuspensionUpdatedAgreement({
   agreement,
   authData,
-  descriptor,
-  consumer,
   activeDelegations,
   agreementOwnership,
 }: {
   agreement: Agreement;
   authData: UIAuthData | M2MAdminAuthData;
-  descriptor: Descriptor;
-  consumer: Tenant;
   activeDelegations: ActiveDelegations;
   agreementOwnership: Ownership;
 }): Agreement {
-  /* nextAttributesState VS targetDestinationState
-  -- targetDestinationState is the state where the caller wants to go (suspended, in this case)
-  -- nextStateByAttributes is the next state of the Agreement based the attributes of the consumer
-  */
+  /* The Agreement is always suspended by this operation: suspension is only
+  allowed from active or suspended (see agreementSuspendableStates), and the
+  requester is always the producer, the consumer, or one of their delegates,
+  so at least one suspension flag is set. Therefore the next state by
+  attributes would always be overridden, and it is not computed here. */
   const targetDestinationState = agreementState.suspended;
-  const nextStateByAttributes = nextStateByAttributesFSM(
-    agreement,
-    descriptor,
-    consumer
-  );
 
   const { suspendedByConsumer, suspendedByProducer } = getSuspensionFlags(
     agreementOwnership,
@@ -63,13 +49,6 @@ export function createSuspensionUpdatedAgreement({
     authData,
     targetDestinationState,
     activeDelegations
-  );
-
-  const newState = agreementStateByFlags(
-    nextStateByAttributes,
-    suspendedByProducer,
-    suspendedByConsumer,
-    agreement.suspendedByPlatform
   );
 
   const stamp = createStamp(authData, activeDelegations);
@@ -84,7 +63,7 @@ export function createSuspensionUpdatedAgreement({
   });
 
   const updateSeed: UpdateAgreementSeed = {
-    state: newState,
+    state: targetDestinationState,
     suspendedByConsumer,
     suspendedByProducer,
     stamps: {
