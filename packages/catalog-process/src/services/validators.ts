@@ -30,6 +30,7 @@ import {
   eserviceMode,
   EServiceTemplateId,
   getEServiceAttributeDiscreteConfig,
+  GracePeriodDays,
   operationForbidden,
   RiskAnalysisId,
   technology,
@@ -81,7 +82,9 @@ import {
   eserviceInDraftState,
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
+  gracePeriodDaysLowerThanDescriptor,
 } from "../model/domain/errors.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
   getLatestDescriptor,
@@ -921,5 +924,30 @@ export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
   const latestDescriptor = getLatestDescriptor(eservice);
   if (latestDescriptor.state === descriptorState.archived) {
     throw eServiceAlreadyArchived(eservice.id);
+  }
+}
+
+export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
+  requestDate: Date,
+  eservice: EService,
+  gracePeriodDays: GracePeriodDays
+): void {
+  const { archivableOn: requestedArchivableOn } = calculateArchivableOn(
+    requestDate,
+    gracePeriodDays
+  );
+
+  for (const descriptor of eservice.descriptors) {
+    if (
+      descriptor.archivingSchedule &&
+      requestedArchivableOn < descriptor.archivingSchedule.archivableOn
+    ) {
+      throw gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        descriptor.id,
+        requestedArchivableOn,
+        descriptor.archivingSchedule.archivableOn
+      );
+    }
   }
 }
