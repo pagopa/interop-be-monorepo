@@ -12,9 +12,9 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { ProducerKeychainUserHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
+import { ProducerKeychainUserHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";

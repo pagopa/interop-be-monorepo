@@ -1,3 +1,13 @@
+import { and, asc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import { tenantApi } from "pagopa-interop-api-clients";
+import {
+  ascLower,
+  createListResult,
+  escapeSqlLike,
+  ilikeEscaped,
+  lowerCase,
+  withTotalCount,
+} from "pagopa-interop-commons";
 import {
   WithMetadata,
   Tenant,
@@ -40,16 +50,7 @@ import {
   tenantVerifiedAttributeRevokerInReadmodelTenant,
   tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { and, asc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
-import { tenantApi } from "pagopa-interop-api-clients";
-import {
-  ascLower,
-  createListResult,
-  escapeSqlLike,
-  ilikeEscaped,
-  lowerCase,
-  withTotalCount,
-} from "pagopa-interop-commons";
+
 import { ApiGetTenantsFilters } from "../model/domain/models.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type, max-params

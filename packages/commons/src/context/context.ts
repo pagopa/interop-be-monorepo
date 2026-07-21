@@ -1,8 +1,8 @@
-import { constants } from "http2";
 import {
   ZodiosRouterContextRequestHandler,
   zodiosContext,
 } from "@zodios/express";
+import { constants } from "http2";
 import {
   ClientId,
   ClientKindTokenGenStates,
@@ -14,9 +14,10 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
 import { AuthData } from "../auth/authData.js";
-import { genericLogger, Logger, logger } from "../logging/index.js";
 import { parseCorrelationIdHeader } from "../auth/headers.js";
+import { genericLogger, Logger, logger } from "../logging/index.js";
 import { strictJsonBodyParser } from "../router/jsonBodyParser.js";
 
 export type AppContext<A extends AuthData = AuthData> = {

@@ -1,3 +1,10 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
+import { KMSClient } from "@aws-sdk/client-kms";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import {
   contextMiddleware,
   errorsToApiProblemsMiddleware,
@@ -10,46 +17,40 @@ import {
   strictJsonBodyParser,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { KMSClient } from "@aws-sdk/client-kms";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb/dist-types/DynamoDBClient.js";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+
+import { appBasePath } from "./config/appBasePath.js";
 import { config } from "./config/config.js";
 import agreementRouter from "./routers/agreementRouter.js";
 import attributeRouter from "./routers/attributeRouter.js";
+import clientRouter from "./routers/clientRouter.js";
+import delegationRouter from "./routers/delegationRouter.js";
 import eserviceRouter from "./routers/eserviceRouter.js";
+import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
+import eventRouter from "./routers/eventRouter.js";
+import keyRouter from "./routers/keyRouter.js";
+import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import purposeTemplateRouter from "./routers/purposeTemplateRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
-import delegationRouter from "./routers/delegationRouter.js";
-import eserviceTemplateRouter from "./routers/eserviceTemplateRouter.js";
-import clientRouter from "./routers/clientRouter.js";
-import producerKeychainRouter from "./routers/producerKeychainRouter.js";
-import { appBasePath } from "./config/appBasePath.js";
-import { DelegationService } from "./services/delegationService.js";
+import userRouter from "./routers/userRouter.js";
 import { AgreementService } from "./services/agreementService.js";
 import { AttributeService } from "./services/attributeService.js";
 import { ClientService } from "./services/clientService.js";
+import { DelegationService } from "./services/delegationService.js";
 import { EserviceService } from "./services/eserviceService.js";
 import { EserviceTemplateService } from "./services/eserviceTemplateService.js";
+import { EventService } from "./services/eventService.js";
+import { KeyService } from "./services/keyService.js";
+import { ProducerKeychainService } from "./services/producerKeychainService.js";
 import { PurposeService } from "./services/purposeService.js";
 import { PurposeTemplateService } from "./services/purposeTemplateService.js";
 import { TenantService } from "./services/tenantService.js";
+import { UserService } from "./services/userService.js";
 import {
   authenticationDPoPMiddleware,
   m2mAuthDataValidationMiddleware,
 } from "./utils/middlewares.js";
-import { KeyService } from "./services/keyService.js";
-import { ProducerKeychainService } from "./services/producerKeychainService.js";
-import keyRouter from "./routers/keyRouter.js";
-import { EventService } from "./services/eventService.js";
-import eventRouter from "./routers/eventRouter.js";
-import { UserService } from "./services/userService.js";
-import userRouter from "./routers/userRouter.js";
 
 export type M2MGatewayServices = {
   agreementService: AgreementService;

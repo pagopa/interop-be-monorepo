@@ -1,12 +1,13 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForToken.js";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
-import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForToken.js";
-import { authRole } from "pagopa-interop-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { api, clients } from "../../vitest.api.setup.js";
 import { getMockPurposeTemplateSeed } from "../../mockUtils.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /purposeTemplates", () => {
   const mockPurposeTemplate = getMockPurposeTemplateSeed();

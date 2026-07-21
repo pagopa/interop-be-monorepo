@@ -3,7 +3,6 @@ import {
   interpolateTemplateApiSpec,
   verifyAndCreateDocument,
 } from "pagopa-interop-commons";
-import { describe, expect, it, vi } from "vitest";
 import {
   contentTooLargeError,
   generateId,
@@ -11,6 +10,8 @@ import {
   invalidFileUploadError,
   technology,
 } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import {
   getMockedPdfBuffer,
   getMockEService,
@@ -33,8 +34,8 @@ describe("verifyAndCreateDocument", async () => {
   };
 
   const serverUrls = [
-    "http://server1.example.com",
-    "http://server2.example.com",
+    { url: "http://server1.example.com" },
+    { url: "http://server2.example.com" },
   ];
 
   const eserviceInstanceInterfaceRestData = {
@@ -88,7 +89,7 @@ describe("verifyAndCreateDocument", async () => {
       `document-path/${documentId}/${interfaceFileInfo.name}`,
       prettyName,
       kind,
-      serverUrls,
+      serverUrls.map((server) => server.url),
       contentType,
       expect.any(String)
     );
