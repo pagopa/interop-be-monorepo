@@ -93,6 +93,7 @@ import {
   purposeTemplateStateConflict,
   riskAnalysisTemplateAnswerNotFound,
   riskAnalysisTemplateValidationFailed,
+  tenantNotAllowed,
   tooManyEServicesForPurposeTemplate,
   tooManyEServiceTemplatesForPurposeTemplate,
   purposeTemplateNotFound,
@@ -328,6 +329,21 @@ export const assertRequesterIsCreator = (
   if (!isRequesterCreator(creatorId, authData)) {
     throw purposeTemplateNotFound(purposeTemplateId);
   }
+};
+
+export const assertRequesterCanManagePurposeTemplate = (
+  purposeTemplate: PurposeTemplate,
+  authData: Pick<UIAuthData | M2MAdminAuthData, "organizationId">
+): void => {
+  if (isRequesterCreator(purposeTemplate.creatorId, authData)) {
+    return;
+  }
+
+  if (isPurposeTemplateDraft(purposeTemplate.state)) {
+    throw purposeTemplateNotFound(purposeTemplate.id);
+  }
+
+  throw tenantNotAllowed(authData.organizationId);
 };
 
 export const assertPurposeTemplateStateIsValid = (
