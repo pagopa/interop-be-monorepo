@@ -3,6 +3,7 @@ import { Message } from "@aws-sdk/client-sqs";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { describe, it, beforeEach, expect, vi } from "vitest";
 
+import { config } from "../../../src/config/config.js";
 import { sqsMessageHandler } from "../../../src/handlers/sqsMessageHandler.js";
 import { zipBuffer } from "../../../src/utils/compression.js";
 import * as decodeModule from "../../../src/utils/decodeSQSEventMessage.js";
@@ -56,7 +57,7 @@ describe("sqsMessageHandler", () => {
     expect(mockDbService.saveSignatureReference).toHaveBeenCalledWith(
       {
         safeStorageId: "mock-key",
-        fileKind: "VOUCHER_AUDIT",
+        fileKind: config.fileKind,
         fileName: "my-audit-file.json",
         correlationId: mockCorrelationId,
         path: "path/to",
