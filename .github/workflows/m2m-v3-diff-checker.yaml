@@ -1,0 +1,81 @@
+name: M2M-V3 OpenAPI Diff
+
+on:
+  pull_request:
+    paths:
+      - packages/api-clients/open-api/m2mGatewayApiV3.yml
+  workflow_dispatch:
+    inputs:
+      base_branch:
+        description: Base branch to compare against
+        required: false
+        default: develop
+    
+  
+
+jobs:
+  m2m-v3-openapi-diff:
+    runs-on: ubuntu-latest
+
+    env:
+      SPEC_DIR: packages/api-clients/open-api
+      SPEC_FILE: m2mGatewayApiV3.yml
+      BASE_SPEC_FILE: m2mGatewayApiV3-base.yml
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: |
+          BASE_BRANCH="${{ github.base_ref }}"
+          if [ -z "$BASE_BRANCH" ]; then
+            BASE_BRANCH="develop"
+          fi
+
+          echo "Using base branch: $BASE_BRANCH"
+
+          git fetch origin "$BASE_BRANCH":"refs/remotes/origin/$BASE_BRANCH"
+
+      - name: Extract OpenAPI spec from base branch
+        run: |
+          BASE_BRANCH="${{ github.base_ref }}"
+          if [ -z "$BASE_BRANCH" ]; then
+            BASE_BRANCH="develop"
+          fi
+
+          git show "origin/$BASE_BRANCH:$SPEC_DIR/$SPEC_FILE" > "$SPEC_DIR/$BASE_SPEC_FILE"
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Determine comparison mode
+        id: mode
+        run: |
+          BASE_VERSION=$(yq '.info.version' "$SPEC_DIR/$BASE_SPEC_FILE")
+          CURRENT_VERSION=$(yq '.info.version' "$SPEC_DIR/$SPEC_FILE")
+
+          echo "Base version: $BASE_VERSION"
+          echo "Current version: $CURRENT_VERSION"
+
+          if [ "$BASE_VERSION" = "$CURRENT_VERSION" ]; then
+            MODE="--fail-on-changed"
+          else
+            MODE="--fail-on-incompatible"
+          fi
+
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+
+      - name: Run OpenAPI diff
+        run: |
+          docker run --rm \
+            -v "$PWD:/specs:ro" \
+            openapitools/openapi-diff \
+            "${{ steps.mode.outputs.mode }}" \
+            "/specs/$SPEC_DIR/$BASE_SPEC_FILE" \
+            "/specs/$SPEC_DIR/$SPEC_FILE"
