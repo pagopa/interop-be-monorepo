@@ -322,12 +322,18 @@ export const aggregateEservice = ({
     },
     new Map<string, EServiceRiskAnalysisAnswerSQL[]>()
   );
-  const riskAnalysis = riskAnalysesSQL.map((ra) =>
-    aggregateRiskAnalysis(
-      ra,
-      riskAnalysisAnswersSQLByFormId.get(ra.riskAnalysisFormId) || []
+  const riskAnalysis = [...riskAnalysesSQL]
+    .sort(
+      (ra1, ra2) =>
+        ra1.createdAt.localeCompare(ra2.createdAt) ||
+        ra1.id.localeCompare(ra2.id)
     )
-  );
+    .map((ra) =>
+      aggregateRiskAnalysis(
+        ra,
+        riskAnalysisAnswersSQLByFormId.get(ra.riskAnalysisFormId) || []
+      )
+    );
 
   const eservice: EService = {
     id: unsafeBrandId(eserviceSQL.id),

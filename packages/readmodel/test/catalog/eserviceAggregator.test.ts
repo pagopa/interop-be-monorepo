@@ -39,8 +39,14 @@ describe("E-service aggregator", () => {
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const rejectionReason = getMockDescriptorRejectionReason();
-    const riskAnalysis1 = getMockValidRiskAnalysis(tenantKind.PA);
-    const riskAnalysis2 = getMockValidRiskAnalysis(tenantKind.PRIVATE);
+    const riskAnalysis1 = {
+      ...getMockValidRiskAnalysis(tenantKind.PA),
+      createdAt: new Date("2024-01-09T10:00:00.000Z"),
+    };
+    const riskAnalysis2 = {
+      ...getMockValidRiskAnalysis(tenantKind.PRIVATE),
+      createdAt: new Date("2024-01-10T10:00:00.000Z"),
+    };
     const publishedAt = new Date();
     const suspendedAt = new Date();
     const deprecatedAt = new Date();
@@ -166,6 +172,54 @@ describe("E-service aggregator", () => {
       data: eservice,
       metadata: { version: 1 },
     });
+  });
+
+  it("should sort risk analyses by creation date", () => {
+    const olderRiskAnalysis = {
+      ...getMockValidRiskAnalysis(tenantKind.PA),
+      createdAt: new Date("2024-01-09T10:00:00.000Z"),
+    };
+    const newerRiskAnalysis = {
+      ...getMockValidRiskAnalysis(tenantKind.PA),
+      createdAt: new Date("2024-01-10T10:00:00.000Z"),
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      riskAnalysis: [olderRiskAnalysis, newerRiskAnalysis],
+    };
+
+    const {
+      eserviceSQL,
+      riskAnalysesSQL,
+      riskAnalysisAnswersSQL,
+      descriptorsSQL,
+      attributesSQL,
+      interfacesSQL,
+      documentsSQL,
+      rejectionReasonsSQL,
+      templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
+    } = splitEserviceIntoObjectsSQL(eservice, 1);
+
+    const aggregatedEservice = aggregateEservice({
+      eserviceSQL,
+      riskAnalysesSQL: [...riskAnalysesSQL].reverse(),
+      riskAnalysisAnswersSQL,
+      descriptorsSQL,
+      attributesSQL,
+      interfacesSQL,
+      documentsSQL,
+      rejectionReasonsSQL,
+      templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
+    });
+
+    expect(aggregatedEservice.data.riskAnalysis).toEqual([
+      olderRiskAnalysis,
+      newerRiskAnalysis,
+    ]);
   });
 
   /**
