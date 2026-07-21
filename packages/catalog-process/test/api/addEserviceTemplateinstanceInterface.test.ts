@@ -123,6 +123,15 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
           expect(res.body).toEqual(eServiceToApiEService(eservice));
           expect(res.status).toBe(200);
+          expect(
+            catalogService.addEServiceTemplateInstanceInterface
+          ).toHaveBeenCalledWith(
+            eservice.id,
+            descriptor.id,
+            technology,
+            technology === "Rest" ? restBody : soapBody,
+            expect.anything()
+          );
         }
       );
 

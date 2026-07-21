@@ -68,7 +68,7 @@ import {
   archivingScope,
   ArchivingScope,
   AsyncExchangeProperties,
-  technology,
+  Technology,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -4148,6 +4148,7 @@ export function catalogServiceBuilder(
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
+      interfaceTechnology: Technology,
       eserviceInstanceInterfaceData:
         | catalogApi.TemplateInstanceInterfaceRESTSeed
         | catalogApi.TemplateInstanceInterfaceSOAPSeed,
@@ -4182,18 +4183,6 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      const { interfaceTechnology, contactDataRestApi } = match(
-        eserviceInstanceInterfaceData
-      )
-        .with({ contactEmail: P.string, contactName: P.string }, (data) => ({
-          interfaceTechnology: technology.rest,
-          contactDataRestApi: data,
-        }))
-        .otherwise(() => ({
-          interfaceTechnology: technology.soap,
-          contactDataRestApi: undefined,
-        }));
-
       if (eserviceTemplate.technology !== interfaceTechnology) {
         throw eserviceTemplateInterfaceTechnologyMismatch(
           eserviceTemplate.id,
@@ -4201,6 +4190,10 @@ export function catalogServiceBuilder(
           interfaceTechnology
         );
       }
+
+      const contactDataRestApi = match(eserviceInstanceInterfaceData)
+        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
+        .otherwise(() => undefined);
 
       const eserviceTemplateVersion = eserviceTemplate.versions.find(
         (v) => v.id === eserviceTemplateVersionId
