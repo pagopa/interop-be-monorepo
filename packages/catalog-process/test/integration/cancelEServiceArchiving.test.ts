@@ -15,6 +15,8 @@ import {
   EServiceArchivingCanceledV2,
   generateId,
   archivingScope,
+  GracePeriodDays,
+  gracePeriodDays,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 import {
@@ -30,12 +32,15 @@ import {
 describe("cancel eservice archiving", () => {
   const mockEService = getMockEService();
 
-  const archivingScheduleEService = {
-    archivableOn: new Date(),
-    startedAt: new Date(),
-    scope: archivingScope.eservice,
-    gracePeriodDays: 30, // This value will be updated in subsequent PRs.
-  } as const;
+  const getArchivingScheduleEService = (
+    gracePeriodDaysValue: GracePeriodDays
+  ) =>
+    ({
+      archivableOn: new Date(),
+      startedAt: new Date(),
+      scope: archivingScope.eservice,
+      gracePeriodDays: gracePeriodDaysValue,
+    }) as const;
 
   it.each<{
     description: string;
@@ -43,31 +48,42 @@ describe("cancel eservice archiving", () => {
     extraDescriptorProps: Partial<Descriptor>;
     expectedOlderState: Descriptor["state"];
     expectedLatestState: Descriptor["state"];
-  }>([
-    {
-      description:
-        "restoring published state for vLatest in archiving and deprecated for older descriptors",
-      initialState: descriptorState.archiving,
-      extraDescriptorProps: {},
-      expectedOlderState: descriptorState.deprecated,
-      expectedLatestState: descriptorState.published,
-    },
-    {
-      description:
-        "restoring suspended state for archivingSuspended descriptors",
-      initialState: descriptorState.archivingSuspended,
-      extraDescriptorProps: { suspendedAt: new Date() },
-      expectedOlderState: descriptorState.suspended,
-      expectedLatestState: descriptorState.suspended,
-    },
-  ])(
-    "should write on event-store $description",
+    gracePeriodDaysValue: GracePeriodDays;
+  }>(
+    [
+      {
+        description:
+          "restoring published state for vLatest in archiving and deprecated for older descriptors",
+        initialState: descriptorState.archiving,
+        extraDescriptorProps: {},
+        expectedOlderState: descriptorState.deprecated,
+        expectedLatestState: descriptorState.published,
+      },
+      {
+        description:
+          "restoring suspended state for archivingSuspended descriptors",
+        initialState: descriptorState.archivingSuspended,
+        extraDescriptorProps: { suspendedAt: new Date() },
+        expectedOlderState: descriptorState.suspended,
+        expectedLatestState: descriptorState.suspended,
+      },
+    ].flatMap((testCase) =>
+      gracePeriodDays.map((gracePeriodDaysValue) => ({
+        ...testCase,
+        gracePeriodDaysValue,
+      }))
+    )
+  )(
+    "should write on event-store $description (gracePeriodDays: $gracePeriodDaysValue)",
     async ({
       initialState,
       extraDescriptorProps,
       expectedOlderState,
       expectedLatestState,
+      gracePeriodDaysValue,
     }) => {
+      const archivingScheduleEService =
+        getArchivingScheduleEService(gracePeriodDaysValue);
       const descriptor1: Descriptor = {
         ...getMockDescriptor(),
         state: initialState,
@@ -132,92 +148,101 @@ describe("cancel eservice archiving", () => {
     }
   );
 
-  it("should not modify descriptors with scope == Descriptor", async () => {
-    const descriptorWithDescriptorScope: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.archiving,
-      version: "1",
-      archivingSchedule: {
-        archivableOn: new Date(),
-        startedAt: new Date(),
-        scope: archivingScope.descriptor,
-        gracePeriodDays: 30, // This value will be updated in subsequent PRs.
-      },
-    };
-    const descriptorWithEServiceScope: Descriptor = {
-      ...getMockDescriptor(),
-      id: generateId(),
-      state: descriptorState.archiving,
-      version: "2",
-      archivingSchedule: archivingScheduleEService,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      archivingReason: "some reason",
-      descriptors: [descriptorWithDescriptorScope, descriptorWithEServiceScope],
-    };
-    await addOneEService(eservice);
-
-    const result = await catalogService.cancelEServiceArchiving(
-      eservice.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
-
-    const expectedEService: EService = {
-      ...eservice,
-      descriptors: [
-        descriptorWithDescriptorScope,
-        {
-          ...descriptorWithEServiceScope,
-          state: descriptorState.published,
-          archivingSchedule: undefined,
+  it.each([...gracePeriodDays])(
+    "should not modify descriptors with scope == Descriptor (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const descriptorWithDescriptorScope: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.archiving,
+        version: "1",
+        archivingSchedule: {
+          archivableOn: new Date(),
+          startedAt: new Date(),
+          scope: archivingScope.descriptor,
+          gracePeriodDays: gracePeriodDaysValue,
         },
-      ],
-      archivingReason: undefined,
-    };
+      };
+      const descriptorWithEServiceScope: Descriptor = {
+        ...getMockDescriptor(),
+        id: generateId(),
+        state: descriptorState.archiving,
+        version: "2",
+        archivingSchedule: getArchivingScheduleEService(gracePeriodDaysValue),
+      };
+      const eservice: EService = {
+        ...mockEService,
+        archivingReason: "some reason",
+        descriptors: [
+          descriptorWithDescriptorScope,
+          descriptorWithEServiceScope,
+        ],
+      };
+      await addOneEService(eservice);
 
-    expect(result.data).toEqual(expectedEService);
-  });
+      const result = await catalogService.cancelEServiceArchiving(
+        eservice.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
 
-  it("should not modify descriptors already in archived state", async () => {
-    const archivedDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.archived,
-      version: "1",
-    };
-    const archivingDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      state: descriptorState.archiving,
-      version: "2",
-      archivingSchedule: archivingScheduleEService,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      archivingReason: "some reason",
-      descriptors: [archivedDescriptor, archivingDescriptor],
-    };
-    await addOneEService(eservice);
+      const expectedEService: EService = {
+        ...eservice,
+        descriptors: [
+          descriptorWithDescriptorScope,
+          {
+            ...descriptorWithEServiceScope,
+            state: descriptorState.published,
+            archivingSchedule: undefined,
+          },
+        ],
+        archivingReason: undefined,
+      };
 
-    const result = await catalogService.cancelEServiceArchiving(
-      eservice.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
-    );
+      expect(result.data).toEqual(expectedEService);
+    }
+  );
 
-    const expectedEService: EService = {
-      ...eservice,
-      descriptors: [
-        archivedDescriptor,
-        {
-          ...archivingDescriptor,
-          state: descriptorState.published,
-          archivingSchedule: undefined,
-        },
-      ],
-      archivingReason: undefined,
-    };
+  it.each([...gracePeriodDays])(
+    "should not modify descriptors already in archived state (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivedDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.archived,
+        version: "1",
+      };
+      const archivingDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        state: descriptorState.archiving,
+        version: "2",
+        archivingSchedule: getArchivingScheduleEService(gracePeriodDaysValue),
+      };
+      const eservice: EService = {
+        ...mockEService,
+        archivingReason: "some reason",
+        descriptors: [archivedDescriptor, archivingDescriptor],
+      };
+      await addOneEService(eservice);
 
-    expect(result.data).toEqual(expectedEService);
-  });
+      const result = await catalogService.cancelEServiceArchiving(
+        eservice.id,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+      const expectedEService: EService = {
+        ...eservice,
+        descriptors: [
+          archivedDescriptor,
+          {
+            ...archivingDescriptor,
+            state: descriptorState.published,
+            archivingSchedule: undefined,
+          },
+        ],
+        archivingReason: undefined,
+      };
+
+      expect(result.data).toEqual(expectedEService);
+    }
+  );
 
   it("should throw eServiceNotFound if the eservice does not exist", async () => {
     await expect(
@@ -233,7 +258,7 @@ describe("cancel eservice archiving", () => {
       ...getMockDescriptor(),
       state: descriptorState.archiving,
       version: "1",
-      archivingSchedule: archivingScheduleEService,
+      archivingSchedule: getArchivingScheduleEService(30),
     };
     const eservice: EService = {
       ...mockEService,
@@ -259,7 +284,7 @@ describe("cancel eservice archiving", () => {
           archivableOn: new Date(),
           startedAt: new Date(),
           scope: archivingScope.descriptor,
-          gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+          gracePeriodDays: 30,
         },
       },
     },

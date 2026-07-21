@@ -16,6 +16,7 @@ import {
   delegationKind,
   delegationState,
   EService,
+  gracePeriodDays as gracePeriodDaysValues,
   toEServiceV2,
   operationForbidden,
   generateId,
@@ -37,6 +38,7 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import { calculateArchivableOn } from "../../src/utilities/dateCalculator.js";
+import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("schedule archiving of an EService", () => {
   const mockEService = getMockEService();
@@ -119,6 +121,45 @@ describe("schedule archiving of an EService", () => {
         data: expectedEService,
         metadata: { version: parseInt(writtenEvent.version, 10) },
       });
+    }
+  );
+
+  it.each([...gracePeriodDaysValues])(
+    "should compute archivableOn from the requested gracePeriodDays (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const seed: catalogApi.EServiceArchivingSeed = {
+        gracePeriodDays: gracePeriodDaysValue,
+        archivingReason: mockArchivingReason,
+      };
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: descriptorState.published,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      const { data } = await catalogService.scheduleEServiceArchiving(
+        eservice.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+      const actualArchivingSchedule = data.descriptors[0].archivingSchedule!;
+      const { archivableOn: expectedArchivableOn } = calculateArchivableOn(
+        actualArchivingSchedule.startedAt,
+        gracePeriodDaysValue
+      );
+
+      expect(actualArchivingSchedule.archivableOn).toEqual(
+        expectedArchivableOn
+      );
+      expect(actualArchivingSchedule.gracePeriodDays).toEqual(
+        gracePeriodDaysValue
+      );
     }
   );
 

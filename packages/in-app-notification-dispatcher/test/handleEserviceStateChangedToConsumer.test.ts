@@ -19,6 +19,8 @@ import {
   EServiceId,
   AttributeId,
   archivingScope,
+  GracePeriodDays,
+  gracePeriodDays,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -49,7 +51,9 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
     ],
   };
-  const eserviceWithArchivingSchedule = {
+  const getEserviceWithArchivingSchedule = (
+    gracePeriodDaysValue: GracePeriodDays
+  ) => ({
     ...getMockEService(),
     producerId: producerTenant.id,
     descriptors: [
@@ -61,7 +65,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
           archivableOn: new Date("2026-12-31T00:00:00.000Z"),
           startedAt: new Date("2026-05-14T00:00:00.000Z"),
           scope: archivingScope.descriptor,
-          gracePeriodDays: 30 as const, // This value will be updated in subsequent PRs.
+          gracePeriodDays: gracePeriodDaysValue,
         },
       },
       {
@@ -71,8 +75,8 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         docs: [getMockDocument()],
       },
     ],
-  };
-  const archivingEservice = {
+  });
+  const getArchivingEservice = (gracePeriodDaysValue: GracePeriodDays) => ({
     ...getMockEService(),
     producerId: producerTenant.id,
     descriptors: [
@@ -84,17 +88,15 @@ describe("handleEserviceStateChangedToConsumer", async () => {
           archivableOn: new Date("2026-12-31T00:00:00.000Z"),
           startedAt: new Date("2026-05-14T00:00:00.000Z"),
           scope: archivingScope.eservice,
-          gracePeriodDays: 30 as const, // This value will be updated in subsequent PRs.
+          gracePeriodDays: gracePeriodDaysValue,
         },
       },
     ],
-  };
+  });
   const { logger } = getMockContext({});
 
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
   await addOneEService(eservice);
-  await addOneEService(eserviceWithArchivingSchedule);
-  await addOneEService(archivingEservice);
 
   beforeEach(async () => {
     mockGetNotificationRecipients.mockReset();
@@ -359,41 +361,6 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     {
       msg: {
         event_version: 2,
-        type: "EServiceDescriptorSuspended",
-        data: {
-          eservice: toEServiceV2(eserviceWithArchivingSchedule),
-          descriptorId: eserviceWithArchivingSchedule.descriptors[0].id,
-        },
-      },
-      expectedBody:
-        inAppTemplates.eserviceArchivingDescriptorSuspendedToConsumer(
-          eserviceWithArchivingSchedule.name,
-          eserviceWithArchivingSchedule.descriptors[0].version,
-          eserviceWithArchivingSchedule.descriptors[0]!.archivingSchedule!
-            .archivableOn!,
-          true
-        ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorSuspended",
-        data: {
-          eservice: toEServiceV2(archivingEservice),
-          descriptorId: archivingEservice.descriptors[0].id,
-        },
-      },
-      expectedBody:
-        inAppTemplates.eserviceArchivingDescriptorSuspendedToConsumer(
-          archivingEservice.name,
-          archivingEservice.descriptors[0].version,
-          archivingEservice.descriptors[0]!.archivingSchedule!.archivableOn!,
-          false
-        ),
-    },
-    {
-      msg: {
-        event_version: 2,
         type: "EServiceDescriptorActivated",
         data: {
           eservice: toEServiceV2(eservice),
@@ -405,41 +372,6 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         producerTenant.name,
         eservice.descriptors[0].version
       ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorActivated",
-        data: {
-          eservice: toEServiceV2(eserviceWithArchivingSchedule),
-          descriptorId: eserviceWithArchivingSchedule.descriptors[0].id,
-        },
-      },
-      expectedBody:
-        inAppTemplates.eserviceArchivingDescriptorActivatedToConsumer(
-          eserviceWithArchivingSchedule.name,
-          eserviceWithArchivingSchedule.descriptors[0].version,
-          eserviceWithArchivingSchedule.descriptors[0]!.archivingSchedule!
-            .archivableOn!,
-          false
-        ),
-    },
-    {
-      msg: {
-        event_version: 2,
-        type: "EServiceDescriptorActivated",
-        data: {
-          eservice: toEServiceV2(archivingEservice),
-          descriptorId: archivingEservice.descriptors[0].id,
-        },
-      },
-      expectedBody:
-        inAppTemplates.eserviceArchivingDescriptorActivatedToConsumer(
-          archivingEservice.name,
-          archivingEservice.descriptors[0].version,
-          archivingEservice.descriptors[0]!.archivingSchedule!.archivableOn!,
-          true
-        ),
     },
     {
       msg: {
@@ -576,6 +508,266 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         body: expectedBody,
         notificationType: "eserviceStateChangedToConsumer",
         entityId: `${msg.data.eservice.id}/${msg.data.eservice.descriptors[0].id}`,
+      }));
+      expect(notifications).toEqual(
+        expect.arrayContaining(expectedNotifications)
+      );
+    }
+  );
+
+  it.each([...gracePeriodDays])(
+    "should generate notifications for EServiceDescriptorSuspended with archivingSchedule (descriptor scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const eserviceWithArchivingSchedule =
+        getEserviceWithArchivingSchedule(gracePeriodDaysValue);
+      await addOneEService(eserviceWithArchivingSchedule);
+
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorSuspended",
+        data: {
+          eservice: toEServiceV2(eserviceWithArchivingSchedule),
+          descriptorId: eserviceWithArchivingSchedule.descriptors[0].id,
+        },
+      };
+      const expectedBody =
+        inAppTemplates.eserviceArchivingDescriptorSuspendedToConsumer(
+          eserviceWithArchivingSchedule.name,
+          eserviceWithArchivingSchedule.descriptors[0].version,
+          eserviceWithArchivingSchedule.descriptors[0]!.archivingSchedule!
+            .archivableOn!,
+          true
+        );
+
+      const consumerId = generateId<TenantId>();
+      const consumerTenantForCase = getMockTenant(consumerId);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getAgreementsByEserviceId = vi
+        .fn()
+        .mockResolvedValue([
+          getMockAgreement(
+            unsafeBrandId<EServiceId>(msg.data.eservice!.id),
+            consumerId,
+            agreementState.active
+          ),
+        ]);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getTenantById = vi
+        .fn()
+        .mockResolvedValue(consumerTenantForCase);
+
+      const users = [
+        { userId: generateId(), tenantId: consumerId },
+        { userId: generateId(), tenantId: consumerId },
+      ];
+      mockGetNotificationRecipients.mockResolvedValue(users);
+
+      const notifications = await handleEserviceStateChangedToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+
+      const expectedNotifications = users.map((user) => ({
+        userId: user.userId,
+        tenantId: consumerId,
+        body: expectedBody,
+        notificationType: "eserviceStateChangedToConsumer",
+        entityId: `${msg.data.eservice!.id}/${msg.data.eservice!.descriptors[0].id}`,
+      }));
+      expect(notifications).toEqual(
+        expect.arrayContaining(expectedNotifications)
+      );
+    }
+  );
+
+  it.each([...gracePeriodDays])(
+    "should generate notifications for EServiceDescriptorSuspended with archivingSchedule (eservice scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingEservice = getArchivingEservice(gracePeriodDaysValue);
+      await addOneEService(archivingEservice);
+
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorSuspended",
+        data: {
+          eservice: toEServiceV2(archivingEservice),
+          descriptorId: archivingEservice.descriptors[0].id,
+        },
+      };
+      const expectedBody =
+        inAppTemplates.eserviceArchivingDescriptorSuspendedToConsumer(
+          archivingEservice.name,
+          archivingEservice.descriptors[0].version,
+          archivingEservice.descriptors[0]!.archivingSchedule!.archivableOn!,
+          false
+        );
+
+      const consumerId = generateId<TenantId>();
+      const consumerTenantForCase = getMockTenant(consumerId);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getAgreementsByEserviceId = vi
+        .fn()
+        .mockResolvedValue([
+          getMockAgreement(
+            unsafeBrandId<EServiceId>(msg.data.eservice!.id),
+            consumerId,
+            agreementState.active
+          ),
+        ]);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getTenantById = vi
+        .fn()
+        .mockResolvedValue(consumerTenantForCase);
+
+      const users = [
+        { userId: generateId(), tenantId: consumerId },
+        { userId: generateId(), tenantId: consumerId },
+      ];
+      mockGetNotificationRecipients.mockResolvedValue(users);
+
+      const notifications = await handleEserviceStateChangedToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+
+      const expectedNotifications = users.map((user) => ({
+        userId: user.userId,
+        tenantId: consumerId,
+        body: expectedBody,
+        notificationType: "eserviceStateChangedToConsumer",
+        entityId: `${msg.data.eservice!.id}/${msg.data.eservice!.descriptors[0].id}`,
+      }));
+      expect(notifications).toEqual(
+        expect.arrayContaining(expectedNotifications)
+      );
+    }
+  );
+
+  it.each([...gracePeriodDays])(
+    "should generate notifications for EServiceDescriptorActivated with archivingSchedule (descriptor scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const eserviceWithArchivingSchedule =
+        getEserviceWithArchivingSchedule(gracePeriodDaysValue);
+      await addOneEService(eserviceWithArchivingSchedule);
+
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorActivated",
+        data: {
+          eservice: toEServiceV2(eserviceWithArchivingSchedule),
+          descriptorId: eserviceWithArchivingSchedule.descriptors[0].id,
+        },
+      };
+      const expectedBody =
+        inAppTemplates.eserviceArchivingDescriptorActivatedToConsumer(
+          eserviceWithArchivingSchedule.name,
+          eserviceWithArchivingSchedule.descriptors[0].version,
+          eserviceWithArchivingSchedule.descriptors[0]!.archivingSchedule!
+            .archivableOn!,
+          false
+        );
+
+      const consumerId = generateId<TenantId>();
+      const consumerTenantForCase = getMockTenant(consumerId);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getAgreementsByEserviceId = vi
+        .fn()
+        .mockResolvedValue([
+          getMockAgreement(
+            unsafeBrandId<EServiceId>(msg.data.eservice!.id),
+            consumerId,
+            agreementState.active
+          ),
+        ]);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getTenantById = vi
+        .fn()
+        .mockResolvedValue(consumerTenantForCase);
+
+      const users = [
+        { userId: generateId(), tenantId: consumerId },
+        { userId: generateId(), tenantId: consumerId },
+      ];
+      mockGetNotificationRecipients.mockResolvedValue(users);
+
+      const notifications = await handleEserviceStateChangedToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+
+      const expectedNotifications = users.map((user) => ({
+        userId: user.userId,
+        tenantId: consumerId,
+        body: expectedBody,
+        notificationType: "eserviceStateChangedToConsumer",
+        entityId: `${msg.data.eservice!.id}/${msg.data.eservice!.descriptors[0].id}`,
+      }));
+      expect(notifications).toEqual(
+        expect.arrayContaining(expectedNotifications)
+      );
+    }
+  );
+
+  it.each([...gracePeriodDays])(
+    "should generate notifications for EServiceDescriptorActivated with archivingSchedule (eservice scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingEservice = getArchivingEservice(gracePeriodDaysValue);
+      await addOneEService(archivingEservice);
+
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorActivated",
+        data: {
+          eservice: toEServiceV2(archivingEservice),
+          descriptorId: archivingEservice.descriptors[0].id,
+        },
+      };
+      const expectedBody =
+        inAppTemplates.eserviceArchivingDescriptorActivatedToConsumer(
+          archivingEservice.name,
+          archivingEservice.descriptors[0].version,
+          archivingEservice.descriptors[0]!.archivingSchedule!.archivableOn!,
+          true
+        );
+
+      const consumerId = generateId<TenantId>();
+      const consumerTenantForCase = getMockTenant(consumerId);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getAgreementsByEserviceId = vi
+        .fn()
+        .mockResolvedValue([
+          getMockAgreement(
+            unsafeBrandId<EServiceId>(msg.data.eservice!.id),
+            consumerId,
+            agreementState.active
+          ),
+        ]);
+      // eslint-disable-next-line functional/immutable-data
+      readModelService.getTenantById = vi
+        .fn()
+        .mockResolvedValue(consumerTenantForCase);
+
+      const users = [
+        { userId: generateId(), tenantId: consumerId },
+        { userId: generateId(), tenantId: consumerId },
+      ];
+      mockGetNotificationRecipients.mockResolvedValue(users);
+
+      const notifications = await handleEserviceStateChangedToConsumer(
+        msg,
+        logger,
+        readModelService
+      );
+
+      const expectedNotifications = users.map((user) => ({
+        userId: user.userId,
+        tenantId: consumerId,
+        body: expectedBody,
+        notificationType: "eserviceStateChangedToConsumer",
+        entityId: `${msg.data.eservice!.id}/${msg.data.eservice!.descriptors[0].id}`,
       }));
       expect(notifications).toEqual(
         expect.arrayContaining(expectedNotifications)

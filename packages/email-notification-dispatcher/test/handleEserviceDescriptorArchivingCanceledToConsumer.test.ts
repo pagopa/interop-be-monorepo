@@ -18,6 +18,8 @@ import {
   EService,
   EServiceId,
   generateId,
+  GracePeriodDays,
+  gracePeriodDays,
   missingKafkaMessageDataError,
   TenantId,
   toEServiceV2,
@@ -39,27 +41,24 @@ describe("handleEserviceDescriptorArchivingCanceledToConsumer", () => {
   const producerTenant = { ...getMockTenant(producerId), name: "Producer T" };
   const consumerTenant = { ...getMockTenant(consumerId), name: "Consumer T" };
 
-  const descriptor: Descriptor = {
+  const descriptorId = generateId<DescriptorId>();
+  const getDescriptor = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.archiving),
+    id: descriptorId,
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.descriptor,
-      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
-  const eservice: EService = {
-    ...getMockEService(),
-    name: "Test E-service",
-    producerId,
-    descriptors: [descriptor],
-  };
+  });
   const users = [getMockUser(consumerTenant.id)];
 
   const { logger } = getMockContext({});
 
   beforeEach(async () => {
-    await addOneEService(eservice);
     await addOneTenant(producerTenant);
     await addOneTenant(consumerTenant);
     readModelService.getTenantUsersWithNotificationEnabled = vi
@@ -79,7 +78,7 @@ describe("handleEserviceDescriptorArchivingCanceledToConsumer", () => {
     await expect(() =>
       handleEserviceDescriptorArchivingCanceledToConsumer({
         eserviceV2Msg: undefined,
-        descriptorId: descriptor.id,
+        descriptorId,
         logger,
         templateService,
         readModelService,
@@ -93,35 +92,48 @@ describe("handleEserviceDescriptorArchivingCanceledToConsumer", () => {
     );
   });
 
-  it("emits one email per consumer user with the expected subject", async () => {
-    const agreement: Agreement = {
-      ...getMockAgreement(),
-      stamps: {},
-      eserviceId: eservice.id,
-      producerId,
-      descriptorId: descriptor.id,
-      consumerId: consumerTenant.id,
-      state: agreementState.active,
-    };
-    await addOneAgreement(agreement);
+  it.each([...gracePeriodDays])(
+    "emits one email per consumer user with the expected subject (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const descriptor = getDescriptor(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        name: "Test E-service",
+        producerId,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
 
-    const messages = await handleEserviceDescriptorArchivingCanceledToConsumer({
-      eserviceV2Msg: toEServiceV2(eservice),
-      descriptorId: descriptor.id,
-      logger,
-      templateService,
-      readModelService,
-      correlationId: generateId<CorrelationId>(),
-    });
-    expect(messages.length).toBeGreaterThanOrEqual(1);
-    expect(messages[0].email.subject).toContain(
-      "La versione di un e-service con cui stai scambiando dati non è più in fase di archiviazione"
-    );
-  });
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        stamps: {},
+        eserviceId: eservice.id,
+        producerId,
+        descriptorId: descriptor.id,
+        consumerId: consumerTenant.id,
+        state: agreementState.active,
+      };
+      await addOneAgreement(agreement);
+
+      const messages =
+        await handleEserviceDescriptorArchivingCanceledToConsumer({
+          eserviceV2Msg: toEServiceV2(eservice),
+          descriptorId: descriptor.id,
+          logger,
+          templateService,
+          readModelService,
+          correlationId: generateId<CorrelationId>(),
+        });
+      expect(messages.length).toBeGreaterThanOrEqual(1);
+      expect(messages[0].email.subject).toContain(
+        "La versione di un e-service con cui stai scambiando dati non è più in fase di archiviazione"
+      );
+    }
+  );
 
   it("returns empty array when there are no agreements", async () => {
     const otherDescriptor: Descriptor = {
-      ...descriptor,
+      ...getDescriptor(30),
       id: generateId<DescriptorId>(),
     };
     const otherEservice: EService = {

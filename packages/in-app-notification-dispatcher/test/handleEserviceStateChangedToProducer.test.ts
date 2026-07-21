@@ -8,11 +8,14 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
+  DescriptorId,
   descriptorState,
   EService,
   EServiceEventV2,
   EServiceIdDescriptorId,
   generateId,
+  GracePeriodDays,
+  gracePeriodDays,
   missingKafkaMessageDataError,
   toEServiceV2,
   UserId,
@@ -32,32 +35,35 @@ describe("handleEserviceStateChangedToProducer", () => {
   const userId = generateId<UserId>();
   const { logger } = getMockContext({});
 
-  const archivingDescriptor: Descriptor = {
+  const archivingDescriptorId = generateId<DescriptorId>();
+  const archivingDescriptorEserviceScopeId = generateId<DescriptorId>();
+
+  const getArchivingDescriptor = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.archiving),
+    id: archivingDescriptorId,
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.descriptor,
-      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
+  });
 
-  const archivingDescriptorEserviceScope: Descriptor = {
+  const getArchivingDescriptorEserviceScope = (
+    gracePeriodDaysValue: GracePeriodDays
+  ): Descriptor => ({
     ...getMockDescriptor(descriptorState.archiving),
+    id: archivingDescriptorEserviceScopeId,
     version: "2",
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
       scope: archivingScope.eservice,
-      gracePeriodDays: 30, // This value will be updated in subsequent PRs.
+      gracePeriodDays: gracePeriodDaysValue,
     },
-  };
-
-  const eservice: EService = {
-    ...getMockEService(),
-    producerId: producerTenant.id,
-    descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
-  };
+  });
 
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
 
@@ -66,7 +72,6 @@ describe("handleEserviceStateChangedToProducer", () => {
     mockGetNotificationRecipients.mockResolvedValue([
       { userId, tenantId: producerTenant.id },
     ]);
-    await addOneEService(eservice);
     await addOneTenant(producerTenant);
   });
 
@@ -76,7 +81,7 @@ describe("handleEserviceStateChangedToProducer", () => {
       type: "EServiceDescriptorSuspended",
       data: {
         eservice: undefined,
-        descriptorId: archivingDescriptor.id,
+        descriptorId: archivingDescriptorId,
       } satisfies EServiceDescriptorSuspendedV2,
     };
     await expect(() =>
@@ -86,123 +91,175 @@ describe("handleEserviceStateChangedToProducer", () => {
     );
   });
 
-  it("emits a notification for EServiceDescriptorSuspended (descriptor scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorSuspended",
-      data: {
-        eservice: toEServiceV2(eservice),
-        descriptorId: archivingDescriptor.id,
-      } satisfies EServiceDescriptorSuspendedV2,
-    };
-    const notifications = await handleEserviceStateChangedToProducer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0]).toEqual({
-      userId,
-      tenantId: producerTenant.id,
-      notificationType: "eserviceStateChangedToProducer",
-      entityId: EServiceIdDescriptorId.parse(
-        `${eservice.id}/${archivingDescriptor.id}`
-      ),
-      body: inAppTemplates.eserviceArchivingDescriptorSuspendedToProducer(
-        eservice.name,
-        archivingDescriptor.version,
-        archivingDescriptor.archivingSchedule!.archivableOn,
-        false
-      ),
-    });
-  });
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceDescriptorSuspended (descriptor scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(gracePeriodDaysValue);
+      const archivingDescriptorEserviceScope =
+        getArchivingDescriptorEserviceScope(30);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
+      };
+      await addOneEService(eservice);
 
-  it("emits a notification for EServiceDescriptorSuspended (eservice scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorSuspended",
-      data: {
-        eservice: toEServiceV2(eservice),
-        descriptorId: archivingDescriptorEserviceScope.id,
-      } satisfies EServiceDescriptorSuspendedV2,
-    };
-    const notifications = await handleEserviceStateChangedToProducer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0]).toEqual({
-      userId,
-      tenantId: producerTenant.id,
-      notificationType: "eserviceStateChangedToProducer",
-      entityId: EServiceIdDescriptorId.parse(
-        `${eservice.id}/${archivingDescriptorEserviceScope.id}`
-      ),
-      body: inAppTemplates.eserviceArchivingDescriptorSuspendedToProducer(
-        eservice.name,
-        archivingDescriptorEserviceScope.version,
-        archivingDescriptorEserviceScope.archivingSchedule!.archivableOn,
-        true
-      ),
-    });
-  });
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorSuspended",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: archivingDescriptor.id,
+        } satisfies EServiceDescriptorSuspendedV2,
+      };
+      const notifications = await handleEserviceStateChangedToProducer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0]).toEqual({
+        userId,
+        tenantId: producerTenant.id,
+        notificationType: "eserviceStateChangedToProducer",
+        entityId: EServiceIdDescriptorId.parse(
+          `${eservice.id}/${archivingDescriptor.id}`
+        ),
+        body: inAppTemplates.eserviceArchivingDescriptorSuspendedToProducer(
+          eservice.name,
+          archivingDescriptor.version,
+          archivingDescriptor.archivingSchedule!.archivableOn,
+          false
+        ),
+      });
+    }
+  );
 
-  it("emits a notification for EServiceDescriptorActivated (descriptor scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorActivated",
-      data: {
-        descriptorId: archivingDescriptor.id,
-        eservice: toEServiceV2(eservice),
-      } satisfies EServiceDescriptorActivatedV2,
-    };
-    const notifications = await handleEserviceStateChangedToProducer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingDescriptorActivatedToProducer(
-        eservice.name,
-        archivingDescriptor.version,
-        archivingDescriptor.archivingSchedule!.archivableOn,
-        false
-      )
-    );
-    expect(notifications[0].notificationType).toBe(
-      "eserviceStateChangedToProducer"
-    );
-  });
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceDescriptorSuspended (eservice scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(30);
+      const archivingDescriptorEserviceScope =
+        getArchivingDescriptorEserviceScope(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
+      };
+      await addOneEService(eservice);
 
-  it("emits a notification for EServiceDescriptorActivated (eservice scope)", async () => {
-    const msg: EServiceEventV2 = {
-      event_version: 2,
-      type: "EServiceDescriptorActivated",
-      data: {
-        descriptorId: archivingDescriptorEserviceScope.id,
-        eservice: toEServiceV2(eservice),
-      } satisfies EServiceDescriptorActivatedV2,
-    };
-    const notifications = await handleEserviceStateChangedToProducer(
-      msg,
-      logger,
-      readModelService
-    );
-    expect(notifications).toHaveLength(1);
-    expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingDescriptorActivatedToProducer(
-        eservice.name,
-        archivingDescriptorEserviceScope.version,
-        archivingDescriptorEserviceScope.archivingSchedule!.archivableOn,
-        true
-      )
-    );
-    expect(notifications[0].notificationType).toBe(
-      "eserviceStateChangedToProducer"
-    );
-  });
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorSuspended",
+        data: {
+          eservice: toEServiceV2(eservice),
+          descriptorId: archivingDescriptorEserviceScope.id,
+        } satisfies EServiceDescriptorSuspendedV2,
+      };
+      const notifications = await handleEserviceStateChangedToProducer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0]).toEqual({
+        userId,
+        tenantId: producerTenant.id,
+        notificationType: "eserviceStateChangedToProducer",
+        entityId: EServiceIdDescriptorId.parse(
+          `${eservice.id}/${archivingDescriptorEserviceScope.id}`
+        ),
+        body: inAppTemplates.eserviceArchivingDescriptorSuspendedToProducer(
+          eservice.name,
+          archivingDescriptorEserviceScope.version,
+          archivingDescriptorEserviceScope.archivingSchedule!.archivableOn,
+          true
+        ),
+      });
+    }
+  );
+
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceDescriptorActivated (descriptor scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(gracePeriodDaysValue);
+      const archivingDescriptorEserviceScope =
+        getArchivingDescriptorEserviceScope(30);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
+      };
+      await addOneEService(eservice);
+
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorActivated",
+        data: {
+          descriptorId: archivingDescriptor.id,
+          eservice: toEServiceV2(eservice),
+        } satisfies EServiceDescriptorActivatedV2,
+      };
+      const notifications = await handleEserviceStateChangedToProducer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].body).toBe(
+        inAppTemplates.eserviceArchivingDescriptorActivatedToProducer(
+          eservice.name,
+          archivingDescriptor.version,
+          archivingDescriptor.archivingSchedule!.archivableOn,
+          false
+        )
+      );
+      expect(notifications[0].notificationType).toBe(
+        "eserviceStateChangedToProducer"
+      );
+    }
+  );
+
+  it.each([...gracePeriodDays])(
+    "emits a notification for EServiceDescriptorActivated (eservice scope, gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingDescriptor = getArchivingDescriptor(30);
+      const archivingDescriptorEserviceScope =
+        getArchivingDescriptorEserviceScope(gracePeriodDaysValue);
+      const eservice: EService = {
+        ...getMockEService(),
+        producerId: producerTenant.id,
+        descriptors: [archivingDescriptor, archivingDescriptorEserviceScope],
+      };
+      await addOneEService(eservice);
+
+      const msg: EServiceEventV2 = {
+        event_version: 2,
+        type: "EServiceDescriptorActivated",
+        data: {
+          descriptorId: archivingDescriptorEserviceScope.id,
+          eservice: toEServiceV2(eservice),
+        } satisfies EServiceDescriptorActivatedV2,
+      };
+      const notifications = await handleEserviceStateChangedToProducer(
+        msg,
+        logger,
+        readModelService
+      );
+      expect(notifications).toHaveLength(1);
+      expect(notifications[0].body).toBe(
+        inAppTemplates.eserviceArchivingDescriptorActivatedToProducer(
+          eservice.name,
+          archivingDescriptorEserviceScope.version,
+          archivingDescriptorEserviceScope.archivingSchedule!.archivableOn,
+          true
+        )
+      );
+      expect(notifications[0].notificationType).toBe(
+        "eserviceStateChangedToProducer"
+      );
+    }
+  );
 
   it("emits no notification when archivingSchedule is absent on EServiceDescriptorSuspended", async () => {
     const routineDescriptor: Descriptor = {
@@ -210,7 +267,8 @@ describe("handleEserviceStateChangedToProducer", () => {
       // no archivingSchedule → auto-archiviation routine path
     };
     const routineEservice: EService = {
-      ...eservice,
+      ...getMockEService(),
+      producerId: producerTenant.id,
       id: generateId(),
       descriptors: [routineDescriptor],
     };
@@ -237,7 +295,8 @@ describe("handleEserviceStateChangedToProducer", () => {
       // no archivingSchedule → auto-archiviation routine path
     };
     const routineEservice: EService = {
-      ...eservice,
+      ...getMockEService(),
+      producerId: producerTenant.id,
       id: generateId(),
       descriptors: [routineDescriptor],
     };
@@ -260,6 +319,14 @@ describe("handleEserviceStateChangedToProducer", () => {
 
   it("returns empty when there are no recipients for the producer", async () => {
     mockGetNotificationRecipients.mockResolvedValueOnce([]);
+    const archivingDescriptor = getArchivingDescriptor(30);
+    const eservice: EService = {
+      ...getMockEService(),
+      producerId: producerTenant.id,
+      descriptors: [archivingDescriptor],
+    };
+    await addOneEService(eservice);
+
     const msg: EServiceEventV2 = {
       event_version: 2,
       type: "EServiceDescriptorSuspended",
