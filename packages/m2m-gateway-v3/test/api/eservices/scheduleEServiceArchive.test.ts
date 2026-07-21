@@ -120,7 +120,7 @@ describe("POST /eservices/:eserviceId/scheduleArchive router test", () => {
     const res = await makeRequest(
       token,
       mockEService.id,
-      seed as m2mGatewayApiV3.EServiceArchivingSeed
+      seed as m2mGatewayApiV3.EServiceArchivingReasonSeed
     );
 
     expect(res.status).toBe(400);
