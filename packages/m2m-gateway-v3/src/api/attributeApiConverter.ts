@@ -2,14 +2,15 @@ import {
   attributeRegistryApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
-import { ApiError } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { ApiError } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { attributeNotFound } from "../model/errors.js";
 import {
   assertAttributeKindIs,
   assertAttributeOriginAndCodeAreDefined,
 } from "../utils/validators/attributeValidators.js";
-import { attributeNotFound } from "../model/errors.js";
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
@@ -34,7 +35,12 @@ function convertAttribute(
 
 function convertAttribute(
   attribute: attributeRegistryApi.Attribute,
-  attributeKind: attributeRegistryApi.AttributeKind,
+  // TODO(PIN-10074): remove this exclusion when the future M2M work item adds
+  // CERTIFIED_DISCRETE support to the M2M v3 contract.
+  attributeKind: Exclude<
+    attributeRegistryApi.AttributeKind,
+    "CERTIFIED_DISCRETE"
+  >,
   logger: Logger,
   mapThrownErrorsToNotFound = false
 ):

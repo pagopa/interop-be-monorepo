@@ -13,6 +13,8 @@ import {
   eserviceMode,
   technology,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { CatalogAttributeValueV1 } from "../../protobuf-models/v1/events.js";
 import {
   CatalogDescriptorV1Notification,
@@ -21,51 +23,35 @@ import {
   CatalogItemV1Notification,
 } from "./catalogItemEventNotification.js";
 
-const toCatalogItemTechnologyV1 = (input: Technology): string => {
-  switch (input) {
-    case technology.rest:
-      return "Rest";
-    case technology.soap:
-      return "Soap";
-  }
-};
+const toCatalogItemTechnologyV1 = (input: Technology): string =>
+  match(input)
+    .with(technology.rest, () => "Rest")
+    .with(technology.soap, () => "Soap")
+    .exhaustive();
 
-const toCatalogDescriptorStateV1 = (input: DescriptorState): string => {
-  switch (input) {
-    case descriptorState.draft:
-      return "Draft";
-    case descriptorState.published:
-      return "Published";
-    case descriptorState.deprecated:
-      return "Deprecated";
-    case descriptorState.suspended:
-      return "Suspended";
-    case descriptorState.archived:
-      return "Archived";
-    case descriptorState.waitingForApproval:
-      return "WaitingForApproval";
-  }
-};
+const toCatalogDescriptorStateV1 = (input: DescriptorState): string =>
+  match(input)
+    .with(descriptorState.draft, () => "Draft")
+    .with(descriptorState.published, () => "Published")
+    .with(descriptorState.deprecated, () => "Deprecated")
+    .with(descriptorState.suspended, () => "Suspended")
+    .with(descriptorState.archived, () => "Archived")
+    .with(descriptorState.waitingForApproval, () => "Draft")
+    .with(descriptorState.archiving, () => "Deprecated")
+    .with(descriptorState.archivingSuspended, () => "Suspended")
+    .exhaustive();
 
-const toAgreementApprovalPolicyV1 = (
-  input: AgreementApprovalPolicy
-): string => {
-  switch (input) {
-    case agreementApprovalPolicy.manual:
-      return "Manual";
-    case agreementApprovalPolicy.automatic:
-      return "Automatic";
-  }
-};
+const toAgreementApprovalPolicyV1 = (input: AgreementApprovalPolicy): string =>
+  match(input)
+    .with(agreementApprovalPolicy.manual, () => "Manual")
+    .with(agreementApprovalPolicy.automatic, () => "Automatic")
+    .exhaustive();
 
-const toCatalogItemModeV1 = (input: EServiceMode): string => {
-  switch (input) {
-    case eserviceMode.receive:
-      return "Receive";
-    case eserviceMode.deliver:
-      return "Deliver";
-  }
-};
+const toCatalogItemModeV1 = (input: EServiceMode): string =>
+  match(input)
+    .with(eserviceMode.receive, () => "Receive")
+    .with(eserviceMode.deliver, () => "Deliver")
+    .exhaustive();
 
 const toCatalogAttributeValueV1 = (
   input: EServiceAttribute[][] | undefined
@@ -80,7 +66,9 @@ const toCatalogAttributeValueV1 = (
   return input ? input.map((a) => a.map(toCatalogAttributeValue)) : [];
 };
 
-const toCatalogDocumentV1 = (doc: Document): CatalogDocumentV1Notification => ({
+export const toCatalogDocumentV1 = (
+  doc: Document
+): CatalogDocumentV1Notification => ({
   id: doc.id,
   name: doc.name,
   contentType: doc.contentType,
@@ -143,11 +131,6 @@ export const toCatalogItemV1 = (
   name: event.name,
   description: event.description,
   technology: toCatalogItemTechnologyV1(event.technology),
-  attributes: {
-    certified: toCatalogAttributeValueV1(event?.attributes?.certified),
-    declared: toCatalogAttributeValueV1(event?.attributes?.declared),
-    verified: toCatalogAttributeValueV1(event?.attributes?.verified),
-  },
   descriptors: toCatalogDescriptorV1(event.descriptors),
   createdAt: event.createdAt.toISOString(),
   riskAnalysis: toCatalogItemRiskAnalysisV1(event.riskAnalysis),

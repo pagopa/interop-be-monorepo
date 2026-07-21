@@ -1,7 +1,12 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 
-import { match, P } from "ts-pattern";
+import {
+  FileManager,
+  logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   fromPurposeV2,
@@ -11,12 +16,8 @@ import {
   PurposeEventV2,
   PurposeStateV2,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  logger,
-  SafeStorageService,
-  SignatureServiceBuilder,
-} from "pagopa-interop-commons";
+import { match, P } from "ts-pattern";
+
 import { PurposeEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 export const handlePurposeMessageV2 = async (
@@ -145,7 +146,14 @@ export const handlePurposeMessageV2 = async (
             "WaitingForApprovalPurposeVersionDeleted",
             "PurposeDeletedByRevokedDelegation",
             "RiskAnalysisDocumentGenerated",
-            "RiskAnalysisSignedDocumentGenerated"
+            "RiskAnalysisSignedDocumentGenerated",
+            "MaintenancePurposeRiskAnalysisSetTenantKind",
+            "PurposeRiskAnalysisWorkflowCreated",
+            "PurposeRiskAnalysisAssigned",
+            "PurposeRiskAnalysisSubmitted",
+            "PurposeRiskAnalysisSigned",
+            "PurposeRiskAnalysisRejected",
+            "PurposeRiskAnalysisFormEdited"
           ),
         },
         (event) => {

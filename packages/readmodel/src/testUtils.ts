@@ -1,3 +1,4 @@
+import { and, eq, lte } from "drizzle-orm";
 import {
   Agreement,
   Attribute,
@@ -7,6 +8,7 @@ import {
   EService,
   EServiceDescriptorPurposeTemplate,
   EServiceTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   ProducerJWKKey,
   ProducerKeychain,
   Purpose,
@@ -31,6 +33,7 @@ import {
   eserviceDescriptorInterfaceInReadmodelCatalog,
   eserviceDescriptorRejectionReasonInReadmodelCatalog,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
@@ -52,6 +55,7 @@ import {
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   producerJwkKeyInReadmodelProducerJwkKey,
   producerKeychainEserviceInReadmodelProducerKeychain,
   producerKeychainInReadmodelProducerKeychain,
@@ -60,10 +64,12 @@ import {
   purposeInReadmodelPurpose,
   purposeRiskAnalysisAnswerInReadmodelPurpose,
   purposeRiskAnalysisFormInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantDeclaredAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
@@ -77,6 +83,7 @@ import {
   purposeTemplateRiskAnalysisAnswerInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
   purposeVersionStampInReadmodelPurpose,
   purposeTemplateChildTables,
   DrizzleTransactionType,
@@ -85,28 +92,31 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   purposeTemplateRiskAnalysisFormDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
+  tenantRemoteIdInReadmodelTenant,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, lte } from "drizzle-orm";
-import {
-  splitTenantNotificationConfigIntoObjectsSQL,
-  splitUserNotificationConfigIntoObjectsSQL,
-} from "./notification-config/splitters.js";
+
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
-import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import { splitClientJWKKeyIntoObjectsSQL } from "./client-jwk-key/splitters.js";
 import { splitClientIntoObjectsSQL } from "./client/splitters.js";
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
+import {
+  splitTenantNotificationConfigIntoObjectsSQL,
+  splitUserNotificationConfigIntoObjectsSQL,
+} from "./notification-config/splitters.js";
 import { splitProducerJWKKeyIntoObjectsSQL } from "./producer-jwk-key/splitters.js";
 import { splitProducerKeychainIntoObjectsSQL } from "./producer-keychain/splitters.js";
-import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
-import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import {
   splitPurposeTemplateIntoObjectsSQL,
+  toEServiceTemplateVersionPurposeTemplateSQL,
   toPurposeTemplateEServiceDescriptorSQL,
 } from "./purpose-template/splitters.js";
+import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
+import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
+import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,
@@ -278,6 +288,8 @@ export const upsertEService = async (
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
     await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -328,6 +340,18 @@ export const upsertEService = async (
       await tx
         .insert(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
         .values(templateVersionRefSQL);
+    }
+
+    for (const archivingScheduleSQL of archivingSchedulesSQL) {
+      await tx
+        .insert(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .values(archivingScheduleSQL);
+    }
+
+    for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+      await tx
+        .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+        .values(asyncExchangePropsSQL);
     }
   });
 };
@@ -496,6 +520,7 @@ export const upsertEServiceTemplate = async (
       attributesSQL,
       interfacesSQL,
       documentsSQL,
+      asyncExchangePropertiesSQL,
     } = splitEServiceTemplateIntoObjectsSQL(eserviceTemplate, metadataVersion);
 
     await tx
@@ -536,6 +561,14 @@ export const upsertEServiceTemplate = async (
       await tx
         .insert(eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate)
         .values(riskAnalysisAnswerSQL);
+    }
+
+    for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
+      await tx
+        .insert(
+          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+        )
+        .values(asyncExchangePropsSQL);
     }
   });
 };
@@ -665,6 +698,7 @@ export const upsertPurpose = async (
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose, metadataVersion);
 
     await tx.insert(purposeInReadmodelPurpose).values(purposeSQL);
@@ -703,6 +737,12 @@ export const upsertPurpose = async (
         .insert(purposeVersionSignedDocumentInReadmodelPurpose)
         .values(versionSignedDocumentSQL);
     }
+
+    for (const reviewerSQL of reviewersSQL) {
+      await tx
+        .insert(riskAnalysisReviewerInReadmodelPurpose)
+        .values(reviewerSQL);
+    }
   });
 };
 
@@ -715,11 +755,13 @@ export const upsertTenant = async (
     tenantSQL,
     mailsSQL,
     certifiedAttributesSQL,
+    certifiedDiscreteAttributesSQL,
     declaredAttributesSQL,
     verifiedAttributesSQL,
     verifiedAttributeVerifiersSQL,
     verifiedAttributeRevokersSQL,
     featuresSQL,
+    remoteIdsSQL,
   } = splitTenantIntoObjectsSQL(tenant, metadataVersion);
 
   await readModelDB.transaction(async (tx) => {
@@ -750,6 +792,12 @@ export const upsertTenant = async (
         .values(certifiedAttributeSQL);
     }
 
+    for (const certifiedDiscreteAttributeSQL of certifiedDiscreteAttributesSQL) {
+      await tx
+        .insert(tenantCertifiedDiscreteAttributeInReadmodelTenant)
+        .values(certifiedDiscreteAttributeSQL);
+    }
+
     for (const declaredAttributeSQL of declaredAttributesSQL) {
       await tx
         .insert(tenantDeclaredAttributeInReadmodelTenant)
@@ -776,6 +824,9 @@ export const upsertTenant = async (
 
     for (const featureSQL of featuresSQL) {
       await tx.insert(tenantFeatureInReadmodelTenant).values(featureSQL);
+    }
+    for (const remoteIdSQL of remoteIdsSQL) {
+      await tx.insert(tenantRemoteIdInReadmodelTenant).values(remoteIdSQL);
     }
   });
 };
@@ -820,7 +871,9 @@ export const upsertPurposeTemplate = async (
 
     for (const table of purposeTemplateChildTables) {
       if (
-        table !== purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate
+        table !== purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate &&
+        table !==
+          eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate
       ) {
         await tx
           .delete(table)
@@ -896,7 +949,10 @@ export const upsertPurposeTemplate = async (
       tx,
       purposeTemplate.id,
       metadataVersion,
-      [purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate]
+      [
+        purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+        eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate,
+      ]
     );
   });
 };
@@ -946,5 +1002,49 @@ export const upsertPurposeTemplateEServiceDescriptor = async (
     await tx
       .insert(purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate)
       .values(purposeTemplateEServiceDescriptorSQL);
+  });
+};
+
+export const upsertEServiceTemplateVersionPurposeTemplate = async (
+  readModelDB: DrizzleReturnType,
+  eserviceTemplateVersionPurposeTemplate: EServiceTemplateVersionPurposeTemplate,
+  metadataVersion: number
+): Promise<void> => {
+  await readModelDB.transaction(async (tx) => {
+    const shouldUpsert = await checkMetadataVersion(
+      tx,
+      purposeTemplateInReadmodelPurposeTemplate,
+      metadataVersion,
+      eserviceTemplateVersionPurposeTemplate.purposeTemplateId
+    );
+
+    if (!shouldUpsert) {
+      return;
+    }
+
+    await tx
+      .delete(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
+      .where(
+        and(
+          eq(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.purposeTemplateId,
+            eserviceTemplateVersionPurposeTemplate.purposeTemplateId
+          ),
+          eq(
+            eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate.eserviceTemplateId,
+            eserviceTemplateVersionPurposeTemplate.eserviceTemplateId
+          )
+        )
+      );
+
+    const eserviceTemplateVersionPurposeTemplateSQL =
+      toEServiceTemplateVersionPurposeTemplateSQL(
+        eserviceTemplateVersionPurposeTemplate,
+        metadataVersion
+      );
+
+    await tx
+      .insert(eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate)
+      .values(eserviceTemplateVersionPurposeTemplateSQL);
   });
 };

@@ -7,16 +7,19 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handleProducerKeychainKeyDeleted } from "./handleProducerKeychainKeyDeleted.js";
-import { handleClientKeyDeleted } from "./handleClientKeyDeleted.js";
-import { handleClientUserDeleted } from "./handleClientUserDeleted.js";
-import { handleProducerKeychainUserDeleted } from "./handleProducerKeychainUserDeleted.js";
+import { handleAsyncEserviceWithoutKeychain } from "./handleAsyncEserviceWithoutKeychain.js";
 import { handleClientKeyAdded } from "./handleClientKeyAdded.js";
+import { handleClientKeyDeleted } from "./handleClientKeyDeleted.js";
 import { handleClientPurposeAdded } from "./handleClientPurposeAddedEvent.js";
 import { handleClientPurposeRemoved } from "./handleClientPurposeRemovedEvent.js";
+import { handleClientUserDeleted } from "./handleClientUserDeleted.js";
 import { handleProducerKeychainEserviceAdded } from "./handleProducerKeychainEserviceAdded.js";
 import { handleProducerKeychainKeyAdded } from "./handleProducerKeychainKeyAdded.js";
+import { handleProducerKeychainKeyDeleted } from "./handleProducerKeychainKeyDeleted.js";
+import { handleProducerKeychainNoKeysForAsyncEservice } from "./handleProducerKeychainNoKeysForAsyncEservice.js";
+import { handleProducerKeychainUserDeleted } from "./handleProducerKeychainUserDeleted.js";
 
 export async function handleAuthorizationEvent(
   params: HandlerParams<typeof AuthorizationEvent>
@@ -46,15 +49,21 @@ export async function handleAuthorizationEvent(
     )
     .with(
       { type: "ProducerKeychainKeyDeleted" },
-      ({ data: { producerKeychain, kid } }) =>
-        handleProducerKeychainKeyDeleted({
+      async ({ data: { producerKeychain, kid } }) => {
+        const handlerParams = {
           producerKeychainV2Msg: producerKeychain,
           kid,
           logger,
           readModelService,
           templateService,
           correlationId,
-        })
+        };
+        const [existingNotifications, newNotifications] = await Promise.all([
+          handleProducerKeychainKeyDeleted(handlerParams),
+          handleProducerKeychainNoKeysForAsyncEservice(handlerParams),
+        ]);
+        return [...existingNotifications, ...newNotifications];
+      }
     )
     .with({ type: "ClientKeyDeleted" }, ({ data: { client, kid } }) =>
       handleClientKeyDeleted({
@@ -129,6 +138,18 @@ export async function handleAuthorizationEvent(
       })
     )
     .with(
+      { type: "ProducerKeychainEServiceRemoved" },
+      ({ data: { eserviceId, producerKeychain } }) =>
+        handleAsyncEserviceWithoutKeychain({
+          eserviceId: unsafeBrandId<EServiceId>(eserviceId),
+          producerKeychainV2Msg: producerKeychain,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "ClientAdded",
@@ -139,8 +160,7 @@ export async function handleAuthorizationEvent(
           "ClientAdminRemoved",
           "ProducerKeychainAdded",
           "ProducerKeychainDeleted",
-          "ProducerKeychainUserAdded",
-          "ProducerKeychainEServiceRemoved"
+          "ProducerKeychainUserAdded"
         ),
       },
       () => {

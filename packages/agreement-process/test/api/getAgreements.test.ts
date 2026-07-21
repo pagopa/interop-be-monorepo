@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Agreement, ListResult, generateId } from "pagopa-interop-models";
-import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { agreementApi } from "pagopa-interop-api-clients";
-import { api, agreementService } from "../vitest.api.setup.js";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
+import { Agreement, ListResult, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { agreementToApiAgreement } from "../../src/model/domain/apiConverter.js";
+import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API GET /agreements test", () => {
   const mockAgreement1 = getMockAgreement();
@@ -57,6 +58,8 @@ describe("API GET /agreements test", () => {
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.REVIEWER_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import { Attribute, generateId } from "pagopa-interop-models";
-import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
-import { authRole, AuthRole } from "pagopa-interop-commons";
 import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { api, attributeRegistryService } from "../vitest.api.setup.js";
+import { authRole, AuthRole } from "pagopa-interop-commons";
+import { generateToken, getMockAttribute } from "pagopa-interop-commons-test";
+import { Attribute, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toApiAttribute } from "../../src/model/domain/apiConverter.js";
 import { attributeNotFound } from "../../src/model/domain/errors.js";
+import { api, attributeRegistryService } from "../vitest.api.setup.js";
 
 describe("API /attributes/{attributeId} authorization test", () => {
   const attribute: Attribute = getMockAttribute();
@@ -35,6 +36,8 @@ describe("API /attributes/{attributeId} authorization test", () => {
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.REVIEWER_ROLE,
+    authRole.VIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",

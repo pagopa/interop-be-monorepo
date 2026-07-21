@@ -1,3 +1,4 @@
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -22,8 +23,8 @@ import {
   TenantFeatureCertifier,
   Tenant,
 } from "pagopa-interop-models";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
+
+import { config } from "../config/config.js";
 import {
   tenantIsNotACertifier,
   attributeDuplicateByName,
@@ -32,7 +33,7 @@ import {
   tenantNotFound,
   attributeDuplicateByCodeOriginOrName,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
+import { toCreateEventAttributeAdded } from "../model/domain/toEvent.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveTenant = async (
@@ -307,6 +308,65 @@ export function attributeRegistryServiceBuilder(
       };
     },
 
+    async createCertifiedDiscreteAttribute(
+      apiCertifiedDiscreteAttributeSeed: attributeRegistryApi.CertifiedAttributeSeed,
+      {
+        authData,
+        logger,
+        correlationId,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Attribute>> {
+      logger.info(
+        `Creating certified discrete attribute with code ${apiCertifiedDiscreteAttributeSeed.code}`
+      );
+      const certifierId = await getCertifierId(
+        authData.organizationId,
+        readModelService
+      );
+      const duplicatedAttribute =
+        await readModelService.getAttributeByCodeOriginOrName(
+          apiCertifiedDiscreteAttributeSeed.code,
+          apiCertifiedDiscreteAttributeSeed.name,
+          certifierId
+        );
+
+      if (duplicatedAttribute) {
+        throw attributeDuplicateByCodeOriginOrName(
+          apiCertifiedDiscreteAttributeSeed.name,
+          apiCertifiedDiscreteAttributeSeed.code,
+          certifierId
+        );
+      }
+
+      const newCertifiedDiscreteAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.certifiedDiscrete,
+        name: apiCertifiedDiscreteAttributeSeed.name,
+        description: apiCertifiedDiscreteAttributeSeed.description,
+        creationTime: new Date(),
+        code: apiCertifiedDiscreteAttributeSeed.code,
+        origin: certifierId,
+      };
+
+      logger.info(
+        `Certified discrete attribute created with id ${newCertifiedDiscreteAttribute.id}`
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventAttributeAdded(
+          newCertifiedDiscreteAttribute,
+          correlationId
+        )
+      );
+
+      return {
+        data: newCertifiedDiscreteAttribute,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+
     async internalCreateCertifiedAttribute(
       apiInternalCertifiedAttributeSeed: attributeRegistryApi.InternalCertifiedAttributeSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
@@ -350,6 +410,52 @@ export function attributeRegistryServiceBuilder(
       await repository.createEvent(event);
 
       return newInternalCertifiedAttribute;
+    },
+
+    async internalCreateCertifiedDiscreteAttribute(
+      apiInternalCertifiedDiscreteAttributeSeed: attributeRegistryApi.InternalCertifiedDiscreteAttributeSeed,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<Attribute> {
+      logger.info(
+        `Creating certified discrete attribute with origin ${apiInternalCertifiedDiscreteAttributeSeed.origin} and code ${apiInternalCertifiedDiscreteAttributeSeed.code} - Internal Request`
+      );
+
+      const duplicatedAttribute =
+        await readModelService.getAttributeByCodeOriginOrName(
+          apiInternalCertifiedDiscreteAttributeSeed.code,
+          apiInternalCertifiedDiscreteAttributeSeed.name,
+          apiInternalCertifiedDiscreteAttributeSeed.origin
+        );
+
+      if (duplicatedAttribute) {
+        throw attributeDuplicateByCodeOriginOrName(
+          apiInternalCertifiedDiscreteAttributeSeed.name,
+          apiInternalCertifiedDiscreteAttributeSeed.code,
+          apiInternalCertifiedDiscreteAttributeSeed.origin
+        );
+      }
+
+      const newInternalCertifiedDiscreteAttribute: Attribute = {
+        id: generateId(),
+        kind: attributeKind.certifiedDiscrete,
+        name: apiInternalCertifiedDiscreteAttributeSeed.name,
+        description: apiInternalCertifiedDiscreteAttributeSeed.description,
+        creationTime: new Date(),
+        code: apiInternalCertifiedDiscreteAttributeSeed.code,
+        origin: apiInternalCertifiedDiscreteAttributeSeed.origin,
+      };
+
+      logger.info(
+        `Certified discrete attribute created with id ${newInternalCertifiedDiscreteAttribute.id} - Internal Request`
+      );
+
+      const event = toCreateEventAttributeAdded(
+        newInternalCertifiedDiscreteAttribute,
+        correlationId
+      );
+      await repository.createEvent(event);
+
+      return newInternalCertifiedDiscreteAttribute;
     },
   };
 }

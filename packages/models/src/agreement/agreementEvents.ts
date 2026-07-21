@@ -1,5 +1,7 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
+import { EventEnvelope } from "../events/events.js";
 import {
   AgreementAddedV1,
   AgreementDeletedV1,
@@ -12,8 +14,6 @@ import {
   AgreementDeactivatedV1,
   VerifiedAttributeUpdatedV1,
 } from "../gen/v1/agreement/events.js";
-import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 import {
   AgreementActivatedV2,
   AgreementAddedV2,
@@ -39,6 +39,7 @@ import {
   AgreementContractGeneratedV2,
   AgreementSignedContractGeneratedV2,
 } from "../gen/v2/agreement/events.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
 
 export function agreementEventToBinaryData(event: AgreementEvent): Uint8Array {
   return match(event)

@@ -1,6 +1,6 @@
-import { match } from "ts-pattern";
 import { agreementApi } from "pagopa-interop-api-clients";
 import {
+  CertifiedDiscreteTenantAttribute,
   CertifiedTenantAttribute,
   DeclaredTenantAttribute,
   Tenant,
@@ -8,6 +8,7 @@ import {
   tenantAttributeType,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toApiCompactTenantCertifiedAttribute(
   attr: CertifiedTenantAttribute
@@ -54,6 +55,17 @@ function toApiCompactTenantVerifiedAttribute(
   };
 }
 
+function toApiCompactTenantCertifiedDiscreteAttribute(
+  attr: CertifiedDiscreteTenantAttribute
+): agreementApi.CertifiedDiscreteTenantAttribute {
+  return {
+    id: attr.id,
+    assignmentTimestamp: attr.assignmentTimestamp.toISOString(),
+    revocationTimestamp: attr.revocationTimestamp?.toISOString(),
+    discreteValue: attr.discreteValue,
+  };
+}
+
 function toCompactTenantAttribute(
   attribute: TenantAttribute
 ): agreementApi.TenantAttribute {
@@ -67,6 +79,9 @@ function toCompactTenantAttribute(
     }))
     .with({ type: tenantAttributeType.VERIFIED }, (attr) => ({
       verified: toApiCompactTenantVerifiedAttribute(attr),
+    }))
+    .with({ type: tenantAttributeType.CERTIFIED_DISCRETE }, (attr) => ({
+      certifiedDiscrete: toApiCompactTenantCertifiedDiscreteAttribute(attr),
     }))
     .exhaustive();
 }

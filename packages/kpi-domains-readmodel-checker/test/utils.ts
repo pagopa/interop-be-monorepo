@@ -12,7 +12,6 @@ import {
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   splitAgreementIntoObjectsSQL,
   splitAttributeIntoObjectsSQL,
@@ -26,17 +25,9 @@ import {
   splitPurposeTemplateIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
+import { afterEach, inject } from "vitest";
 import { z } from "zod";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import {
-  DBContext,
-  readModelServiceBuilderKPI,
-} from "../src/services/readModelServiceKPI.js";
-import {
-  DomainDbTable,
-  DomainDbTableReadModels,
-  DomainDbTableSchemas,
-} from "../src/model/db/index.js";
+
 import { AgreementItemsSchema } from "../src/model/agreement/agreement.js";
 import { AttributeSchema } from "../src/model/attribute/attribute.js";
 import { ClientItemsSchema } from "../src/model/authorization/client.js";
@@ -51,14 +42,24 @@ import {
 import { CatalogDbTable } from "../src/model/db/catalog.js";
 import { DelegationDbTable } from "../src/model/db/delegation.js";
 import { EserviceTemplateDbTable } from "../src/model/db/eserviceTemplate.js";
+import {
+  DomainDbTable,
+  DomainDbTableReadModels,
+  DomainDbTableSchemas,
+} from "../src/model/db/index.js";
 import { PurposeDbTable } from "../src/model/db/purpose.js";
+import { PurposeTemplateDbTable } from "../src/model/db/purposeTemplate.js";
 import { TenantDbTable } from "../src/model/db/tenant.js";
 import { DelegationItemsSchema } from "../src/model/delegation/delegation.js";
 import { EserviceTemplateItemsSchema } from "../src/model/eserviceTemplate/eserviceTemplate.js";
 import { PurposeItemsSchema } from "../src/model/purpose/purpose.js";
-import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
-import { PurposeTemplateDbTable } from "../src/model/db/purposeTemplate.js";
 import { PurposeTemplateItemsSchema } from "../src/model/purposeTemplate/purposeTemplate.js";
+import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
+import {
+  DBContext,
+  readModelServiceBuilderKPI,
+} from "../src/services/readModelServiceKPI.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(
     undefined,
@@ -160,6 +161,10 @@ export const addOneEServiceTemplate = async (
   await writeInKpi(
     EserviceTemplateDbTable.eservice_template_risk_analysis_answer,
     splitResult.riskAnalysisAnswersSQL
+  );
+  await writeInKpi(
+    EserviceTemplateDbTable.eservice_template_version_async_exchange_properties,
+    splitResult.asyncExchangePropertiesSQL
   );
 };
 

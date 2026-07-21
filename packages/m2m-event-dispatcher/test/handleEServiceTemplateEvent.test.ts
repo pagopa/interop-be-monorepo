@@ -1,33 +1,39 @@
-import { describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
-  randomArrayItem,
 } from "pagopa-interop-commons-test";
 import {
+  type EServiceTemplateEventEnvelopeV2,
   EServiceTemplateEventV2,
-  m2mEventVisibility,
-  generateId,
-  TenantId,
+  type EServiceTemplateId,
   eserviceTemplateVersionState,
-  EServiceTemplateId,
-  EServiceTemplateEventEnvelopeV2,
+  generateId,
+  m2mEventVisibility,
+  type TenantId,
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { P, match } from "ts-pattern";
+import { match, P } from "ts-pattern";
+import { describe, expect, it, vi } from "vitest";
+
 import { handleEServiceTemplateEvent } from "../src/handlers/handleEServiceTemplateEvent.js";
 import {
   getMockEventEnvelopeCommons,
-  retrieveLastEServiceTemplateM2MEvent,
   retrieveAllEServiceTemplateM2MEvents,
+  retrieveEServiceTemplateM2MEventByTemplateIdAndVersionId,
   testM2mEventWriterService,
 } from "./utils.js";
 
 describe("handleEServiceTemplateEvent test", async () => {
   vi.spyOn(testM2mEventWriterService, "insertEServiceTemplateM2MEvent");
 
-  describe.each(EServiceTemplateEventV2.options.map((o) => o.shape.type.value))(
+  const eserviceTemplateEventTypes = EServiceTemplateEventV2.options
+    .map((o) => o.shape.type.value)
+    .filter(
+      (type) => type !== "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind"
+    );
+
+  describe.each(eserviceTemplateEventTypes)(
     "with %s event",
     (eventType: EServiceTemplateEventV2["type"]) =>
       it("should write M2M events with the right visibility", async () => {
@@ -51,11 +57,11 @@ describe("handleEServiceTemplateEvent test", async () => {
                 versions: [
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   // Visibility based only on event, versions state doesn't matter
                 ],
@@ -72,18 +78,21 @@ describe("handleEServiceTemplateEvent test", async () => {
               "EServiceTemplateDraftVersionDeleted",
               "EServiceTemplateVersionInterfaceAdded",
               "EServiceTemplateVersionInterfaceDeleted",
-              "EServiceTemplateVersionInterfaceUpdated"
+              "EServiceTemplateVersionInterfaceUpdated",
+              "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+              "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+              "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
             ),
             async () => [
               {
                 versions: [
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   // Visibility based only on event, versions state doesn't matter
                 ],
@@ -105,11 +114,11 @@ describe("handleEServiceTemplateEvent test", async () => {
                 versions: [
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   // Visibility based only on event, versions state doesn't matter
                 ],
@@ -132,11 +141,11 @@ describe("handleEServiceTemplateEvent test", async () => {
                 versions: [
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   getMockEServiceTemplateVersion(
                     undefined,
-                    randomArrayItem(Object.values(eserviceTemplateVersionState))
+                    eserviceTemplateVersionState.draft
                   ),
                   // Visibility based only on event, versions state doesn't matter
                 ],
@@ -190,6 +199,21 @@ describe("handleEServiceTemplateEvent test", async () => {
               },
             ]
           )
+          .with(
+            "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
+            async () => [
+              {
+                versions: [
+                  getMockEServiceTemplateVersion(
+                    undefined,
+                    eserviceTemplateVersionState.published
+                  ),
+                ],
+                affectedVersion: undefined,
+                expectedVisibility: m2mEventVisibility.owner,
+              },
+            ]
+          )
           .exhaustive();
 
         for (const {
@@ -204,7 +228,7 @@ describe("handleEServiceTemplateEvent test", async () => {
           );
 
           const versionId = affectedVersion
-            ? eserviceTemplate.versions.at(affectedVersion)!.id
+            ? eserviceTemplate.versions.at(affectedVersion)?.id
             : undefined;
 
           const message = {
@@ -228,7 +252,12 @@ describe("handleEServiceTemplateEvent test", async () => {
           ).toHaveBeenCalledTimes(1);
           vi.clearAllMocks();
 
-          const actualM2MEvent = await retrieveLastEServiceTemplateM2MEvent();
+          const actualM2MEvent =
+            await retrieveEServiceTemplateM2MEventByTemplateIdAndVersionId(
+              eserviceTemplate.id,
+              versionId
+            );
+          expect(actualM2MEvent).toBeDefined();
           expect(actualM2MEvent).toEqual({
             id: expect.any(String),
             eventType,
@@ -242,6 +271,32 @@ describe("handleEServiceTemplateEvent test", async () => {
         }
       })
   );
+
+  it("should skip M2M event creation for MaintenanceEServiceTemplateRiskAnalysisSetTenantKind", async () => {
+    const eserviceTemplate = getMockEServiceTemplate();
+    const eventTimestamp = new Date();
+
+    const message = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: eserviceTemplate.id,
+      type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
+      data: {
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        riskAnalysisId: generateId(),
+      },
+    } as EServiceTemplateEventEnvelopeV2;
+
+    await handleEServiceTemplateEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    expect(
+      testM2mEventWriterService.insertEServiceTemplateM2MEvent
+    ).toHaveBeenCalledTimes(0);
+  });
 
   it("should not write the event if the same resource version is already present", async () => {
     const eserviceTemplate = getMockEServiceTemplate();

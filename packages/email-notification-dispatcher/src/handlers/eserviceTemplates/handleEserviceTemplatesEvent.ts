@@ -5,10 +5,11 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handleEServiceTemplateVersionSuspendedToCreator } from "./handleEserviceTemplateVersionSuspendedToCreator.js";
-import { handleEServiceTemplateVersionPublished } from "./handleEserviceTemplateVersionPublished.js";
 import { handleEServiceTemplateNameUpdated } from "./handleEserviceTemplateNameUpdated.js";
+import { handleEServiceTemplateVersionPublished } from "./handleEserviceTemplateVersionPublished.js";
+import { handleEServiceTemplateVersionSuspendedToCreator } from "./handleEserviceTemplateVersionSuspendedToCreator.js";
 import { handleEServiceTemplateVersionSuspendedToInstantiator } from "./handleEserviceTemplateVersionSuspendedToInstantiator.js";
 
 export async function handleEServiceTemplateEvent(
@@ -80,6 +81,7 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateRiskAnalysisAdded",
           "EServiceTemplateRiskAnalysisDeleted",
           "EServiceTemplateRiskAnalysisUpdated",
+          "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind",
           "EServiceTemplateDraftVersionUpdated",
           "EServiceTemplateDraftUpdated",
           "EServiceTemplateDraftVersionDeleted",
@@ -96,7 +98,10 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionAdded",
           "EServiceTemplateVersionAttributesUpdated",
           "EServiceTemplateVersionActivated",
-          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication"
+          "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+          "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
         ),
       },
       () => {

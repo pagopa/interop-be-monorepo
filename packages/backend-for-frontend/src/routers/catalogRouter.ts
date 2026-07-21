@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
@@ -17,6 +17,7 @@ import {
   unsafeBrandId,
   emptyErrorMapper,
 } from "pagopa-interop-models";
+
 import {
   toBffCatalogApiDescriptorDoc,
   toEserviceCatalogProcessQueryParams,
@@ -350,6 +351,68 @@ const catalogRouter = (
       }
     )
     .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.scheduleArchiveEserviceDescriptor(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error archiving descriptor ${req.params.descriptorId} for eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.cancelEServiceDescriptorArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error canceling archiving for descriptor ${req.params.descriptorId} for eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete("/eservices/:eServiceId/scheduleArchive", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.cancelEServiceArchiving(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error canceling archiving for eservice ${req.params.eServiceId}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
@@ -635,6 +698,25 @@ const catalogRouter = (
           emptyErrorMapper,
           ctx,
           `Error updating EService ${req.params.eServiceId} template instance`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/:eServiceId/scheduleArchive", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        await catalogService.scheduleArchiveEService(
+          unsafeBrandId(req.params.eServiceId),
+          req.body,
+          ctx
+        );
+        return res.status(204).send();
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error scheduling archive for EService ${req.params.eServiceId}`
         );
         return res.status(errorRes.status).send(errorRes);
       }

@@ -1,12 +1,12 @@
 /* eslint-disable functional/immutable-data */
 import { AxiosError, AxiosResponse } from "axios";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { logger } from "pagopa-interop-commons";
 import {
   getMockTenant,
   getMockTenantNotificationConfig,
   toTenantV1,
 } from "pagopa-interop-commons-test";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   TenantEventEnvelopeV2,
   generateId,
@@ -20,6 +20,7 @@ import {
   TenantV1,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   interopBeClients,
   notificationTenantLifecycleConsumerService,
@@ -526,6 +527,8 @@ describe("notificationTenantLifecycleProcessor", async () => {
       "TenantDelegatedProducerFeatureRemoved",
       "TenantDelegatedConsumerFeatureAdded",
       "TenantDelegatedConsumerFeatureRemoved",
+      "TenantRemoteIdAssigned",
+      "MaintenanceTenantRemoteIdDeleted",
     ] as const)("Should ignore the event %s", async (eventType) => {
       const message = toTenantEventEnvelopeV2({
         type: eventType,

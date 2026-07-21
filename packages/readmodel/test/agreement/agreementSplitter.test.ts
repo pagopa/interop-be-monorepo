@@ -5,7 +5,6 @@ import {
   getMockAgreementDocument,
   getMockAgreementStamps,
 } from "pagopa-interop-commons-test";
-import { describe, it, expect } from "vitest";
 import {
   Agreement,
   AgreementDocument,
@@ -26,6 +25,8 @@ import {
   AgreementSignedContractSQL,
   AgreementStampSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, it, expect } from "vitest";
+
 import { splitAgreementIntoObjectsSQL } from "../../src/agreement/splitters.js";
 
 describe("Agreement Splitter", () => {
@@ -38,6 +39,7 @@ describe("Agreement Splitter", () => {
       // set an Agreement
       const verifiedAttribute = getMockAgreementAttribute();
       const certifiedAttribute = getMockAgreementAttribute();
+      const certifiedDiscreteAttribute = getMockAgreementAttribute();
       const declaredAttribute = getMockAgreementAttribute();
       const consumerDocument = getMockAgreementDocument();
       const contract: AgreementDocument = {
@@ -75,6 +77,7 @@ describe("Agreement Splitter", () => {
         ...getMockAgreement(),
         verifiedAttributes: [verifiedAttribute],
         certifiedAttributes: [certifiedAttribute],
+        certifiedDiscreteAttributes: [certifiedDiscreteAttribute],
         declaredAttributes: [declaredAttribute],
         suspendedByConsumer: true,
         suspendedByProducer: true,
@@ -152,6 +155,13 @@ describe("Agreement Splitter", () => {
         kind: attributeKind.certified,
         attributeId: certifiedAttribute.id,
       };
+      const expectedAgreementCertifiedDiscreteAttributeSQL: AgreementAttributeSQL =
+        {
+          metadataVersion: 1,
+          agreementId: agreement.id,
+          kind: attributeKind.certifiedDiscrete,
+          attributeId: certifiedDiscreteAttribute.id,
+        };
       const expectedAgreementDeclaredAttributeSQL: AgreementAttributeSQL = {
         metadataVersion: 1,
         agreementId: agreement.id,
@@ -188,9 +198,11 @@ describe("Agreement Splitter", () => {
         expect.arrayContaining([
           expectedAgreementVerifiedAttributeSQL,
           expectedAgreementCertifiedAttributeSQL,
+          expectedAgreementCertifiedDiscreteAttributeSQL,
           expectedAgreementDeclaredAttributeSQL,
         ])
       );
+      expect(attributesSQL).toHaveLength(4);
       expect(stampsSQL).toStrictEqual(expectedAgreementStampsSQL);
     }
   );
@@ -199,6 +211,7 @@ describe("Agreement Splitter", () => {
     // set an Agreement
     const verifiedAttribute = getMockAgreementAttribute();
     const certifiedAttribute = getMockAgreementAttribute();
+    const certifiedDiscreteAttribute = getMockAgreementAttribute();
     const declaredAttribute = getMockAgreementAttribute();
     const consumerDocument = getMockAgreementDocument();
     const agreementSubmissionStamp: AgreementStamp = {
@@ -220,6 +233,7 @@ describe("Agreement Splitter", () => {
       ...getMockAgreement(),
       verifiedAttributes: [verifiedAttribute],
       certifiedAttributes: [certifiedAttribute],
+      certifiedDiscreteAttributes: [certifiedDiscreteAttribute],
       declaredAttributes: [declaredAttribute],
       suspendedByConsumer: undefined,
       suspendedByProducer: undefined,
@@ -279,6 +293,13 @@ describe("Agreement Splitter", () => {
       kind: attributeKind.certified,
       attributeId: certifiedAttribute.id,
     };
+    const expectedAgreementCertifiedDiscreteAttributeSQL: AgreementAttributeSQL =
+      {
+        metadataVersion: 1,
+        agreementId: agreement.id,
+        kind: attributeKind.certifiedDiscrete,
+        attributeId: certifiedDiscreteAttribute.id,
+      };
     const expectedAgreementDeclaredAttributeSQL: AgreementAttributeSQL = {
       metadataVersion: 1,
       agreementId: agreement.id,
@@ -306,9 +327,11 @@ describe("Agreement Splitter", () => {
       expect.arrayContaining([
         expectedAgreementVerifiedAttributeSQL,
         expectedAgreementCertifiedAttributeSQL,
+        expectedAgreementCertifiedDiscreteAttributeSQL,
         expectedAgreementDeclaredAttributeSQL,
       ])
     );
+    expect(attributesSQL).toHaveLength(4);
     expect(stampsSQL).toStrictEqual(expectedAgreementStampsSQL);
   });
 });

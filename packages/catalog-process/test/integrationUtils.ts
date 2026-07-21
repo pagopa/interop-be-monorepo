@@ -5,12 +5,6 @@ import {
   setupTestContainersVitest,
   writeInEventstore,
 } from "pagopa-interop-commons-test";
-import { inject, afterEach } from "vitest";
-import {
-  catalogReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
 import {
   EService,
   EServiceEvent,
@@ -23,7 +17,14 @@ import {
   Agreement,
   Delegation,
   EServiceId,
+  TenantId,
+  TenantKind,
 } from "pagopa-interop-models";
+import {
+  catalogReadModelServiceBuilder,
+  eserviceTemplateReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import {
   upsertAgreement,
   upsertAttribute,
@@ -32,18 +33,30 @@ import {
   upsertEServiceTemplate,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
+import { inject, afterEach } from "vitest";
+
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
-export const { cleanup, postgresDB, fileManager, readModelDB } =
-  await setupTestContainersVitest(
-    inject("eventStoreConfig"),
-    inject("fileManagerConfig"),
-    undefined,
-    undefined,
-    undefined,
-    inject("readModelSQLConfig")
-  );
+export const {
+  cleanup,
+  postgresDB,
+  fileManager,
+  readModelDB,
+  tenantKindHistoryDB,
+} = await setupTestContainersVitest(
+  inject("eventStoreConfig"),
+  inject("fileManagerConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("readModelSQLConfig"),
+  undefined,
+  undefined,
+  undefined,
+  inject("tenantKindHistoryDBConfig")
+);
 
 afterEach(cleanup);
 
@@ -56,7 +69,8 @@ export const readModelService = readModelServiceBuilderSQL(
   readModelDB,
   catalogReadModelServiceSQL,
   tenantReadModelServiceSQL,
-  eserviceTemplateReadModelServiceSQL
+  eserviceTemplateReadModelServiceSQL,
+  tenantKindHistoryDB
 );
 
 export const catalogService = catalogServiceBuilder(
@@ -131,4 +145,23 @@ export const addOneEServiceTemplate = async (
 ): Promise<void> => {
   await writeEServiceTemplateInEventstore(eServiceTemplate);
   await upsertEServiceTemplate(readModelDB, eServiceTemplate, 0);
+};
+
+export const addOneTenantKindHistory = async ({
+  tenantId,
+  metadataVersion,
+  kind,
+  modifiedAt,
+}: {
+  tenantId: TenantId;
+  metadataVersion: number;
+  kind: TenantKind;
+  modifiedAt: Date;
+}): Promise<void> => {
+  await tenantKindHistoryDB.insert(tenantKindHistory).values({
+    tenantId,
+    metadataVersion,
+    kind,
+    modifiedAt: modifiedAt.toISOString(),
+  });
 };

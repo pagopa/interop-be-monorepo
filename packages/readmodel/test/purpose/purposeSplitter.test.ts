@@ -7,7 +7,6 @@ import {
   getMockPurposeVersionStamps,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
-import { describe, it, expect } from "vitest";
 import {
   DelegationId,
   generateId,
@@ -21,18 +20,25 @@ import {
   PurposeVersionStamps,
   purposeVersionState,
   riskAnalysisAnswerKind,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
   RiskAnalysisId,
+  ReviewerWorkflow,
   tenantKind,
+  UserId,
 } from "pagopa-interop-models";
 import {
   PurposeRiskAnalysisAnswerSQL,
   PurposeRiskAnalysisFormSQL,
+  RiskAnalysisReviewerSQL,
   PurposeSQL,
   PurposeVersionDocumentSQL,
   PurposeVersionSQL,
   PurposeVersionSignedDocumentSQL,
   PurposeVersionStampSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, it, expect } from "vitest";
+
 import { splitPurposeIntoObjectsSQL } from "../../src/purpose/splitters.js";
 
 describe("Purpose splitter", () => {
@@ -44,6 +50,15 @@ describe("Purpose splitter", () => {
     const updatedAt = new Date();
     const firstActivationAt = new Date();
     const riskAnalysisId = generateId<RiskAnalysisId>();
+
+    const reviewerWorkflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+      signingState: riskAnalysisSigningState.signed,
+      signedBy: generateId<UserId>(),
+      rejectionReason: "Reviewer workflow rejection reason",
+      sentToReviewerAt: new Date(),
+    };
 
     const purposeVersionRiskAnalysis: PurposeVersionDocument =
       getMockPurposeVersionDocument();
@@ -76,6 +91,7 @@ describe("Purpose splitter", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
       purposeTemplateId: generateId<PurposeTemplateId>(),
+      reviewerWorkflow,
     };
     const {
       purposeSQL,
@@ -85,6 +101,7 @@ describe("Purpose splitter", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -102,6 +119,12 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: purpose.purposeTemplateId!,
+      reviewerWorkflowReviewMode: reviewerWorkflow.reviewMode,
+      reviewerWorkflowSigningState: reviewerWorkflow.signingState,
+      reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
+      reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
+      reviewerWorkflowSentToReviewerAt:
+        reviewerWorkflow.sentToReviewerAt!.toISOString(),
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
@@ -110,6 +133,7 @@ describe("Purpose splitter", () => {
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
       riskAnalysisId,
+      tenantKind: purposeRiskAnalysisForm.tenantKind!,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =
@@ -211,6 +235,13 @@ describe("Purpose splitter", () => {
     expect(versionSignedDocumentsSQL).toStrictEqual([
       expectedPurposeVersionSignedDocumentSQL,
     ]);
+    const expectedReviewersSQL: RiskAnalysisReviewerSQL[] =
+      reviewerWorkflow.reviewerIds.map((reviewerId) => ({
+        purposeId: purpose.id,
+        metadataVersion: 1,
+        reviewerId,
+      }));
+    expect(reviewersSQL).toStrictEqual(expectedReviewersSQL);
   });
 
   it("should convert an incomplete purpose into purpose SQL objects (undefined -> null)", () => {
@@ -231,8 +262,10 @@ describe("Purpose splitter", () => {
       signedContract: purposeVersionSignedDocument,
     };
 
-    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm =
-      getMockValidRiskAnalysisForm(tenantKind.PA);
+    const purposeRiskAnalysisForm: PurposeRiskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(tenantKind.PA),
+      tenantKind: undefined,
+    };
 
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -253,6 +286,7 @@ describe("Purpose splitter", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose, 1);
 
     const expectedPurposeSQL: PurposeSQL = {
@@ -270,6 +304,11 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: null,
+      reviewerWorkflowReviewMode: null,
+      reviewerWorkflowSigningState: null,
+      reviewerWorkflowSignedBy: null,
+      reviewerWorkflowRejectionReason: null,
+      reviewerWorkflowSentToReviewerAt: null,
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
@@ -278,6 +317,7 @@ describe("Purpose splitter", () => {
       id: purposeRiskAnalysisForm.id,
       version: purposeRiskAnalysisForm.version,
       riskAnalysisId: null,
+      tenantKind: null,
     };
 
     const expectedPurposeRiskAnalysisAnswersSQL: PurposeRiskAnalysisAnswerSQL[] =
@@ -359,5 +399,6 @@ describe("Purpose splitter", () => {
     expect(versionSignedDocumentsSQL).toStrictEqual([
       expectedPurposeVersionSignedDocumentSQL,
     ]);
+    expect(reviewersSQL).toStrictEqual([]);
   });
 });

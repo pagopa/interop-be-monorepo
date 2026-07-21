@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
 import {
   agreementState,
   delegationState,
@@ -7,11 +8,26 @@ import {
   purposeVersionState,
 } from "pagopa-interop-models";
 import {
+  aggregateAgreementArray,
+  aggregateDelegationsArray,
+  aggregateEserviceArray,
+  aggregateEServiceTemplateArray,
+  aggregatePurposeArray,
+  aggregateTenantArray,
+  toAgreementAggregatorArray,
+  toDelegationAggregatorArray,
+  toEServiceAggregatorArray,
+  toEServiceTemplateAggregatorArray,
+  toPurposeAggregatorArray,
+  toTenantAggregatorArray,
+} from "pagopa-interop-readmodel";
+import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -29,21 +45,7 @@ import {
   purposeVersionStampInReadmodelPurpose,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateAgreementArray,
-  aggregateDelegationsArray,
-  aggregateEserviceArray,
-  aggregateEServiceTemplateArray,
-  aggregatePurposeArray,
-  aggregateTenantArray,
-  toAgreementAggregatorArray,
-  toDelegationAggregatorArray,
-  toEServiceAggregatorArray,
-  toEServiceTemplateAggregatorArray,
-  toPurposeAggregatorArray,
-  toTenantAggregatorArray,
-} from "pagopa-interop-readmodel";
-import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
+
 import {
   ExportedAgreement,
   ExportedDelegation,
@@ -61,11 +63,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           tenant: tenantInReadmodelTenant,
           mail: sql<null>`NULL`,
           certifiedAttribute: sql<null>`NULL`,
+          certifiedDiscreteAttribute: sql<null>`NULL`,
           declaredAttribute: sql<null>`NULL`,
           verifiedAttribute: sql<null>`NULL`,
           verifier: sql<null>`NULL`,
           revoker: sql<null>`NULL`,
           feature: sql<null>`NULL`,
+          remoteId: sql<null>`NULL`,
         })
         .from(tenantInReadmodelTenant)
         .where(isNotNull(tenantInReadmodelTenant.selfcareId));
@@ -87,6 +91,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
           riskAnalysis: sql<null>`NULL`,
           riskAnalysisAnswer: sql<null>`NULL`,
+          archivingSchedule:
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          asyncExchangeProperties: sql<null>`NULL`,
         })
         .from(eserviceInReadmodelCatalog)
         .innerJoin(
@@ -129,6 +136,13 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
           )
         )
         .where(
@@ -208,6 +222,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           purposeRiskAnalysisAnswer: sql<null>`NULL`,
           purposeVersionSignedDocument:
             purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeRiskAnalysisReviewer: sql<null>`NULL`,
         })
         .from(purposeInReadmodelPurpose)
         .innerJoin(subquery, eq(purposeInReadmodelPurpose.id, subquery.id))
@@ -282,6 +297,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           riskAnalysis: sql<null>`NULL`,
           riskAnalysisAnswer: sql<null>`NULL`,
           attribute: sql<null>`NULL`,
+          asyncExchangeProperties: sql<null>`NULL`,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .innerJoin(

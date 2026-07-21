@@ -1,17 +1,17 @@
 import {
+  EServiceTemplateEvent as OutboundEServiceTemplateEvent,
+  EServiceTemplateV2 as OutboundEServiceTemplateV2,
+  EServiceTemplateVersionV2 as OutboundEServiceTemplateVersionV2,
+  EServiceDocumentV2 as OutboundEServiceDocumentV2,
+} from "@pagopa/interop-outbound-models";
+import { Exact } from "pagopa-interop-commons";
+import {
   EServiceDocumentV2,
   EServiceTemplateEventEnvelopeV2,
   EServiceTemplateV2,
   EServiceTemplateVersionV2,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { Exact } from "pagopa-interop-commons";
-import {
-  EServiceTemplateEvent as OutboundEServiceTemplateEvent,
-  EServiceTemplateV2 as OutboundEServiceTemplateV2,
-  EServiceTemplateVersionV2 as OutboundEServiceTemplateVersionV2,
-  EServiceDocumentV2 as OutboundEServiceDocumentV2,
-} from "@pagopa/interop-outbound-models";
 
 function toOuboundEServiceDocumentV2(
   document: EServiceDocumentV2
@@ -30,6 +30,8 @@ function toOutboundEServiceTemplateVersionV2(
     docs: template.docs.map(toOuboundEServiceDocumentV2),
     interface:
       template.interface && toOuboundEServiceDocumentV2(template.interface),
+    asyncExchangeCallbackInterface: undefined,
+    asyncExchangeProperties: undefined,
   };
 }
 
@@ -40,6 +42,7 @@ function toOutboundEServiceTemplateV2(
     ...template,
     versions: template.versions.map(toOutboundEServiceTemplateVersionV2),
     riskAnalysis: undefined,
+    asyncExchange: undefined,
   };
 }
 
@@ -131,6 +134,10 @@ export function toOutboundEventV2(
       { type: "EServiceTemplateRiskAnalysisAdded" },
       { type: "EServiceTemplateRiskAnalysisDeleted" },
       { type: "EServiceTemplateRiskAnalysisUpdated" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted" },
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
       () => undefined
     )
     .exhaustive();

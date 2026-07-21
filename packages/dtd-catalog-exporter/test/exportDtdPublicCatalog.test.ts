@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from "vitest";
 import {
   getMockAttribute,
   getMockCertifiedTenantAttribute,
@@ -15,6 +14,8 @@ import {
   genericError,
   TenantId,
 } from "pagopa-interop-models";
+import { describe, it, expect, vi } from "vitest";
+
 import { PublicEService, PublicTenant } from "../src/models/models.js";
 import {
   convertEservicesToCSV,
@@ -27,6 +28,24 @@ import {
   dtdCatalogExporterService,
   getExportedDtdPublicCatalogFromJson,
 } from "./utils.js";
+
+const sortDeclaredAttributesGroups = (
+  eservice: PublicEService
+): PublicEService => ({
+  ...eservice,
+  attributes: {
+    ...eservice.attributes,
+    declared: eservice.attributes.declared.map((attributeGroup) =>
+      "group" in attributeGroup
+        ? {
+            group: [...attributeGroup.group].sort((a, b) =>
+              a.name.localeCompare(b.name)
+            ),
+          }
+        : attributeGroup
+    ),
+  },
+});
 
 describe("exportDtdPublicCatalog", () => {
   vi.mock("../src/services/github-client.services.ts", () => ({
@@ -98,19 +117,19 @@ describe("exportDtdPublicCatalog", () => {
           {
             group: [
               {
-                description: attribute1Mock.description,
-                name: attribute1Mock.name,
+                name: attribute2Mock.name,
+                description: attribute2Mock.description,
               },
               {
-                description: attribute2Mock.description,
-                name: attribute2Mock.name,
+                name: attribute1Mock.name,
+                description: attribute1Mock.description,
               },
             ],
           },
           {
             single: {
-              description: attribute3Mock.description,
               name: attribute3Mock.name,
+              description: attribute3Mock.description,
             },
           },
         ],
@@ -119,7 +138,9 @@ describe("exportDtdPublicCatalog", () => {
 
     const jsonResult = await getExportedDtdPublicCatalogFromJson();
     expect(jsonResult.length).toBe(1);
-    expect(jsonResult[0]).toEqual(expectedEService);
+    expect(sortDeclaredAttributesGroups(jsonResult[0])).toEqual(
+      sortDeclaredAttributesGroups(expectedEService)
+    );
   });
 
   it("should ignore eservices with no active descriptor", async () => {

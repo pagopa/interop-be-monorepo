@@ -1,5 +1,6 @@
 import {
   EServiceDescriptorPurposeTemplate,
+  EServiceTemplateVersionPurposeTemplate,
   PurposeTemplate,
   PurposeTemplateId,
   PurposeTemplateState,
@@ -22,6 +23,7 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import {
+  EServiceTemplateVersionPurposeTemplateSQL,
   PurposeTemplateEServiceDescriptorSQL,
   PurposeTemplateRiskAnalysisAnswerSQL,
   PurposeTemplateRiskAnalysisAnswerAnnotationSQL,
@@ -33,6 +35,7 @@ import {
   PurposeTemplateRiskAnalysisFormSignedDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import { throwIfMultiple } from "../utils.js";
 
 export const aggregatePurposeTemplateArray = ({
@@ -593,6 +596,35 @@ export const aggregatePurposeTemplateEServiceDescriptor = ({
     },
   };
 };
+
+export const aggregateEServiceTemplateVersionPurposeTemplateArray = (
+  rows: EServiceTemplateVersionPurposeTemplateSQL[]
+): Array<WithMetadata<EServiceTemplateVersionPurposeTemplate>> =>
+  rows.map(aggregateEServiceTemplateVersionPurposeTemplate);
+
+export const aggregateEServiceTemplateVersionPurposeTemplate = ({
+  purposeTemplateId,
+  eserviceTemplateId,
+  eserviceTemplateVersionId,
+  createdAt,
+  metadataVersion,
+  ...rest
+}: EServiceTemplateVersionPurposeTemplateSQL): WithMetadata<EServiceTemplateVersionPurposeTemplate> => {
+  void (rest satisfies Record<string, never>);
+
+  return {
+    data: {
+      purposeTemplateId: unsafeBrandId(purposeTemplateId),
+      eserviceTemplateId: unsafeBrandId(eserviceTemplateId),
+      eserviceTemplateVersionId: unsafeBrandId(eserviceTemplateVersionId),
+      createdAt: stringToDate(createdAt),
+    },
+    metadata: {
+      version: metadataVersion,
+    },
+  };
+};
+
 export const aggregateRiskAnalysisFormDocument = ({
   id,
   name,

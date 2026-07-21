@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
-import { generateId, Tenant } from "pagopa-interop-models";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api, tenantService } from "../vitest.api.setup.js";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { generateId, Tenant } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-import { toApiTenant } from "../../src/model/domain/apiConverter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API POST /internal/tenants test", () => {
   const tenantSeed: tenantApi.InternalTenantSeed = {
@@ -21,6 +22,13 @@ describe("API POST /internal/tenants test", () => {
     },
     name: "A tenant",
     certifiedAttributes: [{ origin: "ORIGIN", code: "CODE" }],
+    remoteIds: [
+      {
+        origin: "ISTAT",
+        value: "12345",
+        assignmentTimestamp: new Date().toISOString(),
+      },
+    ],
   };
   const tenant: Tenant = getMockTenant();
 
@@ -35,13 +43,13 @@ describe("API POST /internal/tenants test", () => {
 
   const makeRequest = async (
     token: string,
-    body: tenantApi.InternalTenantSeed = tenantSeed
+    body: tenantApi.InternalTenantSeed | unknown = tenantSeed
   ) =>
     request(api)
       .post("/internal/tenants")
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(body);
+      .send(body as object);
 
   it("Should return 200 for user with role Internal", async () => {
     const token = generateToken(authRole.INTERNAL_ROLE);
@@ -82,9 +90,23 @@ describe("API POST /internal/tenants test", () => {
     { body: { ...tenantSeed, externalId: { origin: 1, value: "123456" } } },
     { body: { ...tenantSeed, certifiedAttributes: [{}] } },
     { body: { ...tenantSeed, extraField: 1 } },
-  ])("Should return 400 if passed invalid data: %s", async ({ body }) => {
+    { body: { ...tenantSeed, remoteIds: {} } },
+    { body: { ...tenantSeed, remoteIds: [{ origin: "ISTAT", value: "123" }] } },
+    {
+      body: {
+        ...tenantSeed,
+        remoteIds: [
+          {
+            origin: "ISTAT",
+            value: "123",
+            assignmentTimestamp: "data-invalida",
+          },
+        ],
+      },
+    },
+  ])("Should return 400 if passed invalid data: %o", async ({ body }) => {
     const token = generateToken(authRole.INTERNAL_ROLE);
-    const res = await makeRequest(token, body as tenantApi.InternalTenantSeed);
+    const res = await makeRequest(token, body);
     expect(res.status).toBe(400);
   });
 });

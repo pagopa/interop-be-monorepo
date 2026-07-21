@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import {
   EServiceTemplateId,
   EServiceTemplateM2MEventId,
@@ -33,6 +34,9 @@ export const EServiceTemplateM2MEventType = z.enum([
   "EServiceTemplateVersionInterfaceAdded",
   "EServiceTemplateVersionInterfaceDeleted",
   "EServiceTemplateVersionInterfaceUpdated",
+  "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+  "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+  "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
   "EServiceTemplateVersionPublished",
   "EServiceTemplateVersionQuotasUpdated",
   "EServiceTemplatePersonalDataFlagUpdatedAfterPublication",

@@ -1,7 +1,10 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { eserviceInReadmodelCatalog } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
+
 import { EserviceDescriptorSchema } from "./eserviceDescriptor.js";
+import { EserviceDescriptorArchivingSchema } from "./eserviceDescriptorArchiving.js";
+import { EserviceDescriptorAsyncExchangePropertiesSchema } from "./eserviceDescriptorAsyncExchangeProperties.js";
 import { EserviceDescriptorAttributeSchema } from "./eserviceDescriptorAttribute.js";
 import { EserviceDescriptorDocumentSchema } from "./eserviceDescriptorDocument.js";
 import { EserviceDescriptorInterfaceSchema } from "./eserviceDescriptorInterface.js";
@@ -33,5 +36,9 @@ export const EserviceItemsSchema = z.object({
   documentsSQL: z.array(EserviceDescriptorDocumentSchema),
   rejectionReasonsSQL: z.array(EserviceDescriptorRejectionReasonSchema),
   templateVersionRefsSQL: z.array(EserviceDescriptorTemplateVersionRefSchema),
+  archivingSchedulesSQL: z.array(EserviceDescriptorArchivingSchema),
+  asyncExchangePropertiesSQL: z
+    .array(EserviceDescriptorAsyncExchangePropertiesSchema)
+    .default([]),
 });
 export type EserviceItemsSchema = z.infer<typeof EserviceItemsSchema>;

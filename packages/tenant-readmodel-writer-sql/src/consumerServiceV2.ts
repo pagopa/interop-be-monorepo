@@ -5,6 +5,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import { TenantWriterService } from "./tenantWriterService.js";
 
 export async function handleMessageV2(
@@ -21,25 +22,30 @@ export async function handleMessageV2(
     .with(
       {
         type: P.union(
-          "TenantOnboarded",
-          "TenantOnboardDetailsUpdated",
-          "TenantCertifiedAttributeAssigned",
-          "TenantCertifiedAttributeRevoked",
-          "TenantDeclaredAttributeAssigned",
-          "TenantDeclaredAttributeRevoked",
-          "TenantVerifiedAttributeAssigned",
-          "TenantVerifiedAttributeRevoked",
-          "TenantVerifiedAttributeExpirationUpdated",
-          "TenantVerifiedAttributeExtensionUpdated",
-          "TenantMailAdded",
           "MaintenanceTenantPromotedToCertifier",
           "MaintenanceTenantUpdated",
-          "TenantMailDeleted",
-          "TenantKindUpdated",
+          "TenantCertifiedAttributeAssigned",
+          "TenantCertifiedAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated",
+          "TenantDeclaredAttributeAssigned",
+          "TenantDeclaredAttributeRevoked",
+          "TenantDelegatedConsumerFeatureAdded",
+          "TenantDelegatedConsumerFeatureRemoved",
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
-          "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantKindUpdated",
+          "TenantMailAdded",
+          "TenantMailDeleted",
+          "TenantOnboardDetailsUpdated",
+          "TenantOnboarded",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted",
+          "TenantVerifiedAttributeAssigned",
+          "TenantVerifiedAttributeExpirationUpdated",
+          "TenantVerifiedAttributeExtensionUpdated",
+          "TenantVerifiedAttributeRevoked"
         ),
       },
       async (message) => {

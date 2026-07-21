@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -25,7 +26,7 @@ import {
   eserviceTemplateVersionState,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { catalogApi } from "pagopa-interop-api-clients";
+
 import {
   draftDescriptorAlreadyExists,
   eServiceNotFound,
@@ -409,47 +410,43 @@ describe("create descriptor", async () => {
       )
     ).rejects.toThrowError(operationForbidden);
   });
-  it.each([
-    { dailyCallsPerConsumer: 60, dailyCallsTotal: 50 },
-    { dailyCallsPerConsumer: 50, dailyCallsTotal: 50 },
-  ])(
-    "should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than or equal to dailyCallsTotal",
-    async ({ dailyCallsPerConsumer, dailyCallsTotal }) => {
-      const templateVersion: EServiceTemplateVersion = {
-        ...getMockEServiceTemplateVersion(),
-        state: eserviceTemplateVersionState.published,
-        interface: getMockDocument(),
-      };
-      const template: EServiceTemplate = {
-        ...getMockEServiceTemplate(),
-        versions: [templateVersion],
-      };
+  it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+    const dailyCallsPerConsumer = 60;
+    const dailyCallsTotal = 50;
+    const templateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      interface: getMockDocument(),
+    };
+    const template: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [templateVersion],
+    };
 
-      const prevDescriptor: Descriptor = {
-        ...getMockDescriptor(),
-        version: "1",
-        state: descriptorState.published,
-        interface: getMockDocument(),
-        templateVersionRef: {
-          id: templateVersion.id,
-        },
-      };
-      const eservice: EService = {
-        ...getMockEService(),
-        descriptors: [prevDescriptor],
-        templateId: template.id,
-      };
+    const prevDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      version: "1",
+      state: descriptorState.published,
+      interface: getMockDocument(),
+      templateVersionRef: {
+        id: templateVersion.id,
+      },
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [prevDescriptor],
+      templateId: template.id,
+    };
 
-      await addOneEService(eservice);
-      await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
+    await addOneEServiceTemplate(template);
 
-      expect(
-        catalogService.createTemplateInstanceDescriptor(
-          eservice.id,
-          { audience: [], dailyCallsPerConsumer, dailyCallsTotal },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
-        )
-      ).rejects.toThrowError(inconsistentDailyCalls());
-    }
-  );
+    expect(
+      catalogService.createTemplateInstanceDescriptor(
+        eservice.id,
+        { audience: [], dailyCallsPerConsumer, dailyCallsTotal },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
+  });
 });

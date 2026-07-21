@@ -13,8 +13,6 @@ import {
   initFileManager,
   logger,
 } from "pagopa-interop-commons";
-import { initPDFGenerator } from "./pdf-generator/pdfGenerator.js";
-
 import {
   genericInternalError,
   CorrelationId,
@@ -25,7 +23,6 @@ import {
   AgreementEvent,
   PurposeTemplateEventV2,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
@@ -34,14 +31,17 @@ import {
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { baseConsumerConfig, config } from "./config/config.js";
-import { handlePurposeMessageV2 } from "./handler/handlePurposeMessageV2.js";
-import { handleDelegationMessageV2 } from "./handler/handleDelegationMessageV2.js";
-import { handleAgreementMessageV2 } from "./handler/handleAgreementMessageV2.js";
-import { handleAgreementMessageV1 } from "./handler/handleAgreementMessageV1.js";
-import { readModelServiceBuilderSQL } from "./service/readModelSql.js";
-import { handlePurposeMessageV1 } from "./handler/handlePurposeMessageV1.js";
+import { match } from "ts-pattern";
+
 import { getInteropBeClients } from "./clients/clientProvider.js";
+import { baseConsumerConfig, config } from "./config/config.js";
+import { handleAgreementMessageV1 } from "./handler/handleAgreementMessageV1.js";
+import { handleAgreementMessageV2 } from "./handler/handleAgreementMessageV2.js";
+import { handleDelegationMessageV2 } from "./handler/handleDelegationMessageV2.js";
+import { handlePurposeMessageV1 } from "./handler/handlePurposeMessageV1.js";
+import { handlePurposeMessageV2 } from "./handler/handlePurposeMessageV2.js";
+import { handlePurposeTemplateMessageV2 } from "./handler/handlePurposeTemplateMessageV2.js";
+import { initPDFGenerator } from "./pdf-generator/pdfGenerator.js";
 import {
   ContractBuilder,
   agreementContractBuilder,
@@ -50,7 +50,7 @@ import {
   RiskAnalysisDocumentBuilder,
   riskAnalysisDocumentBuilder,
 } from "./service/purpose/purposeContractBuilder.js";
-import { handlePurposeTemplateMessageV2 } from "./handler/handlePurposeTemplateMessageV2.js";
+import { readModelServiceBuilderSQL } from "./service/readModelSql.js";
 
 const refreshableToken = new RefreshableInteropToken(
   new InteropTokenGenerator(config)

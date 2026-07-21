@@ -15,14 +15,17 @@ import {
   toEServiceV2,
   EServiceDescriptorAddedV2,
 } from "pagopa-interop-models";
-import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 import { match } from "ts-pattern";
+import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNameDuplicateForProducer,
   eserviceTemplateNameConflict,
   inconsistentDailyCalls,
   invalidDelegationFlags,
   originNotCompliant,
+  asyncExchangeNotAllowedForReceiveMode,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -51,6 +54,7 @@ describe("create eservice", () => {
       .with(false, () => false)
       .exhaustive();
     const personalData = randomArrayItem([false, true]);
+    const asyncExchange = randomArrayItem([false, true]);
 
     const eservice = await catalogService.createEService(
       {
@@ -63,6 +67,7 @@ describe("create eservice", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
         personalData,
+        asyncExchange,
       },
       getMockContext({ authData: getMockAuthData(mockEService.producerId) })
     );
@@ -110,6 +115,7 @@ describe("create eservice", () => {
       isConsumerDelegable,
       isClientAccessDelegable,
       personalData,
+      asyncExchange,
     };
     const expectedEserviceWithDescriptor: EService = {
       ...mockEService,
@@ -119,6 +125,7 @@ describe("create eservice", () => {
       isConsumerDelegable,
       isClientAccessDelegable,
       personalData,
+      asyncExchange,
       descriptors: [
         {
           ...mockDescriptor,
@@ -370,28 +377,72 @@ describe("create eservice", () => {
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
   });
 
-  it.each([
-    { dailyCallsPerConsumer: 100, dailyCallsTotal: 99 },
-    { dailyCallsPerConsumer: 100, dailyCallsTotal: 100 },
-  ])(
-    "should throw inconsistentDailyCalls if the descriptor seed has dailyCallsPerConsumer >= dailyCallsTotal",
-    async ({ dailyCallsPerConsumer, dailyCallsTotal }) => {
-      expect(
-        catalogService.createEService(
-          {
-            name: mockEService.name,
-            description: mockEService.description,
-            technology: "REST",
-            mode: "DELIVER",
-            descriptor: {
-              ...buildDescriptorSeedForEserviceCreation(mockDescriptor),
-              dailyCallsPerConsumer,
-              dailyCallsTotal,
-            },
+  it("should throw inconsistentDailyCalls if the descriptor seed has dailyCallsPerConsumer > dailyCallsTotal", async () => {
+    expect(
+      catalogService.createEService(
+        {
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "DELIVER",
+          descriptor: {
+            ...buildDescriptorSeedForEserviceCreation(mockDescriptor),
+            dailyCallsPerConsumer: 100,
+            dailyCallsTotal: 99,
           },
-          getMockContext({ authData: getMockAuthData(mockEService.producerId) })
-        )
-      ).rejects.toThrowError(inconsistentDailyCalls());
-    }
-  );
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toThrowError(inconsistentDailyCalls());
+  });
+
+  it("should ignore asyncExchange from seed and leave it undefined when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    const eservice = await catalogService.createEService(
+      {
+        name: mockEService.name,
+        description: mockEService.description,
+        technology: "REST",
+        mode: "DELIVER",
+        descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+        asyncExchange: true,
+      },
+      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+    );
+
+    const eserviceCreationEvent = await readEventByStreamIdAndVersion(
+      eservice.data.id,
+      0,
+      "catalog",
+      postgresDB
+    );
+    const eserviceCreationPayload = decodeProtobufPayload({
+      messageType: EServiceAddedV2,
+      payload: eserviceCreationEvent.data,
+    });
+
+    expect(eservice.data.asyncExchange).toBeUndefined();
+    expect(eserviceCreationPayload.eservice?.asyncExchange).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
+  });
+
+  it("should throw asyncExchangeNotAllowedForReceiveMode when asyncExchange is true and mode is RECEIVE", async () => {
+    expect(
+      catalogService.createEService(
+        {
+          name: mockEService.name,
+          description: mockEService.description,
+          technology: "REST",
+          mode: "RECEIVE",
+          descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
+          asyncExchange: true,
+        },
+        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      )
+    ).rejects.toMatchObject({
+      code: asyncExchangeNotAllowedForReceiveMode(mockEService.id).code,
+    });
+  });
 });

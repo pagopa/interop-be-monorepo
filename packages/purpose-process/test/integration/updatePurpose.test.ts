@@ -1,6 +1,7 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { purposeApi } from "pagopa-interop-api-clients";
 import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   randomArrayItem,
@@ -15,6 +16,7 @@ import {
   addSomeRandomDelegations,
   getMockAgreement,
   getMockContext,
+  getMockContextM2MAdmin,
   getMockEService,
   sortPurpose,
 } from "pagopa-interop-commons-test";
@@ -38,9 +40,12 @@ import {
   Agreement,
   DelegationId,
   PurposeTemplateId,
+  ReviewerWorkflow,
+  riskAnalysisSigningState,
+  riskAnalysisReviewMode,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,
@@ -54,7 +59,9 @@ import {
   duplicatedPurposeTitle,
   tenantIsNotTheDelegatedConsumer,
   purposeDelegationNotFound,
+  invalidFreeOfChargeReason,
   purposeFromTemplateCannotBeModified,
+  riskAnalysisFormCannotBeUpdated,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -67,6 +74,7 @@ import {
   sortUpdatePurposeReturn,
 } from "../integrationUtils.js";
 import {
+  buildRiskAnalysisFormSeed,
   buildRiskAnalysisSeed,
   createUpdatedPurpose,
   createUpdatedReversePurpose,
@@ -191,7 +199,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -241,7 +249,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -283,7 +291,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -351,7 +359,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -408,7 +416,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -520,7 +528,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -620,7 +628,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purpose: sortPurpose(toPurposeV2(expectedPurpose)),
     });
     expect(sortUpdatePurposeReturn(updatePurposeReturn)).toEqual({
-      data: { purpose: expectedPurpose, isRiskAnalysisValid: true },
+      data: { purpose: expectedPurpose },
       metadata: { version: 1 },
     });
   });
@@ -778,23 +786,236 @@ describe("updatePurpose and updateReversePurpose", () => {
       eServiceModeNotAllowed(eServiceDeliver.id, "Receive")
     );
   });
-  it("Should throw missingFreeOfChargeReason if isFreeOfCharge is true but freeOfChargeReason is missing", async () => {
-    await addOnePurpose(purposeForDeliver);
-    await addOneEService(eServiceDeliver);
-    await addOneTenant(tenant);
+  it.each([undefined, ""])(
+    "Should throw missingFreeOfChargeReason if isFreeOfCharge is true but freeOfChargeReason is missing (seed #%#)",
+    async (freeOfChargeReason) => {
+      await addOnePurpose({
+        ...purposeForDeliver,
+        isFreeOfCharge: false,
+        freeOfChargeReason: undefined,
+      });
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
 
-    expect(
-      purposeService.updatePurpose(
-        purposeForDeliver.id,
-        {
+      expect(
+        purposeService.updatePurpose(
+          purposeForDeliver.id,
+          {
+            ...purposeUpdateContent,
+            isFreeOfCharge: true,
+            freeOfChargeReason,
+          },
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).rejects.toThrowError(missingFreeOfChargeReason());
+    }
+  );
+
+  const oldFreeOfChargeReason = "Some reason";
+  const newFreeOfChargeReason = "New reason";
+  const successFreeOfChargeTestCases: Array<
+    [
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+      Pick<
+        purposeApi.PurposeUpdateContent,
+        "isFreeOfCharge" | "freeOfChargeReason"
+      >,
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+    ]
+  > = [
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: true, freeOfChargeReason: undefined },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: "" },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: "" },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+    ],
+  ];
+  it.each(successFreeOfChargeTestCases)(
+    "should successfully update isFreeOfCharge and freeOfChargeReason (seed #%#)",
+    async (initData, seed, expected) => {
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const cleanedSeed = Object.fromEntries(
+        Object.entries({
           ...purposeUpdateContent,
-          isFreeOfCharge: true,
-          freeOfChargeReason: "",
-        },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
-      )
-    ).rejects.toThrowError(missingFreeOfChargeReason());
-  });
+          ...seed,
+        }).filter(([_, v]) => v !== undefined)
+      ) as purposeApi.PurposeUpdateContent;
+
+      const purpose: Purpose = {
+        ...purposeForDeliver,
+        isFreeOfCharge: initData.isFreeOfCharge,
+        freeOfChargeReason: initData.freeOfChargeReason,
+      };
+
+      await addOnePurpose(purpose);
+
+      const updatePurposeResult = await purposeService.updatePurpose(
+        purposeForDeliver.id,
+        cleanedSeed,
+        getMockContext({
+          authData: getMockAuthData(purpose.consumerId),
+        })
+      );
+
+      expect(updatePurposeResult.data.purpose).toEqual(
+        expect.objectContaining({
+          isFreeOfCharge: expected.isFreeOfCharge,
+          freeOfChargeReason: expected.freeOfChargeReason,
+        })
+      );
+    }
+  );
+
+  const failureFreeOfChargeTestCases: Array<
+    [
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+      Pick<
+        purposeApi.PurposeUpdateContent,
+        "isFreeOfCharge" | "freeOfChargeReason"
+      >,
+      Pick<Purpose, "isFreeOfCharge" | "freeOfChargeReason">,
+    ]
+  > = [
+    [
+      {
+        isFreeOfCharge: true,
+        freeOfChargeReason: oldFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+    [
+      { isFreeOfCharge: false, freeOfChargeReason: undefined },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+      {
+        isFreeOfCharge: false,
+        freeOfChargeReason: newFreeOfChargeReason,
+      },
+    ],
+  ];
+  it.each(failureFreeOfChargeTestCases)(
+    "should throw invalidFreeOfChargeReason (seed #%#)",
+    async (initData, seed, wrongUpdatedData) => {
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const purpose: Purpose = {
+        ...purposeForDeliver,
+        isFreeOfCharge: initData.isFreeOfCharge,
+        freeOfChargeReason: initData.freeOfChargeReason,
+      };
+
+      await addOnePurpose(purpose);
+
+      expect(
+        purposeService.updatePurpose(
+          purpose.id,
+          {
+            ...purposeUpdateContent,
+            ...seed,
+          },
+          getMockContext({
+            authData: getMockAuthData(purpose.consumerId),
+          })
+        )
+      ).rejects.toThrowError(
+        invalidFreeOfChargeReason(
+          wrongUpdatedData.isFreeOfCharge,
+          wrongUpdatedData.freeOfChargeReason
+        )
+      );
+    }
+  );
+
   it("Should throw tenantNotFound if the tenant does not exist", async () => {
     await addOnePurpose(purposeForDeliver);
     await addOneEService(eServiceDeliver);
@@ -1126,4 +1347,270 @@ describe("updatePurpose and updateReversePurpose", () => {
       )
     );
   });
+  it.each([
+    riskAnalysisSigningState.assigned,
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+  ])(
+    "should throw riskAnalysisFormCannotBeUpdated when a reviewer workflow is active (state: %s) and the risk analysis form differs from the stored one",
+    async (signingState) => {
+      const storedRiskAnalysis = getMockValidRiskAnalysis(tenantType);
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithWorkflow: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantType),
+          id: generateId(),
+        },
+        reviewerWorkflow,
+      };
+
+      const differentRiskAnalysisSeed =
+        buildRiskAnalysisSeed(storedRiskAnalysis);
+      // Mutate one answer to make the seed differ from the stored form
+      const [firstKey] = Object.keys(differentRiskAnalysisSeed.answers);
+      const updateContentWithDifferentRiskAnalysis: purposeApi.PurposeUpdateContent =
+        {
+          ...purposeUpdateContent,
+          riskAnalysisForm: {
+            ...differentRiskAnalysisSeed,
+            answers: {
+              ...differentRiskAnalysisSeed.answers,
+              ...(firstKey ? { [firstKey]: [] } : {}),
+            },
+          },
+        };
+
+      await addOnePurpose(purposeWithWorkflow);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      expect(
+        purposeService.updatePurpose(
+          purposeWithWorkflow.id,
+          updateContentWithDifferentRiskAnalysis,
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).rejects.toThrowError(
+        riskAnalysisFormCannotBeUpdated(purposeWithWorkflow.id)
+      );
+    }
+  );
+  it.each([riskAnalysisSigningState.draft, riskAnalysisSigningState.rejected])(
+    "should succeed when reviewer workflow is in state %s even if the risk analysis form differs",
+    async (signingState) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const storedRiskAnalysis = getMockValidRiskAnalysis(tenantType);
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithWorkflow: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: {
+          ...getMockValidRiskAnalysisForm(tenantType),
+          id: generateId(),
+        },
+        reviewerWorkflow,
+      };
+
+      await addOnePurpose(purposeWithWorkflow);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const differentRiskAnalysisSeed =
+        buildRiskAnalysisSeed(storedRiskAnalysis);
+      const updateContentWithDifferentRiskAnalysis: purposeApi.PurposeUpdateContent =
+        {
+          ...purposeUpdateContent,
+          riskAnalysisForm: differentRiskAnalysisSeed,
+        };
+
+      await expect(
+        purposeService.updatePurpose(
+          purposeWithWorkflow.id,
+          updateContentWithDifferentRiskAnalysis,
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).resolves.toBeDefined();
+
+      vi.useRealTimers();
+    }
+  );
+  it("should succeed when a reviewer workflow is active but the risk analysis form is identical to the stored one", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const existingForm = getMockValidRiskAnalysisForm(tenantType);
+    const reviewerWorkflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      reviewerIds: [generateId()],
+      signingState: riskAnalysisSigningState.assigned,
+    };
+    const purposeWithWorkflow: Purpose = {
+      ...purposeForDeliver,
+      riskAnalysisForm: { ...existingForm, id: generateId() },
+      reviewerWorkflow,
+    };
+
+    await addOnePurpose(purposeWithWorkflow);
+    await addOneEService(eServiceDeliver);
+    await addOneTenant(tenant);
+
+    const sameSeed = buildRiskAnalysisFormSeed(existingForm);
+    const updateContentWithSameForm: purposeApi.PurposeUpdateContent = {
+      ...purposeUpdateContent,
+      riskAnalysisForm: sameSeed,
+    };
+
+    await expect(
+      purposeService.updatePurpose(
+        purposeWithWorkflow.id,
+        updateContentWithSameForm,
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).resolves.toBeDefined();
+
+    vi.useRealTimers();
+  });
+  it.each([
+    riskAnalysisSigningState.assigned,
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+  ])(
+    "should throw riskAnalysisFormCannotBeUpdated when a reviewer workflow is active (state: %s) and trying to add an initial risk analysis form",
+    async (signingState) => {
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithWorkflowNoForm: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: undefined,
+        reviewerWorkflow,
+      };
+
+      const newRiskAnalysisSeed = buildRiskAnalysisSeed(
+        getMockValidRiskAnalysis(tenantType)
+      );
+      const updateContentWithNewRiskAnalysis: purposeApi.PurposeUpdateContent =
+        {
+          ...purposeUpdateContent,
+          riskAnalysisForm: newRiskAnalysisSeed,
+        };
+
+      await addOnePurpose(purposeWithWorkflowNoForm);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      expect(
+        purposeService.updatePurpose(
+          purposeWithWorkflowNoForm.id,
+          updateContentWithNewRiskAnalysis,
+          getMockContext({ authData: getMockAuthData(tenant.id) })
+        )
+      ).rejects.toThrowError(
+        riskAnalysisFormCannotBeUpdated(purposeWithWorkflowNoForm.id)
+      );
+    }
+  );
+  it.each([
+    riskAnalysisSigningState.assigned,
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+    riskAnalysisSigningState.draft,
+    riskAnalysisSigningState.rejected,
+  ])(
+    "should succeed and preserve the existing risk analysis form when riskAnalysisForm is omitted from the update, regardless of reviewer workflow state %s",
+    async (signingState) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const existingForm = getMockValidRiskAnalysisForm(tenantType);
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithFormAndWorkflow: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: { ...existingForm, id: generateId() },
+        reviewerWorkflow,
+      };
+
+      // Omitting riskAnalysisForm means the existing form is preserved, not removed
+      const updateContentWithoutForm: purposeApi.PurposeUpdateContent = {
+        ...purposeUpdateContent,
+        riskAnalysisForm: undefined,
+      };
+
+      await addOnePurpose(purposeWithFormAndWorkflow);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const result = await purposeService.updatePurpose(
+        purposeWithFormAndWorkflow.id,
+        updateContentWithoutForm,
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      );
+
+      expect(result.data.purpose.riskAnalysisForm).toEqual(
+        purposeWithFormAndWorkflow.riskAnalysisForm
+      );
+
+      vi.useRealTimers();
+    }
+  );
+  it.each([
+    riskAnalysisSigningState.assigned,
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+  ])(
+    "should succeed and preserve the existing risk analysis form when patchUpdatePurpose updates only non-form fields and reviewer workflow is active (state: %s)",
+    async (signingState) => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date());
+
+      const existingForm = getMockValidRiskAnalysisForm(tenantType);
+      const reviewerWorkflow: ReviewerWorkflow = {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds: [generateId()],
+        signingState,
+      };
+      const purposeWithFormAndWorkflow: Purpose = {
+        ...purposeForDeliver,
+        riskAnalysisForm: { ...existingForm, id: generateId() },
+        reviewerWorkflow,
+      };
+
+      // Partial update with only dailyCalls - riskAnalysisForm is omitted entirely
+      const patchContent: purposeApi.PatchPurposeUpdateContent = {
+        dailyCalls: 99,
+      };
+
+      await addOnePurpose(purposeWithFormAndWorkflow);
+      await addOneEService(eServiceDeliver);
+      await addOneTenant(tenant);
+
+      const result = await purposeService.patchUpdatePurpose(
+        purposeWithFormAndWorkflow.id,
+        patchContent,
+        getMockContextM2MAdmin({ organizationId: tenant.id })
+      );
+
+      expect(result.data.purpose.riskAnalysisForm).toEqual(
+        purposeWithFormAndWorkflow.riskAnalysisForm
+      );
+
+      vi.useRealTimers();
+    }
+  );
 });

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockAgreement,
@@ -10,11 +11,11 @@ import {
   AgreementDocument,
   generateId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, agreementService } from "../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { agreementNotFound } from "../../src/model/domain/errors.js";
+import { api, agreementService } from "../vitest.api.setup.js";
 
 const mockAgreementContract: AgreementDocument = {
   id: generateId(),

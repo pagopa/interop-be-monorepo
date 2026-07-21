@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -246,12 +247,12 @@ export const addProducerKeychainUserErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
+    .with("userWithoutSecurityPrivileges", () => HTTP_STATUS_FORBIDDEN)
     .with(
+      "producerKeychainNotFound",
       "tenantNotAllowedOnProducerKeychain",
-      "userWithoutSecurityPrivileges",
-      () => HTTP_STATUS_FORBIDDEN
+      () => HTTP_STATUS_NOT_FOUND
     )
-    .with("producerKeychainNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("producerKeychainUserAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "missingSelfcareId",

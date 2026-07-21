@@ -1,13 +1,16 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   NewNotification,
   TenantEventEnvelope,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { handleCertifiedVerifiedAttributeAssignedRevokedToAssignee } from "./handleCertifiedVerifiedAttributeAssignedRevokedToAssignee.js";
+import { handleCertifiedAttributeAssignedRevokedToAssignee } from "./handleCertifiedAttributeAssignedRevokedToAssignee.js";
+import { handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee } from "./handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee.js";
+import { handleVerifiedAttributeAssignedRevokedToAssignee } from "./handleVerifiedAttributeAssignedRevokedToAssignee.js";
 
 export async function handleTenantEvent(
   decodedMessage: TenantEventEnvelope,
@@ -23,13 +26,44 @@ export async function handleTenantEvent(
       {
         type: P.union(
           "TenantCertifiedAttributeAssigned",
-          "TenantCertifiedAttributeRevoked",
+          "TenantCertifiedAttributeRevoked"
+        ),
+      },
+      ({ data: { tenant, attributeId }, type }) =>
+        handleCertifiedAttributeAssignedRevokedToAssignee(
+          tenant,
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
+        type: P.union(
+          "TenantCertifiedDiscreteAttributeAssigned",
+          "TenantCertifiedDiscreteAttributeRevoked",
+          "TenantCertifiedDiscreteAttributeUpdated"
+        ),
+      },
+      ({ data: { tenant, attributeId }, type }) =>
+        handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee(
+          tenant,
+          unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          type
+        )
+    )
+    .with(
+      {
+        type: P.union(
           "TenantVerifiedAttributeAssigned",
           "TenantVerifiedAttributeRevoked"
         ),
       },
       ({ data: { tenant, attributeId }, type }) =>
-        handleCertifiedVerifiedAttributeAssignedRevokedToAssignee(
+        handleVerifiedAttributeAssignedRevokedToAssignee(
           tenant,
           unsafeBrandId<AttributeId>(attributeId),
           logger,
@@ -55,7 +89,9 @@ export async function handleTenantEvent(
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted"
         ),
       },
       () => {

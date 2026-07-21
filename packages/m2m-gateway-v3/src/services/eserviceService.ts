@@ -1,9 +1,9 @@
-import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   attributeRegistryApi,
   catalogApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   AttributeId,
   DescriptorId,
@@ -13,8 +13,12 @@ import {
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
+
+import {
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+  toM2MGatewayApiVerifiedAttribute,
+} from "../api/attributeApiConverter.js";
 import {
   toGetEServicesQueryParams,
   toM2MGatewayApiEService,
@@ -24,30 +28,28 @@ import {
   toCatalogApiPatchUpdateEServiceDescriptorSeed,
   toM2MGatewayApiDocument,
 } from "../api/eserviceApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { config } from "../config/config.js";
 import {
   cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorAttributeNotFound,
   eserviceDescriptorAttributeGroupNotFound,
+  eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound,
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
 } from "../model/errors.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import { config } from "../config/config.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { uploadEServiceDocument } from "../utils/fileUpload.js";
+import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
-import {
-  toM2MGatewayApiCertifiedAttribute,
-  toM2MGatewayApiDeclaredAttribute,
-  toM2MGatewayApiVerifiedAttribute,
-} from "../api/attributeApiConverter.js";
-import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 
@@ -589,6 +591,34 @@ export function eserviceServiceBuilder(
         logger
       );
     },
+    async downloadEServiceDescriptorAsyncExchangeCallbackInterface(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<DownloadedDocument> {
+      logger.info(
+        `Retrieving async exchange callback interface for eservice descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId
+      );
+
+      if (!descriptor.asyncExchangeCallbackInterface) {
+        throw eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
+          eserviceId,
+          descriptorId
+        );
+      }
+
+      return downloadDocument(
+        descriptor.asyncExchangeCallbackInterface,
+        fileManager,
+        config.eserviceDocumentsContainer,
+        logger
+      );
+    },
     async createDescriptor(
       eserviceId: EServiceId,
       eserviceDescriptorSeed: m2mGatewayApiV3.EServiceDescriptorSeed,
@@ -721,6 +751,22 @@ export function eserviceServiceBuilder(
         headers,
       });
       await pollEserviceUntilDeletion(eserviceId, headers);
+    },
+
+    async scheduleArchiveEService(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApiV3.EServiceArchivingReasonSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(`Scheduling archive for eservice with id ${eserviceId}`);
+
+      const response =
+        await clients.catalogProcessClient.scheduleEServiceArchiving(seed, {
+          params: { eServiceId: eserviceId },
+          headers,
+        });
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
     },
 
     async updatePublishedEServiceDelegation(
@@ -968,6 +1014,81 @@ export function eserviceServiceBuilder(
 
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
+    async scheduleArchiveEserviceDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Scheduling archive for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.scheduleEServiceDescriptorArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      await pollEService(response, headers);
+
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+    async cancelEServiceDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Canceling archive for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.cancelEServiceDescriptorArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      await pollEService(response, headers);
+
+      const descriptor = retrieveEServiceDescriptorById(
+        response,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+
+    async cancelEServiceArchiving(
+      eserviceId: EServiceId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(`Canceling archiving for eservice with id ${eserviceId}`);
+
+      const { metadata } =
+        await clients.catalogProcessClient.cancelScheduleArchiveEservice(
+          undefined,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+      const polledEService = await pollEServiceById(
+        eserviceId,
+        metadata,
+        headers
+      );
+
+      return toM2MGatewayApiEService(polledEService.data);
+    },
     async uploadEServiceDescriptorInterface(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -987,6 +1108,39 @@ export function eserviceServiceBuilder(
         eservice,
         descriptorId,
         documentKind: catalogApi.EServiceDocumentKind.Values.INTERFACE,
+        fileUpload,
+        fileManager,
+        catalogProcessClient: clients.catalogProcessClient,
+        headers,
+        logger,
+      });
+
+      await pollEServiceById(eserviceId, metadata, headers);
+
+      return toM2MGatewayApiDocument(document);
+    },
+
+    async uploadEServiceDescriptorAsyncExchangeCallbackInterface(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      fileUpload: m2mGatewayApiV3.FileUploadMultipart,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.Document> {
+      logger.info(
+        `Adding async exchange callback interface document ${fileUpload.file.name} to eservice ${eserviceId} descriptor ${descriptorId}`
+      );
+
+      const { data: eservice } = await retrieveEServiceById(
+        headers,
+        eserviceId
+      );
+
+      const { data: document, metadata } = await uploadEServiceDocument({
+        eservice,
+        descriptorId,
+        documentKind:
+          catalogApi.EServiceDocumentKind.Values
+            .ASYNC_EXCHANGE_CALLBACK_INTERFACE,
         fileUpload,
         fileManager,
         catalogProcessClient: clients.catalogProcessClient,
@@ -1025,6 +1179,43 @@ export function eserviceServiceBuilder(
               eServiceId: eserviceId,
               descriptorId,
               documentId: descriptor.interface.id,
+            },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
+    },
+
+    async deleteEServiceDescriptorAsyncExchangeCallbackInterface(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Deleting async exchange callback interface document from eservice ${eserviceId} descriptor ${descriptorId}`
+      );
+
+      const descriptor = retrieveEServiceDescriptorById(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId
+      );
+
+      if (!descriptor.asyncExchangeCallbackInterface) {
+        throw eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound(
+          eserviceId,
+          descriptorId
+        );
+      }
+
+      const response =
+        await clients.catalogProcessClient.deleteEServiceDocumentById(
+          undefined,
+          {
+            params: {
+              eServiceId: eserviceId,
+              descriptorId,
+              documentId: descriptor.asyncExchangeCallbackInterface.id,
             },
             headers,
           }
@@ -1468,6 +1659,35 @@ export function eserviceServiceBuilder(
         "certified",
         ctx
       );
+    },
+
+    async updateEServiceDescriptorCertifiedAttributeInGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      seed: m2mGatewayApiV3.EServiceDescriptorAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating Certified Attribute ${attributeId} in group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateDescriptorCertifiedAttribute(
+          seed,
+          {
+            params: {
+              eServiceId: eserviceId,
+              descriptorId,
+              groupIndex,
+              attributeId,
+            },
+            headers,
+          }
+        );
+
+      await pollEService(response, headers);
     },
   };
 }
