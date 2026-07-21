@@ -25,6 +25,7 @@ import {
 import { makeApiProblem } from "../model/errors.js";
 import { CatalogService } from "../services/catalogService.js";
 import { fromBffAppContext } from "../utilities/context.js";
+import { contentDispositionAttachment } from "../utilities/fileUtils.js";
 import {
   addEServiceInterfaceByTemplateErrorMapper,
   bffGetCatalogErrorMapper,
@@ -188,7 +189,7 @@ const catalogRouter = (
         return res
           .header(
             "Content-Disposition",
-            `attachment; filename=${response.filename}`
+            contentDispositionAttachment(response.filename)
           )
           .header("Content-Type", "application/octet-stream")
           .send(response.file);
