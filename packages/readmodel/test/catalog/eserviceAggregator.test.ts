@@ -12,6 +12,7 @@ import {
   ArchivingSchedule,
   archivingScope,
   Descriptor,
+  DescriptorRejectionReason,
   EService,
   EServiceAddedV2,
   EServiceAttribute,
@@ -303,5 +304,71 @@ describe("E-service aggregator", () => {
         eservice: toEServiceV2(aggregatedEservice.data),
       });
     }
+  });
+
+  it("should sort the descriptor rejectionReasons by rejectedAt ascending", () => {
+    const rejectionReasonOld: DescriptorRejectionReason = {
+      rejectionReason: "old",
+      rejectedAt: new Date("2020-01-01T00:00:00.000Z"),
+    };
+    const rejectionReasonMiddle: DescriptorRejectionReason = {
+      rejectionReason: "middle",
+      rejectedAt: new Date("2021-06-15T00:00:00.000Z"),
+    };
+    const rejectionReasonRecent: DescriptorRejectionReason = {
+      rejectionReason: "recent",
+      rejectedAt: new Date("2023-12-31T00:00:00.000Z"),
+    };
+
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      // Intentionally unsorted
+      rejectionReasons: [
+        rejectionReasonRecent,
+        rejectionReasonOld,
+        rejectionReasonMiddle,
+      ],
+    };
+
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [descriptor],
+    };
+
+    const {
+      eserviceSQL,
+      riskAnalysesSQL,
+      riskAnalysisAnswersSQL,
+      descriptorsSQL,
+      attributesSQL,
+      interfacesSQL,
+      documentsSQL,
+      rejectionReasonsSQL,
+      templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
+    } = splitEserviceIntoObjectsSQL(eservice, 1);
+
+    const aggregatedEservice = aggregateEservice({
+      eserviceSQL,
+      riskAnalysesSQL,
+      riskAnalysisAnswersSQL,
+      descriptorsSQL,
+      attributesSQL,
+      interfacesSQL,
+      documentsSQL,
+      rejectionReasonsSQL,
+      templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
+    });
+
+    expect(
+      aggregatedEservice.data.descriptors[0].rejectionReasons
+    ).toStrictEqual([
+      rejectionReasonOld,
+      rejectionReasonMiddle,
+      rejectionReasonRecent,
+    ]);
   });
 });
