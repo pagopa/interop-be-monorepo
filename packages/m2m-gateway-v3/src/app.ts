@@ -131,7 +131,12 @@ export async function createApp(
     agreementRouter(zodiosCtx, agreementService, kmsClient),
     tenantRouter(zodiosCtx, tenantService),
     delegationRouter(zodiosCtx, delegationService),
-    eserviceTemplateRouter(zodiosCtx, eserviceTemplateService, kmsClient),
+    eserviceTemplateRouter(
+      zodiosCtx,
+      eserviceTemplateService,
+      eserviceService,
+      kmsClient
+    ),
     clientRouter(zodiosCtx, clientService),
     producerKeychainRouter(zodiosCtx, producerKeychainService),
     keyRouter(zodiosCtx, keyService),

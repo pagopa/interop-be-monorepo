@@ -1,0 +1,27 @@
+meta {
+  name: Update template instance descriptor quotas
+  type: http
+}
+
+post {
+  url: {{host-m2m-gw-v3}}/eserviceTemplates/eservices/:eserviceId/descriptors/:descriptorId/quotas
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{DPOP-JWT-M2M-ADMIN}}
+  DPoP: {{DPOP-PROOF}}
+}
+
+body:json {
+  {
+    "dailyCallsPerConsumer": 1000,
+    "dailyCallsTotal": 10000
+  }
+}

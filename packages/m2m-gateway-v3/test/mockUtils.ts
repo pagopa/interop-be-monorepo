@@ -185,6 +185,7 @@ export const testToM2mGatewayApiEService = (
   personalData: eservice.personalData,
   archivingReason: eservice.archivingReason,
   asyncExchange: eservice.asyncExchange,
+  instanceLabel: eservice.instanceLabel,
 });
 
 export const testToM2mGatewayApiEServiceEvent = (

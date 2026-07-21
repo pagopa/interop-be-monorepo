@@ -9,6 +9,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  EServiceTemplateId,
   ListResult,
   RiskAnalysisId,
   unsafeBrandId,
@@ -1688,6 +1689,138 @@ export function eserviceServiceBuilder(
         );
 
       await pollEService(response, headers);
+    },
+
+    async createEServiceInstanceFromTemplate(
+      templateId: EServiceTemplateId,
+      seed: m2mGatewayApiV3.InstanceEServiceSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(`Creating E-Service instance from template ${templateId}`);
+
+      const response =
+        await clients.catalogProcessClient.createEServiceInstanceFromTemplate(
+          seed,
+          {
+            params: { templateId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updateEServiceTemplateInstance(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApiV3.UpdateEServiceTemplateInstanceSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(`Updating E-Service template instance ${eserviceId}`);
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceTemplateInstanceById(
+          seed,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async updateEServiceTemplateInstanceLabel(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApiV3.EServiceInstanceLabelUpdateSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(
+        `Updating instance label for E-Service template instance ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateEServiceInstanceLabelAfterPublication(
+          seed,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
+    async createTemplateInstanceDescriptor(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApiV3.EServiceInstanceDescriptorSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Creating descriptor for E-Service template instance ${eserviceId}`
+      );
+
+      const { data: descriptor, metadata } =
+        await clients.catalogProcessClient.createTemplateInstanceDescriptor(
+          seed,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+
+      await pollEServiceById(eserviceId, metadata, headers);
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+
+    async updateDraftDescriptorTemplateInstance(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApiV3.UpdateEServiceDescriptorTemplateInstanceSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Updating draft descriptor ${descriptorId} for E-Service template instance ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateDraftDescriptorTemplateInstance(
+          seed,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+
+      return toM2MGatewayApiEServiceDescriptor(
+        retrieveEServiceDescriptorById(polledResource, descriptorId)
+      );
+    },
+
+    async updateTemplateInstanceDescriptorQuotas(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApiV3.UpdateEServiceTemplateInstanceDescriptorQuotasSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Updating quotas for descriptor ${descriptorId} of E-Service template instance ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.updateTemplateInstanceDescriptor(
+          seed,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+
+      return toM2MGatewayApiEServiceDescriptor(
+        retrieveEServiceDescriptorById(polledResource, descriptorId)
+      );
     },
   };
 }
