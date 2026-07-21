@@ -1,15 +1,16 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelope,
   NewNotification,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedToProducer.js";
-import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
-import { handleClientKeyAddedDeletedToClientUsers } from "./handleClientKeyAddedDeletedToClientUsers.js";
-import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "./handleProducerKeychainKeyAddedDeletedToClientUsers.js";
 import { handleAsyncEserviceWithoutKeychain } from "./handleAsyncEserviceWithoutKeychain.js";
+import { handleClientAddedRemovedToProducer } from "./handleClientAddedRemovedToProducer.js";
+import { handleClientKeyAddedDeletedToClientUsers } from "./handleClientKeyAddedDeletedToClientUsers.js";
+import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
+import { handleProducerKeychainKeyAddedDeletedToClientUsers } from "./handleProducerKeychainKeyAddedDeletedToClientUsers.js";
 import { handleProducerKeychainNoKeysForAsyncEservice } from "./handleProducerKeychainNoKeysForAsyncEservice.js";
 
 export async function handleAuthorizationEvent(

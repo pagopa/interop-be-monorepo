@@ -2,11 +2,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { bffApi, notificationConfigApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { BffAppContext } from "../utilities/context.js";
+
 import {
   toBffApiTenantNotificationConfig,
   toBffApiUserNotificationConfig,
 } from "../api/notificationConfigApiConverter.js";
+import { BffAppContext } from "../utilities/context.js";
 
 export function notificationConfigServiceBuilder(
   notificationConfigClient: notificationConfigApi.NotificationConfigProcessClient

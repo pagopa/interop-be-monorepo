@@ -11,6 +11,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { AuthorizationEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 

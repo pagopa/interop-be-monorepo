@@ -1,4 +1,20 @@
 import {
+  AttributeValue,
+  DynamoDBClient,
+  GetItemCommand,
+  GetItemInput,
+  PutItemCommand,
+  PutItemInput,
+  QueryCommand,
+  QueryInput,
+  ScanCommand,
+  ScanInput,
+  UpdateItemCommand,
+  UpdateItemInput,
+} from "@aws-sdk/client-dynamodb";
+import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { Logger } from "pagopa-interop-commons";
+import {
   AgreementId,
   agreementState,
   AgreementState,
@@ -20,23 +36,8 @@ import {
   TenantId,
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
-import {
-  AttributeValue,
-  DynamoDBClient,
-  GetItemCommand,
-  GetItemInput,
-  PutItemCommand,
-  PutItemInput,
-  QueryCommand,
-  QueryInput,
-  ScanCommand,
-  ScanInput,
-  UpdateItemCommand,
-  UpdateItemInput,
-} from "@aws-sdk/client-dynamodb";
-import { unmarshall } from "@aws-sdk/util-dynamodb";
 import { z } from "zod";
-import { Logger } from "pagopa-interop-commons";
+
 import { config } from "./config/config.js";
 
 export const upsertPlatformStatesAgreementEntry = async (

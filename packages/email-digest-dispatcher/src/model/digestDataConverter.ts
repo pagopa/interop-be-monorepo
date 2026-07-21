@@ -6,12 +6,7 @@ import {
   EServiceId,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  AttributeDigest,
-  BaseDigest,
-  DelegationDigest,
-  ReceivedPurposeDigest,
-} from "../services/digestDataService.js";
+
 import {
   buildAgreementLink,
   buildEserviceLink,
@@ -20,6 +15,12 @@ import {
   buildEserviceTemplateLinkToCreator,
   buildDelegationLink,
 } from "../services/deeplinkBuilder.js";
+import {
+  AttributeDigest,
+  BaseDigest,
+  DelegationDigest,
+  ReceivedPurposeDigest,
+} from "../services/digestDataService.js";
 import {
   NewEservice,
   NewEserviceTemplate,

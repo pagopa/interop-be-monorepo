@@ -29,6 +29,7 @@ import {
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import {
   aggregateRiskAnalysisForm,
   documentSQLtoDocument,

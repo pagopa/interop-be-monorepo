@@ -1,9 +1,9 @@
-import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   attributeRegistryApi,
   catalogApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
+import { FileManager, WithLogger } from "pagopa-interop-commons";
 import {
   AttributeId,
   DescriptorId,
@@ -13,8 +13,12 @@ import {
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
+
+import {
+  toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiDeclaredAttribute,
+  toM2MGatewayApiVerifiedAttribute,
+} from "../api/attributeApiConverter.js";
 import {
   toGetEServicesQueryParams,
   toM2MGatewayApiEService,
@@ -24,6 +28,9 @@ import {
   toCatalogApiPatchUpdateEServiceDescriptorSeed,
   toM2MGatewayApiDocument,
 } from "../api/eserviceApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { config } from "../config/config.js";
 import {
   cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorAttributeNotFound,
@@ -33,22 +40,16 @@ import {
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
 } from "../model/errors.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import { config } from "../config/config.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { uploadEServiceDocument } from "../utils/fileUpload.js";
+import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 import {
   pollResourceWithMetadata,
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
 } from "../utils/polling.js";
-import {
-  toM2MGatewayApiCertifiedAttribute,
-  toM2MGatewayApiDeclaredAttribute,
-  toM2MGatewayApiVerifiedAttribute,
-} from "../api/attributeApiConverter.js";
-import { getResolvedAttributesMap } from "../utils/getResolvedAttributesMap.js";
 
 export type EserviceService = ReturnType<typeof eserviceServiceBuilder>;
 

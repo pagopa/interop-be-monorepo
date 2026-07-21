@@ -1,13 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  getMockedApiFullProducerKeychain,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   pollingMaxRetriesExceeded,
   ProducerKeychainId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  getMockedApiFullProducerKeychain,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
 import {
   producerKeychainService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -15,9 +18,7 @@ import {
   mockDeletionPollingResponse,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
 
 describe("deleteProducerKeychain", () => {
   const mockProducerKeychain = getMockedApiFullProducerKeychain();

@@ -16,6 +16,7 @@ import {
   tenantAttributeType,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 
 export const tenantAttributeKind = {

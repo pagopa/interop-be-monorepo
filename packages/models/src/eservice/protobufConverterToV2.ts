@@ -1,4 +1,5 @@
 import { P, match } from "ts-pattern";
+
 import {
   AgreementApprovalPolicyV2,
   AttributeCertifiedDiscreteComparatorV2,
@@ -18,6 +19,7 @@ import {
   RiskAnalysis,
   RiskAnalysisForm,
 } from "../risk-analysis/riskAnalysis.js";
+import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
@@ -41,7 +43,6 @@ import {
   technology,
   type EServiceAttributeCertifiedDiscreteConfig,
 } from "./eservice.js";
-import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
 const toAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicy | undefined

@@ -1,6 +1,6 @@
-import { match } from "ts-pattern";
 import { Logger } from "pagopa-interop-commons";
 import { EmailNotificationMessagePayload } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 type Producer = {
   send: (args: { messages: { value: string }[] }) => Promise<unknown>;
