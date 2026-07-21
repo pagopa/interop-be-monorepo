@@ -29299,6 +29299,9 @@ components:
             type: string
         requireCorrections:
           type: boolean
+        archivableOn:
+          type: string
+          format: date-time
     ProducerEService:
       type: object
       additionalProperties: false
