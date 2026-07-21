@@ -27,6 +27,7 @@ import {
   EServiceAttributeCertifiedDiscrete,
   ArchivingScope,
   TenantKind,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorArchivingScheduleSQL,
@@ -46,6 +47,7 @@ import {
   EServiceTemplateVersionDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { match } from "ts-pattern";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const documentSQLtoDocument = (
@@ -235,6 +237,10 @@ export const aggregateDescriptor = ({
             scope: ArchivingScope.parse(archivingScheduleSQL.scope),
             archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
             startedAt: stringToDate(archivingScheduleSQL.startedAt),
+            // Legacy rows may contain null values before NOT NULL constraints are aligned.
+            gracePeriodDays: GracePeriodDays.catch(90).parse(
+              archivingScheduleSQL.gracePeriodDays
+            ),
           },
         }
       : {}),

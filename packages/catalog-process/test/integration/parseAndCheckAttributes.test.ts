@@ -1,19 +1,20 @@
 import { catalogApi } from "pagopa-interop-api-clients";
 import { getMockAttribute } from "pagopa-interop-commons-test/index.js";
-import { beforeEach, describe, expect, it } from "vitest";
 import {
   AttributeId,
   attributeCertifiedDiscreteComparator,
   featureFlagNotEnabled,
   generateId,
 } from "pagopa-interop-models";
-import { parseAndCheckAttributes } from "../../src/services/catalogService.js";
-import { addOneAttribute, readModelService } from "../integrationUtils.js";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   attributeDuplicatedInGroup,
   attributeNotFound,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
+import { parseAndCheckAttributes } from "../../src/services/catalogService.js";
+import { addOneAttribute, readModelService } from "../integrationUtils.js";
 
 describe("parseAndCheckAttributes", () => {
   const certified1 = getMockAttribute("Certified");

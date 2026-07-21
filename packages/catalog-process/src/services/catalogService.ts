@@ -68,8 +68,12 @@ import {
   archivingScope,
   ArchivingScope,
   AsyncExchangeProperties,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
 import { config } from "../config/config.js";
 import {
   agreementApprovalPolicyToApiAgreementApprovalPolicy,
@@ -79,6 +83,10 @@ import {
   eServiceModeToApiEServiceMode,
   technologyToApiTechnology,
 } from "../model/domain/apiConverter.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../model/domain/constants.js";
 import {
   attributeNotFound,
   audienceCannotBeEmpty,
@@ -176,6 +184,7 @@ import {
   toCreateEventEServiceArchivingCompleted,
   toCreateEventMaintenanceEServiceDescriptorUnarchived,
 } from "../model/domain/toEvent.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestDescriptor,
   getPreviousDescriptorByStates,
@@ -228,13 +237,8 @@ import {
   assertIsNotDraftEservice,
   assertEServiceIsInArchiving,
   assertEServiceIsNotAlreadyArchived,
+  assertEServiceGracePeriodIsNotLowerThanDescriptors,
 } from "./validators.js";
-import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { calculateArchivableOn } from "../utilities/dateCalculator.js";
-import {
-  DEFAULT_DAILY_CALLS_PER_CONSUMER,
-  DEFAULT_DAILY_CALLS_TOTAL,
-} from "../model/domain/constants.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -1245,7 +1249,7 @@ export function catalogServiceBuilder(
 
     async scheduleEServiceArchiving(
       eserviceId: EServiceId,
-      body: catalogApi.EServiceArchivingReasonSeed,
+      body: catalogApi.EServiceArchivingSeed,
       {
         authData,
         correlationId,
@@ -1254,6 +1258,7 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       logger.info(`Archiving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
+      const requestDate = new Date();
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
@@ -1264,7 +1269,14 @@ export function catalogServiceBuilder(
 
       assertEServiceArchivable(eservice.data);
 
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        requestDate,
+        eservice.data,
+        body.gracePeriodDays
+      );
+
       const updatedEService = await processEserviceArchiving(
+        requestDate,
         eservice.data,
         body,
         fileManager,
@@ -2456,6 +2468,7 @@ export function catalogServiceBuilder(
     async scheduleEServiceDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      body: catalogApi.GracePeriodDaysSeed,
       {
         authData,
         correlationId,
@@ -2481,7 +2494,8 @@ export function catalogServiceBuilder(
 
       const updatedDescriptor = await processDescriptorArchiving(
         descriptor,
-        newState
+        newState,
+        body.gracePeriodDays
       );
 
       const updatedEService = replaceDescriptor(
@@ -4561,8 +4575,9 @@ export function catalogServiceBuilder(
 }
 
 async function processEserviceArchiving(
+  requestDate: Date,
   eservice: EService,
-  body: catalogApi.EServiceArchivingReasonSeed,
+  body: catalogApi.EServiceArchivingSeed,
   fileManager: FileManager,
   logger: Logger
 ): Promise<EService> {
@@ -4581,7 +4596,6 @@ async function processEserviceArchiving(
       )
     : eservice;
 
-  const requestDate = new Date();
   const descriptors = await Promise.all(
     eserviceAfterCleanup.descriptors.map((descriptor) =>
       match(descriptor.state)
@@ -4595,6 +4609,7 @@ async function processEserviceArchiving(
           processDescriptorArchiving(
             descriptor,
             descriptorState.archiving,
+            body.gracePeriodDays,
             archivingScope.eservice,
             requestDate
           )
@@ -4603,6 +4618,7 @@ async function processEserviceArchiving(
           processDescriptorArchiving(
             descriptor,
             descriptorState.archivingSuspended,
+            body.gracePeriodDays,
             archivingScope.eservice,
             requestDate
           )
@@ -4642,15 +4658,14 @@ async function deleteInactiveDescriptorLogic(
 async function processDescriptorArchiving(
   descriptor: Descriptor,
   newState: DescriptorState,
+  gracePeriodDays: GracePeriodDays,
   scope: ArchivingScope = archivingScope.descriptor,
   requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(
-      requestDate,
-      config.gracePeriodArchivingEServiceDays
-    ),
+    ...calculateArchivableOn(requestDate, gracePeriodDays),
     scope,
+    gracePeriodDays,
   };
 
   return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);

@@ -1,5 +1,6 @@
 import { Key, KeyUse, keyUse } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { KeyV1Notification } from "./authorizationEventNotification.js";
 
 const toKeyUseV1Notification = (input: KeyUse): string =>

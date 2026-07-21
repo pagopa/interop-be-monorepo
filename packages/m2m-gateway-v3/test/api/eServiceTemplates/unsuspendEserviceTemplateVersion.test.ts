@@ -1,19 +1,20 @@
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
-import { missingMetadata } from "../../../src/model/errors.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 
 describe("POST /eserviceTemplates/:templateId/versions/:versionId/unsuspend router test", () => {
   const mockApiTemplateVersion = getMockedApiEserviceTemplateVersion({

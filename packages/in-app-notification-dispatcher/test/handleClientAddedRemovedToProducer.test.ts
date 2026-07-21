@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -20,8 +19,9 @@ import {
   purposeNotFound,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
-import { handleClientAddedRemovedToProducer } from "../src/handlers/authorizations/handleClientAddedRemovedToProducer.js";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 
+import { handleClientAddedRemovedToProducer } from "../src/handlers/authorizations/handleClientAddedRemovedToProducer.js";
 import {
   addOneEService,
   addOnePurpose,

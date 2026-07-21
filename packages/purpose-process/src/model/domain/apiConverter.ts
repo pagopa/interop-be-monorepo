@@ -1,4 +1,15 @@
-import { match } from "ts-pattern";
+import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  LocalizedText,
+  DataType,
+  dataType,
+  Dependency,
+  HideOptionConfig,
+  LabeledValue,
+  FormQuestionRules,
+  RiskAnalysisFormRules,
+  ValidationOption,
+} from "pagopa-interop-commons";
 import {
   Purpose,
   PurposeRiskAnalysisForm,
@@ -16,18 +27,8 @@ import {
   riskAnalysisSigningState,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  LocalizedText,
-  DataType,
-  dataType,
-  Dependency,
-  HideOptionConfig,
-  LabeledValue,
-  FormQuestionRules,
-  RiskAnalysisFormRules,
-  ValidationOption,
-} from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
+
 import { RemainingDailyCalls } from "./models.js";
 
 const singleAnswersToApiSingleAnswers = (

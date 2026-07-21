@@ -60,7 +60,7 @@ export default [
       "perfectionist/sort-enums": "off",
       "perfectionist/sort-exports": "off",
       "perfectionist/sort-heritage-clauses": "off",
-      "perfectionist/sort-imports": "off",
+      "perfectionist/sort-imports": "error",
       "perfectionist/sort-interfaces": "off",
       "perfectionist/sort-intersection-types": "off",
       "perfectionist/sort-jsx-props": "off",

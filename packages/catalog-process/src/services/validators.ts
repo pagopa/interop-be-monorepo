@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   InternalAuthData,
   M2MAdminAuthData,
@@ -29,6 +30,7 @@ import {
   eserviceMode,
   EServiceTemplateId,
   getEServiceAttributeDiscreteConfig,
+  GracePeriodDays,
   operationForbidden,
   RiskAnalysisId,
   technology,
@@ -41,6 +43,9 @@ import {
   type EServiceCertifiedAttribute,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
 import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
@@ -77,13 +82,13 @@ import {
   eserviceInDraftState,
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
+  gracePeriodDaysLowerThanDescriptor,
 } from "../model/domain/errors.js";
-import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -921,5 +926,30 @@ export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
   const latestDescriptor = getLatestDescriptor(eservice);
   if (latestDescriptor.state === descriptorState.archived) {
     throw eServiceAlreadyArchived(eservice.id);
+  }
+}
+
+export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
+  requestDate: Date,
+  eservice: EService,
+  gracePeriodDays: GracePeriodDays
+): void {
+  const { archivableOn: requestedArchivableOn } = calculateArchivableOn(
+    requestDate,
+    gracePeriodDays
+  );
+
+  for (const descriptor of eservice.descriptors) {
+    if (
+      descriptor.archivingSchedule &&
+      requestedArchivableOn < descriptor.archivingSchedule.archivableOn
+    ) {
+      throw gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        descriptor.id,
+        requestedArchivableOn,
+        descriptor.archivingSchedule.archivableOn
+      );
+    }
   }
 }

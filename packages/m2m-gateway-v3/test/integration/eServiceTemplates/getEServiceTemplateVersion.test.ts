@@ -1,9 +1,3 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  EServiceTemplateVersionId,
-  generateId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   eserviceTemplateApi,
   m2mGatewayApiV3,
@@ -14,13 +8,20 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
+  EServiceTemplateVersionId,
+  generateId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
+import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
 
 describe("getEServiceTemplateVersion", () => {
   const mockApiTemplateVersion1 = getMockedApiEserviceTemplateVersion({

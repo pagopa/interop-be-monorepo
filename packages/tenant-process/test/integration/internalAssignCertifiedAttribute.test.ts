@@ -17,6 +17,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
