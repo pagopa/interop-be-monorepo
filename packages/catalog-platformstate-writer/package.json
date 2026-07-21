@@ -7,7 +7,7 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "vitest",
+    "test": "pnpm -w test:new --project pagopa-interop-catalog-platformstate-writer",
     "test:it": "vitest integration",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
