@@ -19,6 +19,7 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
+
 import {
   aggregateEservice,
   aggregateEserviceArray,

@@ -1,7 +1,8 @@
 import { CorrelationId, genericInternalError } from "pagopa-interop-models";
+import { ITask } from "pg-promise";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { ITask } from "pg-promise";
+
 import { DB } from "./db.js";
 import * as sql from "./sql/index.js";
 

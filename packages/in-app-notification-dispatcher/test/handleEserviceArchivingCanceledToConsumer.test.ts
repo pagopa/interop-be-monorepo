@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockAgreement,
   getMockContext,
@@ -27,6 +26,8 @@ import {
   getNotificationRecipients,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
+
 import { handleEserviceArchivingCanceledToConsumer } from "../src/handlers/eservices/handleEserviceArchivingCanceledToConsumer.js";
 import {
   addOneAgreement,

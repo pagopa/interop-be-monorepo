@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { genericLogger } from "pagopa-interop-commons";
 import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+  getMockTokenGenStatesConsumerClient,
+  getMockAgreement,
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+  writeTokenGenStatesConsumerClient,
+  getMockPlatformStatesAgreementEntry,
+  writePlatformCatalogEntry,
+  readAllTokenGenStatesItems,
+  writePlatformAgreementEntry,
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   AgreementActivatedV2,
@@ -36,19 +38,18 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import {
-  getMockTokenGenStatesConsumerClient,
-  getMockAgreement,
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
-  writeTokenGenStatesConsumerClient,
-  getMockPlatformStatesAgreementEntry,
-  writePlatformCatalogEntry,
-  readAllTokenGenStatesItems,
-  writePlatformAgreementEntry,
-} from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
-import { readAgreementEntry } from "../src/utils.js";
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
+import { readAgreementEntry } from "../src/utils.js";
 import { dynamoDBClient } from "./utils.js";
 
 describe("integration tests V2 events", async () => {

@@ -10,6 +10,7 @@ import {
   primaryKey,
   index,
 } from "drizzle-orm/pg-core";
+
 import {
   readmodelAgreement,
   readmodelAttribute,

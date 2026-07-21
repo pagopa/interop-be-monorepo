@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   InternalAuthData,
   M2MAdminAuthData,
@@ -42,6 +43,9 @@ import {
   type EServiceCertifiedAttribute,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
 import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
@@ -80,12 +84,10 @@ import {
   eServiceAlreadyArchived,
   gracePeriodDaysLowerThanDescriptor,
 } from "../model/domain/errors.js";
-import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
   getLatestActiveDescriptor,
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(

@@ -71,6 +71,9 @@ import {
   GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
 import { config } from "../config/config.js";
 import {
   agreementApprovalPolicyToApiAgreementApprovalPolicy,
@@ -80,6 +83,10 @@ import {
   eServiceModeToApiEServiceMode,
   technologyToApiTechnology,
 } from "../model/domain/apiConverter.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../model/domain/constants.js";
 import {
   attributeNotFound,
   audienceCannotBeEmpty,
@@ -177,6 +184,7 @@ import {
   toCreateEventEServiceArchivingCompleted,
   toCreateEventMaintenanceEServiceDescriptorUnarchived,
 } from "../model/domain/toEvent.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestDescriptor,
   getPreviousDescriptorByStates,
@@ -231,12 +239,6 @@ import {
   assertEServiceIsNotAlreadyArchived,
   assertEServiceGracePeriodIsNotLowerThanDescriptors,
 } from "./validators.js";
-import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { calculateArchivableOn } from "../utilities/dateCalculator.js";
-import {
-  DEFAULT_DAILY_CALLS_PER_CONSUMER,
-  DEFAULT_DAILY_CALLS_TOTAL,
-} from "../model/domain/constants.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,

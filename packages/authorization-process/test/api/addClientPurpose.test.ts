@@ -1,5 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockClient,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+  getMockPurpose,
+  getMockPurposeVersion,
+  getMockWithMetadata,
+  mockTokenOrganizationId,
+} from "pagopa-interop-commons-test";
 import {
   Client,
   ClientId,
@@ -12,20 +23,9 @@ import {
   purposeVersionState,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockClient,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockWithMetadata,
-  mockTokenOrganizationId,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   clientKindNotAllowed,
   clientNotFound,
@@ -39,6 +39,7 @@ import {
   purposeNotFound,
 } from "../../src/model/domain/errors.js";
 import { testToFullClient } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /clients/{clientId}/purposes authorization test", () => {
   const mockDescriptor: Descriptor = {

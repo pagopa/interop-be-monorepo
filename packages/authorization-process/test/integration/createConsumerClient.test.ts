@@ -1,4 +1,10 @@
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import {
   Client,
   ClientAddedV2,
@@ -9,15 +15,10 @@ import {
   toClientV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { authorizationService, postgresDB } from "../integrationUtils.js";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
 import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
+import { authorizationService, postgresDB } from "../integrationUtils.js";
 
 describe("createConsumerClient", () => {
   const organizationId: TenantId = generateId();

@@ -4,15 +4,6 @@ import {
   getMockEService,
 } from "pagopa-interop-commons-test";
 import {
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-  afterEach,
-  beforeEach,
-} from "vitest";
-import {
   Descriptor,
   DescriptorState,
   EService,
@@ -23,11 +14,21 @@ import {
   gracePeriodDays,
 } from "pagopa-interop-models";
 import {
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+  afterEach,
+  beforeEach,
+} from "vitest";
+
+import { ArchivableDescriptorRef } from "../src/models/models.js";
+import {
   CatalogProcessZodiosClient,
   catalogProcessClientBuilder,
 } from "../src/services/catalogProcessClient.js";
 import { addOneEService, readModelService, toUTCMidnight } from "./utils.js";
-import { ArchivableDescriptorRef } from "../src/models/models.js";
 
 describe("EService Descriptors Scheduled Archiver Queries", async () => {
   let catalogProcessClient: CatalogProcessZodiosClient;

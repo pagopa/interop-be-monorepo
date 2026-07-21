@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { addDays } from "date-fns";
-import { describe, it, expect, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -21,6 +20,8 @@ import {
   schedulableEventType,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
+import { describe, it, expect, vi } from "vitest";
+
 import { handleEserviceArchivingScheduledReminderInApp } from "../../src/handlers/eservices/handleEserviceArchivingScheduledReminderInApp.js";
 
 const makeDescriptor = (

@@ -1,23 +1,24 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurposeTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import request from "supertest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateId,
   PurposeTemplateId,
   purposeTemplateState,
 } from "pagopa-interop-models";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
   purposeTemplateStateConflict,
 } from "../../src/model/domain/errors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /purposeTemplates/{id}/archive", () => {
   const purposeTemplate = getMockPurposeTemplate();

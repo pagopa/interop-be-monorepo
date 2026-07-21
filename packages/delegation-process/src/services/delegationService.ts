@@ -1,3 +1,14 @@
+import { delegationApi } from "pagopa-interop-api-clients";
+import {
+  AppContext,
+  AuthData,
+  DB,
+  eventRepository,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   Delegation,
   DelegationContractDocument,
@@ -17,19 +28,8 @@ import {
   WithMetadata,
   DelegationSignedContractDocument,
 } from "pagopa-interop-models";
-
-import {
-  AppContext,
-  AuthData,
-  DB,
-  eventRepository,
-  M2MAdminAuthData,
-  M2MAuthData,
-  UIAuthData,
-  WithLogger,
-} from "pagopa-interop-commons";
 import { match } from "ts-pattern";
-import { delegationApi } from "pagopa-interop-api-clients";
+
 import {
   delegationNotFound,
   eserviceNotFound,
@@ -48,6 +48,7 @@ import {
   toCreateEventDelegationContractGenerated,
   toCreateEventDelegationSignedContractGenerated,
 } from "../model/domain/toEvent.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   activeDelegationStates,
   assertDelegationNotExists,
@@ -62,7 +63,6 @@ import {
   assertRequesterIsDelegateOrDelegator,
   assertTenantAllowedToReceiveDelegation,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveDelegationById = async (
   {

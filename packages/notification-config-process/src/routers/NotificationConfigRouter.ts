@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
@@ -8,15 +9,15 @@ import {
   authRole,
   validateAuthorization,
 } from "pagopa-interop-commons";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { NotificationConfigService } from "../services/notificationConfigService.js";
-import { makeApiProblem } from "../model/domain/errors.js";
+
 import {
   apiUserRoleToUserRole,
   tenantNotificationConfigToApiTenantNotificationConfig,
   userNotificationConfigToApiUserNotificationConfig,
 } from "../model/domain/apiConverter.js";
+import { makeApiProblem } from "../model/domain/errors.js";
+import { NotificationConfigService } from "../services/notificationConfigService.js";
 import {
   createTenantDefaultNotificationConfigErrorMapper,
   deleteTenantNotificationConfigErrorMapper,

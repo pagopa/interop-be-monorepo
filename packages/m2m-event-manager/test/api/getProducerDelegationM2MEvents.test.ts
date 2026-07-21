@@ -1,18 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
 import { m2mEventApi } from "pagopa-interop-api-clients";
-import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   ProducerDelegationM2MEventType,
   generateId,
 } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toApiProducerDelegationM2MEventType } from "../../src/model/delegationM2MEventApiConverter.js";
 import {
   generateM2MEventId,
   getMockedProducerDelegationM2MEvent,
 } from "../mockUtils.js";
 import { api, m2mEventService } from "../vitest.api.setup.js";
-import { toApiProducerDelegationM2MEventType } from "../../src/model/delegationM2MEventApiConverter.js";
 
 describe("API /events/producerDelegations test", () => {
   const mockProducerDelegationM2MEvents = ProducerDelegationM2MEventType.options

@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -27,8 +26,9 @@ import {
   tenantNotFound,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
-import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 
+import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import {
   addOneAgreement,
   addOneEService,

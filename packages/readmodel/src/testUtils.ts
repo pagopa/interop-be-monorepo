@@ -1,3 +1,4 @@
+import { and, eq, lte } from "drizzle-orm";
 import {
   Agreement,
   Attribute,
@@ -93,28 +94,28 @@ import {
   tenantRemoteIdInReadmodelTenant,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, lte } from "drizzle-orm";
-import {
-  splitTenantNotificationConfigIntoObjectsSQL,
-  splitUserNotificationConfigIntoObjectsSQL,
-} from "./notification-config/splitters.js";
+
 import { splitAgreementIntoObjectsSQL } from "./agreement/splitters.js";
-import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 import { splitAttributeIntoObjectsSQL } from "./attribute/splitters.js";
 import { splitEserviceIntoObjectsSQL } from "./catalog/splitters.js";
 import { splitClientJWKKeyIntoObjectsSQL } from "./client-jwk-key/splitters.js";
 import { splitClientIntoObjectsSQL } from "./client/splitters.js";
 import { splitDelegationIntoObjectsSQL } from "./delegation/splitters.js";
 import { splitEServiceTemplateIntoObjectsSQL } from "./eservice-template/splitters.js";
+import {
+  splitTenantNotificationConfigIntoObjectsSQL,
+  splitUserNotificationConfigIntoObjectsSQL,
+} from "./notification-config/splitters.js";
 import { splitProducerJWKKeyIntoObjectsSQL } from "./producer-jwk-key/splitters.js";
 import { splitProducerKeychainIntoObjectsSQL } from "./producer-keychain/splitters.js";
-import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
-import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
 import {
   splitPurposeTemplateIntoObjectsSQL,
   toEServiceTemplateVersionPurposeTemplateSQL,
   toPurposeTemplateEServiceDescriptorSQL,
 } from "./purpose-template/splitters.js";
+import { splitPurposeIntoObjectsSQL } from "./purpose/splitters.js";
+import { splitTenantIntoObjectsSQL } from "./tenant/splitters.js";
+import { checkMetadataVersion, checkMetadataVersionByFilter } from "./utils.js";
 
 export const insertTenantNotificationConfig = async (
   readModelDB: DrizzleReturnType,

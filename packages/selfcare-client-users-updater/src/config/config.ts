@@ -1,10 +1,10 @@
-import { z } from "zod";
 import {
   KafkaConsumerConfig,
   ReadModelSQLDbConfig,
   SelfcareConsumerConfig,
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
+import { z } from "zod";
 
 const SelfcareClientUsersUpdaterConsumerConfig = KafkaConsumerConfig.and(
   TokenGenerationConfig

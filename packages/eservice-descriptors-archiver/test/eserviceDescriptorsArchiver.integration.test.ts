@@ -1,19 +1,10 @@
 /* eslint-disable functional/no-let */
+import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockDescriptorPublished,
   getMockEService,
 } from "pagopa-interop-commons-test";
-import {
-  beforeAll,
-  describe,
-  expect,
-  it,
-  vi,
-  afterEach,
-  beforeEach,
-} from "vitest";
-import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   CorrelationId,
   DescriptorState,
@@ -28,10 +19,20 @@ import {
   gracePeriodDays,
 } from "pagopa-interop-models";
 import {
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+  afterEach,
+  beforeEach,
+} from "vitest";
+
+import { archiveDescriptorForArchivedAgreement } from "../src/services/archiveDescriptorProcessor.js";
+import {
   CatalogProcessZodiosClient,
   catalogProcessClientBuilder,
 } from "../src/services/catalogProcessClient.js";
-import { archiveDescriptorForArchivedAgreement } from "../src/services/archiveDescriptorProcessor.js";
 import { addOneAgreement, addOneEService, readModelService } from "./utils.js";
 
 describe("EService Descriptors Archiver", async () => {

@@ -22,6 +22,7 @@ import {
   RiskAnalysis,
   RiskAnalysisForm,
 } from "../risk-analysis/riskAnalysis.js";
+import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 import { bigIntToDate } from "../utils.js";
 import {
   AgreementApprovalPolicy,
@@ -47,7 +48,6 @@ import {
   archivingScope,
   GracePeriodDays,
 } from "./eservice.js";
-import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 
 export const fromAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicyV2
