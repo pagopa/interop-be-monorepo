@@ -2,7 +2,7 @@ import {
   eserviceTemplateApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
-import { getMockedApiEServiceTemplate } from "pagopa-interop-commons-test/index.js";
+import { getMockedApiEServiceTemplate } from "pagopa-interop-commons-test";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
