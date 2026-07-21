@@ -8,7 +8,6 @@
   "type": "module",
   "scripts": {
     "test": "pnpm -w test:new --project pagopa-interop-catalog-platformstate-writer",
-    "test:it": "vitest integration",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
