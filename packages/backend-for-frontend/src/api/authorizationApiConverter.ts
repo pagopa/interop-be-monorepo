@@ -1,6 +1,7 @@
 import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
-import { CorrelationId } from "pagopa-interop-models";
 import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
+import { CorrelationId } from "pagopa-interop-models";
+
 import { getSelfcareCompactUserById } from "../services/selfcareService.js";
 import {
   assertClientVisibilityIsFull,

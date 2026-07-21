@@ -1,6 +1,7 @@
-import { z } from "zod";
 import { match } from "ts-pattern";
+import { z } from "zod";
 
+import { EventEnvelope } from "../events/events.js";
 import {
   EServiceTemplateVersionActivatedV2,
   EServiceTemplateAddedV2,
@@ -32,7 +33,6 @@ import {
   EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2,
 } from "../gen/v2/eservice-template/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 
 export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
   z.object({

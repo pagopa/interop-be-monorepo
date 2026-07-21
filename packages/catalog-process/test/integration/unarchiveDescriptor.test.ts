@@ -13,12 +13,13 @@ import {
   toEServiceDescriptorStateV2,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
+
+import { notValidDescriptorState } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import { notValidDescriptorState } from "../../src/model/domain/errors.js";
 
 describe("unarchive descriptor", () => {
   const mockEService = getMockEService();

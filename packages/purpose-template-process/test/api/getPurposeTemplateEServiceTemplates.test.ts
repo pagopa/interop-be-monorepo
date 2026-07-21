@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { authRole, AuthRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
   EServiceTemplateVersionPurposeTemplate,
@@ -6,13 +8,12 @@ import {
   ListResult,
   PurposeTemplateId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import request from "supertest";
-import { authRole, AuthRole } from "pagopa-interop-commons";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { eserviceTemplateVersionPurposeTemplateToApiEServiceTemplateVersionPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 import { purposeTemplateNotFound } from "../../src/model/domain/errors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /purposeTemplates/:id/eserviceTemplates", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();

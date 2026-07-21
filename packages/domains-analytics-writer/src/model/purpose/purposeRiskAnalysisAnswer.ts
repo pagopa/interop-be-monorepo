@@ -1,6 +1,6 @@
-import { z } from "zod";
 import { createSelectSchema } from "drizzle-zod";
 import { purposeRiskAnalysisAnswerInReadmodelPurpose } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const PurposeRiskAnalysisAnswerSchema = createSelectSchema(
   purposeRiskAnalysisAnswerInReadmodelPurpose

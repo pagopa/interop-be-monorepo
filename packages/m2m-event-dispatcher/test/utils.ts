@@ -15,7 +15,6 @@ import {
   purposeTemplateInM2MEvent,
   tenantInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
-import { afterEach, inject } from "vitest";
 import {
   AgreementM2MEvent,
   AttributeM2MEvent,
@@ -41,6 +40,8 @@ import {
   upsertDelegation,
   upsertEService,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { m2mEventWriterServiceSQLBuilder } from "../src/services/m2mEventWriterServiceSQL.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
