@@ -189,6 +189,19 @@ describe("POST /authorization-server/token.oauth2", async () => {
     expect(res.status).toBe(400);
   });
 
+  it("Should return 400 with a descriptive message for an unsupported charset", async () => {
+    const res = await request(api)
+      .post("/authorization-server/token.oauth2")
+      .set(
+        "Content-Type",
+        "application/x-www-form-urlencoded; charset=ISO-8859-1"
+      )
+      .send("client_id=foo");
+
+    expect(res.status).toBe(400);
+    expect(res.body.detail).toBe('unsupported charset "ISO-8859-1"');
+  });
+
   it.each([
     {
       error: tokenGenerationStatesEntryNotFound(tokenClientKidPK),

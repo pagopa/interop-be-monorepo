@@ -94,6 +94,28 @@ export function errorsToApiProblemsMiddleware(
     return;
   }
 
+  // body-parser raises this when the request declares a charset it cannot
+  // decode (e.g. `Content-Type: ...; charset=ISO-8859-1`)
+  const parsedCharsetError = z
+    .object({
+      type: z.literal("charset.unsupported"),
+      message: z.string(),
+    })
+    .safeParse(error);
+
+  if (parsedCharsetError.success) {
+    res
+      .status(constants.HTTP_STATUS_BAD_REQUEST)
+      .send(
+        makeApiProblem(
+          badRequestError(parsedCharsetError.data.message),
+          () => constants.HTTP_STATUS_BAD_REQUEST,
+          ctx
+        )
+      );
+    return;
+  }
+
   res
     .status(constants.HTTP_STATUS_INTERNAL_SERVER_ERROR)
     .send(
