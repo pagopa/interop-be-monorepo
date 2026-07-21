@@ -2,8 +2,6 @@ name: PR conflict check
 
 on:
   push:
-  pull_request_target:
-    types: [opened, synchronize]
 
 permissions:
   contents: read
@@ -18,14 +16,22 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
+            const pushedBranch = context.ref.replace('refs/heads/', '');
+
             const pulls = await github.rest.pulls.list({
               owner,
               repo,
               state: 'open',
+              base: pushedBranch,
               per_page: 100,
             });
 
-            for (const pr of pulls.data) {
+            const nonDraftPulls = pulls.data.filter(pr => !pr.draft);
+
+            for (const pr of nonDraftPulls) {
+              // Wait briefly for GitHub to compute mergeability
+              await new Promise(resolve => setTimeout(resolve, 5000));
+
               const { data: detail } = await github.rest.pulls.get({
                 owner,
                 repo,
@@ -45,7 +51,7 @@ jobs:
                     owner,
                     repo,
                     issue_number: pr.number,
-                    body: `${marker}\n⚠️ @${pr.user.login} This PR now has merge conflicts with \`${detail.base.ref}\`. Please rebase or merge the target branch to resolve them.`,
+                    body: `${marker}\n⚠️ @${pr.user.login} This PR now has merge conflicts with \`${pushedBranch}\`. Please rebase or merge the target branch to resolve them.`,
                   });
                 }
               }
