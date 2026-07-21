@@ -1,5 +1,6 @@
 import { tenantKind, TenantKind } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
@@ -15,13 +16,13 @@ import {
   expiredRulesVersionError,
   incompatiblePersonalDataError,
   missingExpectedFieldError,
+  missingTenantKindError,
   rulesVersionNotFoundError,
   unexpectedDependencyValueError,
   unexpectedFieldError,
   unexpectedFieldFormatError,
   unexpectedFieldValueError,
 } from "./riskAnalysisValidationErrors.js";
-
 import {
   FormQuestionRules,
   RiskAnalysisFormRules,
@@ -36,10 +37,15 @@ import {
 export function validateRiskAnalysis(
   riskAnalysisForm: RiskAnalysisFormToValidate,
   schemaOnlyValidation: boolean,
-  tenantKind: TenantKind,
+  fallbackTenantKind: TenantKind | undefined,
   dateForExpirationValidation: Date,
   personalDataInEService: boolean | undefined
 ): RiskAnalysisValidationResult<RiskAnalysisValidatedForm> {
+  const tenantKind = riskAnalysisForm.tenantKind ?? fallbackTenantKind;
+
+  if (tenantKind === undefined) {
+    throw missingTenantKindError();
+  }
   const formRulesForValidation = getFormRulesByVersion(
     tenantKind,
     riskAnalysisForm.version
@@ -80,7 +86,7 @@ export function validateRiskAnalysis(
     );
 
     const { singleAnswers, multiAnswers } = validatedAnswers.reduce<
-      Omit<RiskAnalysisValidatedForm, "version">
+      Omit<RiskAnalysisValidatedForm, "version" | "tenantKind">
     >(
       (validatedForm, answer) =>
         match(answer)
@@ -119,6 +125,7 @@ export function validateRiskAnalysis(
       version: formRulesForValidation.version,
       singleAnswers,
       multiAnswers,
+      tenantKind,
     });
   }
 }

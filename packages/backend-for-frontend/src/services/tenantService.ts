@@ -4,24 +4,33 @@ import {
   tenantApi,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { isDefined, Logger, WithLogger } from "pagopa-interop-commons";
+import {
+  isDefined,
+  isFeatureFlagEnabled,
+  Logger,
+  WithLogger,
+} from "pagopa-interop-commons";
 import {
   AgreementId,
   AttributeId,
   CorrelationId,
   TenantId,
 } from "pagopa-interop-models";
-import { BffAppContext } from "../utilities/context.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
+
 import {
   RegistryAttributesMap,
+  tenantAttributeKind,
   toBffApiTenant,
   toBffApiCompactTenant,
   toBffApiRequesterCertifiedAttributes,
   toBffApiCertifiedTenantAttributes,
+  toBffApiCertifiedDiscreteTenantAttribute,
   toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
 } from "../api/tenantApiConverter.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
+import { BffAppContext } from "../utilities/context.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(
@@ -96,8 +105,13 @@ export function tenantServiceBuilder(
         .map((v) => v.verified)
         .filter(isDefined);
 
+      const certifiedDiscreteAttributes = tenant.attributes
+        .map((v) => v.certifiedDiscrete)
+        .filter(isDefined);
+
       const allAttributeIds = [
         ...certifiedAttributes,
+        ...certifiedDiscreteAttributes,
         ...declaredAttributes,
         ...verifiedAttributes,
       ].map((v) => v.id);
@@ -245,15 +259,20 @@ export function tenantServiceBuilder(
       const certifiedAttributes = tenant.attributes
         .map((v) => v.certified)
         .filter(isDefined);
+      const certifiedDiscreteAttributes = tenant.attributes
+        .map((v) => v.certifiedDiscrete)
+        .filter(isDefined);
 
       const registryAttributesMap = await getRegistryAttributesMap(
-        certifiedAttributes.map((v) => v.id),
+        [...certifiedAttributes, ...certifiedDiscreteAttributes].map(
+          (v) => v.id
+        ),
         attributeRegistryProcessClient,
         headers
       );
 
       const attributes = toBffApiCertifiedTenantAttributes(
-        certifiedAttributes,
+        [...certifiedAttributes, ...certifiedDiscreteAttributes],
         registryAttributesMap
       );
 
@@ -326,6 +345,22 @@ export function tenantServiceBuilder(
         headers,
       });
     },
+    async addCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      seed: bffApi.CertifiedDiscreteTenantAttributeSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Adding certified discrete attribute ${seed.id} to tenant ${tenantId}`
+      );
+      await tenantProcessClient.tenantAttribute.addCertifiedDiscreteAttribute(
+        seed,
+        {
+          params: { tenantId },
+          headers,
+        }
+      );
+    },
     async addDeclaredAttribute(
       seed: bffApi.DeclaredTenantAttributeSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -393,6 +428,22 @@ export function tenantServiceBuilder(
         }
       );
     },
+    async revokeCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Revoking certified discrete attribute ${attributeId} for tenant ${tenantId}`
+      );
+      await tenantProcessClient.tenantAttribute.revokeCertifiedDiscreteAttributeById(
+        undefined,
+        {
+          params: { tenantId, attributeId },
+          headers,
+        }
+      );
+    },
     async revokeVerifiedAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
@@ -444,6 +495,32 @@ export function tenantServiceBuilder(
         { headers }
       );
     },
+    async isTenantAllowedToDelegation(
+      tenantId: TenantId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.IsTenantAllowedToDelegation> {
+      logger.info(
+        `Checking if tenant ${tenantId} is allowed to use delegations`
+      );
+
+      if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
+        return { isAllowed: true };
+      }
+
+      const tenant = await tenantProcessClient.tenant.getTenant({
+        params: { id: tenantId },
+        headers,
+      });
+
+      const isAllowed = (tenant.attributes ?? []).some(
+        (attr) =>
+          attr.certified &&
+          attr.certified.id === config.delegationsAllowedAttributeId &&
+          !attr.certified.revocationTimestamp
+      );
+
+      return { isAllowed };
+    },
   };
 }
 
@@ -459,8 +536,13 @@ export function enhanceTenantAttributes(
     .map((attr) => getDeclaredTenantAttribute(attr, registryAttributesMap))
     .filter(isDefined);
 
-  const certified = tenantAttributes
+  const certifiedAttributes = tenantAttributes
     .map((attr) => getCertifiedTenantAttribute(attr, registryAttributesMap))
+    .filter(isDefined);
+  const certifiedDiscreteAttributes = tenantAttributes
+    .map((attr) =>
+      getCertifiedDiscreteTenantAttribute(attr, registryAttributesMap)
+    )
     .filter(isDefined);
 
   const verified = tenantAttributes
@@ -468,7 +550,7 @@ export function enhanceTenantAttributes(
     .filter(isDefined);
 
   return {
-    certified,
+    certified: [...certifiedAttributes, ...certifiedDiscreteAttributes],
     declared,
     verified,
   };
@@ -487,6 +569,7 @@ function getDeclaredTenantAttribute(
   }
 
   return {
+    kind: tenantAttributeKind.declared,
     id: attribute.declared.id,
     name: registryAttribute.name,
     description: registryAttribute.description,
@@ -509,12 +592,25 @@ function getCertifiedTenantAttribute(
   }
 
   return {
+    kind: tenantAttributeKind.certified,
     id: attribute.certified.id,
     name: registryAttribute.name,
     description: registryAttribute.description,
     assignmentTimestamp: attribute.certified.assignmentTimestamp,
     revocationTimestamp: attribute.certified.revocationTimestamp,
   };
+}
+
+function getCertifiedDiscreteTenantAttribute(
+  attribute: tenantApi.TenantAttribute,
+  registryAttributeMap: Map<string, attributeRegistryApi.Attribute>
+): bffApi.CertifiedDiscreteTenantAttribute | undefined {
+  return attribute.certifiedDiscrete
+    ? toBffApiCertifiedDiscreteTenantAttribute(
+        attribute.certifiedDiscrete,
+        registryAttributeMap
+      )
+    : undefined;
 }
 
 function toApiVerifiedTenantAttribute(
@@ -530,6 +626,7 @@ function toApiVerifiedTenantAttribute(
   }
 
   return {
+    kind: tenantAttributeKind.verified,
     id: attribute.verified.id,
     name: registryAttribute.name,
     description: registryAttribute.description,

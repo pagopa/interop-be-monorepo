@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplate,
@@ -31,9 +30,11 @@ import {
   EServiceTemplateDraftVersionUpdatedV2,
   eserviceTemplateVersionState,
   EServiceTemplateNameUpdatedV2,
-  EServiceTemplateRiskAnalysis,
+  RiskAnalysis,
   tenantKind,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   eserviceTemplateReadModelService,
@@ -806,7 +807,7 @@ describe("database test", async () => {
         1
       );
 
-      const updatedRiskAnalysis: EServiceTemplateRiskAnalysis = {
+      const updatedRiskAnalysis: RiskAnalysis = {
         ...mockRiskAnalysis,
         riskAnalysisForm: {
           ...mockRiskAnalysis.riskAnalysisForm,

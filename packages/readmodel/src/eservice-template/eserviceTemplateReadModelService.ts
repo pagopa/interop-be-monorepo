@@ -1,3 +1,4 @@
+import { eq, SQL } from "drizzle-orm";
 import {
   EServiceTemplate,
   EServiceTemplateId,
@@ -9,12 +10,13 @@ import {
   eserviceTemplateInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+  eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
   eserviceTemplateVersionAttributeInReadmodelEserviceTemplate,
   eserviceTemplateVersionDocumentInReadmodelEserviceTemplate,
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
-import { eq, SQL } from "drizzle-orm";
+
 import {
   aggregateEServiceTemplate,
   toEServiceTemplateAggregator,
@@ -41,6 +43,7 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
         eservice template   ->1 version ->2 interface
                                 version ->3 document
                                 version ->4 attribute
+                                version ->7 async exchange properties
                             ->5 risk analysis ->6 answer
       */
       const queryResult = await db
@@ -55,6 +58,8 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           riskAnalysis: eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
           riskAnalysisAnswer:
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
+          asyncExchangeProperties:
+            eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
         })
         .from(eserviceTemplateInReadmodelEserviceTemplate)
         .where(filter)
@@ -104,6 +109,14 @@ export function eserviceTemplateReadModelServiceBuilder(db: DrizzleReturnType) {
           eq(
             eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.riskAnalysisFormId,
             eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId
+          )
+        )
+        .leftJoin(
+          // 7
+          eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
+          eq(
+            eserviceTemplateVersionInReadmodelEserviceTemplate.id,
+            eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate.versionId
           )
         );
 

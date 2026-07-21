@@ -30,13 +30,18 @@ import {
   EServiceDocumentId,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../../src/model/domain/constants.js";
 import {
   eServiceNotFound,
   eServiceNotAnInstance,
   eServiceTemplateNotFound,
   eServiceAlreadyUpgraded,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   fileManager,
   addOneEService,
@@ -187,11 +192,15 @@ describe("upgrade eservice template instance", () => {
       state: descriptorState.draft,
       voucherLifespan: secondTemplateVersion.voucherLifespan,
       audience: [],
-      dailyCallsPerConsumer: secondTemplateVersion.dailyCallsPerConsumer ?? 1,
-      dailyCallsTotal: secondTemplateVersion.dailyCallsTotal ?? 1,
+      dailyCallsPerConsumer:
+        secondTemplateVersion.dailyCallsPerConsumer ??
+        DEFAULT_DAILY_CALLS_PER_CONSUMER,
+      dailyCallsTotal:
+        secondTemplateVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
       agreementApprovalPolicy: secondTemplateVersion.agreementApprovalPolicy,
       attributes: secondTemplateVersion.attributes,
       serverUrls: [],
+      serverUrlsDescriptions: [],
       publishedAt: undefined,
       suspendedAt: undefined,
       deprecatedAt: undefined,
@@ -203,7 +212,10 @@ describe("upgrade eservice template instance", () => {
       ...eservice,
       descriptors: [...eservice.descriptors, expectedDescriptor],
     };
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: expectedDescriptor.id,
+      eservice: toEServiceV2(expectedEService),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -366,11 +378,15 @@ describe("upgrade eservice template instance", () => {
       state: descriptorState.draft,
       voucherLifespan: secondTemplateVersion.voucherLifespan,
       audience: [],
-      dailyCallsPerConsumer: secondTemplateVersion.dailyCallsPerConsumer ?? 1,
-      dailyCallsTotal: secondTemplateVersion.dailyCallsTotal ?? 1,
+      dailyCallsPerConsumer:
+        secondTemplateVersion.dailyCallsPerConsumer ??
+        DEFAULT_DAILY_CALLS_PER_CONSUMER,
+      dailyCallsTotal:
+        secondTemplateVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
       agreementApprovalPolicy: secondTemplateVersion.agreementApprovalPolicy,
       attributes: secondTemplateVersion.attributes,
       serverUrls: [],
+      serverUrlsDescriptions: [],
       publishedAt: undefined,
       suspendedAt: undefined,
       deprecatedAt: undefined,
@@ -382,7 +398,10 @@ describe("upgrade eservice template instance", () => {
       ...eservice,
       descriptors: [...eservice.descriptors, expectedDescriptor],
     };
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(writtenPayload).toEqual({
+      descriptorId: expectedDescriptor.id,
+      eservice: toEServiceV2(expectedEService),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,

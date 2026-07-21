@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -93,6 +94,10 @@ export const addCertifiedAttributeErrorMapper = (
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("attributeDoesNotBelongToCertifier", () => HTTP_STATUS_FORBIDDEN)
     .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "certifiedDiscreteAttributeAlreadyAssigned",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addDeclaredAttributeErrorMapper = (
@@ -145,6 +150,14 @@ export const maintenanceTenantDeletedErrorMapper = (
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const maintenanceTenantUpdatedErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("invalidTenantFeature", () => HTTP_STATUS_BAD_REQUEST)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const maintenanceTenantDeleteRemoteIdErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -283,6 +296,48 @@ export const getTenantVerifiedAttributeRevokersErrorMapper = (
       "tenantNotFound",
       "attributeNotFound",
       "attributeNotFoundInTenant",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalAddCertifiedDiscreteAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "tenantNotFoundByRemoteId",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "certifiedDiscreteAttributeAlreadyAssigned",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalUpdateCertifiedDiscreteAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFound",
+      "attributeNotFoundInTenant",
+      "tenantNotFoundByRemoteId",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalRevokeCertifiedDiscreteAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "tenantNotFound",
+      "attributeNotFoundInTenant",
+      "attributeNotFound",
+      "tenantNotFoundByRemoteId",
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

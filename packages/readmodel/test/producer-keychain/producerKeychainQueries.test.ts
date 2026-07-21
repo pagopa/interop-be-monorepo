@@ -4,6 +4,7 @@ import {
 } from "pagopa-interop-commons-test";
 import { generateId, ProducerKeychain } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import { upsertProducerKeychain } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { producerKeychainReadModelService } from "./producerKeychainUtils.js";

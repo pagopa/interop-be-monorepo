@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { CatalogItemEventNotification } from "./catalogItemEventNotification.js";
 
@@ -24,6 +25,10 @@ const eventV2TypeMapper = (
       "EServicePersonalDataFlagUpdatedAfterPublication",
       "EServicePersonalDataFlagUpdatedByTemplateUpdate",
       "EServiceInstanceLabelUpdated",
+      "EServiceArchivingScheduled",
+      "EServiceArchivingCanceled",
+      "EServiceArchivingCompleted",
+      "MaintenanceEServicePersonalDataFlagReset",
       () => "catalog_item_updated"
     )
     .with(
@@ -48,24 +53,32 @@ const eventV2TypeMapper = (
       "EServiceDescriptorApprovedByDelegator",
       "EServiceDescriptorRejectedByDelegator",
       "EServiceDescriptorAttributesUpdated",
+      "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
       "EServiceDescriptorAttributesUpdatedByTemplateUpdate",
       "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
+      "EServiceDescriptorArchivingScheduled",
+      "EServiceDescriptorArchivingCanceled",
+      "EServiceDescriptorArchivingCompleted",
+      "MaintenanceEServiceDescriptorUnarchived",
       () => "catalog_item_descriptor_updated"
     )
     .with(
       "EServiceDescriptorInterfaceAdded",
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
       "EServiceDescriptorDocumentAdded",
       "EServiceDescriptorDocumentAddedByTemplateUpdate",
       () => "catalog_item_document_added"
     )
     .with(
       "EServiceDescriptorInterfaceUpdated",
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
       "EServiceDescriptorDocumentUpdated",
       "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
       () => "catalog_item_document_updated"
     )
     .with(
       "EServiceDescriptorInterfaceDeleted",
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
       "EServiceDescriptorDocumentDeleted",
       "EServiceDescriptorDocumentDeletedByTemplateUpdate",
       () => "catalog_item_document_deleted"
@@ -73,6 +86,7 @@ const eventV2TypeMapper = (
     .with("EServiceRiskAnalysisAdded", () => "catalog_item_risk_analysis_added")
     .with(
       "EServiceRiskAnalysisUpdated",
+      "MaintenanceEServiceRiskAnalysisSetTenantKind",
       () => "catalog_item_risk_analysis_updated"
     )
     .with(

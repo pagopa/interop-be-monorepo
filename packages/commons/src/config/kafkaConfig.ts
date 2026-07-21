@@ -1,5 +1,6 @@
 import { logLevel } from "kafkajs";
 import { z } from "zod";
+
 import { AWSConfig } from "./awsConfig.js";
 
 export const KafkaConfig = z

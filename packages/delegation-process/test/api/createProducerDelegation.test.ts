@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { delegationApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockDelegation,
@@ -14,21 +15,20 @@ import {
   delegationKind,
   generateId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { api, delegationService } from "../vitest.api.setup.js";
 import { delegationToApiDelegation } from "../../src/model/domain/apiConverter.js";
 import {
   delegationAlreadyExists,
   delegatorAndDelegateSameIdError,
   differentEServiceProducer,
   eserviceNotFound,
-  originNotCompliant,
+  delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, delegationService } from "../vitest.api.setup.js";
 
 describe("API POST /producer/delegations test", () => {
   const mockDelegator = { ...getMockTenant(), name: "Comune di Burione" };
@@ -93,7 +93,7 @@ describe("API POST /producer/delegations test", () => {
     { error: tenantNotFound(mockDelegator.id), expectedStatus: 400 },
     { error: delegatorAndDelegateSameIdError(), expectedStatus: 400 },
     {
-      error: originNotCompliant(mockDelegator, "Delegator"),
+      error: delegationNotAllowedForTenant(mockDelegator, "Delegator"),
       expectedStatus: 403,
     },
     {

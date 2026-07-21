@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { constants } from "http2";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEService,
+  getMockPurpose,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   DelegationId,
   Purpose,
@@ -9,16 +16,9 @@ import {
   generateId,
   tenantKind,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEService,
-  getMockPurpose,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   agreementNotFound,
@@ -38,6 +38,7 @@ import {
   invalidPersonalData,
 } from "../../src/model/domain/errors.js";
 import { getMockPurposeFromTemplateSeed } from "../mockUtils.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 const {
   HTTP_STATUS_NOT_FOUND,
@@ -54,14 +55,10 @@ describe("API POST /templates/{purposeTemplateId}/purposes test", () => {
   const mockPurpose: Purpose = getMockPurpose();
   const purposeTemplateId = generateId<PurposeTemplateId>();
 
-  const isRiskAnalysisValid = true;
-  const serviceResponse = getMockWithMetadata({
-    purpose: mockPurpose,
-    isRiskAnalysisValid,
-  });
+  const serviceResponse = getMockWithMetadata(mockPurpose);
 
   const apiResponse = purposeApi.Purpose.parse(
-    purposeToApiPurpose(mockPurpose, isRiskAnalysisValid)
+    purposeToApiPurpose(mockPurpose)
   );
 
   beforeEach(() => {

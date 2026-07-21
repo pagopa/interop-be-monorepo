@@ -1,24 +1,25 @@
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiPurpose,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import {
   generateId,
   pollingMaxRetriesExceeded,
   PurposeId,
 } from "pagopa-interop-models";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
-import { api, mockPurposeService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
   missingPurposeCurrentVersion,
 } from "../../../src/model/errors.js";
-import { toM2MGatewayApiPurpose } from "../../../src/api/purposeApiConverter.js";
-import { config } from "../../../src/config/config.js";
+import { testToM2mGatewayApiPurpose as toM2MGatewayApiPurpose } from "../../mockUtils.js";
+import { api, mockPurposeService } from "../../vitest.api.setup.js";
 
 describe("POST /purposes/:purposeId/suspend router test", () => {
   const mockApiPurpose = getMockedApiPurpose();

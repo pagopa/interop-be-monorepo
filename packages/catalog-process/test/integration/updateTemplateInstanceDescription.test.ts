@@ -15,6 +15,7 @@ import {
   EServiceDescriptionUpdatedByTemplateUpdateV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import { eServiceNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -59,7 +60,9 @@ describe("internalupdateTemplateInstanceDescription", () => {
       payload: writtenEvent.data,
     });
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
+    expect(writtenPayload).toEqual({
+      eservice: toEServiceV2(updatedEService),
+    });
   });
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {

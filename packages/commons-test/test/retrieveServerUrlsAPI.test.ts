@@ -1,4 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
 import { retrieveServerUrlsAPI } from "pagopa-interop-commons";
 import {
   generateId,
@@ -8,6 +7,8 @@ import {
   openapiVersionNotRecognized,
   technology,
 } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import { readFileContent } from "../src/index.js";
 
 describe("retrieveServerUrlsAPI", () => {
@@ -243,6 +244,28 @@ describe("retrieveServerUrlsAPI", () => {
       retrieveServerUrlsAPI(invalidDoc, "INTERFACE", "Rest", resource)
     ).rejects.toThrow(invalidInterfaceFileDetected(resource));
   });
+  it("should throw invalidInterfaceFileDetected for OpenAPI 3.x REST interface without servers", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noServersDoc = {
+      name: "test.yaml",
+      text: vi.fn().mockResolvedValue("openapi: 3.0.0\n"),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noServersDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+  });
+  it("should throw invalidInterfaceFileDetected for OpenAPI 2.0 REST interface without host", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noHostDoc = {
+      name: "test.json",
+      text: vi.fn().mockResolvedValue(JSON.stringify({ openapi: "2.0" })),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noHostDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+  });
   it("should return an empty array for DOCUMENT kind", async () => {
     const documentDoc = {
       ...mockFile,
@@ -270,6 +293,122 @@ describe("retrieveServerUrlsAPI", () => {
       retrieveServerUrlsAPI(unsupportedDoc, "INTERFACE", "Rest", resource)
     ).rejects.toThrow(invalidInterfaceFileDetected(resource));
   });
+  describe("ASYNC_EXCHANGE_CALLBACK_INTERFACE", () => {
+    it("should return an empty array for REST callback interface with OpenAPI 3.0", async () => {
+      const restCallbackDoc = {
+        name: "callback.json",
+        text: vi.fn().mockResolvedValue(
+          JSON.stringify({
+            openapi: "3.0.0",
+            servers: [{ url: "http://example.com/callback" }],
+          })
+        ),
+      } as unknown as File;
+
+      const urls = await retrieveServerUrlsAPI(
+        restCallbackDoc,
+        "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+        technology.rest,
+        { id: generateId(), isEserviceTemplate: false }
+      );
+
+      expect(urls).toEqual([]);
+    });
+
+    it("should return an empty array for REST callback interface with YAML format", async () => {
+      const yamlCallbackDoc = {
+        name: "callback.yaml",
+        text: vi
+          .fn()
+          .mockResolvedValue(
+            "openapi: 3.0.0\nservers:\n  - url: http://example.com/callback"
+          ),
+      } as unknown as File;
+
+      const urls = await retrieveServerUrlsAPI(
+        yamlCallbackDoc,
+        "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+        technology.rest,
+        { id: generateId(), isEserviceTemplate: false }
+      );
+
+      expect(urls).toEqual([]);
+    });
+
+    it("should throw error for REST callback interface with unsupported OpenAPI version", async () => {
+      const invalidDoc = {
+        name: "callback.json",
+        text: vi.fn().mockResolvedValue(
+          JSON.stringify({
+            openapi: "2.0",
+            host: "http://api.example.com",
+          })
+        ),
+      } as unknown as File;
+
+      await expect(
+        retrieveServerUrlsAPI(
+          invalidDoc,
+          "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+          technology.rest,
+          { id: generateId(), isEserviceTemplate: false }
+        )
+      ).rejects.toThrow(openapiVersionNotRecognized("2.0"));
+    });
+
+    it("should return an empty array for SOAP callback interface with WSDL", async () => {
+      const soapfileContent = await readFileContent("interface-test.wsdl");
+      const soapCallbackDoc = {
+        name: "callback.wsdl",
+        text: vi.fn().mockResolvedValue(soapfileContent),
+      } as unknown as File;
+
+      const urls = await retrieveServerUrlsAPI(
+        soapCallbackDoc,
+        "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+        technology.soap,
+        { id: generateId(), isEserviceTemplate: false }
+      );
+
+      expect(urls).toEqual([]);
+    });
+
+    it("should return an empty array for SOAP callback interface with XML", async () => {
+      const soapfileContent = await readFileContent("interface-test.wsdl");
+      const xmlCallbackDoc = {
+        name: "callback.xml",
+        text: vi.fn().mockResolvedValue(soapfileContent),
+      } as unknown as File;
+
+      const urls = await retrieveServerUrlsAPI(
+        xmlCallbackDoc,
+        "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+        technology.soap,
+        { id: generateId(), isEserviceTemplate: false }
+      );
+
+      expect(urls).toEqual([]);
+    });
+
+    it("should throw invalidInterfaceFileDetected for unsupported file type", async () => {
+      const resource = { id: generateId(), isEserviceTemplate: false };
+
+      const unsupportedDoc = {
+        name: "callback.txt",
+        text: vi.fn().mockResolvedValue("some content"),
+      } as unknown as File;
+
+      await expect(
+        retrieveServerUrlsAPI(
+          unsupportedDoc,
+          "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+          technology.rest,
+          resource
+        )
+      ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+    });
+  });
+
   it("should throw an error for invalid server URLs", async () => {
     const resource = { id: generateId(), isEserviceTemplate: false };
 

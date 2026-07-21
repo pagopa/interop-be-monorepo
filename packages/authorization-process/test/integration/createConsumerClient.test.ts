@@ -1,4 +1,10 @@
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import {
   Client,
   ClientAddedV2,
@@ -9,13 +15,9 @@ import {
   toClientV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { authorizationApi } from "pagopa-interop-api-clients";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
+import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
 import { authorizationService, postgresDB } from "../integrationUtils.js";
 
 describe("createConsumerClient", () => {
@@ -77,5 +79,21 @@ describe("createConsumerClient", () => {
       client: toClientV2(expectedClient),
     });
     expect(client.data).toEqual(expectedClient);
+  });
+
+  it("Should fail if duplicate users are passed in the seed", async () => {
+    const userId = generateId();
+    const seed = {
+      ...clientSeed,
+      members: [userId, userId, generateId()],
+    };
+
+    const error = duplicatedMembersInSeed();
+    await expect(
+      authorizationService.createConsumerClient(
+        { clientSeed: seed },
+        getMockContext({ authData: getMockAuthData(organizationId) })
+      )
+    ).rejects.toThrowError(error);
   });
 });

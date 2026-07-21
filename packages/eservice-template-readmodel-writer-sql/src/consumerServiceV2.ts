@@ -5,6 +5,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { EServiceTemplateWriterService } from "./eserviceTemplateWriterService.js";
 
 export async function handleMessageV2(
@@ -38,6 +39,7 @@ export async function handleMessageV2(
       { type: "EServiceTemplateRiskAnalysisAdded" },
       { type: "EServiceTemplateRiskAnalysisDeleted" },
       { type: "EServiceTemplateRiskAnalysisUpdated" },
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
       { type: "EServiceTemplateVersionSuspended" },
       { type: "EServiceTemplateVersionAdded" },
       { type: "EServiceTemplateVersionAttributesUpdated" },
@@ -47,6 +49,9 @@ export async function handleMessageV2(
       { type: "EServiceTemplateVersionInterfaceAdded" },
       { type: "EServiceTemplateVersionInterfaceDeleted" },
       { type: "EServiceTemplateVersionInterfaceUpdated" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated" },
+      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted" },
       { type: "EServiceTemplateVersionPublished" },
       { type: "EServiceTemplateVersionQuotasUpdated" },
       { type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication" },

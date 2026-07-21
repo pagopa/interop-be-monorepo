@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, FileManagerError } from "pagopa-interop-commons";
+import { dateAtRomeZone, timeAtRomeZone } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -28,7 +29,8 @@ import {
   EServiceTemplate,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
-import { dateAtRomeZone, timeAtRomeZone } from "pagopa-interop-commons";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNameDuplicateForProducer,
   eServiceNotFound,
@@ -36,7 +38,6 @@ import {
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneDelegation,
   addOneEService,
@@ -92,6 +93,7 @@ describe("clone descriptor", () => {
       ...mockEService,
       descriptors: [descriptor],
       personalData: true,
+      asyncExchange: true,
     };
     await addOneEService(eservice);
 
@@ -200,8 +202,16 @@ describe("clone descriptor", () => {
       descriptors: [expectedDescriptor],
       createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
     };
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(newEService));
+    expect(writtenPayload).toEqual({
+      sourceEservice: toEServiceV2(eservice),
+      sourceDescriptorId: descriptor.id,
+      eservice: toEServiceV2(expectedEService),
+    });
+    expect(writtenPayload).toEqual({
+      sourceEservice: toEServiceV2(eservice),
+      sourceDescriptorId: descriptor.id,
+      eservice: toEServiceV2(newEService),
+    });
 
     expect(fileManager.copy).toHaveBeenCalledWith(
       config.s3Bucket,
@@ -270,7 +280,11 @@ describe("clone descriptor", () => {
     const expectedName = `Name exceeding the maximum ... - clone - ${dateAtRomeZone(
       cloneTimestamp
     )} ${timeAtRomeZone(cloneTimestamp)}`;
-    expect(writtenPayload.eservice!.name).toEqual(expectedName);
+    expect(writtenPayload).toEqual({
+      sourceEservice: toEServiceV2(eservice),
+      sourceDescriptorId: descriptor.id,
+      eservice: expect.objectContaining({ name: expectedName }),
+    });
     expect(expectedName.length).toBe(60);
     expect(newEService.name).toEqual(expectedName);
   });
@@ -555,5 +569,55 @@ describe("clone descriptor", () => {
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
+  });
+
+  it("should clone descriptor with async exchange fields preserved", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.draft,
+      docs: [],
+      interface: undefined,
+      asyncExchangeProperties: {
+        responseTime: 3600,
+        resourceAvailableTime: 7200,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 500,
+      },
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+      asyncExchange: true,
+    };
+    await addOneEService(eservice);
+
+    const clonedEService = await catalogService.cloneDescriptor(
+      eservice.id,
+      descriptor.id,
+      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+    );
+
+    const clonedDescriptor = clonedEService.descriptors[0];
+    expect(clonedDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(
+      clonedDescriptor.asyncExchangeProperties?.resourceAvailableTime
+    ).toBe(7200);
+    expect(clonedDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(clonedDescriptor.asyncExchangeProperties?.bulk).toBe(false);
+    expect(clonedDescriptor.asyncExchangeProperties?.maxResultSet).toBe(500);
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceClonedV2,
+      payload: (await readLastEserviceEvent(clonedEService.id)).data,
+    });
+    const protoDescriptor = writtenPayload.eservice!.descriptors[0];
+    expect(protoDescriptor.asyncExchangeProperties?.responseTime).toBe(3600);
+    expect(protoDescriptor.asyncExchangeProperties?.resourceAvailableTime).toBe(
+      7200
+    );
+    expect(protoDescriptor.asyncExchangeProperties?.confirmation).toBe(true);
+    expect(protoDescriptor.asyncExchangeProperties?.bulk).toBe(false);
+    expect(protoDescriptor.asyncExchangeProperties?.maxResultSet).toBe(500);
   });
 });

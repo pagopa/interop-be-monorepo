@@ -14,6 +14,7 @@ import {
   UserNotificationConfigItemsSQL,
   UserNotificationConfigSQL,
 } from "pagopa-interop-readmodel-models";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateTenantNotificationConfig = (
@@ -85,6 +86,9 @@ export const aggregateUserNotificationConfig = ({
     ),
     templateStatusChangedToProducer: enabledInAppNotifications.includes(
       "templateStatusChangedToProducer"
+    ),
+    eserviceStateChangedToProducer: enabledInAppNotifications.includes(
+      "eserviceStateChangedToProducer"
     ),
     agreementSuspendedUnsuspendedToConsumer: enabledInAppNotifications.includes(
       "agreementSuspendedUnsuspendedToConsumer"
@@ -163,6 +167,9 @@ export const aggregateUserNotificationConfig = ({
     ),
     templateStatusChangedToProducer: enabledEmailNotifications.includes(
       "templateStatusChangedToProducer"
+    ),
+    eserviceStateChangedToProducer: enabledEmailNotifications.includes(
+      "eserviceStateChangedToProducer"
     ),
     agreementSuspendedUnsuspendedToConsumer: enabledEmailNotifications.includes(
       "agreementSuspendedUnsuspendedToConsumer"

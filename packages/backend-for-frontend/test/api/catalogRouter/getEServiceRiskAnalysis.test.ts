@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test/index.js";
 import {
   EServiceId,
   generateId,
@@ -7,25 +8,23 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import request from "supertest";
-import {
-  generateToken,
-  getMockTenant,
-} from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
-import { api, clients, services } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockCatalogApiEService } from "../../mockUtils.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { toBffCatalogApiEserviceRiskAnalysis } from "../../../src/api/catalogApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
   invalidEServiceRequester,
 } from "../../../src/model/errors.js";
+import { getMockCatalogApiEService } from "../../mockUtils.js";
+import { api, clients, services } from "../../vitest.api.setup.js";
 
 describe("API GET /eservices/:eServiceId/riskAnalysis/:riskAnalysisId", () => {
   const mockEService = getMockCatalogApiEService();
   const mockRiskAnalysis = mockEService.riskAnalysis[0];
   mockRiskAnalysis.riskAnalysisForm.version = "3.0";
+  mockRiskAnalysis.riskAnalysisForm.tenantKind = tenantKind.PA;
   const mockApiRiskAnalysis = toBffCatalogApiEserviceRiskAnalysis(
     mockRiskAnalysis,
     new Date("2026-02-15T23:59:59").toJSON()
@@ -35,9 +34,6 @@ describe("API GET /eservices/:eServiceId/riskAnalysis/:riskAnalysisId", () => {
     clients.catalogProcessClient.getEServiceById = vi
       .fn()
       .mockResolvedValue(mockEService);
-    clients.tenantProcessClient.tenant.getTenant = vi
-      .fn()
-      .mockResolvedValue({ ...getMockTenant(), kind: tenantKind.PA });
   });
 
   const makeRequest = async (

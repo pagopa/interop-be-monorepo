@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {
+  getLatestVersionFormRules,
+  riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
+  validatePurposeTemplateRiskAnalysis,
+} from "pagopa-interop-commons";
+import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockCompleteRiskAnalysisFormTemplate,
@@ -17,16 +22,7 @@ import {
   targetTenantKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  getLatestVersionFormRules,
-  riskAnalysisFormTemplateToRiskAnalysisFormTemplateToValidate,
-  validatePurposeTemplateRiskAnalysis,
-} from "pagopa-interop-commons";
-import {
-  addOnePurposeTemplate,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
+
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
@@ -35,6 +31,11 @@ import {
   riskAnalysisTemplateValidationFailed,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("unsuspendPurposeTemplate", () => {
   const creatorId = generateId<TenantId>();

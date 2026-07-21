@@ -4,10 +4,13 @@ import {
   getMockDocument,
   getMockEService,
   getMockEServiceAttribute,
+  getMockEServiceAttributeCertifiedDiscrete,
   getMockValidRiskAnalysis,
 } from "pagopa-interop-commons-test";
 import {
   agreementApprovalPolicy,
+  ArchivingSchedule,
+  archivingScope,
   Descriptor,
   EService,
   EServiceAddedV2,
@@ -21,8 +24,9 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { splitEserviceIntoObjectsSQL } from "../../src/catalog/splitters.js";
+
 import { aggregateEservice } from "../../src/catalog/aggregators.js";
+import { splitEserviceIntoObjectsSQL } from "../../src/catalog/splitters.js";
 import { upsertEService } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { catalogReadModelService } from "./eserviceUtils.js";
@@ -30,6 +34,8 @@ import { catalogReadModelService } from "./eserviceUtils.js";
 describe("E-service aggregator", () => {
   it("should convert eservice SQL items into an eservice", () => {
     const certifiedAttribute = getMockEServiceAttribute();
+    const certifiedDiscreteAttribute =
+      getMockEServiceAttributeCertifiedDiscrete();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const rejectionReason = getMockDescriptorRejectionReason();
@@ -53,11 +59,16 @@ describe("E-service aggregator", () => {
       },
     };
     const personalData = true;
+    const archivingSchedule: ArchivingSchedule = {
+      scope: archivingScope.descriptor,
+      archivableOn: new Date(),
+      startedAt: new Date(),
+    };
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       attributes: {
-        certified: [[certifiedAttribute]],
+        certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
         declared: [],
         verified: [],
       },
@@ -71,6 +82,7 @@ describe("E-service aggregator", () => {
       archivedAt,
       agreementApprovalPolicy: agreementApprovalPolicy.automatic,
       templateVersionRef,
+      archivingSchedule,
     };
 
     const eservice: EService = {
@@ -82,6 +94,7 @@ describe("E-service aggregator", () => {
       isConsumerDelegable,
       templateId,
       personalData,
+      archivingReason: "archiving reason",
     };
 
     const {
@@ -94,6 +107,8 @@ describe("E-service aggregator", () => {
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -106,6 +121,8 @@ describe("E-service aggregator", () => {
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
     });
 
     expect(aggregatedEservice).toStrictEqual({
@@ -127,6 +144,8 @@ describe("E-service aggregator", () => {
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
     } = splitEserviceIntoObjectsSQL(eservice, 1);
 
     const aggregatedEservice = aggregateEservice({
@@ -139,6 +158,8 @@ describe("E-service aggregator", () => {
       documentsSQL,
       rejectionReasonsSQL,
       templateVersionRefsSQL,
+      archivingSchedulesSQL,
+      asyncExchangePropertiesSQL,
     });
 
     expect(aggregatedEservice).toStrictEqual({

@@ -1,7 +1,12 @@
-import { M2MAuthData, UIAuthData } from "pagopa-interop-commons";
+import {
+  isFeatureFlagEnabled,
+  M2MAuthData,
+  UIAuthData,
+} from "pagopa-interop-commons";
 import {
   Attribute,
   AttributeId,
+  CertifiedTenantAttribute,
   CONTRACT_AUTHORITY_PUBLIC_SERVICES_MANAGERS,
   ExternalId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
@@ -23,6 +28,8 @@ import {
   SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { config } from "../config/config.js";
 import {
   expirationDateCannotBeInThePast,
   tenantNotFoundInVerifiers,
@@ -34,7 +41,6 @@ import {
   eServiceNotFound,
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function assertVerifiedAttributeExistsInTenant(
@@ -151,10 +157,19 @@ export async function assertRequesterAllowed(
   }
 }
 
-export function assertRequesterDelegationsAllowedOrigin(
-  authData: UIAuthData
-): void {
-  if (!config.delegationsAllowedOrigins.includes(authData.externalId.origin)) {
+export function assertTenantAllowedForDelegation(tenant: Tenant): void {
+  if (isFeatureFlagEnabled(config, "featureFlagDelegationConstraintSkip")) {
+    return;
+  }
+
+  const hasAttribute = tenant.attributes.some(
+    (attr): attr is CertifiedTenantAttribute =>
+      attr.type === tenantAttributeType.CERTIFIED &&
+      attr.id === config.delegationsAllowedAttributeId &&
+      !attr.revocationTimestamp
+  );
+
+  if (!hasAttribute) {
     throw operationForbidden;
   }
 }

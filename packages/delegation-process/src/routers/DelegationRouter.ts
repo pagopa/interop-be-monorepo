@@ -1,5 +1,5 @@
-import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
 import { delegationApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
@@ -16,6 +16,7 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
 import {
   apiDelegationKindToDelegationKind,
   apiDelegationSignedContractToDelegationSignedContract,
@@ -24,6 +25,7 @@ import {
   delegationToApiDelegation,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { DelegationService } from "../services/delegationService.js";
 import {
   getDelegationsErrorMapper,
   getDelegationByIdErrorMapper,
@@ -39,7 +41,6 @@ import {
   generateDelegationContractErrorMapper,
   generateDelegationSignedContractErrorMapper,
 } from "../utilities/errorMappers.js";
-import { DelegationService } from "../services/delegationService.js";
 
 const {
   ADMIN_ROLE,
@@ -49,6 +50,8 @@ const {
   SUPPORT_ROLE,
   M2M_ADMIN_ROLE,
   INTERNAL_ROLE,
+  REVIEWER_ROLE,
+  VIEWER_ROLE,
 } = authRole;
 
 const delegationRouter = (
@@ -75,11 +78,12 @@ const delegationRouter = (
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
-          API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const delegations = await delegationService.getDelegations(
@@ -487,6 +491,7 @@ const delegationRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const delegators = await delegationService.getConsumerDelegators(
@@ -524,6 +529,7 @@ const delegationRouter = (
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const delegators =

@@ -1,13 +1,14 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { eserviceTemplateInReadmodelEserviceTemplate } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
-import { EserviceTemplateVersionSchema } from "./eserviceTemplateVersion.js";
-import { EserviceTemplateVersionInterfaceSchema } from "./eserviceTemplateVersionInterface.js";
-import { EserviceTemplateVersionDocumentSchema } from "./eserviceTemplateVersionDocument.js";
-import { EserviceTemplateVersionAttributeSchema } from "./eserviceTemplateVersionAttribute.js";
 import { EserviceTemplateRiskAnalysisSchema } from "./eserviceTemplateRiskAnalysis.js";
 import { EserviceTemplateRiskAnalysisAnswerSchema } from "./eserviceTemplateRiskAnalysisAnswer.js";
+import { EserviceTemplateVersionSchema } from "./eserviceTemplateVersion.js";
+import { EserviceTemplateVersionAsyncExchangePropertiesSchema } from "./eserviceTemplateVersionAsyncExchangeProperties.js";
+import { EserviceTemplateVersionAttributeSchema } from "./eserviceTemplateVersionAttribute.js";
+import { EserviceTemplateVersionDocumentSchema } from "./eserviceTemplateVersionDocument.js";
+import { EserviceTemplateVersionInterfaceSchema } from "./eserviceTemplateVersionInterface.js";
 
 export const EserviceTemplateSchema = createSelectSchema(
   eserviceTemplateInReadmodelEserviceTemplate
@@ -32,6 +33,9 @@ export const EserviceTemplateItemsSchema = z.object({
   attributesSQL: z.array(EserviceTemplateVersionAttributeSchema),
   riskAnalysesSQL: z.array(EserviceTemplateRiskAnalysisSchema),
   riskAnalysisAnswersSQL: z.array(EserviceTemplateRiskAnalysisAnswerSchema),
+  asyncExchangePropertiesSQL: z.array(
+    EserviceTemplateVersionAsyncExchangePropertiesSchema
+  ),
 });
 export type EserviceTemplateItemsSchema = z.infer<
   typeof EserviceTemplateItemsSchema

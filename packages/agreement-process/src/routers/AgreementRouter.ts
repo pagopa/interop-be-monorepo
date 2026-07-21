@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
@@ -18,7 +19,7 @@ import {
   emptyErrorMapper,
   AgreementDocument,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
+
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
@@ -26,9 +27,11 @@ import {
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import { AgreementService } from "../services/agreementService.js";
 import {
-  activateAgreementErrorMapper,
+  approveAgreementErrorMapper,
+  unsuspendAgreementErrorMapper,
   addConsumerDocumentErrorMapper,
   archiveAgreementErrorMapper,
   cloneAgreementErrorMapper,
@@ -48,7 +51,6 @@ import {
   generateAgreementDocumentsErrorMapper,
   generateAgreementSignedDocumentsErrorMapper,
 } from "../utilities/errorMappers.js";
-import { makeApiProblem } from "../model/domain/errors.js";
 
 const {
   ADMIN_ROLE,
@@ -58,6 +60,8 @@ const {
   M2M_ADMIN_ROLE,
   INTERNAL_ROLE,
   SUPPORT_ROLE,
+  REVIEWER_ROLE,
+  VIEWER_ROLE,
 } = authRole;
 
 const agreementRouter = (
@@ -95,14 +99,14 @@ const agreementRouter = (
       }
     })
 
-    .post("/agreements/:agreementId/activate", async (req, res) => {
+    .post("/agreements/:agreementId/approve", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
       try {
         validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
         const { data: agreement, metadata } =
-          await agreementService.activateAgreement(
+          await agreementService.approveAgreement(
             {
               agreementId: unsafeBrandId(req.params.agreementId),
               delegationId: req.body.delegationId
@@ -122,7 +126,40 @@ const agreementRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          activateAgreementErrorMapper,
+          approveAgreementErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/agreements/:agreementId/unsuspend", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data: agreement, metadata } =
+          await agreementService.unsuspendAgreement(
+            {
+              agreementId: unsafeBrandId(req.params.agreementId),
+              delegationId: req.body.delegationId
+                ? unsafeBrandId<DelegationId>(req.body.delegationId)
+                : undefined,
+            },
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res
+          .status(200)
+          .send(
+            agreementApi.Agreement.parse(agreementToApiAgreement(agreement))
+          );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          unsuspendAgreementErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
@@ -197,6 +234,7 @@ const agreementRouter = (
             SUPPORT_ROLE,
             M2M_ADMIN_ROLE,
             M2M_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const document = await agreementService.getAgreementConsumerDocument(
@@ -381,6 +419,8 @@ const agreementRouter = (
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const agreements = await agreementService.getAgreements(
@@ -423,6 +463,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const producers = await agreementService.getAgreementsProducers(
@@ -453,6 +494,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const consumers = await agreementService.getAgreementsConsumers(
@@ -485,6 +527,7 @@ const agreementRouter = (
           M2M_ROLE,
           M2M_ADMIN_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: agreement, metadata } =
@@ -735,6 +778,7 @@ const agreementRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const eservices = await agreementService.getAgreementsEServices(
@@ -766,7 +810,7 @@ const agreementRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, SUPPORT_ROLE, VIEWER_ROLE]);
 
           const result = await agreementService.verifyTenantCertifiedAttributes(
             {

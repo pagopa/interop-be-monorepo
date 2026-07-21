@@ -2,18 +2,35 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
 type AgreementProcessErrorCodes =
   | "agreementNotFound"
-  | "agreementNotInExpectedState"
   | "tenantIsNotTheConsumer"
   | "tenantIsNotTheDelegateConsumer";
+
+type CatalogProcessErrorCodes =
+  | "eServiceNotFound"
+  | "eServiceDescriptorNotFound"
+  | "certifiedAttributeGroupNotFoundInSeed"
+  | "notValidDescriptor"
+  | "documentPrettyNameDuplicate"
+  | "interfaceAlreadyExists"
+  | "asyncExchangeCallbackInterfaceAlreadyExists"
+  | "checksumDuplicate"
+  | "eServiceAsyncExchangeNotEnabled"
+  | "asyncExchangeBulkNotAllowedForSoap"
+  | "templateInstanceNotAllowed"
+  | "inconsistentDailyCalls"
+  | "unchangedAttributes"
+  | "operationForbidden";
 
 type ErrorCodes =
   | M2MGatewayErrorCodes
   | CommonErrorCodes
-  | AgreementProcessErrorCodes;
+  | AgreementProcessErrorCodes
+  | CatalogProcessErrorCodes;
 
 const {
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
@@ -42,7 +59,6 @@ export const archiveAgreementErrorMapper = (
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegateConsumer",
@@ -84,6 +100,16 @@ export const downloadEServiceDescriptorInterfaceErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    match(error.code)
+      .with(
+        "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+        "eserviceDescriptorNotFound",
+        () => HTTP_STATUS_NOT_FOUND
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeVersionErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -175,12 +201,34 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
 ): number =>
   match(error.code)
     .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
+      "openapiVersionNotRecognized",
+      "eServiceAsyncExchangeNotEnabled",
+      "asyncExchangeBulkNotAllowedForSoap",
+      "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with(
+      "notValidDescriptor",
+      "documentPrettyNameDuplicate",
+      "interfaceAlreadyExists",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
+      "checksumDuplicate",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    uploadEServiceDescriptorInterfaceErrorMapper(error);
 
 export const deleteEServiceDescriptorInterfaceErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -192,6 +240,16 @@ export const deleteEServiceDescriptorInterfaceErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    match(error.code)
+      .with(
+        "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+        "eserviceDescriptorNotFound",
+        () => HTTP_STATUS_NOT_FOUND
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const assignTenantDeclaredAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -278,6 +336,30 @@ export const deleteEServiceDescriptorAttributeFromGroupErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateEServiceDescriptorAttributeInGroupErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceDescriptorNotFound",
+      "eserviceDescriptorAttributeGroupNotFound",
+      "eserviceDescriptorAttributeNotFound",
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "attributeNotFound",
+      "certifiedAttributeGroupNotFoundInSeed",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
+      "notValidDescriptor",
+      "templateInstanceNotAllowed",
+      "inconsistentDailyCalls",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("unchangedAttributes", () => HTTP_STATUS_CONFLICT)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deleteEServiceTemplateVersionAttributeFromGroupErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -339,4 +421,9 @@ export const getRemainingDailyCallsErrorMapper = (
 ): number =>
   match(error.code)
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const getClientErrorMapper = (error: ApiError<ErrorCodes>): number =>
+  match(error.code)
+    .with("clientNotFound", () => HTTP_STATUS_NOT_FOUND)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

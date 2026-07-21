@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { delegationApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { api, delegationService } from "../vitest.api.setup.js";
 import { tenantToApiCompactTenant } from "../mockUtils.js";
+import { api, delegationService } from "../vitest.api.setup.js";
 
 describe("API GET /consumer/delegatorsWithAgreements test", () => {
   const mockDelegator1 = { ...getMockTenant(), name: "Comune di Burione" };
@@ -52,6 +52,7 @@ describe("API GET /consumer/delegatorsWithAgreements test", () => {
     authRole.SECURITY_ROLE,
     authRole.M2M_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

@@ -1,12 +1,15 @@
-import { expect, describe, it } from "vitest";
 import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+  PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   PUBLIC_SERVICES_MANAGERS,
   Tenant,
   TenantId,
   generateId,
+  unsafeBrandId,
 } from "pagopa-interop-models";
+import { expect, describe, it } from "vitest";
+
 import {
   ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
   PUBLIC_SERVICES_MANAGERS_TYPOLOGY,
@@ -495,5 +498,75 @@ describe("TenantUpsertData", async () => {
           a.origin === mockInstitution.origin
       )
     ).toBeDefined();
+  });
+  it("should populate istatCode only if the institution category is L6", async () => {
+    const registryData = {
+      institutions: [
+        {
+          id: "tax-code-1",
+          originId: "ipa-l6",
+          origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+          category: "L6",
+          description: "Ente L6",
+          kind: "Pubbliche Amministrazioni",
+          classification: "Agency" as const,
+          istatCode: "123456",
+        },
+        {
+          id: "tax-code-2",
+          originId: "ipa-l18",
+          origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+          category: "L18",
+          description: "Ente L18",
+          kind: "Pubbliche Amministrazioni",
+          classification: "Agency" as const,
+          istatCode: "654321",
+        },
+      ],
+      attributes: [],
+    };
+
+    const platformTenants: Tenant[] = [
+      {
+        id: unsafeBrandId<TenantId>("1"),
+        externalId: {
+          origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+          value: "ipa-l6",
+        },
+        features: [],
+        attributes: [],
+        createdAt: new Date(),
+        mails: [],
+        name: "ipa-l6",
+      },
+      {
+        id: unsafeBrandId<TenantId>("1"),
+        externalId: {
+          origin: PUBLIC_ADMINISTRATIONS_IDENTIFIER,
+          value: "ipa-l18",
+        },
+        features: [],
+        attributes: [],
+        createdAt: new Date(),
+        mails: [],
+        name: "ipa-l18",
+      },
+    ];
+
+    const economicAccountCompaniesAllowlist: string[] = [];
+
+    const tenantSeeds = getTenantUpsertData(
+      registryData,
+      platformTenants,
+      economicAccountCompaniesAllowlist
+    );
+
+    const l6Seed = tenantSeeds.find((seed) => seed.originId === "ipa-l6");
+    expect(l6Seed).toBeDefined();
+    expect(l6Seed?.istatCode).toBe("123456");
+
+    const l18Seed = tenantSeeds.find((seed) => seed.originId === "ipa-l18");
+    expect(l18Seed).toBeDefined();
+    expect(l18Seed?.istatCode).toBeUndefined();
   });
 });

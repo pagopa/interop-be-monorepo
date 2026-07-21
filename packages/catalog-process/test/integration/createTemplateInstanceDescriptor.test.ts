@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -25,7 +26,7 @@ import {
   eserviceTemplateVersionState,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { catalogApi } from "pagopa-interop-api-clients";
+
 import {
   draftDescriptorAlreadyExists,
   eServiceNotFound,
@@ -79,7 +80,7 @@ describe("create descriptor", async () => {
     const descriptorSeed: catalogApi.EServiceInstanceDescriptorSeed = {
       audience: [],
       dailyCallsPerConsumer: 60,
-      dailyCallsTotal: 60,
+      dailyCallsTotal: 600,
     };
 
     const returnedDescriptor =
@@ -178,7 +179,7 @@ describe("create descriptor", async () => {
     const descriptorSeed: catalogApi.EServiceInstanceDescriptorSeed = {
       audience: [],
       dailyCallsPerConsumer: 60,
-      dailyCallsTotal: 60,
+      dailyCallsTotal: 600,
     };
 
     const returnedDescriptor =
@@ -410,6 +411,8 @@ describe("create descriptor", async () => {
     ).rejects.toThrowError(operationForbidden);
   });
   it("should throw inconsistentDailyCalls if dailyCallsPerConsumer is greater than dailyCallsTotal", async () => {
+    const dailyCallsPerConsumer = 60;
+    const dailyCallsTotal = 50;
     const templateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
@@ -441,7 +444,7 @@ describe("create descriptor", async () => {
     expect(
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
-        { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 50 },
+        { audience: [], dailyCallsPerConsumer, dailyCallsTotal },
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());

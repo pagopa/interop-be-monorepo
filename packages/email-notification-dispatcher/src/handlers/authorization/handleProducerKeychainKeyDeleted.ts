@@ -9,13 +9,12 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  ProducerKeychainKeyHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { ProducerKeychainKeyHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "producerKeychainKeyAddedDeletedToClientUsers";
@@ -54,11 +53,11 @@ export async function handleProducerKeychainKeyDeleted(
       notificationType,
       readModelService,
       logger,
-      includeTenantContactEmails: false,
+      includeTenantContactEmails: true,
     })
   ).filter(
     (target) =>
-      target.type !== "User" || producerKeychain.users.includes(target.userId)
+      target.type === "Tenant" || producerKeychain.users.includes(target.userId)
   );
 
   if (targets.length === 0) {

@@ -8,9 +8,14 @@ import {
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
+
 import { EserviceSchema } from "../catalog/eservice.js";
 import { EserviceDescriptorSchema } from "../catalog/eserviceDescriptor.js";
+import { EserviceDescriptorArchivingSchema } from "../catalog/eserviceDescriptorArchiving.js";
+import { EserviceDescriptorAsyncExchangePropertiesSchema } from "../catalog/eserviceDescriptorAsyncExchangeProperties.js";
 import { EserviceDescriptorAttributeSchema } from "../catalog/eserviceDescriptorAttribute.js";
 import { EserviceDescriptorDocumentSchema } from "../catalog/eserviceDescriptorDocument.js";
 import { EserviceDescriptorInterfaceSchema } from "../catalog/eserviceDescriptorInterface.js";
@@ -30,6 +35,9 @@ export const CatalogDbTableConfig = {
     EserviceDescriptorTemplateVersionRefSchema,
   eservice_risk_analysis: EserviceRiskAnalysisSchema,
   eservice_risk_analysis_answer: EserviceRiskAnalysisAnswerSchema,
+  eservice_descriptor_archiving_schedule: EserviceDescriptorArchivingSchema,
+  eservice_descriptor_async_exchange_properties:
+    EserviceDescriptorAsyncExchangePropertiesSchema,
 } as const;
 export type CatalogDbTableConfig = typeof CatalogDbTableConfig;
 
@@ -45,6 +53,10 @@ export const CatalogDbTableReadModel = {
     eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
   eservice_risk_analysis: eserviceRiskAnalysisInReadmodelCatalog,
   eservice_risk_analysis_answer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
+  eservice_descriptor_archiving_schedule:
+    eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  eservice_descriptor_async_exchange_properties:
+    eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
 } as const;
 export const CatalogDbPartialTableConfig = {
   descriptor_server_urls: EserviceDescriptorSchema,

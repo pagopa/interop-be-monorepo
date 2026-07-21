@@ -1,4 +1,9 @@
-import { describe, expect, it } from "vitest";
+import {
+  getMockPurpose,
+  getMockPurposeVersion,
+  getMockPurposeVersionDocument,
+  getMockValidRiskAnalysisForm,
+} from "pagopa-interop-commons-test";
 import {
   DelegationId,
   generateId,
@@ -7,15 +12,14 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   RiskAnalysisId,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
   tenantKind,
+  UserId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  getMockPurpose,
-  getMockPurposeVersion,
-  getMockPurposeVersionDocument,
-  getMockValidRiskAnalysisForm,
-} from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+
 import { aggregatePurpose } from "../../src/purpose/aggregators.js";
 import { splitPurposeIntoObjectsSQL } from "../../src/purpose/splitters.js";
 
@@ -46,6 +50,14 @@ describe("Purpose aggregator", () => {
         riskAnalysisForm: purposeRiskAnalysisForm,
         versions: [purposeVersion],
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        reviewerWorkflow: {
+          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+          reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+          signingState: riskAnalysisSigningState.signed,
+          signedBy: generateId<UserId>(),
+          rejectionReason: "Reviewer workflow rejection reason",
+          sentToReviewerAt: new Date(),
+        },
       },
       metadata: { version: 1 },
     };
@@ -58,6 +70,7 @@ describe("Purpose aggregator", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
@@ -68,6 +81,7 @@ describe("Purpose aggregator", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     });
 
     expect(aggregatedPurpose).toStrictEqual(purpose);
@@ -89,6 +103,7 @@ describe("Purpose aggregator", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     } = splitPurposeIntoObjectsSQL(purpose.data, 1);
 
     const aggregatedPurpose = aggregatePurpose({
@@ -99,6 +114,7 @@ describe("Purpose aggregator", () => {
       versionDocumentsSQL,
       versionStampsSQL,
       versionSignedDocumentsSQL,
+      reviewersSQL,
     });
 
     expect(aggregatedPurpose).toStrictEqual(purpose);

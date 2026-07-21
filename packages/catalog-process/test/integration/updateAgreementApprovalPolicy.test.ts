@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -20,14 +21,14 @@ import {
   delegationKind,
   delegationState,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEService,
   catalogService,
@@ -94,8 +95,14 @@ describe("update descriptor agreement approval policy", () => {
         messageType: EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(returnedEService),
+      });
     }
   );
 
@@ -157,8 +164,14 @@ describe("update descriptor agreement approval policy", () => {
         messageType: EServiceDescriptorAgreementApprovalPolicyUpdatedV2,
         payload: writtenEvent.data,
       });
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEService));
-      expect(writtenPayload.eservice).toEqual(toEServiceV2(returnedEService));
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(updatedEService),
+      });
+      expect(writtenPayload).toEqual({
+        descriptorId: descriptor.id,
+        eservice: toEServiceV2(returnedEService),
+      });
     }
   );
 

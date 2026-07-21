@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
-import { generateId, Tenant } from "pagopa-interop-models";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api, tenantService } from "../vitest.api.setup.js";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { generateId, Tenant } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import { tenantNotFoundByExternalId } from "../../src/model/domain/errors.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API GET /tenants/origin/{origin}/code/{code} test", () => {
   const tenant: Tenant = getMockTenant();
@@ -24,6 +25,7 @@ describe("API GET /tenants/origin/{origin}/code/{code} test", () => {
     authRole.SECURITY_ROLE,
     authRole.SUPPORT_ROLE,
     authRole.M2M_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   const makeRequest = async (token: string) =>

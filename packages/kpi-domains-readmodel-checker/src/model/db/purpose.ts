@@ -6,19 +6,23 @@ import {
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
+  riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+
 import { PurposeSchema } from "../purpose/purpose.js";
 import { PurposeRiskAnalysisFormSchema } from "../purpose/purposeRiskAnalysis.js";
 import { PurposeRiskAnalysisAnswerSchema } from "../purpose/purposeRiskAnalysisAnswer.js";
+import { PurposeRiskAnalysisReviewerSchema } from "../purpose/purposeRiskAnalysisReviewer.js";
 import { PurposeVersionSchema } from "../purpose/purposeVersion.js";
 import { PurposeVersionDocumentSchema } from "../purpose/purposeVersionDocument.js";
-import { PurposeVersionStampSchema } from "../purpose/purposeVersionStamp.js";
 import { PurposeVersionSignedDocumentSchema } from "../purpose/purposeVersionSignedDocument.js";
+import { PurposeVersionStampSchema } from "../purpose/purposeVersionStamp.js";
 
 export const PurposeDbTableConfig = {
   purpose: PurposeSchema,
   purpose_risk_analysis_form: PurposeRiskAnalysisFormSchema,
   purpose_risk_analysis_answer: PurposeRiskAnalysisAnswerSchema,
+  purpose_risk_analysis_reviewer: PurposeRiskAnalysisReviewerSchema,
   purpose_version: PurposeVersionSchema,
   purpose_version_document: PurposeVersionDocumentSchema,
   purpose_version_stamp: PurposeVersionStampSchema,
@@ -31,6 +35,7 @@ export const PurposeDbTableReadModel = {
   purpose: purposeInReadmodelPurpose,
   purpose_risk_analysis_form: purposeRiskAnalysisFormInReadmodelPurpose,
   purpose_risk_analysis_answer: purposeRiskAnalysisAnswerInReadmodelPurpose,
+  purpose_risk_analysis_reviewer: riskAnalysisReviewerInReadmodelPurpose,
   purpose_version: purposeVersionInReadmodelPurpose,
   purpose_version_document: purposeVersionDocumentInReadmodelPurpose,
   purpose_version_stamp: purposeVersionStampInReadmodelPurpose,

@@ -16,11 +16,7 @@ import {
   PurposeTemplateArchivedV2,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  addOnePurposeTemplate,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
+
 import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
@@ -28,6 +24,11 @@ import {
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { archivableInitialStates } from "../../src/services/validators.js";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("archivePurposeTemplate", () => {
   const creatorId = generateId<TenantId>();

@@ -1,4 +1,5 @@
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
+import { FileManager, Logger } from "pagopa-interop-commons";
 import {
   PurposeTemplate,
   RiskAnalysisFormTemplate,
@@ -6,7 +7,7 @@ import {
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswer,
 } from "pagopa-interop-models";
-import { FileManager, Logger } from "pagopa-interop-commons";
+
 import { config } from "../config/config.js";
 
 /**

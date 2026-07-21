@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   unexpectedFieldValueError,
   unexpectedFieldError,
@@ -35,8 +36,8 @@ import {
   delegationKind,
   EServiceTemplateId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
+
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
@@ -171,7 +172,10 @@ describe("update risk analysis", () => {
       ],
     };
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
+    expect(writtenPayload).toEqual({
+      riskAnalysisId: riskAnalysis.id,
+      eservice: toEServiceV2(updatedEservice),
+    });
   });
   it("should write on event-store for the update of a risk analysis (delegate)", async () => {
     const producerTenantKind: TenantKind = randomArrayItem(
@@ -291,7 +295,10 @@ describe("update risk analysis", () => {
       ],
     };
 
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(updatedEservice));
+    expect(writtenPayload).toEqual({
+      riskAnalysisId: riskAnalysis.id,
+      eservice: toEServiceV2(updatedEservice),
+    });
   });
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     expect(

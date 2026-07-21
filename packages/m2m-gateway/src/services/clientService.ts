@@ -1,27 +1,28 @@
-import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
 import {
   authorizationApi,
   m2mGatewayApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
+import { WithLogger } from "pagopa-interop-commons";
+import { ClientId, UserId, unsafeBrandId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
-import { clientAdminIdNotFound, clientNotFound } from "../model/errors.js";
-import {
-  isPolledVersionAtLeastResponseVersion,
-  pollResourceWithMetadata,
-} from "../utils/polling.js";
+
 import {
   toGetClientsApiQueryParams,
   toM2MGatewayApiConsumerClient,
 } from "../api/clientApiConverter.js";
+import { toM2MJWK } from "../api/keysApiConverter.js";
 import {
   toGetPurposesApiQueryParamsForClient,
   toM2MGatewayApiPurpose,
 } from "../api/purposeApiConverter.js";
-import { toM2MJWK } from "../api/keysApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { clientAdminIdNotFound, clientNotFound } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 import { assertClientVisibilityIsFull } from "../utils/validators/clientValidators.js";
 
 export type ClientService = ReturnType<typeof clientServiceBuilder>;
@@ -83,6 +84,7 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
       logger.info(`Retrieving client with id ${clientId}`);
 
       const client = await retrieveClientById(clientId, headers);
+
       if (client.data.kind === authorizationApi.ClientKind.Values.API) {
         throw clientNotFound(client.data);
       }
@@ -181,7 +183,11 @@ export function clientServiceBuilder(clients: PagoPAInteropBeClients) {
           offset,
           totalCount,
         },
-        results: paginatedPurposes.map(toM2MGatewayApiPurpose),
+        results: await Promise.all(
+          paginatedPurposes.map((purpose) =>
+            toM2MGatewayApiPurpose(purpose, clients, headers)
+          )
+        ),
       };
     },
     async removeClientPurpose(

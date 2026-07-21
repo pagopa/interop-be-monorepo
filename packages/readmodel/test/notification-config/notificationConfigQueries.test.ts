@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { describe, expect, it } from "vitest";
 import { generateMock } from "@anatine/zod-mock";
-import { match } from "ts-pattern";
+import {
+  getMockTenantNotificationConfig,
+  getMockUserNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   NotificationType,
   TenantId,
   UserNotificationConfig,
   generateId,
 } from "pagopa-interop-models";
-import {
-  getMockTenantNotificationConfig,
-  getMockUserNotificationConfig,
-} from "pagopa-interop-commons-test";
+import { match } from "ts-pattern";
+import { describe, expect, it } from "vitest";
+
 import {
   insertTenantNotificationConfig,
   insertUserNotificationConfig,
@@ -79,6 +80,7 @@ describe("Notification config queries", () => {
           clientAddedRemovedToProducer: false,
           purposeStatusChangedToProducer: false,
           templateStatusChangedToProducer: false,
+          eserviceStateChangedToProducer: false,
           agreementSuspendedUnsuspendedToConsumer: false,
           eserviceStateChangedToConsumer: false,
           agreementActivatedRejectedToConsumer: false,
@@ -104,6 +106,7 @@ describe("Notification config queries", () => {
           clientAddedRemovedToProducer: false,
           purposeStatusChangedToProducer: false,
           templateStatusChangedToProducer: false,
+          eserviceStateChangedToProducer: false,
           agreementSuspendedUnsuspendedToConsumer: false,
           eserviceStateChangedToConsumer: false,
           agreementActivatedRejectedToConsumer: false,
