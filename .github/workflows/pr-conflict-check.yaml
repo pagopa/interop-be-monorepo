@@ -2,6 +2,8 @@ name: PR conflict check
 
 on:
   push:
+  pull_request_target:
+    types: [synchronize]
 
 permissions:
   contents: read
@@ -16,19 +18,27 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-            const pushedBranch = context.ref.replace('refs/heads/', '');
 
-            const pulls = await github.rest.pulls.list({
-              owner,
-              repo,
-              state: 'open',
-              base: pushedBranch,
-              per_page: 100,
-            });
+            let prsToCheck = [];
 
-            const nonDraftPulls = pulls.data.filter(pr => !pr.draft);
+            if (context.eventName === 'pull_request_target') {
+              const pr = context.payload.pull_request;
+              if (!pr.draft) {
+                prsToCheck.push(pr);
+              }
+            } else {
+              const pushedBranch = context.ref.replace('refs/heads/', '');
+              const pulls = await github.rest.pulls.list({
+                owner,
+                repo,
+                state: 'open',
+                base: pushedBranch,
+                per_page: 100,
+              });
+              prsToCheck = pulls.data.filter(pr => !pr.draft);
+            }
 
-            for (const pr of nonDraftPulls) {
+            for (const pr of prsToCheck) {
               // Wait briefly for GitHub to compute mergeability
               await new Promise(resolve => setTimeout(resolve, 5000));
 
@@ -38,21 +48,28 @@ jobs:
                 pull_number: pr.number,
               });
 
+              const marker = '<!-- conflict-bot -->';
+              const { data: comments } = await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: pr.number,
+              });
+              const existing = comments.find(c => c.body.includes(marker));
+
               if (detail.mergeable_state === 'dirty') {
-                const marker = '<!-- conflict-bot -->';
-                const { data: comments } = await github.rest.issues.listComments({
-                  owner,
-                  repo,
-                  issue_number: pr.number,
-                });
-                const existing = comments.find(c => c.body.includes(marker));
                 if (!existing) {
                   await github.rest.issues.createComment({
                     owner,
                     repo,
                     issue_number: pr.number,
-                    body: `${marker}\n⚠️ @${pr.user.login} This PR now has merge conflicts with \`${pushedBranch}\`. Please rebase or merge the target branch to resolve them.`,
+                    body: `${marker}\n⚠️ @${pr.user.login} This PR now has merge conflicts with \`${detail.base.ref}\`. Please rebase or merge the target branch to resolve them.`,
                   });
                 }
+              } else if (existing) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: existing.id,
+                });
               }
             }
