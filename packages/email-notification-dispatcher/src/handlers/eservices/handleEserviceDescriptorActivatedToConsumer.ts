@@ -1,3 +1,4 @@
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   DescriptorId,
   fromEServiceV2,
@@ -6,6 +7,7 @@ import {
   missingKafkaMessageDataError,
   NotificationType,
   unsafeBrandId,
+  archivingScope,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -15,13 +17,13 @@ import {
   mapRecipientToEmailPayload,
   descriptorNotFound,
 } from "pagopa-interop-notification-commons";
-import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
-export async function handleEserviceDescriptorSuspended(
+export async function handleEserviceDescriptorActivatedToConsumer(
   data: EServiceDescriptorHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -36,7 +38,7 @@ export async function handleEserviceDescriptorSuspended(
   if (!eserviceV2Msg) {
     throw missingKafkaMessageDataError(
       "eservice",
-      "EServiceDescriptorSuspended"
+      "EServiceDescriptorActivated"
     );
   }
 
@@ -48,9 +50,13 @@ export async function handleEserviceDescriptorSuspended(
     throw descriptorNotFound(eservice.id, descriptorId);
   }
 
+  const archivingSchedule = descriptor.archivingSchedule;
+
   const [htmlTemplate, agreements, producer] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceDescriptorSuspendedMailTemplate
+      archivingSchedule
+        ? eventMailTemplateType.eserviceArchivingDescriptorActivatedToConsumerMailTemplate
+        : eventMailTemplateType.eserviceDescriptorActivatedMailTemplate
     ),
     readModelService.getAgreementsByEserviceId(eservice.id),
     retrieveTenant(eservice.producerId, readModelService),
@@ -77,7 +83,7 @@ export async function handleEserviceDescriptorSuspended(
 
   if (targets.length === 0) {
     logger.info(
-      `No users with email notifications enabled for handleEserviceDescriptorSuspended - entityId: ${eservice.id}, eventType: ${notificationType}`
+      `No users with email notifications enabled for handleEserviceDescriptorActivatedToConsumer - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -93,14 +99,21 @@ export async function handleEserviceDescriptorSuspended(
       {
         correlationId: correlationId ?? generateId(),
         email: {
-          subject: `Una versione di "${eservice.name}" è stata sospesa`,
+          subject: `Una versione di "${eservice.name}" è stata riattivata`,
           body: templateService.compileHtml(htmlTemplate, {
-            title: `Una versione di "${eservice.name}" è stata sospesa`,
+            title: `Una versione di "${eservice.name}" è stata riattivata`,
             notificationType,
+            ...(archivingSchedule
+              ? {
+                  archivableOn: dateAtRomeZone(archivingSchedule.archivableOn),
+                  newerVersionAvailable:
+                    archivingSchedule.scope === archivingScope.descriptor,
+                }
+              : {}),
             entityId: `${eservice.id}/${descriptor.id}`,
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
-            eserviceName: eservice.name,
             producerName: producer.name,
+            eserviceName: eservice.name,
             eserviceVersion: descriptor.version,
             ctaLabel: `Visualizza e-service`,
             selfcareId: t.selfcareId,

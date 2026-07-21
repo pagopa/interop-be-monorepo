@@ -1,3 +1,4 @@
+import { and, eq, isNull } from "drizzle-orm";
 import {
   genericInternalError,
   Tenant,
@@ -9,13 +10,14 @@ import {
   AttributeReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
-import { and, eq, isNull } from "drizzle-orm";
 import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
-  tenantCertifiedAttributeInReadmodelTenant,
+  tenantCertifiedDiscreteAttributeInReadmodelTenant,
   tenantInReadmodelTenant,
+  tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+
 import { IstatReadModelTenant } from "../model/istatModel.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -54,23 +56,23 @@ export function readModelQueriesBuilderSQL(
         .selectDistinct({ id: tenantInReadmodelTenant.id })
         .from(tenantInReadmodelTenant)
         .innerJoin(
-          tenantCertifiedAttributeInReadmodelTenant,
+          tenantCertifiedDiscreteAttributeInReadmodelTenant,
           eq(
             tenantInReadmodelTenant.id,
-            tenantCertifiedAttributeInReadmodelTenant.tenantId
+            tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId
           )
         )
         .innerJoin(
           attributeInReadmodelAttribute,
           and(
             eq(
-              tenantCertifiedAttributeInReadmodelTenant.attributeId,
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId,
               attributeInReadmodelAttribute.id
             ),
             eq(attributeInReadmodelAttribute.origin, certifierId),
             eq(attributeInReadmodelAttribute.code, attributeCode),
             isNull(
-              tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp
+              tenantCertifiedDiscreteAttributeInReadmodelTenant.revocationTimestamp
             )
           )
         );
@@ -93,6 +95,15 @@ export function readModelQueriesBuilderSQL(
       return tenantReadModelService.getTenantById(
         unsafeBrandId<TenantId>(tenantId)
       );
+    },
+
+    async getAllIstatRemoteIds(): Promise<string[]> {
+      const records = await readModelDB
+        .select({ value: tenantRemoteIdInReadmodelTenant.value })
+        .from(tenantRemoteIdInReadmodelTenant)
+        .where(eq(tenantRemoteIdInReadmodelTenant.origin, "ISTAT"));
+
+      return records.map((r) => r.value);
     },
   };
 }

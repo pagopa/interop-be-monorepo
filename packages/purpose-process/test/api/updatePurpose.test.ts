@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockPurpose,
+  getMockValidRiskAnalysis,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   DelegationId,
   Purpose,
@@ -8,16 +15,9 @@ import {
   generateId,
   tenantKind,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurpose,
-  getMockValidRiskAnalysis,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   duplicatedPurposeTitle,
@@ -33,8 +33,10 @@ import {
   tenantNotFound,
   invalidFreeOfChargeReason,
   purposeFromTemplateCannotBeModified,
+  riskAnalysisFormCannotBeUpdated,
 } from "../../src/model/domain/errors.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API POST /purposes/{purposeId} test", () => {
   const mockPurposeUpdateContent: purposeApi.PurposeUpdateContent = {
@@ -118,6 +120,10 @@ describe("API POST /purposes/{purposeId} test", () => {
     },
     {
       error: purposeFromTemplateCannotBeModified(generateId(), generateId()),
+      expectedStatus: 409,
+    },
+    {
+      error: riskAnalysisFormCannotBeUpdated(mockPurpose.id),
       expectedStatus: 409,
     },
     { error: eserviceNotFound(generateId()), expectedStatus: 500 },

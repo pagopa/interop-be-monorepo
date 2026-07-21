@@ -23,7 +23,6 @@ import {
   PurposeEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -31,6 +30,8 @@ import {
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { createClient } from "redis";
+import { P, match } from "ts-pattern";
+
 import { config } from "./config/config.js";
 import {
   NotificationEmailSenderService,
@@ -259,7 +260,10 @@ export async function handlePurposeMessage(
           "MaintenancePurposeRiskAnalysisSetTenantKind",
           "PurposeRiskAnalysisWorkflowCreated",
           "PurposeRiskAnalysisAssigned",
-          "PurposeRiskAnalysisSubmitted"
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => {

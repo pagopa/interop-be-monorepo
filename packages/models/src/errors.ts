@@ -1,9 +1,10 @@
 /* eslint-disable max-classes-per-file */
+import { AxiosError, isAxiosError } from "axios";
 import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { z, ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { AxiosError, isAxiosError } from "axios";
+
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
@@ -312,6 +313,8 @@ export const commonErrorCodes = {
   keyTypeNotAllowed: "10029",
   invalidJWKClaim: "10030",
   contentTooLargeError: "10031",
+  invalidPdfSignatureError: "10032",
+  invalidFileUploadError: "10033",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
@@ -487,7 +490,12 @@ export function pdfGenerationError(
 
 const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
-    .with("badRequestError", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "badRequestError",
+      "invalidPdfSignatureError",
+      "invalidFileUploadError",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("contentTooLargeError", () => HTTP_STATUS_PAYLOAD_TOO_LARGE)
     .with("tokenVerificationFailed", () => HTTP_STATUS_UNAUTHORIZED)
     .with(
@@ -545,6 +553,28 @@ export function contentTooLargeError(
     detail,
     code: "contentTooLargeError",
     title: "Content too large",
+    errors,
+  });
+}
+
+export function invalidPdfSignatureError(
+  errors?: Error[]
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    code: "invalidPdfSignatureError",
+    title: "Invalid file",
+    detail: "File is not a valid PDF",
+    errors,
+  });
+}
+
+export function invalidFileUploadError(
+  errors?: Error[]
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    code: "invalidFileUploadError",
+    title: "Invalid file",
+    detail: `File is not an allowed format or extension`,
     errors,
   });
 }

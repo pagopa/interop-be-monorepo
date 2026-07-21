@@ -1,11 +1,11 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   Descriptor,
@@ -18,6 +18,7 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleEserviceDescriptorArchivingScheduledToProducer } from "../src/handlers/eservices/handleEserviceDescriptorArchivingScheduledToProducer.js";
 import {
   addOneEService,
@@ -99,7 +100,7 @@ describe("handleEserviceDescriptorArchivingScheduledToProducer", () => {
     );
     expect(messages).toHaveLength(users.length);
     expect(messages[0].email.subject).toContain(
-      "Avvio archiviazione della versione"
+      "Una versione di un tuo e-service è in fase di archiviazione"
     );
   });
 });

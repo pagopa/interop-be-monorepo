@@ -1,4 +1,15 @@
-import { match } from "ts-pattern";
+import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  LocalizedText,
+  DataType,
+  dataType,
+  Dependency,
+  HideOptionConfig,
+  LabeledValue,
+  FormQuestionRules,
+  RiskAnalysisFormRules,
+  ValidationOption,
+} from "pagopa-interop-commons";
 import {
   Purpose,
   PurposeRiskAnalysisForm,
@@ -16,18 +27,8 @@ import {
   riskAnalysisSigningState,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  LocalizedText,
-  DataType,
-  dataType,
-  Dependency,
-  HideOptionConfig,
-  LabeledValue,
-  FormQuestionRules,
-  RiskAnalysisFormRules,
-  ValidationOption,
-} from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
+
 import { RemainingDailyCalls } from "./models.js";
 
 const singleAnswersToApiSingleAnswers = (
@@ -67,6 +68,7 @@ const riskAnalysisFormToApiRiskAnalysisForm = (
     version: riskAnalysisForm.version,
     answers: { ...apiSingleAnswersMap, ...apiMultiAnswersMap },
     riskAnalysisId: riskAnalysisForm.riskAnalysisId,
+    tenantKind: riskAnalysisForm.tenantKind,
   };
 };
 
@@ -298,27 +300,23 @@ const reviewModeToApiReviewMode = (
 const signingStateToApiSigningState = (
   state: RiskAnalysisSigningState
 ): purposeApi.RiskAnalysisSigningState =>
-  match(state)
-    .with(
-      riskAnalysisSigningState.draft,
-      (): purposeApi.RiskAnalysisSigningState => "DRAFT"
-    )
-    .with(
-      riskAnalysisSigningState.assigned,
-      (): purposeApi.RiskAnalysisSigningState => "ASSIGNED"
-    )
-    .with(
-      riskAnalysisSigningState.submitted,
-      (): purposeApi.RiskAnalysisSigningState => "SUBMITTED"
-    )
-    .with(
-      riskAnalysisSigningState.signed,
-      (): purposeApi.RiskAnalysisSigningState => "SIGNED"
-    )
-    .with(
-      riskAnalysisSigningState.rejected,
-      (): purposeApi.RiskAnalysisSigningState => "REJECTED"
-    )
+  match<RiskAnalysisSigningState, purposeApi.RiskAnalysisSigningState>(state)
+    .with(riskAnalysisSigningState.draft, () => "DRAFT")
+    .with(riskAnalysisSigningState.assigned, () => "ASSIGNED")
+    .with(riskAnalysisSigningState.submitted, () => "SUBMITTED")
+    .with(riskAnalysisSigningState.signed, () => "SIGNED")
+    .with(riskAnalysisSigningState.rejected, () => "REJECTED")
+    .exhaustive();
+
+export const apiSigningStateToSigningState = (
+  state: purposeApi.RiskAnalysisSigningState
+): RiskAnalysisSigningState =>
+  match<purposeApi.RiskAnalysisSigningState, RiskAnalysisSigningState>(state)
+    .with("DRAFT", () => riskAnalysisSigningState.draft)
+    .with("ASSIGNED", () => riskAnalysisSigningState.assigned)
+    .with("SUBMITTED", () => riskAnalysisSigningState.submitted)
+    .with("SIGNED", () => riskAnalysisSigningState.signed)
+    .with("REJECTED", () => riskAnalysisSigningState.rejected)
     .exhaustive();
 
 const reviewerWorkflowToApiReviewerWorkflow = (

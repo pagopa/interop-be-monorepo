@@ -13,14 +13,17 @@ import {
   toEServiceTemplateV2,
   EServiceTemplateAddedV2,
   generateId,
+  eserviceMode,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eserviceTemplateDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
+  asyncExchangeReceiveTemplateNotAllowed,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,
@@ -47,6 +50,7 @@ describe("create eservice template", () => {
           ...mockEServiceTemplate,
           isSignalHubEnabled,
           asyncExchange,
+          mode: eserviceMode.deliver,
         }),
         getMockContext({
           authData: getMockAuthData(mockEServiceTemplate.creatorId),
@@ -89,6 +93,7 @@ describe("create eservice template", () => {
       ],
       isSignalHubEnabled,
       asyncExchange,
+      mode: eserviceMode.deliver,
     };
 
     expect(eserviceCreationPayload).toEqual({
@@ -113,6 +118,21 @@ describe("create eservice template", () => {
         })
       )
     ).rejects.toThrowError(originNotCompliant("not-allowed-origin"));
+  });
+
+  it("should throw asyncExchangeReceiveTemplateNotAllowed when creating a receive template with asyncExchange enabled", async () => {
+    await expect(
+      eserviceTemplateService.createEServiceTemplate(
+        eserviceTemplateToApiEServiceTemplateSeed({
+          ...mockEServiceTemplate,
+          mode: eserviceMode.receive,
+          asyncExchange: true,
+        }),
+        getMockContext({
+          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(asyncExchangeReceiveTemplateNotAllowed());
   });
 
   it("should throw eserviceTemplateDuplicate if an eservice template with the same name already exists, case insensitive", async () => {

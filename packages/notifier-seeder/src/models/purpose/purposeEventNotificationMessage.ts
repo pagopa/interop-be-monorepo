@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { PurposeEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { PurposeEventNotification } from "./purposeEventNotification.js";
 
@@ -50,6 +51,9 @@ const eventV2TypeMapper = (eventType: PurposeEventEnvelopeV2["type"]): string =>
       "PurposeRiskAnalysisWorkflowCreated",
       "PurposeRiskAnalysisAssigned",
       "PurposeRiskAnalysisSubmitted",
+      "PurposeRiskAnalysisSigned",
+      "PurposeRiskAnalysisRejected",
+      "PurposeRiskAnalysisFormEdited",
       () => "purpose_updated"
     )
     .exhaustive();

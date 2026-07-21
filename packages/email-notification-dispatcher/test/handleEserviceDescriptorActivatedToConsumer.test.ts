@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockContext,
@@ -7,7 +8,6 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -20,12 +20,13 @@ import {
   TenantId,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   descriptorNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
-import { handleEserviceDescriptorActivated } from "../src/handlers/eservices/handleEserviceDescriptorActivated.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { handleEserviceDescriptorActivatedToConsumer } from "../src/handlers/eservices/handleEserviceDescriptorActivatedToConsumer.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -35,7 +36,7 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handleEserviceDescriptorActivated", async () => {
+describe("handleEserviceDescriptorActivatedToConsumer", async () => {
   const producerId = generateId<TenantId>();
   const consumerIds = [generateId<TenantId>(), generateId<TenantId>()];
   const eserviceId = generateId<EServiceId>();
@@ -79,7 +80,7 @@ describe("handleEserviceDescriptorActivated", async () => {
 
   it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
     await expect(() =>
-      handleEserviceDescriptorActivated({
+      handleEserviceDescriptorActivatedToConsumer({
         eserviceV2Msg: undefined,
         descriptorId: descriptor.id,
         logger,
@@ -102,7 +103,7 @@ describe("handleEserviceDescriptorActivated", async () => {
     };
 
     await expect(() =>
-      handleEserviceDescriptorActivated({
+      handleEserviceDescriptorActivatedToConsumer({
         eserviceV2Msg: toEServiceV2(eserviceWithUnknownProducer),
         descriptorId: descriptor.id,
         logger,
@@ -117,7 +118,7 @@ describe("handleEserviceDescriptorActivated", async () => {
     const nonExistentDescriptorId = generateId<DescriptorId>();
 
     await expect(() =>
-      handleEserviceDescriptorActivated({
+      handleEserviceDescriptorActivatedToConsumer({
         eserviceV2Msg: toEServiceV2(eservice),
         descriptorId: nonExistentDescriptorId,
         logger,
@@ -129,7 +130,7 @@ describe("handleEserviceDescriptorActivated", async () => {
   });
 
   it("should return empty array if no consumer is present for the eservice", async () => {
-    const messages = await handleEserviceDescriptorActivated({
+    const messages = await handleEserviceDescriptorActivatedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,
@@ -153,7 +154,7 @@ describe("handleEserviceDescriptorActivated", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorActivated({
+    const messages = await handleEserviceDescriptorActivatedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,
@@ -214,7 +215,7 @@ describe("handleEserviceDescriptorActivated", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorActivated({
+    const messages = await handleEserviceDescriptorActivatedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,
@@ -258,7 +259,7 @@ describe("handleEserviceDescriptorActivated", async () => {
     };
     await addOneAgreement(agreement);
 
-    const messages = await handleEserviceDescriptorActivated({
+    const messages = await handleEserviceDescriptorActivatedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,
@@ -294,7 +295,7 @@ describe("handleEserviceDescriptorActivated", async () => {
     await addOneAgreement(agreements[0]);
     await addOneAgreement(agreements[1]);
 
-    const messages = await handleEserviceDescriptorActivated({
+    const messages = await handleEserviceDescriptorActivatedToConsumer({
       eserviceV2Msg: toEServiceV2(eservice),
       descriptorId: descriptor.id,
       logger,

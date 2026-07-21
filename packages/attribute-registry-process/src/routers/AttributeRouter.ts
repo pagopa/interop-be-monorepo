@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
@@ -11,22 +12,23 @@ import {
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
 import {
   attributeReadModelServiceBuilder,
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+
+import { config } from "../config/config.js";
 import {
   toAttributeKind,
   toApiAttribute,
 } from "../model/domain/apiConverter.js";
-import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import {
   AttributeRegistryService,
   attributeRegistryServiceBuilder,
 } from "../services/attributeRegistryService.js";
+import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 import {
   createCertifiedAttributesErrorMapper,
   createDeclaredAttributesErrorMapper,
@@ -37,7 +39,6 @@ import {
   getAttributeByOriginAndCodeErrorMapper,
   getAttributesByNameErrorMapper,
 } from "../utilities/errorMappers.js";
-import { readModelServiceBuilderSQL } from "../services/readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const attributeReadModelServiceSQL =
@@ -202,6 +203,8 @@ const attributeRouter = (
             SECURITY_ROLE,
             M2M_ADMIN_ROLE,
             M2M_ROLE,
+            REVIEWER_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const { data, metadata } =
@@ -267,6 +270,31 @@ const attributeRouter = (
 
         const { data, metadata } =
           await attributeRegistryService.createCertifiedAttribute(
+            req.body,
+            ctx
+          );
+
+        setMetadataVersionHeader(res, metadata);
+        return res
+          .status(200)
+          .send(attributeRegistryApi.Attribute.parse(toApiAttribute(data)));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createCertifiedAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/certifiedDiscreteAttributes", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+
+        const { data, metadata } =
+          await attributeRegistryService.createCertifiedDiscreteAttribute(
             req.body,
             ctx
           );

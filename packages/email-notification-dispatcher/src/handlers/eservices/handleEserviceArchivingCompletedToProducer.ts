@@ -13,8 +13,9 @@ import {
   retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
-import { EServiceHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
+import { EServiceHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToProducer";
 
@@ -61,7 +62,7 @@ export async function handleEserviceArchivingCompletedToProducer(
     return [];
   }
 
-  const subject = `Archiviazione conclusa dell'e-service "${eservice.name}"`;
+  const subject = `Un tuo e-service è stato archiviato`;
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),

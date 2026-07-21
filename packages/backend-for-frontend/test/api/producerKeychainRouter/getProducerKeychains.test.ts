@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, services } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiCompactProducerKeychain } from "../../mockUtils.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /producerKeychains test", () => {
   const defaultQuery = {
@@ -49,6 +50,13 @@ describe("API GET /producerKeychains test", () => {
 
   it("Should return 200 for user with role Admin", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual(mockCompactProducerKeychains);
+  });
+
+  it("Should return 200 for user with role API", async () => {
+    const token = generateToken(authRole.API_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockCompactProducerKeychains);

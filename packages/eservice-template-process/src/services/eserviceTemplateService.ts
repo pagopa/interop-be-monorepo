@@ -1,3 +1,4 @@
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -47,7 +48,13 @@ import {
   RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+
+import { config } from "../config/config.js";
+import {
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiEServiceModeToEServiceMode,
+  apiTechnologyToTechnology,
+} from "../model/domain/apiConverter.js";
 import {
   attributeNotFound,
   checksumDuplicate,
@@ -76,6 +83,7 @@ import {
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
   missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import {
@@ -108,13 +116,8 @@ import {
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated,
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
-import {
-  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiEServiceModeToEServiceMode,
-  apiTechnologyToTechnology,
-} from "../model/domain/apiConverter.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertIsReceiveTemplate,
   assertIsDraftEServiceTemplate,
@@ -130,9 +133,9 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   versionStatesNotAllowingInterfaceOperations,
+  assertAsyncExchangeReceiveTemplateNotAllowed,
   assertDiscreteConfigForCertifiedAttributesOnly,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
@@ -571,6 +574,15 @@ export function eserviceTemplateServiceBuilder(
       ) {
         if (eserviceTemplateVersion.asyncExchangeProperties === undefined) {
           throw missingAsyncExchangeProperties(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
+
+        if (
+          eserviceTemplateVersion.asyncExchangeCallbackInterface === undefined
+        ) {
+          throw missingAsyncExchangeCallbackInterface(
             eserviceTemplateId,
             eserviceTemplateVersionId
           );
@@ -1384,6 +1396,13 @@ export function eserviceTemplateServiceBuilder(
       await assertEServiceTemplateNameAvailable(seed.name, readModelService);
 
       assertConsistentDailyCalls(seed.version);
+
+      if (isFeatureFlagEnabled(config, "featureFlagAsyncExchange")) {
+        assertAsyncExchangeReceiveTemplateNotAllowed({
+          mode: apiEServiceModeToEServiceMode(seed.mode),
+          asyncExchange: seed.asyncExchange,
+        });
+      }
 
       const creationDate = new Date();
       const draftVersion: EServiceTemplateVersion = {
@@ -2271,9 +2290,13 @@ async function updateDraftEServiceTemplate(
     await Promise.all(
       eserviceTemplate.data.versions.map(async (d) => {
         if (d.interface !== undefined) {
-          return await fileManager.delete(
+          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
+        }
+
+        if (d.asyncExchangeCallbackInterface !== undefined) {
+          await fileManager.delete(
             config.s3Bucket,
-            d.interface.path,
+            d.asyncExchangeCallbackInterface.path,
             logger
           );
         }
@@ -2334,6 +2357,7 @@ async function updateDraftEServiceTemplate(
       ? eserviceTemplate.data.versions.map((d) => ({
           ...d,
           interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,

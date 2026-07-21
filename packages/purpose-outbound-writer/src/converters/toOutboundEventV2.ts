@@ -1,19 +1,19 @@
 import {
-  PurposeEventEnvelopeV2,
-  PurposeVersionV2,
-  PurposeV2,
-  PurposeVersionStampsV2,
-  PurposeVersionStampV2,
-} from "pagopa-interop-models";
-import {
   PurposeEvent as OutboundPurposeEvent,
   PurposeVersionV2 as OutboundPurposeVersionV2,
   PurposeV2 as OutboundPurposeV2,
   PurposeVersionStampsV2 as OutboundPurposeVersionStampsV2,
   PurposeVersionStampV2 as OutboundPurposeVersionStampV2,
 } from "@pagopa/interop-outbound-models";
-import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+import {
+  PurposeEventEnvelopeV2,
+  PurposeVersionV2,
+  PurposeV2,
+  PurposeVersionStampsV2,
+  PurposeVersionStampV2,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toOutboundPurposeVersionStampV2(
   stamp: PurposeVersionStampV2
@@ -114,6 +114,9 @@ export function toOutboundEventV2(
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisAssigned" },
       { type: "PurposeRiskAnalysisSubmitted" },
+      { type: "PurposeRiskAnalysisSigned" },
+      { type: "PurposeRiskAnalysisRejected" },
+      { type: "PurposeRiskAnalysisFormEdited" },
       () => undefined
     )
     .with({ type: "PurposeCloned" }, (msg) => ({

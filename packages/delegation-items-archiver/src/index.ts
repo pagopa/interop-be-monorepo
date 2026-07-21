@@ -1,3 +1,4 @@
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import {
   decodeKafkaMessage,
@@ -5,22 +6,22 @@ import {
   logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import {
   CorrelationId,
   DelegationEvent,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
   makeDrizzleConnection,
   purposeReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { handleMessageV2 } from "./delegationItemsArchiverConsumerServiceV2.js";
-import { config } from "./config/config.js";
+import { match } from "ts-pattern";
+
 import { getInteropBeClients } from "./clients/clientsProvider.js";
+import { config } from "./config/config.js";
+import { handleMessageV2 } from "./delegationItemsArchiverConsumerServiceV2.js";
 import { readModelServiceBuilderSQL } from "./readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);

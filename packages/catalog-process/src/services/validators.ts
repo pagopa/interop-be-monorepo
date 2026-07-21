@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   InternalAuthData,
   M2MAdminAuthData,
@@ -16,6 +17,8 @@ import {
 import {
   archivingScope,
   AsyncExchangeProperties,
+  AttributeId,
+  Delegation,
   delegationKind,
   delegationState,
   Descriptor,
@@ -39,6 +42,9 @@ import {
   type EServiceCertifiedAttribute,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
 import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
@@ -48,6 +54,8 @@ import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
+  eserviceDescriptorWithActiveOrPendingDelegation,
+  eserviceArchivingWithActiveOrPendingDelegation,
   notValidDescriptorState,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
@@ -65,6 +73,7 @@ import {
   riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
+  certifiedDiscreteAttributeConfigCannotBeChanged,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
   notValidEServiceState,
@@ -73,12 +82,10 @@ import {
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
 } from "../model/domain/errors.js";
-import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import {
   getLatestActiveDescriptor,
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -222,18 +229,64 @@ export function assertRequesterIsProducer(
   }
 }
 
-export async function assertNoExistingProducerDelegationInActiveOrPendingState(
+async function getActiveOrPendingProducerDelegation(
   eserviceId: EServiceId,
   readModelService: ReadModelServiceSQL
-): Promise<void> {
-  const producerDelegation = await readModelService.getLatestDelegation({
+): Promise<Delegation | undefined> {
+  return readModelService.getLatestDelegation({
     eserviceId,
     kind: delegationKind.delegatedProducer,
     states: [delegationState.active, delegationState.waitingForApproval],
   });
+}
+
+export async function assertNoExistingProducerDelegationInActiveOrPendingState(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
 
   if (producerDelegation) {
     throw eserviceWithActiveOrPendingDelegation(
+      eserviceId,
+      producerDelegation.id
+    );
+  }
+}
+
+export async function assertNoExistingProducerDelegationForDescriptorArchiving(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
+
+  if (producerDelegation) {
+    throw eserviceDescriptorWithActiveOrPendingDelegation(
+      eserviceId,
+      descriptorId,
+      producerDelegation.id
+    );
+  }
+}
+
+export async function assertNoExistingProducerDelegationForEServiceArchiving(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
+
+  if (producerDelegation) {
+    throw eserviceArchivingWithActiveOrPendingDelegation(
       eserviceId,
       producerDelegation.id
     );
@@ -530,6 +583,7 @@ export function hasRoleToAccessInactiveDescriptors(
       userRole.ADMIN_ROLE,
       userRole.API_ROLE,
       userRole.SUPPORT_ROLE,
+      userRole.VIEWER_ROLE,
     ]) ||
     hasAtLeastOneSystemRole(authData, [
       systemRole.M2M_ADMIN_ROLE,
@@ -594,6 +648,59 @@ export function assertDiscreteConfigForCertifiedAttributesOnly(
   if (invalidAttribute) {
     throw attributeDiscreteConfigNotAllowed(invalidAttribute.id);
   }
+}
+
+export function assertCertifiedDiscreteConfigUnchanged(
+  descriptor: Descriptor,
+  newAttributes: EserviceAttributes
+): void {
+  if (descriptor.state === descriptorState.draft) {
+    return;
+  }
+
+  const publishedConfigsById = collectDiscreteConfigKeysById(
+    descriptor.attributes.certified.flat()
+  );
+
+  if (publishedConfigsById.size === 0) {
+    return;
+  }
+
+  const newConfigsById = collectDiscreteConfigKeysById(
+    newAttributes.certified.flat()
+  );
+
+  for (const [attributeId, publishedConfigs] of publishedConfigsById) {
+    const newConfigs = newConfigsById.get(attributeId);
+
+    if (newConfigs === undefined) {
+      continue;
+    }
+
+    const configsUnchanged =
+      newConfigs.size === publishedConfigs.size &&
+      [...publishedConfigs].every((config) => newConfigs.has(config));
+
+    if (!configsUnchanged) {
+      throw certifiedDiscreteAttributeConfigCannotBeChanged(attributeId);
+    }
+  }
+}
+
+function collectDiscreteConfigKeysById(
+  attributes: EServiceCertifiedAttribute[]
+): Map<AttributeId, Set<string>> {
+  const configsById = new Map<AttributeId, Set<string>>();
+  for (const attribute of attributes) {
+    const config = getEServiceAttributeDiscreteConfig(attribute);
+    if (config === undefined) {
+      continue;
+    }
+    const configs = configsById.get(attribute.id) ?? new Set<string>();
+    configs.add(`${config.comparator}:${config.threshold}`);
+    configsById.set(attribute.id, configs);
+  }
+  return configsById;
 }
 
 export function assertTemplateInstanceAttributeStructureUnchanged(

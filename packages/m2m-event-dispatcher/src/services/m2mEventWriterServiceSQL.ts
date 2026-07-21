@@ -1,3 +1,5 @@
+import { SQL, eq, and } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
 import {
   eserviceInM2MEvent,
   agreementInM2MEvent,
@@ -26,8 +28,7 @@ import {
   PurposeTemplateM2MEventSQL,
   purposeTemplateInM2MEvent,
 } from "pagopa-interop-m2m-event-db-models";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { SQL, eq, and } from "drizzle-orm";
+
 import { isResourceVersionPresent } from "../utils/m2mEventSQLUtils.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

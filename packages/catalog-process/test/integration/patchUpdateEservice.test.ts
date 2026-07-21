@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
@@ -25,9 +26,14 @@ import {
   EServiceTemplateId,
   EServiceTemplate,
 } from "pagopa-interop-models";
-import { vi, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { vi, expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
+import {
+  apiEServiceModeToEServiceMode,
+  apiTechnologyToTechnology,
+} from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNotFound,
   eServiceNameDuplicateForProducer,
@@ -36,7 +42,6 @@ import {
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   fileManager,
   addOneEService,
@@ -45,10 +50,6 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
-import {
-  apiEServiceModeToEServiceMode,
-  apiTechnologyToTechnology,
-} from "../../src/model/domain/apiConverter.js";
 
 describe("patch update eService", () => {
   const mockEService: EService = {
@@ -318,11 +319,18 @@ describe("patch update eService", () => {
       name: `${mockDocument.name}`,
       path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
     };
+    const mockAsyncExchangeCallbackInterfaceDocument = getMockDocument();
+    const asyncExchangeCallbackInterfaceDocument = {
+      ...mockAsyncExchangeCallbackInterfaceDocument,
+      name: `${mockDocument.name}_callback`,
+      path: `${config.eserviceDocumentsPath}/${mockAsyncExchangeCallbackInterfaceDocument.id}/${mockDocument.name}_callback`,
+    };
 
     const descriptor: Descriptor = {
       ...getMockDescriptor(),
       state: descriptorState.draft,
       interface: interfaceDocument,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDocument,
     };
     const eservice: EService = {
       ...mockEService,
@@ -341,10 +349,23 @@ describe("patch update eService", () => {
       },
       genericLogger
     );
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDocument.id,
+        name: asyncExchangeCallbackInterfaceDocument.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
 
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDocument.path);
 
     const updateEServiceReturn = await catalogService.patchUpdateEService(
       eservice.id,
@@ -360,6 +381,7 @@ describe("patch update eService", () => {
       descriptors: eservice.descriptors.map((d) => ({
         ...d,
         interface: undefined,
+        asyncExchangeCallbackInterface: undefined,
         serverUrls: [],
       })),
     };

@@ -1,3 +1,4 @@
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   Agreement,
   EmailNotificationMessagePayload,
@@ -14,9 +15,9 @@ import {
   retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
-import { EServiceHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
-import { dateAtRomeZone } from "pagopa-interop-commons";
+import { EServiceHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -72,7 +73,7 @@ export async function handleEserviceArchivingScheduledToConsumer(
   const archivableOn = descriptor.archivingSchedule
     ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
     : undefined;
-  const subject = `Avvio archiviazione dell'e-service "${eservice.name}"`;
+  const subject = `Un e-service con cui stai scambiando dati è in fase di archiviazione`;
 
   return targets.flatMap((t) => {
     const tenant = tenants.find((x) => x.id === t.tenantId);

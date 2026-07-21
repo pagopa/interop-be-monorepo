@@ -7,6 +7,7 @@ import {
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
+import { getRulesetExpiration } from "pagopa-interop-commons";
 import {
   Descriptor,
   EServiceAttribute,
@@ -15,7 +16,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { getRulesetExpiration } from "pagopa-interop-commons";
+
 import { attributeNotExists } from "../model/errors.js";
 import {
   getLatestActiveDescriptor,
@@ -314,10 +315,7 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     draftDescriptor: draftDescriptor
       ? toCompactDescriptor(draftDescriptor)
       : undefined,
-    riskAnalysis: await enhanceEServiceRiskAnalysisArray(
-      eservice.riskAnalysis,
-      producer.kind
-    ),
+    riskAnalysis: await enhanceEServiceRiskAnalysisArray(eservice.riskAnalysis),
     descriptors: notDraftDecriptors,
     hasProducerKeychain,
     hasProducerKeychainKeys,
@@ -331,14 +329,13 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
 }
 
 export async function enhanceEServiceRiskAnalysisArray(
-  riskAnalysisArray: catalogApi.EServiceRiskAnalysis[],
-  producerTenantKind: tenantApi.TenantKind | undefined
+  riskAnalysisArray: catalogApi.EServiceRiskAnalysis[]
 ): Promise<bffApi.EServiceRiskAnalysis[]> {
   return riskAnalysisArray.map((riskAnalysis) =>
     toBffCatalogApiEserviceRiskAnalysis(
       riskAnalysis,
       getRulesetExpiration(
-        producerTenantKind,
+        riskAnalysis.riskAnalysisForm.tenantKind,
         riskAnalysis.riskAnalysisForm.version
       )?.toJSON()
     )

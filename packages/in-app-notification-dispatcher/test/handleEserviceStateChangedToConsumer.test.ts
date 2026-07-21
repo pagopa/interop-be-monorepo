@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -18,14 +17,16 @@ import {
   unsafeBrandId,
   EServiceId,
   AttributeId,
+  archivingScope,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
   tenantNotFound,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
-import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
+import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 
+import { handleEserviceStateChangedToConsumer } from "../src/handlers/eservices/handleEserviceStateChangedToConsumer.js";
 import {
   addOneAgreement,
   addOneEService,
@@ -48,10 +49,50 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       },
     ],
   };
+  const eserviceWithArchivingSchedule = {
+    ...getMockEService(),
+    producerId: producerTenant.id,
+    descriptors: [
+      {
+        ...getMockDescriptorPublished(),
+        interface: getMockDocument(),
+        docs: [getMockDocument()],
+        archivingSchedule: {
+          archivableOn: new Date("2026-12-31T00:00:00.000Z"),
+          startedAt: new Date("2026-05-14T00:00:00.000Z"),
+          scope: archivingScope.descriptor,
+        },
+      },
+      {
+        ...getMockDescriptorPublished(),
+        version: "2",
+        interface: getMockDocument(),
+        docs: [getMockDocument()],
+      },
+    ],
+  };
+  const archivingEservice = {
+    ...getMockEService(),
+    producerId: producerTenant.id,
+    descriptors: [
+      {
+        ...getMockDescriptorPublished(),
+        interface: getMockDocument(),
+        docs: [getMockDocument()],
+        archivingSchedule: {
+          archivableOn: new Date("2026-12-31T00:00:00.000Z"),
+          startedAt: new Date("2026-05-14T00:00:00.000Z"),
+          scope: archivingScope.eservice,
+        },
+      },
+    ],
+  };
   const { logger } = getMockContext({});
 
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
   await addOneEService(eservice);
+  await addOneEService(eserviceWithArchivingSchedule);
+  await addOneEService(archivingEservice);
 
   beforeEach(async () => {
     mockGetNotificationRecipients.mockReset();
@@ -316,6 +357,41 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     {
       msg: {
         event_version: 2,
+        type: "EServiceDescriptorSuspended",
+        data: {
+          eservice: toEServiceV2(eserviceWithArchivingSchedule),
+          descriptorId: eserviceWithArchivingSchedule.descriptors[0].id,
+        },
+      },
+      expectedBody:
+        inAppTemplates.eserviceArchivingDescriptorSuspendedToConsumer(
+          eserviceWithArchivingSchedule.name,
+          eserviceWithArchivingSchedule.descriptors[0].version,
+          eserviceWithArchivingSchedule.descriptors[0]!.archivingSchedule!
+            .archivableOn!,
+          true
+        ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorSuspended",
+        data: {
+          eservice: toEServiceV2(archivingEservice),
+          descriptorId: archivingEservice.descriptors[0].id,
+        },
+      },
+      expectedBody:
+        inAppTemplates.eserviceArchivingDescriptorSuspendedToConsumer(
+          archivingEservice.name,
+          archivingEservice.descriptors[0].version,
+          archivingEservice.descriptors[0]!.archivingSchedule!.archivableOn!,
+          false
+        ),
+    },
+    {
+      msg: {
+        event_version: 2,
         type: "EServiceDescriptorActivated",
         data: {
           eservice: toEServiceV2(eservice),
@@ -327,6 +403,41 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         producerTenant.name,
         eservice.descriptors[0].version
       ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorActivated",
+        data: {
+          eservice: toEServiceV2(eserviceWithArchivingSchedule),
+          descriptorId: eserviceWithArchivingSchedule.descriptors[0].id,
+        },
+      },
+      expectedBody:
+        inAppTemplates.eserviceArchivingDescriptorActivatedToConsumer(
+          eserviceWithArchivingSchedule.name,
+          eserviceWithArchivingSchedule.descriptors[0].version,
+          eserviceWithArchivingSchedule.descriptors[0]!.archivingSchedule!
+            .archivableOn!,
+          false
+        ),
+    },
+    {
+      msg: {
+        event_version: 2,
+        type: "EServiceDescriptorActivated",
+        data: {
+          eservice: toEServiceV2(archivingEservice),
+          descriptorId: archivingEservice.descriptors[0].id,
+        },
+      },
+      expectedBody:
+        inAppTemplates.eserviceArchivingDescriptorActivatedToConsumer(
+          archivingEservice.name,
+          archivingEservice.descriptors[0].version,
+          archivingEservice.descriptors[0]!.archivingSchedule!.archivableOn!,
+          true
+        ),
     },
     {
       msg: {

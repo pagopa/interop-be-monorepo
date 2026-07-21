@@ -1,16 +1,17 @@
 /* eslint-disable functional/immutable-data */
+import { runBatchConsumer } from "kafka-iam-auth";
 import { EachBatchPayload, KafkaMessage } from "kafkajs";
 import { genericLogger, initDB, logger } from "pagopa-interop-commons";
 
-import { runBatchConsumer } from "kafka-iam-auth";
 import {
   baseConsumerConfig,
   config,
   batchConsumerConfig,
 } from "./config/config.js";
-import { DBContext } from "./db/db.js";
-import { setupDbServiceBuilder } from "./service/setupDbService.js";
 import { retryConnection } from "./db/buildColumnSet.js";
+import { DBContext } from "./db/db.js";
+import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
+import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
 import {
   AgreementDbTable,
   AttributeDbTable,
@@ -26,8 +27,7 @@ import {
   PurposeTemplateDbTable,
   ClientDbTablePartialTable,
 } from "./model/db/index.js";
-import { executeTopicHandler } from "./handlers/batchMessageHandler.js";
-import { EserviceTemplateDbTable } from "./model/db/eserviceTemplate.js";
+import { setupDbServiceBuilder } from "./service/setupDbService.js";
 
 const dbInstance = initDB({
   username: config.dbUsername,
@@ -97,6 +97,8 @@ await retryConnection(
       TenantDbTable.tenant_verified_attribute_verifier,
       TenantDbTable.tenant_verified_attribute_revoker,
       TenantDbTable.tenant_feature,
+      TenantDbTable.tenant_remote_id,
+      TenantDbTable.tenant_certified_discrete_attribute,
       EserviceTemplateDbTable.eservice_template,
       EserviceTemplateDbTable.eservice_template_version,
       EserviceTemplateDbTable.eservice_template_version_attribute,

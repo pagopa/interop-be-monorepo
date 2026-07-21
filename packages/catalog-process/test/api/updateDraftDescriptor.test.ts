@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockAttribute,
+  getMockDescriptor,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   DescriptorId,
@@ -10,19 +17,12 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockAttribute,
-  getMockDescriptor,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
-import { buildUpdateDescriptorSeed } from "../mockUtils.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  asyncExchangeBulkNotAllowedForSoap,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
@@ -33,6 +33,8 @@ import {
   notValidDescriptorState,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
+import { buildUpdateDescriptorSeed } from "../mockUtils.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", () => {
   const descriptor: Descriptor = {
@@ -141,6 +143,10 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
       expectedStatus: 400,
     },
     {
+      error: asyncExchangeBulkNotAllowedForSoap(mockEService.id, descriptor.id),
+      expectedStatus: 400,
+    },
+    {
       error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
@@ -164,6 +170,48 @@ describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", (
     [{ attributes: undefined }, mockEService.id, descriptor.id],
     [
       { ...descriptorSeed, dailyCallsTotal: -1 },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 1_000_000,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 1_000_000,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+      mockEService.id,
+      descriptor.id,
+    ],
+    [
+      {
+        ...descriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 100_000,
+        },
+      },
       mockEService.id,
       descriptor.id,
     ],

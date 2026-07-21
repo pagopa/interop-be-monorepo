@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -91,6 +92,7 @@ export const updatePurposeErrorMapper = (error: ApiError<ErrorCodes>): number =>
     .with(
       "duplicatedPurposeTitle",
       "purposeFromTemplateCannotBeModified",
+      "riskAnalysisFormCannotBeUpdated",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -283,6 +285,7 @@ export const activatePurposeVersionErrorMapper = (
       "agreementNotFound",
       "riskAnalysisValidationFailed",
       "riskAnalysisTenantKindMismatch",
+      "reviewerWorkflowNotInSignedState",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -369,6 +372,13 @@ export const assignRiskAnalysisReviewerErrorMapper = (
     .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
     .with("multipleReviewersNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "userWithoutReviewerPrivileges",
+      "purposeFromTemplateCannotBeModified",
+      "reviewerWorkflowNotAllowedForDelegatedPurpose",
+      "reviewerWorkflowNotAllowedForReceiveMode",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
@@ -392,5 +402,63 @@ export const submitRiskAnalysisErrorMapper = (
       "missingRiskAnalysis",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const signRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "riskAnalysisValidationFailed",
+      "missingRiskAnalysis",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "requesterIsNotDesignatedReviewer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("reviewerWorkflowNotInSignableState", () => HTTP_STATUS_CONFLICT)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const rejectRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "requesterIsNotDesignatedReviewer",
+      "tenantIsNotTheConsumer",
+      "tenantIsNotTheDelegatedConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("reviewerWorkflowNotInSubmittedState", () => HTTP_STATUS_CONFLICT)
+    .with("rejectNotAllowedInCurrentMode", () => HTTP_STATUS_CONFLICT)
+    .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const editRiskAnalysisFormErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("reviewerWorkflowNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "requesterIsNotDesignatedReviewer",
+      "tenantIsNotTheConsumer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with(
+      "editNotAllowedForReviewMode",
+      "reviewerWorkflowNotEditable",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("riskAnalysisValidationFailed", () => HTTP_STATUS_BAD_REQUEST)
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

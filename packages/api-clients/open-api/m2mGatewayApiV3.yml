@@ -3767,6 +3767,85 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - eservices
+      summary: Upload an E-Service Descriptor async exchange callback interface
+      description: |
+        Upload an async exchange callback interface document for the specified E-Service Descriptor.
+        If the Descriptor already has an async exchange callback interface, it should be first deleted before uploading a new one.
+        The Descriptor must be in Draft state and async exchange must be enabled.
+      operationId: uploadEServiceDescriptorAsyncExchangeCallbackInterface
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/FileUploadMultipart"
+        required: true
+      responses:
+        "201":
+          description: E-Service Descriptor async exchange callback interface uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - eservices
+      summary: Delete an E-Service Descriptor async exchange callback interface
+      description: |
+        Delete the async exchange callback interface document of an E-Service Descriptor.
+        The Descriptor must be in Draft state.
+      operationId: deleteEServiceDescriptorAsyncExchangeCallbackInterface
+      responses:
+        "200":
+          description: E-Service Descriptor async exchange callback interface deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/suspend:
     post:
       tags:
@@ -10566,8 +10645,11 @@ components:
     EserviceIdsParam:
       in: query
       name: eserviceIds
-      description: Filter by E-Service IDs. If not specified, return results for any
-        E-Service
+      description: >-
+        Filter by E-Service IDs. If not specified, return results for any
+        E-Service. For e-services that are instances of an e-service template,
+        purpose templates linked to the originating e-service template are also
+        returned.
       required: false
       explode: false
       schema:
@@ -10757,6 +10839,12 @@ components:
             - PURPOSE_CLONED
             - PURPOSE_VERSION_ARCHIVED_BY_REVOKED_DELEGATION
             - RISK_ANALYSIS_DOCUMENT_GENERATED
+            - PURPOSE_RISK_ANALYSIS_WORKFLOW_CREATED
+            - PURPOSE_RISK_ANALYSIS_ASSIGNED
+            - PURPOSE_RISK_ANALYSIS_SUBMITTED
+            - PURPOSE_RISK_ANALYSIS_SIGNED
+            - PURPOSE_RISK_ANALYSIS_REJECTED
+            - PURPOSE_RISK_ANALYSIS_FORM_EDITED
         eventTimestamp:
           type: string
           format: date-time
@@ -12407,9 +12495,13 @@ components:
         responseTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         confirmation:
           type: boolean
         bulk:
@@ -12417,6 +12509,8 @@ components:
         maxResultSet:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 99999
     EServiceTechnology:
       type: string
       description: API Technology

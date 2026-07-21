@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -27,6 +26,8 @@ import {
   getNotificationRecipients,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
+
 import { handleEserviceArchivingToProducer } from "../src/handlers/eservices/handleEserviceArchivingToProducer.js";
 import { addOneEService, addOneTenant, readModelService } from "./utils.js";
 
@@ -153,7 +154,8 @@ describe("handleEserviceArchivingToProducer", () => {
     expect(notifications[0].body).toBe(
       inAppTemplates.eserviceArchivingCompletedDescriptorToProducer(
         eservice.name,
-        archivingDescriptor.version
+        archivingDescriptor.version,
+        archivingDescriptor.archivingSchedule!.archivableOn
       )
     );
   });
@@ -193,14 +195,14 @@ describe("handleEserviceArchivingToProducer", () => {
     );
     expect(notifications).toHaveLength(1);
     expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingEarlyArchivedToProducer(
+      inAppTemplates.eserviceArchivingDescriptorArchivedToProducer(
         eservice.name,
         archivingDescriptor.version
       )
     );
   });
 
-  it("returns empty array (skip routine) when archivingSchedule is absent on EServiceDescriptorArchived", async () => {
+  it("emits an archived notification when archivingSchedule is absent on EServiceDescriptorArchived", async () => {
     const routineDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
       // no archivingSchedule → auto-archiviation routine path
@@ -224,8 +226,13 @@ describe("handleEserviceArchivingToProducer", () => {
       logger,
       readModelService
     );
-    expect(notifications).toEqual([]);
-    expect(mockGetNotificationRecipients).not.toHaveBeenCalled();
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0].body).toBe(
+      inAppTemplates.eserviceArchivingDescriptorArchivedToProducer(
+        eservice.name,
+        archivingDescriptor.version
+      )
+    );
   });
 
   it("returns empty when there are no recipients for the producer", async () => {

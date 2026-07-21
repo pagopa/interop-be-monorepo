@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, it, expect } from "vitest";
+import {
+  decodeProtobufPayload,
+  getMockContextInternal,
+  getMockEService,
+  getMockPurpose,
+  getMockTenant,
+  getMockValidRiskAnalysisForm,
+  sortPurpose,
+} from "pagopa-interop-commons-test";
 import {
   Purpose,
   MaintenancePurposeRiskAnalysisSetTenantKindV2,
@@ -12,15 +20,8 @@ import {
   EService,
   eserviceMode,
 } from "pagopa-interop-models";
-import {
-  decodeProtobufPayload,
-  getMockContextInternal,
-  getMockEService,
-  getMockPurpose,
-  getMockTenant,
-  getMockValidRiskAnalysisForm,
-  sortPurpose,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect } from "vitest";
+
 import {
   purposeNotFound,
   unableToDetermineTenantKind,
@@ -167,6 +168,76 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
       riskAnalysisForm: {
         ...riskAnalysisForm,
         tenantKind: producerKind,
+      },
+    };
+
+    expect({
+      purpose: sortPurpose(writtenPayload.purpose),
+    }).toEqual({
+      purpose: sortPurpose(toPurposeV2(expectedPurpose)),
+    });
+  });
+
+  it("should use the first available tenant kind when reference date is before all history records", async () => {
+    const consumerKind: TenantKind = tenantKind.PA;
+    const consumer = getMockTenant();
+    const eservice: EService = {
+      ...getMockEService(),
+      mode: eserviceMode.deliver,
+      personalData: false,
+    };
+
+    const riskAnalysisId = generateId<RiskAnalysisId>();
+    const riskAnalysisForm = {
+      ...getMockValidRiskAnalysisForm(consumerKind),
+      riskAnalysisId,
+      tenantKind: undefined,
+    };
+
+    // Create a purpose with a creation date before the tenant kind history start
+    const purpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: eservice.id,
+      consumerId: consumer.id,
+      riskAnalysisForm,
+      createdAt: new Date("2023-01-10T10:00:00.000Z"), // Before history starts
+    };
+
+    await addOneEService(eservice);
+    await addOnePurpose(purpose);
+
+    // Add tenant kind history record after the purpose creation date
+    await addOneTenantKindHistory({
+      tenantId: consumer.id,
+      metadataVersion: 0,
+      kind: consumerKind,
+      modifiedAt: new Date("2024-01-01T00:00:00.000Z"), // After purpose creation
+    });
+
+    // This should succeed by falling back to the first available tenant kind
+    await purposeService.fixPurposeRiskAnalysisTenantKind(
+      purpose.id,
+      getMockContextInternal({})
+    );
+
+    const writtenEvent = await readLastPurposeEvent(purpose.id);
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "1",
+      type: "MaintenancePurposeRiskAnalysisSetTenantKind",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: MaintenancePurposeRiskAnalysisSetTenantKindV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...purpose,
+      riskAnalysisForm: {
+        ...riskAnalysisForm,
+        tenantKind: consumerKind,
       },
     };
 

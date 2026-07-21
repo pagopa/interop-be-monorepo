@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockDelegation,
   getMockEService,
@@ -23,8 +23,9 @@ import {
   PurposeEventEnvelopeV1,
   PurposeEventV1,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handlePurposeEvent } from "../src/handlers/handlePurposeEvent.js";
 import { purposeEServiceNotFound } from "../src/models/errors.js";
 import {
@@ -108,7 +109,13 @@ describe("handlePurposeEvent test", async () => {
                   "PurposeAdded",
                   "DraftPurposeUpdated",
                   "DraftPurposeDeleted",
-                  "PurposeCloned"
+                  "PurposeCloned",
+                  "PurposeRiskAnalysisWorkflowCreated",
+                  "PurposeRiskAnalysisAssigned",
+                  "PurposeRiskAnalysisSubmitted",
+                  "PurposeRiskAnalysisSigned",
+                  "PurposeRiskAnalysisRejected",
+                  "PurposeRiskAnalysisFormEdited"
                 ),
                 () => [
                   {
@@ -198,10 +205,7 @@ describe("handlePurposeEvent test", async () => {
                 P.union(
                   // Ignored events
                   "RiskAnalysisDocumentGenerated",
-                  "MaintenancePurposeRiskAnalysisSetTenantKind",
-                  "PurposeRiskAnalysisWorkflowCreated",
-                  "PurposeRiskAnalysisAssigned",
-                  "PurposeRiskAnalysisSubmitted"
+                  "MaintenancePurposeRiskAnalysisSetTenantKind"
                 ),
                 () => [
                   {

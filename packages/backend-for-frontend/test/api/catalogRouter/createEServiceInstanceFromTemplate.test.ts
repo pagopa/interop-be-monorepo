@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockEService,
+} from "pagopa-interop-commons-test/index.js";
 import {
   EServiceId,
   EServiceTemplateId,
@@ -7,19 +13,14 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import request from "supertest";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockEService,
-} from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
-import { api, clients } from "../../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockBffApiCreatedEServiceDescriptor,
   getMockBffApiInstanceEServiceSeed,
 } from "../../mockUtils.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /templates/:templateId/eservices", () => {
   const mockInstanceEServiceSeed = getMockBffApiInstanceEServiceSeed();
@@ -59,11 +60,18 @@ describe("API POST /templates/:templateId/eservices", () => {
   it.each([
     { templateId: "invalid" as EServiceTemplateId },
     { body: { ...mockInstanceEServiceSeed, extraField: 1 } },
+    { body: { ...mockInstanceEServiceSeed, asyncExchange: false } },
     {
       body: { ...mockInstanceEServiceSeed, isClientAccessDelegable: "invalid" },
     },
     { body: { ...mockInstanceEServiceSeed, isConsumerDelegable: "invalid" } },
     { body: { ...mockInstanceEServiceSeed, isSignalHubEnabled: "invalid" } },
+    {
+      body: {
+        ...mockInstanceEServiceSeed,
+        asyncExchangeProperties: { responseTime: "invalid" },
+      },
+    },
   ])(
     "Should return 400 if passed an invalid parameter: %s",
     async ({ templateId, body }) => {

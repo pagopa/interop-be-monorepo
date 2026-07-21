@@ -1,5 +1,3 @@
-import { Attribute, Tenant, TenantAttribute } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
 import {
   getMockAttribute,
   getMockTenant,
@@ -7,6 +5,9 @@ import {
   getMockContext,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
+import { Attribute, Tenant, TenantAttribute } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import {
   tenantIsNotACertifier,
   tenantNotFound,

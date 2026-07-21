@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockContext,
@@ -6,7 +7,6 @@ import {
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -23,6 +23,7 @@ import {
   toEServiceV2,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleEserviceDescriptorArchivingCanceledToConsumer } from "../src/handlers/eservices/handleEserviceDescriptorArchivingCanceledToConsumer.js";
 import {
   addOneAgreement,
@@ -114,7 +115,7 @@ describe("handleEserviceDescriptorArchivingCanceledToConsumer", () => {
     });
     expect(messages.length).toBeGreaterThanOrEqual(1);
     expect(messages[0].email.subject).toContain(
-      'Annullata l\'archiviazione di una versione di "Test E-service"'
+      "La versione di un e-service con cui stai scambiando dati non è più in fase di archiviazione"
     );
   });
 

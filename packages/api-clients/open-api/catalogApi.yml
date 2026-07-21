@@ -3156,6 +3156,10 @@ components:
           type: array
           items:
             type: string
+        serverUrlsDescriptions:
+          type: array
+          items:
+            type: string
         interfaceTemplateMetadata:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
     UpdateEServiceDescriptorDocumentSeed:
@@ -3378,6 +3382,19 @@ components:
           format: uuid
         interfaceMetadata:
           $ref: "#/components/schemas/TemplateInstanceInterfaceMetadata"
+    TemplateInstanceInterfaceServerUrlSeed:
+      type: object
+      additionalProperties: false
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: uri
+        description:
+          type: string
+          minLength: 10
+          maxLength: 250
     TemplateInstanceInterfaceRESTSeed:
       type: object
       additionalProperties: false
@@ -3400,8 +3417,7 @@ components:
         serverUrls:
           type: array
           items:
-            type: string
-            format: uri
+            $ref: "#/components/schemas/TemplateInstanceInterfaceServerUrlSeed"
     TemplateInstanceInterfaceSOAPSeed:
       type: object
       additionalProperties: false
@@ -3411,8 +3427,7 @@ components:
         serverUrls:
           type: array
           items:
-            type: string
-            format: uri
+            $ref: "#/components/schemas/TemplateInstanceInterfaceServerUrlSeed"
     TemplateInstanceInterfaceMetadata:
       type: object
       additionalProperties: false
@@ -3475,6 +3490,8 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceRiskAnalysisMultiAnswer"
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
     EServiceRiskAnalysisSingleAnswer:
       type: object
       additionalProperties: false
@@ -3703,6 +3720,10 @@ components:
           type: array
           items:
             type: string
+        serverUrlsDescriptions:
+          type: array
+          items:
+            type: string
         publishedAt:
           type: string
           format: date-time
@@ -3833,9 +3854,13 @@ components:
         responseTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         confirmation:
           type: boolean
         bulk:
@@ -3843,6 +3868,8 @@ components:
         maxResultSet:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 99999
     AsyncExchangePropertiesInstanceSeed:
       type: object
       additionalProperties: false
@@ -3850,12 +3877,18 @@ components:
         responseTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         resourceAvailableTime:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 999999
         maxResultSet:
           type: integer
           format: int32
+          minimum: 1
+          maximum: 99999
     EServiceTechnology:
       type: string
       description: API Technology
@@ -3969,6 +4002,13 @@ components:
           type: string
           minLength: 1
           maxLength: 12
+    TenantKind:
+      type: string
+      enum:
+        - PA
+        - PRIVATE
+        - GSP
+        - SCP
     Problem:
       properties:
         type:

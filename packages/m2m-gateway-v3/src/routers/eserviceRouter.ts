@@ -1,6 +1,6 @@
+import { KMSClient } from "@aws-sdk/client-kms";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
@@ -10,6 +10,7 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
@@ -18,7 +19,9 @@ import {
   downloadEServiceDescriptorInterfaceErrorMapper,
   downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   uploadEServiceDescriptorInterfaceErrorMapper,
+  uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   deleteEServiceDescriptorInterfaceErrorMapper,
+  deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
   deleteDraftEServiceDescriptorErrorMapper,
   getEServiceRiskAnalysisErrorMapper,
   getEServiceDescriptorAttributesErrorMapper,
@@ -613,6 +616,60 @@ const eserviceRouter = (
             downloadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
             ctx,
             `Error retrieving async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const document =
+            await eserviceService.uploadEServiceDescriptorAsyncExchangeCallbackInterface(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+
+          return res.status(201).send(m2mGatewayApiV3.Document.parse(document));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
+            ctx,
+            `Error uploading async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          await eserviceService.deleteEServiceDescriptorAsyncExchangeCallbackInterface(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper,
+            ctx,
+            `Error deleting async exchange callback interface for eservice ${req.params.eserviceId} descriptor with id ${req.params.descriptorId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

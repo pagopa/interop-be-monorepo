@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { parse } from "csv";
 import {
   Logger,
@@ -6,15 +7,15 @@ import {
   waitForReadModelMetadataVersion,
 } from "pagopa-interop-commons";
 import { CorrelationId, Tenant, WithMetadata } from "pagopa-interop-models";
+import { Readable } from "stream";
+
+import { ISTAT_ATTRIBUTE_SEED, SUMMARY_AGE_CODE } from "../config/constants.js";
 import { InteropContext } from "../model/interopContextModel.js";
 import { JobStats } from "../model/istatModel.js";
-import { TenantProcessService } from "./tenantProcessService.js";
-import { IstatClient } from "./istatClient.js";
 import { AttributeProcessService } from "./attributeProcessService.js";
-import { ISTAT_ATTRIBUTE_SEED, SUMMARY_AGE_CODE } from "../config/constants.js";
+import { IstatClient } from "./istatClient.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
-import { Readable } from "stream";
-import { isAxiosError } from "axios";
+import { TenantProcessService } from "./tenantProcessService.js";
 
 type PollingConfig = {
   defaultPollingMaxRetries: number;
@@ -45,6 +46,7 @@ export async function importAttributes(
     processed: 0,
     created: 0,
     updated: 0,
+    skipped: 0,
     revoked: 0,
     errors: 0,
   };
@@ -67,19 +69,37 @@ export async function importAttributes(
   );
   const entries = Array.from(populationByMunicipality.entries());
   const chunks = sliceIntoChunks(entries, csvChunkSize);
+  logger.info("Pre-fetching valid ISTAT tenants from database...");
+  const validIstatCodesArray = await readModel.getAllIstatRemoteIds();
+  const validIstatCodes = new Set(validIstatCodesArray);
+  logger.info(`Found ${validIstatCodes.size} valid ISTAT tenants.`);
 
   for (const chunk of chunks) {
+    const token = await refreshableToken.get();
+    const context: InteropContext = {
+      correlationId,
+      bearerToken: token.serialized,
+    };
     await Promise.all(
       chunk.map(async ([municipalityCode, totalCount]) => {
         stats.processed++;
         try {
-          const token = await refreshableToken.get();
-          const context: InteropContext = {
-            correlationId,
-            bearerToken: token.serialized,
-          };
+          if (Number.isNaN(totalCount)) {
+            logger.warn(
+              `Value 'Totale' for municipality ${municipalityCode} is not a Number: ${totalCount}`
+            );
+            stats.errors++;
+            return;
+          }
 
           try {
+            if (!validIstatCodes.has(municipalityCode)) {
+              logger.debug(
+                `Tenant with remoteId: ${municipalityCode} not found in DB. Skipping.`
+              );
+              stats.skipped++;
+              return;
+            }
             await tenantProcess.internalAssignCertifiedDiscreteAttribute(
               ISTAT_ATTRIBUTE_SEED.origin,
               municipalityCode,
@@ -132,7 +152,7 @@ export async function importAttributes(
   );
 
   logger.info(
-    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Updated: ${stats.updated}, Revoked: ${stats.revoked}, Error: ${stats.errors}`
+    `Process complete. Processed: ${stats.processed}, Success: ${stats.created}, Updated: ${stats.updated}, Skipped: ${stats.skipped}, Revoked: ${stats.revoked}, Error: ${stats.errors}`
   );
 }
 
@@ -158,7 +178,7 @@ async function downloadAndAggregateData(
     if (Number(row["Età"]) === SUMMARY_AGE_CODE) {
       const codiceComune = row["Codice comune"];
       const totale = Number(row["Totale"]);
-      if (codiceComune && !isNaN(totale)) {
+      if (codiceComune) {
         populationMap.set(codiceComune, totale);
       }
     }
@@ -208,7 +228,20 @@ async function revokeMissingMunicipalities(
     await Promise.all(
       chunk.map(async (tenant) => {
         const tenantData = tenant.data;
-        logger.info(`Revoking ${tenantData.id}`);
+
+        const istatRemoteId = tenantData.remoteIds?.find(
+          (r) => r.origin === ISTAT_ATTRIBUTE_SEED.origin
+        );
+
+        if (!istatRemoteId) {
+          logger.warn(`istatRemoteId not found for tenant: ${tenantData.id}`);
+          stats.errors++;
+          return;
+        }
+
+        logger.info(
+          `Revoking attribute for tenant ${tenantData.id} (RemoteId: ${istatRemoteId?.origin} / ${istatRemoteId?.value})`
+        );
         try {
           const token = await refreshableToken.get();
           const context: InteropContext = {
@@ -218,8 +251,8 @@ async function revokeMissingMunicipalities(
 
           const metadata =
             await tenantProcess.internalRevokeCertifiedDiscreteAttribute(
-              tenantData.externalId.origin,
-              tenantData.externalId.value,
+              istatRemoteId.origin,
+              istatRemoteId.value,
               ISTAT_ATTRIBUTE_SEED.origin,
               ISTAT_ATTRIBUTE_SEED.code,
               context,

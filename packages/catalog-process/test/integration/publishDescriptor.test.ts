@@ -33,6 +33,8 @@ import {
   technology,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -56,7 +58,6 @@ import {
   addOneAgreement,
   addOneDelegation,
 } from "../integrationUtils.js";
-import { config } from "../../src/config/config.js";
 
 describe("publish descriptor", () => {
   const mockEService = getMockEService();

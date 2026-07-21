@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockAgreement,
   getMockContext,
@@ -25,6 +24,8 @@ import {
   getNotificationRecipients,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
+
 import { handleEserviceArchivingCanceledToConsumer } from "../src/handlers/eservices/handleEserviceArchivingCanceledToConsumer.js";
 import {
   addOneAgreement,
@@ -108,8 +109,7 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
       entityId: EServiceIdDescriptorId.parse(`${eservice.id}/${descriptor.id}`),
       body: inAppTemplates.eserviceArchivingCanceledDescriptorToConsumer(
         eservice.name,
-        descriptor.version,
-        producerTenant.name
+        descriptor.version
       ),
     });
   });
@@ -129,10 +129,7 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
     );
     expect(notifications).toHaveLength(1);
     expect(notifications[0].body).toBe(
-      inAppTemplates.eserviceArchivingCanceledEserviceToConsumer(
-        eservice.name,
-        producerTenant.name
-      )
+      inAppTemplates.eserviceArchivingCanceledEserviceToConsumer(eservice.name)
     );
   });
 

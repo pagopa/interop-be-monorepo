@@ -3,20 +3,21 @@ import {
   PurposeEvent,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handlePurposeVersionSuspendedByConsumer } from "./handlePurposeVersionSuspendedByConsumer.js";
-import { handlePurposeVersionUnsuspendedByConsumer } from "./handlePurposeVersionUnsuspendedByConsumer.js";
+import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
+import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
 import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
-import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
-import { handlePurposeVersionSuspendedByProducer } from "./handlePurposeVersionSuspendedByProducer.js";
-import { handlePurposeVersionUnsuspendedByProducer } from "./handlePurposeVersionUnsuspendedByProducer.js";
-import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
-import { handlePurposeWaitingForApprovalToProducer } from "./handlePurposeWaitingForApprovalToProducer.js";
-import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
-import { handlePurposeWaitingForApprovalToConsumer } from "./handlePurposeWaitingForApprovalToConsumer.js";
 import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
+import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
 import { handlePurposeVersionRejectedOtherVersion } from "./handlePurposeVersionRejectedOtherVersion.js";
+import { handlePurposeVersionSuspendedByConsumer } from "./handlePurposeVersionSuspendedByConsumer.js";
+import { handlePurposeVersionSuspendedByProducer } from "./handlePurposeVersionSuspendedByProducer.js";
+import { handlePurposeVersionUnsuspendedByConsumer } from "./handlePurposeVersionUnsuspendedByConsumer.js";
+import { handlePurposeVersionUnsuspendedByProducer } from "./handlePurposeVersionUnsuspendedByProducer.js";
+import { handlePurposeWaitingForApprovalToConsumer } from "./handlePurposeWaitingForApprovalToConsumer.js";
+import { handlePurposeWaitingForApprovalToProducer } from "./handlePurposeWaitingForApprovalToProducer.js";
 
 export async function handlePurposeEvent(
   params: HandlerParams<typeof PurposeEvent>
@@ -178,7 +179,10 @@ export async function handlePurposeEvent(
           "MaintenancePurposeRiskAnalysisSetTenantKind",
           "PurposeRiskAnalysisWorkflowCreated",
           "PurposeRiskAnalysisAssigned",
-          "PurposeRiskAnalysisSubmitted"
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => {

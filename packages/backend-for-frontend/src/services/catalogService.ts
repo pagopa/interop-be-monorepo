@@ -1,8 +1,8 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
+import { randomUUID } from "crypto";
 import {
   agreementApi,
   attributeRegistryApi,
@@ -33,11 +33,7 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  AuthorizationProcessClient,
-  DelegationProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+
 import {
   apiTechnologyToTechnology,
   toBffCatalogApiDescriptorAttributes,
@@ -52,6 +48,11 @@ import {
   enhanceEServiceToBffCatalogApiProducerDescriptorEService,
   enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
+import {
+  AuthorizationProcessClient,
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
@@ -78,6 +79,7 @@ import {
   getAllDelegations,
   getTenantsFromDelegation,
 } from "./delegationService.js";
+import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 import {
   assertEServiceNotTemplateInstance,
   assertNotDelegatedEservice,
@@ -85,7 +87,6 @@ import {
   assertRequesterIsProducer,
   isInvalidDescriptor,
 } from "./validators.js";
-import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
@@ -498,7 +499,10 @@ export function catalogServiceBuilder(
         archivedAt: descriptor.archivedAt,
         suspendedAt: descriptor.suspendedAt,
         rejectionReasons: descriptor.rejectionReasons,
-        serverUrls: descriptor.serverUrls,
+        serverUrls: descriptor.serverUrls.map((url, index) => ({
+          url,
+          description: descriptor.serverUrlsDescriptions?.[index] || undefined,
+        })),
         templateRef: eserviceTemplate && {
           templateId: eserviceTemplate.id,
           templateName: eserviceTemplate.name,
@@ -558,13 +562,6 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      const producer = await tenantProcessClient.tenant.getTenant({
-        headers,
-        params: {
-          id: eservice.producerId,
-        },
-      });
-
       await assertRequesterCanActAsProducer(
         delegationProcessClient,
         headers,
@@ -579,8 +576,7 @@ export function catalogServiceBuilder(
         technology: eservice.technology,
         mode: eservice.mode,
         riskAnalysis: await enhanceEServiceRiskAnalysisArray(
-          eservice.riskAnalysis,
-          producer.kind
+          eservice.riskAnalysis
         ),
         isSignalHubEnabled: eservice.isSignalHubEnabled,
         isConsumerDelegable: eservice.isConsumerDelegable,
@@ -1142,19 +1138,12 @@ export function catalogServiceBuilder(
           headers,
         });
 
-      const producer = await tenantProcessClient.tenant.getTenant({
-        headers,
-        params: {
-          id: eservice.producerId,
-        },
-      });
-
       const riskAnalysis = retrieveRiskAnalysis(eservice, riskAnalysisId);
 
       return toBffCatalogApiEserviceRiskAnalysis(
         riskAnalysis,
         getRulesetExpiration(
-          producer.kind,
+          riskAnalysis.riskAnalysisForm.tenantKind,
           riskAnalysis.riskAnalysisForm.version
         )?.toJSON()
       );
@@ -1619,10 +1608,18 @@ export function catalogServiceBuilder(
 
       const zip = new AdmZip(Buffer.from(zipFile));
 
-      const rootFolderName = fileResource.filename.replace(".zip", "");
+      const entries = zip.getEntries();
+      const topLevelSegments = new Set(
+        entries.map((e) => e.entryName.split("/")[0])
+      );
+      const rootFolderPrefix =
+        topLevelSegments.size === 1 &&
+        entries.every((e) => e.entryName.includes("/"))
+          ? `${[...topLevelSegments][0]}/`
+          : "";
 
-      const entriesMap = zip.getEntries().reduce((map, entry) => {
-        map.set(entry.entryName.replace(rootFolderName + "/", ""), entry);
+      const entriesMap = entries.reduce((map, entry) => {
+        map.set(entry.entryName.replace(rootFolderPrefix, ""), entry);
         return map;
       }, new Map<string, AdmZip.IZipEntry>());
       entriesMap.delete("");

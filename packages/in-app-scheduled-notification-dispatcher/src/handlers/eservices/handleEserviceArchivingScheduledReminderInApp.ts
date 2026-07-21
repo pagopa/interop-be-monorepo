@@ -1,4 +1,3 @@
-import { differenceInCalendarDays } from "date-fns";
 import { Logger } from "pagopa-interop-commons";
 import {
   EService,
@@ -14,6 +13,7 @@ import {
   ScheduledNotificationRow,
   parseEServiceEntityId,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleEserviceArchivingScheduledReminderInApp(
@@ -50,14 +50,9 @@ export async function handleEserviceArchivingScheduledReminderInApp(
   const archivableOn = new Date(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );
-  const daysRemaining = Math.max(
-    differenceInCalendarDays(archivableOn, new Date()),
-    0
-  );
 
   const producerNotifications = await buildProducerNotifications({
     eservice,
-    daysRemaining,
     archivableOn,
     entityId: eserviceId,
     readModelService,
@@ -66,7 +61,6 @@ export async function handleEserviceArchivingScheduledReminderInApp(
 
   const consumerNotifications = await buildConsumerNotifications({
     eservice,
-    daysRemaining,
     archivableOn,
     entityId: eserviceId,
     readModelService,
@@ -78,7 +72,6 @@ export async function handleEserviceArchivingScheduledReminderInApp(
 
 type BuilderParams = {
   eservice: EService;
-  daysRemaining: number;
   archivableOn: Date;
   entityId: EServiceId;
   readModelService: ReadModelServiceSQL;
@@ -87,7 +80,6 @@ type BuilderParams = {
 
 async function buildProducerNotifications({
   eservice,
-  daysRemaining,
   archivableOn,
   entityId,
   readModelService,
@@ -104,7 +96,6 @@ async function buildProducerNotifications({
     tenantId,
     body: inAppTemplates.eserviceArchivingScheduledReminderToProducer(
       eservice.name,
-      daysRemaining,
       archivableOn
     ),
     notificationType: "eserviceStateChangedToProducer",
@@ -114,7 +105,6 @@ async function buildProducerNotifications({
 
 async function buildConsumerNotifications({
   eservice,
-  daysRemaining,
   archivableOn,
   entityId,
   readModelService,
@@ -131,11 +121,6 @@ async function buildConsumerNotifications({
     return [];
   }
 
-  const producerTenant = await readModelService.getTenantById(
-    eservice.producerId
-  );
-  const producerName = producerTenant?.name ?? eservice.producerId;
-
   const recipients = await getNotificationRecipients(
     consumerIds,
     "eserviceStateChangedToConsumer",
@@ -147,9 +132,7 @@ async function buildConsumerNotifications({
     tenantId,
     body: inAppTemplates.eserviceArchivingScheduledReminderToConsumer(
       eservice.name,
-      daysRemaining,
-      archivableOn,
-      producerName
+      archivableOn
     ),
     notificationType: "eserviceStateChangedToConsumer",
     entityId,

@@ -1,4 +1,8 @@
-import { differenceInCalendarDays } from "date-fns";
+import {
+  HtmlTemplateService,
+  Logger,
+  dateAtRomeZone,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   EmailNotificationMessagePayload,
@@ -6,13 +10,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import {
-  HtmlTemplateService,
-  Logger,
-  dateAtRomeZone,
-} from "pagopa-interop-commons";
-import {
   eventMailTemplateType,
-  formatDaysRemaining,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,
@@ -22,6 +20,7 @@ import {
   ScheduledNotificationRow,
   parseEServiceEntityId,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 const PRODUCER_NOTIFICATION: NotificationType =
@@ -73,12 +72,7 @@ export async function handleEserviceArchivingScheduledReminderEmail(
   const archivableOn = new Date(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );
-  const daysRemaining = Math.max(
-    differenceInCalendarDays(archivableOn, new Date()),
-    0
-  );
   const archivableOnFormatted = dateAtRomeZone(archivableOn);
-  const daysRemainingText = formatDaysRemaining(daysRemaining);
   const entityId = eservice.id;
 
   const [producerTemplate, consumerTemplate, producerTenant] =
@@ -110,8 +104,6 @@ export async function handleEserviceArchivingScheduledReminderEmail(
         entityId,
         ...(t.type === "Tenant" ? { recipientName: producerTenant.name } : {}),
         eserviceName: eservice.name,
-        daysRemaining,
-        daysRemainingText,
         archivableOn: archivableOnFormatted,
         ctaLabel: "Visualizza e-service",
         selfcareId: t.selfcareId,
@@ -164,8 +156,6 @@ export async function handleEserviceArchivingScheduledReminderEmail(
               : {}),
             eserviceName: eservice.name,
             producerName: producerTenant.name,
-            daysRemaining,
-            daysRemainingText,
             archivableOn: archivableOnFormatted,
             ctaLabel: "Visualizza e-service",
             selfcareId: t.selfcareId,

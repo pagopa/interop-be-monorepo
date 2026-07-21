@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { addDays } from "date-fns";
-import { describe, it, expect, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -19,6 +18,8 @@ import {
   schedulableEventType,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
+import { describe, it, expect, vi } from "vitest";
+
 import { handleEserviceArchivingScheduledReminderInApp } from "../../src/handlers/eservices/handleEserviceArchivingScheduledReminderInApp.js";
 
 const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
@@ -35,6 +36,7 @@ const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
   agreementApprovalPolicy: undefined,
   createdAt: new Date(),
   serverUrls: [],
+  serverUrlsDescriptions: [],
   attributes: { certified: [], declared: [], verified: [] },
   publishedAt: undefined,
   suspendedAt: undefined,
@@ -56,7 +58,6 @@ const makeEservice = (overrides: Partial<EService> = {}): EService => ({
   name: "test-eservice",
   description: "desc",
   technology: "Rest",
-  attributes: undefined,
   descriptors: [],
   createdAt: new Date(),
   riskAnalysis: [],
@@ -186,11 +187,11 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
     );
     expect(producer?.userId).toBe(producerUserId);
     expect(producer?.entityId).toBe(eservice.id);
-    expect(producer?.body).toContain("verrà archiviato");
+    expect(producer?.body).toContain("sarà archiviato");
     expect(producer?.body).not.toMatch(/versione\s+\d/);
     expect(consumers).toHaveLength(2);
     expect(consumers.every((c) => c.body.includes("producer-tenant"))).toBe(
-      true
+      false
     );
     expect(consumers.every((c) => !/versione\s+\d/.test(c.body))).toBe(true);
   });
