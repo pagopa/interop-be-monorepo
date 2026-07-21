@@ -32,7 +32,7 @@ paths:
       security: []
       tags:
         - health
-      summary: Health status endpoint [test 2]
+      summary: Health status endpoint
       description: Return ok
       operationId: getStatus
       responses:
