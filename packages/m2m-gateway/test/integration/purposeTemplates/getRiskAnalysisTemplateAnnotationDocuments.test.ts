@@ -3,7 +3,7 @@ import {
   purposeTemplateApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
-import { getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId } from "pagopa-interop-commons-test/index.js";
+import { getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId } from "pagopa-interop-commons-test";
 import { generateId, PurposeTemplateId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
