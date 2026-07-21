@@ -68,6 +68,7 @@ import {
   archivingScope,
   ArchivingScope,
   AsyncExchangeProperties,
+  Technology,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -93,6 +94,7 @@ import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceTemplateInterfaceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   inconsistentAttributesSeedGroupsCount,
@@ -4146,6 +4148,7 @@ export function catalogServiceBuilder(
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
+      interfaceTechnology: Technology,
       eserviceInstanceInterfaceData:
         | catalogApi.TemplateInstanceInterfaceRESTSeed
         | catalogApi.TemplateInstanceInterfaceSOAPSeed,
@@ -4180,6 +4183,18 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      if (eserviceTemplate.technology !== interfaceTechnology) {
+        throw eserviceTemplateInterfaceTechnologyMismatch(
+          eserviceTemplate.id,
+          eserviceTemplate.technology,
+          interfaceTechnology
+        );
+      }
+
+      const contactDataRestApi = match(eserviceInstanceInterfaceData)
+        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
+        .otherwise(() => undefined);
+
       const eserviceTemplateVersion = eserviceTemplate.versions.find(
         (v) => v.id === eserviceTemplateVersionId
       );
@@ -4190,10 +4205,6 @@ export function catalogServiceBuilder(
           eserviceTemplateVersionId
         );
       }
-
-      const contactDataRestApi = match(eserviceInstanceInterfaceData)
-        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
-        .otherwise(() => undefined);
 
       const { eService: updatedEService, event: addDocumentEvent } =
         await createOpenApiInterfaceByTemplate(
