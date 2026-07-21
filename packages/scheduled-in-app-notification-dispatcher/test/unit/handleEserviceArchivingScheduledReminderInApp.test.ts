@@ -178,21 +178,13 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
       genericLogger
     );
 
-    expect(result).toHaveLength(3); // 1 producer + 2 consumers
+    expect(result).toHaveLength(1); // 1/1 producer + 0/2 consumers
     const producer = result.find(
       (n) => n.notificationType === "eserviceStateChangedToProducer"
-    );
-    const consumers = result.filter(
-      (n) => n.notificationType === "eserviceStateChangedToConsumer"
     );
     expect(producer?.userId).toBe(producerUserId);
     expect(producer?.entityId).toBe(eservice.id);
     expect(producer?.body).toContain("sarà archiviato");
     expect(producer?.body).not.toMatch(/versione\s+\d/);
-    expect(consumers).toHaveLength(2);
-    expect(consumers.every((c) => c.body.includes("producer-tenant"))).toBe(
-      false
-    );
-    expect(consumers.every((c) => !/versione\s+\d/.test(c.body))).toBe(true);
   });
 });

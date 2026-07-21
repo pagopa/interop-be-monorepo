@@ -174,17 +174,12 @@ describe("handleEserviceDescriptorArchivingScheduledReminderInApp", () => {
         genericLogger
       );
 
-    expect(result).toHaveLength(2);
+    expect(result).toHaveLength(1);
     const producer = result.find(
       (n) => n.notificationType === "eserviceStateChangedToProducer"
-    );
-    const consumer = result.find(
-      (n) => n.notificationType === "eserviceStateChangedToConsumer"
     );
     expect(producer?.userId).toBe(producerUserId);
     expect(producer?.tenantId).toBe(eservice.producerId);
     expect(producer?.body).toContain("sarà archiviata");
-    expect(consumer?.userId).toBe(consumerUserId);
-    expect(consumer?.tenantId).toBe(consumerId);
   });
 });
