@@ -11,5 +11,7 @@ export function toProducerKeyM2MEventSQL(
     resourceVersion: event.resourceVersion,
     kid: event.kid,
     producerKeychainId: event.producerKeychainId,
+    producerId: event.producerId,
+    visibility: event.visibility,
   };
 }

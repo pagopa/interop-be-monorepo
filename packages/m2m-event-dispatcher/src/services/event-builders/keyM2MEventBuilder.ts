@@ -1,4 +1,4 @@
-import { Client, KeyM2MEvent } from "pagopa-interop-models";
+import { Client, KeyM2MEvent, m2mEventVisibility } from "pagopa-interop-models";
 
 import { generateM2MEventId } from "../../utils/uuidv7.js";
 
@@ -16,5 +16,7 @@ export function createKeyM2MEvent(
     resourceVersion,
     kid,
     clientId: client.id,
+    consumerId: client.consumerId,
+    visibility: m2mEventVisibility.owner,
   };
 }
