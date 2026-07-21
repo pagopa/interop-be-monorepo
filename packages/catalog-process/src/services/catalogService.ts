@@ -5057,35 +5057,45 @@ function hasCertifiedAttributeConfigurationChanged(
   descriptor: Descriptor,
   seed: catalogApi.AttributesSeed
 ): boolean {
-  return descriptor.attributes.certified.some((descriptorAttributesGroup) => {
-    const seedAttrGroup = seed.certified.find((seedGroup) =>
-      descriptorAttributesGroup.every((descriptorAttribute) =>
-        seedGroup.some(
-          (seedAttribute) => seedAttribute.id === descriptorAttribute.id
-        )
+  const findMatchingSeedGroup = (
+    descriptorGroup: EServiceCertifiedAttribute[],
+    seedGroups: catalogApi.Attribute[][]
+  ): catalogApi.Attribute[] | undefined =>
+    seedGroups.find((seedGroup) =>
+      descriptorGroup.every((descriptorAttr) =>
+        seedGroup.some((seedAttr) => seedAttr.id === descriptorAttr.id)
       )
     );
 
-    if (seedAttrGroup === undefined) {
-      throw certifiedAttributeGroupNotFoundInSeed(eserviceId, descriptor.id);
-    }
-
-    return descriptorAttributesGroup.some((descriptorAttribute) => {
-      const seedAttribute = seedAttrGroup.find(
-        (attribute) => attribute.id === descriptorAttribute.id
-      );
-
+  const hasAttributeConfigurationChangedInGroup = (
+    descriptorGroup: EServiceCertifiedAttribute[],
+    seedGroup: catalogApi.Attribute[]
+  ): boolean =>
+    descriptorGroup.some((descriptorAttr) => {
+      const seedAttr = seedGroup.find((attr) => attr.id === descriptorAttr.id);
+      const descriptorDailyCalls =
+        "dailyCallsPerConsumer" in descriptorAttr
+          ? descriptorAttr.dailyCallsPerConsumer
+          : undefined;
       const descriptorDiscreteConfig =
-        getEServiceAttributeDiscreteConfig(descriptorAttribute);
+        getEServiceAttributeDiscreteConfig(descriptorAttr);
       return (
-        seedAttribute?.dailyCallsPerConsumer !==
-          descriptorAttribute.dailyCallsPerConsumer ||
-        seedAttribute?.discreteConfig?.threshold !==
+        seedAttr?.dailyCallsPerConsumer !== descriptorDailyCalls ||
+        seedAttr?.discreteConfig?.threshold !==
           descriptorDiscreteConfig?.threshold ||
-        seedAttribute?.discreteConfig?.comparator !==
+        seedAttr?.discreteConfig?.comparator !==
           descriptorDiscreteConfig?.comparator
       );
     });
+
+  return descriptor.attributes.certified.some((descriptorGroup) => {
+    const seedGroup = findMatchingSeedGroup(descriptorGroup, seed.certified);
+
+    if (seedGroup === undefined) {
+      throw certifiedAttributeGroupNotFoundInSeed(eserviceId, descriptor.id);
+    }
+
+    return hasAttributeConfigurationChangedInGroup(descriptorGroup, seedGroup);
   });
 }
 
