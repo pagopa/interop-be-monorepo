@@ -3,7 +3,7 @@ import {
   getMockContext,
   getMockKey,
   getMockProducerKeychain,
-} from "pagopa-interop-commons-test/src/testUtils.js";
+} from "pagopa-interop-commons-test";
 import {
   Key,
   ProducerKeychain,
