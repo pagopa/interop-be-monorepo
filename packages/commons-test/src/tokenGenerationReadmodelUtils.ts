@@ -54,7 +54,7 @@ export const writeTokenGenStatesApiClient = async (
           }
         : {}),
     },
-    TableName: `token-generation-states-${tableNameSuffix ?? ""}`,
+    TableName: `token-generation-states${tableNameSuffix ? `-${tableNameSuffix}` : ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -187,7 +187,7 @@ export const writeTokenGenStatesConsumerClient = async (
           }
         : {}),
     },
-    TableName: `token-generation-states-${tableNameSuffix ?? ""}`,
+    TableName: `token-generation-states${tableNameSuffix ? `-${tableNameSuffix}` : ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -198,7 +198,7 @@ export const readAllTokenGenStatesItems = async (
   tableNameSuffix?: string
 ): Promise<TokenGenerationStatesGenericClient[]> => {
   const readInput: ScanInput = {
-    TableName: `token-generation-states-${tableNameSuffix ?? ""}`,
+    TableName: `token-generation-states${tableNameSuffix ? `-${tableNameSuffix}` : ""}`,
   };
   const commandQuery = new ScanCommand(readInput);
   const data = await dynamoDBClient.send(commandQuery);
@@ -230,7 +230,7 @@ export const readAllPlatformStatesItems = async (
   tableNameSuffix?: string
 ): Promise<PlatformStatesGenericEntry[]> => {
   const readInput: ScanInput = {
-    TableName: `platform-states-${tableNameSuffix ?? ""}`,
+    TableName: `platform-states${tableNameSuffix ? `-${tableNameSuffix}` : ""}`,
   };
   const commandQuery = new ScanCommand(readInput);
   const data = await dynamoDBClient.send(commandQuery);
@@ -314,7 +314,7 @@ export const writePlatformCatalogEntry = async (
   const input: PutItemInput = {
     ConditionExpression: "attribute_not_exists(PK)",
     Item: item,
-    TableName: `platform-states-${tableNameSuffix ?? ""}`,
+    TableName: `platform-states${tableNameSuffix ? `-${tableNameSuffix}` : ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -350,7 +350,7 @@ export const writePlatformPurposeEntry = async (
         S: purposeEntry.updatedAt,
       },
     },
-    TableName: `platform-states-${tableNameSuffix ?? ""}`,
+    TableName: `platform-states${tableNameSuffix ? `-${tableNameSuffix}` : ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -389,7 +389,7 @@ export const writePlatformAgreementEntry = async (
         S: agreementEntry.producerId,
       },
     },
-    TableName: `platform-states-${tableNameSuffix ?? ""}`,
+    TableName: `platform-states${tableNameSuffix ? `-${tableNameSuffix}` : ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
@@ -427,7 +427,7 @@ export const writePlatformStatesClientEntry = async (
         S: clientEntry.updatedAt,
       },
     },
-    TableName: `platform-states-${tableNameSuffix ?? ""}`,
+    TableName: `platform-states${tableNameSuffix ? `-${tableNameSuffix}` : ""}`,
   };
   const command = new PutItemCommand(input);
   await dynamoDBClient.send(command);
