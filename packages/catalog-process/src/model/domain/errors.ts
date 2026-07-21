@@ -1,4 +1,7 @@
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidationIssue,
+  dateAtRomeZone,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
@@ -83,6 +86,7 @@ const errorCodes = {
   certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
   eserviceDescriptorWithActiveOrPendingDelegation: "0067",
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
+  gracePeriodDaysLowerThanDescriptor: "0069",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -773,5 +777,18 @@ export function eServiceAlreadyArchived(
     detail: `EService ${eserviceId} is already archived`,
     code: "eServiceAlreadyArchived",
     title: "EService already archived",
+  });
+}
+
+export function gracePeriodDaysLowerThanDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  requestedArchivableOn: Date,
+  expectedArchivableOn: Date
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requested archiving date ${dateAtRomeZone(requestedArchivableOn)} for EService ${eserviceId} cannot be lower than expected archiving date ${dateAtRomeZone(expectedArchivableOn)} already scheduled for Descriptor ${descriptorId}`,
+    code: "gracePeriodDaysLowerThanDescriptor",
+    title: "Grace period days lower than descriptor",
   });
 }

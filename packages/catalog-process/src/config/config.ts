@@ -13,13 +13,6 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const GracePeriodDaysConfig = z.union([
-  z.literal(30),
-  z.literal(60),
-  z.literal(90),
-  z.literal(120),
-]);
-
 const EServiceTemplateS3Config = z
   .object({
     ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
@@ -48,9 +41,6 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
           .number()
           .default(3 * 1024 * 1024),
         PRODUCER_ALLOWED_ORIGINS: z.string(),
-        GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS: z.coerce
-          .number()
-          .pipe(GracePeriodDaysConfig),
       })
       .transform((c) => ({
         eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
@@ -59,8 +49,6 @@ const CatalogProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
         producerAllowedOrigins: c.PRODUCER_ALLOWED_ORIGINS.split(",")
           .map((origin) => origin.trim())
           .filter(Boolean),
-        gracePeriodArchivingEServiceDays:
-          c.GRACE_PERIOD_ARCHIVING_ESERVICE_DAYS,
       }))
   )
   .and(EServiceTemplateS3Config)

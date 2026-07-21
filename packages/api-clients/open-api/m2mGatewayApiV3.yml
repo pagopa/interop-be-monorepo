@@ -55,7 +55,8 @@ paths:
       parameters:
         - in: query
           name: states
-          description: Filter Agreements by states. If not specified, return Agreements in
+          description:
+            Filter Agreements by states. If not specified, return Agreements in
             any state
           required: false
           schema:
@@ -66,7 +67,8 @@ paths:
           explode: false
         - in: query
           name: producerIds
-          description: Filter Agreements by producer IDs. If not specified, return
+          description:
+            Filter Agreements by producer IDs. If not specified, return
             Agreements for any producer
           required: false
           schema:
@@ -78,7 +80,8 @@ paths:
           explode: false
         - in: query
           name: consumerIds
-          description: Filter Agreements by consumer IDs. If not specified, return
+          description:
+            Filter Agreements by consumer IDs. If not specified, return
             Agreements for any consumer
           required: false
           schema:
@@ -90,7 +93,8 @@ paths:
           explode: false
         - in: query
           name: descriptorIds
-          description: Filter Agreements by Descriptor IDs. If not specified, return
+          description:
+            Filter Agreements by Descriptor IDs. If not specified, return
             Agreements for any Descriptor
           required: false
           schema:
@@ -300,7 +304,8 @@ paths:
       tags:
         - agreements
       summary: Approve an Agreement in Pending state
-      description: Approve an Agreement that is in Pending state, transitioning it to
+      description:
+        Approve an Agreement that is in Pending state, transitioning it to
         Active state
       operationId: approveAgreement
       requestBody:
@@ -350,7 +355,8 @@ paths:
       tags:
         - agreements
       summary: Reject an Agreement in Pending state
-      description: Reject an Agreement that is in Pending state, transitioning it to
+      description:
+        Reject an Agreement that is in Pending state, transitioning it to
         Rejected state
       operationId: rejectAgreement
       requestBody:
@@ -443,7 +449,8 @@ paths:
       tags:
         - agreements
       summary: Submit an Agreement in Draft state
-      description: Submit an Agreement that is in Draft state, transitioning it to
+      description:
+        Submit an Agreement that is in Draft state, transitioning it to
         Active state if all requirements are satisfied, to Pending otherwise
       operationId: submitAgreement
       requestBody:
@@ -781,7 +788,8 @@ paths:
       operationId: downloadAgreementConsumerDocument
       responses:
         "200":
-          description: Consumer Document retrieved, a multipart containing the file and
+          description:
+            Consumer Document retrieved, a multipart containing the file and
             its metadata
           content:
             multipart/form-data:
@@ -858,7 +866,8 @@ paths:
       operationId: downloadAgreementConsumerContract
       responses:
         "200":
-          description: Consumer contract retrieved, a multipart containing the file and
+          description:
+            Consumer contract retrieved, a multipart containing the file and
             its metadata
           content:
             multipart/form-data:
@@ -895,7 +904,8 @@ paths:
       parameters:
         - in: query
           name: states
-          description: Filter Consumer Delegations by states. If not specified, return
+          description:
+            Filter Consumer Delegations by states. If not specified, return
             Consumer Delegations in any state
           required: false
           schema:
@@ -1025,7 +1035,8 @@ paths:
       tags:
         - delegations
       summary: Accept a Consumer Delegation in Waiting for Approval state
-      description: Accept a Consumer Delegation that is in Waiting for Approval state,
+      description:
+        Accept a Consumer Delegation that is in Waiting for Approval state,
         transitioning it to Active state
       operationId: acceptConsumerDelegation
       responses:
@@ -1068,7 +1079,8 @@ paths:
       parameters:
         - in: query
           name: states
-          description: Filter Producer Delegations by states. If not specified, return
+          description:
+            Filter Producer Delegations by states. If not specified, return
             Producer Delegations in any state
           required: false
           schema:
@@ -1198,7 +1210,8 @@ paths:
       tags:
         - delegations
       summary: Accept a Producer Delegation in Waiting for Approval state
-      description: Accept a Producer Delegation that is in Waiting for Approval state,
+      description:
+        Accept a Producer Delegation that is in Waiting for Approval state,
         transitioning it to Active state
       operationId: acceptProducerDelegation
       responses:
@@ -1243,7 +1256,8 @@ paths:
       tags:
         - delegations
       summary: Reject a Producer Delegation in Waiting for Approval state
-      description: Reject a Producer Delegation that is in Waiting for Approval state,
+      description:
+        Reject a Producer Delegation that is in Waiting for Approval state,
         transitioning it to Rejected state
       operationId: rejectProducerDelegation
       requestBody:
@@ -2048,7 +2062,8 @@ paths:
       tags:
         - clients
       summary: Deletes a key by client and key identifier (kid).
-      description: Given a client and key identifiers it deletes the corresponding
+      description:
+        Given a client and key identifiers it deletes the corresponding
         key, if any
       operationId: deleteClientKeyById
       responses:
@@ -2098,7 +2113,8 @@ paths:
             type: string
         - name: producerId
           in: query
-          description: Filter Producer Keychains by Producer ID (Producer Keychain owner).
+          description:
+            Filter Producer Keychains by Producer ID (Producer Keychain owner).
             If not specified, return Producer Keychains for any Producer.
           schema:
             type: string
@@ -2529,7 +2545,8 @@ paths:
       tags:
         - delegations
       summary: Reject a Consumer Delegation in Waiting for Approval state
-      description: Reject a Consumer Delegation that is in Waiting for Approval state,
+      description:
+        Reject a Consumer Delegation that is in Waiting for Approval state,
         transitioning it to Rejected state
       operationId: rejectConsumerDelegation
       requestBody:
@@ -2577,7 +2594,8 @@ paths:
       parameters:
         - in: query
           name: producerIds
-          description: Filter E-Services by producer IDs. If not specified, return
+          description:
+            Filter E-Services by producer IDs. If not specified, return
             E-Services for any producer
           schema:
             type: array
@@ -2818,7 +2836,7 @@ paths:
       operationId: scheduleArchiveEservice
       requestBody:
         description: A payload containing archiving reason that describes the motivation about archiving
-        required: true 
+        required: true
         content:
           application/json:
             schema:
@@ -2898,7 +2916,8 @@ paths:
         - eservices
       summary: Update the delegation configurations of an E-Service after its
         publication
-      description: Update the delegation configurations of an E-Service in Published,
+      description:
+        Update the delegation configurations of an E-Service in Published,
         Suspended, or Deprecated state
       operationId: updatePublishedEServiceDelegation
       requestBody:
@@ -2949,7 +2968,8 @@ paths:
       tags:
         - eservices
       summary: Update the description of an E-Service after its publication
-      description: Update the description of an E-Service in Published, Suspended, or
+      description:
+        Update the description of an E-Service in Published, Suspended, or
         Deprecated state
       operationId: updatePublishedEServiceDescription
       requestBody:
@@ -3052,7 +3072,8 @@ paths:
         - eservices
       summary: Update the flag to enable Signal Hub for an E-Service after its
         publication
-      description: Update the flag to enable Signal Hub for an E-Service in Published,
+      description:
+        Update the flag to enable Signal Hub for an E-Service in Published,
         Suspended, or Deprecated state
       operationId: updatePublishedEServiceSignalHub
       requestBody:
@@ -3103,7 +3124,8 @@ paths:
       tags:
         - eservices
       summary: Set personalData flag for an E-Service after its publication
-      description: Set personalData flag for an E-Service in Published, Suspended, or
+      description:
+        Set personalData flag for an E-Service in Published, Suspended, or
         Deprecated state. The flag can only be set once.
       operationId: updateEServicePersonalDataFlag
       requestBody:
@@ -3159,7 +3181,8 @@ paths:
       parameters:
         - name: state
           in: query
-          description: Filter Descriptors by states. If not specified, return Descriptors
+          description:
+            Filter Descriptors by states. If not specified, return Descriptors
             in any state
           schema:
             $ref: "#/components/schemas/EServiceDescriptorState"
@@ -3534,7 +3557,8 @@ paths:
       operationId: downloadEServiceDescriptorDocument
       responses:
         "200":
-          description: E-Service Descriptor Document retrieved, a multipart containing the
+          description:
+            E-Service Descriptor Document retrieved, a multipart containing the
             file and its metadata
           content:
             multipart/form-data:
@@ -3616,7 +3640,8 @@ paths:
       operationId: downloadEServiceDescriptorInterface
       responses:
         "200":
-          description: E-Service Descriptor interface retrieved, a multipart containing
+          description:
+            E-Service Descriptor interface retrieved, a multipart containing
             the file and its metadata
           content:
             multipart/form-data:
@@ -3850,10 +3875,12 @@ paths:
     post:
       tags:
         - eservices
-      summary: Suspend an E-Service Descriptor in Published, Deprecated or Archiving
+      summary:
+        Suspend an E-Service Descriptor in Published, Deprecated or Archiving
         state
       operationId: suspendDescriptor
-      description: Suspend an E-Service Descriptor that is in Published, Deprecated or
+      description:
+        Suspend an E-Service Descriptor that is in Published, Deprecated or
         Archiving state, transitioning it to Suspended state or in
         ArchivingSuspended if previous state was Archiving
       parameters:
@@ -3902,7 +3929,8 @@ paths:
     post:
       tags:
         - eservices
-      summary: Unsuspend an E-Service Descriptor in Suspended or ArchivingSuspended
+      summary:
+        Unsuspend an E-Service Descriptor in Suspended or ArchivingSuspended
         state
       description: Unsuspend an E-Service Descriptor that is in Suspended or
         ArchivingSuspended state, transitioning it to Active, Deprecated or
@@ -4005,7 +4033,8 @@ paths:
         - eservices
       summary: Approve a delegated E-Service Descriptor in Waiting for Approval state
       operationId: approveDelegatedEServiceDescriptor
-      description: Approve a delegated E-Service Descriptor that is in Waiting for
+      description:
+        Approve a delegated E-Service Descriptor that is in Waiting for
         Approval state
       parameters:
         - name: eserviceId
@@ -4055,7 +4084,8 @@ paths:
         - eservices
       summary: Reject a delegated E-Service Descriptor in Waiting for Approval state
       operationId: rejectDelegatedEServiceDescriptor
-      description: Reject a delegated E-Service Descriptor that is in Waiting for
+      description:
+        Reject a delegated E-Service Descriptor that is in Waiting for
         Approval state
       requestBody:
         description: Payload containing the reason of the rejection
@@ -4537,7 +4567,8 @@ paths:
         - eservices
       summary: Assign E-Service Descriptor Certified Attributes to a specific
         Attribute Group
-      description: Assign a set of Certified Attributes to the indicated Attribute
+      description:
+        Assign a set of Certified Attributes to the indicated Attribute
         Group (identified by groupIndex) of an E-Service Descriptor
       operationId: assignEServiceDescriptorCertifiedAttributesToGroup
       requestBody:
@@ -4548,7 +4579,8 @@ paths:
               $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "200":
-          description: E-Service Descriptor Certified Attribute assigned to the Attribute
+          description:
+            E-Service Descriptor Certified Attribute assigned to the Attribute
             Group
           content:
             application/json:
@@ -4602,9 +4634,11 @@ paths:
     post:
       tags:
         - eservices
-      summary: Assign E-Service Descriptor Declared Attributes to a specific Attribute
+      summary:
+        Assign E-Service Descriptor Declared Attributes to a specific Attribute
         Group
-      description: Assign a set of Declared Attributes to the indicated Attribute
+      description:
+        Assign a set of Declared Attributes to the indicated Attribute
         Group (identified by groupIndex) of an E-Service Descriptor
       operationId: assignEServiceDescriptorDeclaredAttributesToGroup
       requestBody:
@@ -4615,7 +4649,8 @@ paths:
               $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "200":
-          description: E-Service Descriptor Declared Attribute assigned to the Attribute
+          description:
+            E-Service Descriptor Declared Attribute assigned to the Attribute
             Group
           content:
             application/json:
@@ -4669,9 +4704,11 @@ paths:
     post:
       tags:
         - eservices
-      summary: Assign E-Service Descriptor Verified Attributes to a specific Attribute
+      summary:
+        Assign E-Service Descriptor Verified Attributes to a specific Attribute
         Group
-      description: Assign a set of Verified Attributes to the indicated Attribute
+      description:
+        Assign a set of Verified Attributes to the indicated Attribute
         Group (identified by groupIndex) of an E-Service Descriptor
       operationId: assignEServiceDescriptorVerifiedAttributesToGroup
       requestBody:
@@ -4682,7 +4719,8 @@ paths:
               $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
       responses:
         "200":
-          description: E-Service Descriptor Verified Attribute assigned to the Attribute
+          description:
+            E-Service Descriptor Verified Attribute assigned to the Attribute
             Group
           content:
             application/json:
@@ -4785,7 +4823,8 @@ paths:
     delete:
       tags:
         - eservices
-      summary: Delete an E-Service Descriptor Certified Attribute from a specific
+      summary:
+        Delete an E-Service Descriptor Certified Attribute from a specific
         Attribute Group
       description: |
         Delete a specific Certified Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
@@ -5129,7 +5168,8 @@ paths:
             type: string
         - in: query
           name: eserviceTemplateIds
-          description: Filter E-Service Templates by IDs. If not specified, return
+          description:
+            Filter E-Service Templates by IDs. If not specified, return
             E-Service Templates with any ID
           schema:
             type: array
@@ -5139,7 +5179,8 @@ paths:
           explode: false
         - in: query
           name: creatorIds
-          description: Filter E-Service Templates by creator IDs. If not specified, return
+          description:
+            Filter E-Service Templates by creator IDs. If not specified, return
             E-Service Templates for any creator
           schema:
             type: array
@@ -5347,7 +5388,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update the description of an E-Service Template after its publication
-      description: Update the description of an E-Service Template in Published or
+      description:
+        Update the description of an E-Service Template in Published or
         Suspended state
       operationId: updatePublishedEServiceTemplateDescription
       requestBody:
@@ -5396,7 +5438,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update the intended target of an E-Service Template after its publication
-      description: Update the intended target of an E-Service Template in Published or
+      description:
+        Update the intended target of an E-Service Template in Published or
         Suspended state
       operationId: updatePublishedEServiceTemplateIntendedTarget
       requestBody:
@@ -5500,7 +5543,8 @@ paths:
       parameters:
         - name: state
           in: query
-          description: Filter Versions by states. If not specified, return Versions in any
+          description:
+            Filter Versions by states. If not specified, return Versions in any
             state
           schema:
             $ref: "#/components/schemas/EServiceTemplateVersionState"
@@ -5718,7 +5762,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Suspend an E-Service Template Version in Published state
-      description: Suspend an E-Service Template Version that is in Published state,
+      description:
+        Suspend an E-Service Template Version that is in Published state,
         transitioning it to Suspended state
       operationId: suspendEServiceTemplateVersion
       responses:
@@ -5768,7 +5813,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Unsuspend an E-Service Template Version in Suspended state
-      description: Unsuspend an E-Service Template Version that is in Suspended state,
+      description:
+        Unsuspend an E-Service Template Version that is in Suspended state,
         transitioning it to Published state
       operationId: unsuspendEServiceTemplateVersion
       responses:
@@ -5971,7 +6017,8 @@ paths:
       operationId: downloadEServiceTemplateVersionDocument
       responses:
         "200":
-          description: E-Service Template Version Document retrieved, a multipart
+          description:
+            E-Service Template Version Document retrieved, a multipart
             containing the file and its metadata
           content:
             multipart/form-data:
@@ -6217,7 +6264,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Update the quotas of an E-Service Template Version after its publication
-      description: Update the quotas of an E-Service Template Version in Published or
+      description:
+        Update the quotas of an E-Service Template Version in Published or
         Suspended state
       operationId: updatePublishedEServiceTemplateVersionQuotas
       requestBody:
@@ -6432,9 +6480,11 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Assign E-Service Template Version Certified Attribute to a specific
+      summary:
+        Assign E-Service Template Version Certified Attribute to a specific
         Attribute Group
-      description: Assign a set of Certified Attributes to the indicated Attribute
+      description:
+        Assign a set of Certified Attributes to the indicated Attribute
         Group (identified by groupIndex) of an E-Service Template Version
       operationId: assignEServiceTemplateVersionCertifiedAttributesToGroup
       requestBody:
@@ -6445,7 +6495,8 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "200":
-          description: E-Service Descriptor Certified Attribute assigned to the Attribute
+          description:
+            E-Service Descriptor Certified Attribute assigned to the Attribute
             Group
           content:
             application/json:
@@ -6500,9 +6551,11 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Assign E-Service Template Version Declared Attributes to a specific
+      summary:
+        Assign E-Service Template Version Declared Attributes to a specific
         Attribute Group
-      description: Assign a set of Declared Attributes to the indicated Attribute
+      description:
+        Assign a set of Declared Attributes to the indicated Attribute
         Group (identified by groupIndex) of an E-Service Template Version
       operationId: assignEServiceTemplateVersionDeclaredAttributesToGroup
       requestBody:
@@ -6513,7 +6566,8 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "200":
-          description: E-Service Template Version Declared Attribute assigned to the
+          description:
+            E-Service Template Version Declared Attribute assigned to the
             Attribute Group
           content:
             application/json:
@@ -6568,9 +6622,11 @@ paths:
     post:
       tags:
         - eserviceTemplates
-      summary: Assign E-Service Template Version Verified Attributes to a specific
+      summary:
+        Assign E-Service Template Version Verified Attributes to a specific
         Attribute Group
-      description: Assign a set of Verified Attributes to the indicated Attribute
+      description:
+        Assign a set of Verified Attributes to the indicated Attribute
         Group (identified by groupIndex) of an E-Service Template Version
       operationId: assignEServiceTemplateVersionVerifiedAttributesToGroup
       requestBody:
@@ -6581,7 +6637,8 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
       responses:
         "200":
-          description: E-Service Template Version Verified Attribute assigned to the
+          description:
+            E-Service Template Version Verified Attribute assigned to the
             Attribute Group
           content:
             application/json:
@@ -6650,7 +6707,8 @@ paths:
       operationId: deleteEServiceTemplateVersionCertifiedAttributeFromGroup
       responses:
         "200":
-          description: E-Service Template Version Certified Attribute deleted from
+          description:
+            E-Service Template Version Certified Attribute deleted from
             Attribute Group
           content:
             application/json:
@@ -6717,7 +6775,8 @@ paths:
       operationId: deleteEServiceTemplateVersionVerifiedAttributeFromGroup
       responses:
         "200":
-          description: E-Service Template Version Verified Attribute deleted from
+          description:
+            E-Service Template Version Verified Attribute deleted from
             Attribute Group
           content:
             application/json:
@@ -6784,7 +6843,8 @@ paths:
       operationId: deleteEServiceTemplateVersionDeclaredAttributeFromGroup
       responses:
         "200":
-          description: E-Service Template Version Declared Attribute deleted from
+          description:
+            E-Service Template Version Declared Attribute deleted from
             Attribute Group
           content:
             application/json:
@@ -6886,7 +6946,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Create Declared Attributes Group for E-Service Template Version
-      description: Create a new group of Declared Attributes for an E-Service Template
+      description:
+        Create a new group of Declared Attributes for an E-Service Template
         Version in Draft state
       operationId: createEServiceTemplateVersionDeclaredAttributesGroup
       requestBody:
@@ -6942,7 +7003,8 @@ paths:
       tags:
         - eserviceTemplates
       summary: Create Verified Attributes Group for E-Service Template Version
-      description: Create a new group of Verified Attributes for an E-Service Template
+      description:
+        Create a new group of Verified Attributes for an E-Service Template
         Version in Draft state
       operationId: createEServiceTemplateVersionVerifiedAttributesGroup
       requestBody:
@@ -7108,13 +7170,15 @@ paths:
         - $ref: "#/components/parameters/EserviceIdsParam"
         - in: query
           name: title
-          description: Filter Purposes by title. If not specified, return Purposes for any
+          description:
+            Filter Purposes by title. If not specified, return Purposes for any
             title
           schema:
             type: string
         - in: query
           name: consumerIds
-          description: Filter Purposes by consumer ids. If not specified, return Purposes
+          description:
+            Filter Purposes by consumer ids. If not specified, return Purposes
             for any consumer
           schema:
             type: array
@@ -7208,7 +7272,8 @@ paths:
       tags:
         - purposes
       summary: Delete Purpose
-      description: Delete Purpose. Only purposes with one version can be deleted. The
+      description:
+        Delete Purpose. Only purposes with one version can be deleted. The
         version must be in Draft or WaitingForApproval state
       operationId: deletePurpose
       responses:
@@ -7302,7 +7367,8 @@ paths:
       parameters:
         - name: state
           in: query
-          description: Filter Versions by states. If not specified, return Versions in any
+          description:
+            Filter Versions by states. If not specified, return Versions in any
             state
           schema:
             $ref: "#/components/schemas/PurposeVersionState"
@@ -7829,7 +7895,8 @@ paths:
       operationId: downloadPurposeVersionRiskAnalysisDocument
       responses:
         "200":
-          description: Purpose version risk analysis document retrieved, a multipart
+          description:
+            Purpose version risk analysis document retrieved, a multipart
             containing the file and its metadata
           content:
             multipart/form-data:
@@ -8466,7 +8533,8 @@ paths:
       tags:
         - tenants
       summary: List Tenant Verified Attribute Verifiers
-      description: Retrieve a list of Verifiers for a specific Verified Attribute of a
+      description:
+        Retrieve a list of Verifiers for a specific Verified Attribute of a
         Tenant
       operationId: getTenantVerifiedAttributeVerifiers
       parameters:
@@ -8557,13 +8625,15 @@ paths:
       parameters:
         - in: query
           name: purposeTitle
-          description: Filter Purpose Templates by title. If not specified, return Purpose
+          description:
+            Filter Purpose Templates by title. If not specified, return Purpose
             Templates for any title.
           schema:
             type: string
         - in: query
           name: creatorIds
-          description: Filter Purpose Templates by Creator IDs. If not specified, return
+          description:
+            Filter Purpose Templates by Creator IDs. If not specified, return
             Purpose Templates for any Creator.
           schema:
             type: array
@@ -8587,13 +8657,15 @@ paths:
           explode: false
         - in: query
           name: targetTenantKind
-          description: Filter Purpose Templates by target tenant kind. If not specified,
+          description:
+            Filter Purpose Templates by target tenant kind. If not specified,
             return Purpose Templates for any tenant kind.
           schema:
             $ref: "#/components/schemas/TargetTenantKind"
         - in: query
           name: handlesPersonalData
-          description: Filter Purpose Templates by whether they handle personal data. If
+          description:
+            Filter Purpose Templates by whether they handle personal data. If
             not specified, return Purpose Templates that both handle and do not
             handle personal data.
           schema:
@@ -8938,7 +9010,8 @@ paths:
       tags:
         - purposeTemplates
       summary: Retrieve a list of Risk Analysis Template Annotation Documents
-      description: Retrieve a list of Risk Analysis Template Annotation Documents for
+      description:
+        Retrieve a list of Risk Analysis Template Annotation Documents for
         the specified Purpose Template
       operationId: getRiskAnalysisTemplateAnnotationDocuments
       parameters:
@@ -8976,19 +9049,22 @@ paths:
       tags:
         - purposeTemplates
       summary: Upload a Risk Analysis Form Template Answer Annotation Document
-      description: Upload a Document for the specified Risk Analysis Form Template
+      description:
+        Upload a Document for the specified Risk Analysis Form Template
         Answer Annotation
       operationId: uploadRiskAnalysisTemplateAnswerAnnotationDocument
       requestBody:
         content:
           multipart/form-data:
             schema:
-              $ref: "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentUploadMultipa\
+              $ref:
+                "#/components/schemas/RiskAnalysisTemplateAnnotationDocumentUploadMultipa\
                 rt"
         required: true
       responses:
         "201":
-          description: Risk Analysis Form Template Answer Annotation Document uploaded
+          description:
+            Risk Analysis Form Template Answer Annotation Document uploaded
             successfully
           content:
             application/json:
@@ -9055,7 +9131,8 @@ paths:
       operationId: getRiskAnalysisTemplateAnswerAnnotationDocument
       responses:
         "200":
-          description: Risk Analysis Form Template Answer Annotation Document retrieved, a
+          description:
+            Risk Analysis Form Template Answer Annotation Document retrieved, a
             multipart containing the file and its metadata
           content:
             multipart/form-data:
@@ -9215,7 +9292,8 @@ paths:
       parameters:
         - in: query
           name: producerIds
-          description: Filter Purpose Template linked E-Services by E-Service Producer
+          description:
+            Filter Purpose Template linked E-Services by E-Service Producer
             IDs. If not specified, return linked E-Services for any Producer.
           schema:
             type: array
@@ -9226,7 +9304,8 @@ paths:
           explode: false
         - in: query
           name: eserviceName
-          description: Filter Purpose Template linked E-Services by E-Service name. If not
+          description:
+            Filter Purpose Template linked E-Services by E-Service name. If not
             specified, return linked E-Services for any name.
           schema:
             type: string
@@ -9316,7 +9395,8 @@ paths:
       tags:
         - purposeTemplates
       summary: Unlink an E-Service From Purpose Template
-      description: Unlink an E-Service From a Purpose Template that is in Draft or
+      description:
+        Unlink an E-Service From a Purpose Template that is in Draft or
         Active state
       operationId: removePurposeTemplateEService
       responses:
@@ -9503,7 +9583,8 @@ paths:
           $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Publish a Purpose Template in Draft state
-      description: Publish a Purpose Template that is in Draft state, transitioning it
+      description:
+        Publish a Purpose Template that is in Draft state, transitioning it
         to Published state
       operationId: publishPurposeTemplate
       tags:
@@ -9563,7 +9644,8 @@ paths:
           $ref: "#/components/schemas/PurposeTemplateId"
     post:
       summary: Archive a Purpose Template in Published or Suspended state
-      description: Archive a Purpose Template that is in Published or Suspended state,
+      description:
+        Archive a Purpose Template that is in Published or Suspended state,
         transitioning it to Archived state
       operationId: archivePurposeTemplate
       tags:
@@ -11484,7 +11566,8 @@ components:
         - createdAt
     EServiceDescriptorCertifiedAttribute:
       type: object
-      description: Represents an E-Service Descriptor Certified attribute with the
+      description:
+        Represents an E-Service Descriptor Certified attribute with the
         index of its attribute group.
       properties:
         groupIndex:
@@ -11499,7 +11582,8 @@ components:
         - attribute
     EServiceTemplateVersionCertifiedAttribute:
       type: object
-      description: Represents an E-Service Template Version Certified attribute with
+      description:
+        Represents an E-Service Template Version Certified attribute with
         the index of its attribute group.
       properties:
         groupIndex:
@@ -11514,7 +11598,8 @@ components:
         - attribute
     EServiceDescriptorDeclaredAttribute:
       type: object
-      description: Represents an E-Service Descriptor Declared attribute with the
+      description:
+        Represents an E-Service Descriptor Declared attribute with the
         index of its attribute group.
       properties:
         groupIndex:
@@ -11529,7 +11614,8 @@ components:
         - attribute
     EServiceTemplateVersionDeclaredAttribute:
       type: object
-      description: Represents an E-Service Template Version Declared attribute with
+      description:
+        Represents an E-Service Template Version Declared attribute with
         the index of its attribute group.
       properties:
         groupIndex:
@@ -11544,7 +11630,8 @@ components:
         - attribute
     EServiceDescriptorVerifiedAttribute:
       type: object
-      description: Represents an E-Service Descriptor Verified attribute with the
+      description:
+        Represents an E-Service Descriptor Verified attribute with the
         index of its attribute group.
       properties:
         groupIndex:
@@ -11559,7 +11646,8 @@ components:
         - attribute
     EServiceTemplateVersionVerifiedAttribute:
       type: object
-      description: Represents an E-Service Template Version Verified attribute with
+      description:
+        Represents an E-Service Template Version Verified attribute with
         the index of its attribute group.
       properties:
         groupIndex:
@@ -12273,7 +12361,8 @@ components:
           type: integer
           format: int32
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per
+          description:
+            Maximum number of daily calls that this descriptor can afford per
             consumer
           type: integer
           format: int32
@@ -12396,7 +12485,8 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per
+          description:
+            Maximum number of daily calls that this descriptor can afford per
             consumer
           type: integer
           format: int32
@@ -12465,7 +12555,8 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per
+          description:
+            Maximum number of daily calls that this descriptor can afford per
             consumer
           type: integer
           format: int32
@@ -12630,7 +12721,8 @@ components:
           type: integer
           format: int32
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per
+          description:
+            Maximum number of daily calls that this descriptor can afford per
             consumer
           type: integer
           format: int32
@@ -12754,7 +12846,8 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per
+          description:
+            Maximum number of daily calls that this descriptor can afford per
             consumer
           type: integer
           format: int32
@@ -12805,7 +12898,8 @@ components:
           minimum: 60
           maximum: 86400
         dailyCallsPerConsumer:
-          description: Maximum number of daily calls that this descriptor can afford per
+          description:
+            Maximum number of daily calls that this descriptor can afford per
             consumer
           type: integer
           format: int32
@@ -13235,7 +13329,8 @@ components:
     PurposeFromTemplateSeed:
       type: object
       additionalProperties: false
-      description: contains the expected payload for purpose creation from a purpose
+      description:
+        contains the expected payload for purpose creation from a purpose
         template
       properties:
         eserviceId:
@@ -13385,7 +13480,8 @@ components:
     PurposeDraftUpdateSeed:
       type: object
       additionalProperties: false
-      description: Contains the expected payload for purpose update of a purpose not
+      description:
+        Contains the expected payload for purpose update of a purpose not
         created from a purpose template
       properties:
         title:
@@ -14004,7 +14100,8 @@ components:
     DelegationRef:
       type: object
       additionalProperties: false
-      description: Set the delegation ID in order to operate as a delegate for an
+      description:
+        Set the delegation ID in order to operate as a delegate for an
         active producer or consumer delegation
       properties:
         delegationId:
@@ -14318,7 +14415,8 @@ components:
           description: URI reference of type definition
           type: string
         status:
-          description: The HTTP status code generated by the origin server for this
+          description:
+            The HTTP status code generated by the origin server for this
             occurrence of the problem
           example: 503
           exclusiveMaximum: true
@@ -14363,7 +14461,8 @@ components:
           pattern: "^[0-9]{3}-[0-9]{4}$"
           type: string
         detail:
-          description: A human readable explanation specific to this occurrence of the
+          description:
+            A human readable explanation specific to this occurrence of the
             problem
           example: Parameter not valid
           maxLength: 4096
@@ -14556,7 +14655,8 @@ components:
         type: integer
         format: int32
         minimum: 0
-      description: Time interval in milliseconds. Allowed requests will be constantly
+      description:
+        Time interval in milliseconds. Allowed requests will be constantly
         replenished during the interval. At the end of the interval the max
         allowed requests will be available
     IntegrityRest02DigestHeader:

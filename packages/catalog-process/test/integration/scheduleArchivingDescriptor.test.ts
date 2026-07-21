@@ -22,6 +22,7 @@ import {
   generateId,
   ArchivingSchedule,
   ArchivingScope,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi } from "vitest";
 import {
@@ -37,16 +38,14 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import * as dateCalculator from "../../src/utilities/dateCalculator.js";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 describe("schedule archiving of a descriptor", () => {
-  const mockGracePeriodDays: catalogApi.GracePeriodDaysSeed = {
-    gracePeriodDays: 90,
-  };
-
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
+  const mockGracePeriodDays = {
+    gracePeriodDays: GracePeriodDays.parse(60),
+  };
 
   it.each([
     {
@@ -113,7 +112,7 @@ describe("schedule archiving of a descriptor", () => {
             )
           ),
           scope: "Descriptor",
-          gracePeriodDays: mockGracePeriodDays.gracePeriodDays, // This value will be updated in subsequent PRs.
+          gracePeriodDays: mockGracePeriodDays.gracePeriodDays,
         },
       };
 
@@ -183,17 +182,17 @@ describe("schedule archiving of a descriptor", () => {
   it.each([
     {
       startedAt: new Date("2026-10-20T14:30:15.000Z"),
-      expectedArchivableOn: new Date("2026-11-20T00:00:00.000Z"),
+      expectedArchivableOn: new Date("2026-12-20T00:00:00.000Z"),
       testCase: "base case",
     },
     {
       startedAt: new Date("2025-12-15T09:15:00Z"),
-      expectedArchivableOn: new Date("2026-01-15T00:00:00Z"),
+      expectedArchivableOn: new Date("2026-02-14T00:00:00Z"),
       testCase: "turn of the year",
     },
     {
       startedAt: new Date("2028-02-10T11:00:00Z"),
-      expectedArchivableOn: new Date("2028-03-12T00:00:00Z"),
+      expectedArchivableOn: new Date("2028-04-11T00:00:00Z"),
       testCase: "leap year",
     },
   ])(
@@ -218,7 +217,11 @@ describe("schedule archiving of a descriptor", () => {
       await addOneEService(eservice);
 
       vi.spyOn(dateCalculator, "calculateArchivableOn").mockImplementationOnce(
-        () => dateCalculator.calculateArchivableOn(startedAt, 30)
+        () =>
+          dateCalculator.calculateArchivableOn(
+            startedAt,
+            mockGracePeriodDays.gracePeriodDays
+          )
       );
 
       const scheduleDescriptorArchivingResponse =
@@ -234,7 +237,7 @@ describe("schedule archiving of a descriptor", () => {
         archivableOn: expectedArchivableOn,
         startedAt: startedAt,
         scope: ArchivingScope.Enum.Descriptor,
-        gracePeriodDays: mockGracePeriodDays.gracePeriodDays, // This value will be updated in subsequent PRs.
+        gracePeriodDays: mockGracePeriodDays.gracePeriodDays,
       };
 
       const expectedDescriptor1: Descriptor = {
