@@ -1,9 +1,6 @@
 import crypto from "crypto";
 import { keyToClientJWKKey } from "pagopa-interop-commons";
-import {
-  getMockClient,
-  getMockKey,
-} from "pagopa-interop-commons-test/index.js";
+import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import {
   Key,
   Client,
