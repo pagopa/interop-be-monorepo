@@ -1,7 +1,7 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { EventEnvelope } from "../events/events.js";
-import { protobufDecoder } from "../protobuf/protobuf.js";
 import {
   ClientAddedV1,
   ClientDeletedV1,
@@ -36,6 +36,7 @@ import {
   ProducerKeychainUserAddedV2,
   ProducerKeychainUserDeletedV2,
 } from "../gen/v2/authorization/events.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
 
 export function authorizationEventToBinaryData(
   event: AuthorizationEvent

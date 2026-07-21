@@ -20,9 +20,9 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
-import { config } from "../config/config.js";
+
+import { toCompactDescriptor } from "../api/catalogApiConverter.js";
+import { toBffCompactEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
 import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
@@ -34,6 +34,8 @@ import {
   toCompactPurposeTemplateEService,
   toCompactPurposeTemplateEServiceTemplate,
 } from "../api/purposeTemplateApiConverter.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
   eServiceNotFound,
@@ -41,8 +43,7 @@ import {
   eserviceTemplateVersionNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { toCompactDescriptor } from "../api/catalogApiConverter.js";
-import { toBffCompactEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
+import { BffAppContext } from "../utilities/context.js";
 
 const FETCH_ALL_PAGE = 50;
 

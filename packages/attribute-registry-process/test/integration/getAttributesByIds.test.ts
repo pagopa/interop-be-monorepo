@@ -1,7 +1,8 @@
 /* eslint-disable functional/no-let */
+import { getMockAttribute } from "pagopa-interop-commons-test";
 import { Attribute, attributeKind, generateId } from "pagopa-interop-models";
 import { describe, it, expect, beforeEach } from "vitest";
-import { getMockAttribute } from "pagopa-interop-commons-test";
+
 import { addOneAttribute, readModelService } from "../integrationUtils.js";
 
 describe("getAttributesByIds", () => {

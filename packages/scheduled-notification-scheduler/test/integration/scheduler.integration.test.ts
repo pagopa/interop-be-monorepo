@@ -1,4 +1,3 @@
-import { describe, it, expect } from "vitest";
 import { eq, isNull } from "drizzle-orm";
 import { genericLogger } from "pagopa-interop-commons";
 import {
@@ -14,6 +13,8 @@ import {
   scheduledNotification,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
+import { describe, it, expect } from "vitest";
+
 import { scheduledNotificationDB, schedulerService } from "./utils.js";
 
 describe("scheduledNotificationScheduler integration", () => {

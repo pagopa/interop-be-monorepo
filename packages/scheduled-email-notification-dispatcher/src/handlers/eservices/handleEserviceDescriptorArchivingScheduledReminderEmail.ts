@@ -1,13 +1,13 @@
 import {
-  CorrelationId,
-  EmailNotificationMessagePayload,
-  NotificationType,
-} from "pagopa-interop-models";
-import {
   HtmlTemplateService,
   Logger,
   dateAtRomeZone,
 } from "pagopa-interop-commons";
+import {
+  CorrelationId,
+  EmailNotificationMessagePayload,
+  NotificationType,
+} from "pagopa-interop-models";
 import {
   eventMailTemplateType,
   getRecipientsForTenants,
@@ -19,6 +19,7 @@ import {
   ScheduledNotificationRow,
   parseEServiceIdDescriptorId,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 const PRODUCER_NOTIFICATION: NotificationType =

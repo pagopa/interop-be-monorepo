@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   unexpectedFieldValueError,
   unexpectedFieldError,
@@ -35,8 +36,8 @@ import {
   delegationKind,
   EServiceTemplateId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
 import { expect, describe, it } from "vitest";
+
 import {
   eServiceNotFound,
   eserviceNotInDraftState,
