@@ -24,6 +24,10 @@ import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
 
 describe("scheduleArchiveEServiceDescriptor", () => {
+  const mockSeed: catalogApi.GracePeriodDaysSeed = {
+    gracePeriodDays: 60,
+  };
+
   const mockApiDescriptor: catalogApi.EServiceDescriptor = {
     ...getMockedApiEserviceDescriptor(),
     state: "DEPRECATED",
@@ -56,6 +60,7 @@ describe("scheduleArchiveEServiceDescriptor", () => {
     const result = await eserviceService.scheduleArchiveEserviceDescriptor(
       unsafeBrandId(mockApiEservice.id),
       unsafeBrandId(mockApiDescriptor.id),
+      mockSeed,
       getMockM2MAdminAppContext()
     );
 
@@ -71,6 +76,7 @@ describe("scheduleArchiveEServiceDescriptor", () => {
         eServiceId: mockApiEservice.id,
         descriptorId: mockApiDescriptor.id,
       },
+      body: mockSeed,
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
@@ -86,6 +92,69 @@ describe("scheduleArchiveEServiceDescriptor", () => {
     ).toHaveBeenCalledTimes(2);
   });
 
+  it.each([30, 60, 90, 120])(
+    "Should succeed and perform service calls with gracePeriodDays as %s",
+    async (gracePeriodDays) => {
+      const seed = {
+        gracePeriodDays,
+      };
+
+      const result = await eserviceService.scheduleArchiveEserviceDescriptor(
+        unsafeBrandId(mockApiEservice.id),
+        unsafeBrandId(mockApiDescriptor.id),
+        seed as m2mGatewayApiV3.GracePeriodDaysSeed,
+        getMockM2MAdminAppContext()
+      );
+      const expectedM2MEServiceDescriptor: m2mGatewayApiV3.EServiceDescriptor =
+        toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
+
+      expect(result).toStrictEqual(expectedM2MEServiceDescriptor);
+      expectApiClientPostToHaveBeenCalledWith({
+        mockPost:
+          mockInteropBeClients.catalogProcessClient
+            .scheduleEServiceDescriptorArchiving,
+        params: {
+          eServiceId: mockApiEservice.id,
+          descriptorId: mockApiDescriptor.id,
+        },
+        body: seed,
+      });
+      expectApiClientGetToHaveBeenCalledWith({
+        mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
+        params: { eServiceId: mockApiEservice.id },
+      });
+      expect(
+        mockInteropBeClients.catalogProcessClient.getEServiceById
+      ).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it.each([{}, undefined, { gracePeriodDays: undefined }])(
+    "Should succeed and call process with default gracePeriodDays when body is %s",
+    async (body) => {
+      const result = await eserviceService.scheduleArchiveEserviceDescriptor(
+        unsafeBrandId(mockApiEservice.id),
+        unsafeBrandId(mockApiDescriptor.id),
+        body,
+        getMockM2MAdminAppContext()
+      );
+      const expectedM2MEServiceDescriptor: m2mGatewayApiV3.EServiceDescriptor =
+        toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
+
+      expect(result).toStrictEqual(expectedM2MEServiceDescriptor);
+      expectApiClientPostToHaveBeenCalledWith({
+        mockPost:
+          mockInteropBeClients.catalogProcessClient
+            .scheduleEServiceDescriptorArchiving,
+        params: {
+          eServiceId: mockApiEservice.id,
+          descriptorId: mockApiDescriptor.id,
+        },
+        body: mockSeed,
+      });
+    }
+  );
+
   it("Should throw missingMetadata in case the eservice returned by the POST call has no metadata", async () => {
     mockScheduleEServiceDescriptorArchive.mockResolvedValueOnce({
       ...mockEServiceProcessPostResponse,
@@ -96,9 +165,10 @@ describe("scheduleArchiveEServiceDescriptor", () => {
       eserviceService.scheduleArchiveEserviceDescriptor(
         unsafeBrandId(mockApiEservice.id),
         unsafeBrandId(mockApiDescriptor.id),
+        mockSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingMetadata());
+    ).rejects.toThrow(missingMetadata());
   });
 
   it("Should throw missingMetadata in case the eservice returned by the polling GET call has no metadata", async () => {
@@ -111,9 +181,10 @@ describe("scheduleArchiveEServiceDescriptor", () => {
       eserviceService.scheduleArchiveEserviceDescriptor(
         unsafeBrandId(mockApiEservice.id),
         unsafeBrandId(mockApiDescriptor.id),
+        mockSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(missingMetadata());
+    ).rejects.toThrow(missingMetadata());
   });
 
   it("Should throw pollingMaxRetriesExceeded in case of polling max attempts", async () => {
@@ -128,9 +199,10 @@ describe("scheduleArchiveEServiceDescriptor", () => {
       eserviceService.scheduleArchiveEserviceDescriptor(
         unsafeBrandId(mockApiEservice.id),
         unsafeBrandId(mockApiDescriptor.id),
+        mockSeed,
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       pollingMaxRetriesExceeded(
         config.defaultPollingMaxRetries,
         config.defaultPollingRetryDelay

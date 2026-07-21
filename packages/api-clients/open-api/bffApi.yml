@@ -4041,6 +4041,12 @@ paths:
       summary: Schedule the archiving process for an E-Service Descriptor
       description: Schedule the archiving process for an E-Service Descriptor
       operationId: scheduleArchiveEserviceDescriptor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GracePeriodDaysSeed"
       responses:
         "204":
           description: E-Service Descriptor scheduled for archiving
@@ -4249,7 +4255,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceArchivingReasonSeed"
+              $ref: "#/components/schemas/EServiceArchivingSeed"
       responses:
         "204":
           description: E-Service Descriptor scheduled for archiving
@@ -27887,6 +27893,13 @@ components:
           format: date-time
         scope:
           $ref: "#/components/schemas/ArchivingScope"
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+      required:
+        - archivableOn
+        - startedAt
+        - scope
+        - gracePeriodDays
     ArchivingScope:
       type: string
       description: Archiving Scope
@@ -32059,16 +32072,33 @@ components:
         - eservice
         - descriptor
         - createdAt
-    EServiceArchivingReasonSeed:
+    GracePeriodDays:
+      description: Number of days for the archiving grace period
+      type: integer
+      format: int32
+      enum: [30, 60, 90, 120]
+    GracePeriodDaysSeed:
       type: object
       additionalProperties: false
+      properties:
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+      required:
+       - gracePeriodDays
+    EServiceArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Archiving Reason and Grace Period Days
       properties:
         archivingReason:
           type: string
           minLength: 10
           maxLength: 250
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
       required:
         - archivingReason
+        - gracePeriodDays
     CompactPurposeTemplateEServiceTemplate:
       type: object
       additionalProperties: false

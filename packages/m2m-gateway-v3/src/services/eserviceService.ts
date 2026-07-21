@@ -9,6 +9,7 @@ import {
   DescriptorId,
   EServiceDocumentId,
   EServiceId,
+  GracePeriodDays,
   ListResult,
   RiskAnalysisId,
   unsafeBrandId,
@@ -760,10 +761,18 @@ export function eserviceServiceBuilder(
       logger.info(`Scheduling archive for eservice with id ${eserviceId}`);
 
       const response =
-        await clients.catalogProcessClient.scheduleEServiceArchiving(seed, {
-          params: { eServiceId: eserviceId },
-          headers,
-        });
+        await clients.catalogProcessClient.scheduleEServiceArchiving(
+          {
+            ...seed,
+            gracePeriodDays: GracePeriodDays.catch(60).parse(
+              seed.gracePeriodDays
+            ),
+          },
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
     },
@@ -1016,6 +1025,7 @@ export function eserviceServiceBuilder(
     async scheduleArchiveEserviceDescriptor(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      seed: m2mGatewayApiV3.GracePeriodDaysSeed | undefined,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
       logger.info(
@@ -1024,7 +1034,11 @@ export function eserviceServiceBuilder(
 
       const response =
         await clients.catalogProcessClient.scheduleEServiceDescriptorArchiving(
-          undefined,
+          {
+            gracePeriodDays: GracePeriodDays.catch(60).parse(
+              seed?.gracePeriodDays
+            ),
+          },
           {
             params: { eServiceId: eserviceId, descriptorId },
             headers,
