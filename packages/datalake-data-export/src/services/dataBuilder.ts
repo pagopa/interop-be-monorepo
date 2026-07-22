@@ -6,13 +6,14 @@ import {
   ExportedTenant,
   ExportedDelegation,
   ExportedEServiceTemplate,
+  ExportedPurposeTemplate,
 } from "../config/models/models.js";
 import { arrayToNdjson, splitArrayIntoChunks } from "../utils/helperUtils.js";
 
 type ExportedData = [
   collection: ExportedCollection,
   ndjsonFiles: string[],
-  count: number,
+  count: number
 ];
 
 const generateNdjsonFiles = (
@@ -23,6 +24,7 @@ const generateNdjsonFiles = (
     | ExportedTenant
     | ExportedDelegation
     | ExportedEServiceTemplate
+    | ExportedPurposeTemplate
   >,
   exportTimestamp: Date
 ): string[] => {
@@ -39,7 +41,8 @@ export const buildDataToExport = (
   purposes: ExportedPurpose[],
   delegations: ExportedDelegation[],
   eserviceTemplates: ExportedEServiceTemplate[],
-  exportTimestamp: Date
+  exportTimestamp: Date,
+  purposeTemplates: ExportedPurposeTemplate[]
   // eslint-disable-next-line max-params
 ): ExportedData[] => [
   ["tenants", generateNdjsonFiles(tenants, exportTimestamp), tenants.length],
@@ -63,5 +66,10 @@ export const buildDataToExport = (
     "eservice-templates",
     generateNdjsonFiles(eserviceTemplates, exportTimestamp),
     eserviceTemplates.length,
+  ],
+  [
+    "purpose-templates",
+    generateNdjsonFiles(purposeTemplates, exportTimestamp),
+    purposeTemplates.length,
   ],
 ];
