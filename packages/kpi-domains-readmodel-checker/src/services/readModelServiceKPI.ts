@@ -1,5 +1,17 @@
 import camelcaseKeys from "camelcase-keys";
 import {
+  AgreementDbTable,
+  AttributeDbTable,
+  CatalogDbTable,
+  ClientDbTable,
+  ProducerKeychainDbTable,
+  DelegationDbTable,
+  EserviceTemplateDbTable,
+  PurposeDbTable,
+  PurposeTemplateDbTable,
+  TenantDbTable,
+} from "pagopa-interop-kpi-models";
+import {
   Agreement,
   Attribute,
   Client,
@@ -29,19 +41,7 @@ import { IClient } from "pg-promise/typescript/pg-subset.js";
 import { z } from "zod";
 
 import { config } from "../configs/config.js";
-import { AgreementDbTable } from "../model/db/agreement.js";
-import { AttributeDbTable } from "../model/db/attribute.js";
-import {
-  ClientDbTable,
-  ProducerKeychainDbTable,
-} from "../model/db/authorization.js";
-import { CatalogDbTable } from "../model/db/catalog.js";
-import { DelegationDbTable } from "../model/db/delegation.js";
-import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
-import { PurposeDbTable } from "../model/db/purpose.js";
-import { PurposeTemplateDbTable } from "../model/db/purposeTemplate.js";
-import { TenantDbTable } from "../model/db/tenant.js";
 
 type DBConnection = IConnected<unknown, IClient>;
 export type DBContext = {
@@ -171,6 +171,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         EserviceTemplateDbTable.eservice_template_version_document
       );
+      const asyncExchangePropertiesSQL = await getManyFromDb(
+        dbContext,
+        EserviceTemplateDbTable.eservice_template_version_async_exchange_properties
+      );
       return aggregateEServiceTemplateArray({
         eserviceTemplatesSQL,
         riskAnalysesSQL,
@@ -182,7 +186,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         attributesSQL,
         interfacesSQL,
         documentsSQL,
-        asyncExchangePropertiesSQL: [],
+        asyncExchangePropertiesSQL,
       });
     },
 

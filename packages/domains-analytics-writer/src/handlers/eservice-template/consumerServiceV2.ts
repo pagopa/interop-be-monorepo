@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
+import { EserviceTemplateItemsSchema } from "pagopa-interop-kpi-models";
 import {
   EServiceTemplateEventEnvelope,
   fromEServiceTemplateV2,
@@ -11,10 +12,7 @@ import { match, P } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import {
-  EserviceTemplateItemsSchema,
-  EserviceTemplateDeletingSchema,
-} from "../../model/eserviceTemplate/eserviceTemplate.js";
+import { EserviceTemplateDeletingSchema } from "../../model/eserviceTemplate/eserviceTemplate.js";
 import { eserviceTemplateServiceBuilder } from "../../service/eserviceTemplateService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 

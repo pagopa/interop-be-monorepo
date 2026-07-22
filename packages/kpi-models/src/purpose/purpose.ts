@@ -4,9 +4,11 @@ import { z } from "zod";
 
 import { PurposeRiskAnalysisFormSchema } from "./purposeRiskAnalysis.js";
 import { PurposeRiskAnalysisAnswerSchema } from "./purposeRiskAnalysisAnswer.js";
+import { PurposeRiskAnalysisReviewerSchema } from "./purposeRiskAnalysisReviewer.js";
 import { PurposeVersionSchema } from "./purposeVersion.js";
 import { PurposeVersionDocumentSchema } from "./purposeVersionDocument.js";
 import { PurposeVersionSignedDocumentSchema } from "./purposeVersionSignedDocument.js";
+import { PurposeVersionStampSchema } from "./purposeVersionStamp.js";
 
 export const PurposeSchema = createSelectSchema(
   purposeInReadmodelPurpose
@@ -21,6 +23,8 @@ export const PurposeItemsSchema = z.object({
   riskAnalysisAnswersSQL: z.array(PurposeRiskAnalysisAnswerSchema).optional(),
   versionsSQL: z.array(PurposeVersionSchema),
   versionDocumentsSQL: z.array(PurposeVersionDocumentSchema),
+  versionStampsSQL: z.array(PurposeVersionStampSchema),
   versionSignedDocumentsSQL: z.array(PurposeVersionSignedDocumentSchema),
+  reviewersSQL: z.array(PurposeRiskAnalysisReviewerSchema),
 });
 export type PurposeItemsSchema = z.infer<typeof PurposeItemsSchema>;

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { PurposeTemplateRiskAnalysisFormSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import { PurposeTemplateDbTable } from "../../model/db/index.js";
-import { PurposeTemplateRiskAnalysisFormSchema } from "../../model/purposeTemplate/purposeTemplateRiskAnalysisForm.js";
 import {
   buildColumnSet,
   generateMergeQuery,

@@ -1,13 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { EserviceSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
-import {
-  EserviceDeletingSchema,
-  EserviceSchema,
-} from "../../model/catalog/eservice.js";
+import { EserviceDeletingSchema } from "../../model/catalog/eservice.js";
 import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,

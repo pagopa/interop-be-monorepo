@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { TenantSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
 
@@ -10,7 +11,6 @@ import {
   TenantDbPartialTable,
 } from "../../model/db/index.js";
 import {
-  TenantSchema,
   TenantDeletingSchema,
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";
