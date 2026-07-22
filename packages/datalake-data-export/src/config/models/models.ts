@@ -5,6 +5,7 @@ import {
   EService,
   Purpose,
   PurposeVersion,
+  PurposeTemplate,
   Tenant,
   Delegation,
   EServiceTemplate,
@@ -19,7 +20,8 @@ export type ExportedCollection =
   | "agreements"
   | "purposes"
   | "delegations"
-  | "eservice-templates";
+  | "eservice-templates"
+  | "purpose-templates";
 
 /**
  * The pick method used to extract the fields from the original type is not
@@ -123,6 +125,7 @@ export const ExportedPurpose = Purpose.pick({
   createdAt: true,
   isFreeOfCharge: true,
   freeOfChargeReason: true,
+  purposeTemplateId: true,
 } satisfies StrictPick<Purpose>).and(
   z.object({ versions: z.array(ExportedPurposeVersion) })
 );
@@ -172,3 +175,18 @@ export const ExportedEServiceTemplate = EServiceTemplate.pick({
 );
 
 export type ExportedEServiceTemplate = z.infer<typeof ExportedEServiceTemplate>;
+
+export const ExportedPurposeTemplate = PurposeTemplate.pick({
+  id: true,
+  creatorId: true,
+  state: true,
+  purposeTitle: true,
+  purposeDescription: true,
+  purposeIsFreeOfCharge: true,
+  purposeFreeOfChargeReason: true,
+  purposeDailyCalls: true,
+  createdAt: true,
+  handlesPersonalData: true,
+});
+
+export type ExportedPurposeTemplate = z.infer<typeof ExportedPurposeTemplate>;

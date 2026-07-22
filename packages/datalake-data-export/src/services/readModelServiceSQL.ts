@@ -5,6 +5,7 @@ import {
   delegationState,
   descriptorState,
   eserviceTemplateVersionState,
+  purposeTemplateState,
   purposeVersionState,
 } from "pagopa-interop-models";
 import {
@@ -13,12 +14,14 @@ import {
   aggregateEserviceArray,
   aggregateEServiceTemplateArray,
   aggregatePurposeArray,
+  aggregatePurposeTemplateArray,
   aggregateTenantArray,
   toAgreementAggregatorArray,
   toDelegationAggregatorArray,
   toEServiceAggregatorArray,
   toEServiceTemplateAggregatorArray,
   toPurposeAggregatorArray,
+  toPurposeTemplateAggregatorArray,
   toTenantAggregatorArray,
 } from "pagopa-interop-readmodel";
 import {
@@ -39,6 +42,7 @@ import {
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
   purposeInReadmodelPurpose,
+  purposeTemplateInReadmodelPurposeTemplate,
   purposeVersionDocumentInReadmodelPurpose,
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
@@ -52,6 +56,7 @@ import {
   ExportedEService,
   ExportedEServiceTemplate,
   ExportedPurpose,
+  ExportedPurposeTemplate,
   ExportedTenant,
 } from "../config/models/models.js";
 
@@ -327,6 +332,34 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         toEServiceTemplateAggregatorArray(queryResult)
       ).map((eserviceTemplate) =>
         ExportedEServiceTemplate.parse(eserviceTemplate.data)
+      );
+    },
+
+    async getPurposeTemplates(): Promise<ExportedPurposeTemplate[]> {
+      const queryResult = await readModelDB
+        .select({
+          purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,
+          purposeRiskAnalysisFormTemplate: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateAnswer: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateAnswerAnnotation: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateAnswerAnnotationDocument: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateDocument: sql<null>`NULL`,
+          purposeRiskAnalysisTemplateSignedDocument: sql<null>`NULL`,
+        })
+        .from(purposeTemplateInReadmodelPurposeTemplate)
+        .where(
+          and(
+            ne(
+              purposeTemplateInReadmodelPurposeTemplate.state,
+              purposeTemplateState.draft
+            )
+          )
+        );
+
+      return aggregatePurposeTemplateArray(
+        toPurposeTemplateAggregatorArray(queryResult)
+      ).map((purposeTemplate) =>
+        ExportedPurposeTemplate.parse(purposeTemplate.data)
       );
     },
   };
