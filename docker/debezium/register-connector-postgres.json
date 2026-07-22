@@ -1,0 +1,24 @@
+{
+  "name": "event-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "tasks.max": "1",
+    "database.hostname": "event-store",
+    "database.port": "5432",
+    "database.user": "root",
+    "database.password": "root",
+    "database.dbname": "root",
+    "topic.prefix": "event-store",
+    "plugin.name": "pgoutput",
+    "binary.handling.mode": "hex",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "transforms": "PartitionRouting",
+    "transforms.PartitionRouting.type": "io.debezium.transforms.partitions.PartitionRouting",
+    "transforms.PartitionRouting.partition.topic.num": "3",
+    "transforms.PartitionRouting.partition.payload.fields": "change.stream_id",
+    "message.key.columns": "(.*).events:stream_id"
+  }
+}

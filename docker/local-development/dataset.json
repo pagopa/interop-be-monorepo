@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "product": {
+    "id": "prod-interop",
+    "title": "PDND Interoperabilita"
+  },
+  "tenants": [
+    {
+      "key": "comune",
+      "name": "Comune Demo",
+      "selfcareId": "00000000-0000-4000-8000-000000000001",
+      "institutionType": "PA",
+      "externalId": { "origin": "IPA", "value": "COMUNE-DEMO" }
+    },
+    {
+      "key": "provider",
+      "name": "Provider Demo",
+      "selfcareId": "00000000-0000-4000-8000-000000000002",
+      "institutionType": "PA",
+      "externalId": { "origin": "IPA", "value": "PROVIDER-DEMO" }
+    },
+    {
+      "key": "impresa",
+      "name": "Impresa Demo",
+      "selfcareId": "00000000-0000-4000-8000-000000000003",
+      "institutionType": "PRV",
+      "externalId": { "origin": "LOCAL", "value": "IMPRESA-DEMO" }
+    },
+    {
+      "key": "certificatore",
+      "name": "Certificatore Demo",
+      "selfcareId": "00000000-0000-4000-8000-000000000004",
+      "institutionType": "PA",
+      "externalId": { "origin": "IPA", "value": "CERTIFICATORE-DEMO" }
+    }
+  ],
+  "users": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "tenantSelfcareId": "00000000-0000-4000-8000-000000000001",
+      "name": "Mario",
+      "surname": "Rossi",
+      "email": "mario.rossi@comune.demo",
+      "roles": ["admin", "api", "security", "reviewer", "viewer"]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "tenantSelfcareId": "00000000-0000-4000-8000-000000000002",
+      "name": "Paola",
+      "surname": "Bianchi",
+      "email": "paola.bianchi@provider.demo",
+      "roles": ["admin", "api", "security", "reviewer", "viewer"]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "tenantSelfcareId": "00000000-0000-4000-8000-000000000003",
+      "name": "Irene",
+      "surname": "Verdi",
+      "email": "irene.verdi@impresa.demo",
+      "roles": ["admin", "api", "security", "reviewer", "viewer"]
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000004",
+      "tenantSelfcareId": "00000000-0000-4000-8000-000000000004",
+      "name": "Carlo",
+      "surname": "Neri",
+      "email": "carlo.neri@certificatore.demo",
+      "roles": ["admin", "api", "security", "reviewer", "viewer"]
+    }
+  ]
+}
