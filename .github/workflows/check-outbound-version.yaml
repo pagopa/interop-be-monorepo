@@ -1,0 +1,62 @@
+name: Validate outbound package versions
+
+on:
+  pull_request:
+    branches:
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  validate-outbound-models-version:
+    name: Validate outbound models versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed package.json files
+        id: changed-packages
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3
+        with:
+          filters: |
+            package_json:
+              - 'packages/**/package.json'
+
+      - name: Validate @pagopa/interop-outbound-models versions
+        if: steps.changed-packages.outputs.package_json == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          failed=0
+
+          for file in packages/*/package.json; do
+            version=$(
+              jq -r '
+                [
+                  .dependencies["@pagopa/interop-outbound-models"],
+                  .devDependencies["@pagopa/interop-outbound-models"],
+                  .peerDependencies["@pagopa/interop-outbound-models"],
+                  .optionalDependencies["@pagopa/interop-outbound-models"]
+                ]
+                | map(select(. != null))
+                | .[0] // empty
+              ' "$file"
+            )
+
+            if [[ -z "$version" ]]; then
+              continue
+            fi
+
+            echo "$file: @pagopa/interop-outbound-models@$version"
+
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error file=$file::Invalid @pagopa/interop-outbound-models version '$version'. Expected X.Y.Z"
+              failed=1
+            fi
+          done
+
+          exit "$failed"
