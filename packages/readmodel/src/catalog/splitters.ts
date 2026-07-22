@@ -187,13 +187,11 @@ const attributeToAttributeSQL = ({
 
 const attributesNestedArrayToAttributeSQLarray = (
   descriptorId: DescriptorId,
-  attributes: Array<
-    Array<
-      | EServiceAttribute
-      | EServiceAttributeCertified
-      | EServiceAttributeCertifiedDiscrete
-    >
-  >,
+  attributes: (
+    | EServiceAttribute
+    | EServiceAttributeCertified
+    | EServiceAttributeCertifiedDiscrete
+  )[][],
   kind: AttributeKind,
   eserviceId: EServiceId,
   version: number

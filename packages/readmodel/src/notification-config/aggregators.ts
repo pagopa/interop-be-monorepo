@@ -253,11 +253,11 @@ export const aggregateUserNotificationConfig = ({
 };
 
 export const toUserNotificationConfigAggregator = (
-  queryRes: Array<{
+  queryRes: {
     userNotificationConfig: UserNotificationConfigSQL;
     enabledInAppNotification: UserEnabledInAppNotificationSQL | null;
     enabledEmailNotification: UserEnabledEmailNotificationSQL | null;
-  }>
+  }[]
 ): UserNotificationConfigItemsSQL => {
   const {
     userNotificationConfigsSQL,
@@ -275,11 +275,11 @@ export const toUserNotificationConfigAggregator = (
 };
 
 export const toUserNotificationConfigAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     userNotificationConfig: UserNotificationConfigSQL;
     enabledInAppNotification: UserEnabledInAppNotificationSQL | null;
     enabledEmailNotification: UserEnabledEmailNotificationSQL | null;
-  }>
+  }[]
 ): {
   userNotificationConfigsSQL: UserNotificationConfigSQL[];
   enabledInAppNotificationsSQL: UserEnabledInAppNotificationSQL[];

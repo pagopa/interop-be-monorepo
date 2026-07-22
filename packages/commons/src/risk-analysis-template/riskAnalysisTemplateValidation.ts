@@ -183,9 +183,7 @@ export function validateRiskAnalysisAnswer(
 function validateTemplateFormAnswers(
   answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
   validationRules: ValidationRule[]
-): Array<
-  RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
-> {
+): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>[] {
   const missingRequiredFieldIssues = findMissingRequiredFields(
     answers,
     validationRules
@@ -223,9 +221,7 @@ function findMissingRequiredFields(
 function validateAllAnswers(
   answers: Record<string, RiskAnalysisTemplateAnswerToValidate>,
   validationRules: ValidationRule[]
-): Array<
-  RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>
-> {
+): RiskAnalysisTemplateValidationResult<RiskAnalysisTemplateValidatedSingleOrMultiAnswer>[] {
   return Object.entries(answers).map(([answerKey, answerValue]) =>
     validateAnswer(answerKey, answerValue, validationRules, answers)
   );

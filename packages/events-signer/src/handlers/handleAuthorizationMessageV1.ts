@@ -16,10 +16,10 @@ import { AuthorizationEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
 export const handleAuthorizationMessageV1 = async (
-  eventsWithTimestamp: Array<{
+  eventsWithTimestamp: {
     authV1: AuthorizationEventV1;
     timestamp: Date;
-  }>,
+  }[],
   fileManager: FileManager,
   signatureService: SignatureServiceBuilder,
   safeStorage: SafeStorageService

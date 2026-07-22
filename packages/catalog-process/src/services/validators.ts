@@ -515,11 +515,9 @@ export function assertEServiceIsTemplateInstance(
   eservice: EService
 ): asserts eservice is EService & {
   templateId: EServiceTemplateId;
-  descriptors: Array<
-    Descriptor & {
-      templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
-    }
-  >;
+  descriptors: (Descriptor & {
+    templateVersionRef: NonNullable<Descriptor["templateVersionRef"]>;
+  })[];
 } {
   if (eservice.templateId === undefined) {
     throw eServiceNotAnInstance(eservice.id);

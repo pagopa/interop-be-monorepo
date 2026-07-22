@@ -344,7 +344,7 @@ const createRecentDescriptor = (
  */
 export const createEServiceWithVersions = (
   producerId: TenantId,
-  versions: Array<{ version: string; daysAgo?: number }>
+  versions: { version: string; daysAgo?: number }[]
 ): EService => {
   const descriptors = versions.map(({ version, daysAgo }) =>
     createRecentDescriptor(version, daysAgo)
@@ -468,11 +468,11 @@ export const createTemplateWithPublishedVersion = (
  */
 export const createTemplateWithVersions = (
   creatorId: TenantId,
-  versions: Array<{
+  versions: {
     version: string;
     state: EServiceTemplateVersionState;
     daysAgo?: number;
-  }>
+  }[]
 ): { template: EServiceTemplate; versionIds: EServiceTemplateVersionId[] } => {
   const templateVersions = versions.map(
     ({ version, state, daysAgo: daysAgoCount = 1 }) => {
@@ -504,11 +504,11 @@ export const createTemplateScenario = async (
   consumerId: TenantId,
   config: {
     usedVersion: string;
-    newVersions: Array<{
+    newVersions: {
       version: string;
       daysAgo: number;
       state: EServiceTemplateVersionState;
-    }>;
+    }[];
     eserviceCount?: number;
   }
 ): Promise<{

@@ -69,12 +69,12 @@ type AgreementEServicesQueryFilters = {
 };
 
 async function filterAgreementsUpgradeable(
-  agreementEserviceAndDescriptors: Array<{
+  agreementEserviceAndDescriptors: {
     agreementId: string;
     agreementDescriptorId: string;
     eserviceId: string | null;
     descriptor: EServiceDescriptorSQL | null;
-  }>,
+  }[],
   agreements: Agreement[],
   offset: number,
   limit: number
@@ -531,7 +531,7 @@ export function readModelServiceBuilderSQL(
 
     async getAllAgreements(
       filters: AgreementQueryFilters
-    ): Promise<Array<WithMetadata<Agreement>>> {
+    ): Promise<WithMetadata<Agreement>[]> {
       const queryAgreementIds = readmodelDB
         .select(
           withTotalCount({

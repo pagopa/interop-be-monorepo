@@ -403,7 +403,7 @@ export const aggregateEserviceArray = ({
   templateVersionRefsSQL: EServiceDescriptorTemplateVersionRefSQL[];
   archivingSchedulesSQL: EServiceDescriptorArchivingScheduleSQL[];
   asyncExchangePropertiesSQL: EServiceDescriptorAsyncExchangePropertiesSQL[];
-}): Array<WithMetadata<EService>> => {
+}): WithMetadata<EService>[] => {
   const riskAnalysesSQLByEServiceId =
     createEServiceSQLPropertyMap(riskAnalysesSQL);
   const riskAnalysisAnswersSQLByEServiceId = createEServiceSQLPropertyMap(
@@ -537,20 +537,18 @@ export const aggregateRiskAnalysis = (
 
 export const attributesSQLtoAttributes = (
   attributesSQL: EServiceDescriptorAttributeSQL[]
-): Array<
-  Array<
-    | EServiceAttribute
-    | EServiceAttributeCertified
-    | EServiceAttributeCertifiedDiscrete
-  >
-> => {
+): (
+  | EServiceAttribute
+  | EServiceAttributeCertified
+  | EServiceAttributeCertifiedDiscrete
+)[][] => {
   const attributesMap = new Map<
     number,
-    Array<
+    (
       | EServiceAttribute
       | EServiceAttributeCertified
       | EServiceAttributeCertifiedDiscrete
-    >
+    )[]
   >();
   attributesSQL.forEach((current) => {
     const currentAttribute = {
@@ -582,7 +580,7 @@ export const attributesSQLtoAttributes = (
 };
 
 export const toEServiceAggregator = (
-  queryRes: Array<{
+  queryRes: {
     eservice: EServiceSQL;
     descriptor: EServiceDescriptorSQL | null;
     interface: EServiceDescriptorInterfaceSQL | null;
@@ -594,7 +592,7 @@ export const toEServiceAggregator = (
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
     archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
     asyncExchangeProperties: EServiceDescriptorAsyncExchangePropertiesSQL | null;
-  }>
+  }[]
 ): EServiceItemsSQL => {
   const {
     eservicesSQL,
@@ -628,7 +626,7 @@ export const toEServiceAggregator = (
 };
 
 export const toEServiceAggregatorArray = (
-  queryRes: Array<{
+  queryRes: {
     eservice: EServiceSQL;
     descriptor: EServiceDescriptorSQL | null;
     interface: EServiceDescriptorInterfaceSQL | null;
@@ -640,7 +638,7 @@ export const toEServiceAggregatorArray = (
     templateVersionRef: EServiceDescriptorTemplateVersionRefSQL | null;
     archivingSchedule: EServiceDescriptorArchivingScheduleSQL | null;
     asyncExchangeProperties: EServiceDescriptorAsyncExchangePropertiesSQL | null;
-  }>
+  }[]
 ): {
   eservicesSQL: EServiceSQL[];
   riskAnalysesSQL: EServiceRiskAnalysisSQL[];

@@ -3,7 +3,7 @@ import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 type Producer = {
-  send: (args: { messages: Array<{ value: string }> }) => Promise<unknown>;
+  send: (args: { messages: { value: string }[] }) => Promise<unknown>;
 };
 
 export const encodeEmailEvent = (

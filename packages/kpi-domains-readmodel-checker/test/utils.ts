@@ -372,7 +372,7 @@ function buildColumnSet<T extends DomainDbTable>(
   schema: DomainDbTableSchemas[T]
 ): ColumnSet<z.infer<DomainDbTableSchemas[T]>> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
-  const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
+  const keys = Object.keys(schema.shape) as (keyof z.infer<typeof schema>)[];
 
   const columns = keys.map((prop) => ({
     name: snakeCaseMapper(String(prop)),
@@ -387,7 +387,7 @@ function buildColumnSet<T extends DomainDbTable>(
 
 async function writeInKpi<T extends DomainDbTable>(
   tableName: T,
-  data: Array<z.infer<DomainDbTableSchemas[T]>>
+  data: z.infer<DomainDbTableSchemas[T]>[]
 ): Promise<void> {
   if (data.length === 0) {
     return;
