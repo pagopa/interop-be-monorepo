@@ -1,0 +1,70 @@
+name: Validate outbound package versions
+
+on:
+  pull_request:
+    branches:
+      - develop
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  validate-outbound-models-version:
+    name: Validate outbound models versions
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed package.json files
+        id: changed-packages
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            package_json:
+              - 'packages/**/package.json'
+
+      - name: Validate @pagopa/interop-outbound-models versions
+        if: steps.changed-packages.outputs.package_json == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking changed package.json files..."
+
+          git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}" \
+            -- 'packages/**/package.json' |
+          while IFS= read -r file; do
+            echo "Checking $file"
+
+            version=$(
+              jq -r '
+                [
+                  .dependencies["@pagopa/interop-outbound-models"],
+                  .devDependencies["@pagopa/interop-outbound-models"],
+                  .peerDependencies["@pagopa/interop-outbound-models"],
+                  .optionalDependencies["@pagopa/interop-outbound-models"]
+                ]
+                | map(select(. != null))
+                | .[0] // empty
+              ' "$file"
+            )
+
+            if [[ -z "$version" ]]; then
+              echo "No @pagopa/interop-outbound-models dependency found in $file"
+              continue
+            fi
+
+            echo "Found @pagopa/interop-outbound-models@$version"
+
+            if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error file=$file::@pagopa/interop-outbound-models must use an official X.Y.Z version, found '$version'"
+              exit 1
+            fi
+
+            echo "Version is valid: $version"
+          done
