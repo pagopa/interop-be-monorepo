@@ -1263,13 +1263,37 @@ export function catalogServiceBuilder(
       logger.info(
         `Deleting draft descriptor ${descriptorId} of EService ${eServiceId}`
       );
-      await catalogProcessClient.deleteDraft(undefined, {
+
+      const eservice = await catalogProcessClient.getEServiceById({
         headers,
         params: {
-          descriptorId,
           eServiceId,
         },
       });
+
+      // The last remaining draft descriptor cannot be deleted:
+      // in that case the whole e-service is deleted instead
+      if (
+        eservice.descriptors.length === 1 &&
+        eservice.descriptors[0].id === descriptorId &&
+        eservice.descriptors[0].state ===
+          catalogApi.EServiceDescriptorState.Values.DRAFT
+      ) {
+        await catalogProcessClient.deleteEService(undefined, {
+          headers,
+          params: {
+            eServiceId,
+          },
+        });
+      } else {
+        await catalogProcessClient.deleteDraft(undefined, {
+          headers,
+          params: {
+            descriptorId,
+            eServiceId,
+          },
+        });
+      }
     },
     updateDraftDescriptor: async (
       eServiceId: EServiceId,

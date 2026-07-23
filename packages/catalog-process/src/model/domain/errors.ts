@@ -89,6 +89,7 @@ const errorCodes = {
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
   eserviceTemplateInterfaceTechnologyMismatch: "0069",
   gracePeriodDaysLowerThanDescriptor: "0070",
+  cannotDeleteLastEServiceDescriptor: "0071",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -804,5 +805,16 @@ export function gracePeriodDaysLowerThanDescriptor(
     detail: `Requested archiving date ${dateAtRomeZone(requestedArchivableOn)} for EService ${eserviceId} cannot be lower than expected archiving date ${dateAtRomeZone(expectedArchivableOn)} already scheduled for Descriptor ${descriptorId}`,
     code: "gracePeriodDaysLowerThanDescriptor",
     title: "Grace period days lower than descriptor",
+  });
+}
+
+export function cannotDeleteLastEServiceDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot delete Descriptor ${descriptorId} for EService ${eserviceId} because it is the last remaining Descriptor. Delete the EService instead.`,
+    code: "cannotDeleteLastEServiceDescriptor",
+    title: "Cannot delete last EService descriptor",
   });
 }
