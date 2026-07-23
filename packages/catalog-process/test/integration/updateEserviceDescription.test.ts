@@ -31,10 +31,10 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("update eService description", () => {
   it("should write on event-store for the update of the eService description", async () => {

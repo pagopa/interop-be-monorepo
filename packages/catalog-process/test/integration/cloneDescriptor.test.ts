@@ -42,10 +42,9 @@ import {
   addOneDelegation,
   addOneEService,
   addOneEServiceTemplate,
-  catalogService,
-  fileManager,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { fileManager, catalogService } from "../setup/setup.js";
 
 describe("clone descriptor", () => {
   const mockEService = getMockEService();

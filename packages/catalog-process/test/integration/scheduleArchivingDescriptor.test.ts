@@ -38,9 +38,9 @@ import * as dateCalculator from "../../src/utilities/dateCalculator.js";
 import {
   addOneDelegation,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("schedule archiving of a descriptor", () => {
   const mockEService = getMockEService();

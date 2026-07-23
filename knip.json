@@ -13,7 +13,9 @@
     "@protobuf-ts/plugin"
   ],
   "ignoreBinaries": [
-    "tsx"
+    "tsx",
+    "api",
+    "integration"
   ],
   "ignore": [
     "packages/documents-generator/src/pdf-generator/paged.polyfill.js",

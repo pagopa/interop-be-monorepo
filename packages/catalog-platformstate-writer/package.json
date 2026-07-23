@@ -7,8 +7,7 @@
   "main": "dist",
   "type": "module",
   "scripts": {
-    "test": "vitest",
-    "test:it": "vitest integration",
+    "test": "pnpm -w test:new --project pagopa-interop-catalog-platformstate-writer",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",

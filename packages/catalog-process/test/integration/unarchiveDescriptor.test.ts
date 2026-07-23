@@ -3,7 +3,7 @@ import {
   getMockDescriptor,
   getMockContextMaintenance,
   decodeProtobufPayload,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   descriptorState,
@@ -15,11 +15,8 @@ import {
 import { describe, it, expect } from "vitest";
 
 import { notValidDescriptorState } from "../../src/model/domain/errors.js";
-import {
-  addOneEService,
-  catalogService,
-  readLastEserviceEvent,
-} from "../integrationUtils.js";
+import { addOneEService, readLastEserviceEvent } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("unarchive descriptor", () => {
   const mockEService = getMockEService();

@@ -31,12 +31,10 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
-  postgresDB,
-  fileManager,
   addOneDelegation,
 } from "../integrationUtils.js";
+import { catalogService, fileManager, postgresDB } from "../setup/setup.js";
 
 describe("delete eservice", () => {
   const mockDescriptor = getMockDescriptor();

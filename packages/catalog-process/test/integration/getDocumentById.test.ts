@@ -23,11 +23,8 @@ import {
   eServiceDescriptorNotFound,
   eServiceDocumentNotFound,
 } from "../../src/model/domain/errors.js";
-import {
-  addOneDelegation,
-  addOneEService,
-  catalogService,
-} from "../integrationUtils.js";
+import { addOneDelegation, addOneEService } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("get document by id", () => {
   const mockDescriptor = getMockDescriptor();

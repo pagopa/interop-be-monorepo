@@ -32,9 +32,9 @@ import {
   addOneEService,
   addOneEServiceTemplate,
   addOneDelegation,
-  catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("update E-service instanceLabel after publication", async () => {
   it.each<{

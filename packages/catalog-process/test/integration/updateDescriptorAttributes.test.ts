@@ -46,10 +46,9 @@ import {
   addOneAttribute,
   addOneDelegation,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
-  readModelDB,
 } from "../integrationUtils.js";
+import { catalogService, readModelDB } from "../setup/setup.js";
 
 describe("update descriptor", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);

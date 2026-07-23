@@ -34,7 +34,7 @@ import {
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { buildUpdateDescriptorSeed } from "../mockUtils.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("PUT /eservices/{eServiceId}/descriptors/{descriptorId} router test", () => {
   const descriptor: Descriptor = {

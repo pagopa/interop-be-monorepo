@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { Request, Response, NextFunction } from "express";
-import { vi } from "vitest";
+import http from "http";
+import { afterAll, vi } from "vitest";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
@@ -54,9 +55,17 @@ import {
   AppContext,
 } from "pagopa-interop-commons";
 
-import { createApp } from "../src/app.js";
-import { CatalogService } from "../src/services/catalogService.js";
+import { createApp } from "../../src/app.js";
+import { CatalogService } from "../../src/services/catalogService.js";
 
 export const catalogService = {} as CatalogService;
 
-export const api = await createApp(catalogService);
+const app = await createApp(catalogService);
+// A single persistent HTTP server is created per test file process and reused
+// across all tests in that file. This avoids creating a new server per request
+// (supertest's default when passed an Express app), which causes TIME_WAIT port
+// accumulation and socket exhaustion when many test files run in parallel.
+export const api = http.createServer(app);
+api.listen(0);
+
+afterAll(async () => await api.close());

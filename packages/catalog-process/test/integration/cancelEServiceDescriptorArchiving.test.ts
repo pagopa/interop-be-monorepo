@@ -27,11 +27,8 @@ import {
   notValidDescriptorState,
   descriptorArchivingNotCancelableByScope,
 } from "../../src/model/domain/errors.js";
-import {
-  addOneEService,
-  catalogService,
-  readLastEserviceEvent,
-} from "../integrationUtils.js";
+import { addOneEService, readLastEserviceEvent } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("cancel archiving of a descriptor", () => {
   const mockEService = getMockEService();

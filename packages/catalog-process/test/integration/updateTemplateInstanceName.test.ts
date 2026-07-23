@@ -22,11 +22,8 @@ import {
   eServiceNotFound,
   eServiceNameDuplicateForProducer,
 } from "../../src/model/domain/errors.js";
-import {
-  addOneEService,
-  catalogService,
-  readLastEserviceEvent,
-} from "../integrationUtils.js";
+import { addOneEService, readLastEserviceEvent } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("updateTemplateInstanceName", () => {
   it("should write on event-store for the internal update of the eService name", async () => {

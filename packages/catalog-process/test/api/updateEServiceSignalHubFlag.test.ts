@@ -21,7 +21,7 @@ import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("POST /eservices/{eServiceId}/signalhub/update test", () => {
   const mockEService: EService = getMockEService();
