@@ -33,17 +33,17 @@ export default async function setup(project: TestProject) {
     setupPostgresTemplate({
       connectionString: postgresConnectionString,
       sqlDir: "docker/readmodel-db",
-      templates: [READMODEL_DB_TEMPLATE_NAME],
+      template: READMODEL_DB_TEMPLATE_NAME,
     }),
     setupPostgresTemplate({
       connectionString: postgresConnectionString,
       sqlDir: "docker/event-store-db",
-      templates: [EVENTSTORE_DB_TEMPLATE_NAME],
+      template: EVENTSTORE_DB_TEMPLATE_NAME,
     }),
     setupPostgresTemplate({
       connectionString: postgresConnectionString,
       sqlDir: "docker/tenant-kind-history-db",
-      templates: [TENANT_KIND_HISTORY_DB_TEMPLATE_NAME],
+      template: TENANT_KIND_HISTORY_DB_TEMPLATE_NAME,
     }),
   ]);
 
