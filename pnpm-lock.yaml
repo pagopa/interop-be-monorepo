@@ -61,8 +61,8 @@ catalogs:
       specifier: 0.5.7
       version: 0.5.7
     '@types/archiver':
-      specifier: 6.0.2
-      version: 6.0.2
+      specifier: 6.0.4
+      version: 6.0.4
     '@types/express':
       specifier: 4.17.21
       version: 4.17.21
@@ -1086,7 +1086,7 @@ importers:
         version: 0.5.7
       '@types/archiver':
         specifier: 'catalog:'
-        version: 6.0.2
+        version: 6.0.4
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
@@ -3457,7 +3457,7 @@ importers:
         version: 0.5.7
       '@types/archiver':
         specifier: 'catalog:'
-        version: 6.0.2
+        version: 6.0.4
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
@@ -7126,11 +7126,11 @@ packages:
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild-kit/esm-loader@2.6.5':
     resolution: {integrity: sha512-FxEMIkJKnodyA1OaCUoEvbYRkoZlLZ4d/eXFu9Fh8CbBBgP5EmZxrfTRyN0qpXZ4vOvqnE5YdRdcrmUUXuU+dA==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild/aix-ppc64@0.19.12':
     resolution: {integrity: sha512-bmoCYyWdEL3wDQIVbcyzRyeKLgk2WtWLTWz1ZIAZF/EGbNOwSA6ew3PftJ1PqMiOOGu0OyFMzG53L0zqIpPeNA==}
@@ -8832,8 +8832,8 @@ packages:
   '@types/adm-zip@0.5.7':
     resolution: {integrity: sha512-DNEs/QvmyRLurdQPChqq0Md4zGvPwHerAJYWk9l2jCbD1VPpnzRJorOdiq4zsw09NFbYnhfsoEhWtxIzXpn2yw==}
 
-  '@types/archiver@6.0.2':
-    resolution: {integrity: sha512-KmROQqbQzKGuaAbmK+ZcytkJ51+YqDa7NmbXjmtC5YBLSyQYo21YaUnQ3HbaPFKL1ooo6RQ6OPYPIDyxfpDDXw==}
+  '@types/archiver@6.0.4':
+    resolution: {integrity: sha512-ULdQpARQ3sz9WH4nb98mJDYA0ft2A8C4f4fovvUcFwINa1cgGjY36JCAYuP5YypRq4mco1lJp1/7jEMS2oR0Hg==}
 
   '@types/aws-lambda@8.10.148':
     resolution: {integrity: sha512-JL+2cfkY9ODQeE06hOxSFNkafjNk4JRBgY837kpoq1GHDttq2U3BA9IzKOWxS4DLjKoymGB4i9uBrlCkjUl1yg==}
@@ -15674,7 +15674,7 @@ snapshots:
     dependencies:
       '@types/node': 20.19.9
 
-  '@types/archiver@6.0.2':
+  '@types/archiver@6.0.4':
     dependencies:
       '@types/readdir-glob': 1.1.5
 
