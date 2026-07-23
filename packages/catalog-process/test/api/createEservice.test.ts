@@ -172,4 +172,44 @@ describe("API /eservices authorization test", () => {
 
     expect(res.status).toBe(400);
   });
+
+  // PIN-9436: the trimMiddleware trims string inputs before validation, so a
+  // name made only of whitespace becomes empty and fails the minLength check.
+  it.each(["     ", "\t\n  ", "                                "])(
+    "Should return 400 when name is only whitespace: %j",
+    async (name) => {
+      catalogService.createEService = vi
+        .fn()
+        .mockResolvedValue(serviceResponse);
+
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, {
+        ...eserviceSeed,
+        name,
+      } as catalogApi.EServiceSeed);
+
+      expect(res.status).toBe(400);
+    }
+  );
+
+  it("Should trim leading/trailing whitespace from string inputs before handling the request", async () => {
+    const createEServiceMock = vi.fn().mockResolvedValue(serviceResponse);
+    catalogService.createEService = createEServiceMock;
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, {
+      ...eserviceSeed,
+      name: `  ${eserviceSeed.name}  `,
+      description: `  ${eserviceSeed.description}  `,
+    });
+
+    expect(res.status).toBe(201);
+    expect(createEServiceMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: eserviceSeed.name,
+        description: eserviceSeed.description,
+      }),
+      expect.anything()
+    );
+  });
 });
