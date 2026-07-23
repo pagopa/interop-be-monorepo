@@ -93,13 +93,10 @@ export async function setupDynamoDBTestTables(
       await dynamoDBClient.send(
         new CreateTableCommand({ ...schema, TableName: suffixedTableName })
       );
+
       for (const key of CONFIG_KEYS) {
         if (tableNameForConfigKey(key) === schema.TableName) {
           config[key] = suffixedTableName;
-        } else {
-          throw new Error(
-            `No matching config key found for table ${schema.TableName}`
-          );
         }
       }
     })
