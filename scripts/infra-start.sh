@@ -5,6 +5,7 @@ REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPOSE_FILE="$REPOSITORY_ROOT/docker/docker-compose.yml"
 CONNECTOR_FILE="$REPOSITORY_ROOT/docker/debezium/register-connector-postgres.json"
 
+"$REPOSITORY_ROOT/scripts/kafka-recover-stale-broker.sh" "$COMPOSE_FILE"
 docker compose -f "$COMPOSE_FILE" up -d
 
 wait_container_success() {
