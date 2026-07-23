@@ -8,6 +8,7 @@
     {
       "key": "comune",
       "name": "Comune Demo",
+      "contactEmail": "interop@comune.demo",
       "selfcareId": "00000000-0000-4000-8000-000000000001",
       "institutionType": "PA",
       "externalId": { "origin": "IPA", "value": "COMUNE-DEMO" }
@@ -15,6 +16,7 @@
     {
       "key": "provider",
       "name": "Provider Demo",
+      "contactEmail": "interop@provider.demo",
       "selfcareId": "00000000-0000-4000-8000-000000000002",
       "institutionType": "PA",
       "externalId": { "origin": "IPA", "value": "PROVIDER-DEMO" }
@@ -22,6 +24,7 @@
     {
       "key": "impresa",
       "name": "Impresa Demo",
+      "contactEmail": "interop@impresa.demo",
       "selfcareId": "00000000-0000-4000-8000-000000000003",
       "institutionType": "PRV",
       "externalId": { "origin": "LOCAL", "value": "IMPRESA-DEMO" }
@@ -29,6 +32,7 @@
     {
       "key": "certificatore",
       "name": "Certificatore Demo",
+      "contactEmail": "interop@certificatore.demo",
       "selfcareId": "00000000-0000-4000-8000-000000000004",
       "institutionType": "PA",
       "externalId": { "origin": "IPA", "value": "CERTIFICATORE-DEMO" }

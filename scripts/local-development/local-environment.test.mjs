@@ -4,7 +4,9 @@ import { test } from "node:test";
 import {
   buildSelfcareTenantSeed,
   buildSessionClaims,
+  buildTenantContactMailSeed,
   buildTokenPayload,
+  hasTenantContactEmail,
   selectIdentity,
 } from "./local-environment.mjs";
 
@@ -16,6 +18,7 @@ const dataset = {
       selfcareId: "00000000-0000-4000-8000-000000000001",
       name: "Comune Demo",
       institutionType: "PA",
+      contactEmail: "interop@comune.demo",
       userId: "10000000-0000-4000-8000-000000000001",
     },
   ],
@@ -45,6 +48,38 @@ test("builds an idempotent Selfcare tenant seed", () => {
     selfcareInstitutionType: "PA",
     onboardedAt: "2024-01-01T00:00:00.000Z",
   });
+});
+
+test("builds the tenant contact mail seed required by agreements", () => {
+  assert.deepEqual(buildTenantContactMailSeed(dataset.tenants[0]), {
+    kind: "CONTACT_EMAIL",
+    address: "interop@comune.demo",
+    description: "Local development contact email",
+  });
+});
+
+test("detects whether the tenant contact email is already seeded", () => {
+  assert.equal(
+    hasTenantContactEmail(
+      { mails: [] },
+      "interop@comune.demo"
+    ),
+    false
+  );
+  assert.equal(
+    hasTenantContactEmail(
+      {
+        mails: [
+          {
+            kind: "CONTACT_EMAIL",
+            address: "interop@comune.demo",
+          },
+        ],
+      },
+      "interop@comune.demo"
+    ),
+    true
+  );
 });
 
 test("selects a tenant and role from the dataset", () => {
