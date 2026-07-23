@@ -262,13 +262,6 @@ export const assignTenantDeclaredAttributeErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const deleteDraftEServiceDescriptorErrorMapper = (
-  error: ApiError<ErrorCodes>
-): number =>
-  match(error.code)
-    .with("cannotDeleteLastEServiceDescriptor", () => HTTP_STATUS_CONFLICT)
-    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
-
 export const deleteDraftEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

@@ -46,7 +46,6 @@ const errorCodes = {
   cannotEditDeclaredAttributesForTenant: "0026",
   tenantDeclaredAttributeNotFound: "0027",
   tenantVerifiedAttributeNotFound: "0028",
-  cannotDeleteLastEServiceDescriptor: "0029",
   eserviceRiskAnalysisNotFound: "0030",
   eserviceTemplateRiskAnalysisNotFound: "0031",
   delegationEServiceMismatch: "0032",
@@ -369,17 +368,6 @@ export function eserviceRiskAnalysisNotFound(
     detail: `Risk analysis ${riskAnalysisId} not found for e-service ${eserviceId}`,
     code: "eserviceRiskAnalysisNotFound",
     title: "E-Service risk analysis not found",
-  });
-}
-
-export function cannotDeleteLastEServiceDescriptor(
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Cannot delete descriptor ${descriptorId} for e-service ${eserviceId} because it is the last remaining descriptor`,
-    code: "cannotDeleteLastEServiceDescriptor",
-    title: "Cannot delete last e-service descriptor",
   });
 }
 
