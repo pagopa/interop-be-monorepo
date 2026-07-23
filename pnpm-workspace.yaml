@@ -45,7 +45,7 @@ catalog:
   "@xmldom/xmldom": 0.9.10
   "@zodios/core": 10.9.6
   "@zodios/express": 10.6.1
-  adm-zip: 0.5.16
+  adm-zip: 0.6.0
   archiver: 7.0.1
   aws-msk-iam-sasl-signer-js: 1.0.1
   aws-sdk-client-mock: 4.0.1

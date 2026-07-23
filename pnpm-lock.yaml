@@ -109,8 +109,8 @@ catalogs:
       specifier: 10.6.1
       version: 10.6.1
     adm-zip:
-      specifier: 0.5.16
-      version: 0.5.16
+      specifier: 0.6.0
+      version: 0.6.0
     archiver:
       specifier: 7.0.1
       version: 7.0.1
@@ -1092,7 +1092,7 @@ importers:
         version: 20.19.9
       adm-zip:
         specifier: 'catalog:'
-        version: 0.5.16
+        version: 0.6.0
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1347,7 +1347,7 @@ importers:
         version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
         specifier: 'catalog:'
-        version: 0.5.16
+        version: 0.6.0
       axios:
         specifier: 'catalog:'
         version: 1.16.0
@@ -1966,7 +1966,7 @@ importers:
         version: 10.6.1(@zodios/core@10.9.6(axios@1.16.0)(zod@3.23.8))(express@4.20.0)(zod@3.23.8)
       adm-zip:
         specifier: 'catalog:'
-        version: 0.5.16
+        version: 0.6.0
       axios:
         specifier: 'catalog:'
         version: 1.16.0
@@ -2099,7 +2099,7 @@ importers:
         version: 8.11.11
       adm-zip:
         specifier: 'catalog:'
-        version: 0.5.16
+        version: 0.6.0
       aws-sdk-client-mock:
         specifier: 'catalog:'
         version: 4.0.1
@@ -3463,7 +3463,7 @@ importers:
         version: 20.19.9
       adm-zip:
         specifier: 'catalog:'
-        version: 0.5.16
+        version: 0.6.0
       date-fns:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3838,7 +3838,7 @@ importers:
     dependencies:
       adm-zip:
         specifier: 'catalog:'
-        version: 0.5.16
+        version: 0.6.0
       axios:
         specifier: 'catalog:'
         version: 1.16.0
@@ -3899,7 +3899,7 @@ importers:
     dependencies:
       adm-zip:
         specifier: 'catalog:'
-        version: 0.5.16
+        version: 0.6.0
       axios:
         specifier: 'catalog:'
         version: 1.16.0
@@ -7126,11 +7126,11 @@ packages:
 
   '@esbuild-kit/core-utils@3.3.2':
     resolution: {integrity: sha512-sPRAnw9CdSsRmEtnsl2WXWdyquogVpB3yZ3dgwJfe8zrOzTsV7cJvmwrKVa+0ma5BoiGJ+BoqkMvawbayKUsqQ==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild-kit/esm-loader@2.6.5':
     resolution: {integrity: sha512-FxEMIkJKnodyA1OaCUoEvbYRkoZlLZ4d/eXFu9Fh8CbBBgP5EmZxrfTRyN0qpXZ4vOvqnE5YdRdcrmUUXuU+dA==}
-    deprecated: 'Merged into tsx: https://tsx.is'
+    deprecated: 'Merged into tsx: https://tsx.hirok.io'
 
   '@esbuild/aix-ppc64@0.19.12':
     resolution: {integrity: sha512-bmoCYyWdEL3wDQIVbcyzRyeKLgk2WtWLTWz1ZIAZF/EGbNOwSA6ew3PftJ1PqMiOOGu0OyFMzG53L0zqIpPeNA==}
@@ -9145,9 +9145,9 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
-  adm-zip@0.5.16:
-    resolution: {integrity: sha512-TGw5yVi4saajsSEgz25grObGHEUaDrniwvA2qwSC060KfqGPdglhvPMA2lPIoxs3PQIItj2iag35fONcQqgUaQ==}
-    engines: {node: '>=12.0'}
+  adm-zip@0.6.0:
+    resolution: {integrity: sha512-XleryMhbuksdKtofnWZ9Sk+4CUTbms4Mb/EU32SZwToAyZ5RgVos/ki8n+yr0LWHOGKuakbXTuuYNHLQjhddgg==}
+    engines: {node: '>=14.0'}
 
   agent-base@7.1.1:
     resolution: {integrity: sha512-H0TSyFNDMomMNJQBn8wFV5YC/2eJ+VXECwOadZJT554xP6cODZHPX3H9QMQECxvrgiSOP1pHjy1sMWQVYJOUOA==}
@@ -16095,7 +16095,7 @@ snapshots:
 
   acorn@8.16.0: {}
 
-  adm-zip@0.5.16: {}
+  adm-zip@0.6.0: {}
 
   agent-base@7.1.1:
     dependencies:
