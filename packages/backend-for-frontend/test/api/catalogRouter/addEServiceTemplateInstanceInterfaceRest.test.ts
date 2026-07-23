@@ -4,8 +4,12 @@ import {
   DescriptorId,
   generateId,
   invalidContentTypeDetected,
+  invalidInterfaceData,
   invalidInterfaceFileDetected,
+  invalidServerUrl,
   interfaceExtractingInfoError,
+  interfaceExtractingSoapFieldError,
+  parsingSoapFileError,
   EServiceId,
 } from "pagopa-interop-models";
 import request from "supertest";
@@ -97,6 +101,25 @@ describe("API POST /templates/eservices/:eServiceId/descriptors/:descriptorId/in
       expectedStatus: 400,
     },
     { error: interfaceExtractingInfoError(), expectedStatus: 400 },
+    {
+      error: invalidInterfaceData({
+        id: mockEService.id,
+        isEserviceTemplate: true,
+      }),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidServerUrl({
+        id: mockEService.id,
+        isEserviceTemplate: true,
+      }),
+      expectedStatus: 400,
+    },
+    { error: parsingSoapFileError(), expectedStatus: 400 },
+    {
+      error: interfaceExtractingSoapFieldError("invalid-field"),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {

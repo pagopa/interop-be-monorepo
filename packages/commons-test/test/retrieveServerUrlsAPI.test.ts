@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { retrieveServerUrlsAPI } from "pagopa-interop-commons";
 import {
   generateId,
-  interfaceExtractingSoapFiledError,
+  interfaceExtractingSoapFieldError,
   invalidInterfaceFileDetected,
   invalidServerUrl,
   openapiVersionNotRecognized,
@@ -189,7 +189,7 @@ describe("retrieveServerUrlsAPI", () => {
         id: generateId(),
         isEserviceTemplate: false,
       })
-    ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:address"));
+    ).rejects.toThrow(interfaceExtractingSoapFieldError("soap:address"));
   });
   it("should throw an error if there are no operations in WSDL", async () => {
     const soapDoc = {
@@ -211,7 +211,7 @@ describe("retrieveServerUrlsAPI", () => {
         id: generateId(),
         isEserviceTemplate: false,
       })
-    ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:operation"));
+    ).rejects.toThrow(interfaceExtractingSoapFieldError("soap:operation"));
   });
   it("should throw error for unsupported OpenAPI version", async () => {
     const invalidDoc = {
@@ -230,6 +230,40 @@ describe("retrieveServerUrlsAPI", () => {
         isEserviceTemplate: false,
       })
     ).rejects.toThrow(openapiVersionNotRecognized("1.0"));
+  });
+
+  it("should throw invalidServerUrl for OpenAPI 3.x without servers", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noServersDoc = {
+      name: "test.json",
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          openapi: "3.0.0",
+          info: { title: "No servers", version: "1.0.0" },
+        })
+      ),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noServersDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidServerUrl(resource));
+  });
+
+  it("should throw invalidServerUrl for OpenAPI 2.0 without host", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noHostDoc = {
+      name: "test.json",
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          openapi: "2.0",
+          paths: [{}],
+        })
+      ),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noHostDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidServerUrl(resource));
   });
 
   it("should throw error for invalid JSON in REST interface", async () => {

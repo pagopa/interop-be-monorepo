@@ -30,6 +30,7 @@ import {
   EServiceTemplateVersionId,
   eserviceTemplateVersionState,
   generateId,
+  invalidInterfaceData,
   operationForbidden,
   Technology,
   TenantId,
@@ -544,6 +545,85 @@ describe("addEServiceTemplateInstanceInterface", () => {
           getMockContext({ authData })
         )
       ).rejects.toThrow(eserviceInterfaceDataNotValid());
+    });
+
+    it("should throw invalidInterfaceData if the template interface file has an unrecognized extension", async () => {
+      const authData = getMockAuthData();
+      const eserviceId = generateId<EServiceId>();
+      const interfaceDoc: Document = {
+        ...getMockDocument(),
+        name: "interface.txt",
+      };
+
+      const interfacePath = await fileManager.storeBytes(
+        {
+          bucket: config.s3Bucket,
+          path: interfaceDoc.path,
+          resourceId: interfaceDoc.id,
+          name: interfaceDoc.name,
+          content: Buffer.from(
+            await readFileContent("test.openapi.3.0.2.yaml")
+          ),
+        },
+        genericLogger
+      );
+      const mockEserviceTemplateVersion: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          eserviceTemplateVersionState.published
+        ),
+        interface: { ...interfaceDoc, path: interfacePath },
+      };
+
+      const mockEServiceTemplate: EServiceTemplate = {
+        ...getMockEServiceTemplate(
+          generateId<EServiceTemplateId>(),
+          generateId<TenantId>(),
+          [mockEserviceTemplateVersion]
+        ),
+      };
+      const mockDescriptor: Descriptor = {
+        ...getMockDescriptor(),
+        templateVersionRef: {
+          id: mockEServiceTemplate.versions[0].id,
+        },
+      };
+
+      const mockEService: EService = {
+        ...getMockEService(eserviceId, authData.organizationId, [
+          mockDescriptor,
+        ]),
+        templateId: mockEServiceTemplate.id,
+      };
+
+      await addOneEServiceTemplate(mockEServiceTemplate);
+      await addOneEService(mockEService);
+
+      await expect(
+        catalogService.addEServiceTemplateInstanceInterface(
+          eserviceId,
+          mockDescriptor.id,
+          "Rest",
+          {
+            contactName: "John Doe",
+            contactUrl: "https://fun.tester.johnny.info",
+            contactEmail: "johnnyd@funnytester.com",
+            termsAndConditionsUrl: "https://fun.tester.johnny.terms.com",
+            serverUrls: [
+              {
+                url: "https://valid-server.example.com",
+                description: "Valid server description",
+              },
+            ],
+          },
+          getMockContext({ authData })
+        )
+      ).rejects.toThrow(
+        invalidInterfaceData({
+          id: eserviceId,
+          isEserviceTemplate: true,
+        })
+      );
     });
   });
   describe("API REST", () => {

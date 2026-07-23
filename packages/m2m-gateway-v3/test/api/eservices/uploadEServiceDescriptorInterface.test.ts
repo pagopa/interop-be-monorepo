@@ -4,6 +4,13 @@ import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import {
   ApiError,
   generateId,
+  interfaceExtractingInfoError,
+  interfaceExtractingSoapFieldError,
+  invalidContentTypeDetected,
+  invalidInterfaceFileDetected,
+  invalidServerUrl,
+  openapiVersionNotRecognized,
+  parsingSoapFileError,
   pollingMaxRetriesExceeded,
 } from "pagopa-interop-models";
 import { AuthRole, authRole } from "pagopa-interop-commons";
@@ -238,6 +245,67 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/interface router
       );
 
       expect(res.status).toBe(status);
+    }
+  );
+
+  it.each([
+    {
+      error: invalidContentTypeDetected(
+        {
+          id: generateId(),
+          isEserviceTemplate: true,
+        },
+        "contentType",
+        "REST"
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidInterfaceFileDetected({
+        id: generateId(),
+        isEserviceTemplate: true,
+      }),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingSoapFieldError("invalid-field"),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceExtractingInfoError(),
+      expectedStatus: 400,
+    },
+    {
+      error: parsingSoapFileError(),
+      expectedStatus: 400,
+    },
+    {
+      error: openapiVersionNotRecognized("invalid-version"),
+      expectedStatus: 400,
+    },
+    {
+      error: invalidServerUrl({
+        id: generateId(),
+        isEserviceTemplate: true,
+      }),
+      expectedStatus: 400,
+    },
+  ])(
+    "Should return $expectedStatus in case of $error.code",
+    async ({ error, expectedStatus }) => {
+      mockEserviceService.uploadEServiceDescriptorInterface = vi
+        .fn()
+        .mockRejectedValue(error);
+
+      const token = generateToken(authRole.M2M_ADMIN_ROLE);
+      const res = await makeRequest(
+        token,
+        generateId(),
+        generateId(),
+        mockFileUpload
+      );
+
+      expect(res.status).toBe(expectedStatus);
     }
   );
 
