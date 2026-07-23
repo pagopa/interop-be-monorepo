@@ -68,8 +68,8 @@ const generateSystemToken = (kind) =>
     })
   );
 
-const generateSessionToken = async (dataset, state, tenantKey, role) => {
-  const identity = selectIdentity(dataset, state, tenantKey, role);
+const generateSessionToken = async (dataset, state, tenantKey, userId) => {
+  const identity = selectIdentity(dataset, state, tenantKey, userId);
   return signPayload(
     buildTokenPayload({
       claims: buildSessionClaims(identity),
@@ -279,8 +279,8 @@ const token = async () => {
   const dataset = await readJson(datasetPath);
   const state = await readJson(statePath);
   const tenantKey = argument("tenant", "comune");
-  const role = argument("role", "admin");
-  const serialized = await generateSessionToken(dataset, state, tenantKey, role);
+  const userId = argument("user", "admin");
+  const serialized = await generateSessionToken(dataset, state, tenantKey, userId);
   const output = argument("output");
   if (output) {
     const resolvedOutput = resolve(process.cwd(), output);
@@ -294,4 +294,4 @@ const token = async () => {
 const command = process.argv[2];
 if (command === "seed") await seed();
 else if (command === "token") await token();
-else throw new Error("Usage: cli.mjs <seed|token> [--tenant KEY] [--role ROLE] [--output FILE]");
+else throw new Error("Usage: cli.mjs <seed|token> [--tenant KEY] [--user USER] [--output FILE]");

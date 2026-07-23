@@ -14,8 +14,8 @@ starting these commands separately.
 | --- | --- |
 | `pnpm local:start:frontend-full` | Starts the frontend-oriented backend service set |
 | `pnpm local:seed` | Idempotently creates local tenants and the base published catalog entry through APIs/events |
-| `pnpm local:token -- --tenant comune --role admin` | Prints a local-KMS signed token |
-| `pnpm local:token -- --tenant comune --role admin --output .local-development/frontend-token` | Writes the token used by the frontend |
+| `pnpm local:token -- --tenant comune --user admin` | Prints a local-KMS signed token |
+| `pnpm local:token -- --tenant comune --user admin --output .local-development/frontend-token` | Writes the token used by the frontend |
 | `pnpm infra:start` | Starts infrastructure, waits for readiness, creates Kafka topics, and registers Debezium |
 | `pnpm infra:stop` | Stops containers while preserving named volumes |
 | `pnpm infra:reset` | Stops containers and removes local named volumes |
