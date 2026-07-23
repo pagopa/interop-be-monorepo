@@ -17,8 +17,7 @@ import {
   archivingScope,
   AsyncExchangeProperties,
   AttributeId,
-  DelegatedDescriptorArchivingRequest,
-  DelegatedEServiceArchivingRequest,
+  DelegatedArchivingRequest,
   Delegation,
   delegationKind,
   delegationState,
@@ -305,56 +304,46 @@ export async function assertNoExistingProducerDelegationForEServiceArchiving(
   }
 }
 
-export function assertDelegatedEserviceHasAtLeastOneArchivingRequests(
-  eservice: EService
+export function assertDelegatedArchivingHasAtLeastOneRequest(
+  eservice: EService,
+  descriptorId?: DescriptorId
 ): void {
   const archivingRequests = eservice.delegatedArchivingRequest;
-  if (!archivingRequests || archivingRequests.length === 0) {
-    throw noDelegatedArchivingRequestFound(eservice.id);
+  if (
+    !archivingRequests ||
+    archivingRequests.filter((request) =>
+      descriptorId !== undefined
+        ? request.scope === archivingScope.descriptor &&
+          request.descriptorId === descriptorId
+        : request.scope === archivingScope.eservice
+    ).length === 0
+  ) {
+    throw noDelegatedArchivingRequestFound(eservice.id, descriptorId);
   }
 }
 
-export function assertDelegatedEserviceHasActiveArchivingRequests(
-  eservice: EService
+export function assertDelegatedArchivingHasActiveRequest(
+  eservice: EService,
+  descriptorId?: DescriptorId
 ): void {
-  if (!hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
-    throw delegatedArchivingRequestNotActive(eservice.id);
+  if (
+    !hasActiveArchivingRequest(eservice.delegatedArchivingRequest, descriptorId)
+  ) {
+    throw delegatedArchivingRequestNotActive(eservice.id, descriptorId);
   }
 }
 
-export function assertDelegatedEserviceHasNoActiveArchivingRequests(
-  eservice: EService
+export function assertDelegatedArchivingHasNoActiveRequest(
+  eservice: EService,
+  descriptorId?: DescriptorId
 ): void {
-  if (hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
-    throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
-  }
-}
-
-export function assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
-  descriptor: Descriptor,
-  eserviceId: EServiceId
-): void {
-  const archivingRequests = descriptor.delegatedArchivingRequest;
-  if (!archivingRequests || archivingRequests.length === 0) {
-    throw noDelegatedArchivingRequestFound(eserviceId, descriptor.id);
-  }
-}
-
-export function assertDelegatedDescriptorHasActiveArchivingRequests(
-  descriptor: Descriptor,
-  eserviceId: EServiceId
-): void {
-  if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
-    throw delegatedArchivingRequestNotActive(eserviceId, descriptor.id);
-  }
-}
-
-export function assertDelegatedDescriptorHasNoActiveArchivingRequests(
-  descriptor: Descriptor,
-  eserviceId: EServiceId
-): void {
-  if (hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
-    throw delegatedArchivingRequestAlreadyInProgress(eserviceId, descriptor.id);
+  if (
+    hasActiveArchivingRequest(eservice.delegatedArchivingRequest, descriptorId)
+  ) {
+    throw delegatedArchivingRequestAlreadyInProgress(
+      eservice.id,
+      descriptorId
+    );
   }
 }
 
@@ -372,9 +361,7 @@ export function assertRequesterIsDelegateForArchiving(
 
 export function assertDelegatedArchivingRequestDelegationIsStillValid(
   producerDelegation: Delegation | undefined,
-  archivingRequest:
-    | DelegatedEServiceArchivingRequest
-    | DelegatedDescriptorArchivingRequest,
+  archivingRequest: DelegatedArchivingRequest,
   eserviceId: EServiceId,
   descriptorId?: DescriptorId
 ): asserts producerDelegation is Delegation {
@@ -1076,7 +1063,7 @@ export function assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
     const requestedArchivableOn =
       calculateProjectedArchivingDateForArchivingRequest(
         today,
-        descriptor.delegatedArchivingRequest,
+        eservice.delegatedArchivingRequest,
         eservice.id,
         descriptor.id
       );

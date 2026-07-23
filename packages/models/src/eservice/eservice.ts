@@ -174,24 +174,30 @@ export const AsyncExchangeProperties = z.object({
 });
 export type AsyncExchangeProperties = z.infer<typeof AsyncExchangeProperties>;
 
-export const DelegatedDescriptorArchivingRequest = z.object({
+// A single, unified shape for both e-service-wide and single-descriptor
+// delegated archiving requests. The `scope` field (re-using the same
+// ArchivingScope enum as ArchivingSchedule) explicitly discriminates the two
+// cases instead of inferring it from the presence/absence of `descriptorId`.
+// This mirrors the read model, where both kinds of request live in a single
+// SQL table (`eservice_descriptor_archiving_request`) with a nullable
+// `descriptorId` column. Entries are stored only on `EService.
+// delegatedArchivingRequest`; there is no equivalent field on `Descriptor`.
+export const DelegatedArchivingRequest = z.object({
   requestedAt: z.coerce.date(),
   acceptedAt: z.coerce.date().optional(),
   rejectedAt: z.coerce.date().optional(),
   rejectionReason: z.string().optional(),
   requesterId: TenantId,
   gracePeriodDays: z.number().int(),
+  scope: ArchivingScope,
+  // Set only when scope === "Descriptor".
+  descriptorId: DescriptorId.optional(),
+  // Set only when scope === "EService" (mandatory for e-service-wide
+  // archiving requests).
+  archivingReason: z.string().optional(),
 });
-export type DelegatedDescriptorArchivingRequest = z.infer<
-  typeof DelegatedDescriptorArchivingRequest
->;
-
-export const DelegatedEServiceArchivingRequest =
-  DelegatedDescriptorArchivingRequest.extend({
-    archivingReason: z.string(),
-  });
-export type DelegatedEServiceArchivingRequest = z.infer<
-  typeof DelegatedEServiceArchivingRequest
+export type DelegatedArchivingRequest = z.infer<
+  typeof DelegatedArchivingRequest
 >;
 
 export const Descriptor = z.object({
@@ -218,9 +224,6 @@ export const Descriptor = z.object({
   archivingSchedule: ArchivingSchedule.optional(),
   asyncExchangeCallbackInterface: Document.optional(),
   asyncExchangeProperties: AsyncExchangeProperties.optional(),
-  delegatedArchivingRequest: z
-    .array(DelegatedDescriptorArchivingRequest)
-    .optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -253,9 +256,7 @@ export const EService = z.object({
   instanceLabel: z.string().optional(),
   archivingReason: z.string().optional(),
   asyncExchange: z.boolean().optional(),
-  delegatedArchivingRequest: z
-    .array(DelegatedEServiceArchivingRequest)
-    .optional(),
+  delegatedArchivingRequest: z.array(DelegatedArchivingRequest).optional(),
 });
 
 export type EService = z.infer<typeof EService>;

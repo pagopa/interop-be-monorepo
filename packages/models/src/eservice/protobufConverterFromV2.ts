@@ -1,4 +1,9 @@
-import { EServiceTemplateId, TenantId, unsafeBrandId } from "../brandedIds.js";
+import {
+  EServiceTemplateId,
+  TenantId,
+  DescriptorId,
+  unsafeBrandId,
+} from "../brandedIds.js";
 import { genericInternalError } from "../errors.js";
 import {
   AgreementApprovalPolicyV2,
@@ -46,8 +51,7 @@ import {
   type EServiceAttributeCertifiedDiscreteConfig,
   ArchivingScope,
   archivingScope,
-  DelegatedDescriptorArchivingRequest,
-  DelegatedEServiceArchivingRequest,
+  DelegatedArchivingRequest,
 } from "./eservice.js";
 import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 
@@ -186,23 +190,30 @@ export const fromDescriptorRejectionReasonV2 = (
 });
 
 export const fromDelegatedDescriptorArchivingRequestV2 = (
-  input: DelegatedDescriptorArchivingRequestV2
-): DelegatedDescriptorArchivingRequest => ({
-  ...input,
-  requesterId: unsafeBrandId<TenantId>(input.requesterId),
+  input: DelegatedDescriptorArchivingRequestV2,
+  descriptorId: DescriptorId
+): DelegatedArchivingRequest => ({
+  requestedAt: bigIntToDate(input.requestedAt),
   acceptedAt: bigIntToDate(input.acceptedAt),
   rejectedAt: bigIntToDate(input.rejectedAt),
-  requestedAt: bigIntToDate(input.requestedAt),
+  rejectionReason: input.rejectionReason,
+  requesterId: unsafeBrandId<TenantId>(input.requesterId),
+  gracePeriodDays: input.gracePeriodDays,
+  scope: archivingScope.descriptor,
+  descriptorId,
 });
 
 export const fromDelegatedEServiceArchivingRequestV2 = (
   input: DelegatedEServiceArchivingRequestV2
-): DelegatedEServiceArchivingRequest => ({
-  ...input,
-  requesterId: unsafeBrandId<TenantId>(input.requesterId),
+): DelegatedArchivingRequest => ({
+  requestedAt: bigIntToDate(input.requestedAt),
   acceptedAt: bigIntToDate(input.acceptedAt),
   rejectedAt: bigIntToDate(input.rejectedAt),
-  requestedAt: bigIntToDate(input.requestedAt),
+  rejectionReason: input.rejectionReason,
+  requesterId: unsafeBrandId<TenantId>(input.requesterId),
+  gracePeriodDays: input.gracePeriodDays,
+  scope: archivingScope.eservice,
+  archivingReason: input.archivingReason,
 });
 
 export const fromEServiceTemplateVersionRefV2 = (
@@ -276,12 +287,6 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
         gracePeriodDays: input.archivingSchedule.gracePeriodDays,
       }
     : undefined,
-  delegatedArchivingRequest:
-    input.delegatedArchivingRequest.length > 0
-      ? input.delegatedArchivingRequest.map(
-          fromDelegatedDescriptorArchivingRequestV2
-        )
-      : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (
@@ -333,10 +338,26 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
     input.templateId != null
       ? unsafeBrandId<EServiceTemplateId>(input.templateId)
       : undefined,
-  delegatedArchivingRequest:
-    input.delegatedArchivingRequest.length > 0
-      ? input.delegatedArchivingRequest.map(
-          fromDelegatedEServiceArchivingRequestV2
-        )
-      : undefined,
+  delegatedArchivingRequest: toUnifiedDelegatedArchivingRequests(input),
 });
+
+// Merges the two wire-format archiving request lists (one on EServiceV2, one
+// per EServiceDescriptorV2) into the single unified domain array stored on
+// EService.delegatedArchivingRequest.
+const toUnifiedDelegatedArchivingRequests = (
+  input: EServiceV2
+): DelegatedArchivingRequest[] | undefined => {
+  const eserviceScoped = input.delegatedArchivingRequest.map(
+    fromDelegatedEServiceArchivingRequestV2
+  );
+  const descriptorScoped = input.descriptors.flatMap((descriptorV2) =>
+    descriptorV2.delegatedArchivingRequest.map((archivingRequest) =>
+      fromDelegatedDescriptorArchivingRequestV2(
+        archivingRequest,
+        unsafeBrandId<DescriptorId>(descriptorV2.id)
+      )
+    )
+  );
+  const merged = [...eserviceScoped, ...descriptorScoped];
+  return merged.length > 0 ? merged : undefined;
+};

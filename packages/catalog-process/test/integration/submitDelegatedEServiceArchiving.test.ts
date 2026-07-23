@@ -19,8 +19,9 @@ import {
   Tenant,
   tenantKind,
   TenantKind,
-  DelegatedEServiceArchivingRequest,
+  DelegatedArchivingRequest,
   DescriptorState,
+  archivingScope,
 } from "pagopa-interop-models";
 import { expect, describe, it, vi, beforeEach, afterEach } from "vitest";
 import {
@@ -60,14 +61,16 @@ describe("schedule archiving of an EService with delegation", () => {
 
   const fixedDate = new Date("2026-07-08T16:47:59");
 
-  const expectedArchivingRequest: DelegatedEServiceArchivingRequest = {
+  const expectedArchivingRequest: DelegatedArchivingRequest = {
+    scope: archivingScope.eservice,
     gracePeriodDays: mockGracePeriodDays,
     requestedAt: fixedDate,
     requesterId: mockDelegateTenant.id,
     archivingReason: mockArchivingReason,
   };
 
-  const rejectedArchivingRequest: DelegatedEServiceArchivingRequest = {
+  const rejectedArchivingRequest: DelegatedArchivingRequest = {
+    scope: archivingScope.eservice,
     gracePeriodDays: mockGracePeriodDays,
     requestedAt: new Date("2026-07-06T16:47:59"),
     rejectedAt: new Date("2026-07-07T16:47:59"),
@@ -76,7 +79,8 @@ describe("schedule archiving of an EService with delegation", () => {
     rejectionReason: "Mock rejection reason",
   };
 
-  const acceptedArchivingRequest: DelegatedEServiceArchivingRequest = {
+  const acceptedArchivingRequest: DelegatedArchivingRequest = {
+    scope: archivingScope.eservice,
     gracePeriodDays: mockGracePeriodDays,
     requestedAt: new Date("2026-07-06T16:47:59"),
     acceptedAt: new Date("2026-07-07T16:47:59"),
@@ -87,7 +91,7 @@ describe("schedule archiving of an EService with delegation", () => {
   type ArchivingRequestType = "rejected" | "accepted" | "pending";
   const getExistingArchivingRequest = (
     reqType: ArchivingRequestType
-  ): DelegatedEServiceArchivingRequest =>
+  ): DelegatedArchivingRequest =>
     match(reqType)
       .with("accepted", () => acceptedArchivingRequest)
       .with("rejected", () => rejectedArchivingRequest)
@@ -542,19 +546,21 @@ describe("schedule archiving of an EService with delegation", () => {
       ...getMockDescriptor(),
       interface: getMockDocument(),
       state: descriptorState.deprecated,
-      delegatedArchivingRequest: [
-        {
-          requestedAt: new Date("2026-07-08T16:47:59"),
-          requesterId: mockDelegateTenant.id,
-          gracePeriodDays: 365,
-        },
-      ],
     };
 
     const eservice: EService = {
       ...mockEService,
       producerId: producer.id,
       descriptors: [archivingDescriptor, descriptor],
+      delegatedArchivingRequest: [
+        {
+          scope: archivingScope.descriptor,
+          descriptorId: archivingDescriptor.id,
+          requestedAt: new Date("2026-07-08T16:47:59"),
+          requesterId: mockDelegateTenant.id,
+          gracePeriodDays: 365,
+        },
+      ],
     };
 
     const mockDelegation = getMockDelegation({
