@@ -6,7 +6,9 @@ import { fileURLToPath } from "node:url";
 import {
   buildSelfcareTenantSeed,
   buildSessionClaims,
+  buildTenantContactMailSeed,
   buildTokenPayload,
+  hasTenantContactEmail,
   selectIdentity,
 } from "./local-environment.mjs";
 
@@ -136,6 +138,34 @@ const seed = async () => {
     }
     state.tenants[tenant.key] = { id: resource.id };
     await writeJson(statePath, state);
+
+    const tenantToken = await generateSessionToken(
+      dataset,
+      state,
+      tenant.key,
+      "admin"
+    );
+    const seededTenant = await waitFor(
+      `${tenant.name} readmodel propagation`,
+      () =>
+        requestJson(`${tenantUrl}/tenants/${resource.id}`, {
+          token: tenantToken,
+        })
+    );
+    if (!hasTenantContactEmail(seededTenant, tenant.contactEmail)) {
+      await requestJson(`${tenantUrl}/tenants/${resource.id}/mails`, {
+        method: "POST",
+        token: tenantToken,
+        body: buildTenantContactMailSeed(tenant),
+      });
+      await waitFor(`${tenant.name} contact email propagation`, async () => {
+        const currentTenant = await requestJson(
+          `${tenantUrl}/tenants/${resource.id}`,
+          { token: tenantToken }
+        );
+        return hasTenantContactEmail(currentTenant, tenant.contactEmail);
+      });
+    }
   }
 
   const providerToken = await generateSessionToken(dataset, state, "provider", "admin");

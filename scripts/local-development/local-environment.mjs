@@ -6,6 +6,18 @@ export const buildSelfcareTenantSeed = (tenant) => ({
   onboardedAt: "2024-01-01T00:00:00.000Z",
 });
 
+export const buildTenantContactMailSeed = (tenant) => ({
+  kind: "CONTACT_EMAIL",
+  address: tenant.contactEmail,
+  description: "Local development contact email",
+});
+
+export const hasTenantContactEmail = (tenant, contactEmail) =>
+  tenant.mails.some(
+    (mail) =>
+      mail.kind === "CONTACT_EMAIL" && mail.address === contactEmail
+  );
+
 export const selectIdentity = (dataset, state, tenantKey, role) => {
   const tenantDefinition = dataset.tenants.find(
     (tenant) => tenant.key === tenantKey
