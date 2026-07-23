@@ -9,8 +9,6 @@
     "test:api": "pnpm -w test:new api --project pagopa-interop-catalog-process",
     "test:integration": "pnpm -w test:new integration --project pagopa-interop-catalog-process",
     "test": "pnpm test:api && pnpm test:integration",
-    "test:shard1/2": "pnpm -w test:new --project pagopa-interop-catalog-process --shard=1/2",
-    "test:shard2/2": "pnpm -w test:new --project pagopa-interop-catalog-process --shard=2/2",
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch ./src/index.ts",
