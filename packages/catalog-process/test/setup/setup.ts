@@ -8,9 +8,6 @@ import {
   TestDrizzleDb,
 } from "pagopa-interop-commons-test";
 import {
-  CatalogReadModelService,
-  EServiceTemplateReadModelService,
-  TenantReadModelService,
   catalogReadModelServiceBuilder,
   eserviceTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
@@ -40,13 +37,9 @@ let postgresDB: DB; // event-store database
 let readModelDB: TestDrizzleDb;
 let tenantKindHistoryDB: TestDrizzleDb;
 
-export let testBucket: string;
 export let fileManager: FileManager;
 let cleanAfterEach: () => Promise<void>;
 let cleanupAfterAll: () => Promise<void>;
-let catalogReadModelServiceSQL: CatalogReadModelService;
-let tenantReadModelServiceSQL: TenantReadModelService;
-let eserviceTemplateReadModelServiceSQL: EServiceTemplateReadModelService;
 let readModelService: ReadModelServiceSQL;
 let catalogService: CatalogService;
 
@@ -80,7 +73,6 @@ beforeAll(async () => {
     inject("MINIO_CONNECTION_STRING"),
     config
   );
-  testBucket = setup.bucket;
   cleanAfterEach = setup.cleanAfterEach;
   cleanupAfterAll = setup.cleanupAfterAll;
 
@@ -92,9 +84,10 @@ beforeAll(async () => {
     logLevel: "info",
   });
 
-  catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-  tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-  eserviceTemplateReadModelServiceSQL =
+  const catalogReadModelServiceSQL =
+    catalogReadModelServiceBuilder(readModelDB);
+  const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
+  const eserviceTemplateReadModelServiceSQL =
     eserviceTemplateReadModelServiceBuilder(readModelDB);
   readModelService = readModelServiceBuilderSQL(
     readModelDB,
@@ -129,7 +122,4 @@ export {
   tenantKindHistoryDB,
   catalogService,
   readModelService,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-  eserviceTemplateReadModelServiceSQL,
 };
