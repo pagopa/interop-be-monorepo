@@ -1127,21 +1127,17 @@ export function agreementServiceBuilder(
         authData
       );
 
-      const [eservice, consumer] = await Promise.all([
+      /* The EService, the Descriptor and the consumer Tenant are not needed to
+      suspend the Agreement, but they are retrieved to validate that they exist */
+      const [eservice] = await Promise.all([
         retrieveEService(agreement.data.eserviceId, readModelService),
         retrieveTenant(agreement.data.consumerId, readModelService),
       ]);
-
-      const descriptor = retrieveDescriptor(
-        agreement.data.descriptorId,
-        eservice
-      );
+      retrieveDescriptor(agreement.data.descriptorId, eservice);
 
       const updatedAgreement: Agreement = createSuspensionUpdatedAgreement({
         agreement: agreement.data,
         authData,
-        descriptor,
-        consumer,
         activeDelegations,
         agreementOwnership,
       });
