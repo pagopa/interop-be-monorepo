@@ -9,6 +9,11 @@ export type BffGetCatalogQueryParam = QueryParametersByAlias<
   "getEServicesCatalog"
 >;
 
+export type BffGetCompactCatalogEServicesQueryParam = QueryParametersByAlias<
+  BffEservicesApi,
+  "getCompactCatalogEServices"
+>;
+
 export type BffGetProducersEservicesQueryParam = QueryParametersByAlias<
   BffEservicesApi,
   "getProducerEServices"

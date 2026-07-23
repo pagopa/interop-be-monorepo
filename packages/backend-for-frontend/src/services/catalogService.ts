@@ -44,6 +44,7 @@ import {
   toBffCatalogDescriptorEService,
   toBffEServiceTemplateInstance,
   toCatalogCreateEServiceSeed,
+  toCompactCatalogEService,
   toCompactProducerDescriptor,
   enhanceEServiceToBffCatalogApiProducerDescriptorEService,
   enhanceEServiceRiskAnalysisArray,
@@ -374,6 +375,66 @@ export function catalogServiceBuilder(
         },
       };
       return response;
+    },
+    getCompactCatalogEServices: async (
+      ctx: WithLogger<BffAppContext>,
+      queries: catalogApi.GetEServicesQueryParams
+    ): Promise<bffApi.CompactCatalogEServices> => {
+      const {
+        offset,
+        limit,
+        states,
+        name,
+        mode,
+        agreementStates,
+        isConsumerDelegable,
+        personalData,
+      } = queries;
+      ctx.logger.info(
+        `Retrieving compact catalog EServices for name = ${name}, states = ${states}, agreementStates = ${agreementStates}, isConsumerDelegable = ${isConsumerDelegable}, mode = ${mode}, personalData = ${personalData}, offset = ${offset}, limit = ${limit}`
+      );
+
+      const eservicesResponse: catalogApi.EServices =
+        await catalogProcessClient.getEServices({
+          headers: ctx.headers,
+          queries,
+        });
+
+      const producersIds = new Set(
+        eservicesResponse.results.map((e) => e.producerId)
+      );
+      const producers = new Map(
+        await Promise.all(
+          Array.from(producersIds).map(
+            async (producerId): Promise<[string, tenantApi.Tenant]> => [
+              producerId,
+              await tenantProcessClient.tenant.getTenant({
+                headers: ctx.headers,
+                params: { id: producerId },
+              }),
+            ]
+          )
+        )
+      );
+
+      return {
+        results: eservicesResponse.results.map((eservice) => {
+          const producer = producers.get(eservice.producerId);
+          if (!producer) {
+            throw tenantNotFound(unsafeBrandId<TenantId>(eservice.producerId));
+          }
+          return toCompactCatalogEService(
+            eservice,
+            producer,
+            getLatestActiveDescriptor(eservice)
+          );
+        }),
+        pagination: {
+          offset,
+          limit,
+          totalCount: eservicesResponse.totalCount,
+        },
+      };
     },
     getProducerEServiceDescriptor: async (
       eserviceId: EServiceId,
