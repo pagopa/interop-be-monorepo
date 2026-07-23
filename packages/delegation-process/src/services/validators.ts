@@ -143,7 +143,7 @@ export const assertIsDelegate = (
   }
 };
 
-export const assertIsDelegator = (
+export const assertRequesterIsDelegator = (
   delegation: Delegation,
   authData: UIAuthData
 ): void => {
@@ -155,14 +155,11 @@ export const assertIsDelegator = (
   }
 };
 
-export const assertIsState = (
-  expected: DelegationState | DelegationState[],
+export const assertDelegationIsInExpectedState = (
+  expected: DelegationState[],
   delegation: Delegation
 ): void => {
-  if (
-    (!Array.isArray(expected) && delegation.state !== expected) ||
-    (Array.isArray(expected) && !expected.includes(delegation.state))
-  ) {
+  if (!expected.includes(delegation.state)) {
     throw incorrectState(delegation.id, delegation.state, expected);
   }
 };
