@@ -48,7 +48,7 @@ import {
 import { config } from "../src/config/config.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { readCatalogEntry } from "../src/utils.js";
-import { dynamoDBClient, dynamoDbTablesSuffix } from "./setup.js";
+import { dynamoDBClient, dynamoDbTablesSuffix } from "./setup/setup.js";
 
 describe("integration tests V2 events", async () => {
   const mockDate = new Date();

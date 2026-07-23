@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TokenGenerationReadModelDbConfig } from "pagopa-interop-commons";
 import { GenericContainer, type StartedNetwork } from "testcontainers";
+import { match } from "ts-pattern";
 
 const DYNAMODB_PORT = 8000;
 const DYNAMODB_IMAGE = "amazon/dynamodb-local:3.3.0";
@@ -41,12 +42,32 @@ export async function setupDynamoDBTestContainer(network: StartedNetwork) {
 }
 
 /**
+ * Returns the canonical DynamoDB table name for a given TokenGenerationReadModelDbConfig key.
+ * The .exhaustive() call ensures at compile time that all config keys are covered —
+ * add a new entry here whenever a field is added to TokenGenerationReadModelDbConfig.
+ */
+function tableNameForConfigKey(
+  key: keyof TokenGenerationReadModelDbConfig
+): string {
+  return match(key)
+    .with("tokenGenerationReadModelTableNamePlatform", () => "platform-states")
+    .with(
+      "tokenGenerationReadModelTableNameTokenGeneration",
+      () => "token-generation-states"
+    )
+    .exhaustive();
+}
+const CONFIG_KEYS = [
+  "tokenGenerationReadModelTableNamePlatform",
+  "tokenGenerationReadModelTableNameTokenGeneration",
+] satisfies Array<keyof TokenGenerationReadModelDbConfig>;
+
+/**
  * Creates a dedicated set of DynamoDB tables for a single test file by reading
  * all schema files from the schema directory and creating each table with a
  * unique suffix appended to its name.
  *
  * Intended to be called in beforeAll of each test file.
- * @beta
  */
 export async function setupDynamoDBTestTables(
   endpoint: string,
@@ -72,11 +93,15 @@ export async function setupDynamoDBTestTables(
       await dynamoDBClient.send(
         new CreateTableCommand({ ...schema, TableName: suffixedTableName })
       );
-      Object.entries(config).forEach(([key, value]) => {
-        if (value === schema.TableName) {
-          Object.assign(config, { [key]: suffixedTableName });
+      for (const key of CONFIG_KEYS) {
+        if (tableNameForConfigKey(key) === schema.TableName) {
+          config[key] = suffixedTableName;
+        } else {
+          throw new Error(
+            `No matching config key found for table ${schema.TableName}`
+          );
         }
-      });
+      }
     })
   );
 

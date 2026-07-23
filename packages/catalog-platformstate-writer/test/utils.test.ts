@@ -27,7 +27,7 @@ import {
   updateDescriptorStateInTokenGenerationStatesTable,
   upsertPlatformStatesCatalogEntry,
 } from "../src/utils.js";
-import { dynamoDBClient, dynamoDbTablesSuffix } from "./setup.js";
+import { dynamoDBClient, dynamoDbTablesSuffix } from "./setup/setup.js";
 
 describe("utils tests", async () => {
   const mockDate = new Date();

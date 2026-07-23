@@ -7,7 +7,7 @@ import {
 import { afterAll, afterEach, beforeAll, inject } from "vitest";
 
 // TODO: The src utils functions depend on the original config var. They must be refactored to use the injected config instead of the original one, so that we can remove this import and create a test config.
-import { config } from "../src/config/config.js";
+import { config } from "../../src/config/config.js";
 
 let dynamoDBClient: DynamoDBClient;
 let dynamoDbTablesSuffix: string;

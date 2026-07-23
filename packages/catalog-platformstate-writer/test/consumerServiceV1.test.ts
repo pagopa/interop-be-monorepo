@@ -27,7 +27,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { readCatalogEntry } from "../src/utils.js";
-import { dynamoDBClient, dynamoDbTablesSuffix } from "./setup.js";
+import { dynamoDBClient, dynamoDbTablesSuffix } from "./setup/setup.js";
 
 describe("V1 events", async () => {
   const mockDate = new Date();
