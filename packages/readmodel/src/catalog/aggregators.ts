@@ -27,8 +27,9 @@ import {
   EServiceAttributeCertifiedDiscrete,
   ArchivingScope,
   TenantKind,
-  DelegatedDescriptorArchivingRequest,
-  DelegatedEServiceArchivingRequest,
+  DelegatedArchivingRequest,
+  archivingScope,
+  DescriptorId,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorArchivingRequestSQL,
@@ -75,7 +76,6 @@ export const aggregateDescriptor = ({
   templateVersionRefSQL,
   archivingScheduleSQL,
   asyncExchangePropertiesSQL,
-  descriptorArchivingRequestsSQL,
 }: {
   descriptorSQL: EServiceDescriptorSQL;
   interfacesSQL: EServiceDescriptorInterfaceSQL[];
@@ -87,7 +87,6 @@ export const aggregateDescriptor = ({
   asyncExchangePropertiesSQL:
     | EServiceDescriptorAsyncExchangePropertiesSQL
     | undefined;
-  descriptorArchivingRequestsSQL: EServiceDescriptorArchivingRequestSQL[];
   // eslint-disable-next-line sonarjs/cognitive-complexity
 }): Descriptor => {
   const mainInterfaceSQL = interfacesSQL.find((i) => i.kind === "INTERFACE");
@@ -175,22 +174,6 @@ export const aggregateDescriptor = ({
         }
       : undefined;
 
-  const archivingRequests: DelegatedDescriptorArchivingRequest[] =
-    descriptorArchivingRequestsSQL
-      .filter((archivingRequest) => archivingRequest.descriptorId !== null)
-      .map<DelegatedDescriptorArchivingRequest>((archivingRequest) => ({
-        gracePeriodDays: archivingRequest.gracePeriodDays,
-        requestedAt: stringToDate(archivingRequest.requestedAt),
-        requesterId: unsafeBrandId(archivingRequest.requesterId),
-        rejectedAt: archivingRequest.rejectedAt
-          ? stringToDate(archivingRequest.rejectedAt)
-          : undefined,
-        acceptedAt: archivingRequest.acceptedAt
-          ? stringToDate(archivingRequest.acceptedAt)
-          : undefined,
-        rejectionReason: archivingRequest.rejectionReason ?? undefined,
-      }));
-
   return {
     id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
@@ -259,9 +242,6 @@ export const aggregateDescriptor = ({
           },
         }
       : {}),
-    ...(archivingRequests.length > 0
-      ? { delegatedArchivingRequest: archivingRequests }
-      : {}),
   };
 };
 
@@ -317,18 +297,6 @@ export const aggregateEservice = ({
       acc.set(a.descriptorId, a);
       return acc;
     }, new Map<string, EServiceDescriptorAsyncExchangePropertiesSQL>());
-  const archivingRequestsSQLByDescriptorId = archivingRequestsSQL
-    .filter((a) => a.descriptorId !== null)
-    .reduce((acc, a) => {
-      acc.set(a.descriptorId ?? "", [
-        ...(acc.get(a.descriptorId ?? "") || []),
-        a,
-      ]);
-      return acc;
-    }, new Map<string, EServiceDescriptorArchivingRequestSQL[]>());
-  const archivingRequestsSQLWithNullDescriptorId = archivingRequestsSQL.filter(
-    (a) => a.descriptorId === null
-  );
   const descriptors = [...descriptorsSQL]
     .sort((d1, d2) => Number(d1.version) - Number(d2.version))
     .map((descriptorSQL) =>
@@ -347,8 +315,6 @@ export const aggregateEservice = ({
         ),
         asyncExchangePropertiesSQL:
           asyncExchangePropertiesSQLByDescriptorId.get(descriptorSQL.id),
-        descriptorArchivingRequestsSQL:
-          archivingRequestsSQLByDescriptorId.get(descriptorSQL.id) || [],
       })
     );
 
@@ -366,6 +332,41 @@ export const aggregateEservice = ({
       riskAnalysisAnswersSQLByFormId.get(ra.riskAnalysisFormId) || []
     )
   );
+
+  const delegatedArchivingRequests: DelegatedArchivingRequest[] =
+    archivingRequestsSQL.map<DelegatedArchivingRequest>((archivingRequest) =>
+      archivingRequest.descriptorId !== null
+        ? {
+            scope: archivingScope.descriptor,
+            descriptorId: unsafeBrandId<DescriptorId>(
+              archivingRequest.descriptorId
+            ),
+            gracePeriodDays: archivingRequest.gracePeriodDays,
+            requestedAt: stringToDate(archivingRequest.requestedAt),
+            requesterId: unsafeBrandId(archivingRequest.requesterId),
+            rejectedAt: archivingRequest.rejectedAt
+              ? stringToDate(archivingRequest.rejectedAt)
+              : undefined,
+            acceptedAt: archivingRequest.acceptedAt
+              ? stringToDate(archivingRequest.acceptedAt)
+              : undefined,
+            rejectionReason: archivingRequest.rejectionReason ?? undefined,
+          }
+        : {
+            scope: archivingScope.eservice,
+            archivingReason: archivingRequest.archivingReason ?? "",
+            gracePeriodDays: archivingRequest.gracePeriodDays,
+            requestedAt: stringToDate(archivingRequest.requestedAt),
+            requesterId: unsafeBrandId(archivingRequest.requesterId),
+            rejectedAt: archivingRequest.rejectedAt
+              ? stringToDate(archivingRequest.rejectedAt)
+              : undefined,
+            acceptedAt: archivingRequest.acceptedAt
+              ? stringToDate(archivingRequest.acceptedAt)
+              : undefined,
+            rejectionReason: archivingRequest.rejectionReason ?? undefined,
+          }
+    );
 
   const eservice: EService = {
     id: unsafeBrandId(eserviceSQL.id),
@@ -405,27 +406,9 @@ export const aggregateEservice = ({
     ...(eserviceSQL.asyncExchange !== null
       ? { asyncExchange: eserviceSQL.asyncExchange }
       : {}),
-    ...(archivingRequestsSQLWithNullDescriptorId.length > 0
+    ...(delegatedArchivingRequests.length > 0
       ? {
-          delegatedArchivingRequest: archivingRequestsSQLWithNullDescriptorId
-            .filter(
-              (archivingRequest) =>
-                archivingRequest.archivingReason !== null &&
-                archivingRequest.descriptorId === null
-            )
-            .map<DelegatedEServiceArchivingRequest>((archivingRequest) => ({
-              gracePeriodDays: archivingRequest.gracePeriodDays,
-              archivingReason: archivingRequest.archivingReason ?? "",
-              requestedAt: stringToDate(archivingRequest.requestedAt),
-              requesterId: unsafeBrandId(archivingRequest.requesterId),
-              rejectedAt: archivingRequest.rejectedAt
-                ? stringToDate(archivingRequest.rejectedAt)
-                : undefined,
-              acceptedAt: archivingRequest.acceptedAt
-                ? stringToDate(archivingRequest.acceptedAt)
-                : undefined,
-              rejectionReason: archivingRequest.rejectionReason ?? undefined,
-            })),
+          delegatedArchivingRequest: delegatedArchivingRequests,
         }
       : {}),
   };

@@ -1,4 +1,10 @@
-import { EServiceTemplateId, TenantId, unsafeBrandId } from "../brandedIds.js";
+import { match } from "ts-pattern";
+import {
+  EServiceTemplateId,
+  TenantId,
+  DescriptorId,
+  unsafeBrandId,
+} from "../brandedIds.js";
 import { genericInternalError } from "../errors.js";
 import {
   AgreementApprovalPolicyV2,
@@ -16,8 +22,7 @@ import {
   EServiceTemplateVersionRefV2,
   type EServiceAttributeCertifiedDiscreteConfigV2,
   ArchivingScopeV2,
-  DelegatedDescriptorArchivingRequestV2,
-  DelegatedEServiceArchivingRequestV2,
+  DelegatedArchivingRequestV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -46,8 +51,7 @@ import {
   type EServiceAttributeCertifiedDiscreteConfig,
   ArchivingScope,
   archivingScope,
-  DelegatedDescriptorArchivingRequest,
-  DelegatedEServiceArchivingRequest,
+  DelegatedArchivingRequest,
 } from "./eservice.js";
 import { fromTenantKindV2 } from "../tenant/protobufConverterFromV2.js";
 
@@ -185,25 +189,45 @@ export const fromDescriptorRejectionReasonV2 = (
   rejectedAt: bigIntToDate(input.rejectedAt),
 });
 
-export const fromDelegatedDescriptorArchivingRequestV2 = (
-  input: DelegatedDescriptorArchivingRequestV2
-): DelegatedDescriptorArchivingRequest => ({
-  ...input,
-  requesterId: unsafeBrandId<TenantId>(input.requesterId),
-  acceptedAt: bigIntToDate(input.acceptedAt),
-  rejectedAt: bigIntToDate(input.rejectedAt),
-  requestedAt: bigIntToDate(input.requestedAt),
-});
-
-export const fromDelegatedEServiceArchivingRequestV2 = (
-  input: DelegatedEServiceArchivingRequestV2
-): DelegatedEServiceArchivingRequest => ({
-  ...input,
-  requesterId: unsafeBrandId<TenantId>(input.requesterId),
-  acceptedAt: bigIntToDate(input.acceptedAt),
-  rejectedAt: bigIntToDate(input.rejectedAt),
-  requestedAt: bigIntToDate(input.requestedAt),
-});
+// A single, unified wire message and domain converter for both e-service-wide
+// and single-descriptor delegated archiving requests, matching the unified
+// `DelegatedArchivingRequest` domain type (discriminated by `scope`). Read
+// only from EServiceV2.delegatedArchivingRequest; EServiceDescriptorV2 has no
+// equivalent field.
+export const fromDelegatedArchivingRequestV2 = (
+  input: DelegatedArchivingRequestV2
+): DelegatedArchivingRequest => {
+  const base = {
+    requestedAt: bigIntToDate(input.requestedAt),
+    acceptedAt: bigIntToDate(input.acceptedAt),
+    rejectedAt: bigIntToDate(input.rejectedAt),
+    rejectionReason: input.rejectionReason,
+    requesterId: unsafeBrandId<TenantId>(input.requesterId),
+    gracePeriodDays: input.gracePeriodDays,
+  };
+  return match(fromEServiceDescriptorArchivingScopeV2(input.scope))
+    .with(archivingScope.eservice, (scope) => {
+      if (input.archivingReason == null) {
+        throw genericInternalError(
+          "archivingReason field is required for EService-scoped delegated archiving requests but is not provided in serialized byte array events"
+        );
+      }
+      return { ...base, scope, archivingReason: input.archivingReason };
+    })
+    .with(archivingScope.descriptor, (scope) => {
+      if (input.descriptorId == null) {
+        throw genericInternalError(
+          "descriptorId field is required for Descriptor-scoped delegated archiving requests but is not provided in serialized byte array events"
+        );
+      }
+      return {
+        ...base,
+        scope,
+        descriptorId: unsafeBrandId<DescriptorId>(input.descriptorId),
+      };
+    })
+    .exhaustive();
+};
 
 export const fromEServiceTemplateVersionRefV2 = (
   input: EServiceTemplateVersionRefV2
@@ -276,12 +300,6 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
         gracePeriodDays: input.archivingSchedule.gracePeriodDays,
       }
     : undefined,
-  delegatedArchivingRequest:
-    input.delegatedArchivingRequest.length > 0
-      ? input.delegatedArchivingRequest.map(
-          fromDelegatedDescriptorArchivingRequestV2
-        )
-      : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (
@@ -335,8 +353,6 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
       : undefined,
   delegatedArchivingRequest:
     input.delegatedArchivingRequest.length > 0
-      ? input.delegatedArchivingRequest.map(
-          fromDelegatedEServiceArchivingRequestV2
-        )
+      ? input.delegatedArchivingRequest.map(fromDelegatedArchivingRequestV2)
       : undefined,
 });

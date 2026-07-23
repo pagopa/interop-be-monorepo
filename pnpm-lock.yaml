@@ -349,8 +349,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: file:../../../interop-outbound-models
-        version: file:../interop-outbound-models
+        specifier: 1.8.22
+        version: 1.8.22
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1437,8 +1437,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: file:../../../interop-outbound-models
-        version: file:../interop-outbound-models
+        specifier: 1.8.22
+        version: 1.8.22
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2406,8 +2406,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: file:../../../interop-outbound-models
-        version: file:../interop-outbound-models
+        specifier: 1.8.22
+        version: 1.8.22
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3285,8 +3285,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: file:../../../interop-outbound-models
-        version: file:../interop-outbound-models
+        specifier: 1.8.22
+        version: 1.8.22
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5364,8 +5364,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: file:../../../interop-outbound-models
-        version: file:../interop-outbound-models
+        specifier: 1.8.22
+        version: 1.8.22
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5605,8 +5605,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: file:../../../interop-outbound-models
-        version: file:../interop-outbound-models
+        specifier: 1.8.22
+        version: 1.8.22
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -6434,8 +6434,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: file:../../../interop-outbound-models
-        version: file:../interop-outbound-models
+        specifier: 1.8.22
+        version: 1.8.22
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -8097,8 +8097,8 @@ packages:
     peerDependencies:
       eslint: ^9.39.2
 
-  '@pagopa/interop-outbound-models@file:../interop-outbound-models':
-    resolution: {directory: ../interop-outbound-models, type: directory}
+  '@pagopa/interop-outbound-models@1.8.22':
+    resolution: {integrity: sha512-DFTedv29S5fAEzOMMwsr5uVYCiyHrwzAfLPqAc5O/YCOrik3p9W/htGNgq85wMg/+pehPUMXtVx0ZK29JTlkJA==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -14590,7 +14590,7 @@ snapshots:
       - supports-color
       - vitest
 
-  '@pagopa/interop-outbound-models@file:../interop-outbound-models':
+  '@pagopa/interop-outbound-models@1.8.22':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0

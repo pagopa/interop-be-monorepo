@@ -1,6 +1,6 @@
 import {
-  DelegatedDescriptorArchivingRequest,
-  DelegatedEServiceArchivingRequest,
+  archivingScope,
+  DelegatedArchivingRequest,
   DescriptorId,
   EServiceId,
 } from "pagopa-interop-models";
@@ -10,12 +10,34 @@ import {
 } from "../model/domain/errors.js";
 import { calculateArchivableOn } from "./dateCalculator.js";
 
-type ArchivingRequest =
-  | DelegatedDescriptorArchivingRequest
-  | DelegatedEServiceArchivingRequest;
+// All delegated archiving requests (both e-service-wide and per-descriptor)
+// live in a single array on EService.delegatedArchivingRequest. The functions
+// below always operate on that full array and use `descriptorId` to select
+// the relevant scope: when provided, only "Descriptor"-scoped requests for
+// that descriptor are considered; when omitted, only "EService"-scoped
+// requests are considered.
 
-function isActiveArchivingRequest<T extends ArchivingRequest>(
-  archivingRequest: T
+function matchesScope(
+  request: DelegatedArchivingRequest,
+  descriptorId?: DescriptorId
+): boolean {
+  return descriptorId !== undefined
+    ? request.scope === archivingScope.descriptor &&
+        request.descriptorId === descriptorId
+    : request.scope === archivingScope.eservice;
+}
+
+function filterByScope(
+  archivingRequests: DelegatedArchivingRequest[] | undefined,
+  descriptorId?: DescriptorId
+): DelegatedArchivingRequest[] {
+  return (archivingRequests ?? []).filter((request) =>
+    matchesScope(request, descriptorId)
+  );
+}
+
+function isActiveArchivingRequest(
+  archivingRequest: DelegatedArchivingRequest
 ): boolean {
   return (
     archivingRequest.acceptedAt === undefined &&
@@ -23,30 +45,29 @@ function isActiveArchivingRequest<T extends ArchivingRequest>(
   );
 }
 
-function isNotActiveArchivingRequest<T extends ArchivingRequest>(
-  archivingRequest: T
-): boolean {
-  return !isActiveArchivingRequest(archivingRequest);
-}
-
-export function updateLatestActiveArchivingRequest<T extends ArchivingRequest>(
-  archivingRequests: T[],
+export function updateLatestActiveArchivingRequest(
+  archivingRequests: DelegatedArchivingRequest[],
   lastRequestUpdates: Partial<
     Omit<
-      T,
-      "requesterId" | "requestedAt" | "gracePeriodDays" | "archivingReason"
+      DelegatedArchivingRequest,
+      | "requesterId"
+      | "requestedAt"
+      | "gracePeriodDays"
+      | "archivingReason"
+      | "scope"
+      | "descriptorId"
     >
   >,
   eserviceId: EServiceId,
   descriptorId?: DescriptorId
-): T[] {
+): DelegatedArchivingRequest[] {
   const latestActiveArchivingRequest = getLatestActiveArchivingRequest(
     archivingRequests,
     eserviceId,
     descriptorId
   );
 
-  const updatedRequests = archivingRequests.map((request) =>
+  return archivingRequests.map((request) =>
     request === latestActiveArchivingRequest
       ? {
           ...request,
@@ -54,45 +75,49 @@ export function updateLatestActiveArchivingRequest<T extends ArchivingRequest>(
         }
       : request
   );
-
-  return updatedRequests;
 }
 
-export function removeActiveArchivingRequest<T extends ArchivingRequest>(
-  archivingRequests: T[] | undefined
-): T[] {
+export function removeActiveArchivingRequest(
+  archivingRequests: DelegatedArchivingRequest[] | undefined,
+  descriptorId?: DescriptorId
+): DelegatedArchivingRequest[] {
   if (!archivingRequests) {
     return [];
   }
-  return archivingRequests.filter(isNotActiveArchivingRequest);
+  return archivingRequests.filter(
+    (request) =>
+      !(
+        matchesScope(request, descriptorId) && isActiveArchivingRequest(request)
+      )
+  );
 }
 
-export function appendArchivingRequest<T extends ArchivingRequest>(
-  previousArchivingRequests: T[] | undefined,
-  newArchivingRequest: T
-): T[] {
+export function appendArchivingRequest(
+  previousArchivingRequests: DelegatedArchivingRequest[] | undefined,
+  newArchivingRequest: DelegatedArchivingRequest
+): DelegatedArchivingRequest[] {
   return [...(previousArchivingRequests ?? []), newArchivingRequest];
 }
 
-export function getLatestArchivingRequest<T extends ArchivingRequest>(
-  archivingRequests: T[] | undefined,
+export function getLatestArchivingRequest(
+  archivingRequests: DelegatedArchivingRequest[] | undefined,
   eserviceId: EServiceId,
   descriptorId?: DescriptorId
-): T {
-  if (!archivingRequests) {
+): DelegatedArchivingRequest {
+  const scopedRequests = filterByScope(archivingRequests, descriptorId);
+  if (scopedRequests.length === 0) {
     throw noDelegatedArchivingRequestFound(eserviceId, descriptorId);
   }
-  const latestRequest = archivingRequests.reduce((latest, current) =>
+  return scopedRequests.reduce((latest, current) =>
     current.requestedAt > latest.requestedAt ? current : latest
   );
-  return latestRequest;
 }
 
-export function getLatestActiveArchivingRequest<T extends ArchivingRequest>(
-  archivingRequests: T[] | undefined,
+export function getLatestActiveArchivingRequest(
+  archivingRequests: DelegatedArchivingRequest[] | undefined,
   eserviceId: EServiceId,
   descriptorId?: DescriptorId
-): T {
+): DelegatedArchivingRequest {
   const latestArchivingRequest = getLatestArchivingRequest(
     archivingRequests,
     eserviceId,
@@ -104,31 +129,22 @@ export function getLatestActiveArchivingRequest<T extends ArchivingRequest>(
   return latestArchivingRequest;
 }
 
-export function hasActiveArchivingRequest<T extends ArchivingRequest>(
-  archivingRequests: T[] | undefined
+export function hasActiveArchivingRequest(
+  archivingRequests: DelegatedArchivingRequest[] | undefined,
+  descriptorId?: DescriptorId
 ): boolean {
-  if (!archivingRequests) {
-    return false;
-  }
-  const activeArchivingRequests = archivingRequests.filter(
+  return filterByScope(archivingRequests, descriptorId).some(
     isActiveArchivingRequest
   );
-  return activeArchivingRequests.length > 0;
 }
 
-export function calculateProjectedArchivingDateForArchivingRequest<
-  T extends ArchivingRequest,
->(
+export function calculateProjectedArchivingDateForArchivingRequest(
   requestDate: Date,
-  archivingRequests: T[] | undefined,
+  archivingRequests: DelegatedArchivingRequest[] | undefined,
   eserviceId: EServiceId,
   descriptorId?: DescriptorId
 ): { archivableOn: Date; gracePeriodDays: number } | undefined {
-  if (
-    archivingRequests &&
-    archivingRequests.length > 0 &&
-    hasActiveArchivingRequest(archivingRequests)
-  ) {
+  if (hasActiveArchivingRequest(archivingRequests, descriptorId)) {
     const latestActiveRequest = getLatestActiveArchivingRequest(
       archivingRequests,
       eserviceId,

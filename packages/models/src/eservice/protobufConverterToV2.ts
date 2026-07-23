@@ -13,8 +13,7 @@ import {
   EServiceRiskAnalysisFormV2,
   EServiceTechnologyV2,
   EServiceV2,
-  DelegatedDescriptorArchivingRequestV2,
-  DelegatedEServiceArchivingRequestV2,
+  DelegatedArchivingRequestV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -42,8 +41,7 @@ import {
   eserviceMode,
   technology,
   type EServiceAttributeCertifiedDiscreteConfig,
-  DelegatedDescriptorArchivingRequest,
-  DelegatedEServiceArchivingRequest,
+  DelegatedArchivingRequest,
 } from "./eservice.js";
 import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
@@ -167,24 +165,6 @@ export const toDescriptorRejectedReasonV2 = (
   rejectedAt: dateToBigInt(input.rejectedAt),
 });
 
-export const toDelegatedDescriptorArchivingRequestV2 = (
-  input: DelegatedDescriptorArchivingRequest
-): DelegatedDescriptorArchivingRequestV2 => ({
-  ...input,
-  rejectedAt: dateToBigInt(input.rejectedAt),
-  acceptedAt: dateToBigInt(input.acceptedAt),
-  requestedAt: dateToBigInt(input.requestedAt),
-});
-
-export const toDelegatedEServiceArchivingRequestV2 = (
-  input: DelegatedEServiceArchivingRequest
-): DelegatedEServiceArchivingRequestV2 => ({
-  ...input,
-  rejectedAt: dateToBigInt(input.rejectedAt),
-  acceptedAt: dateToBigInt(input.acceptedAt),
-  requestedAt: dateToBigInt(input.requestedAt),
-});
-
 export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
   ...input,
   uploadDate: input.uploadDate.toISOString(),
@@ -197,6 +177,27 @@ export const toEServiceDescriptorArchivingScopeV2 = (
     .with(archivingScope.eservice, () => ArchivingScopeV2.ESERVICE)
     .with(archivingScope.descriptor, () => ArchivingScopeV2.DESCRIPTOR)
     .exhaustive();
+
+// A single, unified wire message and domain converter for both e-service-wide
+// and single-descriptor delegated archiving requests, matching the unified
+// `DelegatedArchivingRequest` domain type (discriminated by `scope`). Stored
+// only on EServiceV2.delegatedArchivingRequest; there is no equivalent field
+// on EServiceDescriptorV2.
+export const toDelegatedArchivingRequestV2 = (
+  input: DelegatedArchivingRequest
+): DelegatedArchivingRequestV2 => ({
+  requestedAt: dateToBigInt(input.requestedAt),
+  acceptedAt: dateToBigInt(input.acceptedAt),
+  rejectedAt: dateToBigInt(input.rejectedAt),
+  rejectionReason: input.rejectionReason,
+  requesterId: input.requesterId,
+  gracePeriodDays: input.gracePeriodDays,
+  scope: toEServiceDescriptorArchivingScopeV2(input.scope),
+  descriptorId:
+    input.scope === archivingScope.descriptor ? input.descriptorId : undefined,
+  archivingReason:
+    input.scope === archivingScope.eservice ? input.archivingReason : undefined,
+});
 
 export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   ...input,
@@ -236,10 +237,6 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   asyncExchangeProperties: input.asyncExchangeProperties
     ? { ...input.asyncExchangeProperties }
     : undefined,
-  delegatedArchivingRequest:
-    input.delegatedArchivingRequest?.map(
-      toDelegatedDescriptorArchivingRequestV2
-    ) ?? [],
 });
 
 export const toRiskAnalysisV2 = (
@@ -260,12 +257,13 @@ export const toRiskAnalysisFormV2 = (
 export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   ...eservice,
   technology: toEServiceTechnologyV2(eservice.technology),
-  descriptors: eservice.descriptors.map(toDescriptorV2),
+  descriptors: eservice.descriptors.map((descriptor) =>
+    toDescriptorV2(descriptor)
+  ),
   createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV2(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
-  delegatedArchivingRequest:
-    eservice.delegatedArchivingRequest?.map(
-      toDelegatedEServiceArchivingRequestV2
-    ) ?? [],
+  delegatedArchivingRequest: (eservice.delegatedArchivingRequest ?? []).map(
+    toDelegatedArchivingRequestV2
+  ),
 });
