@@ -1,3 +1,4 @@
+import { match } from "ts-pattern";
 import {
   EServiceTemplateId,
   TenantId,
@@ -21,8 +22,7 @@ import {
   EServiceTemplateVersionRefV2,
   type EServiceAttributeCertifiedDiscreteConfigV2,
   ArchivingScopeV2,
-  DelegatedDescriptorArchivingRequestV2,
-  DelegatedEServiceArchivingRequestV2,
+  DelegatedArchivingRequestV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -189,32 +189,45 @@ export const fromDescriptorRejectionReasonV2 = (
   rejectedAt: bigIntToDate(input.rejectedAt),
 });
 
-export const fromDelegatedDescriptorArchivingRequestV2 = (
-  input: DelegatedDescriptorArchivingRequestV2,
-  descriptorId: DescriptorId
-): DelegatedArchivingRequest => ({
-  requestedAt: bigIntToDate(input.requestedAt),
-  acceptedAt: bigIntToDate(input.acceptedAt),
-  rejectedAt: bigIntToDate(input.rejectedAt),
-  rejectionReason: input.rejectionReason,
-  requesterId: unsafeBrandId<TenantId>(input.requesterId),
-  gracePeriodDays: input.gracePeriodDays,
-  scope: archivingScope.descriptor,
-  descriptorId,
-});
-
-export const fromDelegatedEServiceArchivingRequestV2 = (
-  input: DelegatedEServiceArchivingRequestV2
-): DelegatedArchivingRequest => ({
-  requestedAt: bigIntToDate(input.requestedAt),
-  acceptedAt: bigIntToDate(input.acceptedAt),
-  rejectedAt: bigIntToDate(input.rejectedAt),
-  rejectionReason: input.rejectionReason,
-  requesterId: unsafeBrandId<TenantId>(input.requesterId),
-  gracePeriodDays: input.gracePeriodDays,
-  scope: archivingScope.eservice,
-  archivingReason: input.archivingReason,
-});
+// A single, unified wire message and domain converter for both e-service-wide
+// and single-descriptor delegated archiving requests, matching the unified
+// `DelegatedArchivingRequest` domain type (discriminated by `scope`). Read
+// only from EServiceV2.delegatedArchivingRequest; EServiceDescriptorV2 has no
+// equivalent field.
+export const fromDelegatedArchivingRequestV2 = (
+  input: DelegatedArchivingRequestV2
+): DelegatedArchivingRequest => {
+  const base = {
+    requestedAt: bigIntToDate(input.requestedAt),
+    acceptedAt: bigIntToDate(input.acceptedAt),
+    rejectedAt: bigIntToDate(input.rejectedAt),
+    rejectionReason: input.rejectionReason,
+    requesterId: unsafeBrandId<TenantId>(input.requesterId),
+    gracePeriodDays: input.gracePeriodDays,
+  };
+  return match(fromEServiceDescriptorArchivingScopeV2(input.scope))
+    .with(archivingScope.eservice, (scope) => {
+      if (input.archivingReason == null) {
+        throw genericInternalError(
+          "archivingReason field is required for EService-scoped delegated archiving requests but is not provided in serialized byte array events"
+        );
+      }
+      return { ...base, scope, archivingReason: input.archivingReason };
+    })
+    .with(archivingScope.descriptor, (scope) => {
+      if (input.descriptorId == null) {
+        throw genericInternalError(
+          "descriptorId field is required for Descriptor-scoped delegated archiving requests but is not provided in serialized byte array events"
+        );
+      }
+      return {
+        ...base,
+        scope,
+        descriptorId: unsafeBrandId<DescriptorId>(input.descriptorId),
+      };
+    })
+    .exhaustive();
+};
 
 export const fromEServiceTemplateVersionRefV2 = (
   input: EServiceTemplateVersionRefV2
@@ -338,26 +351,8 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
     input.templateId != null
       ? unsafeBrandId<EServiceTemplateId>(input.templateId)
       : undefined,
-  delegatedArchivingRequest: toUnifiedDelegatedArchivingRequests(input),
+  delegatedArchivingRequest:
+    input.delegatedArchivingRequest.length > 0
+      ? input.delegatedArchivingRequest.map(fromDelegatedArchivingRequestV2)
+      : undefined,
 });
-
-// Merges the two wire-format archiving request lists (one on EServiceV2, one
-// per EServiceDescriptorV2) into the single unified domain array stored on
-// EService.delegatedArchivingRequest.
-const toUnifiedDelegatedArchivingRequests = (
-  input: EServiceV2
-): DelegatedArchivingRequest[] | undefined => {
-  const eserviceScoped = input.delegatedArchivingRequest.map(
-    fromDelegatedEServiceArchivingRequestV2
-  );
-  const descriptorScoped = input.descriptors.flatMap((descriptorV2) =>
-    descriptorV2.delegatedArchivingRequest.map((archivingRequest) =>
-      fromDelegatedDescriptorArchivingRequestV2(
-        archivingRequest,
-        unsafeBrandId<DescriptorId>(descriptorV2.id)
-      )
-    )
-  );
-  const merged = [...eserviceScoped, ...descriptorScoped];
-  return merged.length > 0 ? merged : undefined;
-};

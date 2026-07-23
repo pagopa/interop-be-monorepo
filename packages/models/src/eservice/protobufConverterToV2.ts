@@ -13,8 +13,7 @@ import {
   EServiceRiskAnalysisFormV2,
   EServiceTechnologyV2,
   EServiceV2,
-  DelegatedDescriptorArchivingRequestV2,
-  DelegatedEServiceArchivingRequestV2,
+  DelegatedArchivingRequestV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
@@ -166,34 +165,6 @@ export const toDescriptorRejectedReasonV2 = (
   rejectedAt: dateToBigInt(input.rejectedAt),
 });
 
-// The domain model keeps a single, unified `DelegatedArchivingRequest[]` on
-// `EService` (discriminated by `scope`/`descriptorId`), but the wire format
-// still has two distinct repeated fields (one on EServiceV2, one on each
-// EServiceDescriptorV2) for backward compatibility. These two converters
-// route each domain entry to the proto message matching its scope.
-export const toDelegatedDescriptorArchivingRequestV2 = (
-  input: DelegatedArchivingRequest
-): DelegatedDescriptorArchivingRequestV2 => ({
-  requestedAt: dateToBigInt(input.requestedAt),
-  acceptedAt: dateToBigInt(input.acceptedAt),
-  rejectedAt: dateToBigInt(input.rejectedAt),
-  rejectionReason: input.rejectionReason,
-  requesterId: input.requesterId,
-  gracePeriodDays: input.gracePeriodDays,
-});
-
-export const toDelegatedEServiceArchivingRequestV2 = (
-  input: DelegatedArchivingRequest
-): DelegatedEServiceArchivingRequestV2 => ({
-  requestedAt: dateToBigInt(input.requestedAt),
-  acceptedAt: dateToBigInt(input.acceptedAt),
-  rejectedAt: dateToBigInt(input.rejectedAt),
-  rejectionReason: input.rejectionReason,
-  requesterId: input.requesterId,
-  gracePeriodDays: input.gracePeriodDays,
-  archivingReason: input.archivingReason ?? "",
-});
-
 export const toDocumentV2 = (input: Document): EServiceDocumentV2 => ({
   ...input,
   uploadDate: input.uploadDate.toISOString(),
@@ -207,10 +178,28 @@ export const toEServiceDescriptorArchivingScopeV2 = (
     .with(archivingScope.descriptor, () => ArchivingScopeV2.DESCRIPTOR)
     .exhaustive();
 
-export const toDescriptorV2 = (
-  input: Descriptor,
-  eserviceDelegatedArchivingRequests: DelegatedArchivingRequest[] = []
-): EServiceDescriptorV2 => ({
+// A single, unified wire message and domain converter for both e-service-wide
+// and single-descriptor delegated archiving requests, matching the unified
+// `DelegatedArchivingRequest` domain type (discriminated by `scope`). Stored
+// only on EServiceV2.delegatedArchivingRequest; there is no equivalent field
+// on EServiceDescriptorV2.
+export const toDelegatedArchivingRequestV2 = (
+  input: DelegatedArchivingRequest
+): DelegatedArchivingRequestV2 => ({
+  requestedAt: dateToBigInt(input.requestedAt),
+  acceptedAt: dateToBigInt(input.acceptedAt),
+  rejectedAt: dateToBigInt(input.rejectedAt),
+  rejectionReason: input.rejectionReason,
+  requesterId: input.requesterId,
+  gracePeriodDays: input.gracePeriodDays,
+  scope: toEServiceDescriptorArchivingScopeV2(input.scope),
+  descriptorId:
+    input.scope === archivingScope.descriptor ? input.descriptorId : undefined,
+  archivingReason:
+    input.scope === archivingScope.eservice ? input.archivingReason : undefined,
+});
+
+export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   ...input,
   version: BigInt(input.version),
   attributes: {
@@ -248,11 +237,6 @@ export const toDescriptorV2 = (
   asyncExchangeProperties: input.asyncExchangeProperties
     ? { ...input.asyncExchangeProperties }
     : undefined,
-  delegatedArchivingRequest: eserviceDelegatedArchivingRequests
-    .filter(
-      (r) => r.scope === archivingScope.descriptor && r.descriptorId === input.id
-    )
-    .map(toDelegatedDescriptorArchivingRequestV2),
 });
 
 export const toRiskAnalysisV2 = (
@@ -274,12 +258,12 @@ export const toEServiceV2 = (eservice: EService): EServiceV2 => ({
   ...eservice,
   technology: toEServiceTechnologyV2(eservice.technology),
   descriptors: eservice.descriptors.map((descriptor) =>
-    toDescriptorV2(descriptor, eservice.delegatedArchivingRequest)
+    toDescriptorV2(descriptor)
   ),
   createdAt: dateToBigInt(eservice.createdAt),
   mode: toEServiceModeV2(eservice.mode),
   riskAnalysis: eservice.riskAnalysis.map(toRiskAnalysisV2),
-  delegatedArchivingRequest: (eservice.delegatedArchivingRequest ?? [])
-    .filter((r) => r.scope === archivingScope.eservice)
-    .map(toDelegatedEServiceArchivingRequestV2),
+  delegatedArchivingRequest: (eservice.delegatedArchivingRequest ?? []).map(
+    toDelegatedArchivingRequestV2
+  ),
 });

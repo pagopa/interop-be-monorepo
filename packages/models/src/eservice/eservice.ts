@@ -182,20 +182,29 @@ export type AsyncExchangeProperties = z.infer<typeof AsyncExchangeProperties>;
 // SQL table (`eservice_descriptor_archiving_request`) with a nullable
 // `descriptorId` column. Entries are stored only on `EService.
 // delegatedArchivingRequest`; there is no equivalent field on `Descriptor`.
-export const DelegatedArchivingRequest = z.object({
+//
+// Modeled as a Zod discriminated union on `scope` so that `archivingReason`
+// (mandatory for "EService") and `descriptorId` (mandatory for "Descriptor")
+// are enforced at both parse-time and compile-time, instead of being two
+// independently-optional fields on a flat object.
+const DelegatedArchivingRequestBase = z.object({
   requestedAt: z.coerce.date(),
   acceptedAt: z.coerce.date().optional(),
   rejectedAt: z.coerce.date().optional(),
   rejectionReason: z.string().optional(),
   requesterId: TenantId,
   gracePeriodDays: z.number().int(),
-  scope: ArchivingScope,
-  // Set only when scope === "Descriptor".
-  descriptorId: DescriptorId.optional(),
-  // Set only when scope === "EService" (mandatory for e-service-wide
-  // archiving requests).
-  archivingReason: z.string().optional(),
 });
+export const DelegatedArchivingRequest = z.discriminatedUnion("scope", [
+  DelegatedArchivingRequestBase.extend({
+    scope: z.literal(archivingScope.eservice),
+    archivingReason: z.string(),
+  }),
+  DelegatedArchivingRequestBase.extend({
+    scope: z.literal(archivingScope.descriptor),
+    descriptorId: DescriptorId,
+  }),
+]);
 export type DelegatedArchivingRequest = z.infer<
   typeof DelegatedArchivingRequest
 >;

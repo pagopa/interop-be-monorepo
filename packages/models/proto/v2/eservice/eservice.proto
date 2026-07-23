@@ -21,7 +21,7 @@ message EServiceV2 {
   optional string instanceLabel = 15;
   optional bool asyncExchange = 16;
   optional string archivingReason = 17;
-  repeated DelegatedEServiceArchivingRequestV2 delegatedArchivingRequest = 18;
+  repeated DelegatedArchivingRequestV2 delegatedArchivingRequest = 18;
 }
 
 message EServiceRiskAnalysisV2 {
@@ -112,26 +112,25 @@ message EServiceDescriptorV2 {
   optional EServiceDocumentV2 asyncExchangeCallbackInterface = 21;
   optional AsyncExchangePropertiesV2 asyncExchangeProperties = 22;
   optional ArchivingScheduleV2 archivingSchedule = 23;
-  repeated DelegatedDescriptorArchivingRequestV2 delegatedArchivingRequest = 24;
 }
 
-message DelegatedDescriptorArchivingRequestV2 {
+// A single, unified wire message for both e-service-wide and
+// single-descriptor delegated archiving requests, matching the unified
+// domain model (`DelegatedArchivingRequest` in eservice.ts). Stored only in
+// EServiceV2.delegatedArchivingRequest; there is no equivalent field on
+// EServiceDescriptorV2.
+message DelegatedArchivingRequestV2 {
   int64 requestedAt = 1;
   optional int64 acceptedAt = 2;
   optional int64 rejectedAt = 3;
   optional string rejectionReason = 4;
   string requesterId = 5;
   int32 gracePeriodDays = 6;
-}
-
-message DelegatedEServiceArchivingRequestV2 {
-  int64 requestedAt = 1;
-  optional int64 acceptedAt = 2;
-  optional int64 rejectedAt = 3;
-  optional string rejectionReason = 4;
-  string requesterId = 5;
-  int32 gracePeriodDays = 6;
-  string archivingReason = 7;
+  ArchivingScopeV2 scope = 7;
+  // Set only when scope == DESCRIPTOR.
+  optional string descriptorId = 8;
+  // Set only when scope == ESERVICE.
+  optional string archivingReason = 9;
 }
 
 message TemplateInstanceInterfaceMetadataV2 {

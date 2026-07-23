@@ -16,6 +16,7 @@ import { calculateArchivableOn } from "./dateCalculator.js";
 // the relevant scope: when provided, only "Descriptor"-scoped requests for
 // that descriptor are considered; when omitted, only "EService"-scoped
 // requests are considered.
+
 function matchesScope(
   request: DelegatedArchivingRequest,
   descriptorId?: DescriptorId

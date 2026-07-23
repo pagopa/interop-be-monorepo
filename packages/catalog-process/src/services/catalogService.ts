@@ -3564,12 +3564,16 @@ export function catalogServiceBuilder(
         eserviceId
       );
 
-      // Invariant: e-service-scoped delegated archiving requests always
-      // carry an archivingReason (enforced when the request is submitted).
-      const archivingReason = lastRequest.archivingReason;
-      if (archivingReason === undefined) {
+      // Invariant: `getLatestArchivingRequest` was called above without a
+      // `descriptorId`, so by convention it must return an "EService"-scoped
+      // request (the only kind stored with no descriptor selector). The
+      // `DelegatedArchivingRequest` discriminated union guarantees
+      // `archivingReason` is present on that branch, but this call site
+      // can't express that in the function's return type, so the scope is
+      // still asserted at runtime here.
+      if (lastRequest.scope !== archivingScope.eservice) {
         throw genericInternalError(
-          `Missing archivingReason on e-service-scoped delegated archiving request for EService ${eserviceId}`
+          `Expected an EService-scoped delegated archiving request for EService ${eserviceId}, found scope "${lastRequest.scope}"`
         );
       }
 
@@ -3577,7 +3581,7 @@ export function catalogServiceBuilder(
         updatedEService,
         {
           gracePeriodDays: lastRequest.gracePeriodDays,
-          archivingReason,
+          archivingReason: lastRequest.archivingReason,
         },
         fileManager,
         logger
