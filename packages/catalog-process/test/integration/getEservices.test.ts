@@ -34,11 +34,11 @@ import {
   addOneEService,
   addOneTenant,
   addOneAgreement,
-  catalogService,
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
 import { getContextsAllowedToSeeInactiveDescriptors } from "../mockUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("get eservices", () => {
   const organizationId1: TenantId = generateId();

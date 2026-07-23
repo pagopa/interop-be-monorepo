@@ -30,11 +30,11 @@ import {
 import {
   addOneEService,
   addOneEServiceTemplate,
-  catalogService,
-  postgresDB,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import { buildDescriptorSeedForEserviceCreation } from "../mockUtils.js";
+import { catalogService, postgresDB } from "../setup/setup.js";
+
 describe("create eservice", () => {
   const mockEService = getMockEService();
   const mockDescriptor = getMockDescriptor();

@@ -20,12 +20,9 @@ import {
 import { expect, describe, it } from "vitest";
 
 import { eServiceNotFound } from "../../src/model/domain/errors.js";
-import {
-  addOneDelegation,
-  addOneEService,
-  catalogService,
-} from "../integrationUtils.js";
+import { addOneDelegation, addOneEService } from "../integrationUtils.js";
 import { getContextsAllowedToSeeInactiveDescriptors } from "../mockUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("get eservice by id", () => {
   const mockDescriptor = getMockDescriptor();

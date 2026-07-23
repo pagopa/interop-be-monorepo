@@ -24,5 +24,6 @@ export default defineConfig({
     globalSetup: ["./globalTestSetup.mts"],
     projects: ["packages/*"],
     env: loadEnvFile(".env.test"),
+    reporters: ["verbose"],
   },
 });

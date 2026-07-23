@@ -28,9 +28,9 @@ import {
 import {
   addOneDelegation,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("update E-service signalhub flag for an already created E-service", async () => {
   it("should write on event-store for the update of the E-service signalhub flag (false->true)", async () => {

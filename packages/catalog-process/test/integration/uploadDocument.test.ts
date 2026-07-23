@@ -42,7 +42,6 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
@@ -51,6 +50,7 @@ import {
   buildDocumentSeed,
   buildAsyncExchangeCallbackInterfaceSeed,
 } from "../mockUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("upload Document", () => {
   const mockDescriptor = getMockDescriptor();

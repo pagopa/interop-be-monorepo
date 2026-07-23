@@ -19,11 +19,8 @@ import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
 } from "../../src/model/domain/errors.js";
-import {
-  addOneEService,
-  catalogService,
-  readLastEserviceEvent,
-} from "../integrationUtils.js";
+import { addOneEService, readLastEserviceEvent } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("update descriptor", () => {
   const mockEService = getMockEService();

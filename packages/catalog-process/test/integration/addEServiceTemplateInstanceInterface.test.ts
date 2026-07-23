@@ -47,13 +47,12 @@ import {
   eServiceTemplateNotFound,
 } from "../../src/model/domain/errors.js";
 import {
-  catalogService,
   addOneEService,
   addOneEServiceTemplate,
-  fileManager,
   addOneDelegation,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { fileManager, catalogService } from "../setup/setup.js";
 
 const readFileContent = async (fileName: string): Promise<string> => {
   const filename = fileURLToPath(import.meta.url);

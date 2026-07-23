@@ -17,11 +17,9 @@ import {
   eserviceInDraftState,
   eServiceNotFound,
 } from "../../src/model/domain/errors.js";
-import {
-  addOneEService,
-  postgresDB,
-  catalogService,
-} from "../integrationUtils.js";
+import { addOneEService } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
+import { postgresDB } from "../setup/setup.js";
 
 describe("maintenanceResetEServicePersonalDataFlag", async () => {
   const mockMaintenanceMessage = "Reset personalData flag for maintenance";

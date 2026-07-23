@@ -34,12 +34,11 @@ import {
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
-  fileManager,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
+import { catalogService, fileManager } from "../setup/setup.js";
 
 describe("delete Document", () => {
   const mockDescriptor = getMockDescriptor();

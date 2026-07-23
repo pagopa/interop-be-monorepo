@@ -66,6 +66,7 @@
     "test:integration": "turbo test:integration",
     "test:api": "turbo test:api",
     "test:new": "vitest run",
+    "test:new:watch": "vitest run --watch",
     "build": "turbo build",
     "check": "turbo check",
     "lint": "turbo lint -- --cache --cache-strategy content --cache-location .eslintcache",

@@ -62,7 +62,7 @@ export const postgreSQLContainer = (
     })
     .withCopyFilesToContainer([
       {
-        source: "../../docker/event-store-init.sql",
+        source: "../../docker/event-store-db/event-store-init.sql",
         target: "/docker-entrypoint-initdb.d/01-init.sql",
       },
     ])

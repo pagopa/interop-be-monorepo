@@ -21,7 +21,7 @@ import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("API GET /eservices/{eserviceId}/descriptors/{descriptorId}/documents test", () => {
   const mockDocument1 = getMockDocument();

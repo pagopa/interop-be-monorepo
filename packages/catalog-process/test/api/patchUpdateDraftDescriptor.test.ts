@@ -30,7 +30,7 @@ import {
   notValidDescriptorState,
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("PATCH /eservices/{eServiceId}/descriptors/{descriptorId} router test", () => {
   const descriptor: Descriptor = {
