@@ -1,6 +1,7 @@
-import { tenantInReadmodelTenant } from "pagopa-interop-readmodel-models";
 import { createSelectSchema } from "drizzle-zod";
+import { tenantInReadmodelTenant } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
+
 import { TenantCertifiedAttributeSchema } from "./tenantCertifiedAttribute.js";
 import { TenantDeclaredAttributeSchema } from "./tenantDeclaredAttribute.js";
 import { TenantFeatureSchema } from "./tenantFeature.js";

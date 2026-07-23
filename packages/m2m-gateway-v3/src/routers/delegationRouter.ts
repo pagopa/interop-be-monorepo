@@ -9,6 +9,7 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
 import { DelegationService } from "../services/delegationService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";

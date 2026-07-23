@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAttribute,
@@ -23,8 +24,10 @@ import {
   EServiceTemplateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
+import { upsertEService } from "pagopa-interop-readmodel/testUtils";
 import { expect, describe, it, beforeEach } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   attributeNotFound,
   eServiceDescriptorNotFound,
@@ -47,8 +50,6 @@ import {
   readLastEserviceEvent,
   readModelDB,
 } from "../integrationUtils.js";
-import { upsertEService } from "pagopa-interop-readmodel/testUtils";
-import { config } from "../../src/config/config.js";
 
 describe("update descriptor", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);

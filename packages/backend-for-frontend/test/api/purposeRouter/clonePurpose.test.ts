@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { PurposeId, generateId } from "pagopa-interop-models";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
-import { bffApi } from "pagopa-interop-api-clients";
-import { authRole } from "pagopa-interop-commons";
+import { PurposeId, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, clients } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiPurposeVersionResource } from "../../mockUtils.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /purposes/{purposeId}/clone test", () => {
   const mockPurpose = getMockPurpose([getMockPurposeVersion()]);

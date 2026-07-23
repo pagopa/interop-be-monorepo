@@ -1,8 +1,9 @@
-import { describe, vi, afterEach, it, expect } from "vitest";
-import { logger } from "pagopa-interop-commons";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
-import { TenantReadModelService } from "pagopa-interop-readmodel";
+import { logger } from "pagopa-interop-commons";
 import { generateId, UserId, TenantId } from "pagopa-interop-models";
+import { TenantReadModelService } from "pagopa-interop-readmodel";
+import { describe, vi, afterEach, it, expect } from "vitest";
+
 import { getUserFromSelfcare } from "../src/services/emailSenderProcessor.js";
 
 describe("getUserFromSelfcare", () => {

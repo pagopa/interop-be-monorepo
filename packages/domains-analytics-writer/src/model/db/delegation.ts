@@ -4,10 +4,11 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
+
 import { DelegationSchema } from "../delegation/delegation.js";
-import { DelegationStampSchema } from "../delegation/delegationStamp.js";
 import { DelegationContractDocumentSchema } from "../delegation/delegationContractDocument.js";
 import { DelegationSignedContractDocumentSchema } from "../delegation/delegationSignedContractDocument.js";
+import { DelegationStampSchema } from "../delegation/delegationStamp.js";
 
 export const DelegationDbTableConfig = {
   delegation: DelegationSchema,

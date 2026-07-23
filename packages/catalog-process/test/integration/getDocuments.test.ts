@@ -1,4 +1,5 @@
 /* eslint-disable functional/no-let */
+import { AuthData } from "pagopa-interop-commons";
 import {
   getMockEService,
   getMockDescriptorPublished,
@@ -20,16 +21,16 @@ import {
   userRole,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
-import { AuthData } from "pagopa-interop-commons";
+
+import {
+  eServiceDescriptorNotFound,
+  eServiceNotFound,
+} from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
 } from "../integrationUtils.js";
-import {
-  eServiceDescriptorNotFound,
-  eServiceNotFound,
-} from "../../src/model/domain/errors.js";
 
 const sortByUploadDate = (a: Document, b: Document): number =>
   a.uploadDate.getTime() - b.uploadDate.getTime();

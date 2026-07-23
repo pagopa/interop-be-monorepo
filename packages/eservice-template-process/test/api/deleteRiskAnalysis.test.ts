@@ -1,5 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEServiceTemplate,
+  getMockValidEServiceTemplateRiskAnalysis,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
   EServiceTemplateId,
@@ -8,21 +14,16 @@ import {
   operationForbidden,
   tenantKind,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEServiceTemplate,
-  getMockValidEServiceTemplateRiskAnalysis,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   eserviceTemplateNotFound,
   eserviceTemplateNotInDraftState,
   templateNotInReceiveMode,
   riskAnalysisNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API DELETE /templates/:templateId/riskAnalysis/:riskAnalysisId", () => {
   const riskAnalysis = getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA);

@@ -1,20 +1,6 @@
-import path from "path";
+import AdmZip from "adm-zip";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import fs from "fs";
-import { describe, expect, it, vi } from "vitest";
-import { AuthData } from "pagopa-interop-commons/";
-import {
-  createDummyStub,
-  getMockAuthData,
-  getMockContext,
-  getMockDocument,
-  getMockedPdfBuffer,
-} from "pagopa-interop-commons-test";
-import {
-  DescriptorId,
-  EServiceId,
-  generateId,
-  TenantId,
-} from "pagopa-interop-models";
 import {
   agreementApi,
   attributeRegistryApi,
@@ -24,17 +10,33 @@ import {
   inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
-import AdmZip from "adm-zip";
-import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import * as apiUtils from "pagopa-interop-commons";
+import {
+  createDummyStub,
+  getMockAuthData,
+  getMockContext,
+  getMockDocument,
+  getMockedPdfBuffer,
+} from "pagopa-interop-commons-test";
+import { AuthData } from "pagopa-interop-commons/";
+import {
+  DescriptorId,
+  EServiceId,
+  generateId,
+  TenantId,
+} from "pagopa-interop-models";
+import path from "path";
+import { describe, expect, it, vi } from "vitest";
+
 import type {
   AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
-import { catalogServiceBuilder } from "../src/services/catalogService.js";
+
 import { config } from "../src/config/config.js";
 import { invalidZipStructure } from "../src/model/errors.js";
+import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("importEService", () => {
@@ -129,7 +131,7 @@ describe("importEService", () => {
     description: "Descrizione del test EService",
     technology: "REST",
     openapi: "3.0.0",
-    servers: [],
+    servers: [{ url: "https://example.com" }],
     mode: "RECEIVE",
     descriptor: {
       description: "Descrizione del descriptor",

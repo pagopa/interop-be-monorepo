@@ -1,4 +1,14 @@
 import {
+  getMockPurposeVersion,
+  getMockPurpose,
+  getMockDelegation,
+  getMockAuthData,
+  getMockContext,
+  getMockEService,
+  sortPurpose,
+  getMockClient,
+} from "pagopa-interop-commons-test";
+import {
   Client,
   EService,
   Purpose,
@@ -15,16 +25,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  getMockPurposeVersion,
-  getMockPurpose,
-  getMockDelegation,
-  getMockAuthData,
-  getMockContext,
-  getMockEService,
-  sortPurpose,
-  getMockClient,
-} from "pagopa-interop-commons-test";
+
 import {
   addOneClient,
   addOneDelegation,

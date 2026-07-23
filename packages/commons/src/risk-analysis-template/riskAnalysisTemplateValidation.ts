@@ -1,5 +1,6 @@
 import { TenantKind } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import {
   ValidationRule,
   ValidationRuleDependency,

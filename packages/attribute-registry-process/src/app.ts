@@ -1,3 +1,8 @@
+import { attributeRegistryApi } from "pagopa-interop-api-clients";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -6,14 +11,10 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { attributeRegistryApi } from "pagopa-interop-api-clients";
-import attributeRouter from "./routers/AttributeRouter.js";
+
 import { config } from "./config/config.js";
+import attributeRouter from "./routers/AttributeRouter.js";
 import { AttributeRegistryService } from "./services/attributeRegistryService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
