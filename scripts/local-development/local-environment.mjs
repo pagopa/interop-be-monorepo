@@ -18,7 +18,17 @@ export const hasTenantContactEmail = (tenant, contactEmail) =>
       mail.kind === "CONTACT_EMAIL" && mail.address === contactEmail
   );
 
-export const selectIdentity = (dataset, state, tenantKey, role) => {
+const getUserMembership = (user, tenantSelfcareId) =>
+  user.memberships.find(
+    (membership) => membership.tenantSelfcareId === tenantSelfcareId
+  );
+
+export const selectIdentity = (
+  dataset,
+  state,
+  tenantKey,
+  userId
+) => {
   const tenantDefinition = dataset.tenants.find(
     (tenant) => tenant.key === tenantKey
   );
@@ -29,23 +39,22 @@ export const selectIdentity = (dataset, state, tenantKey, role) => {
 
   const user = dataset.users.find(
     (candidate) =>
-      candidate.tenantSelfcareId === tenantDefinition.selfcareId
+      getUserMembership(candidate, tenantDefinition.selfcareId) &&
+      (!userId || candidate.id === userId || candidate.key === userId)
   );
   if (!user) {
     throw new Error(`No local user configured for tenant ${tenantKey}`);
   }
-  if (!user.roles.includes(role)) {
-    throw new Error(`Role ${role} is not available for tenant ${tenantKey}`);
-  }
+  const membership = getUserMembership(user, tenantDefinition.selfcareId);
 
   return {
     tenant: { ...tenantDefinition, id: tenantState.id },
     user,
-    role,
+    roles: membership.roles,
   };
 };
 
-export const buildSessionClaims = ({ tenant, user, role }) => ({
+export const buildSessionClaims = ({ tenant, user, roles }) => ({
   email: user.email,
   externalId: tenant.externalId,
   family_name: user.surname,
@@ -55,12 +64,12 @@ export const buildSessionClaims = ({ tenant, user, role }) => ({
     id: tenant.selfcareId,
     ipaCode: tenant.externalId.value,
     name: tenant.name,
-    roles: [{ partyRole: "MANAGER", role }],
+    roles: roles.map((role) => ({ partyRole: "MANAGER", role })),
   },
   organizationId: tenant.id,
   selfcareId: tenant.selfcareId,
   uid: user.id,
-  "user-roles": role,
+  "user-roles": roles.join(","),
 });
 
 export const buildTokenPayload = ({ claims, kind, now, durationSeconds }) => {

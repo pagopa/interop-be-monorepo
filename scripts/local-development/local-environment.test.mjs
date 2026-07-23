@@ -21,15 +21,32 @@ const dataset = {
       contactEmail: "interop@comune.demo",
       userId: "10000000-0000-4000-8000-000000000001",
     },
+    {
+      key: "provider",
+      externalId: { origin: "IPA", value: "LOCAL-PROVIDER" },
+      selfcareId: "00000000-0000-4000-8000-000000000002",
+      name: "Provider Demo",
+      institutionType: "PA",
+      contactEmail: "interop@provider.demo",
+    },
   ],
   users: [
     {
       id: "10000000-0000-4000-8000-000000000001",
-      tenantSelfcareId: "00000000-0000-4000-8000-000000000001",
+      key: "reviewer",
+      memberships: [
+        {
+          tenantSelfcareId: "00000000-0000-4000-8000-000000000001",
+          roles: ["security", "reviewer"],
+        },
+        {
+          tenantSelfcareId: "00000000-0000-4000-8000-000000000002",
+          roles: ["admin", "viewer"],
+        },
+      ],
       name: "Ada",
       surname: "Lovelace",
       email: "ada@example.test",
-      roles: ["admin", "api", "security", "reviewer", "viewer"],
     },
   ],
 };
@@ -37,6 +54,7 @@ const dataset = {
 const state = {
   tenants: {
     comune: { id: "20000000-0000-4000-8000-000000000001" },
+    provider: { id: "20000000-0000-4000-8000-000000000002" },
   },
 };
 
@@ -82,23 +100,35 @@ test("detects whether the tenant contact email is already seeded", () => {
   );
 });
 
-test("selects a tenant and role from the dataset", () => {
+test("selects a tenant and its membership roles from the dataset", () => {
   const identity = selectIdentity(dataset, state, "comune", "reviewer");
 
   assert.equal(identity.tenant.id, "20000000-0000-4000-8000-000000000001");
   assert.equal(identity.user.id, "10000000-0000-4000-8000-000000000001");
-  assert.equal(identity.role, "reviewer");
+  assert.deepEqual(identity.roles, ["security", "reviewer"]);
 });
 
-test("rejects roles not assigned to the selected local user", () => {
+test("selects the same local user across multiple tenants", () => {
+  const identity = selectIdentity(
+    dataset,
+    state,
+    "provider",
+    "10000000-0000-4000-8000-000000000001"
+  );
+
+  assert.equal(identity.tenant.id, "20000000-0000-4000-8000-000000000002");
+  assert.equal(identity.user.id, "10000000-0000-4000-8000-000000000001");
+});
+
+test("rejects users not assigned to the selected tenant", () => {
   assert.throws(
-    () => selectIdentity(dataset, state, "comune", "support"),
-    /Role support is not available for tenant comune/
+    () => selectIdentity(dataset, state, "provider", "missing-user"),
+    /No local user configured for tenant provider/
   );
 });
 
 test("builds UI session claims with Selfcare and Interop tenant IDs", () => {
-  const identity = selectIdentity(dataset, state, "comune", "admin");
+  const identity = selectIdentity(dataset, state, "comune", "reviewer");
 
   assert.deepEqual(buildSessionClaims(identity), {
     email: "ada@example.test",
@@ -110,12 +140,15 @@ test("builds UI session claims with Selfcare and Interop tenant IDs", () => {
       id: "00000000-0000-4000-8000-000000000001",
       ipaCode: "LOCAL-COMUNE",
       name: "Comune Demo",
-      roles: [{ partyRole: "MANAGER", role: "admin" }],
+      roles: [
+        { partyRole: "MANAGER", role: "security" },
+        { partyRole: "MANAGER", role: "reviewer" },
+      ],
     },
     organizationId: "20000000-0000-4000-8000-000000000001",
     selfcareId: "00000000-0000-4000-8000-000000000001",
     uid: "10000000-0000-4000-8000-000000000001",
-    "user-roles": "admin",
+    "user-roles": "security,reviewer",
   });
 });
 

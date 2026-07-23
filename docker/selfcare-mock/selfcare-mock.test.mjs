@@ -16,15 +16,30 @@ const dataset = {
       name: "Comune Demo",
       institutionType: "PA",
     },
+    {
+      key: "provider",
+      externalId: { origin: "IPA", value: "LOCAL-PROVIDER" },
+      selfcareId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      name: "Provider Demo",
+      institutionType: "PA",
+    },
   ],
   users: [
     {
       id: "22222222-2222-4222-8222-222222222222",
-      tenantSelfcareId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      memberships: [
+        {
+          tenantSelfcareId: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+          roles: ["security"],
+        },
+        {
+          tenantSelfcareId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+          roles: ["api", "viewer"],
+        },
+      ],
       name: "Ada",
       surname: "Lovelace",
       email: "ada@example.test",
-      roles: ["admin", "api", "security", "reviewer", "viewer"],
     },
   ],
 };
@@ -88,7 +103,7 @@ test("returns products for an institution", async () => {
 
 test("returns institution users with roles", async () => {
   const response = await fetch(
-    `${baseUrl}/institutions/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/users?userId=22222222-2222-4222-8222-222222222222&productRoles=admin`
+    `${baseUrl}/institutions/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/users?userId=22222222-2222-4222-8222-222222222222&productRoles=security`
   );
 
   assert.equal(response.status, 200);
@@ -99,12 +114,12 @@ test("returns institution users with roles", async () => {
       surname: "Lovelace",
       email: "ada@example.test",
       role: "MANAGER",
-      roles: ["admin", "api", "security", "reviewer", "viewer"],
+      roles: ["security"],
     },
   ]);
 });
 
-test("returns institutions associated with a user", async () => {
+test("returns all institutions associated with a user", async () => {
   const response = await fetch(
     `${baseUrl}/users?userId=22222222-2222-4222-8222-222222222222&states=ACTIVE&products=prod-interop`
   );
@@ -117,8 +132,29 @@ test("returns institutions associated with a user", async () => {
       products: [
         {
           productId: "prod-interop",
-          productRole: "admin",
-          productRoleLabel: "admin",
+          productRole: "security",
+          productRoleLabel: "security",
+          role: "MANAGER",
+          status: "ACTIVE",
+        },
+      ],
+      userId: "22222222-2222-4222-8222-222222222222",
+    },
+    {
+      institutionDescription: "Provider Demo",
+      institutionId: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      products: [
+        {
+          productId: "prod-interop",
+          productRole: "api",
+          productRoleLabel: "api",
+          role: "MANAGER",
+          status: "ACTIVE",
+        },
+        {
+          productId: "prod-interop",
+          productRole: "viewer",
+          productRoleLabel: "viewer",
           role: "MANAGER",
           status: "ACTIVE",
         },

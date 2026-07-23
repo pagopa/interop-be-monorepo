@@ -7,13 +7,13 @@ const sendJson = (response, statusCode, payload) => {
   response.end(JSON.stringify(payload));
 };
 
-const toUserResource = (user) => ({
+const toUserResource = (user, membership) => ({
   id: user.id,
   name: user.name,
   surname: user.surname,
   email: user.email,
   role: "MANAGER",
-  roles: user.roles,
+  roles: membership.roles,
 });
 
 const toProductResource = (product) => ({
@@ -26,28 +26,23 @@ const toProductResource = (product) => ({
   urlBO: "",
 });
 
-const toUserInstitutionResource = (dataset, user) => {
-  const tenant = dataset.tenants.find(
-    (candidate) => candidate.selfcareId === user.tenantSelfcareId
+const getUserMembership = (user, tenantSelfcareId) =>
+  user.memberships.find(
+    (membership) => membership.tenantSelfcareId === tenantSelfcareId
   );
 
-  if (!tenant) {
-    return undefined;
-  }
-
-  const productRole = user.roles.at(0) ?? "admin";
+const toUserInstitutionResource = (dataset, user, tenant) => {
+  const membership = getUserMembership(user, tenant.selfcareId);
   return {
     institutionDescription: tenant.name,
     institutionId: tenant.selfcareId,
-    products: [
-      {
-        productId: dataset.product.id,
-        productRole,
-        productRoleLabel: productRole,
-        role: "MANAGER",
-        status: "ACTIVE",
-      },
-    ],
+    products: (membership?.roles ?? []).map((productRole) => ({
+      productId: dataset.product.id,
+      productRole,
+      productRoleLabel: productRole,
+      role: "MANAGER",
+      status: "ACTIVE",
+    })),
     userId: user.id,
   };
 };
@@ -94,7 +89,7 @@ export const createSelfcareMockServer = (dataset) =>
       );
       const hasUser = dataset.users.some(
         (user) =>
-          user.tenantSelfcareId === productsMatch[1] &&
+          getUserMembership(user, productsMatch[1]) &&
           (!searchParams.get("userId") ||
             user.id === searchParams.get("userId"))
       );
@@ -119,16 +114,18 @@ export const createSelfcareMockServer = (dataset) =>
       const requestedRoles = (searchParams.get("productRoles") ?? "")
         .split(",")
         .filter(Boolean);
-      const users = dataset.users.filter(
-        (user) =>
-          user.tenantSelfcareId === institutionUsersMatch[1] &&
+      const users = dataset.users.flatMap((user) => {
+        const membership = getUserMembership(user, institutionUsersMatch[1]);
+        const matches =
+          membership &&
           (!searchParams.get("userId") ||
             user.id === searchParams.get("userId")) &&
           (requestedRoles.length === 0 ||
-            requestedRoles.some((role) => user.roles.includes(role)))
-      );
+            requestedRoles.some((role) => membership.roles.includes(role)));
+        return matches ? [toUserResource(user, membership)] : [];
+      });
 
-      return sendJson(response, 200, users.map(toUserResource));
+      return sendJson(response, 200, users);
     }
 
     if (request.method === "GET" && pathname === "/users") {
@@ -140,8 +137,11 @@ export const createSelfcareMockServer = (dataset) =>
         response,
         200,
         users
-          .map((user) => toUserInstitutionResource(dataset, user))
-          .filter(Boolean)
+          .flatMap((user) =>
+            dataset.tenants
+              .filter((tenant) => getUserMembership(user, tenant.selfcareId))
+              .map((tenant) => toUserInstitutionResource(dataset, user, tenant))
+          )
       );
     }
 
