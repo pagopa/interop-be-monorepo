@@ -207,6 +207,7 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
         ),
       }
     : undefined,
+  serverUrlsDescriptions: input.serverUrlsDescriptions ?? [],
   asyncExchangeCallbackInterface: input.asyncExchangeCallbackInterface
     ? toDocumentV2(input.asyncExchangeCallbackInterface)
     : undefined,

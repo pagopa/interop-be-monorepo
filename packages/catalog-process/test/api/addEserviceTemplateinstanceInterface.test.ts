@@ -35,6 +35,7 @@ import {
   eServiceNotAnInstance,
   eServiceNotFound,
   eserviceTemplateInterfaceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   interfaceAlreadyExists,
@@ -53,11 +54,17 @@ describe("addEServiceTemplateInstanceInterface", () => {
     contactUrl: "https://contact.url",
     contactEmail: "john.doe@example.com",
     termsAndConditionsUrl: "https://terms.url",
-    serverUrls: ["https://server1.com", "https://server2.com"],
+    serverUrls: [
+      { url: "https://server1.com", description: "Primary REST server" },
+      { url: "https://server2.com" },
+    ],
   };
 
   const soapBody: catalogApi.TemplateInstanceInterfaceSOAPSeed = {
-    serverUrls: ["https://soap.server1.com", "https://soap.server2.com"],
+    serverUrls: [
+      { url: "https://soap.server1.com", description: "Primary SOAP server" },
+      { url: "https://soap.server2.com" },
+    ],
   };
 
   const makeRequest = async (
@@ -116,6 +123,15 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
           expect(res.body).toEqual(eServiceToApiEService(eservice));
           expect(res.status).toBe(200);
+          expect(
+            catalogService.addEServiceTemplateInstanceInterface
+          ).toHaveBeenCalledWith(
+            eservice.id,
+            descriptor.id,
+            technology,
+            technology === "Rest" ? restBody : soapBody,
+            expect.anything()
+          );
         }
       );
 
@@ -148,6 +164,14 @@ describe("addEServiceTemplateInstanceInterface", () => {
           expectedStatus: 409,
         },
         { error: interfaceAlreadyExists(descriptor.id), expectedStatus: 409 },
+        {
+          error: eserviceTemplateInterfaceTechnologyMismatch(
+            eservice.templateId!,
+            technology,
+            technology === "Rest" ? "Soap" : "Rest"
+          ),
+          expectedStatus: 409,
+        },
         { error: eServiceNotFound(eservice.id), expectedStatus: 404 },
         {
           error: eServiceDescriptorNotFound(eservice.id, descriptor.id),

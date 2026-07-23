@@ -68,6 +68,7 @@ import {
   archivingScope,
   ArchivingScope,
   AsyncExchangeProperties,
+  Technology,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { config } from "../config/config.js";
@@ -93,6 +94,7 @@ import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceTemplateInterfaceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   inconsistentAttributesSeedGroupsCount,
@@ -656,7 +658,6 @@ async function innerCreateEService(
     description: seed.description,
     technology: apiTechnologyToTechnology(seed.technology),
     mode: apiEServiceModeToEServiceMode(seed.mode),
-    attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: template?.riskAnalysis ?? [],
@@ -708,6 +709,7 @@ async function innerCreateEService(
         seed.descriptor.agreementApprovalPolicy
       ),
     serverUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -825,6 +827,9 @@ async function innerAddDocumentToEserviceEvent(
     interface: isInterface ? createdDocument : descriptor.interface,
     docs: isDocument ? [...descriptor.docs, createdDocument] : descriptor.docs,
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
+    serverUrlsDescriptions: isInterface
+      ? (documentSeed.serverUrlsDescriptions ?? [])
+      : descriptor.serverUrlsDescriptions,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
     asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
       ? createdDocument
@@ -900,6 +905,7 @@ function createNextDescriptor(
     dailyCallsTotal: seed.dailyCallsTotal,
     agreementApprovalPolicy: seed.agreementApprovalPolicy,
     serverUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -1374,6 +1380,9 @@ export function catalogServiceBuilder(
                 interface:
                   d.interface?.id === documentId ? undefined : d.interface,
                 serverUrls: isInterface ? [] : d.serverUrls,
+                serverUrlsDescriptions: isInterface
+                  ? []
+                  : d.serverUrlsDescriptions,
                 docs: d.docs.filter((doc) => doc.id !== documentId),
                 asyncExchangeCallbackInterface:
                   d.asyncExchangeCallbackInterface?.id === documentId
@@ -2255,7 +2264,6 @@ export function catalogServiceBuilder(
         name: clonedEServiceName,
         description: eservice.data.description,
         technology: eservice.data.technology,
-        attributes: eservice.data.attributes,
         createdAt: new Date(),
         riskAnalysis: eservice.data.riskAnalysis,
         mode: eservice.data.mode,
@@ -4140,6 +4148,7 @@ export function catalogServiceBuilder(
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
+      interfaceTechnology: Technology,
       eserviceInstanceInterfaceData:
         | catalogApi.TemplateInstanceInterfaceRESTSeed
         | catalogApi.TemplateInstanceInterfaceSOAPSeed,
@@ -4174,6 +4183,18 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      if (eserviceTemplate.technology !== interfaceTechnology) {
+        throw eserviceTemplateInterfaceTechnologyMismatch(
+          eserviceTemplate.id,
+          eserviceTemplate.technology,
+          interfaceTechnology
+        );
+      }
+
+      const contactDataRestApi = match(eserviceInstanceInterfaceData)
+        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
+        .otherwise(() => undefined);
+
       const eserviceTemplateVersion = eserviceTemplate.versions.find(
         (v) => v.id === eserviceTemplateVersionId
       );
@@ -4184,10 +4205,6 @@ export function catalogServiceBuilder(
           eserviceTemplateVersionId
         );
       }
-
-      const contactDataRestApi = match(eserviceInstanceInterfaceData)
-        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
-        .otherwise(() => undefined);
 
       const { eService: updatedEService, event: addDocumentEvent } =
         await createOpenApiInterfaceByTemplate(
@@ -4685,7 +4702,7 @@ async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  serverUrls: string[],
+  serverUrls: Array<{ url: string; description?: string }>,
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;
@@ -4734,7 +4751,7 @@ async function createOpenApiInterfaceByTemplate(
       filePath,
       prettyName,
       kind,
-      serverUrls,
+      extractedServerUrls,
       contentType,
       checksum
     ) =>
@@ -4749,7 +4766,10 @@ async function createOpenApiInterfaceByTemplate(
           fileName,
           contentType,
           checksum,
-          serverUrls,
+          serverUrls: extractedServerUrls,
+          serverUrlsDescriptions: extractedServerUrls.map(
+            (_, index) => serverUrls[index]?.description ?? ""
+          ),
           interfaceTemplateMetadata: eserviceInstanceInterfaceRestData,
         },
         ctx
@@ -5337,6 +5357,7 @@ async function updateDraftEService(
           interface: undefined,
           asyncExchangeCallbackInterface: undefined,
           serverUrls: [],
+          serverUrlsDescriptions: [],
         }))
       : eservice.data.descriptors,
     isSignalHubEnabled: updatedIsSignalHubEnabled,

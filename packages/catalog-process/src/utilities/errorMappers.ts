@@ -694,6 +694,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       "eServiceTemplateWithoutPublishedVersion",
       "invalidEserviceInterfaceFileDetected",
       "interfaceAlreadyExists",
+      "eserviceTemplateInterfaceTechnologyMismatch",
       () => HTTP_STATUS_CONFLICT
     )
     .with(

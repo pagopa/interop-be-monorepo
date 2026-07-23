@@ -17,6 +17,7 @@ import {
   TenantId,
   unsafeBrandId,
   emptyErrorMapper,
+  technology,
 } from "pagopa-interop-models";
 import {
   agreementStateToApiAgreementState,
@@ -1594,6 +1595,7 @@ const eservicesRouter = (
             await catalogService.addEServiceTemplateInstanceInterface(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
+              technology.soap,
               req.body,
               ctx
             );
@@ -1621,6 +1623,7 @@ const eservicesRouter = (
             await catalogService.addEServiceTemplateInstanceInterface(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
+              technology.rest,
               req.body,
               ctx
             );
