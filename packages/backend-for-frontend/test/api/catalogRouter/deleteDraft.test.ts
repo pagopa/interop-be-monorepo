@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
 import { authRole } from "pagopa-interop-commons";
 import {
   generateToken,
@@ -72,10 +73,34 @@ describe("API DELETE /eservices/:eServiceId/descriptors/:descriptorId", () => {
     expect(clients.catalogProcessClient.deleteDraft).not.toHaveBeenCalled();
   });
 
-  it("Should call the descriptor deletion if the last descriptor is not a draft", async () => {
+  it("Should call the descriptor deletion and propagate the process error if the last descriptor is not a draft", async () => {
     clients.catalogProcessClient.getEServiceById = vi
       .fn()
       .mockResolvedValue({ ...eservice, descriptors: [descriptor2] });
+
+    const upstreamError = new AxiosError(
+      "upstream error",
+      "400",
+      undefined,
+      undefined,
+      {
+        status: 400,
+        data: {
+          type: "about:blank",
+          title: "Not valid descriptor state",
+          status: 400,
+          detail: "upstream error detail",
+          correlationId: "test-correlation-id",
+          errors: [{ code: "005-0004", detail: "upstream error detail" }],
+        },
+        statusText: "",
+        config: {} as InternalAxiosRequestConfig,
+        headers: {},
+      }
+    );
+    clients.catalogProcessClient.deleteDraft = vi
+      .fn()
+      .mockRejectedValue(upstreamError);
 
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(
@@ -83,7 +108,7 @@ describe("API DELETE /eservices/:eServiceId/descriptors/:descriptorId", () => {
       eservice.id as EServiceId,
       descriptor2.id as DescriptorId
     );
-    expect(res.status).toBe(204);
+    expect(res.status).toBe(400);
     expect(clients.catalogProcessClient.deleteDraft).toHaveBeenCalled();
     expect(clients.catalogProcessClient.deleteEService).not.toHaveBeenCalled();
   });
