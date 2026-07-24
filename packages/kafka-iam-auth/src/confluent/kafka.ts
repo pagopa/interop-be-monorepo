@@ -1,12 +1,11 @@
 import type { CommonConstructorConfig } from "@confluentinc/kafka-javascript/types/kafkajs.js";
+
 import { KafkaJS } from "@confluentinc/kafka-javascript";
 import {
   generateAuthTokenFromRole,
   type GenerateAuthTokenResponse,
 } from "aws-msk-iam-sasl-signer-js";
-
-import type { KafkaConfig } from "./config/config.js";
-import { Logger } from "pagopa-interop-commons";
+import { KafkaConfig, Logger } from "pagopa-interop-commons";
 
 type MskAuth = NonNullable<KafkaConfig["mskAuth"]>;
 
@@ -46,7 +45,7 @@ export async function initKafka(
   }
 
   return new KafkaJS.Kafka({
-    "bootstrap.servers": config.kafkaBrokers,
+    "bootstrap.servers": config.kafkaBrokers.join(","),
     "client.id": config.kafkaClientId,
     log_level: config.kafkaLogLevel,
     ...saslConfigs,

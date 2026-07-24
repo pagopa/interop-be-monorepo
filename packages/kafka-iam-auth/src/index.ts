@@ -24,6 +24,12 @@ import {
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
+import {
+  initProducerConfluent,
+  runBatchConsumerConfluent,
+  runConsumerConfluent,
+} from "./confluentAdapters.js";
+
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
 
@@ -310,12 +316,20 @@ const initCustomConsumer = async ({
 export const initProducer = async (
   config: KafkaProducerConfig,
   topic: string,
+  featureFlagConfluentKafka: boolean,
   transactionalId?: string
-): Promise<
-  Producer & {
-    send: (record: Omit<ProducerRecord, "topic">) => Promise<RecordMetadata[]>;
-  }
-> => {
+): Promise<{
+  send: (record: Omit<ProducerRecord, "topic">) => Promise<RecordMetadata[]>;
+  disconnect: () => Promise<void>;
+  transaction: () => Promise<{
+    send(record: ProducerRecord): Promise<RecordMetadata[]>;
+    commit(): Promise<void>;
+    abort(): Promise<void>;
+    isActive(): boolean;
+  }>;
+}> => {
+  if (featureFlagConfluentKafka) return initProducerConfluent(config, topic);
+
   try {
     const kafka = initKafka({
       kafkaBrokers: config.producerKafkaBrokers,
@@ -326,6 +340,8 @@ export const initProducer = async (
         config.producerKafkaReauthenticationThreshold,
       awsRegion: config.awsRegion,
       kafkaBrokerConnectionString: config.producerKafkaBrokerConnectionString,
+      mskAuth: config.mskAuth,
+      featureFlagConfluentKafka: config.featureFlagConfluentKafka,
     });
 
     const producer = kafka.producer({
@@ -375,8 +391,12 @@ export const runConsumer = async (
   config: KafkaConsumerConfig,
   topics: string[],
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>,
+  featureFlagConfluentKafka: boolean,
   serviceName?: string
 ): Promise<void> => {
+  if (featureFlagConfluentKafka)
+    return runConsumerConfluent(config, topics, consumerHandler, serviceName);
+
   try {
     const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
       autoCommit: false,
@@ -412,8 +432,18 @@ export const runBatchConsumer = async (
   batchConsumerConfig: KafkaBatchConsumerConfig,
   topics: string[],
   consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>,
+  featureFlagConfluentKafka: boolean,
   serviceName?: string
 ): Promise<void> => {
+  if (featureFlagConfluentKafka)
+    return runBatchConsumerConfluent(
+      baseConsumerConfig,
+      batchConsumerConfig,
+      topics,
+      consumerHandlerBatch,
+      serviceName
+    );
+
   try {
     const consumerRunConfig = (): ConsumerRunConfig => ({
       eachBatch: async (payload: EachBatchPayload): Promise<void> => {

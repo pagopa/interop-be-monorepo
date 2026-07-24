@@ -3,19 +3,19 @@ import type {
   EachBatchPayload,
   EachMessagePayload,
 } from "@confluentinc/kafka-javascript/types/kafkajs.js";
-import type { KafkaConsumerConfig } from "./config/config.js";
+
+import {
+  KafkaBatchConsumerConfig,
+  KafkaConsumerConfig,
+  Logger,
+} from "pagopa-interop-commons";
+import { kafkaMessageProcessError } from "pagopa-interop-models";
+
+import { extractBasicMessageInfo } from "../index.js";
 import { checkTopicsExist } from "./admin.js";
 import { initKafka } from "./kafka.js";
 import { errorEventsListener } from "./listeners.js";
-import {
-  extractBasicMessageInfo,
-  processExitAndDisconnect,
-} from "./utils/utils.js";
-import { KafkaBatchConsumerConfig, Logger } from "pagopa-interop-commons";
-import {
-  genericInternalError,
-  kafkaMessageProcessError,
-} from "pagopa-interop-models";
+import { processExitAndDisconnect } from "./utils/utils.js";
 
 /**
  * Starts a Kafka consumer and processes messages from the provided topics.
@@ -34,14 +34,23 @@ import {
  * @param onReady - Optional callback invoked once the consumer is connected
  * and subscribed. Receives a `disconnect` function to gracefully stop the consumer.
  */
-export async function runConsumer(
-  topics: string[],
-  consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>,
-  config: KafkaConsumerConfig,
-  logger: Logger,
-  onShutdown?: () => Promise<void>,
-  onReady?: (disconnect: () => Promise<void>) => void
-) {
+export async function runConsumer({
+  topics,
+  consumerHandler,
+  config,
+  logger,
+  serviceName,
+  onShutdown,
+  onReady,
+}: {
+  topics: string[];
+  consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>;
+  config: KafkaConsumerConfig;
+  logger: Logger;
+  serviceName?: string;
+  onShutdown?: () => Promise<void>;
+  onReady?: (disconnect: () => Promise<void>) => void;
+}) {
   try {
     const consumer = await createConsumer({
       topics,
@@ -61,7 +70,10 @@ export async function runConsumer(
           throw kafkaMessageProcessError(
             payload.topic,
             payload.partition,
-            messageInfo,
+            {
+              ...messageInfo,
+              serviceName,
+            },
             e
           );
         }
@@ -96,6 +108,7 @@ export async function runBatchConsumer({
   config,
   batchConfig,
   logger,
+  serviceName,
   onShutdown,
   onReady,
 }: {
@@ -104,6 +117,7 @@ export async function runBatchConsumer({
   config: KafkaConsumerConfig;
   batchConfig: KafkaBatchConsumerConfig;
   logger: Logger;
+  serviceName?: string;
   onShutdown?: () => Promise<void>;
   onReady?: (disconnect: () => Promise<void>) => void;
 }) {
@@ -122,17 +136,15 @@ export async function runBatchConsumer({
         try {
           await consumerHandler(payload);
         } catch (e) {
-          const kafkaMessageProcessErr = genericInternalError(
-            `Error handling Kafka batch. Topic: ${payload.batch.topic}. Partition: ${payload.batch.partition}. Last offset: ${payload.batch.lastOffset()}. Cause: ${
-              e instanceof Error ? e.message : String(e)
-            }`
+          throw kafkaMessageProcessError(
+            payload.batch.topic,
+            payload.batch.partition,
+            {
+              offset: payload.batch.lastOffset().toString(),
+              serviceName,
+            },
+            e
           );
-
-          logger.error(
-            `Detail: ${kafkaMessageProcessErr.detail}. Error: ${JSON.stringify(e)}`
-          );
-
-          throw kafkaMessageProcessErr;
         }
       },
     });

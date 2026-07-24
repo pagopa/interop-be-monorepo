@@ -2,8 +2,10 @@ import type {
   Consumer,
   Producer,
 } from "@confluentinc/kafka-javascript/types/kafkajs.js";
-import { processExitAndDisconnect } from "./utils/utils.js";
+
 import { Logger } from "pagopa-interop-commons";
+
+import { processExitAndDisconnect } from "./utils/utils.js";
 
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];

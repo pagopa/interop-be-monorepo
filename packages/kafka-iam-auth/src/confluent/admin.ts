@@ -1,4 +1,5 @@
 import type { Kafka } from "@confluentinc/kafka-javascript/types/kafkajs.js";
+
 import { Logger } from "pagopa-interop-commons";
 
 // fetchTopicMetadata({ topics }) times out with OAUTHBEARER/SASL_SSL when
@@ -17,7 +18,7 @@ export async function checkTopicsExist(
 
   try {
     await admin.fetchTopicMetadata({
-      topics: [...topicNames],
+      topics: topicNames,
     });
     logger.debug("Topic metadata fetched successfully");
     return true;
