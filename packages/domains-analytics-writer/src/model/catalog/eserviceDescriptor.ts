@@ -26,7 +26,8 @@ export const EserviceDescriptorSchema = createSelectSchema(
       .pipe(z.string()),
     serverUrlsDescriptions: z
       .array(z.string())
-      .transform((val) => JSON.stringify(val))
+      .nullable()
+      .transform((val) => JSON.stringify(val ?? []))
       .pipe(z.string()),
   });
 export type EserviceDescriptorSchema = z.infer<typeof EserviceDescriptorSchema>;
