@@ -494,6 +494,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
       "badRequestError",
       "invalidPdfSignatureError",
       "invalidFileUploadError",
+      "invalidContentTypeDetected",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("contentTooLargeError", () => HTTP_STATUS_PAYLOAD_TOO_LARGE)

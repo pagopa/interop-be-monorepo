@@ -48,7 +48,7 @@ CREATE TABLE domains.eservice_descriptor (
   agreement_approval_policy VARCHAR(2048),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   server_urls VARCHAR(65535) NOT NULL,
-  server_urls_descriptions VARCHAR(65535) NOT NULL,
+  server_urls_descriptions VARCHAR(65535),
   published_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
@@ -824,6 +824,7 @@ CREATE TABLE IF NOT EXISTS domains.eservice_descriptor_archiving_schedule (
   scope VARCHAR(2048) NOT NULL,
   archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
   started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  grace_period_days INTEGER,
   deleted BOOLEAN,
   PRIMARY KEY (eservice_id, descriptor_id)
 );

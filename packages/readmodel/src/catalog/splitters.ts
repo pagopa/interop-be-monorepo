@@ -425,6 +425,7 @@ export const archivingScheduleToArchivingScheduleSQL = (
   scope: archivingSchedule.scope,
   archivableOn: dateToString(archivingSchedule.archivableOn),
   startedAt: dateToString(archivingSchedule.startedAt),
+  gracePeriodDays: archivingSchedule.gracePeriodDays,
 });
 
 export const documentToDocumentSQL = (
@@ -462,7 +463,7 @@ export const descriptorToDescriptorSQL = (
   dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
   dailyCallsTotal: descriptor.dailyCallsTotal,
   serverUrls: descriptor.serverUrls,
-  serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
+  serverUrlsDescriptions: descriptor.serverUrlsDescriptions ?? null,
   agreementApprovalPolicy: descriptor.agreementApprovalPolicy || null,
   publishedAt: dateToString(descriptor.publishedAt),
   suspendedAt: dateToString(descriptor.suspendedAt),
