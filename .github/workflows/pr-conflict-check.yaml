@@ -1,0 +1,96 @@
+name: PR conflict check
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+  pull_request_target:
+    types: [synchronize, ready_for_review]
+
+concurrency:
+  group: conflict-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  conflict-check:
+    name: Check for merge conflicts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+
+            let prsToCheck = [];
+
+            if (context.eventName === 'pull_request_target') {
+              const pr = context.payload.pull_request;
+              if (!pr.draft) {
+                prsToCheck.push(pr);
+              }
+            } else {
+              const pushedBranch = context.ref.replace('refs/heads/', '');
+              let page = 1;
+              while (true) {
+                const { data } = await github.rest.pulls.list({
+                  owner,
+                  repo,
+                  state: 'open',
+                  base: pushedBranch,
+                  per_page: 100,
+                  page,
+                });
+                prsToCheck.push(...data.filter(pr => !pr.draft));
+                if (data.length < 100) break;
+                page++;
+              }
+            }
+
+            for (const pr of prsToCheck) {
+              // Retry until GitHub computes mergeability (up to 30s)
+              let detail;
+              for (let attempt = 0; attempt < 6; attempt++) {
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                const { data } = await github.rest.pulls.get({
+                  owner,
+                  repo,
+                  pull_number: pr.number,
+                });
+                detail = data;
+                if (detail.mergeable_state !== 'unknown') break;
+              }
+
+              // Skip if GitHub still hasn't determined mergeability
+              if (detail.mergeable_state === 'unknown') continue;
+
+              const marker = '<!-- conflict-bot -->';
+              const { data: comments } = await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: pr.number,
+              });
+              const existing = comments.find(c => c.body.includes(marker));
+
+              if (detail.mergeable_state === 'dirty') {
+                if (!existing) {
+                  await github.rest.issues.createComment({
+                    owner,
+                    repo,
+                    issue_number: pr.number,
+                    body: `${marker}\n⚠️ @${pr.user.login} This PR now has merge conflicts with \`${detail.base.ref}\`. Please merge the target branch to resolve them.`,
+                  });
+                }
+              } else if (existing) {
+                await github.rest.issues.deleteComment({
+                  owner,
+                  repo,
+                  comment_id: existing.id,
+                });
+              }
+            }
