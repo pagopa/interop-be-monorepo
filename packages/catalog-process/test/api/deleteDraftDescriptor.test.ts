@@ -79,9 +79,6 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
     expect(res.status).toBe(403);
   });
 
-  // NOTE: path params are plain strings in the spec, so zodios does not reject
-  // invalid UUIDs and the "invalid params" tests below are answered by the last
-  // mock configured here — keep a 400-mapped error as the last case of this list
   it.each([
     {
       error: eServiceNotFound(eservice.id),
@@ -128,6 +125,12 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ eServiceId, descriptorId }) => {
+      catalogService.deleteDraftDescriptor = vi
+        .fn()
+        .mockRejectedValue(
+          notValidDescriptorState(descriptor.id, descriptor.state)
+        );
+
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
