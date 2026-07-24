@@ -32,7 +32,6 @@ import {
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {
-  cannotDeleteLastEServiceDescriptor,
   eserviceDescriptorAttributeNotFound,
   eserviceDescriptorAttributeGroupNotFound,
   eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound,
@@ -686,18 +685,6 @@ export function eserviceServiceBuilder(
       logger.info(
         `Deleting descriptor ${descriptorId} for eservice with id ${eserviceId}`
       );
-
-      const { data: eservice } = await retrieveEServiceById(
-        headers,
-        eserviceId
-      );
-
-      if (
-        eservice.descriptors.length === 1 &&
-        eservice.descriptors[0].id === descriptorId
-      ) {
-        throw cannotDeleteLastEServiceDescriptor(eserviceId, descriptorId);
-      }
 
       const { metadata } = await clients.catalogProcessClient.deleteDraft(
         undefined,

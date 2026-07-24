@@ -625,15 +625,13 @@ const eservicesRouter = (
         try {
           validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
 
-          const result = await catalogService.deleteDraftDescriptor(
+          const { metadata } = await catalogService.deleteDraftDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
             ctx
           );
 
-          if (result) {
-            setMetadataVersionHeader(res, result.metadata);
-          }
+          setMetadataVersionHeader(res, metadata);
 
           return res.status(204).send();
         } catch (error) {
