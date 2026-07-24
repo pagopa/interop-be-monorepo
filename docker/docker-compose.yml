@@ -256,9 +256,14 @@ services:
 
   # Dynamo DB readmodel for token generation and privacy notices
   dynamodb-local:
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec
     user: "0:0"
     command: "-jar DynamoDBLocal.jar -dbPath /data -sharedDb"
-    image: amazon/dynamodb-local:2.6.1
+    image: amazon/dynamodb-local:2.5.2
     ports:
       - 8085:8000
     volumes:
