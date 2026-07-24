@@ -257,10 +257,8 @@ services:
   # Dynamo DB readmodel for token generation and privacy notices
   dynamodb-local:
     user: "0:0"
-    build:
-      context: ./dynamodb-local
-    command: "-dbPath /data -sharedDb"
-    image: pagopa-interop/dynamodb-local:2.6.1
+    command: "-jar DynamoDBLocal.jar -dbPath /data -sharedDb"
+    image: amazon/dynamodb-local:2.6.1
     ports:
       - 8085:8000
     volumes:
