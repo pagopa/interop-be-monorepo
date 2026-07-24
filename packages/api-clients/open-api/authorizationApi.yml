@@ -64,7 +64,7 @@ paths:
             schema:
               $ref: "#/components/schemas/ClientSeed"
       responses:
-        "200":
+        "201":
           description: Client created
           headers:
             X-Metadata-Version:
@@ -95,7 +95,7 @@ paths:
             schema:
               $ref: "#/components/schemas/ClientSeed"
       responses:
-        "200":
+        "201":
           description: Client created
           content:
             application/json:
@@ -593,7 +593,7 @@ paths:
       summary: Create Key for the specific clientId.
       operationId: createKey
       responses:
-        "200":
+        "201":
           description: Key created
           headers:
             X-Metadata-Version:
@@ -1151,7 +1151,7 @@ paths:
             schema:
               $ref: "#/components/schemas/ProducerKeychainSeed"
       responses:
-        "200":
+        "201":
           description: Producer keychain created
           headers:
             X-Metadata-Version:
@@ -1537,7 +1537,7 @@ paths:
       summary: Create Key for the specific producerKeychainId.
       operationId: createProducerKey
       responses:
-        "200":
+        "201":
           description: Key created
           headers:
             X-Metadata-Version:
