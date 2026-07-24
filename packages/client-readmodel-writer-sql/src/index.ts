@@ -52,5 +52,6 @@ await runConsumer(
   config,
   [config.authorizationTopic],
   processMessage,
+  config.featureFlagConfluentKafka,
   "client-readmodel-writer-sql"
 );

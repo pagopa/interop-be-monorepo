@@ -183,5 +183,6 @@ await runConsumer(
     { purposeTopic: config.purposeTopic },
     { purposeTemplateTopic: config.purposeTemplateTopic }
   ),
+  config.featureFlagConfluentKafka,
   "documents-signer"
 );

@@ -49,5 +49,6 @@ await runConsumer(
   config,
   [config.catalogTopic],
   processMessage,
+  config.featureFlagConfluentKafka,
   "datalake-interface-exporter"
 );

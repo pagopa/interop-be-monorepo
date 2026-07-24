@@ -52,5 +52,6 @@ await runConsumer(
   config,
   [config.catalogTopic],
   processMessage,
+  config.featureFlagConfluentKafka,
   "catalog-readmodel-writer-sql"
 );

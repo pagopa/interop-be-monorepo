@@ -18,7 +18,8 @@ import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
 
 const producer = await initProducer(
   config,
-  config.eserviceTemplateOutboundTopic
+  config.eserviceTemplateOutboundTopic,
+  config.featureFlagConfluentKafka
 );
 
 async function processMessage({
@@ -58,4 +59,9 @@ async function processMessage({
   );
 }
 
-await runConsumer(config, [config.eserviceTemplateTopic], processMessage);
+await runConsumer(
+  config,
+  [config.eserviceTemplateTopic],
+  processMessage,
+  config.featureFlagConfluentKafka
+);

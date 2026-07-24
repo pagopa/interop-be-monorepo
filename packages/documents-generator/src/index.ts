@@ -237,5 +237,6 @@ await runConsumer(
     {
       purposeTemplateTopic: config.purposeTemplateTopic,
     }
-  )
+  ),
+  baseConsumerConfig.featureFlagConfluentKafka
 );

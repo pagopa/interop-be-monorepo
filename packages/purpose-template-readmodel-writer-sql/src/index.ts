@@ -49,5 +49,6 @@ await runConsumer(
   config,
   [config.purposeTemplateTopic],
   processMessage,
+  config.featureFlagConfluentKafka,
   "purpose-template-readmodel-writer-sql"
 );

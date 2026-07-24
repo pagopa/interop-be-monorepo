@@ -50,6 +50,7 @@ try {
       config.purposeTemplateTopic,
     ],
     processBatch,
+    baseConsumerConfig.featureFlagConfluentKafka,
     "events-signer"
   );
 } catch (e) {

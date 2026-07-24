@@ -120,4 +120,9 @@ export async function processMessage({
     .exhaustive();
 }
 
-await runConsumer(config, [config.agreementTopic], processMessage);
+await runConsumer(
+  config,
+  [config.agreementTopic],
+  processMessage,
+  config.featureFlagConfluentKafka
+);

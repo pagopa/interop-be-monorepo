@@ -196,5 +196,6 @@ await runBatchConsumer(
     config.eserviceTemplateTopic,
   ],
   processBatch,
+  config.featureFlagConfluentKafka,
   "domains-analytics-writer"
 );

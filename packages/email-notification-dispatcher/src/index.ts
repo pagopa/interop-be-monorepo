@@ -189,5 +189,6 @@ await runConsumer(
     authorizationTopic: config.authorizationTopic,
     tenantTopic: config.tenantTopic,
     eserviceTemplateTopic: config.eserviceTemplateTopic,
-  })
+  }),
+  config.featureFlagConfluentKafka
 );
