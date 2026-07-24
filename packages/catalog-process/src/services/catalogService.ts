@@ -68,6 +68,7 @@ import {
   archivingScope,
   ArchivingScope,
   AsyncExchangeProperties,
+  Technology,
   GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
@@ -101,6 +102,7 @@ import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceTemplateInterfaceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   inconsistentAttributesSeedGroupsCount,
@@ -2215,6 +2217,35 @@ export function catalogServiceBuilder(
             }
           : undefined;
 
+      const clonedAsyncExchangeCallbackInterfaceId =
+        generateId<EServiceDocumentId>();
+      const clonedAsyncExchangeCallbackInterfacePath =
+        descriptor.asyncExchangeCallbackInterface !== undefined
+          ? await fileManager.copy(
+              config.s3Bucket,
+              descriptor.asyncExchangeCallbackInterface.path,
+              config.eserviceDocumentsPath,
+              clonedAsyncExchangeCallbackInterfaceId,
+              descriptor.asyncExchangeCallbackInterface.name,
+              logger
+            )
+          : undefined;
+
+      const clonedAsyncExchangeCallbackInterfaceDocument: Document | undefined =
+        descriptor.asyncExchangeCallbackInterface !== undefined &&
+        clonedAsyncExchangeCallbackInterfacePath !== undefined
+          ? {
+              id: clonedAsyncExchangeCallbackInterfaceId,
+              name: descriptor.asyncExchangeCallbackInterface.name,
+              contentType:
+                descriptor.asyncExchangeCallbackInterface.contentType,
+              prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
+              path: clonedAsyncExchangeCallbackInterfacePath,
+              checksum: descriptor.asyncExchangeCallbackInterface.checksum,
+              uploadDate: new Date(),
+            }
+          : undefined;
+
       const clonedDocuments = await Promise.all(
         descriptor.docs.map(async (doc: Document) => {
           const clonedDocumentId = generateId<EServiceDocumentId>();
@@ -2254,6 +2285,8 @@ export function catalogServiceBuilder(
             id: generateId(),
             version: "1",
             interface: clonedInterfaceDocument,
+            asyncExchangeCallbackInterface:
+              clonedAsyncExchangeCallbackInterfaceDocument,
             docs: clonedDocuments,
             state: descriptorState.draft,
             createdAt: new Date(),
@@ -4129,6 +4162,7 @@ export function catalogServiceBuilder(
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
+      interfaceTechnology: Technology,
       eserviceInstanceInterfaceData:
         | catalogApi.TemplateInstanceInterfaceRESTSeed
         | catalogApi.TemplateInstanceInterfaceSOAPSeed,
@@ -4163,6 +4197,18 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      if (eserviceTemplate.technology !== interfaceTechnology) {
+        throw eserviceTemplateInterfaceTechnologyMismatch(
+          eserviceTemplate.id,
+          eserviceTemplate.technology,
+          interfaceTechnology
+        );
+      }
+
+      const contactDataRestApi = match(eserviceInstanceInterfaceData)
+        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
+        .otherwise(() => undefined);
+
       const eserviceTemplateVersion = eserviceTemplate.versions.find(
         (v) => v.id === eserviceTemplateVersionId
       );
@@ -4173,10 +4219,6 @@ export function catalogServiceBuilder(
           eserviceTemplateVersionId
         );
       }
-
-      const contactDataRestApi = match(eserviceInstanceInterfaceData)
-        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
-        .otherwise(() => undefined);
 
       const { eService: updatedEService, event: addDocumentEvent } =
         await createOpenApiInterfaceByTemplate(

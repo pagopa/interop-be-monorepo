@@ -199,7 +199,7 @@ export const Descriptor = z.object({
   agreementApprovalPolicy: AgreementApprovalPolicy.optional(),
   createdAt: z.coerce.date(),
   serverUrls: z.array(z.string()),
-  serverUrlsDescriptions: z.array(z.string()),
+  serverUrlsDescriptions: z.array(z.string()).optional(),
   publishedAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
   deprecatedAt: z.coerce.date().optional(),
