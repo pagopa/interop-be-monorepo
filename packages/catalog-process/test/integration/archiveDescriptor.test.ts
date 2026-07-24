@@ -14,9 +14,12 @@ import {
   EService,
   EServiceDescriptorArchivedV2,
   EServiceDescriptorArchivingCompletedV2,
+  GracePeriodDays,
+  gracePeriodDays,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -81,61 +84,65 @@ describe("archive descriptor", () => {
     });
   });
 
-  it("should write on event-store for the archiving of a descriptor in archiving state", async () => {
-    const archivingSchedule: ArchivingSchedule = {
-      archivableOn: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
-      startedAt: new Date(new Date().getTime() - 91 * 24 * 60 * 60 * 1000),
-      scope: "Descriptor",
-    };
+  it.each([...gracePeriodDays])(
+    "should write on event-store for the archiving of a descriptor in archiving state (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const archivingSchedule: ArchivingSchedule = {
+        archivableOn: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+        startedAt: new Date(new Date().getTime() - 91 * 24 * 60 * 60 * 1000),
+        scope: "Descriptor",
+        gracePeriodDays: gracePeriodDaysValue,
+      };
 
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      interface: mockDocument,
-      state: descriptorState.archiving,
-      archivingSchedule,
-    };
-    const eservice: EService = {
-      ...mockEService,
-      descriptors: [descriptor],
-    };
-    await addOneEService(eservice);
-    await catalogService.archiveDescriptor(
-      eservice.id,
-      descriptor.id,
-      { kind: "MANUAL" },
-      getMockContextInternal({})
-    );
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: descriptorState.archiving,
+        archivingSchedule,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+      await catalogService.archiveDescriptor(
+        eservice.id,
+        descriptor.id,
+        { kind: "MANUAL" },
+        getMockContextInternal({})
+      );
 
-    const writtenEvent = await readLastEserviceEvent(eservice.id);
-    expect(writtenEvent).toMatchObject({
-      stream_id: eservice.id,
-      version: "1",
-      type: "EServiceDescriptorArchivingCompleted",
-      event_version: 2,
-    });
+      const writtenEvent = await readLastEserviceEvent(eservice.id);
+      expect(writtenEvent).toMatchObject({
+        stream_id: eservice.id,
+        version: "1",
+        type: "EServiceDescriptorArchivingCompleted",
+        event_version: 2,
+      });
 
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceDescriptorArchivingCompletedV2,
-      payload: writtenEvent.data,
-    });
+      const writtenPayload = decodeProtobufPayload({
+        messageType: EServiceDescriptorArchivingCompletedV2,
+        payload: writtenEvent.data,
+      });
 
-    const expectedDescriptor: Descriptor = {
-      ...descriptor,
-      state: descriptorState.archived,
-      archivedAt: new Date(
-        Number(writtenPayload.eservice!.descriptors[0]!.archivedAt)
-      ),
-      archivingSchedule,
-    };
+      const expectedDescriptor: Descriptor = {
+        ...descriptor,
+        state: descriptorState.archived,
+        archivedAt: new Date(
+          Number(writtenPayload.eservice!.descriptors[0]!.archivedAt)
+        ),
+        archivingSchedule,
+      };
 
-    const expectedEService = toEServiceV2({
-      ...eservice,
-      descriptors: [expectedDescriptor],
-    });
+      const expectedEService = toEServiceV2({
+        ...eservice,
+        descriptors: [expectedDescriptor],
+      });
 
-    expect(writtenPayload.eservice).toEqual(expectedEService);
-    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
-  });
+      expect(writtenPayload.eservice).toEqual(expectedEService);
+      expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    }
+  );
 
   it("should throw eServiceNotFound if the eservice doesn't exist", () => {
     expect(

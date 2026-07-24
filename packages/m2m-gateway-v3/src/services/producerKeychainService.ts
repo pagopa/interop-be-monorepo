@@ -1,28 +1,29 @@
+import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { retry, WithLogger } from "pagopa-interop-commons";
 import {
   EServiceId,
   ProducerKeychainId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { retry, WithLogger } from "pagopa-interop-commons";
-import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+
+import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
+import { toM2MJWK, toM2MProducerKey } from "../api/keysApiConverter.js";
 import {
   toGetProducerKeychainsApiQueryParams,
   toM2MGatewayApiProducerKeychain,
 } from "../api/producerKeychainApiConverter.js";
-import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
-import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
-import { toM2MJWK, toM2MProducerKey } from "../api/keysApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { config } from "../config/config.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
+import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 import { getSelfcareUserById, getInstitutionUser } from "./userService.js";
-import { config } from "../config/config.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder

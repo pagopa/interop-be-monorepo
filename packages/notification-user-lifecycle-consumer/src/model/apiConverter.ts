@@ -1,6 +1,6 @@
-import { match } from "ts-pattern";
 import { notificationConfigApi } from "pagopa-interop-api-clients";
 import { UserRole, userRole } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export function userRoleToApiUserRole(
   role: UserRole

@@ -2,9 +2,10 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { logger } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
-import { compareTokenGenerationReadModel } from "./utils/utils.js";
+
 import { config } from "./configs/config.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
+import { compareTokenGenerationReadModel } from "./utils/utils.js";
 
 const dynamoDBClient = new DynamoDBClient();
 const loggerInstance = logger({

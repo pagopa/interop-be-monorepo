@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -37,7 +38,7 @@ import {
   it,
   vi,
 } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
+
 import {
   updateAgreementStateInPlatformStatesEntry,
   readAgreementEntry,

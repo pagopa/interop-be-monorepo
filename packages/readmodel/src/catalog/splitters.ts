@@ -425,6 +425,7 @@ export const archivingScheduleToArchivingScheduleSQL = (
   scope: archivingSchedule.scope,
   archivableOn: dateToString(archivingSchedule.archivableOn),
   startedAt: dateToString(archivingSchedule.startedAt),
+  gracePeriodDays: archivingSchedule.gracePeriodDays,
 });
 
 export const documentToDocumentSQL = (

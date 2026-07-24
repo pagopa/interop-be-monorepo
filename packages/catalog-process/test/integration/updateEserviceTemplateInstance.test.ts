@@ -21,8 +21,9 @@ import {
   delegationKind,
   EServiceTemplate,
 } from "pagopa-interop-models";
-import { expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
+import { expect, describe, it } from "vitest";
+
 import {
   eServiceNotFound,
   eserviceNotInDraftState,

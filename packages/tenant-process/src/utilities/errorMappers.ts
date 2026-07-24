@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -93,6 +94,10 @@ export const addCertifiedAttributeErrorMapper = (
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("attributeDoesNotBelongToCertifier", () => HTTP_STATUS_FORBIDDEN)
     .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "certifiedDiscreteAttributeAlreadyAssigned",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addDeclaredAttributeErrorMapper = (

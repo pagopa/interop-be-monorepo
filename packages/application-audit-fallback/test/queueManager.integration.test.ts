@@ -1,12 +1,13 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { describe, expect, it } from "vitest";
 import {
   genericLogger,
   queueManagerSendError,
   queueManagerReceiveError,
   QueueMessage,
 } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import {
   nonExistingQueueUrl,
   nonExistingQueueWriter,
