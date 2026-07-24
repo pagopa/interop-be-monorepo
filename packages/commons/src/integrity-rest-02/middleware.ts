@@ -1,6 +1,7 @@
 import { KMSClient } from "@aws-sdk/client-kms";
 import { Request, Response, NextFunction } from "express";
 
+import { LOWER_CASE_CORRELATION_ID_HEADER } from "../auth/headers.js";
 import { IntegrityRest02SignatureConfig } from "../config/index.js";
 import { InteropTokenGenerator } from "../interop-token/interopTokenService.js";
 import {
@@ -55,9 +56,9 @@ export function integrityRest02Middleware(
       }
       void (async (): Promise<void> => {
         try {
-          const correlationId = res.getHeader("x-correlation-id") as
-            | string
-            | undefined;
+          const correlationId = res.getHeader(
+            LOWER_CASE_CORRELATION_ID_HEADER
+          ) as string | undefined;
           if (!correlationId) {
             throw new Error(
               "Integrity REST 02 middleware should not be used for responses without a correlation id"
