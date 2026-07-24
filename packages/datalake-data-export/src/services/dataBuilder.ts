@@ -13,7 +13,7 @@ import { arrayToNdjson, splitArrayIntoChunks } from "../utils/helperUtils.js";
 type ExportedData = [
   collection: ExportedCollection,
   ndjsonFiles: string[],
-  count: number
+  count: number,
 ];
 
 const generateNdjsonFiles = (
