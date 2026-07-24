@@ -1,6 +1,6 @@
+import { KMSClient } from "@aws-sdk/client-kms";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
@@ -10,6 +10,7 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
@@ -876,6 +877,7 @@ const eserviceRouter = (
             await eserviceService.scheduleArchiveEserviceDescriptor(
               unsafeBrandId(req.params.eserviceId),
               unsafeBrandId(req.params.descriptorId),
+              req.body,
               ctx
             );
           return res

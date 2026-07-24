@@ -4,6 +4,7 @@ import {
   EServiceId,
   genericInternalError,
 } from "pagopa-interop-models";
+
 import { config } from "./config/config.js";
 
 export async function exportInterface(

@@ -174,9 +174,20 @@ message ArchivingScheduleV2 {
   int64 archivableOn = 1;
   ArchivingScopeV2 scope = 2;
   int64 startedAt = 3;
+  GracePeriodDaysV2 gracePeriodDays = 4;
 }
 
 enum ArchivingScopeV2 {
   ESERVICE = 0;
   DESCRIPTOR = 1;
+}
+
+enum GracePeriodDaysV2 {
+  // Must remain at index 0 for backwards compatibility.
+  // Legacy events without this field will decode directly to GRACE_PERIOD_90_DAYS (0),
+  // which is both the fallback for legacy events and a valid domain value.
+  GRACE_PERIOD_90_DAYS = 0;
+  GRACE_PERIOD_30_DAYS = 1;
+  GRACE_PERIOD_60_DAYS = 2;
+  GRACE_PERIOD_120_DAYS = 3;
 }

@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { PurposeId, generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { PurposeId, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { remainingDailyCallsToApiRemainingDailyCalls } from "../../src/model/domain/apiConverter.js";
 import {
   agreementNotFound,
   eserviceNotFound,
@@ -13,7 +14,7 @@ import {
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegatedConsumer,
 } from "../../src/model/domain/errors.js";
-import { remainingDailyCallsToApiRemainingDailyCalls } from "../../src/model/domain/apiConverter.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API GET /purposes/{purposeId}/remainingDailyCalls test", () => {
   const purposeId: PurposeId = generateId();
@@ -45,7 +46,6 @@ describe("API GET /purposes/{purposeId}/remainingDailyCalls test", () => {
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.M2M_ADMIN_ROLE,
-    authRole.REVIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

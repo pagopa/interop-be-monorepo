@@ -1,8 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
-  ArchivingScope,
+  generateToken,
+  getMockDescriptorArchiving,
+  getMockEService,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
+import {
   Descriptor,
   DescriptorId,
   EService,
@@ -10,25 +15,19 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import {
-  generateToken,
-  getMockDescriptorArchiving,
-  getMockEService,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+  eServiceToApiEService,
+  descriptorToApiDescriptor,
+} from "../../src/model/domain/apiConverter.js";
 import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
-import {
-  eServiceToApiEService,
-  descriptorToApiDescriptor,
-  archivingScheduleScopeToApiArchivingScheduleScope,
-} from "../../src/model/domain/apiConverter.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchive authorization test", () => {
   const descriptor: Descriptor = {
@@ -41,21 +40,9 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     descriptors: [descriptor],
   };
 
-  const mockApiArchivingScope = catalogApi.ArchivingScope.parse(
-    archivingScheduleScopeToApiArchivingScheduleScope(
-      ArchivingScope.Enum.Descriptor
-    )
-  );
-
   const apiDescriptor = catalogApi.EServiceDescriptor.parse(
     descriptorToApiDescriptor(descriptor)
   );
-
-  apiDescriptor.archivingSchedule = {
-    scope: mockApiArchivingScope,
-    startedAt: descriptor.archivingSchedule?.startedAt.toJSON(),
-    archivableOn: descriptor.archivingSchedule?.archivableOn.toJSON(),
-  };
 
   const mockApiEservice = eServiceToApiEService(mockEService);
   mockApiEservice.descriptors = [apiDescriptor];
@@ -69,7 +56,8 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    descriptorId: DescriptorId
+    descriptorId: DescriptorId,
+    body: catalogApi.GracePeriodDaysSeed
   ) =>
     request(api)
       .post(
@@ -77,7 +65,11 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send();
+      .send(body);
+
+  const gracePeriodDaysSeed: catalogApi.GracePeriodDaysSeed = {
+    gracePeriodDays: 60,
+  };
 
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
@@ -88,7 +80,12 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     "Should return 200 for user with role %s",
     async (role) => {
       const token = generateToken(role);
-      const res = await makeRequest(token, mockEService.id, descriptor.id);
+      const res = await makeRequest(
+        token,
+        mockEService.id,
+        descriptor.id,
+        gracePeriodDaysSeed
+      );
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockApiEservice);
@@ -102,7 +99,12 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
     const token = generateToken(role);
-    const res = await makeRequest(token, mockEService.id, descriptor.id);
+    const res = await makeRequest(
+      token,
+      mockEService.id,
+      descriptor.id,
+      gracePeriodDaysSeed
+    );
 
     expect(res.status).toBe(403);
   });
@@ -132,7 +134,12 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
         .mockRejectedValue(error);
 
       const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, mockEService.id, descriptor.id);
+      const res = await makeRequest(
+        token,
+        mockEService.id,
+        descriptor.id,
+        gracePeriodDaysSeed
+      );
 
       expect(res.status).toBe(expectedStatus);
     }
@@ -149,8 +156,21 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/scheduleArchi
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        descriptorId as DescriptorId
+        descriptorId as DescriptorId,
+        gracePeriodDaysSeed
       );
+
+      expect(res.status).toBe(400);
+    }
+  );
+
+  it.each([0, -1, 1, 29, 31, 1066])(
+    "Should return 400 if passed invalid gracePeriodDays: %s",
+    async (gracePeriodDays) => {
+      const token = generateToken(authRole.ADMIN_ROLE);
+      const res = await makeRequest(token, mockEService.id, descriptor.id, {
+        gracePeriodDays,
+      } as catalogApi.GracePeriodDaysSeed);
 
       expect(res.status).toBe(400);
     }

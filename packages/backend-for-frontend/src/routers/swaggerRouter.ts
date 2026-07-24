@@ -1,10 +1,11 @@
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import { zodiosRouter } from "@zodios/express";
+import fs from "fs/promises";
 import { bffApi } from "pagopa-interop-api-clients";
+import path from "path";
 import swaggerUi from "swagger-ui-express";
+import { fileURLToPath } from "url";
 import YAML from "yaml";
+
 import { config } from "../config/config.js";
 
 const swaggerRouter = zodiosRouter(bffApi.developApi.api);

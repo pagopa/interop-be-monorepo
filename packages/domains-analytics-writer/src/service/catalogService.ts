@@ -2,25 +2,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
-import { DBContext } from "../db/db.js";
-import { eserviceRiskAnalysisAnswerRepository } from "../repository/catalog/eserviceRiskAnalysisAnswer.repository.js";
-import { eserviceRiskAnalysisRepository } from "../repository/catalog/eserviceRiskAnalysis.repository.js";
-import { eserviceDescriptorAttributeRepository } from "../repository/catalog/eserviceDescriptorAttribute.repository.js";
-import { eserviceDescriptorDocumentRepository } from "../repository/catalog/eserviceDescriptorDocument.repository.js";
-import { eserviceDescriptorInterfaceRepository } from "../repository/catalog/eserviceDescriptorInterface.repository.js";
-import { eserviceDescriptorRejectionRepository } from "../repository/catalog/eserviceDescriptorRejection.repository.js";
-import { eserviceDescriptorTemplateVersionRefRepository } from "../repository/catalog/eserviceDescriptorTemplateVersionRef.repository.js";
-import { eserviceDescriptorAsyncExchangePropertiesRepository } from "../repository/catalog/eserviceDescriptorAsyncExchangeProperties.repository.js";
-import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDescriptor.repository.js";
-import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
-import { eserviceDescriptorArchivingRepository } from "../repository/catalog/eserviceDescriptorArchiving.repository.js";
-import { CatalogDbTable, DeletingDbTable } from "../model/db/index.js";
-import { batchMessages } from "../utils/batchHelper.js";
-import {
-  cleaningTargetTables,
-  mergeDeletingCascadeById,
-} from "../utils/sqlQueryHelper.js";
+
 import { config } from "../config/config.js";
+import { DBContext } from "../db/db.js";
 import {
   EserviceDeletingSchema,
   EserviceItemsSchema,
@@ -38,6 +22,23 @@ import {
   EserviceDescriptorDocumentOrInterfaceDeletingSchema,
   EserviceDescriptorInterfaceSchema,
 } from "../model/catalog/eserviceDescriptorInterface.js";
+import { CatalogDbTable, DeletingDbTable } from "../model/db/index.js";
+import { eserviceRepository } from "../repository/catalog/eservice.repository.js";
+import { eserviceDescriptorRepository } from "../repository/catalog/eserviceDescriptor.repository.js";
+import { eserviceDescriptorArchivingRepository } from "../repository/catalog/eserviceDescriptorArchiving.repository.js";
+import { eserviceDescriptorAsyncExchangePropertiesRepository } from "../repository/catalog/eserviceDescriptorAsyncExchangeProperties.repository.js";
+import { eserviceDescriptorAttributeRepository } from "../repository/catalog/eserviceDescriptorAttribute.repository.js";
+import { eserviceDescriptorDocumentRepository } from "../repository/catalog/eserviceDescriptorDocument.repository.js";
+import { eserviceDescriptorInterfaceRepository } from "../repository/catalog/eserviceDescriptorInterface.repository.js";
+import { eserviceDescriptorRejectionRepository } from "../repository/catalog/eserviceDescriptorRejection.repository.js";
+import { eserviceDescriptorTemplateVersionRefRepository } from "../repository/catalog/eserviceDescriptorTemplateVersionRef.repository.js";
+import { eserviceRiskAnalysisRepository } from "../repository/catalog/eserviceRiskAnalysis.repository.js";
+import { eserviceRiskAnalysisAnswerRepository } from "../repository/catalog/eserviceRiskAnalysisAnswer.repository.js";
+import { batchMessages } from "../utils/batchHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 
 export function catalogServiceBuilder(db: DBContext) {
   const eserviceRepo = eserviceRepository(db.conn);
