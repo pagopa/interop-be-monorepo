@@ -189,7 +189,6 @@ export const approveAgreementErrorMapper = (
   match(error.code)
     .with(
       "notLatestEServiceDescriptor",
-      "agreementNotInExpectedState",
       "agreementActivationFailed",
       "descriptorNotInExpectedState",
       () => HTTP_STATUS_BAD_REQUEST
@@ -203,7 +202,11 @@ export const approveAgreementErrorMapper = (
 
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "agreementAlreadyExists",
+      "agreementNotInExpectedState",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const unsuspendAgreementErrorMapper = (
@@ -212,7 +215,6 @@ export const unsuspendAgreementErrorMapper = (
   match(error.code)
     .with(
       "notLatestEServiceDescriptor",
-      "agreementNotInExpectedState",
       "agreementActivationFailed",
       "descriptorNotInExpectedState",
       () => HTTP_STATUS_BAD_REQUEST
@@ -226,7 +228,11 @@ export const unsuspendAgreementErrorMapper = (
 
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("agreementAlreadyExists", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "agreementAlreadyExists",
+      "agreementNotInExpectedState",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const archiveAgreementErrorMapper = (
