@@ -6,6 +6,7 @@ import {
   UpdateItemCommandOutput,
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+
 import { DeepPartial, DynamoDBKeyOf } from "../utils/utils.js";
 
 export class DynamoDbTableClient<

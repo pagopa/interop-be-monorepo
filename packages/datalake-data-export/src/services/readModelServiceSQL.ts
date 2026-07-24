@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
 import {
   agreementState,
   delegationState,
@@ -6,6 +7,20 @@ import {
   eserviceTemplateVersionState,
   purposeVersionState,
 } from "pagopa-interop-models";
+import {
+  aggregateAgreementArray,
+  aggregateDelegationsArray,
+  aggregateEserviceArray,
+  aggregateEServiceTemplateArray,
+  aggregatePurposeArray,
+  aggregateTenantArray,
+  toAgreementAggregatorArray,
+  toDelegationAggregatorArray,
+  toEServiceAggregatorArray,
+  toEServiceTemplateAggregatorArray,
+  toPurposeAggregatorArray,
+  toTenantAggregatorArray,
+} from "pagopa-interop-readmodel";
 import {
   agreementInReadmodelAgreement,
   agreementStampInReadmodelAgreement,
@@ -30,21 +45,7 @@ import {
   purposeVersionStampInReadmodelPurpose,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateAgreementArray,
-  aggregateDelegationsArray,
-  aggregateEserviceArray,
-  aggregateEServiceTemplateArray,
-  aggregatePurposeArray,
-  aggregateTenantArray,
-  toAgreementAggregatorArray,
-  toDelegationAggregatorArray,
-  toEServiceAggregatorArray,
-  toEServiceTemplateAggregatorArray,
-  toPurposeAggregatorArray,
-  toTenantAggregatorArray,
-} from "pagopa-interop-readmodel";
-import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
+
 import {
   ExportedAgreement,
   ExportedDelegation,

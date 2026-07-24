@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { addDays } from "date-fns";
-import { describe, it, expect, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -12,6 +11,8 @@ import {
   EService,
   archivingScope,
   descriptorState,
+  GracePeriodDays,
+  gracePeriodDays,
 } from "pagopa-interop-models";
 import {
   ScheduledNotificationRow,
@@ -19,9 +20,14 @@ import {
   schedulableEventType,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
+import { describe, it, expect, vi } from "vitest";
+
 import { handleEserviceDescriptorArchivingScheduledReminderInApp } from "../../src/handlers/eservices/handleEserviceDescriptorArchivingScheduledReminderInApp.js";
 
-const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
+const makeDescriptor = (
+  overrides: Partial<Descriptor> = {},
+  gracePeriodDaysValue: GracePeriodDays = 30
+): Descriptor => ({
   id: generateId<DescriptorId>(),
   version: "1",
   description: undefined,
@@ -47,6 +53,7 @@ const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
     archivableOn: addDays(new Date(), 7),
     startedAt: new Date(),
     scope: archivingScope.descriptor,
+    gracePeriodDays: gracePeriodDaysValue,
   },
   ...overrides,
 });
@@ -121,69 +128,72 @@ describe("handleEserviceDescriptorArchivingScheduledReminderInApp", () => {
     expect(result).toEqual([]);
   });
 
-  it("returns one producer + one consumer notification for an active agreement", async () => {
-    const descriptor = makeDescriptor();
-    const eservice = makeEservice({ descriptors: [descriptor] });
-    const consumerId = generateId<TenantId>();
-    const producerUserId = generateId<UserId>();
-    const consumerUserId = generateId<UserId>();
+  it.each([...gracePeriodDays])(
+    "returns one producer + one consumer notification for an active agreement (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const descriptor = makeDescriptor({}, gracePeriodDaysValue);
+      const eservice = makeEservice({ descriptors: [descriptor] });
+      const consumerId = generateId<TenantId>();
+      const producerUserId = generateId<UserId>();
+      const consumerUserId = generateId<UserId>();
 
-    const readModelService = {
-      notificationTypeBlocklist: [],
-      getEServiceById: vi.fn().mockResolvedValue(eservice),
-      getTenantById: vi.fn().mockResolvedValue({ name: "producer-tenant" }),
-      getAgreementsByEserviceId: vi.fn().mockResolvedValue([
-        {
-          consumerId,
-          eserviceId: eservice.id,
-          descriptorId: descriptor.id,
-        },
-      ]),
-      getTenantUsersWithNotificationEnabled: vi
-        .fn()
-        .mockImplementation(
-          async (_tenantIds: TenantId[], notifType: string) => {
-            if (notifType === "eserviceStateChangedToProducer") {
-              return [
-                {
-                  userId: producerUserId,
-                  tenantId: eservice.producerId,
-                  userRoles: ["admin"],
-                },
-              ];
+      const readModelService = {
+        notificationTypeBlocklist: [],
+        getEServiceById: vi.fn().mockResolvedValue(eservice),
+        getTenantById: vi.fn().mockResolvedValue({ name: "producer-tenant" }),
+        getAgreementsByEserviceId: vi.fn().mockResolvedValue([
+          {
+            consumerId,
+            eserviceId: eservice.id,
+            descriptorId: descriptor.id,
+          },
+        ]),
+        getTenantUsersWithNotificationEnabled: vi
+          .fn()
+          .mockImplementation(
+            async (_tenantIds: TenantId[], notifType: string) => {
+              if (notifType === "eserviceStateChangedToProducer") {
+                return [
+                  {
+                    userId: producerUserId,
+                    tenantId: eservice.producerId,
+                    userRoles: ["admin"],
+                  },
+                ];
+              }
+              if (notifType === "eserviceStateChangedToConsumer") {
+                return [
+                  {
+                    userId: consumerUserId,
+                    tenantId: consumerId,
+                    userRoles: ["admin"],
+                  },
+                ];
+              }
+              return [];
             }
-            if (notifType === "eserviceStateChangedToConsumer") {
-              return [
-                {
-                  userId: consumerUserId,
-                  tenantId: consumerId,
-                  userRoles: ["admin"],
-                },
-              ];
-            }
-            return [];
-          }
-        ),
-    } as any;
+          ),
+      } as any;
 
-    const result =
-      await handleEserviceDescriptorArchivingScheduledReminderInApp(
-        buildRow(formatEServiceIdDescriptorId(eservice.id, descriptor.id)),
-        readModelService,
-        genericLogger
+      const result =
+        await handleEserviceDescriptorArchivingScheduledReminderInApp(
+          buildRow(formatEServiceIdDescriptorId(eservice.id, descriptor.id)),
+          readModelService,
+          genericLogger
+        );
+
+      expect(result).toHaveLength(2);
+      const producer = result.find(
+        (n) => n.notificationType === "eserviceStateChangedToProducer"
       );
-
-    expect(result).toHaveLength(2);
-    const producer = result.find(
-      (n) => n.notificationType === "eserviceStateChangedToProducer"
-    );
-    const consumer = result.find(
-      (n) => n.notificationType === "eserviceStateChangedToConsumer"
-    );
-    expect(producer?.userId).toBe(producerUserId);
-    expect(producer?.tenantId).toBe(eservice.producerId);
-    expect(producer?.body).toContain("sarà archiviata");
-    expect(consumer?.userId).toBe(consumerUserId);
-    expect(consumer?.tenantId).toBe(consumerId);
-  });
+      const consumer = result.find(
+        (n) => n.notificationType === "eserviceStateChangedToConsumer"
+      );
+      expect(producer?.userId).toBe(producerUserId);
+      expect(producer?.tenantId).toBe(eservice.producerId);
+      expect(producer?.body).toContain("sarà archiviata");
+      expect(consumer?.userId).toBe(consumerUserId);
+      expect(consumer?.tenantId).toBe(consumerId);
+    }
+  );
 });

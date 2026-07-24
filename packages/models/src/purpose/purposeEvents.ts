@@ -1,5 +1,6 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { EventEnvelope } from "../events/events.js";
 import {
   PurposeCreatedV1,
@@ -14,7 +15,6 @@ import {
   PurposeVersionUpdatedV1,
   PurposeVersionWaitedForApprovalV1,
 } from "../gen/v1/purpose/events.js";
-import { protobufDecoder } from "../protobuf/protobuf.js";
 import {
   PurposeAddedV2,
   DraftPurposeUpdatedV2,
@@ -46,6 +46,7 @@ import {
   PurposeRiskAnalysisRejectedV2,
   PurposeRiskAnalysisFormEditedV2,
 } from "../gen/v2/purpose/events.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
 
 export function purposeEventToBinaryData(event: PurposeEvent): Uint8Array {
   return match(event)

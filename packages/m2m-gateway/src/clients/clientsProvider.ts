@@ -12,6 +12,7 @@ import {
   createZodiosClientEnhancedWithMetadata,
   ZodiosClientWithMetadata,
 } from "pagopa-interop-api-clients";
+
 import { config } from "../config/config.js";
 
 type TenantProcessClient = Pick<

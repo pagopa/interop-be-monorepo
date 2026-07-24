@@ -2,6 +2,7 @@ import {
   eserviceTemplateApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
+
 import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toM2MGatewayEServiceTemplate(

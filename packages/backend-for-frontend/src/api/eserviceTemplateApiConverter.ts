@@ -3,14 +3,15 @@ import {
   eserviceTemplateApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { genericError } from "pagopa-interop-models";
 import { getRulesetExpiration } from "pagopa-interop-commons";
+import { genericError } from "pagopa-interop-models";
+
 import { catalogEServiceTemplatePublishedVersionNotFound } from "../model/errors.js";
+import { toBffCompactOrganization } from "./agreementApiConverter.js";
 import {
   toBffCatalogApiEserviceRiskAnalysis,
   toBffCatalogTenant,
 } from "./catalogApiConverter.js";
-import { toBffCompactOrganization } from "./agreementApiConverter.js";
 
 export function toBffCompactEServiceTemplateVersion(
   eserviceTemplateVersion: eserviceTemplateApi.EServiceTemplateVersion
