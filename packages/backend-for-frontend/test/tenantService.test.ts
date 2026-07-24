@@ -371,23 +371,42 @@ describe("tenantServiceBuilder.getCertifiedAttributes", () => {
 });
 
 describe("toBffApiRequesterCertifiedAttributes", () => {
-  it("should add the certified kind discriminator", () => {
-    const input: tenantApi.CertifiedAttribute = {
-      id: generateId(),
-      name: "tenant",
-      attributeId: generateId(),
-      attributeName: "attribute",
-    };
+  const testCases: Array<{
+    inputKind: tenantApi.CertifiedAttributeKind;
+    expectedKind: bffApi.RequesterCertifiedAttribute["kind"];
+  }> = [
+    {
+      inputKind: "CERTIFIED",
+      expectedKind: tenantAttributeKind.certified,
+    },
+    {
+      inputKind: "CERTIFIED_DISCRETE",
+      expectedKind: tenantAttributeKind.certifiedDiscrete,
+    },
+  ];
 
-    const result = toBffApiRequesterCertifiedAttributes(input);
-    bffApi.RequesterCertifiedAttribute.parse(result);
+  it.each(testCases)(
+    "should preserve the $inputKind discriminator",
+    ({ inputKind, expectedKind }) => {
+      const input: tenantApi.CertifiedAttribute = {
+        id: generateId(),
+        name: "tenant",
+        attributeId: generateId(),
+        attributeName: "attribute",
+        kind: inputKind,
+      };
 
-    expect(result).toStrictEqual({
-      tenantId: input.id,
-      tenantName: input.name,
-      attributeId: input.attributeId,
-      attributeName: input.attributeName,
-      kind: tenantAttributeKind.certified,
-    });
-  });
+      const result: bffApi.RequesterCertifiedAttribute =
+        toBffApiRequesterCertifiedAttributes(input);
+      bffApi.RequesterCertifiedAttribute.parse(result);
+
+      expect(result).toStrictEqual({
+        tenantId: input.id,
+        tenantName: input.name,
+        attributeId: input.attributeId,
+        attributeName: input.attributeName,
+        kind: expectedKind,
+      });
+    }
+  );
 });
