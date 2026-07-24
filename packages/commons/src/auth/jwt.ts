@@ -106,10 +106,18 @@ export const verifyJwtToken = async (
       // expects a synchronous callback. The IIFE is needed to handle the case where the `getSigningKey`
       // function of the jwksClient returns a promise.
       (async (): Promise<void> => {
-        for (const client of jwksClients) {
+        for (const [index, client] of jwksClients.entries()) {
           try {
-            const signingKey = await client.getSigningKey(header.kid);
-            return callback(null, signingKey.getPublicKey());
+            const signingKeys = await client.getSigningKeys();
+            logger.info(
+              `JWKS read from ${
+                config.wellKnownUrls[index]
+              } - kids: [${signingKeys.map((k) => k.kid).join(", ")}]`
+            );
+            const signingKey = signingKeys.find((k) => k.kid === header.kid);
+            if (signingKey) {
+              return callback(null, signingKey.getPublicKey());
+            }
           } catch (error) {
             logger.debug(`Skip Jwks client: ${error}`);
           }
@@ -130,6 +138,9 @@ export const verifyJwtToken = async (
             const { userId, selfcareId } = extractUserInfoForFailedToken();
             return reject(tokenVerificationFailed(userId, selfcareId));
           }
+          const authenticatedKid = jwt.decode(jwtToken, { complete: true })
+            ?.header.kid;
+          logger.info(`Request authenticated with kid ${authenticatedKid}`);
           return resolve({ decoded });
         }
       );
