@@ -125,6 +125,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId} authorization t
   ])(
     "Should return 400 if passed invalid params: %s",
     async ({ eServiceId, descriptorId }) => {
+      // params are not UUID-validated by the router: the 400 comes from this mocked service error
       catalogService.deleteDraftDescriptor = vi
         .fn()
         .mockRejectedValue(
