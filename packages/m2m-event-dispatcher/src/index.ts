@@ -224,5 +224,6 @@ await runConsumer(
     eserviceTemplateTopic: config.eserviceTemplateTopic,
     purposeTemplateTopic: config.purposeTemplateTopic,
   }),
+  config.featureFlagConfluentKafka,
   "m2m-event-dispatcher"
 );

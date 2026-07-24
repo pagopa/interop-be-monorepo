@@ -49,5 +49,6 @@ await runConsumer(
   config,
   [config.delegationTopic],
   processMessage,
+  config.featureFlagConfluentKafka,
   "delegation-readmodel-writer-sql"
 );

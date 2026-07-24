@@ -45,7 +45,7 @@ const digestDataService = digestDataServiceBuilder(
 );
 const htmlTemplateService = buildHTMLTemplateService();
 const templateService = digestTemplateServiceBuilder(htmlTemplateService);
-const producer = await initProducer(config, config.emailDispatchTopic);
+const producer = await initProducer(config, config.emailDispatchTopic, config.featureFlagConfluentKafka);
 const emailProducerService = emailProducerServiceBuilder(producer);
 const trackingDb = makeDigestTrackingDbConnection(config);
 const trackingService = digestTrackingServiceBuilder(trackingDb);

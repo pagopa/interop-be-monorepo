@@ -49,5 +49,6 @@ await runConsumer(
   config,
   [config.authorizationTopic],
   processMessage,
+  config.featureFlagConfluentKafka,
   "producer-keychain-readmodel-writer-sql"
 );

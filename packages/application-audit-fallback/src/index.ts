@@ -10,7 +10,11 @@ const queueManager = initQueueManager({
 });
 
 const processMessage = handleMessage(
-  await initProducer(config, config.applicationAuditTopic)
+  await initProducer(
+    config,
+    config.applicationAuditTopic,
+    config.featureFlagConfluentKafka
+  )
 );
 
 await queueManager.runConsumer(

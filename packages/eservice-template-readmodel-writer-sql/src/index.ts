@@ -49,5 +49,6 @@ await runConsumer(
   config,
   [config.eserviceTemplateTopic],
   processMessage,
+  config.featureFlagConfluentKafka,
   "eservice-template-readmodel-writer-sql"
 );

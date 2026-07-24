@@ -18,7 +18,8 @@ import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
 
 const producer = await initProducer(
   config,
-  config.purposeTemplateOutboundTopic
+  config.purposeTemplateOutboundTopic,
+  config.featureFlagConfluentKafka
 );
 
 async function processMessage({
@@ -62,5 +63,6 @@ await runConsumer(
   config,
   [config.purposeTemplateOutboundTopic],
   processMessage,
+  config.featureFlagConfluentKafka,
   "purpose-outbound-writer"
 );

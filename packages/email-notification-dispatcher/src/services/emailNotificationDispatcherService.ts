@@ -8,6 +8,7 @@ import { encodeEmailEvent } from "./utils.js";
 const producer = await initProducer(
   config,
   config.emailDispatchTopic,
+  config.featureFlagConfluentKafka,
   config.producerKafkaTransactionalId
 );
 

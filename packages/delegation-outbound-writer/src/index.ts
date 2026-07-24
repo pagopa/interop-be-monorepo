@@ -16,7 +16,11 @@ import { match } from "ts-pattern";
 import { config } from "./config/config.js";
 import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
 
-const producer = await initProducer(config, config.delegationOutboundTopic);
+const producer = await initProducer(
+  config,
+  config.delegationOutboundTopic,
+  config.featureFlagConfluentKafka
+);
 
 async function processMessage({
   message,
@@ -59,5 +63,6 @@ await runConsumer(
   config,
   [config.delegationTopic],
   processMessage,
+  config.featureFlagConfluentKafka,
   "delegation-outbound-writer"
 );
