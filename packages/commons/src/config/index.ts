@@ -29,3 +29,4 @@ export * from "./eventsSignerConfig.js";
 export * from "./notificationTypeBlocklist.js";
 export * from "./integrityRest02Config.js";
 export * from "./tenantKindHistoryDBConfig.js";
+export * from "./processServerConfig.js";

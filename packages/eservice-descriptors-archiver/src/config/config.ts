@@ -1,5 +1,6 @@
 import {
   AgreementTopicConfig,
+  CatalogProcessServerConfig,
   TokenGenerationConfig,
   KafkaConsumerConfig,
   ReadModelSQLDbConfig,
@@ -11,15 +12,7 @@ const EserviceDescriptorsArchiverConfig = KafkaConsumerConfig.and(
 )
   .and(ReadModelSQLDbConfig)
   .and(AgreementTopicConfig)
-  .and(
-    z
-      .object({
-        CATALOG_PROCESS_URL: z.string(),
-      })
-      .transform((c) => ({
-        catalogProcessUrl: c.CATALOG_PROCESS_URL,
-      }))
-  );
+  .and(CatalogProcessServerConfig);
 
 type EserviceDescriptorsArchiverConfig = z.infer<
   typeof EserviceDescriptorsArchiverConfig
