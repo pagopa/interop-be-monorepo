@@ -133,6 +133,7 @@ const enrichPurposeReviewerWorkflow = async (
 
   // Reviewer details are disclosed only to the consumer, so the raw reviewers
   // array is dropped for everyone else.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { reviewers: _reviewers, ...workflowWithoutReviewers } =
     reviewerWorkflow;
   return workflowWithoutReviewers;
