@@ -6,7 +6,6 @@ import {
   EachMessagePayload,
   Kafka,
   KafkaConfig,
-  KafkaMessage,
   OauthbearerProviderResponse,
   Producer,
   ProducerRecord,
@@ -24,6 +23,7 @@ import {
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
+import { extractBasicMessageInfo } from "./confluent/utils/utils.js";
 import {
   initProducerConfluent,
   runBatchConsumerConfluent,
@@ -501,32 +501,3 @@ export const validateTopicMetadata = async (
     return false;
   }
 };
-
-export function extractBasicMessageInfo(message: KafkaMessage): {
-  offset: string;
-  streamId?: string;
-  eventType?: string;
-  eventVersion?: number;
-  streamVersion?: number;
-  correlationId?: string;
-} {
-  try {
-    if (!message.value) {
-      return { offset: message.offset };
-    }
-
-    const rawMessage = JSON.parse(message.value.toString());
-    const dataSource =
-      rawMessage.value?.after || rawMessage.after || rawMessage;
-    return {
-      offset: message.offset,
-      streamId: dataSource.stream_id || dataSource.streamId || dataSource.id,
-      eventType: dataSource.type,
-      eventVersion: dataSource.event_version,
-      streamVersion: dataSource.version,
-      correlationId: dataSource.correlation_id,
-    };
-  } catch {
-    return { offset: message.offset };
-  }
-}
