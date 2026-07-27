@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
+  assertLocalServiceUrl,
   buildSelfcareTenantSeed,
   buildSessionClaims,
   buildTenantContactMailSeed,
@@ -44,7 +45,10 @@ const signPayload = async (payload) => {
     JSON.stringify(payload)
   )}`;
   const client = new KMSClient({
-    endpoint: process.env.LOCAL_KMS_ENDPOINT ?? "http://localhost:4566",
+    endpoint: assertLocalServiceUrl(
+      process.env.LOCAL_KMS_ENDPOINT ?? "http://localhost:4566",
+      "LOCAL_KMS_ENDPOINT"
+    ),
     region: "eu-south-1",
     credentials: { accessKeyId: "local", secretAccessKey: "local" },
   });
@@ -82,8 +86,8 @@ const generateSessionToken = async (dataset, state, tenantKey, userId) => {
 
 const requestJson = async (url, { token, method = "GET", body } = {}) => {
   // This local-only seed intentionally sends version-controlled dataset fields
-  // to the local Interop APIs.
-  // codeql[js/file-access-to-http]
+  // to Interop API endpoints validated as loopback origins.
+  // lgtm[js/file-access-to-http]
   const response = await fetch(url, {
     method,
     headers: {
@@ -91,7 +95,7 @@ const requestJson = async (url, { token, method = "GET", body } = {}) => {
       "Content-Type": "application/json",
       "X-Correlation-Id": crypto.randomUUID(),
     },
-    // codeql[js/file-access-to-http]
+    // lgtm[js/file-access-to-http]
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const text = await response.text();
@@ -119,8 +123,14 @@ const waitFor = async (description, check, timeoutSeconds = 90) => {
 const seed = async () => {
   const dataset = await readJson(datasetPath);
   const state = await readJson(statePath, { datasetVersion: dataset.version, tenants: {} });
-  const tenantUrl = process.env.TENANT_PROCESS_URL ?? "http://localhost:3500";
-  const catalogUrl = process.env.CATALOG_PROCESS_URL ?? "http://localhost:3000";
+  const tenantUrl = assertLocalServiceUrl(
+    process.env.TENANT_PROCESS_URL ?? "http://localhost:3500",
+    "TENANT_PROCESS_URL"
+  );
+  const catalogUrl = assertLocalServiceUrl(
+    process.env.CATALOG_PROCESS_URL ?? "http://localhost:3000",
+    "CATALOG_PROCESS_URL"
+  );
   const internalToken = await generateSystemToken("internal");
 
   await waitFor("tenant process", () => fetch(`${tenantUrl}/status`).then((r) => r.ok));

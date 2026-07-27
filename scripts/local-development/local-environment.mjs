@@ -1,3 +1,34 @@
+const LOCAL_SERVICE_HOSTNAMES = new Set([
+  "localhost",
+  "127.0.0.1",
+  "[::1]",
+]);
+
+export const assertLocalServiceUrl = (value, name) => {
+  let url;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error(`${name} must be a valid URL`);
+  }
+
+  const isLocalHttpOrigin =
+    url.protocol === "http:" &&
+    LOCAL_SERVICE_HOSTNAMES.has(url.hostname) &&
+    !url.username &&
+    !url.password &&
+    url.pathname === "/" &&
+    !url.search &&
+    !url.hash;
+  if (!isLocalHttpOrigin) {
+    throw new Error(
+      `${name} must be an HTTP loopback origin without credentials, path, query, or fragment`
+    );
+  }
+
+  return url.origin;
+};
+
 export const buildSelfcareTenantSeed = (tenant) => ({
   externalId: tenant.externalId,
   name: tenant.name,
