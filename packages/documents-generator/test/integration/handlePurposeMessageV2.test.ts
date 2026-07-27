@@ -172,6 +172,7 @@ describe("handleDelegationMessageV2", () => {
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds: [mockReviewerId],
+        reviewers: [{ id: mockReviewerId, sentToReviewerAt: new Date() }],
         signingState: "Signed",
         signedBy: mockReviewerId,
         rejectionReason: undefined,

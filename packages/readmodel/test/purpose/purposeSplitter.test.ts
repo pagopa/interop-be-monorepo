@@ -24,6 +24,7 @@ import {
   riskAnalysisSigningState,
   RiskAnalysisId,
   ReviewerWorkflow,
+  RiskAnalysisReviewer,
   tenantKind,
   UserId,
 } from "pagopa-interop-models";
@@ -51,9 +52,15 @@ describe("Purpose splitter", () => {
     const firstActivationAt = new Date();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
+    const reviewers: RiskAnalysisReviewer[] = [
+      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+    ];
+
     const reviewerWorkflow: ReviewerWorkflow = {
       reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+      reviewerIds: reviewers.map((reviewer) => reviewer.id),
+      reviewers,
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
       rejectionReason: "Reviewer workflow rejection reason",
@@ -123,8 +130,8 @@ describe("Purpose splitter", () => {
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
-      reviewerWorkflowSentToReviewerAt:
-        reviewerWorkflow.sentToReviewerAt!.toISOString(),
+      // the send date is stored per reviewer, the legacy column is left behind
+      reviewerWorkflowSentToReviewerAt: null,
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
@@ -236,10 +243,11 @@ describe("Purpose splitter", () => {
       expectedPurposeVersionSignedDocumentSQL,
     ]);
     const expectedReviewersSQL: RiskAnalysisReviewerSQL[] =
-      reviewerWorkflow.reviewerIds.map((reviewerId) => ({
+      reviewerWorkflow.reviewers.map((reviewer) => ({
         purposeId: purpose.id,
         metadataVersion: 1,
-        reviewerId,
+        reviewerId: reviewer.id,
+        sentToReviewerAt: reviewer.sentToReviewerAt!.toISOString(),
       }));
     expect(reviewersSQL).toStrictEqual(expectedReviewersSQL);
   });
