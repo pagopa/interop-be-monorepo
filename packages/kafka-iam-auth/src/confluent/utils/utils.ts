@@ -9,8 +9,12 @@ export async function processExitAndDisconnect({
   onShutdown?: () => Promise<void>;
 }) {
   if (onShutdown) {
-    await onShutdown();
-    logger.debug("Shutdown hook completed successfully");
+    try {
+      await onShutdown();
+      logger.debug("Shutdown hook completed successfully");
+    } catch (err) {
+      logger.error(`Shutdown hook failed: ${String(err)}`);
+    }
   }
 
   processExit({ logger });
