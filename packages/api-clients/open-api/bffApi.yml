@@ -32333,17 +32333,21 @@ components:
       additionalProperties: false
       description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
       properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
-          minItems: 1
-      required:
-        - reviewMode
-        - reviewerIds
+        review:
+          type: object
+          additionalProperties: false
+          properties:
+            reviewMode:
+              $ref: "#/components/schemas/RiskAnalysisReviewMode"
+            reviewerIds:
+              type: array
+              items:
+                type: string
+                format: uuid
+              minItems: 1
+          required:
+            - reviewMode
+            - reviewerIds
     RiskAnalysisSubmissionSeed:
       type: object
       additionalProperties: false

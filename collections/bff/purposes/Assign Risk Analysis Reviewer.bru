@@ -20,7 +20,9 @@ headers {
 
 body:json {
   {
-    "reviewMode": "REVIEWER_WRITES_REVIEWER_SIGNS",
-    "reviewerIds": ["{{reviewerId}}"]
+    "review": {
+      "reviewMode": "REVIEWER_WRITES_REVIEWER_SIGNS",
+      "reviewerIds": ["{{reviewerId}}"]
+    }
   }
 }
