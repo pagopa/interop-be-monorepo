@@ -33,7 +33,6 @@ import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
-  multipleReviewersNotAllowed,
   userWithoutReviewerPrivileges,
   missingSelfcareId,
   purposeFromTemplateCannotBeModified,
@@ -230,6 +229,93 @@ describe("assignRiskAnalysisReviewer", () => {
     vi.useRealTimers();
   });
 
+  it("should write on event-store when multiple reviewers are assigned", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const mockPurposeVersion = getMockPurposeVersion();
+    const mockEService = getMockEService();
+    const mockTenant = getMockTenant();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([mockPurposeVersion]),
+      eserviceId: mockEService.id,
+      consumerId: mockTenant.id,
+    };
+
+    await addOneEService(mockEService);
+    await addOneTenant(mockTenant);
+    await addOnePurpose(mockPurpose);
+
+    const reviewerIds = [generateId<UserId>(), generateId<UserId>()];
+
+    mockSelfcareV2ClientCall([mockSelfCareUser]);
+
+    const ctx = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId),
+    });
+
+    await purposeService.assignRiskAnalysisReviewer(
+      mockPurpose.id,
+      {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds,
+      },
+      ctx
+    );
+
+    expect(
+      selfcareV2Client.getInstitutionUsersByProductUsingGET
+    ).toHaveBeenCalledTimes(reviewerIds.length);
+
+    reviewerIds.forEach((reviewerId) => {
+      expect(
+        selfcareV2Client.getInstitutionUsersByProductUsingGET
+      ).toHaveBeenCalledWith({
+        params: { institutionId: mockTenant.selfcareId },
+        queries: {
+          userId: reviewerId,
+          productRoles: userRole.REVIEWER_ROLE,
+        },
+        headers: {
+          "X-Correlation-Id": ctx.correlationId,
+        },
+      });
+    });
+
+    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "PurposeRiskAnalysisAssigned",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeRiskAnalysisAssignedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedReviewerWorkflow: ReviewerWorkflow = {
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      signingState: RiskAnalysisSigningState.Values.Assigned,
+      sentToReviewerAt: new Date(),
+    };
+
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      reviewerWorkflow: expectedReviewerWorkflow,
+      updatedAt: new Date(),
+    };
+
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+    });
+
+    vi.useRealTimers();
+  });
+
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const randomId: PurposeId = generateId();
 
@@ -292,28 +378,6 @@ describe("assignRiskAnalysisReviewer", () => {
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(reviewerWorkflowConflict(mockPurpose.id));
-  });
-
-  it("should throw multipleReviewersNotAllowed if more than one reviewer are provided", async () => {
-    const mockEService = getMockEService();
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      eserviceId: mockEService.id,
-    };
-
-    await addOneEService(mockEService);
-    await addOnePurpose(mockPurpose);
-
-    expect(
-      purposeService.assignRiskAnalysisReviewer(
-        mockPurpose.id,
-        {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId(), generateId()],
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      )
-    ).rejects.toThrowError(multipleReviewersNotAllowed(mockPurpose.id));
   });
 
   it("should throw missingSelfcareId if the consumer tenant has no selfcareId", async () => {
