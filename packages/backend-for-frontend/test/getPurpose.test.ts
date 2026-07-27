@@ -101,7 +101,6 @@ describe("getPurpose — reviewer enrichment", () => {
     reviewerWorkflow: {
       reviewMode:
         purposeApi.RiskAnalysisReviewMode.Values.REVIEWER_WRITES_REVIEWER_SIGNS,
-      reviewerIds: [reviewerId],
       reviewers: [{ id: reviewerId, sentToReviewerAt }],
       signingState: purposeApi.RiskAnalysisSigningState.Values.ASSIGNED,
     },
@@ -224,7 +223,6 @@ describe("getPurpose — reviewer enrichment", () => {
       ...basePurpose,
       reviewerWorkflow: {
         ...basePurpose.reviewerWorkflow!,
-        reviewerIds: [],
         reviewers: [],
       },
     });
