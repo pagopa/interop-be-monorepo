@@ -4,23 +4,23 @@ import { z } from "zod";
 import { AWSConfig } from "./awsConfig.js";
 import { FeatureFlagConfluentKafkaConfig } from "./featureFlagsConfig.js";
 
-export const KafkaConfig = z
-  .object({
-    KAFKA_BROKERS: z.string().transform((value) => value.split(",")),
-    KAFKA_CLIENT_ID: z.string(),
-    KAFKA_DISABLE_AWS_IAM_AUTH: z.literal("true").optional(),
-    KAFKA_LOG_LEVEL: z
-      .enum(["NOTHING", "ERROR", "WARN", "INFO", "DEBUG"])
-      .default("WARN"),
-    KAFKA_REAUTHENTICATION_THRESHOLD: z
-      .number()
-      .default(20)
-      .transform((n) => n * 1000),
-    KAFKA_BROKER_CONNECTION_STRING: z.string().optional(),
-    MSK_ROLE_ARN: z.string().optional(),
-  })
-  .and(AWSConfig)
-  .and(FeatureFlagConfluentKafkaConfig)
+export const KafkaConfig = AWSConfig.and(FeatureFlagConfluentKafkaConfig)
+  .and(
+    z.object({
+      KAFKA_BROKERS: z.string().transform((value) => value.split(",")),
+      KAFKA_CLIENT_ID: z.string(),
+      KAFKA_DISABLE_AWS_IAM_AUTH: z.literal("true").optional(),
+      KAFKA_LOG_LEVEL: z
+        .enum(["NOTHING", "ERROR", "WARN", "INFO", "DEBUG"])
+        .default("WARN"),
+      KAFKA_REAUTHENTICATION_THRESHOLD: z
+        .number()
+        .default(20)
+        .transform((n) => n * 1000),
+      KAFKA_BROKER_CONNECTION_STRING: z.string().optional(),
+      MSK_ROLE_ARN: z.string().optional(),
+    })
+  )
   .transform((c) => ({
     awsRegion: c.awsRegion,
     featureFlagConfluentKafka: c.featureFlagConfluentKafka,
@@ -31,7 +31,9 @@ export const KafkaConfig = z
     kafkaReauthenticationThreshold: c.KAFKA_REAUTHENTICATION_THRESHOLD,
     kafkaBrokerConnectionString: c.KAFKA_BROKER_CONNECTION_STRING,
     mskAuth:
-      !c.KAFKA_DISABLE_AWS_IAM_AUTH && c.MSK_ROLE_ARN
+      !c.KAFKA_DISABLE_AWS_IAM_AUTH &&
+      c.MSK_ROLE_ARN &&
+      c.featureFlagConfluentKafka
         ? {
             awsRegion: c.awsRegion,
             awsRoleArn: c.MSK_ROLE_ARN,

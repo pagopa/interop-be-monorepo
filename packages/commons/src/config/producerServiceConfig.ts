@@ -38,7 +38,9 @@ export const KafkaProducerConfig = AWSConfig.and(
       c.PRODUCER_KAFKA_BROKER_CONNECTION_STRING,
     producerKafkaTransactionalId: c.PRODUCER_KAFKA_TRANSACTIONAL_ID,
     mskAuth:
-      !c.PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH && c.MSK_ROLE_ARN
+      !c.PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH &&
+      c.MSK_ROLE_ARN &&
+      c.featureFlagConfluentKafka
         ? {
             awsRegion: c.awsRegion,
             awsRoleArn: c.MSK_ROLE_ARN,
