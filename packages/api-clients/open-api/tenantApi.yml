@@ -1702,6 +1702,11 @@ components:
           format: date-time
       required:
         - availabilityTimestamp
+    CertifiedAttributeKind:
+      type: string
+      enum:
+        - CERTIFIED
+        - CERTIFIED_DISCRETE
     CertifiedAttribute:
       type: object
       additionalProperties: false
@@ -1716,11 +1721,14 @@ components:
           format: uuid
         attributeName:
           type: string
+        kind:
+          $ref: "#/components/schemas/CertifiedAttributeKind"
       required:
         - id
         - name
         - attributeId
         - attributeName
+        - kind
     CertifiedAttributes:
       type: object
       additionalProperties: false
