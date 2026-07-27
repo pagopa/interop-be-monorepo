@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   fromTenantV2,
@@ -5,12 +6,12 @@ import {
   NewNotification,
   TenantV2,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import {
   getNotificationRecipients,
   retrieveAttribute,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleCertifiedDiscreteAttributeUpdatedToAssignee(

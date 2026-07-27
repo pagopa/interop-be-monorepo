@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   Attribute,
@@ -9,8 +10,6 @@ import {
   TenantV2,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveAttribute,
@@ -18,6 +17,8 @@ import {
   inAppTemplates,
   verifiedAttributeNotFoundInTenant,
 } from "pagopa-interop-notification-commons";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleVerifiedAttributeRevokedToAssignee(
   tenantV2Msg: TenantV2 | undefined,

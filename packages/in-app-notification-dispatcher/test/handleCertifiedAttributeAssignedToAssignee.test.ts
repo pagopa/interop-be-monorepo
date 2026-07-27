@@ -14,7 +14,6 @@ import {
   attributeKind,
   TenantAttribute,
 } from "pagopa-interop-models";
-import { handleCertifiedAttributeAssignedToAssignee } from "../src/handlers/tenants/handleCertifiedAttributeAssignedToAssignee.js";
 import {
   attributeNotFound,
   attributeOriginUndefined,
@@ -24,7 +23,7 @@ import {
 } from "pagopa-interop-notification-commons";
 import { describe, it, expect, beforeEach, Mock } from "vitest";
 
-import { handleCertifiedAttributeAssignedRevokedToAssignee } from "../src/handlers/tenants/handleCertifiedAttributeAssignedRevokedToAssignee.js";
+import { handleCertifiedAttributeAssignedToAssignee } from "../src/handlers/tenants/handleCertifiedAttributeAssignedToAssignee.js";
 import { addOneAttribute, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleCertifiedAttributeAssignedToAssignee", () => {

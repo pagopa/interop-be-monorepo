@@ -20,14 +20,11 @@ import {
   toTenantV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { match } from "ts-pattern";
-import { handleTenantCertifiedDiscreteAttributeUpdated } from "../src/handlers/tenants/handleTenantCertifiedDiscreteAttributeUpdated.js";
 import { attributeNotFound } from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { handleTenantCertifiedAttributeUpdated } from "../src/handlers/tenants/handleTenantCertifiedAttributeUpdated.js";
+import { handleTenantCertifiedDiscreteAttributeUpdated } from "../src/handlers/tenants/handleTenantCertifiedDiscreteAttributeUpdated.js";
 import {
   addOneAttribute,
   addOneTenant,
