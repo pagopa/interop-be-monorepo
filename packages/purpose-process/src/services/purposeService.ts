@@ -94,7 +94,6 @@ import {
   unableToDetermineTenantKind,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  multipleReviewersNotAllowed,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
@@ -578,10 +577,6 @@ export function purposeServiceBuilder(
 
       const isReviewerWrites =
         seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
-
-      if (seed.reviewerIds.length > 1) {
-        throw multipleReviewersNotAllowed(purposeId);
-      }
 
       const consumer = await retrieveTenant(
         purpose.data.consumerId,
