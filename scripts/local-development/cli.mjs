@@ -81,6 +81,9 @@ const generateSessionToken = async (dataset, state, tenantKey, userId) => {
 };
 
 const requestJson = async (url, { token, method = "GET", body } = {}) => {
+  // This local-only seed intentionally sends version-controlled dataset fields
+  // to the local Interop APIs.
+  // codeql[js/file-access-to-http]
   const response = await fetch(url, {
     method,
     headers: {
@@ -88,6 +91,7 @@ const requestJson = async (url, { token, method = "GET", body } = {}) => {
       "Content-Type": "application/json",
       "X-Correlation-Id": crypto.randomUUID(),
     },
+    // codeql[js/file-access-to-http]
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const text = await response.text();
