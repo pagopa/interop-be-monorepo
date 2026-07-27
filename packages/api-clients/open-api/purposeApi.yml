@@ -1733,11 +1733,6 @@ components:
       properties:
         reviewMode:
           $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
         reviewers:
           type: array
           items:
@@ -1749,12 +1744,8 @@ components:
           format: uuid
         rejectionReason:
           type: string
-        sentToReviewerAt:
-          type: string
-          format: date-time
       required:
         - reviewMode
-        - reviewerIds
         - reviewers
         - signingState
     RiskAnalysisAssignmentSeed:
