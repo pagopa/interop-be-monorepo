@@ -41,12 +41,14 @@ async function handleExit(
 ) {
   try {
     if (e)
-      logger.error(`Error ${type} intercepted. Error: ${JSON.stringify(e)}`);
+      logger.error(
+        `Error ${type} intercepted. Error: ${typeof e === "object" ? JSON.stringify(e) : String(e)}`
+      );
     await consumerOrProducer.disconnect();
     logger.debug("Consumer/Producer disconnected successfully");
   } catch (err) {
     logger.error(
-      `Error during disconnect on ${type}. Error: ${JSON.stringify(err)}`
+      `Error during disconnect on ${type}. Error: ${typeof err === "object" ? JSON.stringify(err) : String(err)}`
     );
   } finally {
     await processExitAndDisconnect({ logger, onShutdown });
