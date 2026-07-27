@@ -213,9 +213,8 @@ async function kafkaCommitMessageOffsets(
   logger: Logger
 ): Promise<void> {
   const { message, partition, topic } = payload;
-  await consumer.commitOffsets([
-    { offset: (Number(message.offset) + 1).toString(), partition, topic },
-  ]);
+  const nextOffset = (BigInt(message.offset) + 1n).toString();
 
-  logger.debug(`Topic message offset ${Number(message.offset) + 1} committed`);
+  await consumer.commitOffsets([{ offset: nextOffset, partition, topic }]);
+  logger.debug(`Topic message offset ${nextOffset} committed`);
 }
