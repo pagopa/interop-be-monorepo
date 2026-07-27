@@ -136,3 +136,7 @@ message PurposeRiskAnalysisRejectedV2 {
 message PurposeRiskAnalysisFormEditedV2 {
   PurposeV2 purpose = 1;
 }
+
+message PurposeRiskAnalysisSelfAssignedV2 {
+  PurposeV2 purpose = 1;
+}
