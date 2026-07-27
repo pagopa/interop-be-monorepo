@@ -16,8 +16,8 @@ starting these commands separately.
 | `pnpm local:seed` | Idempotently creates local tenants and the base published catalog entry through APIs/events |
 | `pnpm local:token -- --tenant comune --user admin` | Prints a local-KMS signed token |
 | `pnpm local:token -- --tenant comune --user admin --output .local-development/frontend-token` | Writes the token used by the frontend |
-| `pnpm infra:start` | Starts infrastructure, waits for readiness, creates Kafka topics, and registers Debezium |
-| `pnpm infra:stop` | Stops containers while preserving named volumes |
+| `pnpm local:infra:start` | Starts infrastructure and prepares it for the frontend runtime |
+| `pnpm local:infra:stop` | Stops frontend infrastructure while preserving named volumes |
 | `pnpm infra:reset` | Stops containers and removes local named volumes |
 
 Tenants: `comune`, `provider`, `impresa`, `certificatore`.
@@ -32,8 +32,9 @@ from old local scripts.
 
 Docker Compose supplies PostgreSQL event store/readmodels, Kafka and
 Zookeeper, Debezium, DynamoDB, Redis, MinIO, local KMS/JWKS, ElasticMQ, Mailpit,
-and the local Selfcare mock. Kafka topics and the Debezium connector are
-created idempotently by `infra:start`.
+and the local Selfcare mock. The frontend-specific infrastructure command
+waits for seed containers, creates Kafka topics, and registers Debezium through
+the shared `infra:start` command.
 
 The Selfcare mock implements the institution, product, institution-user, and
 user lookups used by the BFF. Its source dataset is

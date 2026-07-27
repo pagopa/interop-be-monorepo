@@ -77,9 +77,11 @@
     "infra:stop": "./scripts/infra-stop.sh",
     "infra:destroy": "./scripts/infra-destroy.sh",
     "infra:reset": "./scripts/infra-reset.sh",
+    "local:infra:start": "./scripts/local-development/infra-start.sh",
+    "local:infra:stop": "./scripts/local-development/infra-stop.sh",
     "local:seed": "node scripts/local-development/cli.mjs seed",
     "local:token": "node scripts/local-development/cli.mjs token",
-    "local:start:frontend-full": "./scripts/process-start.frontend-full.local.sh",
+    "local:start:frontend-full": "./scripts/local-development/process-start-frontend-full.sh",
     "prune-dist": "find . -name 'dist' -type d -exec rm -rf {} +",
     "prune-modules": "find . -name 'node_modules' -type d -exec rm -rf {} +",
     "madge": "madge --circular --extensions ts,tsx,js,jsx --ts-config ./tsconfig.json packages"
