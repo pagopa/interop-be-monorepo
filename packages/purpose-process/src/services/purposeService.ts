@@ -51,6 +51,7 @@ import {
   RiskAnalysisId,
   RiskAnalysisReviewMode,
   ReviewerWorkflow,
+  RiskAnalysisReviewer,
   Tenant,
   TenantId,
   TenantKind,
@@ -686,9 +687,13 @@ export function purposeServiceBuilder(
           : purpose.data.riskAnalysisForm,
         reviewerWorkflow: {
           ...workflow,
+          reviewers: workflow.reviewers.map((reviewer) => ({
+            ...reviewer,
+            sentToReviewerAt: now,
+          })),
           signingState: riskAnalysisSigningState.submitted,
           rejectionReason: undefined,
-          sentToReviewerAt: now,
+          sentToReviewerAt: undefined,
         },
         updatedAt: now,
       };
@@ -2757,6 +2762,47 @@ type RiskAnalysisReviewerTransition = {
 };
 
 /**
+ * The three functions below build the reviewers of a workflow, each stamping
+ * `sentToReviewerAt` on a different portion of them: the stamp records when a
+ * reviewer was asked to act on the risk analysis, so it is set exactly when
+ * that reviewer gets notified.
+ *
+ * Here none of them is stamped: in AdminWritesReviewerSigns there is nothing
+ * to sign until the admin submits, so the stamp is set for everybody only at
+ * submit time.
+ */
+const stampNone = (reviewerIds: UserId[]): RiskAnalysisReviewer[] =>
+  reviewerIds.map((id) => ({ id, sentToReviewerAt: undefined }));
+
+/** Everybody gains the writing duty, so everybody is stamped. */
+const stampAll = (
+  reviewerIds: UserId[],
+  sentAt: Date
+): RiskAnalysisReviewer[] =>
+  reviewerIds.map((id) => ({ id, sentToReviewerAt: sentAt }));
+
+/**
+ * Only the reviewers joining the workflow are stamped: for the ones already
+ * in it nothing changed, so they keep the stamp of when they joined.
+ */
+const stampOnlyNew = (
+  reviewerIds: UserId[],
+  previousReviewers: RiskAnalysisReviewer[],
+  sentAt: Date
+): RiskAnalysisReviewer[] =>
+  reviewerIds.map((id) => {
+    const previousReviewer = previousReviewers.find(
+      (reviewer) => reviewer.id === id
+    );
+    return {
+      id,
+      sentToReviewerAt: previousReviewer
+        ? previousReviewer.sentToReviewerAt
+        : sentAt,
+    };
+  });
+
+/**
  * Applies the requested reviewer assignment to the purpose, one branch per
  * transition between the previous and the requested review mode, where the
  * absence of a review means AdminWritesAdminSigns.
@@ -2778,16 +2824,19 @@ function assignRiskAnalysisReviewerLogic(
   updatedPurpose: Purpose;
 } {
   const previousReviewMode = purpose.data.reviewerWorkflow?.reviewMode;
-  const previousReviewers = purpose.data.reviewerWorkflow?.reviewerIds ?? [];
+  const previousReviewers = purpose.data.reviewerWorkflow?.reviewers ?? [];
+  const previousReviewerIds = purpose.data.reviewerWorkflow?.reviewerIds ?? [];
   const requestedReviewers = (review?.reviewerIds ?? []).map((id) =>
     unsafeBrandId<UserId>(id)
   );
   const addedReviewers = requestedReviewers.filter(
-    (id) => !previousReviewers.includes(id)
+    (id) => !previousReviewerIds.includes(id)
   );
-  const removedReviewers = previousReviewers.filter(
+  const removedReviewers = previousReviewerIds.filter(
     (id) => !requestedReviewers.includes(id)
   );
+
+  const now = new Date();
 
   const eventPayload = (
     updatedPurpose: Purpose
@@ -2822,7 +2871,7 @@ function assignRiskAnalysisReviewerLogic(
       toEvent: (updatedPurpose) =>
         toCreateEventPurposeRiskAnalysisSelfAssigned({
           ...eventPayload(updatedPurpose),
-          oldReviewers: previousReviewers,
+          oldReviewers: previousReviewerIds,
         }),
     }))
     /**
@@ -2837,7 +2886,7 @@ function assignRiskAnalysisReviewerLogic(
         toEvent: (updatedPurpose) =>
           toCreateEventPurposeRiskAnalysisSelfAssigned({
             ...eventPayload(updatedPurpose),
-            oldReviewers: previousReviewers,
+            oldReviewers: previousReviewerIds,
           }),
       })
     )
@@ -2855,6 +2904,7 @@ function assignRiskAnalysisReviewerLogic(
         reviewerWorkflow: {
           reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
           reviewerIds: requestedReviewers,
+          reviewers: stampNone(requestedReviewers),
           signingState: riskAnalysisSigningState.draft,
           sentToReviewerAt: undefined,
         },
@@ -2881,6 +2931,7 @@ function assignRiskAnalysisReviewerLogic(
         reviewerWorkflow: {
           reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
           reviewerIds: requestedReviewers,
+          reviewers: stampNone(requestedReviewers),
           signingState: riskAnalysisSigningState.draft,
           sentToReviewerAt: undefined,
         },
@@ -2889,7 +2940,7 @@ function assignRiskAnalysisReviewerLogic(
           toCreateEventPurposeRiskAnalysisWorkflowCreated({
             ...eventPayload(updatedPurpose),
             newReviewers: requestedReviewers,
-            oldReviewers: previousReviewers,
+            oldReviewers: previousReviewerIds,
           }),
       })
     )
@@ -2907,8 +2958,9 @@ function assignRiskAnalysisReviewerLogic(
         reviewerWorkflow: {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: requestedReviewers,
+          reviewers: stampAll(requestedReviewers, now),
           signingState: riskAnalysisSigningState.assigned,
-          sentToReviewerAt: new Date(),
+          sentToReviewerAt: undefined,
         },
         riskAnalysisForm: undefined,
         toEvent: (updatedPurpose) =>
@@ -2933,8 +2985,9 @@ function assignRiskAnalysisReviewerLogic(
         reviewerWorkflow: {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: requestedReviewers,
+          reviewers: stampOnlyNew(requestedReviewers, previousReviewers, now),
           signingState: riskAnalysisSigningState.assigned,
-          sentToReviewerAt: new Date(),
+          sentToReviewerAt: undefined,
         },
         riskAnalysisForm: purpose.data.riskAnalysisForm,
         toEvent: (updatedPurpose) =>
@@ -2951,7 +3004,7 @@ function assignRiskAnalysisReviewerLogic(
     ...purpose.data,
     riskAnalysisForm: transition.riskAnalysisForm,
     reviewerWorkflow: transition.reviewerWorkflow,
-    updatedAt: new Date(),
+    updatedAt: now,
   };
 
   return { event: transition.toEvent(updatedPurpose), updatedPurpose };

@@ -97,9 +97,16 @@ export const PurposeVersion = z.object({
 });
 export type PurposeVersion = z.infer<typeof PurposeVersion>;
 
+export const RiskAnalysisReviewer = z.object({
+  id: UserId,
+  sentToReviewerAt: z.coerce.date().optional(),
+});
+export type RiskAnalysisReviewer = z.infer<typeof RiskAnalysisReviewer>;
+
 export const ReviewerWorkflow = z.object({
   reviewMode: RiskAnalysisReviewMode,
   reviewerIds: z.array(UserId),
+  reviewers: z.array(RiskAnalysisReviewer),
   signingState: RiskAnalysisSigningState,
   signedBy: UserId.optional(),
   rejectionReason: z.string().optional(),

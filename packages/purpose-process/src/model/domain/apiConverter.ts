@@ -324,6 +324,10 @@ const reviewerWorkflowToApiReviewerWorkflow = (
 ): purposeApi.ReviewerWorkflow => ({
   reviewMode: reviewModeToApiReviewMode(workflow.reviewMode),
   reviewerIds: workflow.reviewerIds,
+  reviewers: workflow.reviewers.map((reviewer) => ({
+    id: reviewer.id,
+    sentToReviewerAt: reviewer.sentToReviewerAt?.toJSON(),
+  })),
   signingState: signingStateToApiSigningState(workflow.signingState),
   signedBy: workflow.signedBy,
   rejectionReason: workflow.rejectionReason,

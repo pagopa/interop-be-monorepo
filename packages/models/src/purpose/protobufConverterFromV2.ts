@@ -14,6 +14,7 @@ import {
   PurposeVersionStampsV2,
   PurposeVersionSignedDocumentV2,
   ReviewerWorkflowV2,
+  RiskAnalysisReviewerV2,
   RiskAnalysisReviewModeV2,
   RiskAnalysisSigningStateV2,
 } from "../gen/v2/purpose/purpose.js";
@@ -31,6 +32,7 @@ import {
   PurposeVersionState,
   purposeVersionState,
   ReviewerWorkflow,
+  RiskAnalysisReviewer,
   RiskAnalysisReviewMode,
   riskAnalysisReviewMode,
   RiskAnalysisSigningState,
@@ -157,11 +159,19 @@ export const fromRiskAnalysisSigningStateV2 = (
   }
 };
 
+export const fromRiskAnalysisReviewerV2 = (
+  input: RiskAnalysisReviewerV2
+): RiskAnalysisReviewer => ({
+  id: unsafeBrandId<UserId>(input.id),
+  sentToReviewerAt: bigIntToDate(input.sentToReviewerAt),
+});
+
 export const fromReviewerWorkflowV2 = (
   input: ReviewerWorkflowV2
 ): ReviewerWorkflow => ({
   reviewMode: fromRiskAnalysisReviewModeV2(input.reviewMode),
   reviewerIds: input.reviewerIds.map(unsafeBrandId<UserId>),
+  reviewers: input.reviewers.map(fromRiskAnalysisReviewerV2),
   signingState: fromRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy ? unsafeBrandId<UserId>(input.signedBy) : undefined,
   rejectionReason: input.rejectionReason,

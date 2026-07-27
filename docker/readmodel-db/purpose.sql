@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.risk_analysis_reviewer (
   purpose_id UUID NOT NULL REFERENCES readmodel_purpose.purpose (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
   reviewer_id UUID NOT NULL,
+  sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   PRIMARY KEY (purpose_id, reviewer_id),
   FOREIGN KEY (purpose_id, metadata_version) REFERENCES readmodel_purpose.purpose (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

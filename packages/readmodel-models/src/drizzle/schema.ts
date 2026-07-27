@@ -925,6 +925,10 @@ export const riskAnalysisReviewerInReadmodelPurpose = readmodelPurpose.table(
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     reviewerId: uuid("reviewer_id").notNull(),
+    sentToReviewerAt: timestamp("sent_to_reviewer_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
   },
   (table) => [
     foreignKey({

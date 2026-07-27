@@ -1713,6 +1713,19 @@ components:
         - SUBMITTED
         - SIGNED
         - REJECTED
+    RiskAnalysisReviewer:
+      type: object
+      additionalProperties: false
+      description: A reviewer designated for a purpose risk analysis
+      properties:
+        id:
+          type: string
+          format: uuid
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - id
     ReviewerWorkflow:
       type: object
       additionalProperties: false
@@ -1725,6 +1738,10 @@ components:
           items:
             type: string
             format: uuid
+        reviewers:
+          type: array
+          items:
+            $ref: "#/components/schemas/RiskAnalysisReviewer"
         signingState:
           $ref: "#/components/schemas/RiskAnalysisSigningState"
         signedBy:
@@ -1738,6 +1755,7 @@ components:
       required:
         - reviewMode
         - reviewerIds
+        - reviewers
         - signingState
     RiskAnalysisAssignmentSeed:
       type: object

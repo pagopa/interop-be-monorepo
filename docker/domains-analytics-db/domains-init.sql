@@ -303,6 +303,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_reviewer (
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
   reviewer_id VARCHAR(36) NOT NULL,
+  sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (purpose_id, reviewer_id)
 );
