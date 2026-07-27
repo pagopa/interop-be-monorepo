@@ -32,7 +32,7 @@ export async function checkTopicsExist(
   }
 }
 
-export async function initKafkaAdmin(kafka: Kafka) {
+async function initKafkaAdmin(kafka: Kafka) {
   const admin = kafka.admin();
   await admin.connect();
   // Populate controller broker cache via rd_kafka_metadata — without this,
