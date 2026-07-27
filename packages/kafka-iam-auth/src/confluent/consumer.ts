@@ -11,11 +11,13 @@ import {
 } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 
-import { extractBasicMessageInfo } from "../index.js";
 import { checkTopicsExist } from "./admin.js";
 import { initKafka } from "./kafka.js";
 import { errorEventsListener } from "./listeners.js";
-import { processExitAndDisconnect } from "./utils/utils.js";
+import {
+  extractBasicMessageInfo,
+  processExitAndDisconnect,
+} from "./utils/utils.js";
 
 /**
  * Starts a Kafka consumer and processes messages from the provided topics.
