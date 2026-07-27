@@ -1628,6 +1628,8 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/interface/soap:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1706,6 +1708,8 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/riskAnalysis:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
