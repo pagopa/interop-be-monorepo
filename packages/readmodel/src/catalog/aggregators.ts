@@ -176,7 +176,7 @@ export const aggregateDescriptor = ({
     id: unsafeBrandId(descriptorSQL.id),
     version: descriptorSQL.version,
     docs: [...documentsSQL]
-      .sort((doc1, doc2) => (doc1.name < doc2.name ? -1 : 0))
+      .sort((doc1, doc2) => doc1.name.localeCompare(doc2.name))
       .map(documentSQLtoDocument),
     state: DescriptorState.parse(descriptorSQL.state),
     audience: descriptorSQL.audience,

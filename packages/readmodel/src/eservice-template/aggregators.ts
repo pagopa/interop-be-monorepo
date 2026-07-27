@@ -112,7 +112,7 @@ export const aggregateEServiceTemplateVersion = ({
     id: unsafeBrandId(versionSQL.id),
     version: versionSQL.version,
     docs: [...documentsSQL]
-      .sort((doc1, doc2) => (doc1.name < doc2.name ? -1 : 0))
+      .sort((doc1, doc2) => doc1.name.localeCompare(doc2.name))
       .map(documentSQLtoDocument),
     state: EServiceTemplateVersionState.parse(versionSQL.state),
     voucherLifespan: versionSQL.voucherLifespan,
