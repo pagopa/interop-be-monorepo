@@ -83,21 +83,12 @@ import {
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
   gracePeriodDaysLowerThanDescriptor,
-  noActiveDelegationFound,
-  delegatedArchiveRequestForIncorrectDelegateProducer,
-  delegatedArchivingRequestAlreadyInProgress,
-  delegatedArchivingRequestNotActive,
-  noDelegatedArchivingRequestFound,
 } from "../model/domain/errors.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
-import {
-  calculateProjectedArchivingDateForArchivingRequest,
-  hasActiveArchivingRequest,
-} from "../utilities/archivingRequests.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -960,124 +951,5 @@ export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
         descriptor.archivingSchedule.archivableOn
       );
     }
-  }
-}
-
-export function assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
-  requestDate: Date,
-  eservice: EService,
-  gracePeriodDays: GracePeriodDays
-): void {
-  const { archivableOn: requestedArchivableOn } = calculateArchivableOn(
-    requestDate,
-    gracePeriodDays
-  );
-
-  for (const descriptor of eservice.descriptors) {
-    const projectedArchivableOn =
-      calculateProjectedArchivingDateForArchivingRequest(
-        requestedArchivableOn,
-        descriptor.delegatedArchivingRequest,
-        eservice.id,
-        descriptor.id
-      );
-    if (
-      projectedArchivableOn &&
-      requestedArchivableOn < projectedArchivableOn.archivableOn
-    ) {
-      throw gracePeriodDaysLowerThanDescriptor(
-        eservice.id,
-        descriptor.id,
-        requestedArchivableOn,
-        projectedArchivableOn.archivableOn
-      );
-    }
-  }
-}
-
-export function assertDelegatedEserviceHasAtLeastOneArchivingRequests(
-  eservice: EService
-): void {
-  const archivingRequests = eservice.delegatedArchivingRequest;
-  if (!archivingRequests || archivingRequests.length === 0) {
-    throw noDelegatedArchivingRequestFound(eservice.id);
-  }
-}
-
-export function assertDelegatedEserviceHasActiveArchivingRequests(
-  eservice: EService
-): void {
-  if (!hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
-    throw delegatedArchivingRequestNotActive(eservice.id);
-  }
-}
-
-export function assertDelegatedEserviceHasNoActiveArchivingRequests(
-  eservice: EService
-): void {
-  if (hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
-    throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
-  }
-}
-
-export function assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
-  descriptor: Descriptor,
-  eserviceId: EServiceId
-): void {
-  const archivingRequests = descriptor.delegatedArchivingRequest;
-  if (!archivingRequests || archivingRequests.length === 0) {
-    throw noDelegatedArchivingRequestFound(eserviceId, descriptor.id);
-  }
-}
-
-export function assertDelegatedDescriptorHasActiveArchivingRequests(
-  descriptor: Descriptor,
-  eserviceId: EServiceId
-): void {
-  if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
-    throw delegatedArchivingRequestNotActive(eserviceId, descriptor.id);
-  }
-}
-
-export function assertDelegatedDescriptorHasNoActiveArchivingRequests(
-  descriptor: Descriptor,
-  eserviceId: EServiceId
-): void {
-  if (hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
-    throw delegatedArchivingRequestAlreadyInProgress(eserviceId, descriptor.id);
-  }
-}
-
-export function assertRequesterIsDelegateForArchiving(
-  producerDelegation: Delegation,
-  authData: UIAuthData | M2MAdminAuthData
-): void {
-  if (
-    producerDelegation.kind !== delegationKind.delegatedProducer ||
-    authData.organizationId !== producerDelegation.delegateId
-  ) {
-    throw operationForbidden;
-  }
-}
-
-export function assertDelegatedArchivingRequestDelegationIsStillValid(
-  producerDelegation: Delegation | undefined,
-  archivingRequest:
-    | DelegatedEServiceArchivingRequest
-    | DelegatedDescriptorArchivingRequest,
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
-): asserts producerDelegation is Delegation {
-  if (!producerDelegation) {
-    throw noActiveDelegationFound(eserviceId);
-  }
-  if (
-    producerDelegation.kind !== delegationKind.delegatedProducer ||
-    archivingRequest.requesterId !== producerDelegation.delegateId
-  ) {
-    throw delegatedArchiveRequestForIncorrectDelegateProducer(
-      eserviceId,
-      descriptorId
-    );
   }
 }
