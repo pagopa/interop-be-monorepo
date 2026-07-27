@@ -25,7 +25,8 @@ export const KafkaProducerConfig = AWSConfig.and(
     })
   )
   .transform((c) => ({
-    ...c,
+    awsRegion: c.awsRegion,
+    featureFlagConfluentKafka: c.featureFlagConfluentKafka,
     producerKafkaBrokers: c.PRODUCER_KAFKA_BROKERS,
     producerKafkaClientId: c.PRODUCER_KAFKA_CLIENT_ID,
     producerKafkaDisableAwsIamAuth:

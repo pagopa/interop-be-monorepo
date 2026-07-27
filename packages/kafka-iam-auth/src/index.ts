@@ -315,8 +315,7 @@ const initCustomConsumer = async ({
 // if scaling up/down is required, ensure proper handling of transactional IDs
 export const initProducer = async (
   config: KafkaProducerConfig,
-  topic: string,
-  transactionalId?: string
+  topic: string
 ): Promise<{
   send: (record: Omit<ProducerRecord, "topic">) => Promise<RecordMetadata[]>;
   disconnect: () => Promise<void>;
@@ -346,7 +345,7 @@ export const initProducer = async (
 
     const producer = kafka.producer({
       allowAutoTopicCreation: false,
-      transactionalId: transactionalId ? transactionalId : undefined,
+      transactionalId: config.producerKafkaTransactionalId,
       retry: {
         initialRetryTime: 100,
         maxRetryTime: 3000,
