@@ -43,7 +43,7 @@ user lookups used by the BFF. Its source dataset is
 Docker data is persistent. Use `infra:reset` only when a clean rebuild is
 intended; it deletes this Compose project's local volumes.
 
-The frontend-oriented profile starts backend services without file watching to
-keep the complete stack within typical Docker Desktop memory limits. Set
+The frontend-oriented process set starts backend services without file watching
+to keep the complete stack within typical Docker Desktop memory limits. Set
 `INTEROP_BACKEND_WATCH=true` before startup when working on backend code; this
 uses more memory and may require increasing the Docker VM allocation.
