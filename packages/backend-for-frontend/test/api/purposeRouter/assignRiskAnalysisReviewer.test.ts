@@ -12,8 +12,10 @@ import { api, clients } from "../../vitest.api.setup.js";
 describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
   const mockPurposeId: PurposeId = generateId();
   const defaultBody: bffApi.RiskAnalysisAssignmentSeed = {
-    reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
-    reviewerIds: [generateId()],
+    review: {
+      reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+      reviewerIds: [generateId()],
+    },
   };
 
   beforeEach(() => {
@@ -41,13 +43,26 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
 
   it.each([
     { purposeId: "invalid" as PurposeId },
-    { body: {} },
-    { body: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] } },
-    { body: { reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS", reviewerIds: [] } },
+    { body: { review: {} } },
     {
       body: {
-        reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
-        reviewerIds: ["not-a-uuid"],
+        review: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] },
+      },
+    },
+    {
+      body: {
+        review: {
+          reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+          reviewerIds: [],
+        },
+      },
+    },
+    {
+      body: {
+        review: {
+          reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+          reviewerIds: ["not-a-uuid"],
+        },
       },
     },
     { body: { ...defaultBody, extraField: 1 } },
