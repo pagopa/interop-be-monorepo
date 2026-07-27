@@ -316,7 +316,6 @@ const initCustomConsumer = async ({
 export const initProducer = async (
   config: KafkaProducerConfig,
   topic: string,
-  featureFlagConfluentKafka: boolean,
   transactionalId?: string
 ): Promise<{
   send: (record: Omit<ProducerRecord, "topic">) => Promise<RecordMetadata[]>;
@@ -328,7 +327,8 @@ export const initProducer = async (
     isActive(): boolean;
   }>;
 }> => {
-  if (featureFlagConfluentKafka) return initProducerConfluent(config, topic);
+  if (config.featureFlagConfluentKafka)
+    return initProducerConfluent(config, topic);
 
   try {
     const kafka = initKafka({

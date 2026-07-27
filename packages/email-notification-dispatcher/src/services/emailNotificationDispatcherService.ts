@@ -5,12 +5,7 @@ import { EmailNotificationMessagePayload } from "pagopa-interop-models";
 import { config } from "../config/config.js";
 import { encodeEmailEvent } from "./utils.js";
 
-const producer = await initProducer(
-  config,
-  config.emailDispatchTopic,
-  config.featureFlagConfluentKafka,
-  config.producerKafkaTransactionalId
-);
+const producer = await initProducer(config, config.emailDispatchTopic);
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function emailNotificationDispatcherServiceBuilder() {

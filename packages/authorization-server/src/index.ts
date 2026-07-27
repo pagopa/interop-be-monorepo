@@ -24,13 +24,11 @@ const redisRateLimiter = await initRedisRateLimiter({
 });
 const consumerTokenAuditProducer = await initProducer(
   config,
-  config.consumerTokenAuditingTopic,
-  config.featureFlagConfluentKafka
+  config.consumerTokenAuditingTopic
 );
 const apiTokenAuditProducer = await initProducer(
   config,
-  config.apiTokenAuditingTopic,
-  config.featureFlagConfluentKafka
+  config.apiTokenAuditingTopic
 );
 const fileManager = initFileManager(config);
 

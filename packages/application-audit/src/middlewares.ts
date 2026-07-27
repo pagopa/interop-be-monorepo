@@ -55,11 +55,7 @@ export async function applicationAuditBeginMiddleware(
   serviceName: string,
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
-  const producer = await initProducer(
-    config,
-    config.applicationAuditTopic,
-    config.featureFlagConfluentKafka
-  );
+  const producer = await initProducer(config, config.applicationAuditTopic);
   const queueManager = initQueueManager({
     messageGroupId: "message_group_all_notification",
     logLevel: config.logLevel,
@@ -144,11 +140,7 @@ export async function applicationAuditEndMiddleware(
   serviceName: string,
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
-  const producer = await initProducer(
-    config,
-    config.applicationAuditTopic,
-    config.featureFlagConfluentKafka
-  );
+  const producer = await initProducer(config, config.applicationAuditTopic);
   const queueManager = initQueueManager({
     messageGroupId: "message_group_all_notification",
     logLevel: config.logLevel,
@@ -242,11 +234,7 @@ export async function applicationAuditEndSessionTokenExchangeMiddleware(
   serviceName: string,
   config: ApplicationAuditProducerConfig & JWTConfig
 ): Promise<RequestHandler> {
-  const producer = await initProducer(
-    config,
-    config.applicationAuditTopic,
-    config.featureFlagConfluentKafka
-  );
+  const producer = await initProducer(config, config.applicationAuditTopic);
   const queueManager = initQueueManager({
     messageGroupId: "message_group_all_notification",
     logLevel: config.logLevel,
@@ -363,11 +351,7 @@ export async function applicationAuditAuthorizationServerEndMiddleware(
   serviceName: string,
   config: ApplicationAuditProducerConfig
 ): Promise<RequestHandler> {
-  const producer = await initProducer(
-    config,
-    config.applicationAuditTopic,
-    config.featureFlagConfluentKafka
-  );
+  const producer = await initProducer(config, config.applicationAuditTopic);
   const queueManager = initQueueManager({
     messageGroupId: "message_group_all_notification",
     logLevel: config.logLevel,

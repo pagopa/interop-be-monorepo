@@ -57,11 +57,7 @@ const readModelService = readModelServiceBuilderSQL({
 const templateService = buildHTMLTemplateService();
 registerEmailTemplatePartials(templateService);
 
-const producer = await initProducer(
-  config,
-  config.emailDispatchTopic,
-  config.featureFlagConfluentKafka
-);
+const producer = await initProducer(config, config.emailDispatchTopic);
 const emailSink = emailKafkaSinkBuilder(producer, log);
 const dispatch = dispatchEmailDeliveryBuilder({
   readModelService,

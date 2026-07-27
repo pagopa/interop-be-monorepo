@@ -18,8 +18,7 @@ import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
 
 const producer = await initProducer(
   config,
-  config.eserviceTemplateOutboundTopic,
-  config.featureFlagConfluentKafka
+  config.eserviceTemplateOutboundTopic
 );
 
 async function processMessage({

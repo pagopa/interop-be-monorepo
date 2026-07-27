@@ -17,11 +17,7 @@ import { config } from "./config/config.js";
 import { toOutboundEventV1 } from "./converters/toOutboundEventV1.js";
 import { toOutboundEventV2 } from "./converters/toOutboundEventV2.js";
 
-const producer = await initProducer(
-  config,
-  config.agreementOutboundTopic,
-  config.featureFlagConfluentKafka
-);
+const producer = await initProducer(config, config.agreementOutboundTopic);
 
 async function processMessage({
   message,
