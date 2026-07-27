@@ -35,8 +35,13 @@ export async function checkTopicsExist(
 async function initKafkaAdmin(kafka: Kafka) {
   const admin = kafka.admin();
   await admin.connect();
-  // Populate controller broker cache via rd_kafka_metadata — without this,
-  // admin operations (describeTopics) time out with OAUTHBEARER/SASL_SSL.
-  await admin.listTopics({ timeout: 10000 });
-  return admin;
+  try {
+    // Populate controller broker cache via rd_kafka_metadata — without this,
+    // admin operations (describeTopics) time out with OAUTHBEARER/SASL_SSL.
+    await admin.listTopics({ timeout: 10000 });
+    return admin;
+  } catch (err) {
+    await admin.disconnect().catch(() => undefined);
+    throw err;
+  }
 }
