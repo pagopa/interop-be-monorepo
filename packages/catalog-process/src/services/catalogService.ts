@@ -125,6 +125,7 @@ import {
   eServiceAsyncExchangeNotEnabled,
   templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
+  noDelegationForArchivingRequest,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -240,7 +241,11 @@ import {
   assertEServiceIsInArchiving,
   assertEServiceIsNotAlreadyArchived,
   assertEServiceGracePeriodIsNotLowerThanDescriptors,
+  assertRequesterIsDelegateForArchiving,
+  assertDelegatedEserviceHasNoActiveArchivingRequests,
+  assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors,
 } from "./validators.js";
+import { appendArchivingRequest } from "../utilities/archivingRequests.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -3332,6 +3337,74 @@ export function catalogServiceBuilder(
         toCreateEventEServiceDescriptorRejectedByDelegator(
           eservice.metadata.version,
           descriptor.id,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    // Delegated archiving requests
+    async submitDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      seed: catalogApi.EServiceArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Submitting delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      assertEServiceArchivable(eservice.data);
+      assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        new Date(),
+        eservice.data,
+        seed.gracePeriodDays
+      );
+      assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
+        new Date(),
+        eservice.data,
+        seed.gracePeriodDays
+      );
+
+      const updatedRequests = appendArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        {
+          requestedAt: new Date(),
+          requesterId: authData.organizationId,
+          gracePeriodDays: seed.gracePeriodDays,
+          archivingReason: seed.archivingReason,
+        }
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestedByDelegate(
+          eservice.metadata.version,
           updatedEService,
           correlationId
         )
