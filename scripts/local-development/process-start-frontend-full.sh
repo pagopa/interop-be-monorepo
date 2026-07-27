@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RUNTIME_ROOT="$REPOSITORY_ROOT/.local-development"
 PID_FILE="$RUNTIME_ROOT/frontend-full.pids"
 START_DELAY_SECONDS="${INTEROP_SERVICE_START_DELAY_SECONDS:-2}"
