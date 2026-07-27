@@ -435,6 +435,84 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /eservices/{eServiceId}/approveDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Approve a delegated archiving request for an E-Service
+      operationId: approveDelegatedEServiceArchiving
+      description: Allows the owner (delegator) to approve a delegate's archiving request.
+      responses:
+        "200":
+          description: Delegated archiving request approved.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/rejectDelegatedArchiving:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Reject a delegated archiving request for an E-Service
+      operationId: rejectDelegatedEServiceArchiving
+      description: Allows the owner (delegator) to reject a delegate's archiving request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request rejected.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /templates/eservices/{eServiceId}:
     post:
       security:
@@ -3824,6 +3902,16 @@ components:
       required:
         - archivingReason
         - gracePeriodDays
+    RejectDelegatedArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for an owner to reject a delegated archiving request
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 1
+      required:
+        - rejectionReason
     ForceTargetState:
       type: object
       additionalProperties: false
