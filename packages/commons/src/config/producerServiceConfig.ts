@@ -21,7 +21,7 @@ export const KafkaProducerConfig = AWSConfig.and(
         .transform((n) => n * 1000),
       PRODUCER_KAFKA_BROKER_CONNECTION_STRING: z.string().optional(),
       PRODUCER_KAFKA_TRANSACTIONAL_ID: z.string().optional(),
-      MSK_ROLE_ARN: z.string(),
+      MSK_ROLE_ARN: z.string().optional(),
     })
   )
   .transform((c) => ({
@@ -37,12 +37,13 @@ export const KafkaProducerConfig = AWSConfig.and(
     producerKafkaBrokerConnectionString:
       c.PRODUCER_KAFKA_BROKER_CONNECTION_STRING,
     producerKafkaTransactionalId: c.PRODUCER_KAFKA_TRANSACTIONAL_ID,
-    mskAuth: c.PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH
-      ? undefined
-      : {
-          awsRegion: c.awsRegion,
-          awsRoleArn: c.MSK_ROLE_ARN,
-          awsRoleSessionName: c.PRODUCER_KAFKA_CLIENT_ID,
-        },
+    mskAuth:
+      !c.PRODUCER_KAFKA_DISABLE_AWS_IAM_AUTH && c.MSK_ROLE_ARN
+        ? {
+            awsRegion: c.awsRegion,
+            awsRoleArn: c.MSK_ROLE_ARN,
+            awsRoleSessionName: c.PRODUCER_KAFKA_CLIENT_ID,
+          }
+        : undefined,
   }));
 export type KafkaProducerConfig = z.infer<typeof KafkaProducerConfig>;

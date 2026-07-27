@@ -17,7 +17,7 @@ export const KafkaConfig = z
       .default(20)
       .transform((n) => n * 1000),
     KAFKA_BROKER_CONNECTION_STRING: z.string().optional(),
-    MSK_ROLE_ARN: z.string(),
+    MSK_ROLE_ARN: z.string().optional(),
   })
   .and(AWSConfig)
   .and(FeatureFlagConfluentKafkaConfig)
@@ -30,12 +30,13 @@ export const KafkaConfig = z
     kafkaLogLevel: logLevel[c.KAFKA_LOG_LEVEL],
     kafkaReauthenticationThreshold: c.KAFKA_REAUTHENTICATION_THRESHOLD,
     kafkaBrokerConnectionString: c.KAFKA_BROKER_CONNECTION_STRING,
-    mskAuth: c.KAFKA_DISABLE_AWS_IAM_AUTH
-      ? undefined
-      : {
-          awsRegion: c.awsRegion,
-          awsRoleArn: c.MSK_ROLE_ARN,
-          awsRoleSessionName: c.KAFKA_CLIENT_ID,
-        },
+    mskAuth:
+      !c.KAFKA_DISABLE_AWS_IAM_AUTH && c.MSK_ROLE_ARN
+        ? {
+            awsRegion: c.awsRegion,
+            awsRoleArn: c.MSK_ROLE_ARN,
+            awsRoleSessionName: c.KAFKA_CLIENT_ID,
+          }
+        : undefined,
   }));
 export type KafkaConfig = z.infer<typeof KafkaConfig>;
