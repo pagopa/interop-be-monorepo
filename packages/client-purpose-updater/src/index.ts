@@ -39,6 +39,5 @@ await runConsumer(
   config,
   [config.purposeTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "client-purpose-updater"
 );

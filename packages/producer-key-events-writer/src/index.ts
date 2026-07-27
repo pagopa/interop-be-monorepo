@@ -53,6 +53,5 @@ await runConsumer(
   config,
   [config.authorizationTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "producer-key-events-writer"
 );

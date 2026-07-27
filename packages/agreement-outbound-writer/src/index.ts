@@ -55,9 +55,4 @@ async function processMessage({
   );
 }
 
-await runConsumer(
-  config,
-  [config.agreementTopic],
-  processMessage,
-  config.featureFlagConfluentKafka
-);
+await runConsumer(config, [config.agreementTopic], processMessage);

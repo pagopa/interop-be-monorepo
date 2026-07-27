@@ -60,6 +60,5 @@ await runConsumer(
   config,
   [config.catalogTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "scheduled-notification-scheduler"
 );

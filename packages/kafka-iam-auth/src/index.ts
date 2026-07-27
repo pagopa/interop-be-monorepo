@@ -390,10 +390,9 @@ export const runConsumer = async (
   config: KafkaConsumerConfig,
   topics: string[],
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>,
-  featureFlagConfluentKafka: boolean,
   serviceName?: string
 ): Promise<void> => {
-  if (featureFlagConfluentKafka)
+  if (config.featureFlagConfluentKafka)
     return runConsumerConfluent(config, topics, consumerHandler, serviceName);
 
   try {
@@ -431,10 +430,9 @@ export const runBatchConsumer = async (
   batchConsumerConfig: KafkaBatchConsumerConfig,
   topics: string[],
   consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>,
-  featureFlagConfluentKafka: boolean,
   serviceName?: string
 ): Promise<void> => {
-  if (featureFlagConfluentKafka)
+  if (baseConsumerConfig.featureFlagConfluentKafka)
     return runBatchConsumerConfluent(
       baseConsumerConfig,
       batchConsumerConfig,

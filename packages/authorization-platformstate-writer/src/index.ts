@@ -50,6 +50,5 @@ await runConsumer(
   config,
   [config.authorizationTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "authorization-platformstate-writer"
 );

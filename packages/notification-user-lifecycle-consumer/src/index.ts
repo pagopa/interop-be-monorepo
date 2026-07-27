@@ -31,6 +31,5 @@ const messageProcessor = messageProcessorBuilder(
 await runConsumer(
   config,
   [config.selfcareTopic],
-  messageProcessor.processMessage,
-  config.featureFlagConfluentKafka
+  messageProcessor.processMessage
 );

@@ -44,6 +44,5 @@ await runConsumer(
   config,
   [config.attributeTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "attribute-registry-readmodel-writer-sql"
 );

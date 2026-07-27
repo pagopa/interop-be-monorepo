@@ -97,6 +97,5 @@ await runConsumer(
   config,
   [config.agreementTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "eservice-descriptors-archiver"
 );

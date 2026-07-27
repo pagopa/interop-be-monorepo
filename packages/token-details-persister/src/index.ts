@@ -29,6 +29,5 @@ await runBatchConsumer(
   batchConsumerConfig,
   [config.tokenAuditingTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "token-details-persister"
 );

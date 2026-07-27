@@ -38,6 +38,5 @@ const processor = emailSenderProcessorBuilder(
 await runConsumer(
   config,
   [config.emailDispatchTopic],
-  processor.processMessage,
-  config.featureFlagConfluentKafka
+  processor.processMessage
 );

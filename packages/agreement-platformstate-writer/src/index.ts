@@ -50,6 +50,5 @@ await runConsumer(
   config,
   [config.agreementTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "agreement-platformstate-writer"
 );

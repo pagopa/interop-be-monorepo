@@ -429,6 +429,5 @@ await runConsumer(
     agreementTopic: config.agreementTopic,
     purposeTopic: config.purposeTopic,
   }),
-  config.featureFlagConfluentKafka,
   "notification-email-sender"
 );

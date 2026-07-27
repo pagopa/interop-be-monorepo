@@ -119,6 +119,5 @@ await runConsumer(
     config.authorizationTopic,
   ],
   processMessage,
-  config.featureFlagConfluentKafka,
   "notifier-seeder"
 );

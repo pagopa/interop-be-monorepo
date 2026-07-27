@@ -191,6 +191,5 @@ await runConsumer(
     tenantTopic: config.tenantTopic,
     eserviceTemplateTopic: config.eserviceTemplateTopic,
   }),
-  config.featureFlagConfluentKafka,
   "in-app-notification-dispatcher"
 );

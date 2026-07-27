@@ -70,6 +70,5 @@ await runConsumer(
   config,
   [config.tenantTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "tenant-kind-history-consumer"
 );

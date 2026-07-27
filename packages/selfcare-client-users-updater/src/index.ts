@@ -36,9 +36,4 @@ const processor = selfcareClientUsersUpdaterProcessorBuilder(
   config.interopProduct
 );
 
-await runConsumer(
-  config,
-  [config.selfcareTopic],
-  processor.processMessage,
-  config.featureFlagConfluentKafka
-);
+await runConsumer(config, [config.selfcareTopic], processor.processMessage);

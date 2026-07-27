@@ -156,6 +156,5 @@ await runConsumer(
   config,
   [config.tenantTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "compute-agreements-consumer"
 );

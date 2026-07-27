@@ -61,6 +61,5 @@ await runConsumer(
   config,
   [config.purposeTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "purpose-outbound-writer"
 );

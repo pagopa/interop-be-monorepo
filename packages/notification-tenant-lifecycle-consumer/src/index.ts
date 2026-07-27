@@ -74,6 +74,5 @@ await runConsumer(
   config,
   [config.tenantTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "notification-tenant-lifecycle-consumer"
 );

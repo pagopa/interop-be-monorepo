@@ -51,6 +51,5 @@ await runConsumer(
   config,
   [config.catalogTopic],
   processMessage,
-  config.featureFlagConfluentKafka,
   "catalog-platformstate-writer"
 );

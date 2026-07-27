@@ -25,6 +25,5 @@ await runConsumer(
   config,
   [config.selfcareTopic],
   processor.processMessage,
-  config.featureFlagConfluentKafka,
   "selfcare-onboarding-consumer"
 );
