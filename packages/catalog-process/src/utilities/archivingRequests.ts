@@ -31,7 +31,7 @@ export function appendArchivingRequest<T extends ArchivingRequest>(
   return [...(previousArchivingRequests ?? []), newArchivingRequest];
 }
 
-export function getLatestArchivingRequest<T extends ArchivingRequest>(
+function getLatestArchivingRequest<T extends ArchivingRequest>(
   archivingRequests: T[] | undefined,
   eserviceId: EServiceId,
   descriptorId?: DescriptorId
@@ -45,7 +45,7 @@ export function getLatestArchivingRequest<T extends ArchivingRequest>(
   return latestRequest;
 }
 
-export function getLatestActiveArchivingRequest<T extends ArchivingRequest>(
+function getLatestActiveArchivingRequest<T extends ArchivingRequest>(
   archivingRequests: T[] | undefined,
   eserviceId: EServiceId,
   descriptorId?: DescriptorId
