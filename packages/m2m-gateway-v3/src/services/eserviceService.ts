@@ -17,6 +17,7 @@ import {
 
 import {
   toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiCertifiedDiscreteAttribute,
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
 } from "../api/attributeApiConverter.js";
@@ -1400,6 +1401,43 @@ export function eserviceServiceBuilder(
       };
     },
 
+    async getEserviceDescriptorCertifiedDiscreteAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApiV3.GetCertifiedDiscreteAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributes> {
+      logger.info(
+        `Retrieving Certified Discrete Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
+        await retrieveEServiceById(headers, eserviceId),
+        descriptorId,
+        "certified",
+        { offset, limit },
+        headers
+      );
+
+      return {
+        results: eserviceAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceAttributes.totalCount,
+        },
+      };
+    },
+
     async getEserviceDescriptorDeclaredAttributes(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1486,6 +1524,25 @@ export function eserviceServiceBuilder(
         headers
       );
     },
+    async assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      seed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Assigning Certified Discrete Attributes to Group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+      await assignEServiceDescriptorAttributesToGroup(
+        eserviceId,
+        descriptorId,
+        groupIndex,
+        seed,
+        "certified",
+        headers
+      );
+    },
     async assignEServiceDescriptorDeclaredAttributesToGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1547,6 +1604,36 @@ export function eserviceServiceBuilder(
         attributes: attributes.map((attr) => ({
           groupIndex,
           attribute: toM2MGatewayApiCertifiedAttribute({
+            attribute: attr,
+            logger: ctx.logger,
+          }),
+        })),
+      };
+    },
+
+    async createEServiceDescriptorCertifiedDiscreteAttributesGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroup> {
+      ctx.logger.info(
+        `Creating Certified Discrete Attributes Group for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      const { attributes, groupIndex } =
+        await createEServiceDescriptorAttributesGroup(
+          eserviceId,
+          descriptorId,
+          seed,
+          "certified",
+          ctx
+        );
+
+      return {
+        attributes: attributes.map((attr) => ({
+          groupIndex,
+          attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
             attribute: attr,
             logger: ctx.logger,
           }),
@@ -1663,6 +1750,27 @@ export function eserviceServiceBuilder(
     ): Promise<void> {
       ctx.logger.info(
         `Deleting Certified Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
+      );
+
+      await deleteEServiceDescriptorAttributeFromGroup(
+        eserviceId,
+        descriptorId,
+        groupIndex,
+        attributeId,
+        "certified",
+        ctx
+      );
+    },
+
+    async deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting Certified Discrete Attribute ${attributeId} from group ${groupIndex} for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
       await deleteEServiceDescriptorAttributeFromGroup(
