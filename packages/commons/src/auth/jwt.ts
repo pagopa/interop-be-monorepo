@@ -94,6 +94,10 @@ export const verifyJwtToken = async (
      * This function is a callback used by the `jwt.verify` function to retrieve the public key
      * associated with a given JWT token.
      */
+    // Kid of the key that actually matched the token header, kept to log it
+    // once the verification outcome is known.
+    let verificationKid: string | undefined;
+
     const getSecret: GetPublicKeyOrSecret = (header, callback) => {
       if (!header.kid) {
         return callback(invalidClaim("kid"));
@@ -116,6 +120,7 @@ export const verifyJwtToken = async (
             );
             const signingKey = signingKeys.find((k) => k.kid === header.kid);
             if (signingKey) {
+              verificationKid = signingKey.kid;
               return callback(null, signingKey.getPublicKey());
             }
           } catch (error) {
@@ -138,9 +143,7 @@ export const verifyJwtToken = async (
             const { userId, selfcareId } = extractUserInfoForFailedToken();
             return reject(tokenVerificationFailed(userId, selfcareId));
           }
-          const authenticatedKid = jwt.decode(jwtToken, { complete: true })
-            ?.header.kid;
-          logger.info(`Request authenticated with kid ${authenticatedKid}`);
+          logger.info(`Request authenticated with kid ${verificationKid}`);
           return resolve({ decoded });
         }
       );
