@@ -83,7 +83,12 @@ import {
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
   gracePeriodDaysLowerThanDescriptor,
+  delegatedArchivingRequestAlreadyInProgress,
 } from "../model/domain/errors.js";
+import {
+  calculateProjectedArchivingDateForArchivingRequest,
+  hasActiveArchivingRequest,
+} from "../utilities/archivingRequests.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
@@ -951,5 +956,66 @@ export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
         descriptor.archivingSchedule.archivableOn
       );
     }
+  }
+}
+
+export function assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
+  requestDate: Date,
+  eservice: EService,
+  gracePeriodDays: GracePeriodDays
+): void {
+  const { archivableOn: requestedArchivableOn } = calculateArchivableOn(
+    requestDate,
+    gracePeriodDays
+  );
+
+  for (const descriptor of eservice.descriptors) {
+    const projectedArchivableOn =
+      calculateProjectedArchivingDateForArchivingRequest(
+        requestedArchivableOn,
+        descriptor.delegatedArchivingRequest,
+        eservice.id,
+        descriptor.id
+      );
+    if (
+      projectedArchivableOn &&
+      requestedArchivableOn < projectedArchivableOn.archivableOn
+    ) {
+      throw gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        descriptor.id,
+        requestedArchivableOn,
+        projectedArchivableOn.archivableOn
+      );
+    }
+  }
+}
+
+export function assertDelegatedEserviceHasNoActiveArchivingRequests(
+  eservice: EService
+): void {
+  if (hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasNoActiveArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  if (hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestAlreadyInProgress(eserviceId, descriptor.id);
+  }
+}
+
+export function assertRequesterIsDelegateForArchiving(
+  producerDelegation: Delegation,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    authData.organizationId !== producerDelegation.delegateId
+  ) {
+    throw operationForbidden;
   }
 }
