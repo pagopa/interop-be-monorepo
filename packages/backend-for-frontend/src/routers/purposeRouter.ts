@@ -340,6 +340,7 @@ const purposeRouter = (
       try {
         await purposeService.signRiskAnalysis(
           unsafeBrandId(req.params.purposeId),
+          req.body,
           ctx
         );
 

@@ -1059,6 +1059,12 @@ paths:
     post:
       summary: Sign risk analysis
       operationId: signRiskAnalysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSignSeed"
+        required: true
       responses:
         "200":
           description: Risk analysis signed
@@ -1788,6 +1794,17 @@ components:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
       required:
         - riskAnalysisForm
+    RiskAnalysisSignSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to sign the latest version of a purpose risk analysis
+      properties:
+        metadataVersionToSign:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - metadataVersionToSign
     TenantKind:
       type: string
       description: Tenant Kind
