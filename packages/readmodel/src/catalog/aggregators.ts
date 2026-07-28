@@ -27,6 +27,7 @@ import {
   EServiceAttributeCertifiedDiscrete,
   ArchivingScope,
   TenantKind,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import {
   EServiceDescriptorArchivingScheduleSQL,
@@ -184,7 +185,7 @@ export const aggregateDescriptor = ({
     dailyCallsTotal: descriptorSQL.dailyCallsTotal,
     createdAt: stringToDate(descriptorSQL.createdAt),
     serverUrls: descriptorSQL.serverUrls,
-    serverUrlsDescriptions: descriptorSQL.serverUrlsDescriptions,
+    serverUrlsDescriptions: descriptorSQL.serverUrlsDescriptions ?? undefined,
     attributes: {
       certified: certifiedAttributes,
       declared: declaredAttributes,
@@ -236,6 +237,10 @@ export const aggregateDescriptor = ({
             scope: ArchivingScope.parse(archivingScheduleSQL.scope),
             archivableOn: stringToDate(archivingScheduleSQL.archivableOn),
             startedAt: stringToDate(archivingScheduleSQL.startedAt),
+            // Legacy rows may contain null values before NOT NULL constraints are aligned.
+            gracePeriodDays: GracePeriodDays.catch(90).parse(
+              archivingScheduleSQL.gracePeriodDays
+            ),
           },
         }
       : {}),

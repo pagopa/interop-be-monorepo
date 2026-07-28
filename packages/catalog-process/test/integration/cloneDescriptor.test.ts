@@ -82,11 +82,19 @@ describe("clone descriptor", () => {
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceDocumentsPath}/${interfaceId}/${mockDocument.name}_interface`,
     };
+    const asyncExchangeCallbackInterfaceId = generateId<EServiceDocumentId>();
+    const asyncExchangeCallbackInterfaceDoc: Document = {
+      ...mockDocument,
+      id: asyncExchangeCallbackInterfaceId,
+      name: `${mockDocument.name}_async_callback`,
+      path: `${config.eserviceDocumentsPath}/${asyncExchangeCallbackInterfaceId}/${mockDocument.name}_async_callback`,
+    };
 
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: interfaceDocument,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc,
       docs: [document1, document2],
     };
     const eservice: EService = {
@@ -130,6 +138,17 @@ describe("clone descriptor", () => {
       genericLogger
     );
 
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDoc.id,
+        name: asyncExchangeCallbackInterfaceDoc.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
@@ -139,6 +158,9 @@ describe("clone descriptor", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document2.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDoc.path);
 
     const cloneTimestamp = new Date();
     const newEService = await catalogService.cloneDescriptor(
@@ -181,12 +203,26 @@ describe("clone descriptor", () => {
       ),
       path: writtenPayload.eservice!.descriptors[0].docs[1].path,
     };
+    const expectedAsyncExchangeCallbackInterface: Document = {
+      ...asyncExchangeCallbackInterfaceDoc,
+      id: unsafeBrandId(
+        writtenPayload.eservice!.descriptors[0].asyncExchangeCallbackInterface!
+          .id
+      ),
+      uploadDate: new Date(
+        writtenPayload.eservice!.descriptors[0].asyncExchangeCallbackInterface!
+          .uploadDate
+      ),
+      path: writtenPayload.eservice!.descriptors[0]
+        .asyncExchangeCallbackInterface!.path,
+    };
 
     const expectedDescriptor: Descriptor = {
       ...descriptor,
       id: unsafeBrandId(writtenPayload.eservice!.descriptors[0].id),
       version: "1",
       interface: expectedInterface,
+      asyncExchangeCallbackInterface: expectedAsyncExchangeCallbackInterface,
       createdAt: new Date(
         Number(writtenPayload.eservice?.descriptors[0].createdAt)
       ),
@@ -237,6 +273,14 @@ describe("clone descriptor", () => {
       expectedDocument2.name,
       genericLogger
     );
+    expect(fileManager.copy).toHaveBeenCalledWith(
+      config.s3Bucket,
+      asyncExchangeCallbackInterfaceDoc.path,
+      config.eserviceDocumentsPath,
+      expectedAsyncExchangeCallbackInterface.id,
+      expectedAsyncExchangeCallbackInterface.name,
+      genericLogger
+    );
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedInterface.path);
@@ -246,6 +290,9 @@ describe("clone descriptor", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedDocument2.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(expectedAsyncExchangeCallbackInterface.path);
   });
   it("should truncate cloned eService name to 60 characters when original name plus suffix exceeds limit", async () => {
     vi.spyOn(fileManager, "copy");

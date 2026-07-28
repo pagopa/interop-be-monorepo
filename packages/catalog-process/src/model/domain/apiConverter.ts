@@ -153,7 +153,7 @@ export const documentToApiDocument = (
   uploadDate: document.uploadDate.toJSON(),
 });
 
-export const archivingScheduleScopeToApiArchivingScheduleScope = (
+const archivingScheduleScopeToApiArchivingScheduleScope = (
   input: ArchivingScope
 ): catalogApi.ArchivingScope =>
   match<ArchivingScope, catalogApi.ArchivingScope>(input)
@@ -202,6 +202,7 @@ export const descriptorToApiDescriptor = (
         scope: archivingScheduleScopeToApiArchivingScheduleScope(
           descriptor.archivingSchedule.scope
         ),
+        gracePeriodDays: descriptor.archivingSchedule.gracePeriodDays,
       }
     : undefined,
   asyncExchangeProperties: descriptor.asyncExchangeProperties
