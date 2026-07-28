@@ -1,3 +1,6 @@
+import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
+import { m2mEventApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
@@ -6,8 +9,6 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { ZodiosRouter } from "@zodios/express";
-import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
   AgreementM2MEventId,
   AttributeM2MEventId,
@@ -24,27 +25,27 @@ import {
   unsafeBrandId,
   PurposeTemplateM2MEventId,
 } from "pagopa-interop-models";
-import { m2mEventApi } from "pagopa-interop-api-clients";
-import { M2MEventService } from "../services/m2mEventService.js";
-import { makeApiProblem } from "../model/errors.js";
-import { toApiAttributeM2MEvents } from "../model/attributeM2MEventApiConverter.js";
-import { toApiEServiceM2MEvents } from "../model/eserviceM2MEventApiConverter.js";
+
 import { toApiAgreementM2MEvents } from "../model/agreementM2MEventApiConverter.js";
-import { unsafeBrandDelegationIdParam } from "../model/types.js";
-import { toApiPurposeM2MEvents } from "../model/purposeM2MEventApiConverter.js";
-import {
-  toApiConsumerDelegationM2MEvents,
-  toApiProducerDelegationM2MEvents,
-} from "../model/delegationM2MEventApiConverter.js";
+import { toApiAttributeM2MEvents } from "../model/attributeM2MEventApiConverter.js";
 import {
   toApiClientM2MEvents,
   toApiKeyM2MEvents,
   toApiProducerKeychainM2MEvents,
   toApiProducerKeyM2MEvents,
 } from "../model/authorizationM2MEventApiConverter.js";
-import { toApiTenantM2MEvents } from "../model/tenantM2MEventApiConverter.js";
+import {
+  toApiConsumerDelegationM2MEvents,
+  toApiProducerDelegationM2MEvents,
+} from "../model/delegationM2MEventApiConverter.js";
+import { makeApiProblem } from "../model/errors.js";
+import { toApiEServiceM2MEvents } from "../model/eserviceM2MEventApiConverter.js";
 import { toApiEServiceTemplateM2MEvents } from "../model/eserviceTemplateM2MEventApiConverter.js";
+import { toApiPurposeM2MEvents } from "../model/purposeM2MEventApiConverter.js";
 import { toApiPurposeTemplateM2MEvents } from "../model/purposeTemplateM2MEventApiConverter.js";
+import { toApiTenantM2MEvents } from "../model/tenantM2MEventApiConverter.js";
+import { unsafeBrandDelegationIdParam } from "../model/types.js";
+import { M2MEventService } from "../services/m2mEventService.js";
 
 export const m2mEventRouter = (
   zodiosCtx: ZodiosContext,

@@ -1,7 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
-import path from "path";
 import AdmZip from "adm-zip";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
@@ -11,10 +10,12 @@ import {
   generateId,
   genericError,
 } from "pagopa-interop-models";
+import path from "path";
+
 import { missingInterface } from "../model/errors.js";
-import { verifyExportEligibility } from "../services/validators.js";
-import { retrieveEserviceDescriptor } from "../services/catalogService.js";
 import { ConfigurationEservice } from "../model/types.js";
+import { retrieveEserviceDescriptor } from "../services/catalogService.js";
+import { verifyExportEligibility } from "../services/validators.js";
 
 /*
   FileDocumentsRegistry is a map that contains the following information:

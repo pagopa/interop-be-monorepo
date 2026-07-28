@@ -1,3 +1,4 @@
+import { and, eq, lte } from "drizzle-orm";
 import {
   Descriptor,
   DescriptorId,
@@ -27,7 +28,6 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, lte } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogWriterServiceBuilder(db: DrizzleReturnType) {

@@ -1,16 +1,17 @@
-import { describe, expect, it } from "vitest";
-import {
-  PurposeTemplate,
-  tenantKind,
-  WithMetadata,
-} from "pagopa-interop-models";
 import {
   getMockPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
   getMockCompleteRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test/index.js";
-import { splitPurposeTemplateIntoObjectsSQL } from "../../src/purpose-template/splitters.js";
+import {
+  PurposeTemplate,
+  tenantKind,
+  WithMetadata,
+} from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { aggregatePurposeTemplate } from "../../src/purpose-template/aggregators.js";
+import { splitPurposeTemplateIntoObjectsSQL } from "../../src/purpose-template/splitters.js";
 
 describe("Purpose template aggregator", () => {
   it("should convert complete purpose template SQL objects into a business logic purpose template", () => {

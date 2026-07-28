@@ -1,11 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
 import { bffApi } from "pagopa-interop-api-clients";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { AuthData, userRole } from "pagopa-interop-commons";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
-import { agreementServiceBuilder } from "../src/services/agreementService.js";
+import { describe, expect, it, vi } from "vitest";
+
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
 import { config } from "../src/config/config.js";
+import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("addAgreementConsumerDocument", () => {

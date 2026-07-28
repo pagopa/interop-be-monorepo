@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { describe, expect, it } from "vitest";
+import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
 import {
   Delegation,
   DelegationId,
@@ -7,7 +7,8 @@ import {
   generateId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { getMockDelegation } from "pagopa-interop-commons-test/index.js";
+import { describe, expect, it } from "vitest";
+
 import { upsertDelegation } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { delegationReadModelService } from "./delegationUtils.js";

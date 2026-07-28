@@ -1,13 +1,14 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   PurposeTemplateEventEnvelope,
   fromPurposeTemplateV2,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
+
+import { toPurposeTemplateM2MEventSQL } from "../models/purposeTemplateM2MEventAdapterSQL.js";
+import { createPurposeTemplateM2MEvent } from "../services/event-builders/purposeTemplateM2MEventBuilder.js";
 import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
 import { assertPurposeTemplateExistsInEvent } from "../services/validators.js";
-import { createPurposeTemplateM2MEvent } from "../services/event-builders/purposeTemplateM2MEventBuilder.js";
-import { toPurposeTemplateM2MEventSQL } from "../models/purposeTemplateM2MEventAdapterSQL.js";
 
 export async function handlePurposeTemplateEvent(
   decodedMessage: PurposeTemplateEventEnvelope,

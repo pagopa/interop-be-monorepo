@@ -10,6 +10,7 @@ import {
   tenantFeatureInReadmodelTenant,
   tenantRemoteIdInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
+
 import { TenantSchema } from "../tenant/tenant.js";
 import { TenantCertifiedAttributeSchema } from "../tenant/tenantCertifiedAttribute.js";
 import { TenantCertifiedDiscreteAttributeSchema } from "../tenant/tenantCertifiedDiscreteAttribute.js";

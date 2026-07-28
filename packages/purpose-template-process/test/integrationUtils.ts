@@ -35,9 +35,10 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { afterEach, expect, inject } from "vitest";
+
 import { config } from "../src/config/config.js";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, postgresDB, fileManager, readModelDB } =
   await setupTestContainersVitest(

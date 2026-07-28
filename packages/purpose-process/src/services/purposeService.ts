@@ -63,8 +63,9 @@ import {
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 import { ClientId } from "pagopa-interop-models";
+import { P, match } from "ts-pattern";
+
 import { config } from "../config/config.js";
 import {
   agreementNotFound,

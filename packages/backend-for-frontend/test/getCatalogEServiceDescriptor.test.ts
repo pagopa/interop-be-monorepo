@@ -1,11 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
-import {
-  AttributeId,
-  DescriptorId,
-  EServiceId,
-  generateId,
-  TenantId,
-} from "pagopa-interop-models";
 import {
   agreementApi,
   attributeRegistryApi,
@@ -16,20 +8,30 @@ import {
 } from "pagopa-interop-api-clients";
 import { AuthData } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import {
+  AttributeId,
+  DescriptorId,
+  EServiceId,
+  generateId,
+  TenantId,
+} from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import type {
   AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
-import { catalogServiceBuilder } from "../src/services/catalogService.js";
+
+import * as catalogApiConverter from "../src/api/catalogApiConverter.js";
 import { config } from "../src/config/config.js";
 import { eserviceDescriptorNotFound } from "../src/model/errors.js";
-import * as attributeService from "../src/services/attributeService.js";
-import * as delegationService from "../src/services/delegationService.js";
 import * as agreementService from "../src/services/agreementService.js";
-import * as catalogApiConverter from "../src/api/catalogApiConverter.js";
-import { fileManager, getBffMockContext } from "./utils.js";
+import * as attributeService from "../src/services/attributeService.js";
+import { catalogServiceBuilder } from "../src/services/catalogService.js";
+import * as delegationService from "../src/services/delegationService.js";
 import { getMockCatalogApiEServiceDoc, toApiEServiceDoc } from "./mockUtils.js";
+import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("getCatalogEServiceDescriptor", () => {
   const eServiceId: EServiceId = generateId<EServiceId>();

@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
+
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { TenantDbTable } from "../../model/db/index.js";
+import { TenantCertifiedAttributeSchema } from "../../model/tenant/tenantCertifiedAttribute.js";
 import {
   buildColumnSet,
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-import { TenantCertifiedAttributeSchema } from "../../model/tenant/tenantCertifiedAttribute.js";
-import { TenantDbTable } from "../../model/db/index.js";
 
 export function tenantCertifiedAttributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

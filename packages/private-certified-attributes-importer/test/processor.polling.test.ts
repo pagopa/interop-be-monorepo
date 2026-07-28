@@ -1,10 +1,10 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   InteropHeaders,
   Logger,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { AttributeId, CorrelationId, generateId } from "pagopa-interop-models";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const internalAssignCertifiedAttributeMock = vi.fn();
 const internalRevokeCertifiedAttributeMock = vi.fn();

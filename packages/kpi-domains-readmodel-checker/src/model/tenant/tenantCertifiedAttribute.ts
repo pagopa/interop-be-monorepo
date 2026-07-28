@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { tenantCertifiedAttributeInReadmodelTenant } from "pagopa-interop-readmodel-models";
 import { createSelectSchema } from "drizzle-zod";
+import { tenantCertifiedAttributeInReadmodelTenant } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const TenantCertifiedAttributeSchema = createSelectSchema(
   tenantCertifiedAttributeInReadmodelTenant

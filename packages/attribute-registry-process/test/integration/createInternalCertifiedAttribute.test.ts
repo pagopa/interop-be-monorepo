@@ -15,6 +15,7 @@ import {
   toAttributeV1,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
+
 import { attributeDuplicateByCodeOriginOrName } from "../../src/model/domain/errors.js";
 import {
   addOneTenant,

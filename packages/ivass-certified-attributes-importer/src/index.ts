@@ -10,11 +10,12 @@ import {
   makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+
 import { config } from "./config/config.js";
-import { TenantProcessService } from "./service/tenantProcessService.js";
-import { importAttributes } from "./service/processor.js";
 import { downloadCSV } from "./service/fileDownloader.js";
+import { importAttributes } from "./service/processor.js";
 import { readModelQueriesBuilderSQL } from "./service/readModelQueriesServiceSQL.js";
+import { TenantProcessService } from "./service/tenantProcessService.js";
 
 const correlationId = generateId<CorrelationId>();
 const loggerInstance = logger({

@@ -1,4 +1,5 @@
 /* eslint-disable no-underscore-dangle */
+import { match } from "ts-pattern";
 import {
   ZodTypeAny,
   ZodOptional,
@@ -11,7 +12,6 @@ import {
   ZodBoolean,
   ZodDate,
 } from "zod";
-import { match } from "ts-pattern";
 
 /**
  * Recursively unwraps Zod wrappers (optional, nullable, default, effects)

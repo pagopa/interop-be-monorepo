@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   DescriptorId,
@@ -18,15 +24,9 @@ import {
   Technology,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   documentPrettyNameDuplicate,
@@ -35,11 +35,13 @@ import {
   eServiceNotAnInstance,
   eServiceNotFound,
   eserviceTemplateInterfaceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   interfaceAlreadyExists,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("addEServiceTemplateInstanceInterface", () => {
   beforeEach(() => {
@@ -122,6 +124,15 @@ describe("addEServiceTemplateInstanceInterface", () => {
 
           expect(res.body).toEqual(eServiceToApiEService(eservice));
           expect(res.status).toBe(200);
+          expect(
+            catalogService.addEServiceTemplateInstanceInterface
+          ).toHaveBeenCalledWith(
+            eservice.id,
+            descriptor.id,
+            technology,
+            technology === "Rest" ? restBody : soapBody,
+            expect.anything()
+          );
         }
       );
 
@@ -154,6 +165,14 @@ describe("addEServiceTemplateInstanceInterface", () => {
           expectedStatus: 409,
         },
         { error: interfaceAlreadyExists(descriptor.id), expectedStatus: 409 },
+        {
+          error: eserviceTemplateInterfaceTechnologyMismatch(
+            eservice.templateId!,
+            technology,
+            technology === "Rest" ? "Soap" : "Rest"
+          ),
+          expectedStatus: 409,
+        },
         { error: eServiceNotFound(eservice.id), expectedStatus: 404 },
         {
           error: eServiceDescriptorNotFound(eservice.id, descriptor.id),

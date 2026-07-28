@@ -5,7 +5,6 @@ import {
   getMockAgreementDocument,
   getMockAgreementStamps,
 } from "pagopa-interop-commons-test";
-import { describe, it, expect } from "vitest";
 import {
   Agreement,
   AgreementDocument,
@@ -26,6 +25,8 @@ import {
   AgreementSignedContractSQL,
   AgreementStampSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, it, expect } from "vitest";
+
 import { splitAgreementIntoObjectsSQL } from "../../src/agreement/splitters.js";
 
 describe("Agreement Splitter", () => {

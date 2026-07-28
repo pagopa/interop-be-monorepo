@@ -22,8 +22,22 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { PurposeTemplateService } from "../services/purposeTemplateService.js";
+
+import {
+  annotationDocumentToApiAnnotationDocument,
+  annotationDocumentToApiAnnotationDocumentWithAnswerId,
+  apiPurposeTemplateStateToPurposeTemplateState,
+  eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateToApiEServiceTemplateVersionPurposeTemplate,
+  purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation,
+  purposeTemplateToApiPurposeTemplate,
+  riskAnalysisAnswerToApiRiskAnalysisAnswer,
+  riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate,
+  riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument,
+  riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument,
+} from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { PurposeTemplateService } from "../services/purposeTemplateService.js";
 import {
   activatePurposeTemplateErrorMapper,
   addRiskAnalysisAnswerAnnotationErrorMapper,
@@ -54,19 +68,6 @@ import {
   getRiskAnalysisTemplateSignedDocumentErrorMapper,
   getRiskAnalysisTemplateDocumentErrorMapper,
 } from "../utilities/errorMappers.js";
-import {
-  annotationDocumentToApiAnnotationDocument,
-  annotationDocumentToApiAnnotationDocumentWithAnswerId,
-  apiPurposeTemplateStateToPurposeTemplateState,
-  eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate,
-  eserviceTemplateVersionPurposeTemplateToApiEServiceTemplateVersionPurposeTemplate,
-  purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation,
-  purposeTemplateToApiPurposeTemplate,
-  riskAnalysisAnswerToApiRiskAnalysisAnswer,
-  riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate,
-  riskAnalysisTemplateDocumentToApiRiskAnalysisTemplateDocument,
-  riskAnalysisTemplateSignedDocumentToApiRiskAnalysisTemplateSignedDocument,
-} from "../model/domain/apiConverter.js";
 
 const purposeTemplateRouter = (
   ctx: ZodiosContext,

@@ -1,8 +1,8 @@
-import { Readable } from "stream";
 import crypto from "crypto";
 import { isText } from "istextorbinary";
-import { z } from "zod";
+import { Readable } from "stream";
 import { match } from "ts-pattern";
+import { z } from "zod";
 
 export async function calculateChecksum(stream: Readable): Promise<string> {
   return new Promise((resolve, reject) => {

@@ -1,3 +1,5 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Message } from "@aws-sdk/client-sqs";
 import {
   FileManager,
   initFileManager,
@@ -10,8 +12,7 @@ import {
   RefreshableInteropToken,
   InteropTokenGenerator,
 } from "pagopa-interop-commons";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { Message } from "@aws-sdk/client-sqs";
+
 import { config } from "./config/config.js";
 import { sqsMessageHandler } from "./handlers/sqsMessageHandler.js";
 

@@ -3,7 +3,6 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
 } from "pagopa-interop-commons-test";
-import { beforeEach, afterEach, describe, expect, it } from "vitest";
 import {
   ClientId,
   DescriptorId,
@@ -14,6 +13,8 @@ import {
   InteractionId,
   TenantId,
 } from "pagopa-interop-models";
+import { beforeEach, afterEach, describe, expect, it } from "vitest";
+
 import {
   createInteraction,
   readInteraction,

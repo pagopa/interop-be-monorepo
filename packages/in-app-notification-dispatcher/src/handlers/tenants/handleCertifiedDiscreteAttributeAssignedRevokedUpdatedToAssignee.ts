@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   fromTenantV2,
@@ -5,7 +6,6 @@ import {
   NewNotification,
   TenantV2,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import {
   getNotificationRecipients,
   retrieveAttribute,
@@ -14,6 +14,7 @@ import {
   attributeOriginUndefined,
 } from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 const IMPORTED_ATTRIBUTE_ORIGINS = ["ISTAT"];

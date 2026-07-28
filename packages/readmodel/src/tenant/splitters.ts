@@ -14,7 +14,6 @@ import {
   VerifiedTenantAttribute,
   dateToString,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   TenantCertifiedAttributeSQL,
   TenantCertifiedDiscreteAttributeSQL,
@@ -28,6 +27,7 @@ import {
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
+import { match } from "ts-pattern";
 
 export const splitTenantIntoObjectsSQL = (
   {

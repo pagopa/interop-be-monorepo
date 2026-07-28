@@ -2,15 +2,16 @@
 
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
 import { config } from "../../config/config.js";
+import { DBConnection } from "../../db/db.js";
+import { PurposeDbTable } from "../../model/db/index.js";
+import { PurposeRiskAnalysisFormSchema } from "../../model/purpose/purposeRiskAnalysis.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DBConnection } from "../../db/db.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
-import { PurposeRiskAnalysisFormSchema } from "../../model/purpose/purposeRiskAnalysis.js";
-import { PurposeDbTable } from "../../model/db/index.js";
 
 export function purposeRiskAnalysisFormRepo(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

@@ -1,16 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
+
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { EserviceTemplateDbTable } from "../../model/db/index.js";
+import { EserviceTemplateVersionSchema } from "../../model/eserviceTemplate/eserviceTemplateVersion.js";
 import {
   buildColumnSet,
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-
-import { EserviceTemplateDbTable } from "../../model/db/index.js";
-import { EserviceTemplateVersionSchema } from "../../model/eserviceTemplate/eserviceTemplateVersion.js";
 
 export function eserviceTemplateVersionRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

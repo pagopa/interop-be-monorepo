@@ -7,12 +7,6 @@ import {
   AttributeDbTableReadModel,
 } from "./attribute.js";
 import {
-  CatalogDbPartialTableConfig,
-  CatalogDbPartialTableReadModel,
-  CatalogDbTableConfig,
-  CatalogDbTableReadModel,
-} from "./catalog.js";
-import {
   ClientDbTableConfig,
   ClientDbTableReadModel,
   ProducerKeychainDbTableConfig,
@@ -21,25 +15,31 @@ import {
   ClientDbTablePartialTableReadModel,
 } from "./authorization.js";
 import {
+  CatalogDbPartialTableConfig,
+  CatalogDbPartialTableReadModel,
+  CatalogDbTableConfig,
+  CatalogDbTableReadModel,
+} from "./catalog.js";
+import {
   DelegationDbTableConfig,
   DelegationDbTableReadModel,
 } from "./delegation.js";
-import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
 import { DeletingDbTableConfig, DeletingDbTableReadModel } from "./deleting.js";
 import {
   EserviceTemplateDbTableConfig,
   EserviceTemplateDbTableReadModel,
 } from "./eserviceTemplate.js";
+import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
+import {
+  PurposeTemplateDbTableConfig,
+  PurposeTemplateDbTableReadModel,
+} from "./purposeTemplate.js";
 import {
   TenantDbPartialTableConfig,
   TenantDbTableConfig,
   TenantDbTableReadModel,
   TenantDbPartialTableReadModel,
 } from "./tenant.js";
-import {
-  PurposeTemplateDbTableConfig,
-  PurposeTemplateDbTableReadModel,
-} from "./purposeTemplate.js";
 
 export const PartialDbTable = {
   ...TenantDbPartialTableConfig,
