@@ -51,6 +51,7 @@ import { match, P } from "ts-pattern";
 import { fromApiTenantFeature } from "../model/domain/apiConverter.js";
 import {
   attributeAlreadyRevoked,
+  attributeAlreadyVerified,
   attributeDoesNotBelongToCertifier,
   attributeNotFound,
   attributeNotFoundInTenant,
@@ -1164,6 +1165,15 @@ export function tenantServiceBuilder(
         (attr): attr is VerifiedTenantAttribute =>
           attr.type === tenantAttributeType.VERIFIED && attr.id === attribute.id
       );
+
+      const isAlreadyVerifiedByTenant: boolean =
+        verifiedTenantAttribute?.verifiedBy.some(
+          (verifier) => verifier.id === verifierId
+        ) ?? false;
+
+      if (isAlreadyVerifiedByTenant) {
+        throw attributeAlreadyVerified(tenantId, verifierId, attributeId);
+      }
 
       const updatedTenant: Tenant = {
         ...targetTenant.data,
@@ -2859,35 +2869,18 @@ function buildVerifiedBy(
   producerDelegation: DelegationId | undefined,
   expirationDate: string | undefined
 ): TenantVerifier[] {
-  const hasPreviouslyVerified = verifiers.find((i) => i.id === organizationId);
-  return hasPreviouslyVerified
-    ? verifiers.map((verification) =>
-        verification.id === organizationId
-          ? {
-              id: organizationId,
-              delegationId: producerDelegation,
-              verificationDate: new Date(),
-              expirationDate: expirationDate
-                ? validateExpirationDate(new Date(expirationDate))
-                : undefined,
-              extensionDate: expirationDate
-                ? new Date(expirationDate)
-                : undefined,
-            }
-          : verification
-      )
-    : [
-        ...verifiers,
-        {
-          id: organizationId,
-          delegationId: producerDelegation,
-          verificationDate: new Date(),
-          expirationDate: expirationDate
-            ? validateExpirationDate(new Date(expirationDate))
-            : undefined,
-          extensionDate: expirationDate ? new Date(expirationDate) : undefined,
-        },
-      ];
+  return [
+    ...verifiers,
+    {
+      id: organizationId,
+      delegationId: producerDelegation,
+      verificationDate: new Date(),
+      expirationDate: expirationDate
+        ? validateExpirationDate(new Date(expirationDate))
+        : undefined,
+      extensionDate: expirationDate ? new Date(expirationDate) : undefined,
+    },
+  ];
 }
 
 function assignDeclaredAttribute(
