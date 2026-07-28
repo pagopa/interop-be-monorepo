@@ -4,6 +4,7 @@ import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
+  setMetadataVersionHeader,
   validateAuthorization,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
@@ -549,12 +550,14 @@ const purposeRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
-        const result = await purposeService.getPurpose(
+        const { data: purpose, metadata } = await purposeService.getPurpose(
           unsafeBrandId(req.params.purposeId),
           ctx
         );
 
-        return res.status(200).send(bffApi.Purpose.parse(result));
+        setMetadataVersionHeader(res, metadata);
+
+        return res.status(200).send(bffApi.Purpose.parse(purpose));
       } catch (error) {
         const errorRes = makeApiProblem(
           error,

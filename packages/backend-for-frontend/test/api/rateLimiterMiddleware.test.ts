@@ -26,7 +26,10 @@ describe("rateLimiterMiddleware", () => {
 
   services.purposeService.getPurpose = vi
     .fn()
-    .mockResolvedValue(getMockBffApiPurpose());
+    .mockResolvedValue({
+      data: getMockBffApiPurpose(),
+      metadata: { version: 0 },
+    });
 
   const mockRateLimitByOrganization = vi.fn();
   mockRateLimiter.rateLimitByOrganization = mockRateLimitByOrganization;

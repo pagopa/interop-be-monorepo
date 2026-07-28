@@ -11684,6 +11684,11 @@ paths:
         "200":
           description: Purpose requested
           headers:
+            "X-Metadata-Version":
+              schema:
+                type: integer
+                format: int32
+              description: The version of the retrieved purpose
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
