@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -16,18 +17,23 @@ import {
   delegationKind,
   delegationState,
   EService,
+  gracePeriodDays as gracePeriodDaysValues,
   toEServiceV2,
   operationForbidden,
   generateId,
   EServiceArchivingScheduledV2,
+  GracePeriodDays,
+  ArchivingSchedule,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 
 import {
   eServiceNotFound,
   eserviceArchivingWithActiveOrPendingDelegation,
+  gracePeriodDaysLowerThanDescriptor,
   notValidEServiceState,
 } from "../../src/model/domain/errors.js";
+import { calculateArchivableOn } from "../../src/utilities/dateCalculator.js";
 import {
   addOneDelegation,
   addOneEService,
@@ -40,6 +46,7 @@ describe("schedule archiving of an EService", () => {
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
   const mockArchivingReason = "Test reason";
+  const mockGracePeriodDays = GracePeriodDays.parse(60);
 
   it.each([
     {
@@ -68,6 +75,7 @@ describe("schedule archiving of an EService", () => {
           eservice.id,
           {
             archivingReason: mockArchivingReason,
+            gracePeriodDays: mockGracePeriodDays,
           },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
@@ -99,6 +107,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: mockGracePeriodDays,
         },
       };
 
@@ -113,6 +122,45 @@ describe("schedule archiving of an EService", () => {
         data: expectedEService,
         metadata: { version: parseInt(writtenEvent.version, 10) },
       });
+    }
+  );
+
+  it.each([...gracePeriodDaysValues])(
+    "should compute archivableOn from the requested gracePeriodDays (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const seed: catalogApi.EServiceArchivingSeed = {
+        gracePeriodDays: gracePeriodDaysValue,
+        archivingReason: mockArchivingReason,
+      };
+      const descriptor: Descriptor = {
+        ...mockDescriptor,
+        interface: mockDocument,
+        state: descriptorState.published,
+      };
+      const eservice: EService = {
+        ...mockEService,
+        descriptors: [descriptor],
+      };
+      await addOneEService(eservice);
+
+      const { data } = await catalogService.scheduleEServiceArchiving(
+        eservice.id,
+        seed,
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+      const actualArchivingSchedule = data.descriptors[0].archivingSchedule!;
+      const { archivableOn: expectedArchivableOn } = calculateArchivableOn(
+        actualArchivingSchedule.startedAt,
+        gracePeriodDaysValue
+      );
+
+      expect(actualArchivingSchedule.archivableOn).toEqual(
+        expectedArchivableOn
+      );
+      expect(actualArchivingSchedule.gracePeriodDays).toEqual(
+        gracePeriodDaysValue
+      );
     }
   );
 
@@ -140,10 +188,11 @@ describe("schedule archiving of an EService", () => {
           eservice.id,
           {
             archivingReason: mockArchivingReason,
+            gracePeriodDays: mockGracePeriodDays,
           },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
-      ).rejects.toThrowError(notValidEServiceState(eservice.id));
+      ).rejects.toThrow(notValidEServiceState(eservice.id));
     }
   );
 
@@ -179,6 +228,7 @@ describe("schedule archiving of an EService", () => {
           eservice.id,
           {
             archivingReason: mockArchivingReason,
+            gracePeriodDays: mockGracePeriodDays,
           },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
@@ -210,6 +260,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: mockGracePeriodDays,
         },
       };
 
@@ -230,6 +281,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: mockGracePeriodDays,
         },
       };
 
@@ -284,6 +336,7 @@ describe("schedule archiving of an EService", () => {
           eservice.id,
           {
             archivingReason: mockArchivingReason,
+            gracePeriodDays: mockGracePeriodDays,
           },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
@@ -317,6 +370,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: mockGracePeriodDays,
         },
       };
 
@@ -337,6 +391,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: mockGracePeriodDays,
         },
       };
 
@@ -357,6 +412,85 @@ describe("schedule archiving of an EService", () => {
       });
     }
   );
+
+  it("Should not throw gracePeriodDaysLowerThanDescriptor if the grace period days is equal to the descriptor grace period days", async () => {
+    const activeDescriptor: Descriptor = {
+      ...mockDescriptor,
+      version: "2",
+      state: descriptorState.published,
+    };
+
+    const descriptorArchivingSchedule: ArchivingSchedule = {
+      ...calculateArchivableOn(new Date(), mockGracePeriodDays),
+      scope: "Descriptor",
+    };
+    const archivingDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      version: "1",
+      state: descriptorState.archiving,
+      archivingSchedule: descriptorArchivingSchedule,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [activeDescriptor, archivingDescriptor],
+    };
+    await addOneEService(eservice);
+    await expect(
+      catalogService.scheduleEServiceArchiving(
+        eservice.id,
+        {
+          archivingReason: mockArchivingReason,
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).resolves.not.toThrow();
+  });
+
+  it("Should throw gracePeriodDaysLowerThanDescriptor if the grace period days is lower than the descriptor grace period days", async () => {
+    const activeDescriptor: Descriptor = {
+      ...mockDescriptor,
+      version: "2",
+      state: descriptorState.published,
+    };
+
+    const descriptorArchivingSchedule: ArchivingSchedule = {
+      ...calculateArchivableOn(new Date(), GracePeriodDays.parse(90)),
+      scope: "Descriptor",
+    };
+    const archivingDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      version: "1",
+      state: descriptorState.archiving,
+      archivingSchedule: descriptorArchivingSchedule,
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [activeDescriptor, archivingDescriptor],
+    };
+    const expectedEServiceArchivingSchedule = calculateArchivableOn(
+      new Date(),
+      mockGracePeriodDays
+    );
+    await addOneEService(eservice);
+    await expect(
+      catalogService.scheduleEServiceArchiving(
+        eservice.id,
+        {
+          archivingReason: mockArchivingReason,
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrow(
+      gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        archivingDescriptor.id,
+        expectedEServiceArchivingSchedule.archivableOn,
+        descriptorArchivingSchedule.archivableOn
+      )
+    );
+  });
 
   it.each([descriptorState.draft, descriptorState.waitingForApproval])(
     "should delete previous descriptor version in %s state when archiving is scheduled for an EService",
@@ -386,6 +520,7 @@ describe("schedule archiving of an EService", () => {
           eservice.id,
           {
             archivingReason: mockArchivingReason,
+            gracePeriodDays: mockGracePeriodDays,
           },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         );
@@ -417,6 +552,7 @@ describe("schedule archiving of an EService", () => {
             )
           ),
           scope: "EService",
+          gracePeriodDays: mockGracePeriodDays,
         },
       };
 
@@ -440,10 +576,11 @@ describe("schedule archiving of an EService", () => {
         mockEService.id,
         {
           archivingReason: mockArchivingReason,
+          gracePeriodDays: mockGracePeriodDays,
         },
         getMockContext({ authData: getMockAuthData(mockEService.producerId) })
       )
-    ).rejects.toThrowError(eServiceNotFound(mockEService.id));
+    ).rejects.toThrow(eServiceNotFound(mockEService.id));
   });
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
@@ -462,10 +599,11 @@ describe("schedule archiving of an EService", () => {
         eservice.id,
         {
           archivingReason: mockArchivingReason,
+          gracePeriodDays: mockGracePeriodDays,
         },
         getMockContext({})
       )
-    ).rejects.toThrowError(operationForbidden);
+    ).rejects.toThrow(operationForbidden);
   });
 
   it.each([delegationState.active, delegationState.waitingForApproval])(
@@ -491,12 +629,15 @@ describe("schedule archiving of an EService", () => {
       await expect(
         catalogService.scheduleEServiceArchiving(
           eservice.id,
-          { archivingReason: mockArchivingReason },
+          {
+            archivingReason: mockArchivingReason,
+            gracePeriodDays: mockGracePeriodDays,
+          },
           getMockContext({
             authData: getMockAuthData(eservice.producerId),
           })
         )
-      ).rejects.toThrowError(
+      ).rejects.toThrow(
         eserviceArchivingWithActiveOrPendingDelegation(
           eservice.id,
           delegation.id
