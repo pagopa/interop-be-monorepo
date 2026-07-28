@@ -11,6 +11,7 @@ import {
   getMockEServiceTemplateVersion,
   getMockPurpose,
   getMockPurposeVersion,
+  getMockPurposeTemplate,
   getMockTenant,
   randomArrayItem,
 } from "pagopa-interop-commons-test";
@@ -25,6 +26,8 @@ import {
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   generateId,
+  PurposeTemplate,
+  purposeTemplateState,
   purposeVersionState,
   Tenant,
   TenantId,
@@ -39,6 +42,7 @@ import {
   seedTenants,
   seedDelegations,
   seedEServiceTemplates,
+  seedPurposeTemplate,
   readModelService,
 } from "./utils.js";
 
@@ -449,6 +453,49 @@ describe("read-model-queries.service", () => {
       const result = await readModelService.getEServiceTemplates();
       expect(result).toHaveLength(1);
       expect(result.at(0)?.id).toEqual(eserviceTemplatesData.at(0)?.id);
+    });
+  });
+
+  describe("getPurposeTemplates", async () => {
+    const validPurposeTemplateStates = Object.values(
+      purposeTemplateState
+    ).filter((state) => state !== purposeTemplateState.draft);
+
+    it("should return all purpose templates", async () => {
+      const purposeTemplatesData = [
+        getMockPurposeTemplate(
+          generateId<TenantId>(),
+          randomArrayItem(validPurposeTemplateStates)
+        ),
+      ];
+      await seedPurposeTemplate(purposeTemplatesData);
+
+      const result = await readModelService.getPurposeTemplates();
+      expect(result).toHaveLength(purposeTemplatesData.length);
+    });
+
+    it("should not return draft purpose templates", async () => {
+      const purposeTemplatesData = [
+        getMockPurposeTemplate(
+          generateId<TenantId>(),
+          randomArrayItem(validPurposeTemplateStates)
+        ),
+        getMockPurposeTemplate(
+          generateId<TenantId>(),
+          purposeTemplateState.draft
+        ),
+      ];
+
+      await seedPurposeTemplate(purposeTemplatesData);
+
+      const result = await readModelService.getPurposeTemplates();
+      expect(result).toHaveLength(1);
+      expect(result.at(0)?.state).not.toBe(purposeTemplateState.draft)
+    });
+
+    it("should return empty array if no purpose templates are found", async () => {
+      const result = await readModelService.getPurposeTemplates();
+      expect(result).toHaveLength(0);
     });
   });
 });

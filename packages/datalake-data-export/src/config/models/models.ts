@@ -187,6 +187,6 @@ export const ExportedPurposeTemplate = PurposeTemplate.pick({
   purposeDailyCalls: true,
   createdAt: true,
   handlesPersonalData: true,
-});
+} satisfies StrictPick<PurposeTemplate>);
 
 export type ExportedPurposeTemplate = z.infer<typeof ExportedPurposeTemplate>;
