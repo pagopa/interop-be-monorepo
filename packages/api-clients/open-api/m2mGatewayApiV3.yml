@@ -8370,6 +8370,141 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /tenants/{tenantId}/certifiedDiscreteAttributes:
+    parameters:
+      - name: tenantId
+        in: path
+        description: The Tenant ID of the Certified Discrete Attributes
+        required: true
+        schema:
+          $ref: "#/components/schemas/TenantId"
+    get:
+      tags:
+        - tenants
+      summary: List Tenant Certified Discrete Attributes
+      description: Retrieve a list of Certified Discrete Attributes assigned to the Tenant
+      operationId: getTenantCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Tenant Certified Discrete Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - tenants
+      summary: Assign a Certified Discrete Attribute to a Tenant
+      description: Assign a Certified Discrete Attribute to a Tenant
+      operationId: assignTenantCertifiedDiscreteAttribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantCertifiedDiscreteAttributeSeed"
+        required: true
+      responses:
+        "200":
+          description: Certified Discrete Attribute assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /tenants/{tenantId}/certifiedDiscreteAttributes/{attributeId}:
+    parameters:
+      - name: tenantId
+        in: path
+        description: The Tenant ID of the Certified Discrete Attribute
+        required: true
+        schema:
+          $ref: "#/components/schemas/TenantId"
+      - name: attributeId
+        in: path
+        description: The Certified Discrete Attribute ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    delete:
+      tags:
+        - tenants
+      summary: Revoke a Certified Discrete Attribute from a Tenant
+      description: Revoke a Certified Discrete Attribute from a Tenant
+      operationId: revokeTenantCertifiedDiscreteAttribute
+      responses:
+        "200":
+          description: Certified Discrete Attribute revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /tenants/{tenantId}/verifiedAttributes:
     parameters:
       - name: tenantId
@@ -13885,6 +14020,56 @@ components:
           format: uuid
       required:
         - id
+    TenantCertifiedDiscreteAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        assignedAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - assignedAt
+        - discreteValue
+    TenantCertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    TenantCertifiedDiscreteAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - certifiedDiscreteValue
     TenantDeclaredAttribute:
       type: object
       additionalProperties: false
