@@ -37,9 +37,9 @@ import { calculateArchivableOn } from "../../src/utilities/dateCalculator.js";
 import {
   addOneDelegation,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("schedule archiving of an EService", () => {
   const mockEService = getMockEService();

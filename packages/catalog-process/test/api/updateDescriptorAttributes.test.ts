@@ -37,7 +37,7 @@ import {
   templateInstanceNotAllowed,
   unchangedAttributes,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update authorization test", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);

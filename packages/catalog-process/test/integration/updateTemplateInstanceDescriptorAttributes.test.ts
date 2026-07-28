@@ -30,9 +30,9 @@ import {
 import {
   addOneAttribute,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("updateTemplateInstanceDescriptorAttributes", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);

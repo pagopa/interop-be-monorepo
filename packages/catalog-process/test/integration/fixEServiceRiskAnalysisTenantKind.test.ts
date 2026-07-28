@@ -27,9 +27,9 @@ import {
 import {
   addOneEService,
   addOneTenantKindHistory,
-  catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("fixEServiceRiskAnalysisTenantKind", () => {
   it("should write on event-store for the fix of a risk analysis tenant kind", async () => {

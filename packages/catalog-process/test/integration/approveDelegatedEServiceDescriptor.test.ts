@@ -36,12 +36,12 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneTenant,
   addOneAgreement,
   addOneDelegation,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("publish descriptor (after delegator's approval)", () => {
   const mockEService: EService = { ...getMockEService(), personalData: false };

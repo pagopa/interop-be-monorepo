@@ -36,9 +36,9 @@ import {
   addOneDelegation,
   addOneEService,
   addOneEServiceTemplate,
-  catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("create descriptor", async () => {
   beforeAll(() => {

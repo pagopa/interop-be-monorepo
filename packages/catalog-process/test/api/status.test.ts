@@ -5,7 +5,7 @@ import { Problem } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 
-import { api } from "../vitest.api.setup.js";
+import { api } from "../setup/apiSetup.js";
 
 describe("API GET /status test", () => {
   const { HTTP_STATUS_OK } = constants;

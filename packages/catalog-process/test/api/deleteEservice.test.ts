@@ -14,7 +14,7 @@ import {
   eServiceNotFound,
   eserviceNotInDraftState,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("API /eservices/{eServiceId} authorization test", () => {
   const eservice: EService = getMockEService();

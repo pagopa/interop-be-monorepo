@@ -49,11 +49,11 @@ import {
 import {
   addOneTenant,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
 import { buildRiskAnalysisSeed } from "../mockUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("create risk analysis", () => {
   const mockDescriptor = getMockDescriptor();

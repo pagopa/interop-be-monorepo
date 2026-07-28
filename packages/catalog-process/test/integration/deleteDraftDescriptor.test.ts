@@ -33,13 +33,11 @@ import {
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import {
-  fileManager,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
-  postgresDB,
   addOneDelegation,
 } from "../integrationUtils.js";
+import { catalogService, fileManager, postgresDB } from "../setup/setup.js";
 
 describe("delete draft descriptor", () => {
   const mockDocument = getMockDocument();

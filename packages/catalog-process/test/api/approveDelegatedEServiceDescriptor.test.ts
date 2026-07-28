@@ -25,7 +25,7 @@ import {
   eServiceNotFound,
   missingPersonalDataFlag,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("API /eservices/:eServiceId/descriptors/:descriptorId/approve authorization test", () => {
   const descriptor: Descriptor = {

@@ -21,12 +21,8 @@ import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
 } from "../../src/model/domain/errors.js";
-import {
-  fileManager,
-  addOneEService,
-  catalogService,
-  readLastEserviceEvent,
-} from "../integrationUtils.js";
+import { addOneEService, readLastEserviceEvent } from "../integrationUtils.js";
+import { fileManager, catalogService } from "../setup/setup.js";
 
 describe("delete Document", () => {
   const mockDescriptor = getMockDescriptor();

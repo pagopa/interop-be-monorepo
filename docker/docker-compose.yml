@@ -34,7 +34,7 @@ services:
       - /var/run/postgresql
       - /tmp
     volumes:
-      - ./event-store-init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./event-store-db/event-store-init.sql:/docker-entrypoint-initdb.d/01-init.sql
       - event-store-data:/var/lib/postgresql/data
     image: postgres:14
     ports:

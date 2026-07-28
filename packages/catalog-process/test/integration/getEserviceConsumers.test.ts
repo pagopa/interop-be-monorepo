@@ -18,8 +18,8 @@ import {
   addOneAgreement,
   addOneEService,
   addOneTenant,
-  catalogService,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("get eservice consumers", () => {
   const mockDescriptor = getMockDescriptor();

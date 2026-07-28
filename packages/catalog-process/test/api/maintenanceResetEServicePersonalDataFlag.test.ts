@@ -8,7 +8,7 @@ import {
   eserviceInDraftState,
   eServiceNotFound,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("DELETE /maintenance/eservices/:eServiceId/personalDataFlag", () => {
   const defaultEServiceId = generateId<EServiceId>();

@@ -41,14 +41,12 @@ import {
 } from "../../src/model/domain/constants.js";
 import { eServiceNameDuplicateForProducer } from "../../src/model/domain/errors.js";
 import {
-  catalogService,
-  postgresDB,
   readLastEserviceEvent,
   addOneEService,
   addOneEServiceTemplate,
-  fileManager,
   addOneTenant,
 } from "../integrationUtils.js";
+import { catalogService, postgresDB, fileManager } from "../setup/setup.js";
 
 describe("create eService from template", () => {
   const mockEService = getMockEService();

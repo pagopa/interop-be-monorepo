@@ -20,7 +20,7 @@ import {
   eServiceDescriptorNotFound,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("API /maintenance/eservices/{eServiceId}/descriptors/{descriptorId}/unarchive authorization and logic test", () => {
   const descriptor: Descriptor = {

@@ -24,7 +24,7 @@ import {
   eServiceDescriptorNotFound,
   descriptorAlreadyArchived,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/archive authorization test", () => {
   const descriptor: Descriptor = {

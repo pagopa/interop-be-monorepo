@@ -26,11 +26,8 @@ import {
   eServiceDescriptorNotFound,
   eServiceNotFound,
 } from "../../src/model/domain/errors.js";
-import {
-  addOneDelegation,
-  addOneEService,
-  catalogService,
-} from "../integrationUtils.js";
+import { addOneDelegation, addOneEService } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 const sortByUploadDate = (a: Document, b: Document): number =>
   a.uploadDate.getTime() - b.uploadDate.getTime();

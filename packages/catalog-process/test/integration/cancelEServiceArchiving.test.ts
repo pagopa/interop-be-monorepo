@@ -24,11 +24,8 @@ import {
   eServiceNotFound,
   eserviceNotInArchiving,
 } from "../../src/model/domain/errors.js";
-import {
-  addOneEService,
-  catalogService,
-  readLastEserviceEvent,
-} from "../integrationUtils.js";
+import { addOneEService, readLastEserviceEvent } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("cancel eservice archiving", () => {
   const mockEService = getMockEService();

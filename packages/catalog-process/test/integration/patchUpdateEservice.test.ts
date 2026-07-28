@@ -42,13 +42,12 @@ import {
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
 import {
-  fileManager,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
+import { fileManager, catalogService } from "../setup/setup.js";
 
 describe("patch update eService", () => {
   const mockEService: EService = {

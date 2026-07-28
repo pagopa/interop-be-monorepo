@@ -14,7 +14,8 @@ import {
   attributeNotFound,
 } from "../../src/model/domain/errors.js";
 import { parseAndCheckAttributes } from "../../src/services/catalogService.js";
-import { addOneAttribute, readModelService } from "../integrationUtils.js";
+import { addOneAttribute } from "../integrationUtils.js";
+import { readModelService } from "../setup/setup.js";
 
 describe("parseAndCheckAttributes", () => {
   const certified1 = getMockAttribute("Certified");

@@ -31,11 +31,10 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
-  catalogService,
-  postgresDB,
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
+import { catalogService, postgresDB } from "../setup/setup.js";
 
 describe("update eService flags", () => {
   it("should write on event-store for the update of the eService isConsumerDelegable flag (false -> true)", async () => {

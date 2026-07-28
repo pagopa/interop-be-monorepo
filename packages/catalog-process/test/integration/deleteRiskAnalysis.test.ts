@@ -34,9 +34,9 @@ import {
 import {
   addOneDelegation,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("delete risk analysis", () => {
   const mockDescriptor = getMockDescriptor();

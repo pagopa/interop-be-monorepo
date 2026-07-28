@@ -31,7 +31,7 @@ import {
   templateInstanceNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
   const mockDescriptor = {

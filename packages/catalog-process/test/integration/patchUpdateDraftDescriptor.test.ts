@@ -37,11 +37,11 @@ import {
 import {
   addOneEService,
   addOneAttribute,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("patchUpdateDraftDescriptor", () => {
   const mockDescriptor = getMockDescriptor();

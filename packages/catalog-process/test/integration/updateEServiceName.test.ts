@@ -36,11 +36,11 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("update eService name on published eservice", () => {
   it("should write on event-store for the update of the eService name", async () => {

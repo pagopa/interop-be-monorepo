@@ -36,10 +36,10 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("update Document", () => {
   const mockDescriptor = getMockDescriptor();

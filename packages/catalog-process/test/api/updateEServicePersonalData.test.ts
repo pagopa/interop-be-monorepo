@@ -23,7 +23,7 @@ import {
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
 } from "../../src/model/domain/errors.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("API /eservices/{eServiceId}/personalDataFlag authorization test", () => {
   const descriptor: Descriptor = {

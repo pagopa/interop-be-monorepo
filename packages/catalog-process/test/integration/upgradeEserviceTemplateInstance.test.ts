@@ -43,13 +43,12 @@ import {
   eServiceAlreadyUpgraded,
 } from "../../src/model/domain/errors.js";
 import {
-  fileManager,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
+import { catalogService, fileManager } from "../setup/setup.js";
 
 describe("upgrade eservice template instance", () => {
   const mockEService = getMockEService();

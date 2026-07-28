@@ -32,11 +32,11 @@ import {
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("update eService Instance", () => {
   const mockEService = getMockEService();

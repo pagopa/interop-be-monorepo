@@ -32,9 +32,9 @@ import {
 import {
   addOneAttribute,
   addOneEService,
-  catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("update descriptor certified attribute", () => {
   it("should update dailyCallsPerConsumer and write a dedicated event", async () => {

@@ -40,12 +40,12 @@ import {
 import {
   addOneEService,
   addOneAttribute,
-  catalogService,
   readLastEserviceEvent,
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
 import { buildUpdateDescriptorSeed } from "../mockUtils.js";
+import { catalogService } from "../setup/setup.js";
 
 describe("updateDraftDescriptor", () => {
   const mockDescriptor = getMockDescriptor();

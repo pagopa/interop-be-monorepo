@@ -46,11 +46,10 @@ import {
   addOneAttribute,
   addOneDelegation,
   addOneEService,
-  catalogService,
-  postgresDB,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
+import { catalogService, postgresDB } from "../setup/setup.js";
 
 describe("create descriptor", async () => {
   beforeAll(() => {

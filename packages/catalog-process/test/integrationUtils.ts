@@ -2,7 +2,6 @@ import {
   ReadEvent,
   StoredEvent,
   readLastEventByStreamId,
-  setupTestContainersVitest,
   writeInEventstore,
 } from "pagopa-interop-commons-test";
 import {
@@ -21,11 +20,6 @@ import {
   TenantKind,
 } from "pagopa-interop-models";
 import {
-  catalogReadModelServiceBuilder,
-  eserviceTemplateReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
-import {
   upsertAgreement,
   upsertAttribute,
   upsertDelegation,
@@ -34,50 +28,9 @@ import {
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
-import { inject, afterEach } from "vitest";
 
-import { catalogServiceBuilder } from "../src/services/catalogService.js";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+import { postgresDB, readModelDB, tenantKindHistoryDB } from "./setup/setup.js";
 
-export const {
-  cleanup,
-  postgresDB,
-  fileManager,
-  readModelDB,
-  tenantKindHistoryDB,
-} = await setupTestContainersVitest(
-  inject("eventStoreConfig"),
-  inject("fileManagerConfig"),
-  undefined,
-  undefined,
-  undefined,
-  inject("readModelSQLConfig"),
-  undefined,
-  undefined,
-  undefined,
-  inject("tenantKindHistoryDBConfig")
-);
-
-afterEach(cleanup);
-
-const catalogReadModelServiceSQL = catalogReadModelServiceBuilder(readModelDB);
-const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
-const eserviceTemplateReadModelServiceSQL =
-  eserviceTemplateReadModelServiceBuilder(readModelDB);
-
-export const readModelService = readModelServiceBuilderSQL(
-  readModelDB,
-  catalogReadModelServiceSQL,
-  tenantReadModelServiceSQL,
-  eserviceTemplateReadModelServiceSQL,
-  tenantKindHistoryDB
-);
-
-export const catalogService = catalogServiceBuilder(
-  postgresDB,
-  readModelService,
-  fileManager
-);
 const writeEServiceInEventstore = async (eservice: EService): Promise<void> => {
   const eserviceEvent: EServiceEvent = {
     type: "EServiceAdded",

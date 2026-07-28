@@ -23,7 +23,7 @@ import {
   agreementStateToApiAgreementState,
   descriptorStateToApiEServiceDescriptorState,
 } from "../../src/model/domain/apiConverter.js";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { api, catalogService } from "../setup/apiSetup.js";
 
 describe("API /eservices/{eServiceId}/consumers authorization test", () => {
   const descriptor: Descriptor = {
