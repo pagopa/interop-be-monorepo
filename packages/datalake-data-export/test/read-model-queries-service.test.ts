@@ -26,7 +26,6 @@ import {
   EServiceTemplateVersion,
   eserviceTemplateVersionState,
   generateId,
-  PurposeTemplate,
   purposeTemplateState,
   purposeVersionState,
   Tenant,
