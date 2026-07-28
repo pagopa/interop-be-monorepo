@@ -26,7 +26,6 @@ import {
 import { match } from "ts-pattern";
 import { expect, describe, it, vi, beforeEach, afterEach } from "vitest";
 
-import { config } from "../../src/config/config.js";
 import {
   delegatedArchivingRequestAlreadyInProgress,
   eserviceWithoutValidDescriptors,

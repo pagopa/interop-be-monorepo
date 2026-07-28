@@ -18,6 +18,8 @@ import {
   archivingScope,
   AsyncExchangeProperties,
   AttributeId,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
   Delegation,
   delegationKind,
   delegationState,
@@ -89,15 +91,15 @@ import {
   delegatedArchivingRequestNotActive,
   noDelegatedArchivingRequestFound,
 } from "../model/domain/errors.js";
+import {
+  calculateProjectedArchivingDateForArchivingRequest,
+  hasActiveArchivingRequest,
+} from "../utilities/archivingRequests.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
-import {
-  calculateProjectedArchivingDateForArchivingRequest,
-  hasActiveArchivingRequest,
-} from "../utilities/archivingRequests.js";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
