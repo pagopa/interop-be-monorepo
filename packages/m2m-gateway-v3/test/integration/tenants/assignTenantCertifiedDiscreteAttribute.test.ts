@@ -28,7 +28,7 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("assignTenantCertifiedAttribute", () => {
+describe("assignTenantCertifiedDiscreteAttribute", () => {
   const mockCertifiedDiscreteAttribute1 =
     getMockedApiCertifiedDiscreteTenantAttribute({
       revoked: true,

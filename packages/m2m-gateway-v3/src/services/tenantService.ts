@@ -415,7 +415,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.TenantCertifiedDiscreteAttribute> {
       logger.info(
-        `Assigning certified attribute ${attributeId} to tenant ${tenantId}`
+        `Assigning certified discrete attribute ${attributeId} to tenant ${tenantId}`
       );
 
       const response =

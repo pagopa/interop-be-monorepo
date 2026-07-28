@@ -32,7 +32,7 @@ describe("getTenantCertifiedDiscreteAttributes", () => {
     getMockedApiCertifiedDiscreteTenantAttribute();
   const otherMockedAttributes = generateMock(
     z.array(tenantApi.TenantAttribute)
-  ).filter((attr) => attr.certified === undefined);
+  ).filter((attr) => attr.certifiedDiscrete === undefined);
 
   const mockTenantProcessResponse = getMockWithMetadata(
     getMockedApiTenant({
