@@ -381,7 +381,11 @@ describe("update Document", () => {
     );
   });
 
-  it.each(Object.values(eserviceTemplateVersionState))(
+  it.each(
+    Object.values(eserviceTemplateVersionState).filter(
+      (state) => state !== eserviceTemplateVersionState.deprecated
+    )
+  )(
     "should throw asyncExchangeCallbackInterfaceDocumentNotUpdatable when updating an asyncExchangeCallbackInterface in %s state",
     async (state) => {
       const callbackInterface = getMockDocument();
@@ -416,4 +420,37 @@ describe("update Document", () => {
       );
     }
   );
+
+  it("should throw notValidEServiceTemplateVersionState when updating an asyncExchangeCallbackInterface in deprecated state", async () => {
+    const callbackInterface = getMockDocument();
+    const version: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(
+        generateId<EServiceTemplateVersionId>(),
+        eserviceTemplateVersionState.deprecated
+      ),
+      asyncExchangeCallbackInterface: callbackInterface,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      asyncExchange: true,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    expect(
+      eserviceTemplateService.updateDocument(
+        eserviceTemplate.id,
+        version.id,
+        callbackInterface.id,
+        { prettyName: "updated prettyName" },
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      notValidEServiceTemplateVersionState(
+        version.id,
+        eserviceTemplateVersionState.deprecated
+      )
+    );
+  });
 });
