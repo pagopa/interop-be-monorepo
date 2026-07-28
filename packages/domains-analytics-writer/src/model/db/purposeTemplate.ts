@@ -8,11 +8,11 @@ import {
 } from "pagopa-interop-readmodel-models";
 
 import { PurposeTemplateSchema } from "../purposeTemplate/purposeTemplate.js";
-import { PurposeTemplateRiskAnalysisFormSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisForm.js";
+import { PurposeTemplateEServiceDescriptorSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptor.js";
 import { PurposeTemplateRiskAnalysisAnswerSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswer.js";
 import { PurposeTemplateRiskAnalysisAnswerAnnotationSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.js";
 import { PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.js";
-import { PurposeTemplateEServiceDescriptorSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { PurposeTemplateRiskAnalysisFormSchema } from "../purposeTemplate/purposeTemplateRiskAnalysisForm.js";
 
 export const PurposeTemplateDbTableConfig = {
   purpose_template: PurposeTemplateSchema,

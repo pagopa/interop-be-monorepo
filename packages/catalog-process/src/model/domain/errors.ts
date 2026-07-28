@@ -1,4 +1,7 @@
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidationIssue,
+  dateAtRomeZone,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
@@ -12,6 +15,7 @@ import {
   RiskAnalysisId,
   TenantId,
   TenantKind,
+  Technology,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -83,7 +87,9 @@ const errorCodes = {
   certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
   eserviceDescriptorWithActiveOrPendingDelegation: "0067",
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
-  interfaceDocumentNotUpdatable: "0069",
+  eserviceTemplateInterfaceTechnologyMismatch: "0069",
+  gracePeriodDaysLowerThanDescriptor: "0070",
+  interfaceDocumentNotUpdatable: "0071",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -505,6 +511,18 @@ export function eserviceTemplateInterfaceNotFound(
   });
 }
 
+export function eserviceTemplateInterfaceTechnologyMismatch(
+  eserviceTemplateId: EServiceTemplateId,
+  templateTechnology: Technology,
+  interfaceTechnology: Technology
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${eserviceTemplateId} has technology ${templateTechnology}, which is incompatible with interface technology ${interfaceTechnology}`,
+    code: "eserviceTemplateInterfaceTechnologyMismatch",
+    title: "EService template interface technology mismatch",
+  });
+}
+
 export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `EService template interface data not valid`,
@@ -785,5 +803,18 @@ export function eServiceAlreadyArchived(
     detail: `EService ${eserviceId} is already archived`,
     code: "eServiceAlreadyArchived",
     title: "EService already archived",
+  });
+}
+
+export function gracePeriodDaysLowerThanDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  requestedArchivableOn: Date,
+  expectedArchivableOn: Date
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requested archiving date ${dateAtRomeZone(requestedArchivableOn)} for EService ${eserviceId} cannot be lower than expected archiving date ${dateAtRomeZone(expectedArchivableOn)} already scheduled for Descriptor ${descriptorId}`,
+    code: "gracePeriodDaysLowerThanDescriptor",
+    title: "Grace period days lower than descriptor",
   });
 }

@@ -1,4 +1,8 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import {
+  getMockClient,
+  getMockKey,
+  getMockProducerKeychain,
+} from "pagopa-interop-commons-test";
 import {
   toClientV1,
   ClientAddedV1,
@@ -27,17 +31,14 @@ import {
   ProducerKeychain,
   ProducerKeychainDeletedV2,
 } from "pagopa-interop-models";
-import {
-  getMockClient,
-  getMockKey,
-  getMockProducerKeychain,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, beforeEach } from "vitest";
+
 import { handleAuthorizationMessageV1 } from "../src/handlers/authorization/consumerServiceV1.js";
+import { handleAuthorizationEventMessageV2 } from "../src/handlers/authorization/consumerServiceV2.js";
 import {
   ClientDbTable,
   ProducerKeychainDbTable,
 } from "../src/model/db/authorization.js";
-import { handleAuthorizationEventMessageV2 } from "../src/handlers/authorization/consumerServiceV2.js";
 import {
   dbContext,
   resetTargetTables,

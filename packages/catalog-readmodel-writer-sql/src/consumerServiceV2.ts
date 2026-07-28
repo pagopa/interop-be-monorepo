@@ -5,6 +5,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { CatalogWriterService } from "./catalogWriterService.js";
 
 export async function handleMessageV2(

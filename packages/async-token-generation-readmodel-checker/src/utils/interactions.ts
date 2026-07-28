@@ -1,5 +1,4 @@
 import { dateToSeconds, Logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   AsyncPlatformStatesCatalogEntry,
   Interaction,
@@ -8,6 +7,8 @@ import {
   makePlatformStatesEServiceDescriptorPK,
   PlatformStatesGenericEntry,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import {
   buildAsyncDescriptorMap,
   buildPurposeMaps,

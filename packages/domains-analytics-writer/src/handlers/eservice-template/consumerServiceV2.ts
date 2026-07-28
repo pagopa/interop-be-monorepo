@@ -6,9 +6,10 @@ import {
   fromEServiceTemplateV2,
   genericInternalError,
 } from "pagopa-interop-models";
+import { splitEServiceTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { splitEServiceTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
+
 import { DBContext } from "../../db/db.js";
 import {
   EserviceTemplateItemsSchema,

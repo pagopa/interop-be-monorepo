@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { keyToProducerJWKKey } from "pagopa-interop-commons";
 import {
   getMockKey,
   getMockProducerKeychain,
@@ -15,7 +16,7 @@ import {
   ProducerKeychainDeletedV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { keyToProducerJWKKey } from "pagopa-interop-commons";
+
 import { handleMessageV2 } from "../src/producerKeyConsumerServiceV2.js";
 import {
   producerJWKKeyReadModelService,

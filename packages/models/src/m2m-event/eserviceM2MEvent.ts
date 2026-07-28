@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { EServiceEventV2 } from "../eservice/eserviceEvents.js";
+
 import {
   DelegationId,
   DescriptorId,
@@ -7,6 +7,7 @@ import {
   EServiceM2MEventId,
   TenantId,
 } from "../brandedIds.js";
+import { EServiceEventV2 } from "../eservice/eserviceEvents.js";
 import {
   M2MEventVisibility,
   m2mEventVisibility,

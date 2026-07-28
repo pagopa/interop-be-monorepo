@@ -1,4 +1,10 @@
 /* eslint-disable functional/immutable-data */
+import { agreementApi } from "pagopa-interop-api-clients";
+import {
+  Logger,
+  RefreshableInteropToken,
+  getInteropHeaders,
+} from "pagopa-interop-commons";
 import {
   AgreementEventEnvelopeV1,
   AgreementStamp,
@@ -11,21 +17,15 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import {
-  Logger,
-  RefreshableInteropToken,
-  getInteropHeaders,
-} from "pagopa-interop-commons";
-import { agreementApi } from "pagopa-interop-api-clients";
 
+import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
+import { ContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 import {
   getActiveConsumerAndProducerDelegations,
   retrieveEservice,
   retrieveTenant,
 } from "../service/agreement/agreementService.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
-import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
-import { ContractBuilder } from "../service/agreement/agreementContractBuilder.js";
 
 // eslint-disable-next-line max-params
 export async function handleAgreementMessageV1(

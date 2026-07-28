@@ -44,6 +44,7 @@ import {
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { tokenGenerationReadModelServiceBuilder } from "../src/services/tokenGenerationReadModelService.js";
 import {
   compareReadModelAgreementsWithPlatformStates,
@@ -52,7 +53,6 @@ import {
   compareReadModelPurposesWithPlatformStates,
   getLastAgreement,
   getLastPurposeVersion,
-  getValidDescriptors,
 } from "../src/utils/utils.js";
 import {
   addOneAgreement,
@@ -568,34 +568,6 @@ describe("Token Generation Read Model Checker utils tests", () => {
     };
 
     expect(getLastAgreement([agreement1, agreement2])).toEqual(agreement1);
-  });
-
-  it("getValidDescriptors", () => {
-    const publishedDescriptor = getMockDescriptor(descriptorState.published);
-    const waitingForApprovalDescriptor = getMockDescriptor(
-      descriptorState.waitingForApproval
-    );
-    const deprecatedDescriptor = getMockDescriptor(descriptorState.deprecated);
-    const archivedDescriptor = getMockDescriptor(descriptorState.archived);
-    const suspendedDescriptor = getMockDescriptor(descriptorState.suspended);
-    const draftDescriptor = getMockDescriptor(descriptorState.draft);
-
-    expect(
-      getValidDescriptors([
-        publishedDescriptor,
-        waitingForApprovalDescriptor,
-        deprecatedDescriptor,
-        archivedDescriptor,
-        suspendedDescriptor,
-        draftDescriptor,
-      ])
-    ).toEqual(
-      expect.arrayContaining([
-        publishedDescriptor,
-        deprecatedDescriptor,
-        suspendedDescriptor,
-      ])
-    );
   });
 });
 

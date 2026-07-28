@@ -2,26 +2,27 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+
+import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { EserviceTemplateDbTable, DeletingDbTable } from "../model/db/index.js";
-import { batchMessages } from "../utils/batchHelper.js";
-import {
-  cleaningTargetTables,
-  mergeDeletingCascadeById,
-} from "../utils/sqlQueryHelper.js";
-import { config } from "../config/config.js";
 import {
   EserviceTemplateItemsSchema,
   EserviceTemplateDeletingSchema,
 } from "../model/eserviceTemplate/eserviceTemplate.js";
 import { eserviceTemplateRepository } from "../repository/eserviceTemplate/eserviceTemplate.repository.js";
-import { eserviceTemplateVersionRepository } from "../repository/eserviceTemplate/eserviceTemplateVersion.repository.js";
-import { eserviceTemplateVersionDocumentRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionDocument.repository.js";
-import { eserviceTemplateVersionInterfaceRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionInterface.repository.js";
 import { eserviceTemplateRiskAnalysisRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysis.repository.js";
 import { eserviceTemplateRiskAnalysisAnswerRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.repository.js";
-import { eserviceTemplateVersionAttributeRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionAttribute.repository.js";
+import { eserviceTemplateVersionRepository } from "../repository/eserviceTemplate/eserviceTemplateVersion.repository.js";
 import { eserviceTemplateVersionAsyncExchangePropertiesRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionAsyncExchangeProperties.repository.js";
+import { eserviceTemplateVersionAttributeRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionAttribute.repository.js";
+import { eserviceTemplateVersionDocumentRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionDocument.repository.js";
+import { eserviceTemplateVersionInterfaceRepository } from "../repository/eserviceTemplate/eserviceTemplateVersionInterface.repository.js";
+import { batchMessages } from "../utils/batchHelper.js";
+import {
+  cleaningTargetTables,
+  mergeDeletingCascadeById,
+} from "../utils/sqlQueryHelper.js";
 
 export function eserviceTemplateServiceBuilder(db: DBContext) {
   const templateRepo = eserviceTemplateRepository(db.conn);

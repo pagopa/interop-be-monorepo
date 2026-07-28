@@ -4,9 +4,10 @@ import {
   fromDelegationV2,
   genericInternalError,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import { splitDelegationIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
+
 import { DBContext } from "../../db/db.js";
 import { DelegationItemsSchema } from "../../model/delegation/delegation.js";
 import { delegationServiceBuilder } from "../../service/delegationService.js";

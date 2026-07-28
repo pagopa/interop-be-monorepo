@@ -1,5 +1,6 @@
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
+
 import { assertClientKindIs } from "../utils/validators/clientValidators.js";
 
 export function toGetClientsApiQueryParams(

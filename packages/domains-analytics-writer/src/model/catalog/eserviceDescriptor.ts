@@ -1,18 +1,19 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { eserviceDescriptorInReadmodelCatalog } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
+
+import { EserviceDescriptorArchivingSchema } from "./eserviceDescriptorArchiving.js";
+import { EserviceDescriptorAsyncExchangePropertiesSchema } from "./eserviceDescriptorAsyncExchangeProperties.js";
 import { EserviceDescriptorAttributeSchema } from "./eserviceDescriptorAttribute.js";
 import { EserviceDescriptorDocumentSchema } from "./eserviceDescriptorDocument.js";
 import { EserviceDescriptorInterfaceSchema } from "./eserviceDescriptorInterface.js";
 import { EserviceDescriptorRejectionReasonSchema } from "./eserviceDescriptorRejection.js";
 import { EserviceDescriptorTemplateVersionRefSchema } from "./eserviceDescriptorTemplateVersionRef.js";
-import { EserviceDescriptorArchivingSchema } from "./eserviceDescriptorArchiving.js";
-import { EserviceDescriptorAsyncExchangePropertiesSchema } from "./eserviceDescriptorAsyncExchangeProperties.js";
 
 export const EserviceDescriptorSchema = createSelectSchema(
   eserviceDescriptorInReadmodelCatalog
 )
-  .omit({ audience: true, serverUrls: true })
+  .omit({ audience: true, serverUrls: true, serverUrlsDescriptions: true })
   .extend({
     deleted: z.boolean().default(false).optional(),
     audience: z
@@ -22,6 +23,11 @@ export const EserviceDescriptorSchema = createSelectSchema(
     serverUrls: z
       .array(z.string())
       .transform((val) => JSON.stringify(val))
+      .pipe(z.string()),
+    serverUrlsDescriptions: z
+      .array(z.string())
+      .nullable()
+      .transform((val) => JSON.stringify(val ?? []))
       .pipe(z.string()),
   });
 export type EserviceDescriptorSchema = z.infer<typeof EserviceDescriptorSchema>;

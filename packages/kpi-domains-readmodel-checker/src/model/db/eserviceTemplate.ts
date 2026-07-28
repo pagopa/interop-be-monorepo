@@ -8,14 +8,15 @@ import {
   eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate,
   eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
+
 import { EserviceTemplateSchema } from "../eserviceTemplate/eserviceTemplate.js";
 import { EserviceTemplateRiskAnalysisSchema } from "../eserviceTemplate/eserviceTemplateRiskAnalysis.js";
 import { EserviceTemplateRiskAnalysisAnswerSchema } from "../eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.js";
 import { EserviceTemplateVersionSchema } from "../eserviceTemplate/eserviceTemplateVersion.js";
+import { EserviceTemplateVersionAsyncExchangePropertiesSchema } from "../eserviceTemplate/eserviceTemplateVersionAsyncExchangeProperties.js";
 import { EserviceTemplateVersionAttributeSchema } from "../eserviceTemplate/eserviceTemplateVersionAttribute.js";
 import { EserviceTemplateVersionDocumentSchema } from "../eserviceTemplate/eserviceTemplateVersionDocument.js";
 import { EserviceTemplateVersionInterfaceSchema } from "../eserviceTemplate/eserviceTemplateVersionInterface.js";
-import { EserviceTemplateVersionAsyncExchangePropertiesSchema } from "../eserviceTemplate/eserviceTemplateVersionAsyncExchangeProperties.js";
 
 export const EserviceTemplateDbTableConfig = {
   eservice_template: EserviceTemplateSchema,

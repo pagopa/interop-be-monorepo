@@ -1,9 +1,10 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { delegationInReadmodelDelegation } from "pagopa-interop-readmodel-models";
-import { DelegationStampSchema } from "./delegationStamp.js";
+import { z } from "zod";
+
 import { DelegationContractDocumentSchema } from "./delegationContractDocument.js";
 import { DelegationSignedContractDocumentSchema } from "./delegationSignedContractDocument.js";
+import { DelegationStampSchema } from "./delegationStamp.js";
 
 export const DelegationSchema = createSelectSchema(
   delegationInReadmodelDelegation

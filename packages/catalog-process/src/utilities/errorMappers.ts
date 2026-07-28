@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -698,6 +699,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       "eServiceTemplateWithoutPublishedVersion",
       "invalidEserviceInterfaceFileDetected",
       "interfaceAlreadyExists",
+      "eserviceTemplateInterfaceTechnologyMismatch",
       () => HTTP_STATUS_CONFLICT
     )
     .with(
@@ -822,6 +824,7 @@ export const updateEServiceArchivingStatusErrorMapper = (
     .with(
       "eserviceWithoutValidDescriptors",
       "notValidEServiceState",
+      "gracePeriodDaysLowerThanDescriptor",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

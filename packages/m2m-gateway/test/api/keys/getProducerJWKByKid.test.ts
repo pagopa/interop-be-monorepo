@@ -1,13 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockProducerJWKKey,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, mockKeyService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MProducerKey } from "../../../src/api/keysApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockKeyService } from "../../vitest.api.setup.js";
 
 describe("GET /producerKeys/{keyId} router test", () => {
   const mockKey = getMockProducerJWKKey();

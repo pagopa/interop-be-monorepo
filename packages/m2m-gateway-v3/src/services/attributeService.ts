@@ -1,16 +1,9 @@
-import { WithLogger } from "pagopa-interop-commons";
 import {
   attributeRegistryApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
+import { WithLogger } from "pagopa-interop-commons";
 
-import {
-  isPolledVersionAtLeastResponseVersion,
-  pollResourceWithMetadata,
-} from "../utils/polling.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {
   toGetCertifiedAttributesApiQueryParams,
   toGetDeclaredAttributesApiQueryParams,
@@ -19,6 +12,13 @@ import {
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
 } from "../api/attributeApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 
 export type AttributeService = ReturnType<typeof attributeServiceBuilder>;
 

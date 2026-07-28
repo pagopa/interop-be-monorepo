@@ -12,7 +12,6 @@ import {
   Tenant,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
@@ -22,8 +21,10 @@ import {
   retrieveTenant,
   descriptorNotFound,
 } from "pagopa-interop-notification-commons";
-import { HandlerCommonParams } from "../../models/handlerParams.js";
+import { match, P } from "ts-pattern";
+
 import { config } from "../../config/config.js";
+import { HandlerCommonParams } from "../../models/handlerParams.js";
 
 /* These events have been grouped under
  * a single handler because of their shared

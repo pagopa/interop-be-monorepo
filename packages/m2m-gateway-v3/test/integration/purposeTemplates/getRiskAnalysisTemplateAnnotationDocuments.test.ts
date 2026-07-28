@@ -1,18 +1,19 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   m2mGatewayApiV3,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
-import { generateId, PurposeTemplateId } from "pagopa-interop-models";
 import { getMockedApiRiskAnalysisTemplateAnnotationDocumentWithAnswerId } from "pagopa-interop-commons-test/index.js";
+import { generateId, PurposeTemplateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeTemplateService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 
 describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
   const mockQueryParams: m2mGatewayApiV3.GetRiskAnalysisTemplateAnnotationDocumentsQueryParams =

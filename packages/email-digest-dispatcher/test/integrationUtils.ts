@@ -1,4 +1,5 @@
 /* eslint-disable functional/no-let */
+import { logger } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   getMockTenant,
@@ -41,7 +42,6 @@ import {
   PurposeVersionState,
   tenantFeatureType,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   upsertAgreement,
   upsertEService,
@@ -50,7 +50,8 @@ import {
   upsertAttribute,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
-import { logger } from "pagopa-interop-commons";
+import { afterEach, inject } from "vitest";
+
 import { readModelServiceBuilder } from "../src/services/readModelService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

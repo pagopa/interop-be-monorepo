@@ -1,17 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { ProducerKeychainEServiceSchema } from "../../model/authorization/producerKeychainEService.js";
+import { ProducerKeychainDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-
-import { ProducerKeychainDbTable } from "../../model/db/index.js";
-
-import { ProducerKeychainEServiceSchema } from "../../model/authorization/producerKeychainEService.js";
 
 export function producerKeychainEServiceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;
