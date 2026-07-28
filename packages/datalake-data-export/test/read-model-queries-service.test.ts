@@ -489,7 +489,7 @@ describe("read-model-queries.service", () => {
 
       const result = await readModelService.getPurposeTemplates();
       expect(result).toHaveLength(1);
-      expect(result.at(0)?.state).not.toBe(purposeTemplateState.draft)
+      expect(result.at(0)?.state).not.toBe(purposeTemplateState.draft);
     });
 
     it("should return empty array if no purpose templates are found", async () => {
