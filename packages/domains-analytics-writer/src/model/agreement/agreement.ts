@@ -1,11 +1,12 @@
-import { z } from "zod";
 import { createSelectSchema } from "drizzle-zod";
 import { agreementInReadmodelAgreement } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
+
 import { AgreementAttributeSchema } from "./agreementAttribute.js";
 import { AgreementConsumerDocumentSchema } from "./agreementConsumerDocument.js";
 import { AgreementContractSchema } from "./agreementContract.js";
-import { AgreementStampSchema } from "./agreementStamp.js";
 import { AgreementSignedContractSchema } from "./agreementSignedContract.js";
+import { AgreementStampSchema } from "./agreementStamp.js";
 
 export const AgreementSchema = createSelectSchema(
   agreementInReadmodelAgreement

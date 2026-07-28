@@ -1,4 +1,4 @@
-import { match } from "ts-pattern";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -21,11 +21,19 @@ import {
   NotificationConfig,
   UserRole,
 } from "pagopa-interop-models";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
 import {
   NotificationConfigReadModelService,
   TenantReadModelService,
 } from "pagopa-interop-readmodel";
+import { match } from "ts-pattern";
+
+import {
+  notificationConfigNotAllowedForUserRoles,
+  tenantNotificationConfigAlreadyExists,
+  tenantNotificationConfigNotFound,
+  userNotificationConfigNotFound,
+  userRoleNotInUserNotificationConfig,
+} from "../model/domain/errors.js";
 import {
   toCreateEventTenantNotificationConfigCreated,
   toCreateEventTenantNotificationConfigDeleted,
@@ -36,13 +44,6 @@ import {
   toCreateEventUserNotificationConfigRoleRemoved,
   toCreateEventUserNotificationConfigUpdated,
 } from "../model/domain/toEvent.js";
-import {
-  notificationConfigNotAllowedForUserRoles,
-  tenantNotificationConfigAlreadyExists,
-  tenantNotificationConfigNotFound,
-  userNotificationConfigNotFound,
-  userRoleNotInUserNotificationConfig,
-} from "../model/domain/errors.js";
 
 const defaultNotificationConfigs = {
   tenant: {
@@ -58,6 +59,7 @@ const defaultNotificationConfigs = {
       clientAddedRemovedToProducer: false,
       purposeStatusChangedToProducer: false,
       templateStatusChangedToProducer: false,
+      eserviceStateChangedToProducer: false,
       agreementSuspendedUnsuspendedToConsumer: false,
       eserviceStateChangedToConsumer: false,
       agreementActivatedRejectedToConsumer: false,
@@ -83,6 +85,7 @@ const defaultNotificationConfigs = {
       clientAddedRemovedToProducer: false,
       purposeStatusChangedToProducer: false,
       templateStatusChangedToProducer: false,
+      eserviceStateChangedToProducer: false,
       agreementSuspendedUnsuspendedToConsumer: false,
       eserviceStateChangedToConsumer: false,
       agreementActivatedRejectedToConsumer: false,

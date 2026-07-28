@@ -14,14 +14,13 @@
     "lint": "eslint .",
     "lint:autofix": "eslint . --fix",
     "start": "tsx -r 'dotenv-flow/config' --watch  ./src/index.ts",
-    "build": "tsc && pnpm cpx './src/resources/**/*' './dist/resources'",
+    "build": "tsc",
     "check": "tsc --project tsconfig.check.json"
   },
   "keywords": [],
   "devDependencies": {
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
-    "cpx2": "catalog:",
     "pagopa-interop-commons-test": "workspace:*",
     "eslint": "catalog:",
     "pagopa-interop-eslint-config": "workspace:*",
@@ -36,6 +35,7 @@
     "kafkajs": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-notification-commons": "workspace:*",
     "pagopa-interop-readmodel": "workspace:*",
     "pagopa-interop-readmodel-models": "workspace:*",
     "pg": "catalog:",

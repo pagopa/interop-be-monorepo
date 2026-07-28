@@ -37,5 +37,9 @@ export const toUserRoleV2 = (input: UserRole): UserRoleV2 => {
       return UserRoleV2.SECURITY;
     case userRole.SUPPORT_ROLE:
       return UserRoleV2.SUPPORT;
+    case userRole.REVIEWER_ROLE:
+      return UserRoleV2.REVIEWER;
+    case userRole.VIEWER_ROLE:
+      return UserRoleV2.VIEWER;
   }
 };

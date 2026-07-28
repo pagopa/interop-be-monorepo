@@ -4,17 +4,18 @@ import {
   genericInternalError,
   TenantEventEnvelopeV1,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import { splitTenantIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
+
 import { DBContext } from "../../db/db.js";
-import { tenantServiceBuilder } from "../../service/tenantService.js";
 import {
   TenantItemsSchema,
   TenantDeletingSchema,
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../../model/tenant/tenantMail.js";
+import { tenantServiceBuilder } from "../../service/tenantService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleTenantMessageV1(
@@ -58,6 +59,9 @@ export async function handleTenantMessageV1(
               verifiedAttributeRevokersSQL:
                 splitResult.verifiedAttributeRevokersSQL,
               featuresSQL: splitResult.featuresSQL,
+              remoteIdsSQL: splitResult.remoteIdsSQL,
+              certifiedDiscreteAttributesSQL:
+                splitResult.certifiedDiscreteAttributesSQL,
             } satisfies z.input<typeof TenantItemsSchema>)
           );
         }

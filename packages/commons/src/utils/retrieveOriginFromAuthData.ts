@@ -1,5 +1,6 @@
 import { TenantId, Tenant } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import { UIAuthData, M2MAdminAuthData } from "../auth/authData.js";
 import { isUiAuthData, authRole } from "../auth/authorization.js";
 

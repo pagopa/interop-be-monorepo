@@ -79,5 +79,9 @@ const fromUserRoleV2 = (input: UserRoleV2): UserRole => {
       return userRole.SECURITY_ROLE;
     case UserRoleV2.SUPPORT:
       return userRole.SUPPORT_ROLE;
+    case UserRoleV2.REVIEWER:
+      return userRole.REVIEWER_ROLE;
+    case UserRoleV2.VIEWER:
+      return userRole.VIEWER_ROLE;
   }
 };

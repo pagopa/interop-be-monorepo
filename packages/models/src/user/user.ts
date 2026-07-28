@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { UserId, TenantId } from "../brandedIds.js";
 
 export const userRole = {
@@ -6,6 +7,8 @@ export const userRole = {
   SECURITY_ROLE: "security",
   API_ROLE: "api",
   SUPPORT_ROLE: "support",
+  REVIEWER_ROLE: "reviewer",
+  VIEWER_ROLE: "viewer",
 } as const;
 
 export const UserRole = z.enum([

@@ -1,5 +1,6 @@
 import { RiskAnalysis, riskAnalysisAnswerKind } from "pagopa-interop-models";
 import { EServiceTemplateRiskAnalysisAnswerSQL } from "pagopa-interop-readmodel-models";
+
 import { eserviceTemplateReadModelServiceBuilder } from "../../src/eservice-template/eserviceTemplateReadModelService.js";
 import { readModelDB } from "../utils.js";
 

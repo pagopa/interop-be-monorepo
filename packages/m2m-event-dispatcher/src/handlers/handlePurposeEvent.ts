@@ -1,22 +1,23 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   fromPurposeV2,
   PurposeEventEnvelope,
   PurposeEventEnvelopeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
-import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
-import {
-  assertPurposeEServiceExists,
-  assertPurposeExistsInEvent,
-} from "../services/validators.js";
+
+import { toPurposeM2MEventSQL } from "../models/purposeM2MEventAdapterSQL.js";
 import {
   createPurposeM2MEvent,
   createPurposeVersionM2MEvent,
 } from "../services/event-builders/purposeM2MEventBuilder.js";
-import { toPurposeM2MEventSQL } from "../models/purposeM2MEventAdapterSQL.js";
+import { M2MEventWriterServiceSQL } from "../services/m2mEventWriterServiceSQL.js";
+import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
+import {
+  assertPurposeEServiceExists,
+  assertPurposeExistsInEvent,
+} from "../services/validators.js";
 
 export async function handlePurposeEvent(
   purposeEvent: PurposeEventEnvelope,
@@ -67,7 +68,13 @@ async function handlePurposeEventV2(
             "DraftPurposeDeleted",
             "WaitingForApprovalPurposeDeleted",
             "PurposeCloned",
-            "PurposeDeletedByRevokedDelegation"
+            "PurposeDeletedByRevokedDelegation",
+            "PurposeRiskAnalysisWorkflowCreated",
+            "PurposeRiskAnalysisAssigned",
+            "PurposeRiskAnalysisSubmitted",
+            "PurposeRiskAnalysisSigned",
+            "PurposeRiskAnalysisRejected",
+            "PurposeRiskAnalysisFormEdited"
           ),
         },
         async (event) => {
@@ -140,7 +147,10 @@ async function handlePurposeEventV2(
            * We avoid exposing the unsigned document generation.
            * The user will only be able to see only the signed one.
            */
-          type: P.union("RiskAnalysisDocumentGenerated"),
+          type: P.union(
+            "RiskAnalysisDocumentGenerated",
+            "MaintenancePurposeRiskAnalysisSetTenantKind"
+          ),
         },
         () => Promise.resolve(void 0)
       )

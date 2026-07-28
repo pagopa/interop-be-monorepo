@@ -1,13 +1,14 @@
-import { PurposeEventEnvelope, NewNotification } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { PurposeEventEnvelope, NewNotification } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
+import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToConsumer.js";
+import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
+import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
-import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
-import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
-import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToConsumer.js";
-import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 
 export async function handlePurposeEvent(
   decodedMessage: PurposeEventEnvelope,
@@ -106,7 +107,14 @@ export async function handlePurposeEvent(
           "PurposeDeletedByRevokedDelegation",
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisDocumentGenerated",
-          "RiskAnalysisSignedDocumentGenerated"
+          "RiskAnalysisSignedDocumentGenerated",
+          "MaintenancePurposeRiskAnalysisSetTenantKind",
+          "PurposeRiskAnalysisWorkflowCreated",
+          "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => {

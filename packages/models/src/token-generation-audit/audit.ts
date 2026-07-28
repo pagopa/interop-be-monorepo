@@ -1,16 +1,26 @@
 import { z } from "zod";
+
+import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
 import {
   AgreementId,
   ClientId,
   DescriptorId,
   EServiceId,
+  InteractionId,
   PurposeId,
   PurposeVersionId,
   TenantId,
+  UserId,
 } from "../brandedIds.js";
-import { JWKKeyRS256, JWKKeyES256 } from "../authorization/key.js";
+import { ClientAssertionDigest } from "../client-assertion/clientAssertionValidation.js";
+import { InteractionState } from "../token-generation-readmodel/interactions-entry.js";
 
-export const ClientAssertionAuditDetails = z.object({
+export const CNFAuditDetails = z.object({
+  jkt: z.string(),
+});
+export type CNFAuditDetails = z.infer<typeof CNFAuditDetails>;
+
+const BaseClientAssertionAuditDetails = z.object({
   jwtId: z.string(),
   issuedAt: z.number(),
   algorithm: z.string(),
@@ -20,8 +30,18 @@ export const ClientAssertionAuditDetails = z.object({
   audience: z.string(),
   expirationTime: z.number(),
 });
-export type ClientAssertionAuditDetails = z.infer<
-  typeof ClientAssertionAuditDetails
+
+export const ConsumerClientAssertionAuditDetails =
+  BaseClientAssertionAuditDetails.extend({
+    digest: ClientAssertionDigest.optional(),
+  });
+export type ConsumerClientAssertionAuditDetails = z.infer<
+  typeof ConsumerClientAssertionAuditDetails
+>;
+
+export const ApiClientAssertionAuditDetails = BaseClientAssertionAuditDetails;
+export type ApiClientAssertionAuditDetails = z.infer<
+  typeof ApiClientAssertionAuditDetails
 >;
 
 export const DPoPAuditDetails = z.object({
@@ -35,27 +55,53 @@ export const DPoPAuditDetails = z.object({
 });
 export type DPoPAuditDetails = z.infer<typeof DPoPAuditDetails>;
 
-export const GeneratedTokenAuditDetails = z.object({
+export const InteractionAuditDetails = z.object({
+  interactionId: InteractionId,
+  state: InteractionState,
+  startInteractionTokenIssuedAt: z.string().datetime().optional(),
+  callbackInvocationTokenIssuedAt: z.string().datetime().optional(),
+  confirmationTokenIssuedAt: z.string().datetime().optional(),
+});
+export type InteractionAuditDetails = z.infer<typeof InteractionAuditDetails>;
+
+const BaseGeneratedTokenAuditDetails = z.object({
   jwtId: z.string(),
   correlationId: z.string(),
   issuedAt: z.number(),
   clientId: ClientId,
   organizationId: TenantId,
-  agreementId: AgreementId,
-  eserviceId: EServiceId,
-  descriptorId: DescriptorId,
-  purposeId: PurposeId,
-  purposeVersionId: PurposeVersionId,
   algorithm: z.string(),
   keyId: z.string(),
+  typ: z.string(),
   audience: z.string(),
   subject: z.string(),
   notBefore: z.number(),
   expirationTime: z.number(),
   issuer: z.string(),
-  clientAssertion: ClientAssertionAuditDetails,
+  cnf: CNFAuditDetails.optional(),
   dpop: DPoPAuditDetails.optional(),
 });
-export type GeneratedTokenAuditDetails = z.infer<
-  typeof GeneratedTokenAuditDetails
+
+export const GeneratedConsumerTokenAuditDetails =
+  BaseGeneratedTokenAuditDetails.extend({
+    agreementId: AgreementId,
+    eserviceId: EServiceId,
+    descriptorId: DescriptorId,
+    purposeId: PurposeId,
+    purposeVersionId: PurposeVersionId,
+    digest: ClientAssertionDigest.optional(),
+    clientAssertion: ConsumerClientAssertionAuditDetails,
+    interaction: InteractionAuditDetails.optional(),
+  });
+export type GeneratedConsumerTokenAuditDetails = z.infer<
+  typeof GeneratedConsumerTokenAuditDetails
+>;
+
+export const GeneratedApiTokenAuditDetails =
+  BaseGeneratedTokenAuditDetails.extend({
+    adminId: UserId.optional(),
+    clientAssertion: ApiClientAssertionAuditDetails,
+  });
+export type GeneratedApiTokenAuditDetails = z.infer<
+  typeof GeneratedApiTokenAuditDetails
 >;

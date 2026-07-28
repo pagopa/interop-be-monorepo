@@ -1,0 +1,26 @@
+meta {
+  name: Get Risk Analysis Assignments
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{host-bff}}/purposes/riskAnalysis/assignments
+  body: none
+  auth: none
+}
+
+params:query {
+  eservicesIds: 
+  signingStates: ASSIGNED
+  offset: 0
+  limit: 10
+}
+
+headers {
+  Authorization: {{JWT}}
+}
+
+docs {
+  Retrieve risk analysis assignments for the authenticated reviewer
+}

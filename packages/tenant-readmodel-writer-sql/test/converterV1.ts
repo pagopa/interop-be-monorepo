@@ -23,6 +23,7 @@ import {
   TenantUnitType,
   dateToBigInt,
   tenantFeatureType,
+  genericInternalError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -93,6 +94,11 @@ function toAttributeV1(input: TenantAttribute): TenantAttributeV1 {
         },
       },
     }))
+    .with({ type: tenantAttributeType.CERTIFIED_DISCRETE }, () => {
+      throw genericInternalError(
+        `Unsupported attribute kind for version 1 of tenant read model`
+      );
+    })
     .exhaustive();
 }
 

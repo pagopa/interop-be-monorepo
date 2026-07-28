@@ -9,8 +9,9 @@ import {
   m2mEventVisibility,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { generateM2MEventId } from "../../utils/uuidv7.js";
+
 import { eserviceTemplateVersionNotFoundInEServiceTemplate } from "../../models/errors.js";
+import { generateM2MEventId } from "../../utils/uuidv7.js";
 
 export async function createEServiceTemplateM2MEvent(
   eserviceTemplate: EServiceTemplate,
@@ -94,7 +95,10 @@ function getEServiceTemplateM2MEventVisibility(
         "EServiceTemplateDraftVersionDeleted",
         "EServiceTemplateVersionInterfaceAdded",
         "EServiceTemplateVersionInterfaceDeleted",
-        "EServiceTemplateVersionInterfaceUpdated"
+        "EServiceTemplateVersionInterfaceUpdated",
+        "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+        "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+        "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
       ),
       () => m2mEventVisibility.owner
     )

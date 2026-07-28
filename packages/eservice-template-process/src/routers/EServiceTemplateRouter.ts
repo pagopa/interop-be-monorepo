@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
@@ -9,15 +10,21 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   EServiceTemplateId,
   TenantId,
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { EServiceTemplateService } from "../services/eserviceTemplateService.js";
+
+import {
+  compactOrganizationToApi,
+  eserviceTemplateToApiEServiceTemplate,
+  apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
+  documentToApiDocument,
+} from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { EServiceTemplateService } from "../services/eserviceTemplateService.js";
 import {
   activateEServiceTemplateVersionErrorMapper,
   suspendEServiceTemplateVersionErrorMapper,
@@ -43,13 +50,8 @@ import {
   getEServiceTemplatesErrorMapper,
   updateEServiceTemplatePersonalDataFlagErrorMapper,
   deleteEServiceTemplateErrorMapper,
+  maintenanceFixRiskAnalysisErrorMapper,
 } from "../utilities/errorMappers.js";
-import {
-  compactOrganizationToApi,
-  eserviceTemplateToApiEServiceTemplate,
-  apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
-  documentToApiDocument,
-} from "../model/domain/apiConverter.js";
 
 const eserviceTemplatesRouter = (
   ctx: ZodiosContext,
@@ -62,6 +64,8 @@ const eserviceTemplatesRouter = (
     M2M_ROLE,
     SUPPORT_ROLE,
     M2M_ADMIN_ROLE,
+    INTERNAL_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   return ctx
@@ -79,6 +83,7 @@ const eserviceTemplatesRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const {
@@ -163,6 +168,7 @@ const eserviceTemplatesRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { data: eserviceTemplate, metadata } =
@@ -553,6 +559,7 @@ const eserviceTemplatesRouter = (
             SUPPORT_ROLE,
             M2M_ROLE,
             M2M_ADMIN_ROLE,
+            VIEWER_ROLE,
           ]);
 
           const { templateId, templateVersionId, documentId } = req.params;
@@ -687,6 +694,39 @@ const eserviceTemplatesRouter = (
           const errorRes = makeApiProblem(
             error,
             updateRiskAnalysisErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/maintenance/templates/:templateId/riskAnalyses/:riskAnalysisId/tenantKind/fix",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { data: updatedEServiceTemplate, metadata } =
+            await eserviceTemplateService.fixEServiceTemplateRiskAnalysisTenantKind(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.riskAnalysisId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              eserviceTemplateApi.EServiceTemplate.parse(
+                eserviceTemplateToApiEServiceTemplate(updatedEServiceTemplate)
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceFixRiskAnalysisErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -876,6 +916,7 @@ const eserviceTemplatesRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { creatorName, offset, limit } = req.query;

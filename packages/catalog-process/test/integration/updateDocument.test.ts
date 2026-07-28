@@ -25,6 +25,7 @@ import {
   DescriptorState,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -413,6 +414,8 @@ describe("update Document", () => {
     descriptorState.published,
     descriptorState.suspended,
     descriptorState.deprecated,
+    descriptorState.archiving,
+    descriptorState.archivingSuspended,
   ];
 
   it.each(

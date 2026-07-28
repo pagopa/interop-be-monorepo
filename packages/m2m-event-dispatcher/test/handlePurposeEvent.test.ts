@@ -1,10 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockDelegation,
   getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
-  randomArrayItem,
   toPurposeV1,
 } from "pagopa-interop-commons-test";
 import {
@@ -24,8 +23,9 @@ import {
   PurposeEventEnvelopeV1,
   PurposeEventV1,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handlePurposeEvent } from "../src/handlers/handlePurposeEvent.js";
 import { purposeEServiceNotFound } from "../src/models/errors.js";
 import {
@@ -109,17 +109,19 @@ describe("handlePurposeEvent test", async () => {
                   "PurposeAdded",
                   "DraftPurposeUpdated",
                   "DraftPurposeDeleted",
-                  "PurposeCloned"
+                  "PurposeCloned",
+                  "PurposeRiskAnalysisWorkflowCreated",
+                  "PurposeRiskAnalysisAssigned",
+                  "PurposeRiskAnalysisSubmitted",
+                  "PurposeRiskAnalysisSigned",
+                  "PurposeRiskAnalysisRejected",
+                  "PurposeRiskAnalysisFormEdited"
                 ),
                 () => [
                   {
                     versions: [
-                      getMockPurposeVersion(
-                        randomArrayItem(Object.values(purposeVersionState))
-                      ),
-                      getMockPurposeVersion(
-                        randomArrayItem(Object.values(purposeVersionState))
-                      ),
+                      getMockPurposeVersion(purposeVersionState.draft),
+                      getMockPurposeVersion(purposeVersionState.draft),
                       // Visibility based only on event, versions state doesn't matter
                     ],
                     expectedVisibility: m2mEventVisibility.owner,
@@ -136,12 +138,8 @@ describe("handlePurposeEvent test", async () => {
                 () => [
                   {
                     versions: [
-                      getMockPurposeVersion(
-                        randomArrayItem(Object.values(purposeVersionState))
-                      ),
-                      getMockPurposeVersion(
-                        randomArrayItem(Object.values(purposeVersionState))
-                      ),
+                      getMockPurposeVersion(purposeVersionState.draft),
+                      getMockPurposeVersion(purposeVersionState.draft),
                       // Visibility based only on event, versions state doesn't matter
                     ],
                     expectedVisibility: m2mEventVisibility.restricted,
@@ -168,12 +166,8 @@ describe("handlePurposeEvent test", async () => {
                 () => [
                   {
                     versions: [
-                      getMockPurposeVersion(
-                        randomArrayItem(Object.values(purposeVersionState))
-                      ),
-                      getMockPurposeVersion(
-                        randomArrayItem(Object.values(purposeVersionState))
-                      ),
+                      getMockPurposeVersion(purposeVersionState.draft),
+                      getMockPurposeVersion(purposeVersionState.draft),
                       // Visibility based only on event, versions state doesn't matter
                     ],
                     affectedVersion: 1,
@@ -210,7 +204,8 @@ describe("handlePurposeEvent test", async () => {
               .with(
                 P.union(
                   // Ignored events
-                  "RiskAnalysisDocumentGenerated"
+                  "RiskAnalysisDocumentGenerated",
+                  "MaintenancePurposeRiskAnalysisSetTenantKind"
                 ),
                 () => [
                   {

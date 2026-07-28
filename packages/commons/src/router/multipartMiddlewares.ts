@@ -1,6 +1,7 @@
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
-import multer from "multer";
 import { RequestHandler } from "express";
+import multer from "multer";
+
 import { ExpressContext } from "../context/context.js";
 
 // If form-data is used, the files are stored in memory and inserted in the body to make zodios work

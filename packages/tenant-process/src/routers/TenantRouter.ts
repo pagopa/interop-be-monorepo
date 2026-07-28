@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
@@ -10,7 +11,7 @@ import {
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { tenantApi } from "pagopa-interop-api-clients";
+
 import {
   apiTenantFeatureTypeToTenantFeatureType,
   toApiTenant,
@@ -18,6 +19,7 @@ import {
   toApiTenantVerifier,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { TenantService } from "../services/tenantService.js";
 import {
   getTenantByExternalIdErrorMapper,
   getTenantByIdErrorMapper,
@@ -42,11 +44,14 @@ import {
   m2mRevokeCertifiedAttributeErrorMapper,
   m2mUpsertTenantErrorMapper,
   maintenanceTenantUpdatedErrorMapper,
+  maintenanceTenantDeleteRemoteIdErrorMapper,
   updateTenantDelegatedFeaturesErrorMapper,
   getTenantVerifiedAttributeVerifiersErrorMapper,
   getTenantVerifiedAttributeRevokersErrorMapper,
+  internalAddCertifiedDiscreteAttributeErrorMapper,
+  internalRevokeCertifiedDiscreteAttributeErrorMapper,
+  internalUpdateCertifiedDiscreteAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
-import { TenantService } from "../services/tenantService.js";
 
 const tenantsRouter = (
   ctx: ZodiosContext,
@@ -61,6 +66,8 @@ const tenantsRouter = (
     INTERNAL_ROLE,
     SUPPORT_ROLE,
     MAINTENANCE_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
   const tenantsRouter = ctx.router(tenantApi.tenantApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
@@ -75,6 +82,7 @@ const tenantsRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { name, offset, limit } = req.query;
@@ -107,6 +115,8 @@ const tenantsRouter = (
           API_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const { name, offset, limit } = req.query;
@@ -141,6 +151,8 @@ const tenantsRouter = (
           SUPPORT_ROLE,
           M2M_ROLE,
           M2M_ADMIN_ROLE,
+          VIEWER_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const {
@@ -187,6 +199,8 @@ const tenantsRouter = (
           SECURITY_ROLE,
           SUPPORT_ROLE,
           INTERNAL_ROLE,
+          VIEWER_ROLE,
+          REVIEWER_ROLE,
         ]);
 
         const { data: tenant, metadata } = await tenantService.getTenantById(
@@ -214,6 +228,7 @@ const tenantsRouter = (
           M2M_ROLE,
           SECURITY_ROLE,
           SUPPORT_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const { origin, code } = req.params;
@@ -242,7 +257,12 @@ const tenantsRouter = (
       const ctx = fromAppContext(req.ctx);
 
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, SUPPORT_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          M2M_ROLE,
+          SUPPORT_ROLE,
+          VIEWER_ROLE,
+        ]);
 
         const { offset, limit } = req.query;
         const { results, totalCount } =
@@ -419,6 +439,32 @@ const tenantsRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .delete(
+      "/maintenance/tenants/:tenantId/remoteIds/:origin",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [MAINTENANCE_ROLE]);
+
+          await tenantService.maintenanceTenantDeleteRemoteId(
+            {
+              tenantId: unsafeBrandId(req.params.tenantId),
+              origin: req.params.origin,
+            },
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceTenantDeleteRemoteIdErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete("/tenants/:tenantId/mails/:mailId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
@@ -471,7 +517,7 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE, VIEWER_ROLE]);
 
           const { offset, limit } = req.query;
           const result =
@@ -506,7 +552,7 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE, VIEWER_ROLE]);
           const { offset, limit } = req.query;
           const result = await tenantService.getTenantVerifiedAttributeRevokers(
             unsafeBrandId(req.params.tenantId),
@@ -597,6 +643,7 @@ const tenantsRouter = (
           SECURITY_ROLE,
           SUPPORT_ROLE,
           INTERNAL_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const tenant = await tenantService.getTenantBySelfcareId(
@@ -723,6 +770,109 @@ const tenantsRouter = (
           return res.status(errorRes.status).send(errorRes);
         }
       }
+    )
+    .post(
+      "/internal/origin/:tOrigin/remoteId/:tRemoteId/certifiedDiscreteAttributes/origin/:aOrigin/externalId/:aExternalId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { tOrigin, tRemoteId, aOrigin, aExternalId } = req.params;
+          const { value } = req.body;
+
+          const metadata =
+            await tenantService.internalAssignCertifiedDiscreteAttribute(
+              {
+                tenantOrigin: tOrigin,
+                tenantRemoteId: tRemoteId,
+                attributeOrigin: aOrigin,
+                attributeExternalId: aExternalId,
+                value,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalAddCertifiedDiscreteAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .put(
+      "/internal/origin/:tOrigin/remoteId/:tRemoteId/certifiedDiscreteAttributes/origin/:aOrigin/externalId/:aExternalId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { tOrigin, tRemoteId, aOrigin, aExternalId } = req.params;
+          const { value } = req.body;
+
+          const metadata =
+            await tenantService.internalUpdateCertifiedDiscreteAttribute(
+              {
+                tenantOrigin: tOrigin,
+                tenantRemoteId: tRemoteId,
+                attributeOrigin: aOrigin,
+                attributeExternalId: aExternalId,
+                value,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalUpdateCertifiedDiscreteAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/internal/origin/:tOrigin/remoteId/:tRemoteId/certifiedDiscreteAttributes/origin/:aOrigin/externalId/:aExternalId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { tOrigin, tRemoteId, aOrigin, aExternalId } = req.params;
+
+          const metadata =
+            await tenantService.internalRevokeCertifiedDiscreteAttribute(
+              {
+                tenantOrigin: tOrigin,
+                tenantRemoteId: tRemoteId,
+                attributeOrigin: aOrigin,
+                attributeExternalId: aExternalId,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalRevokeCertifiedDiscreteAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
     );
 
   const tenantsAttributeRouter = ctx.router(tenantApi.tenantAttributeApi.api, {
@@ -759,6 +909,39 @@ const tenantsRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/tenants/:tenantId/attributes/certifiedDiscrete",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const { tenantId } = req.params;
+          const { data: tenant, metadata } =
+            await tenantService.addCertifiedDiscreteAttribute(
+              {
+                tenantId: unsafeBrandId(tenantId),
+                tenantAttributeSeed: req.body,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            addCertifiedAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post("/tenants/attributes/declared", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
@@ -866,6 +1049,39 @@ const tenantsRouter = (
           const { tenantId, attributeId } = req.params;
           const { data: tenant, metadata } =
             await tenantService.revokeCertifiedAttributeById(
+              {
+                tenantId: unsafeBrandId(tenantId),
+                attributeId: unsafeBrandId(attributeId),
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeCertifiedAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/tenants/:tenantId/attributes/certifiedDiscrete/:attributeId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const { tenantId, attributeId } = req.params;
+          const { data: tenant, metadata } =
+            await tenantService.revokeCertifiedDiscreteAttributeById(
               {
                 tenantId: unsafeBrandId(tenantId),
                 attributeId: unsafeBrandId(attributeId),

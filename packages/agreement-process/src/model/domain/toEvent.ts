@@ -3,10 +3,14 @@ import {
   Agreement,
   AgreementDocumentId,
   AgreementEventV2,
+  AgreementSuspensionReason,
+  CertifiedDiscreteAttributeFailure,
   CorrelationId,
   DelegationId,
   WithMetadata,
   toAgreementV2,
+  toAgreementSuspensionReasonV2,
+  toCertifiedDiscreteAttributeFailureV2,
 } from "pagopa-interop-models";
 
 export function toCreateEventAgreementDeleted(
@@ -261,7 +265,9 @@ export function toCreateEventAgreementSuspendedByConsumer(
 export function toCreateEventAgreementSuspendedByPlatform(
   agreement: Agreement,
   version: number,
-  correlationId: CorrelationId
+  correlationId: CorrelationId,
+  suspensionReason?: AgreementSuspensionReason,
+  discreteAttributeFailure?: CertifiedDiscreteAttributeFailure
 ): CreateEvent<AgreementEventV2> {
   return {
     streamId: agreement.id,
@@ -271,6 +277,12 @@ export function toCreateEventAgreementSuspendedByPlatform(
       event_version: 2,
       data: {
         agreement: toAgreementV2(agreement),
+        suspensionReason: suspensionReason
+          ? toAgreementSuspensionReasonV2(suspensionReason)
+          : undefined,
+        discreteAttributeFailure: discreteAttributeFailure
+          ? toCertifiedDiscreteAttributeFailureV2(discreteAttributeFailure)
+          : undefined,
       },
     },
     correlationId,

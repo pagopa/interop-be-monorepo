@@ -298,6 +298,20 @@ paths:
             type: boolean
             default: false
         - in: query
+          name: reviewerId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: signingStates
+          description: comma separated sequence of risk analysis signing states
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/RiskAnalysisSigningState"
+            default: []
+          explode: false
+        - in: query
           name: offset
           required: true
           schema:
@@ -926,6 +940,260 @@ paths:
       description: reject the purpose version by id
       tags:
         - purpose
+  /purposes/{purposeId}/riskAnalysis/assign:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Assign risk analysis reviewer
+      operationId: assignRiskAnalysisReviewer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisAssignmentSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis reviewer assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      description: Assign reviewer mode and reviewers to the purpose risk analysis
+      tags:
+        - purpose
+  /purposes/{purposeId}/riskAnalysis/submit:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Submit risk analysis for signing
+      operationId: submitRiskAnalysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSubmissionSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis submitted for signing
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      description: Validate and submit the risk analysis form for reviewer signing
+      tags:
+        - purpose
+  /purposes/{purposeId}/riskAnalysis/sign:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Sign risk analysis
+      operationId: signRiskAnalysis
+      responses:
+        "200":
+          description: Risk analysis signed
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      description: Sign/approve the risk analysis as a reviewer
+      tags:
+        - purpose
+  /purposes/{purposeId}/riskAnalysis/reject:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      summary: Reject risk analysis
+      operationId: rejectRiskAnalysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisRejectionSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis rejected
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      description: Reject the risk analysis as a reviewer (AdminWritesReviewerSigns mode only)
+      tags:
+        - purpose
+  /purposes/{purposeId}/riskAnalysis/form:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: purposeId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      summary: Edit risk analysis form
+      operationId: editRiskAnalysisForm
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisFormSeed"
+        required: true
+      responses:
+        "200":
+          description: Risk analysis form updated
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      description: Edit the risk analysis form as a reviewer (ReviewerWritesReviewerSigns mode only)
+      tags:
+        - purpose
   /purposes/{purposeId}/versions/{versionId}/activate:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -973,6 +1241,12 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "404":
           description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
           content:
             application/problem+json:
               schema:
@@ -1355,6 +1629,41 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /maintenance/purposes/{purposeId}/riskAnalysis/tenantKind/fix:
+    post:
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: purposeId
+          in: path
+          description: the purpose id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      tags:
+        - purpose
+      operationId: fixPurposeRiskAnalysisTenantKind
+      summary: Fix tenant kind for a purpose risk analysis
+      description: Fixes the tenant kind of a specific risk analysis on the specified Purpose
+      responses:
+        "200":
+          description: Purpose Risk Analysis Fixed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Purpose"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose or tenant kind not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
 components:
   headers:
     MetadataVersionHeader:
@@ -1389,6 +1698,83 @@ components:
           maxLength: 250
       required:
         - rejectionReason
+    RiskAnalysisReviewMode:
+      type: string
+      description: Risk analysis review mode
+      enum:
+        - REVIEWER_WRITES_REVIEWER_SIGNS
+        - ADMIN_WRITES_REVIEWER_SIGNS
+    RiskAnalysisSigningState:
+      type: string
+      description: Risk analysis signing state
+      enum:
+        - DRAFT
+        - ASSIGNED
+        - SUBMITTED
+        - SIGNED
+        - REJECTED
+    ReviewerWorkflow:
+      type: object
+      additionalProperties: false
+      description: Reviewer workflow state for a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        signingState:
+          $ref: "#/components/schemas/RiskAnalysisSigningState"
+        signedBy:
+          type: string
+          format: uuid
+        rejectionReason:
+          type: string
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - reviewMode
+        - reviewerIds
+        - signingState
+    RiskAnalysisAssignmentSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
+      properties:
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+        - reviewMode
+        - reviewerIds
+    RiskAnalysisRejectionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to reject the risk analysis with a reason
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+      required:
+        - rejectionReason
+    RiskAnalysisSubmissionSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to submit the risk analysis form for reviewer signing
+      properties:
+        riskAnalysisForm:
+          $ref: "#/components/schemas/RiskAnalysisFormSeed"
+      required:
+        - riskAnalysisForm
     TenantKind:
       type: string
       description: Tenant Kind
@@ -1548,8 +1934,6 @@ components:
         updatedAt:
           type: string
           format: date-time
-        isRiskAnalysisValid:
-          type: boolean
         isFreeOfCharge:
           type: boolean
         freeOfChargeReason:
@@ -1560,6 +1944,8 @@ components:
         purposeTemplateId:
           type: string
           format: uuid
+        reviewerWorkflow:
+          $ref: "#/components/schemas/ReviewerWorkflow"
       required:
         - id
         - eserviceId
@@ -1568,7 +1954,6 @@ components:
         - title
         - description
         - createdAt
-        - isRiskAnalysisValid
         - isFreeOfCharge
       description: business representation of a purpose
     Purposes:
@@ -1955,6 +2340,8 @@ components:
         riskAnalysisId:
           type: string
           format: uuid
+        tenantKind:
+          $ref: "#/components/schemas/TenantKind"
       required:
         - version
         - answers

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -25,7 +26,7 @@ import {
   eserviceTemplateVersionState,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { catalogApi } from "pagopa-interop-api-clients";
+
 import {
   draftDescriptorAlreadyExists,
   eServiceNotFound,

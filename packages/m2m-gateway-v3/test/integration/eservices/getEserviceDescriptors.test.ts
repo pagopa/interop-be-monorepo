@@ -1,17 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
 import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEserviceDescriptors", () => {
@@ -65,6 +66,8 @@ describe("getEserviceDescriptors", () => {
     deprecatedAt: descriptor.deprecatedAt,
     archivedAt: descriptor.archivedAt,
     templateVersionId: descriptor.templateVersionRef?.id,
+    archivingSchedule: descriptor.archivingSchedule,
+    asyncExchangeProperties: descriptor.asyncExchangeProperties,
   });
 
   const m2mEserviceDescriptorResponse1: m2mGatewayApiV3.EServiceDescriptor =

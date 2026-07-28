@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -70,6 +71,9 @@ export const publishEServiceTemplateVersionErrorMapper = (
       "notValidEServiceTemplateVersionState",
       "riskAnalysisValidationFailed",
       "missingPersonalDataFlag",
+      "missingAsyncExchangeProperties",
+      "missingAsyncExchangeCallbackInterface",
+      "asyncExchangeBulkNotAllowedForSoap",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("missingRiskAnalysis", () => HTTP_STATUS_CONFLICT)
@@ -179,6 +183,18 @@ export const updateRiskAnalysisErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const maintenanceFixRiskAnalysisErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eserviceTemplateNotFound",
+      "riskAnalysisNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deleteEServiceTemplateVersionErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -207,6 +223,7 @@ export const updateEServiceTemplateVersionAttributesErrorMapper = (
       "versionAttributeGroupSupersetMissingInAttributesSeed",
       "unchangedAttributes",
       "attributeDuplicatedInGroup",
+      "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -218,7 +235,11 @@ export const createEServiceTemplateErrorMapper = (
   match(error.code)
     .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
     .with("eserviceTemplateDuplicate", () => HTTP_STATUS_CONFLICT)
-    .with("inconsistentDailyCalls", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "inconsistentDailyCalls",
+      "asyncExchangeReceiveTemplateNotAllowed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const updateEServiceTemplateErrorMapper = (
@@ -246,6 +267,8 @@ export const updateDraftTemplateVersionErrorMapper = (
       "notValidEServiceTemplateVersionState",
       "inconsistentDailyCalls",
       "attributeDuplicatedInGroup",
+      "asyncExchangeBulkNotAllowedForSoap",
+      "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -260,6 +283,7 @@ export const createEServiceTemplateVersionErrorMapper = (
       "attributeDuplicatedInGroup",
       "draftEServiceTemplateVersionAlreadyExists",
       "inconsistentDailyCalls",
+      "attributeDiscreteConfigNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("eserviceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)
@@ -276,7 +300,13 @@ export const createEServiceTemplateDocumentErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
-    .with("interfaceAlreadyExists", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "interfaceAlreadyExists",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
+      "eserviceTemplateAsyncExchangeNotEnabled",
+      "asyncExchangeBulkNotAllowedForSoap",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with(
       "documentPrettyNameDuplicate",
       "checksumDuplicate",

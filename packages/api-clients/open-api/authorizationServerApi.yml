@@ -19,6 +19,11 @@ tags:
     externalDocs:
       description: Find out more
       url: http://swagger.io
+  - name: asyncAuth
+    description: Get security information for async exchanges
+    externalDocs:
+      description: Find out more
+      url: http://swagger.io
   - name: health
     description: Verify service status
     externalDocs:
@@ -32,6 +37,85 @@ paths:
       summary: Create a new access token
       description: Return the generated access token
       operationId: createToken
+      parameters:
+        - $ref: "#/components/parameters/DPoP"
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/AccessTokenRequest"
+      responses:
+        "200":
+          description: The Access token
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                default: no-cache, no-store
+              description: no-cache, no-store
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClientCredentialsResponse"
+        "400":
+          description: Bad request
+          x-noqa: RFC6749
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "401":
+          description: Unauthorized
+          x-noqa: RFC6749
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "429":
+          description: Too Many Requests
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+  "/token.oauth2.async":
+    post:
+      tags:
+        - asyncAuth
+      summary: Create a new access token for async exchanges
+      description: Return the generated access token for async exchanges
+      operationId: createAsyncToken
       parameters:
         - $ref: "#/components/parameters/DPoP"
       requestBody:

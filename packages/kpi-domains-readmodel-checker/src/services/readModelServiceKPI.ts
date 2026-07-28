@@ -1,3 +1,4 @@
+import camelcaseKeys from "camelcase-keys";
 import {
   Agreement,
   Attribute,
@@ -23,12 +24,11 @@ import {
   aggregateEServiceTemplateArray,
   aggregatePurposeTemplateArray,
 } from "pagopa-interop-readmodel";
-import { z } from "zod";
 import { IConnected, IMain } from "pg-promise";
 import { IClient } from "pg-promise/typescript/pg-subset.js";
-import camelcaseKeys from "camelcase-keys";
+import { z } from "zod";
+
 import { config } from "../configs/config.js";
-import { TenantDbTable } from "../model/db/tenant.js";
 import { AgreementDbTable } from "../model/db/agreement.js";
 import { AttributeDbTable } from "../model/db/attribute.js";
 import {
@@ -38,9 +38,10 @@ import {
 import { CatalogDbTable } from "../model/db/catalog.js";
 import { DelegationDbTable } from "../model/db/delegation.js";
 import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
-import { PurposeDbTable } from "../model/db/purpose.js";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
+import { PurposeDbTable } from "../model/db/purpose.js";
 import { PurposeTemplateDbTable } from "../model/db/purposeTemplate.js";
+import { TenantDbTable } from "../model/db/tenant.js";
 
 type DBConnection = IConnected<unknown, IClient>;
 export type DBContext = {
@@ -106,6 +107,15 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         CatalogDbTable.eservice_descriptor_template_version_ref
       );
+      const asyncExchangePropertiesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_async_exchange_properties
+      );
+
+      const archivingSchedulesSQL = await getManyFromDb(
+        dbContext,
+        CatalogDbTable.eservice_descriptor_archiving_schedule
+      );
 
       return aggregateEserviceArray({
         eservicesSQL,
@@ -113,6 +123,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           ...d,
           audience: JSON.parse(d.audience),
           serverUrls: JSON.parse(d.serverUrls),
+          serverUrlsDescriptions: JSON.parse(d.serverUrlsDescriptions),
         })),
         interfacesSQL,
         documentsSQL,
@@ -124,6 +135,8 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           value: JSON.parse(ra.value),
         })),
         templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
       });
     },
 
@@ -169,6 +182,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         attributesSQL,
         interfacesSQL,
         documentsSQL,
+        asyncExchangePropertiesSQL: [],
       });
     },
 
@@ -181,6 +195,10 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       const certifiedAttributesSQL = await getManyFromDb(
         dbContext,
         TenantDbTable.tenant_certified_attribute
+      );
+      const certifiedDiscreteAttributesSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_certified_discrete_attribute
       );
       const declaredAttributesSQL = await getManyFromDb(
         dbContext,
@@ -202,15 +220,21 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         dbContext,
         TenantDbTable.tenant_feature
       );
+      const remoteIdsSQL = await getManyFromDb(
+        dbContext,
+        TenantDbTable.tenant_remote_id
+      );
       return aggregateTenantArray({
         tenantsSQL,
         mailsSQL,
         certifiedAttributesSQL,
+        certifiedDiscreteAttributesSQL,
         declaredAttributesSQL,
         verifiedAttributesSQL,
         verifiedAttributeVerifiersSQL,
         verifiedAttributeRevokersSQL,
         featuresSQL,
+        remoteIdsSQL,
       });
     },
 
@@ -244,6 +268,11 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         PurposeDbTable.purpose_version_signed_document
       );
 
+      const reviewersSQL = await getManyFromDb(
+        dbContext,
+        PurposeDbTable.purpose_risk_analysis_reviewer
+      );
+
       return aggregatePurposeArray({
         purposesSQL,
         riskAnalysisFormsSQL,
@@ -255,6 +284,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         versionDocumentsSQL,
         versionStampsSQL,
         versionSignedDocumentsSQL,
+        reviewersSQL,
       });
     },
 

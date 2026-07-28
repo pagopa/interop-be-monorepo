@@ -9,13 +9,13 @@ import {
   genericInternalError,
   fromEServiceV1,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   splitDescriptorIntoObjectsSQL,
   splitEserviceIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { catalogServiceBuilder } from "../../service/catalogService.js";
+
 import { DBContext } from "../../db/db.js";
 import {
   EserviceDeletingSchema,
@@ -35,6 +35,7 @@ import {
   EserviceDescriptorInterfaceItemsSchema,
   EserviceDescriptorInterfaceSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
+import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleCatalogMessageV1(
@@ -92,6 +93,7 @@ export async function handleCatalogMessageV1(
               documentsSQL: splitResult.documentsSQL,
               rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
               templateVersionRefsSQL: splitResult.templateVersionRefsSQL,
+              archivingSchedulesSQL: splitResult.archivingSchedulesSQL,
             } satisfies z.input<typeof EserviceItemsSchema>)
           );
         }
@@ -127,6 +129,7 @@ export async function handleCatalogMessageV1(
               eserviceId: msg.data.eserviceId,
               descriptorId: msg.data.descriptorId,
               metadataVersion: msg.version,
+              kind: "INTERFACE",
             } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
           );
           upsertDescriptorServerUrls.push(
@@ -161,6 +164,7 @@ export async function handleCatalogMessageV1(
               eserviceId: msg.data.eserviceId,
               descriptorId: msg.data.descriptorId,
               metadataVersion: msg.version,
+              kind: "INTERFACE",
             } satisfies z.input<typeof EserviceDescriptorInterfaceSchema>)
           );
           upsertDescriptorServerUrls.push(
@@ -212,7 +216,7 @@ export async function handleCatalogMessageV1(
             EserviceDescriptorItemsSchema.parse({
               descriptorSQL: splitResult.descriptorSQL,
               attributesSQL: splitResult.attributesSQL,
-              interfaceSQL: splitResult.interfaceSQL,
+              interfacesSQL: splitResult.interfacesSQL,
               documentsSQL: splitResult.documentsSQL,
               rejectionReasonsSQL: splitResult.rejectionReasonsSQL,
               templateVersionRefSQL: splitResult.templateVersionRefSQL,

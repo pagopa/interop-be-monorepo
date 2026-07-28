@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import { EService, generateId } from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockEService,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import { EService, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import { eServiceNotFound } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId} authorization test", () => {
   const eservice: EService = getMockEService();
@@ -38,6 +39,8 @@ describe("API /eservices/{eServiceId} authorization test", () => {
     authRole.SUPPORT_ROLE,
     authRole.M2M_ADMIN_ROLE,
     authRole.INTERNAL_ROLE,
+    authRole.REVIEWER_ROLE,
+    authRole.VIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 204 for user with role %s",

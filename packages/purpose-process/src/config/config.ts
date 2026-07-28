@@ -5,7 +5,11 @@ import {
   S3Config,
   ApplicationAuditProducerConfig,
   ReadModelSQLDbConfig,
-  FeatureFlagPurposeTemplateConfig,
+  SelfCareClientConfig,
+  TenantKindHistoryDBConfig,
+  FeatureFlagTenantKindInRiskAnalysisConfig,
+  FeatureFlagNewOperatorsConfig,
+  FeatureFlagAttributeCertifiedDiscreteConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
@@ -13,6 +17,9 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
   .and(EventStoreConfig)
   .and(FileManagerConfig)
   .and(S3Config)
+  .and(SelfCareClientConfig)
+  .and(TenantKindHistoryDBConfig)
+  .and(FeatureFlagTenantKindInRiskAnalysisConfig)
   .and(
     z
       .object({
@@ -23,8 +30,8 @@ const PurposeProcessConfig = CommonHTTPServiceConfig.and(ReadModelSQLDbConfig)
       }))
   )
   .and(ApplicationAuditProducerConfig)
-  .and(FeatureFlagPurposeTemplateConfig);
-
+  .and(FeatureFlagNewOperatorsConfig)
+  .and(FeatureFlagAttributeCertifiedDiscreteConfig);
 type PurposeProcessConfig = z.infer<typeof PurposeProcessConfig>;
 
 export const config: PurposeProcessConfig = PurposeProcessConfig.parse(

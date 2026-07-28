@@ -1,6 +1,7 @@
-import { z } from "zod";
 import { createSelectSchema } from "drizzle-zod";
 import { purposeInReadmodelPurpose } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
+
 import { PurposeRiskAnalysisFormSchema } from "./purposeRiskAnalysis.js";
 import { PurposeRiskAnalysisAnswerSchema } from "./purposeRiskAnalysisAnswer.js";
 import { PurposeVersionSchema } from "./purposeVersion.js";

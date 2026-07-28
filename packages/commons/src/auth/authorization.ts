@@ -1,6 +1,7 @@
 import { unauthorizedError } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { z } from "zod";
+
 import { AppContext } from "../context/context.js";
 import { NonEmptyArray } from "../utils/arrays.js";
 import {
@@ -178,9 +179,12 @@ function isSystemRole(role: AuthRole): role is SystemRole {
     )
     .with(
       authRole.ADMIN_ROLE,
+      authRole.REVIEWER_ROLE,
       authRole.SECURITY_ROLE,
       authRole.API_ROLE,
       authRole.SUPPORT_ROLE,
+      authRole.REVIEWER_ROLE,
+      authRole.VIEWER_ROLE,
       () => false
     )
     .exhaustive();
@@ -190,9 +194,12 @@ function isUserRole(role: AuthRole): role is UserRole {
   return match(role)
     .with(
       authRole.ADMIN_ROLE,
+      authRole.REVIEWER_ROLE,
       authRole.SECURITY_ROLE,
       authRole.API_ROLE,
       authRole.SUPPORT_ROLE,
+      authRole.REVIEWER_ROLE,
+      authRole.VIEWER_ROLE,
       () => true
     )
     .with(

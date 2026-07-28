@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
@@ -5,12 +6,14 @@ import {
   clientKind,
   NotificationType,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
+import {
+  inAppTemplates,
+  getNotificationRecipients,
+} from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
-import { getNotificationRecipients } from "../handlerCommons.js";
 
 type ClientKeyAddedDeletedToClientUsersEventType =
   | "ClientKeyAdded"

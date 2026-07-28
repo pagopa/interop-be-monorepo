@@ -1,20 +1,31 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
-import { generateId, Tenant, TenantId } from "pagopa-interop-models";
+import { tenantApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { tenantApi } from "pagopa-interop-api-clients";
-import { api, tenantService } from "../vitest.api.setup.js";
+import { generateId, Tenant, TenantId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import { tenantNotFound } from "../../src/model/domain/errors.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API GET /tenants/{id} test", () => {
-  const tenant: Tenant = getMockTenant();
+  const remoteIdAssignmentTimestamp = new Date();
+  const tenant: Tenant = {
+    ...getMockTenant(),
+    remoteIds: [
+      {
+        origin: "IPA",
+        value: "remote-id",
+        assignmentTimestamp: remoteIdAssignmentTimestamp,
+      },
+    ],
+  };
 
   const serviceResponse = getMockWithMetadata(tenant);
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
@@ -31,6 +42,8 @@ describe("API GET /tenants/{id} test", () => {
     authRole.INTERNAL_ROLE,
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
+    authRole.VIEWER_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
 
   const makeRequest = async (token: string, tenantId: TenantId = tenant.id) =>
@@ -46,6 +59,13 @@ describe("API GET /tenants/{id} test", () => {
       const res = await makeRequest(token);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
+      expect(res.body.remoteIds).toEqual([
+        {
+          origin: "IPA",
+          value: "remote-id",
+          assignmentTimestamp: remoteIdAssignmentTimestamp.toJSON(),
+        },
+      ]);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
       );
@@ -73,5 +93,20 @@ describe("API GET /tenants/{id} test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "invalid" as TenantId);
     expect(res.status).toBe(400);
+  });
+
+  it("Should include selfcareInstitutionType in the response when the tenant has it", async () => {
+    const tenantWithInstitutionType: Tenant = {
+      ...getMockTenant(),
+      selfcareInstitutionType: "SCP",
+    };
+    tenantService.getTenantById = vi
+      .fn()
+      .mockResolvedValue(getMockWithMetadata(tenantWithInstitutionType));
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, tenantWithInstitutionType.id);
+    expect(res.status).toBe(200);
+    expect(res.body.selfcareInstitutionType).toBe("SCP");
   });
 });

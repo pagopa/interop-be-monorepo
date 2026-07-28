@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ListResult, Purpose, generateId } from "pagopa-interop-models";
-import { generateToken, getMockPurpose } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockPurpose } from "pagopa-interop-commons-test";
+import { ListResult, Purpose, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API GET /purposes test", () => {
   const mockPurpose1: Purpose = {
@@ -40,9 +41,7 @@ describe("API GET /purposes test", () => {
   };
 
   const apiResponse = purposeApi.Purposes.parse({
-    results: purposes.results.map((purpose) =>
-      purposeToApiPurpose(purpose, false)
-    ),
+    results: purposes.results.map((purpose) => purposeToApiPurpose(purpose)),
     totalCount: purposes.totalCount,
   });
 
@@ -67,6 +66,8 @@ describe("API GET /purposes test", () => {
     authRole.M2M_ROLE,
     authRole.M2M_ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.REVIEWER_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

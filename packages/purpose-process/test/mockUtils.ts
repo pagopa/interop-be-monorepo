@@ -1,5 +1,16 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { purposeApi } from "pagopa-interop-api-clients";
 import { riskAnalysisFormToRiskAnalysisFormToValidate } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidatedForm,
+  riskAnalysisValidatedFormToNewRiskAnalysisForm,
+} from "pagopa-interop-commons";
+import {
+  getMockValidRiskAnalysisForm,
+  validRiskAnalysis2_0_Private,
+  getMockEService,
+  validatedRiskAnalysisTemplate3_1_Pa,
+} from "pagopa-interop-commons-test";
 import {
   Purpose,
   RiskAnalysis,
@@ -16,30 +27,33 @@ import {
   EServiceTemplateId,
   EService,
 } from "pagopa-interop-models";
-import {
-  getMockValidRiskAnalysisForm,
-  validRiskAnalysis2_0_Private,
-  getMockEService,
-  validatedRiskAnalysisTemplate3_1_Pa,
-} from "pagopa-interop-commons-test";
-import { purposeApi } from "pagopa-interop-api-clients";
-import {
-  RiskAnalysisValidatedForm,
-  riskAnalysisValidatedFormToNewRiskAnalysisForm,
-} from "pagopa-interop-commons";
-
 import { match } from "ts-pattern";
+
 import { validateAndTransformRiskAnalysis } from "../src/services/validators.js";
 
 export const buildRiskAnalysisSeed = (
   riskAnalysis: RiskAnalysis
-): purposeApi.RiskAnalysisFormSeed =>
-  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysis.riskAnalysisForm);
+): purposeApi.RiskAnalysisFormSeed => {
+  const { version, answers } = riskAnalysisFormToRiskAnalysisFormToValidate(
+    riskAnalysis.riskAnalysisForm
+  );
+
+  return {
+    version,
+    answers,
+  };
+};
 
 export const buildRiskAnalysisFormSeed = (
   riskAnalysisForm: RiskAnalysisForm
-): purposeApi.RiskAnalysisFormSeed =>
-  riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
+): purposeApi.RiskAnalysisFormSeed => {
+  const { version, answers } =
+    riskAnalysisFormToRiskAnalysisFormToValidate(riskAnalysisForm);
+  return {
+    version,
+    answers,
+  };
+};
 
 export const createUpdatedRiskAnalysisForm = (
   riskAnalysisForm: PurposeRiskAnalysisForm,
@@ -105,7 +119,9 @@ export const createUpdatedPurpose = (
   updatedAt: new Date(),
   riskAnalysisForm: createUpdatedRiskAnalysisForm(
     validateAndTransformRiskAnalysis(
-      purposeUpdateContent.riskAnalysisForm,
+      purposeUpdateContent.riskAnalysisForm
+        ? { ...purposeUpdateContent.riskAnalysisForm, tenantKind }
+        : undefined,
       false,
       tenantKind,
       new Date(),
@@ -172,6 +188,7 @@ export const getMockEServiceForPurposeFromTemplate = (
 
 const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedForm = {
   version: validatedRiskAnalysisTemplate3_1_Pa.version,
+  tenantKind: tenantKind.PA,
   singleAnswers: [
     {
       key: "publicInterestTaskText",
@@ -204,6 +221,7 @@ const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedForm = {
 const validatedRiskAnalysisFormFromTemplate2_0_Private: RiskAnalysisValidatedForm =
   {
     version: validRiskAnalysis2_0_Private.version,
+    tenantKind: tenantKind.PRIVATE,
     singleAnswers: [],
     multiAnswers: [],
   };

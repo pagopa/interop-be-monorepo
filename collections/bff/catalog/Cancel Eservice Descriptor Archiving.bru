@@ -1,0 +1,20 @@
+meta {
+  name: Cancel Eservice Descriptor Archiving
+  type: http
+  seq: 43
+}
+
+delete {
+  url: {{host-bff}}/eservices/:eServiceId/descriptors/:descriptorId/scheduleArchive
+  body: none
+  auth: none
+}
+
+params:path {
+  eServiceId: {{eserviceId}}
+  descriptorId: {{descriptorId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}

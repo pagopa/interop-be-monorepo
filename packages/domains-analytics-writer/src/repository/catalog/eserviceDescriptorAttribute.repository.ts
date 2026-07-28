@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { EserviceDescriptorAttributeSchema } from "../../model/catalog/eserviceDescriptorAttribute.js";
+import { CatalogDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { generateMergeQuery } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-import { EserviceDescriptorAttributeSchema } from "../../model/catalog/eserviceDescriptorAttribute.js";
-import { CatalogDbTable } from "../../model/db/index.js";
 
 export function eserviceDescriptorAttributeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

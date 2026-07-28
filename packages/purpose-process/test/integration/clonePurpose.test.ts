@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
 import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
@@ -11,6 +12,7 @@ import {
   getMockPurposeVersion,
   getMockTenant,
   getMockAuthData,
+  getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -29,7 +31,7 @@ import {
   Agreement,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
+
 import {
   duplicatedPurposeTitle,
   tenantIsNotTheConsumer,
@@ -37,7 +39,6 @@ import {
   purposeDelegationNotFound,
   purposeCannotBeCloned,
   purposeNotFound,
-  tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneAgreement,
@@ -82,7 +83,7 @@ describe("clonePurpose", async () => {
     await addOneTenant(mockTenant);
     await addOneAgreement(mockAgreement);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
+    const { purpose } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
       seed: {
         eserviceId: mockEService.id,
@@ -126,7 +127,6 @@ describe("clonePurpose", async () => {
       sourcePurposeId: mockPurpose.id,
       sourceVersionId: mockPurpose.versions[0].id,
     });
-    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should write on event-store for the cloning of a purpose, making sure the title is cut to 60 characters", async () => {
     const mockTenant = {
@@ -154,7 +154,7 @@ describe("clonePurpose", async () => {
     await addOneTenant(mockTenant);
     await addOneAgreement(mockAgreement);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
+    const { purpose } = await purposeService.clonePurpose({
       purposeId: mockPurpose.id,
       seed: {
         eserviceId: mockEService.id,
@@ -199,7 +199,6 @@ describe("clonePurpose", async () => {
       sourceVersionId: mockPurpose.versions[0].id,
     });
     expect(expectedPurpose.title.length).toBe(60);
-    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should succeed when requester is Consumer Delegate and the Purpose is in a clonable state", async () => {
     const consumer = {
@@ -245,7 +244,7 @@ describe("clonePurpose", async () => {
     await addOneDelegation(delegation);
     await addSomeRandomDelegations(purposeCreatedByDelegate, addOneDelegation);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
+    const { purpose } = await purposeService.clonePurpose({
       purposeId: purposeCreatedByDelegate.id,
       seed: {
         eserviceId: mockEService.id,
@@ -292,7 +291,6 @@ describe("clonePurpose", async () => {
       sourcePurposeId: purposeCreatedByDelegate.id,
       sourceVersionId: purposeCreatedByDelegate.versions[0].id,
     });
-    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the Purpose is in a clonable state", async () => {
     const producer = {
@@ -367,7 +365,7 @@ describe("clonePurpose", async () => {
     await addOneDelegation(consumerDelegation);
     await addSomeRandomDelegations(delegatePurpose, addOneDelegation);
 
-    const { purpose, isRiskAnalysisValid } = await purposeService.clonePurpose({
+    const { purpose } = await purposeService.clonePurpose({
       purposeId: delegatePurpose.id,
       seed: {
         eserviceId: eservice.id,
@@ -414,7 +412,6 @@ describe("clonePurpose", async () => {
       sourcePurposeId: delegatePurpose.id,
       sourceVersionId: mockPurposeVersion.id,
     });
-    expect(isRiskAnalysisValid).toBe(false);
   });
   it("should throw purposeNotFound if the purpose to clone doesn't exist", async () => {
     const mockTenant = {
@@ -448,6 +445,90 @@ describe("clonePurpose", async () => {
         ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
       })
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
+  });
+  it("should preserve the tenantKind in the risk analysis form when cloning a purpose", async () => {
+    const mockTenant = {
+      ...getMockTenant(),
+      kind: tenantKind.PA,
+    };
+    const mockEService = getMockEService();
+
+    const mockAgreement = getMockAgreement(
+      mockEService.id,
+      mockTenant.id,
+      agreementState.active
+    );
+
+    const riskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
+
+    const mockPurpose: Purpose = {
+      ...getMockPurpose(),
+      eserviceId: mockEService.id,
+      consumerId: mockTenant.id,
+      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      riskAnalysisForm,
+    };
+
+    await addOneEService(mockEService);
+    await addOnePurpose(mockPurpose);
+    await addOneTenant(mockTenant);
+    await addOneAgreement(mockAgreement);
+
+    const { purpose } = await purposeService.clonePurpose({
+      purposeId: mockPurpose.id,
+      seed: {
+        eserviceId: mockEService.id,
+      },
+      ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+    });
+
+    const writtenEvent = await readLastPurposeEvent(purpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "0",
+      type: "PurposeCloned",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeClonedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      id: unsafeBrandId(writtenPayload.purpose!.id),
+      title: `${mockPurpose.title} - clone - ${formatDateddMMyyyyHHmmss(
+        new Date()
+      )}`,
+      versions: [
+        {
+          id: unsafeBrandId(writtenPayload.purpose!.versions[0].id),
+          state: purposeVersionState.draft,
+          createdAt: new Date(),
+          dailyCalls: mockPurpose.versions[0].dailyCalls,
+        },
+      ],
+      createdAt: new Date(),
+      riskAnalysisForm: mockPurpose.riskAnalysisForm,
+    };
+
+    // Verify the cloned purpose has the expected structure
+    expect(writtenEvent).toMatchObject({
+      stream_id: purpose.id,
+      version: "0",
+      type: "PurposeCloned",
+      event_version: 2,
+    });
+
+    expect(writtenPayload.sourcePurposeId).toEqual(mockPurpose.id);
+    expect(writtenPayload.sourceVersionId).toEqual(mockPurpose.versions[0].id);
+
+    // Verify the tenantKind is preserved in the risk analysis form
+    expect(writtenPayload.purpose?.riskAnalysisForm?.tenantKind).toEqual(
+      toPurposeV2(expectedPurpose).riskAnalysisForm?.tenantKind
+    );
   });
   it("should throw purposeCannotBeCloned if the purpose is in draft (no versions)", async () => {
     const mockTenant = {
@@ -596,40 +677,6 @@ describe("clonePurpose", async () => {
     ).rejects.toThrowError(
       duplicatedPurposeTitle(mockPurposeWithSameName.title)
     );
-  });
-  it("should throw tenantKindNotFound if the tenant kind doesn't exist", async () => {
-    const mockTenant = {
-      ...getMockTenant(),
-      kind: undefined,
-    };
-    const mockEService = getMockEService();
-
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
-
-    const mockPurpose: Purpose = {
-      ...getMockPurpose(),
-      eserviceId: mockEService.id,
-      consumerId: mockTenant.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
-    };
-
-    await addOnePurpose(mockPurpose);
-    await addOneTenant(mockTenant);
-    await addOneAgreement(mockAgreement);
-
-    expect(
-      purposeService.clonePurpose({
-        purposeId: mockPurpose.id,
-        seed: {
-          eserviceId: mockEService.id,
-        },
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
-      })
-    ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
   it("should throw tenantIsNotTheDelegatedConsumer when the requester is the Consumer and is cloning a purpose created by the delegate in clonePurpose", async () => {
     const consumer = {

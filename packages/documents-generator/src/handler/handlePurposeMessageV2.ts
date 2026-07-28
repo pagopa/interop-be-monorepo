@@ -1,3 +1,9 @@
+import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  getInteropHeaders,
+  Logger,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   eserviceMode,
@@ -10,23 +16,18 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import {
-  getInteropHeaders,
-  Logger,
-  RefreshableInteropToken,
-} from "pagopa-interop-commons";
+
+import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
+import { tenantKindNotFound } from "../model/errors.js";
+import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
 import { getIpaCode } from "../pdf-generator/pdfGenerator.js";
-import { purposeApi } from "pagopa-interop-api-clients";
+import { RiskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
 import {
   retrieveEService,
   retrievePurposeDelegation,
   retrieveTenant,
 } from "../service/purpose/purposeService.js";
-import { PurposeDocumentEServiceInfo } from "../model/purposeModels.js";
-import { RiskAnalysisDocumentBuilder } from "../service/purpose/purposeContractBuilder.js";
-import { tenantKindNotFound } from "../model/errors.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
-import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
 // eslint-disable-next-line max-params
 export async function handlePurposeMessageV2(
@@ -164,7 +165,14 @@ export async function handlePurposeMessageV2(
           "PurposeArchived",
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisDocumentGenerated",
-          "RiskAnalysisSignedDocumentGenerated"
+          "RiskAnalysisSignedDocumentGenerated",
+          "MaintenancePurposeRiskAnalysisSetTenantKind",
+          "PurposeRiskAnalysisWorkflowCreated",
+          "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => Promise.resolve()

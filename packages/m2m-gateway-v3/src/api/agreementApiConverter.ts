@@ -58,6 +58,7 @@ export function toGetPurposesApiQueryParamsForAgreement(
     states: [],
     excludeDraft: false,
     name: undefined,
+    signingStates: [],
   };
 }
 

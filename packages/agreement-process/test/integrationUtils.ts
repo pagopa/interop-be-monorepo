@@ -1,5 +1,8 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import type { DeeplyAllowMatchers } from "vitest";
+
+import { genericLogger } from "pagopa-interop-commons";
 import {
   StoredEvent,
   readLastEventByStreamId,
@@ -10,8 +13,6 @@ import {
   sortAgreements,
   sortBy,
 } from "pagopa-interop-commons-test";
-import { afterEach, expect, inject } from "vitest";
-import type { DeeplyAllowMatchers } from "vitest";
 import {
   Agreement,
   AgreementEvent,
@@ -28,7 +29,6 @@ import {
   DeclaredAttributeV2,
   VerifiedAttributeV2,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -43,8 +43,10 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import { agreementServiceBuilder } from "../src/services/agreementService.js";
+import { afterEach, expect, inject } from "vitest";
+
 import { config } from "../src/config/config.js";
+import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, postgresDB, fileManager, readModelDB } =
@@ -240,6 +242,11 @@ export const sortAgreementAttributes = <T extends AgreementV2 | undefined>(
       : [],
     certifiedAttributes: agreement.certifiedAttributes
       ? [...agreement.certifiedAttributes].sort(
+          sortBy<CertifiedAttributeV2>((att) => att.id)
+        )
+      : [],
+    certifiedDiscreteAttributes: agreement.certifiedDiscreteAttributes
+      ? [...agreement.certifiedDiscreteAttributes].sort(
           sortBy<CertifiedAttributeV2>((att) => att.id)
         )
       : [],

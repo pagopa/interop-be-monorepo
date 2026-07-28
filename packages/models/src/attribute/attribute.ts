@@ -1,10 +1,12 @@
 import z from "zod";
+
 import { AttributeId } from "../brandedIds.js";
 
 export const attributeKind = {
   certified: "Certified",
   verified: "Verified",
   declared: "Declared",
+  certifiedDiscrete: "CertifiedDiscrete",
 } as const;
 export const AttributeKind = z.enum([
   Object.values(attributeKind)[0],

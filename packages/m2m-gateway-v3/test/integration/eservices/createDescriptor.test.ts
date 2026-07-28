@@ -1,15 +1,22 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import {
-  EServiceId,
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import {
+  EServiceId,
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  eserviceDescriptorNotFound,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   eserviceService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -17,12 +24,6 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import {
-  eserviceDescriptorNotFound,
-  missingMetadata,
-} from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createDescriptor", () => {
@@ -80,6 +81,8 @@ describe("createDescriptor", () => {
       publishedAt: mockDescriptor.publishedAt,
       suspendedAt: mockDescriptor.suspendedAt,
       templateVersionId: mockDescriptor.templateVersionRef?.id,
+      archivingSchedule: mockDescriptor.archivingSchedule,
+      asyncExchangeProperties: mockDescriptor.asyncExchangeProperties,
     };
 
     const result = await eserviceService.createDescriptor(

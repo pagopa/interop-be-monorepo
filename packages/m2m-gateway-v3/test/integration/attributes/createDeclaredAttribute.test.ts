@@ -1,14 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
 import {
   attributeRegistryApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
-import { generateMock } from "@anatine/zod-mock";
-import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import {
   getMockedApiAttribute,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  missingMetadata,
+  unexpectedAttributeKind,
+} from "../../../src/model/errors.js";
 import {
   attributeService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -16,12 +23,6 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import {
-  missingMetadata,
-  unexpectedAttributeKind,
-} from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createDeclaredAttribute", () => {

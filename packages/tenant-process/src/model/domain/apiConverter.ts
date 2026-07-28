@@ -1,3 +1,4 @@
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ExternalId,
   Tenant,
@@ -14,8 +15,8 @@ import {
   TenantFeatureType,
   tenantFeatureType,
 } from "pagopa-interop-models";
-import { tenantApi } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
+
 import { invalidTenantFeature } from "./errors.js";
 
 function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {
@@ -106,6 +107,14 @@ function toApiTenantAttribute(
         delegationId: attribute.delegationId,
       },
     }))
+    .with({ type: tenantAttributeType.CERTIFIED_DISCRETE }, (attribute) => ({
+      certifiedDiscrete: {
+        id: attribute.id,
+        assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
+        revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
+        discreteValue: attribute.discreteValue,
+      },
+    }))
     .exhaustive();
 }
 
@@ -140,6 +149,12 @@ export function toApiTenant(tenant: Tenant): tenantApi.Tenant {
     name: tenant.name,
     onboardedAt: tenant.onboardedAt?.toJSON(),
     subUnitType: tenant.subUnitType,
+    remoteIds: tenant.remoteIds?.map((remoteId) => ({
+      origin: remoteId.origin,
+      value: remoteId.value,
+      assignmentTimestamp: remoteId.assignmentTimestamp.toJSON(),
+    })),
+    selfcareInstitutionType: tenant.selfcareInstitutionType ?? undefined,
   };
 }
 

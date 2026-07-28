@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
@@ -7,11 +8,11 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
+
+import { makeApiProblem } from "../model/errors.js";
 import { ToolsService } from "../services/toolService.js";
 import { fromBffAppContext } from "../utilities/context.js";
 import { toolsErrorMapper } from "../utilities/errorMappers.js";
-import { makeApiProblem } from "../model/errors.js";
 
 const toolRouter = (
   ctx: ZodiosContext,
@@ -20,6 +21,7 @@ const toolRouter = (
   const toolRouter = ctx.router(bffApi.toolsApi.api, {
     validationErrorHandler: zodiosValidationErrorToApiProblem,
   });
+
   toolRouter.post("/tools/validateTokenGeneration", async (req, res) => {
     const ctx = fromBffAppContext(req.ctx, req.headers);
 
@@ -35,6 +37,7 @@ const toolRouter = (
         req.body.client_assertion,
         req.body.client_assertion_type,
         req.body.grant_type,
+        req.body.is_async === "true",
         req.body.dpop_proof,
         ctx
       );

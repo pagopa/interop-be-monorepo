@@ -1,6 +1,6 @@
 import { m2mEventApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
 import { PurposeM2MEvent, PurposeM2MEventType } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export function toApiPurposeM2MEventType(
   eventType: PurposeM2MEventType
@@ -61,6 +61,21 @@ export function toApiPurposeM2MEventType(
     .with(
       "RiskAnalysisSignedDocumentGenerated",
       () => "RISK_ANALYSIS_DOCUMENT_GENERATED"
+    )
+    .with(
+      "PurposeRiskAnalysisWorkflowCreated",
+      () => "PURPOSE_RISK_ANALYSIS_WORKFLOW_CREATED"
+    )
+    .with("PurposeRiskAnalysisAssigned", () => "PURPOSE_RISK_ANALYSIS_ASSIGNED")
+    .with(
+      "PurposeRiskAnalysisSubmitted",
+      () => "PURPOSE_RISK_ANALYSIS_SUBMITTED"
+    )
+    .with("PurposeRiskAnalysisSigned", () => "PURPOSE_RISK_ANALYSIS_SIGNED")
+    .with("PurposeRiskAnalysisRejected", () => "PURPOSE_RISK_ANALYSIS_REJECTED")
+    .with(
+      "PurposeRiskAnalysisFormEdited",
+      () => "PURPOSE_RISK_ANALYSIS_FORM_EDITED"
     )
     .exhaustive();
 }

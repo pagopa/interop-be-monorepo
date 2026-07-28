@@ -1,0 +1,19 @@
+meta {
+  name: Sign Risk Analysis
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{host-bff}}/purposes/:purposeId/riskAnalysis/sign
+  body: none
+  auth: none
+}
+
+params:path {
+  purposeId: {{purposeId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+}

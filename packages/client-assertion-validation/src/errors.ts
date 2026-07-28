@@ -34,6 +34,16 @@ export const errorCodes = {
   invalidKidFormat: "0031",
   clientAssertionInvalidClaims: "0032",
   invalidSignature: "0033",
+  scopeNotProvided: "0034",
+  invalidScopeClaimFormat: "0035",
+  invalidInteractionIdClaimFormat: "0036",
+  invalidUrlCallbackClaimFormat: "0037",
+  invalidEntityNumberClaimFormat: "0038",
+  asyncExchangeNotAllowed: "0039",
+  urlCallbackNotProvided: "0040",
+  interactionIdNotProvided: "0041",
+  entityNumberNotProvided: "0042",
+  invalidEntityNumber: "0043",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -259,6 +269,15 @@ export function invalidDigestClaim(message: string): ApiError<ErrorCodes> {
   });
 }
 
+export function asyncExchangeNotAllowed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail:
+      "Async exchange clients cannot use the standard authorization server",
+    code: "asyncExchangeNotAllowed",
+    title: "Async exchange not allowed",
+  });
+}
+
 export function invalidHashLength(alg: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Invalid hash length for algorithm ${alg}`,
@@ -291,11 +310,57 @@ export function algorithmNotAllowed(algorithm: string): ApiError<ErrorCodes> {
   });
 }
 
-export function purposeIdNotProvided(): ApiError<ErrorCodes> {
+export function purposeIdNotProvided(
+  clientId?: string | undefined
+): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: "Claim purposeId does not exist in this assertion",
+    detail:
+      clientId === undefined
+        ? "Claim purposeId does not exist in this assertion"
+        : `purposeId not provided in client assertion for client ${clientId}`,
     code: "purposeIdNotProvided",
     title: "Purpose Id not provided",
+  });
+}
+
+export function urlCallbackNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `urlCallback not provided in client assertion for client ${clientId}`,
+    code: "urlCallbackNotProvided",
+    title: "urlCallback not provided",
+  });
+}
+
+export function interactionIdNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `interactionId not provided in client assertion for client ${clientId}`,
+    code: "interactionIdNotProvided",
+    title: "interactionId not provided",
+  });
+}
+
+export function entityNumberNotProvided(
+  clientId: string | undefined
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber not provided in client assertion for client ${clientId}`,
+    code: "entityNumberNotProvided",
+    title: "entityNumber not provided",
+  });
+}
+
+export function invalidEntityNumber(
+  clientId: string | undefined,
+  entityNumber: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber ${entityNumber} is not valid for client ${clientId} - must be greater than 0`,
+    code: "invalidEntityNumber",
+    title: "Invalid entityNumber",
   });
 }
 
@@ -325,5 +390,51 @@ export function invalidSignature(): ApiError<ErrorCodes> {
     detail: "Client assertion signature is invalid",
     code: "invalidSignature",
     title: "Invalid signature",
+  });
+}
+
+export function scopeNotProvided(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "Claim scope does not exist in this assertion",
+    code: "scopeNotProvided",
+    title: "Scope not provided",
+  });
+}
+
+export function invalidScopeClaimFormat(scope: string): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Scope claim ${scope} is not a valid InteractionState`,
+    code: "invalidScopeClaimFormat",
+    title: "Invalid scope claim format",
+  });
+}
+
+export function invalidInteractionIdClaimFormat(
+  interactionId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `InteractionId claim ${interactionId} is not a valid UUID`,
+    code: "invalidInteractionIdClaimFormat",
+    title: "Invalid interactionId claim format",
+  });
+}
+
+export function invalidUrlCallbackClaimFormat(
+  urlCallback: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `urlCallback claim ${urlCallback} is not a valid URL`,
+    code: "invalidUrlCallbackClaimFormat",
+    title: "Invalid urlCallback claim format",
+  });
+}
+
+export function invalidEntityNumberClaimFormat(
+  entityNumber: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `entityNumber claim ${entityNumber} is not a valid non-negative integer`,
+    code: "invalidEntityNumberClaimFormat",
+    title: "Invalid entityNumber claim format",
   });
 }

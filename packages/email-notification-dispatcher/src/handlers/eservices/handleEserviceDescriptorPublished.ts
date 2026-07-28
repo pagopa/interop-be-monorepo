@@ -11,14 +11,13 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  EServiceDescriptorHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
+  descriptorNotFound,
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
-import { descriptorNotFound } from "../../models/errors.js";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 

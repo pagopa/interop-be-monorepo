@@ -1,6 +1,7 @@
-import { z } from "zod";
 import { match } from "ts-pattern";
+import { z } from "zod";
 
+import { EventEnvelope } from "../events/events.js";
 import {
   EServiceTemplateVersionActivatedV2,
   EServiceTemplateAddedV2,
@@ -14,6 +15,7 @@ import {
   EServiceTemplateRiskAnalysisAddedV2,
   EServiceTemplateRiskAnalysisDeletedV2,
   EServiceTemplateRiskAnalysisUpdatedV2,
+  MaintenanceEServiceTemplateRiskAnalysisSetTenantKindV2,
   EServiceTemplateVersionSuspendedV2,
   EServiceTemplateVersionAddedV2,
   EServiceTemplateVersionAttributesUpdatedV2,
@@ -26,9 +28,11 @@ import {
   EServiceTemplateVersionPublishedV2,
   EServiceTemplateVersionQuotasUpdatedV2,
   EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
+  EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2,
+  EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2,
+  EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2,
 } from "../gen/v2/eservice-template/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 
 export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
   z.object({
@@ -50,6 +54,13 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceTemplateRiskAnalysisUpdated"),
     data: protobufDecoder(EServiceTemplateRiskAnalysisUpdatedV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("MaintenanceEServiceTemplateRiskAnalysisSetTenantKind"),
+    data: protobufDecoder(
+      MaintenanceEServiceTemplateRiskAnalysisSetTenantKindV2
+    ),
   }),
   z.object({
     event_version: z.literal(2),
@@ -153,6 +164,33 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
       EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2
     ),
   }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal(
+      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded"
+    ),
+    data: protobufDecoder(
+      EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal(
+      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated"
+    ),
+    data: protobufDecoder(
+      EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal(
+      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
+    ),
+    data: protobufDecoder(
+      EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2
+    ),
+  }),
 ]);
 
 export type EServiceTemplateEventV2 = z.infer<typeof EServiceTemplateEventV2>;
@@ -197,6 +235,11 @@ export function eserviceTemplateEventToBinaryDataV2(
     .with({ type: "EServiceTemplateRiskAnalysisUpdated" }, ({ data }) =>
       EServiceTemplateRiskAnalysisUpdatedV2.toBinary(data)
     )
+    .with(
+      { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
+      ({ data }) =>
+        MaintenanceEServiceTemplateRiskAnalysisSetTenantKindV2.toBinary(data)
+    )
     .with({ type: "EServiceTemplateVersionSuspended" }, ({ data }) =>
       EServiceTemplateVersionSuspendedV2.toBinary(data)
     )
@@ -234,6 +277,33 @@ export function eserviceTemplateEventToBinaryDataV2(
       { type: "EServiceTemplatePersonalDataFlagUpdatedAfterPublication" },
       ({ data }) =>
         EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2.toBinary(data)
+    )
+    .with(
+      {
+        type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
+      },
+      ({ data }) =>
+        EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2.toBinary(
+          data
+        )
+    )
+    .with(
+      {
+        type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
+      },
+      ({ data }) =>
+        EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2.toBinary(
+          data
+        )
+    )
+    .with(
+      {
+        type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
+      },
+      ({ data }) =>
+        EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2.toBinary(
+          data
+        )
     )
     .exhaustive();
 }
