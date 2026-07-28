@@ -369,11 +369,9 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         })
         .from(purposeTemplateInReadmodelPurposeTemplate)
         .where(
-          and(
-            ne(
-              purposeTemplateInReadmodelPurposeTemplate.state,
-              purposeTemplateState.draft
-            )
+          ne(
+            purposeTemplateInReadmodelPurposeTemplate.state,
+            purposeTemplateState.draft
           )
         );
 
