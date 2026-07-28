@@ -162,7 +162,16 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
-          "MaintenanceEServiceDescriptorUnarchived"
+          "MaintenanceEServiceDescriptorUnarchived",
+          // TODO: implement delegation archiving request notifications (PIN-10635)
+          "EServiceArchivingRequestedByDelegate",
+          "EServiceArchivingRequestApprovedByDelegator",
+          "EServiceArchivingRequestRejectedByDelegator",
+          "EServiceArchivingRequestCanceledByDelegate",
+          "EServiceDescriptorArchivingRequestedByDelegate",
+          "EServiceDescriptorArchivingRequestApprovedByDelegator",
+          "EServiceDescriptorArchivingRequestRejectedByDelegator",
+          "EServiceDescriptorArchivingRequestCanceledByDelegate"
         ),
       },
       () => {
