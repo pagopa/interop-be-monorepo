@@ -3,7 +3,6 @@ import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiDeclaredTenantAttribute,
-  getMockedApiDelegation,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
 import {
@@ -20,8 +19,6 @@ import { config } from "../../../src/config/config.js";
 import {
   tenantDeclaredAttributeNotFound,
   missingMetadata,
-  requesterIsNotTheDelegateConsumer,
-  cannotEditDeclaredAttributesForTenant,
 } from "../../../src/model/errors.js";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 
@@ -86,22 +83,6 @@ describe("POST /tenants/:tenantId/declaredAttributes router test", () => {
     const res = await makeRequest(token, mockSeed, "invalid_id" as TenantId);
 
     expect(res.status).toBe(400);
-  });
-
-  it.each([
-    requesterIsNotTheDelegateConsumer(getMockedApiDelegation()),
-    cannotEditDeclaredAttributesForTenant(
-      generateId(),
-      getMockedApiDelegation()
-    ),
-  ])("Should return 403 in case of $code error", async (error) => {
-    mockTenantService.assignTenantDeclaredAttribute = vi
-      .fn()
-      .mockRejectedValue(error);
-    const token = generateToken(authRole.M2M_ADMIN_ROLE);
-    const res = await makeRequest(token);
-
-    expect(res.status).toBe(403);
   });
 
   it.each([

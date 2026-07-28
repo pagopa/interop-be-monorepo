@@ -658,14 +658,21 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /tenants/attributes/declared:
+  /tenants/{tenantId}/attributes/declared:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       tags:
         - tenantAttribute
       operationId: addDeclaredAttribute
-      description: Adds a Declared attribute to the requesting Tenant
+      description: Adds a Declared attribute to the target Tenant
       requestBody:
         content:
           application/json:
@@ -694,9 +701,16 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  /tenants/attributes/declared/{attributeId}:
+  /tenants/{tenantId}/attributes/declared/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
       - name: attributeId
         in: path
         description: Attribute id
@@ -708,7 +722,7 @@ paths:
       tags:
         - tenantAttribute
       operationId: revokeDeclaredAttribute
-      description: Revokes a Declared attribute to the requesting Tenant
+      description: Revokes a Declared attribute from the target Tenant
       responses:
         "200":
           description: Updated Tenant
@@ -721,6 +735,12 @@ paths:
                 $ref: "#/components/schemas/Tenant"
         "400":
           description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
           content:
             application/problem+json:
               schema:

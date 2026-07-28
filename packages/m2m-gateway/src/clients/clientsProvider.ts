@@ -39,7 +39,7 @@ type AgreementProcessClient =
 type PurposeProcessClient =
   ZodiosClientWithMetadata<purposeApi.PurposeProcessClient>;
 
-export type DelegationProcessClientWithMetadata = {
+type DelegationProcessClientWithMetadata = {
   [K in keyof delegationApi.DelegationProcessClient]: ZodiosClientWithMetadata<
     delegationApi.DelegationProcessClient[K]
   >;

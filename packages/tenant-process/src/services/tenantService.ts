@@ -69,7 +69,6 @@ import {
   agreementNotFound,
   notValidMailAddress,
   delegationNotFound,
-  operationRestrictedToDelegate,
   verifiedAttributeSelfVerificationNotAllowed,
   certifiedDiscreteAttributeAlreadyAssigned,
   tenantNotFoundByRemoteId,
@@ -117,6 +116,7 @@ import {
   assertTenantAllowedForDelegation,
   getTenantKind,
   isFeatureAssigned,
+  assertRequesterCanManageDeclaredAttribute,
 } from "./validators.js";
 
 const retrieveTenant = async (
@@ -473,7 +473,10 @@ export function tenantServiceBuilder(
     },
 
     async revokeDeclaredAttribute(
-      { attributeId }: { attributeId: AttributeId },
+      {
+        tenantId,
+        attributeId,
+      }: { tenantId: TenantId; attributeId: AttributeId },
       {
         authData,
         logger,
@@ -481,14 +484,18 @@ export function tenantServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Tenant>> {
       logger.info(
-        `Revoking declared attribute ${attributeId} to tenant ${authData.organizationId}`
-      );
-      const requesterTenant = await retrieveTenant(
-        authData.organizationId,
-        readModelService
+        `Revoking declared attribute ${attributeId} from tenant ${tenantId}`
       );
 
-      const declaredTenantAttribute = requesterTenant.data.attributes.find(
+      assertRequesterCanManageDeclaredAttribute(
+        tenantId,
+        authData.organizationId,
+        undefined
+      );
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const declaredTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
           attr.id === attributeId && attr.type === tenantAttributeType.DECLARED
       );
@@ -498,9 +505,9 @@ export function tenantServiceBuilder(
       }
 
       const updatedTenant: Tenant = {
-        ...requesterTenant.data,
+        ...targetTenant.data,
         updatedAt: new Date(),
-        attributes: requesterTenant.data.attributes.map((declaredAttribute) =>
+        attributes: targetTenant.data.attributes.map((declaredAttribute) =>
           declaredAttribute.id === attributeId
             ? {
                 ...declaredAttribute,
@@ -512,7 +519,7 @@ export function tenantServiceBuilder(
 
       const event = await repository.createEvent(
         toCreateEventTenantDeclaredAttributeRevoked(
-          requesterTenant.metadata.version,
+          targetTenant.metadata.version,
           updatedTenant,
           unsafeBrandId(attributeId),
           correlationId
@@ -774,51 +781,40 @@ export function tenantServiceBuilder(
 
     async addDeclaredAttribute(
       {
+        tenantId,
         tenantAttributeSeed,
-      }: { tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed },
+      }: {
+        tenantId: TenantId;
+        tenantAttributeSeed: tenantApi.DeclaredTenantAttributeSeed;
+      },
       {
         authData,
         logger,
         correlationId,
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Tenant>> {
-      const { tenant, delegationId } = await match(
+      const delegationId: DelegationId | undefined =
         tenantAttributeSeed.delegationId
-      )
-        .with(P.nullish, async () => {
-          logger.info(
-            `Add declared attribute ${tenantAttributeSeed.id} to requester tenant ${authData.organizationId}`
-          );
-          const targetTenant = await retrieveTenant(
-            authData.organizationId,
-            readModelService
-          );
+          ? unsafeBrandId<DelegationId>(tenantAttributeSeed.delegationId)
+          : undefined;
+      const delegation = delegationId
+        ? await readModelService.getActiveConsumerDelegation(delegationId)
+        : undefined;
 
-          return { tenant: targetTenant, delegationId: undefined };
-        })
-        .otherwise(async (seedDelegationId) => {
-          const delegationId: DelegationId = unsafeBrandId(seedDelegationId);
-          const delegation =
-            await readModelService.getActiveConsumerDelegation(delegationId);
+      if (delegationId && !delegation) {
+        throw delegationNotFound(delegationId);
+      }
 
-          if (!delegation) {
-            throw delegationNotFound(delegationId);
-          }
-          logger.info(
-            `Add declared attribute ${tenantAttributeSeed.id} to delegator tenant ${delegation.delegatorId}`
-          );
+      assertRequesterCanManageDeclaredAttribute(
+        tenantId,
+        authData.organizationId,
+        delegation
+      );
 
-          if (delegation.delegateId !== authData.organizationId) {
-            throw operationRestrictedToDelegate();
-          }
-
-          const targetTenant = await retrieveTenant(
-            delegation.delegatorId,
-            readModelService
-          );
-
-          return { tenant: targetTenant, delegationId };
-        });
+      logger.info(
+        `Add declared attribute ${tenantAttributeSeed.id} to tenant ${tenantId}`
+      );
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const attribute = await retrieveAttribute(
         unsafeBrandId(tenantAttributeSeed.id),
@@ -829,21 +825,21 @@ export function tenantServiceBuilder(
         throw attributeNotFound(attribute.id);
       }
 
-      const declaredTenantAttribute = tenant.data.attributes.find(
+      const declaredTenantAttribute = targetTenant.data.attributes.find(
         (attr): attr is DeclaredTenantAttribute =>
           attr.type === tenantAttributeType.DECLARED && attr.id === attribute.id
       );
 
       const updatedTenant: Tenant = {
-        ...tenant.data,
+        ...targetTenant.data,
         attributes: declaredTenantAttribute
           ? reassignDeclaredAttribute(
-              tenant.data.attributes,
+              targetTenant.data.attributes,
               attribute.id,
               delegationId
             )
           : assignDeclaredAttribute(
-              tenant.data.attributes,
+              targetTenant.data.attributes,
               attribute.id,
               delegationId
             ),
@@ -852,7 +848,7 @@ export function tenantServiceBuilder(
 
       const event = await repository.createEvent(
         toCreateEventTenantDeclaredAttributeAssigned(
-          tenant.metadata.version,
+          targetTenant.metadata.version,
           updatedTenant,
           unsafeBrandId(tenantAttributeSeed.id),
           correlationId

@@ -110,7 +110,11 @@ export const addDeclaredAttributeErrorMapper = (
       "delegationNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("operationRestrictedToDelegate", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "operationForbidden",
+      "operationRestrictedToDelegate",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const revokeCertifiedAttributeErrorMapper = (
@@ -132,6 +136,7 @@ export const revokeDeclaredAttributeErrorMapper = (
   match(error.code)
     .with("tenantNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getCertifiedAttributesErrorMapper = (
