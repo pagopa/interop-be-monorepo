@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { PurposeSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 
@@ -6,10 +7,7 @@ import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import { DeletingDbTable } from "../../model/db/deleting.js";
 import { PurposeDbTable } from "../../model/db/index.js";
-import {
-  PurposeSchema,
-  PurposeDeletingSchema,
-} from "../../model/purpose/purpose.js";
+import { PurposeDeletingSchema } from "../../model/purpose/purpose.js";
 import {
   generateMergeQuery,
   generateMergeDeleteQuery,
