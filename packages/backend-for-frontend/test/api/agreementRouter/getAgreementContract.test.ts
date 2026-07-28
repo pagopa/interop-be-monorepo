@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { AgreementId, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
-import { services, api } from "../../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   contractException,
   contractNotFound,
 } from "../../../src/model/errors.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { services, api } from "../../vitest.api.setup.js";
 
 describe("API GET /agreements/:agreementId/contract", () => {
   const mockBuffer = Buffer.from("content");

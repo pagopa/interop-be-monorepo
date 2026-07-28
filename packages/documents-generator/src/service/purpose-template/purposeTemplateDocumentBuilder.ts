@@ -1,5 +1,3 @@
-import { fileURLToPath } from "url";
-import path from "path";
 import Handlebars from "handlebars";
 import {
   FileManager,
@@ -15,7 +13,6 @@ import {
   incompatibleConfigError,
   unexpectedRiskAnalysisTemplateFieldValueOrSuggestionError,
 } from "pagopa-interop-commons";
-import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 import {
   generateId,
   PurposeTemplate,
@@ -27,13 +24,17 @@ import {
   RiskAnalysisTemplateSingleAnswer,
   TargetTenantKind,
 } from "pagopa-interop-models";
+import path from "path";
 import { P, match } from "ts-pattern";
-import { RiskAnalysisTemplateDocumentPDFPayload } from "../../model/purposeTemplateModels.js";
+import { fileURLToPath } from "url";
+
 import { DocumentsGeneratorConfig } from "../../config/config.js";
 import {
   missingRiskAnalysis,
   riskAnalysisConfigVersionNotFound,
 } from "../../model/errors.js";
+import { RiskAnalysisTemplateDocumentPDFPayload } from "../../model/purposeTemplateModels.js";
+import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 
 const YES = "Sì";
 const NO = "No";

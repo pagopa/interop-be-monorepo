@@ -1,8 +1,8 @@
 /* eslint-disable max-params */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
-import { randomUUID } from "crypto";
 import AdmZip from "adm-zip";
+import { randomUUID } from "crypto";
 import {
   agreementApi,
   attributeRegistryApi,
@@ -34,11 +34,7 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  AuthorizationProcessClient,
-  DelegationProcessClient,
-  TenantProcessClient,
-} from "../clients/clientsProvider.js";
+
 import {
   apiTechnologyToTechnology,
   toBffCatalogApiDescriptorAttributes,
@@ -53,6 +49,11 @@ import {
   enhanceEServiceToBffCatalogApiProducerDescriptorEService,
   enhanceEServiceRiskAnalysisArray,
 } from "../api/catalogApiConverter.js";
+import {
+  AuthorizationProcessClient,
+  DelegationProcessClient,
+  TenantProcessClient,
+} from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
@@ -79,6 +80,7 @@ import {
   getAllDelegations,
   getTenantsFromDelegation,
 } from "./delegationService.js";
+import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 import {
   assertEServiceNotTemplateInstance,
   assertNotDelegatedEservice,
@@ -86,7 +88,6 @@ import {
   assertRequesterIsProducer,
   isInvalidDescriptor,
 } from "./validators.js";
-import { retrieveEServiceTemplate } from "./eserviceTemplateService.js";
 
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
@@ -499,7 +500,10 @@ export function catalogServiceBuilder(
         archivedAt: descriptor.archivedAt,
         suspendedAt: descriptor.suspendedAt,
         rejectionReasons: descriptor.rejectionReasons,
-        serverUrls: descriptor.serverUrls,
+        serverUrls: descriptor.serverUrls.map((url, index) => ({
+          url,
+          description: descriptor.serverUrlsDescriptions?.[index] || undefined,
+        })),
         templateRef: eserviceTemplate && {
           templateId: eserviceTemplate.id,
           templateName: eserviceTemplate.name,
@@ -745,11 +749,11 @@ export function catalogServiceBuilder(
     },
     scheduleArchiveEService: async (
       eServiceId: EServiceId,
-      archiveReason: bffApi.EServiceArchivingReasonSeed,
+      seed: bffApi.EServiceArchivingSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Scheduling archive for EService ${eServiceId}`);
-      await catalogProcessClient.scheduleEServiceArchiving(archiveReason, {
+      await catalogProcessClient.scheduleEServiceArchiving(seed, {
         headers,
         params: {
           eServiceId,
@@ -1414,21 +1418,19 @@ export function catalogServiceBuilder(
     scheduleArchiveEserviceDescriptor: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
+      seed: catalogApi.GracePeriodDaysSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
         `Scheduling descriptor ${descriptorId} of EService ${eServiceId}`
       );
-      await catalogProcessClient.scheduleEServiceDescriptorArchiving(
-        undefined,
-        {
-          headers,
-          params: {
-            eServiceId,
-            descriptorId,
-          },
-        }
-      );
+      await catalogProcessClient.scheduleEServiceDescriptorArchiving(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
     },
 
     cancelEServiceDescriptorArchiving: async (

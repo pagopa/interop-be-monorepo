@@ -1,3 +1,4 @@
+import { KMSClient } from "@aws-sdk/client-kms";
 import {
   AuthorizationServerTokenGenerationConfig,
   InteropTokenGenerator,
@@ -11,7 +12,6 @@ import {
   systemRole,
   userRole,
 } from "pagopa-interop-commons";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   algorithm,
   ClientAssertionDigest,
@@ -25,7 +25,8 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { KMSClient } from "@aws-sdk/client-kms";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { getMockDPoPProof, getMockSessionClaims } from "../src/testUtils.js";
 
 const deserializeJWT = (jwt: string): JSON =>

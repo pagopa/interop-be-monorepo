@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { tenantRemoteIdInReadmodelTenant } from "pagopa-interop-readmodel-models";
 import { createSelectSchema } from "drizzle-zod";
+import { tenantRemoteIdInReadmodelTenant } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const TenantRemoteIdSchema = createSelectSchema(
   tenantRemoteIdInReadmodelTenant

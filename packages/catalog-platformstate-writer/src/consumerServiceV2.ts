@@ -1,4 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { isFeatureFlagEnabled, Logger } from "pagopa-interop-commons";
 import {
   Descriptor,
   DescriptorId,
@@ -15,7 +16,8 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { isFeatureFlagEnabled, Logger } from "pagopa-interop-commons";
+
+import { config } from "./config/config.js";
 import {
   deleteCatalogEntry,
   descriptorStateToItemState,
@@ -27,7 +29,6 @@ import {
   updateDescriptorVoucherLifespanInTokenGenerationStatesTable,
   upsertPlatformStatesCatalogEntry,
 } from "./utils.js";
-import { config } from "./config/config.js";
 
 export async function handleMessageV2(
   message: EServiceEventEnvelopeV2,

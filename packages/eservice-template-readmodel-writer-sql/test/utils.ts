@@ -1,8 +1,7 @@
-import { inject, afterEach, expect } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { eq } from "drizzle-orm";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { EServiceTemplate, EServiceTemplateId } from "pagopa-interop-models";
+import { eserviceTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateItemsSQL,
@@ -23,6 +22,8 @@ import {
   EServiceTemplateVersionAsyncExchangePropertiesSQL,
   eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach, expect } from "vitest";
+
 import { eserviceTemplateWriterServiceBuilder } from "../src/eserviceTemplateWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

@@ -1,9 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
-import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { getMockedApiVerifiedTenantAttributeVerifier } from "pagopa-interop-commons-test/index.js";
-import { mockInteropBeClients, tenantService } from "../../integrationUtils.js";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { mockInteropBeClients, tenantService } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getTenantVerifiedAttributeVerifiers", () => {

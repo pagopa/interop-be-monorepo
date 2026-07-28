@@ -1,5 +1,7 @@
 import { constants } from "http2";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForToken.js";
 import {
   generateId,
   RiskAnalysisSingleAnswerId,
@@ -7,9 +9,8 @@ import {
   RiskAnalysisTemplateAnswerAnnotationId,
 } from "pagopa-interop-models";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
-import { generateToken } from "pagopa-interop-commons-test/src/mockedPayloadForToken.js";
-import { authRole } from "pagopa-interop-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, clients } from "../../vitest.api.setup.js";
 

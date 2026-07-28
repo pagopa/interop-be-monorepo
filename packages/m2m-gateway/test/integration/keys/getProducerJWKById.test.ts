@@ -1,16 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { unsafeBrandId } from "pagopa-interop-models";
-import { getMockProducerJWKKey } from "pagopa-interop-commons-test/index.js";
 import {
   authorizationApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
+import { getMockProducerJWKKey } from "pagopa-interop-commons-test/index.js";
+import { unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   keyService,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
   testToM2MProducerKey,

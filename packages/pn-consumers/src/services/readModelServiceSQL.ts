@@ -1,3 +1,4 @@
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import {
   genericInternalError,
   Purpose,
@@ -6,6 +7,10 @@ import {
   unsafeBrandId,
   WithMetadata,
 } from "pagopa-interop-models";
+import {
+  aggregatePurposeArray,
+  toPurposeAggregatorArray,
+} from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
   purposeInReadmodelPurpose,
@@ -18,11 +23,7 @@ import {
   tenantInReadmodelTenant,
   tenantVerifiedAttributeInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, inArray, or, sql } from "drizzle-orm";
-import {
-  aggregatePurposeArray,
-  toPurposeAggregatorArray,
-} from "pagopa-interop-readmodel";
+
 import { Purpose as CustomPurpose } from "../models/purposeModel.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

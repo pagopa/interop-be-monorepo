@@ -14,9 +14,9 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { PurposeHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
+import { PurposeHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "purposeOverQuotaStateToConsumer";
 

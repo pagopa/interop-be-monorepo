@@ -1,20 +1,21 @@
 import { AxiosError, AxiosResponse } from "axios";
-import { afterEach, expect, inject } from "vitest";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
+import { afterEach, expect, inject } from "vitest";
+
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
-import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { WithMaybeMetadata } from "../src/clients/zodiosWithMetadataPatch.js";
-import { purposeServiceBuilder } from "../src/services/purposeService.js";
-import { tenantServiceBuilder } from "../src/services/tenantService.js";
+import { agreementServiceBuilder } from "../src/services/agreementService.js";
 import { attributeServiceBuilder } from "../src/services/attributeService.js";
 import { clientServiceBuilder } from "../src/services/clientService.js";
-import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
-import { agreementServiceBuilder } from "../src/services/agreementService.js";
+import { delegationServiceBuilder } from "../src/services/delegationService.js";
 import { eserviceServiceBuilder } from "../src/services/eserviceService.js";
+import { eserviceTemplateServiceBuilder } from "../src/services/eserviceTemplateService.js";
+import { eventServiceBuilder } from "../src/services/eventService.js";
 import { keyServiceBuilder } from "../src/services/keyService.js";
 import { producerKeychainServiceBuilder } from "../src/services/producerKeychainService.js";
-import { eventServiceBuilder } from "../src/services/eventService.js";
+import { purposeServiceBuilder } from "../src/services/purposeService.js";
 import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
+import { tenantServiceBuilder } from "../src/services/tenantService.js";
 import { userServiceBuilder } from "../src/services/userService.js";
 import { m2mTestToken } from "./mockUtils.js";
 

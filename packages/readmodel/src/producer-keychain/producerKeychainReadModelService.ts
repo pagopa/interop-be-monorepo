@@ -13,6 +13,7 @@ import {
   producerKeychainKeyInReadmodelProducerKeychain,
   producerKeychainUserInReadmodelProducerKeychain,
 } from "pagopa-interop-readmodel-models";
+
 import {
   aggregateProducerKeychain,
   toProducerKeychainAggregator,

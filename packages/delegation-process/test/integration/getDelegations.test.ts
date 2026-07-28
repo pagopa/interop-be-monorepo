@@ -1,7 +1,8 @@
 /* eslint-disable functional/no-let */
 import { getMockContext, getMockDelegation } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
 import { delegationKind } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { addOneDelegation, delegationService } from "../integrationUtils.js";
 
 describe("get delegations", () => {

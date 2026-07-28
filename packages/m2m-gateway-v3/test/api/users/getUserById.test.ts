@@ -1,15 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { UserId, generateId } from "pagopa-interop-models";
-import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import {
   m2mGatewayApiV3,
   selfcareV2ClientApi,
 } from "pagopa-interop-api-clients";
-import { api, mockUserService } from "../../vitest.api.setup.js";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
+import { UserId, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { userNotFound } from "../../../src/model/errors.js";
+import { api, mockUserService } from "../../vitest.api.setup.js";
 
 describe("API GET /users/:userId", () => {
   const mockUserResource: selfcareV2ClientApi.UserResource = {

@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { tenantFeatureInReadmodelTenant } from "pagopa-interop-readmodel-models";
 import { createSelectSchema } from "drizzle-zod";
+import { tenantFeatureInReadmodelTenant } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const TenantFeatureSchema = createSelectSchema(
   tenantFeatureInReadmodelTenant

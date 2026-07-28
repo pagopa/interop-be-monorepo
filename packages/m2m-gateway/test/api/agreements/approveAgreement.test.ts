@@ -1,20 +1,21 @@
-import { describe, it, expect, vi } from "vitest";
+import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiAgreement,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
-import { agreementApi, m2mGatewayApi } from "pagopa-interop-api-clients";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { api, mockAgreementService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   agreementNotInPendingState,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { toM2MGatewayApiAgreement } from "../../../src/api/agreementApiConverter.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockAgreementService } from "../../vitest.api.setup.js";
 
 describe("POST /agreements/:agreementId/approve router test", () => {
   const mockApiAgreement = getMockedApiAgreement({

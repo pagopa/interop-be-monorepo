@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockAuthData,
@@ -25,7 +26,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { rulesVersionNotFoundError } from "pagopa-interop-commons";
+
 import {
   editNotAllowedForReviewMode,
   purposeNotFound,

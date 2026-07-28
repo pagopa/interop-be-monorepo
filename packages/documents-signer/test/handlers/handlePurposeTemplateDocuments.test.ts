@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/no-let */
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { genericInternalError } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { handlePurposeTemplateDocument } from "../../src/handlers/handlePurposeTemplateDocument.js";
 import { calculateSha256Base64 } from "../../src/utils/checksum.js";
 import {

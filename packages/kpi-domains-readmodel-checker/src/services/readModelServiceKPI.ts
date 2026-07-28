@@ -1,3 +1,4 @@
+import camelcaseKeys from "camelcase-keys";
 import {
   Agreement,
   Attribute,
@@ -23,12 +24,11 @@ import {
   aggregateEServiceTemplateArray,
   aggregatePurposeTemplateArray,
 } from "pagopa-interop-readmodel";
-import { z } from "zod";
 import { IConnected, IMain } from "pg-promise";
 import { IClient } from "pg-promise/typescript/pg-subset.js";
-import camelcaseKeys from "camelcase-keys";
+import { z } from "zod";
+
 import { config } from "../configs/config.js";
-import { TenantDbTable } from "../model/db/tenant.js";
 import { AgreementDbTable } from "../model/db/agreement.js";
 import { AttributeDbTable } from "../model/db/attribute.js";
 import {
@@ -38,9 +38,10 @@ import {
 import { CatalogDbTable } from "../model/db/catalog.js";
 import { DelegationDbTable } from "../model/db/delegation.js";
 import { EserviceTemplateDbTable } from "../model/db/eserviceTemplate.js";
-import { PurposeDbTable } from "../model/db/purpose.js";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
+import { PurposeDbTable } from "../model/db/purpose.js";
 import { PurposeTemplateDbTable } from "../model/db/purposeTemplate.js";
+import { TenantDbTable } from "../model/db/tenant.js";
 
 type DBConnection = IConnected<unknown, IClient>;
 export type DBContext = {
@@ -122,6 +123,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
           ...d,
           audience: JSON.parse(d.audience),
           serverUrls: JSON.parse(d.serverUrls),
+          serverUrlsDescriptions: JSON.parse(d.serverUrlsDescriptions),
         })),
         interfacesSQL,
         documentsSQL,
