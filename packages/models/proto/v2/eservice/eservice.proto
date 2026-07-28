@@ -183,6 +183,9 @@ enum ArchivingScopeV2 {
 }
 
 enum GracePeriodDaysV2 {
+  // Must remain at index 0 for backwards compatibility.
+  // Legacy events without this field will decode directly to GRACE_PERIOD_90_DAYS (0),
+  // which is both the fallback for legacy events and a valid domain value.
   GRACE_PERIOD_90_DAYS = 0;
   GRACE_PERIOD_30_DAYS = 1;
   GRACE_PERIOD_60_DAYS = 2;
