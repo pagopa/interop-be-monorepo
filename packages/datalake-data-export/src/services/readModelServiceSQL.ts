@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { isNotNull, isNull, eq, ne, and, or, sql } from "drizzle-orm";
 import {
   agreementState,
   delegationState,
@@ -45,7 +46,7 @@ import {
   purposeVersionStampInReadmodelPurpose,
   tenantInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
-import { isNotNull, isNull, eq, ne, and, or, sql } from "drizzle-orm";
+
 import {
   ExportedAgreement,
   ExportedDelegation,
