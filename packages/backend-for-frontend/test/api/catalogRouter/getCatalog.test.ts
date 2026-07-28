@@ -56,6 +56,12 @@ describe("API GET /catalog", () => {
     expect(res.body).toEqual(mockApiCatalogEServices);
   });
 
+  it("Should accept a limit up to 50", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, { offset: 0, limit: 50 });
+    expect(res.status).toBe(200);
+  });
+
   it.each([
     {
       error: eserviceRiskNotFound(generateId(), generateId()),
@@ -85,7 +91,7 @@ describe("API GET /catalog", () => {
     { query: { limit: 10 } },
     { query: { offset: -1, limit: 10 } },
     { query: { offset: 0, limit: -2 } },
-    { query: { offset: 0, limit: 201 } },
+    { query: { offset: 0, limit: 51 } },
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
     { query: { ...defaultQuery, personalData: "invalid" } },
