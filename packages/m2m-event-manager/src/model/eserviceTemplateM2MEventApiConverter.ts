@@ -84,10 +84,6 @@ function toApiEServiceTemplateM2MEventType(
       () => "ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED"
     )
     .with(
-      "EServiceTemplateVersionInterfaceUpdated",
-      () => "ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED"
-    )
-    .with(
       "EServiceTemplateVersionPublished",
       () => "ESERVICE_TEMPLATE_VERSION_PUBLISHED"
     )

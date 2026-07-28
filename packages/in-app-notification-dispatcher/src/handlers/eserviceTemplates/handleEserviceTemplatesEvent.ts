@@ -78,7 +78,6 @@ export async function handleEServiceTemplateEvent(
           "EServiceTemplateVersionDocumentAdded",
           "EServiceTemplateVersionInterfaceDeleted",
           "EServiceTemplateVersionDocumentDeleted",
-          "EServiceTemplateVersionInterfaceUpdated",
           "EServiceTemplateVersionDocumentUpdated",
           "EServiceTemplateIntendedTargetUpdated",
           "EServiceTemplateDescriptionUpdated",

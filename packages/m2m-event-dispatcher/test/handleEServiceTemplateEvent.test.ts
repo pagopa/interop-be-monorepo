@@ -78,7 +78,6 @@ describe("handleEServiceTemplateEvent test", async () => {
               "EServiceTemplateDraftVersionDeleted",
               "EServiceTemplateVersionInterfaceAdded",
               "EServiceTemplateVersionInterfaceDeleted",
-              "EServiceTemplateVersionInterfaceUpdated",
               "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
               "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted"
             ),

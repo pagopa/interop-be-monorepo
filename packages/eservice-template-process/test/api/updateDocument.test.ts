@@ -17,7 +17,7 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
-  asyncExchangeCallbackInterfaceDocumentNotUpdatable,
+  interfaceDocumentNotUpdatable,
   documentPrettyNameDuplicate,
   eserviceTemplateDocumentNotFound,
   eserviceTemplateNotFound,
@@ -112,7 +112,7 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents/
       expectedStatus: 400,
     },
     {
-      error: asyncExchangeCallbackInterfaceDocumentNotUpdatable(
+      error: interfaceDocumentNotUpdatable(
         mockEserviceTemplate.versions[0].id,
         docId
       ),

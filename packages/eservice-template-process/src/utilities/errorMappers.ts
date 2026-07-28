@@ -340,7 +340,7 @@ export const updateDocumentErrorMapper = (
     )
     .with(
       "notValidEServiceTemplateVersionState",
-      "asyncExchangeCallbackInterfaceDocumentNotUpdatable",
+      "interfaceDocumentNotUpdatable",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)

@@ -70,12 +70,6 @@ message EServiceTemplateVersionDocumentDeletedV2 {
   EServiceTemplateV2 eserviceTemplate = 3;
 }
 
-message EServiceTemplateVersionInterfaceUpdatedV2 {
-  string eserviceTemplateVersionId = 1;
-  string documentId = 2;
-  EServiceTemplateV2 eserviceTemplate = 3;
-}
-
 message EServiceTemplateVersionDocumentUpdatedV2 {
   string eserviceTemplateVersionId = 1;
   string documentId = 2;

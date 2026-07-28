@@ -46,7 +46,6 @@ export async function handleEserviceTemplateMessageV2(
             "EServiceTemplateVersionDocumentAdded",
             "EServiceTemplateVersionDocumentUpdated",
             "EServiceTemplateVersionInterfaceAdded",
-            "EServiceTemplateVersionInterfaceUpdated",
             "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded",
             "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted",
             "EServiceTemplateRiskAnalysisAdded",

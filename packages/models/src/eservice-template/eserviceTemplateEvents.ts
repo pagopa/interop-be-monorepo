@@ -24,7 +24,6 @@ import {
   EServiceTemplateVersionDocumentUpdatedV2,
   EServiceTemplateVersionInterfaceAddedV2,
   EServiceTemplateVersionInterfaceDeletedV2,
-  EServiceTemplateVersionInterfaceUpdatedV2,
   EServiceTemplateVersionPublishedV2,
   EServiceTemplateVersionQuotasUpdatedV2,
   EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
@@ -100,11 +99,6 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceTemplateVersionDocumentDeleted"),
     data: protobufDecoder(EServiceTemplateVersionDocumentDeletedV2),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal("EServiceTemplateVersionInterfaceUpdated"),
-    data: protobufDecoder(EServiceTemplateVersionInterfaceUpdatedV2),
   }),
   z.object({
     event_version: z.literal(2),
@@ -253,9 +247,6 @@ export function eserviceTemplateEventToBinaryDataV2(
     )
     .with({ type: "EServiceTemplateVersionInterfaceDeleted" }, ({ data }) =>
       EServiceTemplateVersionInterfaceDeletedV2.toBinary(data)
-    )
-    .with({ type: "EServiceTemplateVersionInterfaceUpdated" }, ({ data }) =>
-      EServiceTemplateVersionInterfaceUpdatedV2.toBinary(data)
     )
     .with({ type: "EServiceTemplateVersionPublished" }, ({ data }) =>
       EServiceTemplateVersionPublishedV2.toBinary(data)

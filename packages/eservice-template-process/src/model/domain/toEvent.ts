@@ -270,28 +270,6 @@ export const toCreateEventEServiceTemplateVersionDocumentDeleted = (
   correlationId,
 });
 
-export const toCreateEventEServiceTemplateVersionInterfaceUpdated = (
-  streamId: string,
-  version: number,
-  eserviceTemplateVersionId: EServiceTemplateVersionId,
-  documentId: EServiceDocumentId,
-  eserviceTemplate: EServiceTemplate,
-  correlationId: CorrelationId
-): CreateEvent<EServiceTemplateEvent> => ({
-  streamId,
-  version,
-  event: {
-    type: "EServiceTemplateVersionInterfaceUpdated",
-    event_version: 2,
-    data: {
-      eserviceTemplateVersionId,
-      documentId,
-      eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
-    },
-  },
-  correlationId,
-});
-
 export const toCreateEventEServiceTemplateVersionDocumentUpdated = (
   streamId: string,
   version: number,

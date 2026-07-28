@@ -18,7 +18,6 @@ import {
   operationForbidden,
   Document,
   EServiceTemplateVersionState,
-  EServiceTemplateVersionInterfaceUpdatedV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 
@@ -28,7 +27,7 @@ import {
   eserviceTemplateVersionNotFound,
   notValidEServiceTemplateVersionState,
   documentPrettyNameDuplicate,
-  asyncExchangeCallbackInterfaceDocumentNotUpdatable,
+  interfaceDocumentNotUpdatable,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEServiceTemplate,
@@ -119,74 +118,40 @@ describe("update Document", () => {
     }
   );
 
-  it("should write on event-store for the update of a interface in a descriptor in draft state", async () => {
-    const version: EServiceTemplateVersion = {
-      ...getMockEServiceTemplateVersion(
-        generateId<EServiceTemplateVersionId>()
-      ),
-      interface: mockDocument,
-    };
-    const eserviceTemplate: EServiceTemplate = {
-      ...mockEServiceTemplate,
-      versions: [version],
-    };
-    await addOneEServiceTemplate(eserviceTemplate);
-    const returnedDocument = await eserviceTemplateService.updateDocument(
-      eserviceTemplate.id,
-      version.id,
-      mockDocument.id,
-      { prettyName: "updated prettyName" },
-      getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
-      })
-    );
-    const writtenEvent = await readLastEserviceTemplateEvent(
-      eserviceTemplate.id
-    );
-    const expectedEserviceTemplate = toEServiceTemplateV2({
-      ...eserviceTemplate,
-      versions: [
-        {
-          ...version,
-          interface: {
-            ...mockDocument,
-            prettyName: "updated prettyName",
-          },
-        },
-      ],
-    });
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: eserviceTemplate.id,
-      version: "1",
-      type: "EServiceTemplateVersionInterfaceUpdated",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceTemplateVersionInterfaceUpdatedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload).toEqual({
-      eserviceTemplateVersionId: version.id,
-      documentId: mockDocument.id,
-      eserviceTemplate: expectedEserviceTemplate,
-    });
-    expect(writtenPayload).toEqual({
-      eserviceTemplateVersionId: version.id,
-      documentId: mockDocument.id,
-      eserviceTemplate: toEServiceTemplateV2({
-        ...eserviceTemplate,
-        versions: [
-          {
-            ...version,
-            interface: returnedDocument,
-          },
-        ],
-      }),
-    });
-  });
+  it.each(
+    Object.values(eserviceTemplateVersionState).filter(
+      (state) => state !== eserviceTemplateVersionState.deprecated
+    )
+  )(
+    "should throw interfaceDocumentNotUpdatable when updating an interface in %s state",
+    async (state) => {
+      const version: EServiceTemplateVersion = {
+        ...getMockEServiceTemplateVersion(
+          generateId<EServiceTemplateVersionId>(),
+          state
+        ),
+        interface: mockDocument,
+      };
+      const eserviceTemplate: EServiceTemplate = {
+        ...mockEServiceTemplate,
+        versions: [version],
+      };
+      await addOneEServiceTemplate(eserviceTemplate);
+      expect(
+        eserviceTemplateService.updateDocument(
+          eserviceTemplate.id,
+          version.id,
+          mockDocument.id,
+          { prettyName: "updated prettyName" },
+          getMockContext({
+            authData: getMockAuthData(eserviceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(
+        interfaceDocumentNotUpdatable(version.id, mockDocument.id)
+      );
+    }
+  );
 
   it("should throw eserviceTemplateNotFound if the eservice template doesn't exist", async () => {
     expect(
@@ -386,7 +351,7 @@ describe("update Document", () => {
       (state) => state !== eserviceTemplateVersionState.deprecated
     )
   )(
-    "should throw asyncExchangeCallbackInterfaceDocumentNotUpdatable when updating an asyncExchangeCallbackInterface in %s state",
+    "should throw interfaceDocumentNotUpdatable when updating an asyncExchangeCallbackInterface in %s state",
     async (state) => {
       const callbackInterface = getMockDocument();
       const version: EServiceTemplateVersion = {
@@ -413,10 +378,7 @@ describe("update Document", () => {
           })
         )
       ).rejects.toThrowError(
-        asyncExchangeCallbackInterfaceDocumentNotUpdatable(
-          version.id,
-          callbackInterface.id
-        )
+        interfaceDocumentNotUpdatable(version.id, callbackInterface.id)
       );
     }
   );
