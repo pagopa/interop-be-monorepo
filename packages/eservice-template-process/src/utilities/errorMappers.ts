@@ -337,7 +337,11 @@ export const updateDocumentErrorMapper = (
       "eserviceTemplateDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("notValidEServiceTemplateVersionState", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "notValidEServiceTemplateVersionState",
+      "asyncExchangeCallbackInterfaceDocumentNotUpdatable",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

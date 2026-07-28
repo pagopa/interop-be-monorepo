@@ -17,6 +17,7 @@ import request from "supertest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 import {
+  asyncExchangeCallbackInterfaceDocumentNotUpdatable,
   documentPrettyNameDuplicate,
   eserviceTemplateDocumentNotFound,
   eserviceTemplateNotFound,
@@ -106,6 +107,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents/
       error: notValidEServiceTemplateVersionState(
         mockEserviceTemplate.versions[0].id,
         eserviceTemplateVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: asyncExchangeCallbackInterfaceDocumentNotUpdatable(
+        mockEserviceTemplate.versions[0].id,
+        docId
       ),
       expectedStatus: 400,
     },

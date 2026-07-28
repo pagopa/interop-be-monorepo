@@ -75,6 +75,7 @@ import {
   riskAnalysisNotFound,
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
+  asyncExchangeCallbackInterfaceDocumentNotUpdatable,
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
@@ -1910,14 +1911,18 @@ export function eserviceTemplateServiceBuilder(
         documentId
       );
 
-      const isInterface = document.id === version?.interface?.id;
-      const isAsyncExchangeCallbackInterface =
-        document.id === version?.asyncExchangeCallbackInterface?.id;
+      // The async exchange callback interface cannot be updated: only the
+      // interface and regular documents are updatable through this operation.
+      if (document.id === version.asyncExchangeCallbackInterface?.id) {
+        throw asyncExchangeCallbackInterfaceDocumentNotUpdatable(
+          version.id,
+          documentId
+        );
+      }
 
-      if (
-        (isInterface || isAsyncExchangeCallbackInterface) &&
-        versionStatesNotAllowingInterfaceOperations(version)
-      ) {
+      const isInterface = document.id === version.interface?.id;
+
+      if (isInterface && versionStatesNotAllowingInterfaceOperations(version)) {
         throw notValidEServiceTemplateVersionState(version.id, version.state);
       }
 
@@ -1951,10 +1956,6 @@ export function eserviceTemplateServiceBuilder(
                   docs: v.docs.map((doc) =>
                     doc.id === documentId ? updatedDocument : doc
                   ),
-                  asyncExchangeCallbackInterface:
-                    isAsyncExchangeCallbackInterface
-                      ? updatedDocument
-                      : v.asyncExchangeCallbackInterface,
                 }
               : v
         ),
