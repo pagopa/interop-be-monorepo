@@ -158,10 +158,21 @@ export const ArchivingScope = z.enum([
 ]);
 export type ArchivingScope = z.infer<typeof ArchivingScope>;
 
+export const gracePeriodDays = [30, 60, 90, 120] as const;
+export const GracePeriodDays = z.union([
+  z.literal(gracePeriodDays[0]),
+  z.literal(gracePeriodDays[1]),
+  z.literal(gracePeriodDays[2]),
+  z.literal(gracePeriodDays[3]),
+]);
+
+export type GracePeriodDays = z.infer<typeof GracePeriodDays>;
+
 export const ArchivingSchedule = z.object({
   archivableOn: z.coerce.date(),
   startedAt: z.coerce.date(),
   scope: ArchivingScope,
+  gracePeriodDays: GracePeriodDays,
 });
 
 export type ArchivingSchedule = z.infer<typeof ArchivingSchedule>;
@@ -188,7 +199,7 @@ export const Descriptor = z.object({
   agreementApprovalPolicy: AgreementApprovalPolicy.optional(),
   createdAt: z.coerce.date(),
   serverUrls: z.array(z.string()),
-  serverUrlsDescriptions: z.array(z.string()),
+  serverUrlsDescriptions: z.array(z.string()).optional(),
   publishedAt: z.coerce.date().optional(),
   suspendedAt: z.coerce.date().optional(),
   deprecatedAt: z.coerce.date().optional(),
