@@ -15,11 +15,9 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
-import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
-import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
-import { config } from "../config/config.js";
+
+import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
+import { toM2MGatewayEServiceTemplate } from "../api/eserviceTemplateApiConverter.js";
 import {
   toGetPurposeTemplatesApiQueryParams,
   toM2MGatewayApiDocument,
@@ -27,10 +25,13 @@ import {
   toM2MGatewayApiRiskAnalysisTemplateAnnotationDocument,
   toPurposeTemplateApiRiskAnalysisFormTemplateSeed,
 } from "../api/purposeTemplateApiConverter.js";
-import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
-import { toM2MGatewayEServiceTemplate } from "../api/eserviceTemplateApiConverter.js";
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../api/riskAnalysisFormTemplateApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { WithMaybeMetadata } from "../clients/zodiosWithMetadataPatch.js";
+import { config } from "../config/config.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
 import {
   isPolledVersionAtLeastMetadataTargetVersion,
   isPolledVersionAtLeastResponseVersion,

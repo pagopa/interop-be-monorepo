@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
-import { expect, describe, it } from "vitest";
 import { Attribute, unsafeBrandId } from "pagopa-interop-models";
+import { expect, describe, it } from "vitest";
+
 import {
   TenantSeed,
   getNewAttributes,

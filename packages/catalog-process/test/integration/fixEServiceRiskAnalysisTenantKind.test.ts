@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, it, expect, vi } from "vitest";
+import {
+  decodeProtobufPayload,
+  getMockContextInternal,
+  getMockEService,
+  getMockTenant,
+  getMockValidRiskAnalysis,
+  sortEServiceV2,
+} from "pagopa-interop-commons-test";
 import {
   EService,
   MaintenanceEServiceRiskAnalysisSetTenantKindV2,
@@ -11,14 +18,8 @@ import {
   EServiceId,
   RiskAnalysisId,
 } from "pagopa-interop-models";
-import {
-  decodeProtobufPayload,
-  getMockContextInternal,
-  getMockEService,
-  getMockTenant,
-  getMockValidRiskAnalysis,
-  sortEServiceV2,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   eServiceNotFound,
   tenantKindNotFound,

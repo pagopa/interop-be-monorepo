@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { eq } from "drizzle-orm";
 import {
   getMockCompleteRiskAnalysisFormTemplate,
   getMockPurposeTemplate,
   setupTestContainersVitest,
 } from "pagopa-interop-commons-test";
-import { inject, afterEach, expect } from "vitest";
-import { purposeTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { PurposeTemplate, PurposeTemplateId } from "pagopa-interop-models";
+import { purposeTemplateReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
   purposeTemplateInReadmodelPurposeTemplate,
@@ -25,7 +25,8 @@ import {
   PurposeTemplateRiskAnalysisFormSQL,
   PurposeTemplateSQL,
 } from "pagopa-interop-readmodel-models";
-import { eq } from "drizzle-orm";
+import { inject, afterEach, expect } from "vitest";
+
 import { purposeTemplateWriterServiceBuilder } from "../src/purposeTemplateWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

@@ -16,9 +16,7 @@ import {
   CorrelationId,
   TenantId,
 } from "pagopa-interop-models";
-import { BffAppContext } from "../utilities/context.js";
-import { config } from "../config/config.js";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
+
 import {
   RegistryAttributesMap,
   tenantAttributeKind,
@@ -30,6 +28,9 @@ import {
   toBffApiDeclaredTenantAttributes,
   toBffApiVerifiedTenantAttributes,
 } from "../api/tenantApiConverter.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
+import { BffAppContext } from "../utilities/context.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
 async function getRegistryAttributesMap(
@@ -344,6 +345,22 @@ export function tenantServiceBuilder(
         headers,
       });
     },
+    async addCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      seed: bffApi.CertifiedDiscreteTenantAttributeSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Adding certified discrete attribute ${seed.id} to tenant ${tenantId}`
+      );
+      await tenantProcessClient.tenantAttribute.addCertifiedDiscreteAttribute(
+        seed,
+        {
+          params: { tenantId },
+          headers,
+        }
+      );
+    },
     async addDeclaredAttribute(
       seed: bffApi.DeclaredTenantAttributeSeed,
       { logger, headers }: WithLogger<BffAppContext>
@@ -404,6 +421,22 @@ export function tenantServiceBuilder(
         `Revoking certified attribute ${attributeId} for tenant ${tenantId}`
       );
       await tenantProcessClient.tenantAttribute.revokeCertifiedAttributeById(
+        undefined,
+        {
+          params: { tenantId, attributeId },
+          headers,
+        }
+      );
+    },
+    async revokeCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Revoking certified discrete attribute ${attributeId} for tenant ${tenantId}`
+      );
+      await tenantProcessClient.tenantAttribute.revokeCertifiedDiscreteAttributeById(
         undefined,
         {
           params: { tenantId, attributeId },

@@ -1,29 +1,30 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  generateId,
-  PurposeVersionId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  generateId,
+  PurposeVersionId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  purposeVersionDocumentNotFound,
+  purposeVersionDocumentNotReady,
+  purposeVersionNotFound,
+} from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   fileManager,
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import {
-  purposeVersionDocumentNotFound,
-  purposeVersionDocumentNotReady,
-  purposeVersionNotFound,
-} from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
 import { expectDownloadedDocumentToBeEqual } from "../../multipartTestUtils.js";
 
 describe("downloadPurposeVersionRiskAnalysisDocument", () => {

@@ -2,7 +2,6 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   readLastEventByStreamId,
   decodeProtobufPayload,
@@ -40,6 +39,8 @@ import {
   DelegationId,
   UserId,
 } from "pagopa-interop-models";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import {
   agreementNotFound,
   eserviceNotFound,
@@ -410,12 +411,13 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
+    const authData = getMockAuthData(mockPurpose.consumerId);
     const purposeVersionResponse = await purposeService.createPurposeVersion(
       mockPurpose.id,
       {
         dailyCalls: 30,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({ authData })
     );
 
     const createdPurposeVersion =
@@ -441,6 +443,12 @@ describe("createPurposeVersion", () => {
       createdAt: new Date(),
       state: purposeVersionState.waitingForApproval,
       dailyCalls: 30,
+      stamps: {
+        creation: {
+          who: authData.userId,
+          when: new Date(),
+        },
+      },
     };
 
     const expectedPurpose: Purpose = sortPurpose({

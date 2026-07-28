@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
 import {
   addSomeRandomDelegations,
   decodeProtobufPayload,
@@ -30,7 +31,7 @@ import {
   Agreement,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { formatDateddMMyyyyHHmmss } from "pagopa-interop-commons";
+
 import {
   duplicatedPurposeTitle,
   tenantIsNotTheConsumer,

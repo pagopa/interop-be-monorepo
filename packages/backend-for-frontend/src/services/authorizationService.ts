@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { constants } from "http2";
 import { bffApi, tenantApi } from "pagopa-interop-api-clients";
 import {
@@ -20,7 +21,7 @@ import {
   invalidClaim,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { isAxiosError } from "axios";
+
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
 import {

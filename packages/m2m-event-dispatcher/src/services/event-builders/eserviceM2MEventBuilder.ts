@@ -10,8 +10,9 @@ import {
   m2mEventVisibility,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { generateM2MEventId } from "../../utils/uuidv7.js";
+
 import { descriptorNotFoundInEService } from "../../models/errors.js";
+import { generateM2MEventId } from "../../utils/uuidv7.js";
 
 export async function createEServiceM2MEvent(
   eservice: EService,

@@ -1,6 +1,6 @@
-import { z } from "zod";
 import { createSelectSchema } from "drizzle-zod";
 import { purposeVersionStampInReadmodelPurpose } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const PurposeVersionStampSchema = createSelectSchema(
   purposeVersionStampInReadmodelPurpose

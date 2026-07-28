@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe } from "node:test";
 import crypto from "crypto";
+import { describe } from "node:test";
 import {
   getMockClient,
   getMockKey,
@@ -29,6 +29,7 @@ import {
   toKeyV1,
 } from "pagopa-interop-models";
 import { expect, it } from "vitest";
+
 import { handleMessageV1 } from "../src/clientConsumerServiceV1.js";
 import { clientReadModelService, clientWriterService } from "./utils.js";
 

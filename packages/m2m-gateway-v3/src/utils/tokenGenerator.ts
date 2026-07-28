@@ -1,5 +1,6 @@
-import { InteropTokenGenerator } from "pagopa-interop-commons";
 import { KMSClient } from "@aws-sdk/client-kms";
+import { InteropTokenGenerator } from "pagopa-interop-commons";
+
 import { config } from "../config/config.js";
 
 /**

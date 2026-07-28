@@ -2,6 +2,24 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  expiredRulesVersionError,
+  rulesVersionNotFoundError,
+} from "pagopa-interop-commons";
+import {
+  getMockValidRiskAnalysisForm,
+  decodeProtobufPayload,
+  getMockAgreement,
+  getMockEService,
+  getMockTenant,
+  getMockPurpose,
+  getMockDescriptor,
+  getMockAuthData,
+  getMockDelegation,
+  getMockContext,
+  getMockExpiredRiskAnalysisForm,
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   Descriptor,
@@ -21,25 +39,8 @@ import {
   delegationKind,
   delegationState,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
-import {
-  getMockValidRiskAnalysisForm,
-  decodeProtobufPayload,
-  getMockAgreement,
-  getMockEService,
-  getMockTenant,
-  getMockPurpose,
-  getMockDescriptor,
-  getMockAuthData,
-  getMockDelegation,
-  getMockContext,
-  getMockExpiredRiskAnalysisForm,
-} from "pagopa-interop-commons-test";
-import {
-  expiredRulesVersionError,
-  rulesVersionNotFoundError,
-} from "pagopa-interop-commons";
+
 import {
   missingFreeOfChargeReason,
   tenantKindNotFound,

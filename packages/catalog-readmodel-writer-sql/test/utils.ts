@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { inject, afterEach, expect } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { eq } from "drizzle-orm";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { EService, EServiceId } from "pagopa-interop-models";
+import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   EServiceItemsSQL,
   DrizzleReturnType,
@@ -30,6 +29,8 @@ import {
   EServiceDescriptorAsyncExchangePropertiesSQL,
   eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach, expect } from "vitest";
+
 import { catalogWriterServiceBuilder } from "../src/catalogWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
