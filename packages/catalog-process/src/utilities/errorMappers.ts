@@ -866,3 +866,26 @@ export const unarchiveDescriptorErrorMapper = (
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const submitDelegatedEServiceArchivingErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound", // Descriptor only
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "noDelegationForArchivingRequest",
+      "notValidEServiceState", // EService only
+      "notValidDescriptor", // Descriptor only
+      "eserviceWithoutValidDescriptors",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "delegatedArchivingRequestAlreadyInProgress",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
