@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { EserviceRiskAnalysisAnswerSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
-import { EserviceRiskAnalysisAnswerSchema } from "../../model/catalog/eserviceRiskAnalysisAnswer.js";
 import { CatalogDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
