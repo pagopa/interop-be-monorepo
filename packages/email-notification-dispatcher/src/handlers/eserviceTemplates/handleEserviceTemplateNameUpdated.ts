@@ -1,4 +1,5 @@
 import {
+  buildEServiceInstanceName,
   EmailNotificationMessagePayload,
   EService,
   EServiceIdDescriptorId,
@@ -92,12 +93,16 @@ export async function handleEServiceTemplateNameUpdated(
        * The instance rename happens asynchronously (eservice-template-instances-updater
        * -> catalogProcess.internalUpdateTemplateInstanceName), so `eservice.name` may still
        * hold the old name at this point. Both names are therefore rebuilt from the template
-       * name and the instance label, following the same rule as `buildInstanceName` in
-       * catalog-process (`packages/catalog-process/src/services/catalogService.ts`).
+       * name and the instance label.
        */
-      const instanceLabelSuffix = eservice.instanceLabel
-        ? ` - ${eservice.instanceLabel}`
-        : "";
+      const oldEserviceName = buildEServiceInstanceName({
+        templateName: oldTemplateName,
+        instanceLabel: eservice.instanceLabel,
+      });
+      const newEserviceName = buildEServiceInstanceName({
+        templateName: eserviceTemplate.name,
+        instanceLabel: eservice.instanceLabel,
+      });
       return {
         correlationId: correlationId ?? generateId(),
         email: {
@@ -109,8 +114,8 @@ export async function handleEServiceTemplateNameUpdated(
               `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
             ),
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
-            oldName: `${oldTemplateName}${instanceLabelSuffix}`,
-            newName: `${eserviceTemplate.name}${instanceLabelSuffix}`,
+            oldName: oldEserviceName,
+            newName: newEserviceName,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),

@@ -1,5 +1,6 @@
 import { Logger } from "pagopa-interop-commons";
 import {
+  buildEServiceInstanceName,
   EService,
   EServiceIdDescriptorId,
   EServiceTemplateV2,
@@ -74,16 +75,16 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
        * The instance rename happens asynchronously (eservice-template-instances-updater
        * -> catalogProcess.internalUpdateTemplateInstanceName), so `eservice.name` may still
        * hold the old name at this point. Both names are therefore rebuilt from the template
-       * name and the instance label, following the same rule as `buildInstanceName` in
-       * catalog-process (`packages/catalog-process/src/services/catalogService.ts`).
+       * name and the instance label.
        */
-      const instanceLabelSuffix = eservice.instanceLabel
-        ? ` - ${eservice.instanceLabel}`
-        : "";
-      const oldEserviceName = `${
-        oldName ?? eserviceTemplate.id
-      }${instanceLabelSuffix}`;
-      const newEserviceName = `${eserviceTemplate.name}${instanceLabelSuffix}`;
+      const oldEserviceName = buildEServiceInstanceName({
+        templateName: oldName ?? eserviceTemplate.id,
+        instanceLabel: eservice.instanceLabel,
+      });
+      const newEserviceName = buildEServiceInstanceName({
+        templateName: eserviceTemplate.name,
+        instanceLabel: eservice.instanceLabel,
+      });
       return {
         userId,
         tenantId,
