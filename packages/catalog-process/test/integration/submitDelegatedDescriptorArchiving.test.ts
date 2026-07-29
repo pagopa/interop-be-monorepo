@@ -261,7 +261,8 @@ describe("schedule archiving of an Descriptor with delegation", () => {
     await addOneDelegation(mockDelegation);
 
     const expectedError = delegatedArchivingRequestAlreadyInProgress(
-      eservice.id
+      eservice.id,
+      descriptor.id
     );
 
     await expect(

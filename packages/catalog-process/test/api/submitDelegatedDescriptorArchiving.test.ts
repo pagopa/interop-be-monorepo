@@ -23,8 +23,10 @@ import {
   descriptorToApiDescriptor,
 } from "../../src/model/domain/apiConverter.js";
 import {
+  delegatedArchivingRequestAlreadyInProgress,
   eServiceDescriptorNotFound,
   eServiceNotFound,
+  noDelegationForArchivingRequest,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
@@ -49,7 +51,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
 
   const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
 
-  catalogService.scheduleEServiceDescriptorArchiving = vi
+  catalogService.submitDelegatedDescriptorArchiving = vi
     .fn()
     .mockResolvedValue(mockEserviceWithMetadata);
 
@@ -126,10 +128,18 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
       error: notValidDescriptorState(descriptor.id, descriptor.state),
       expectedStatus: 400,
     },
+    {
+      error: noDelegationForArchivingRequest(mockEService.id),
+      expectedStatus: 400,
+    },
+    {
+      error: delegatedArchivingRequestAlreadyInProgress(mockEService.id),
+      expectedStatus: 409,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.scheduleEServiceDescriptorArchiving = vi
+      catalogService.submitDelegatedDescriptorArchiving = vi
         .fn()
         .mockRejectedValue(error);
 

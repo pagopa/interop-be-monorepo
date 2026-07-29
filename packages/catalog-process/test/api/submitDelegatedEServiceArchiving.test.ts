@@ -20,9 +20,11 @@ import { describe, it, expect, vi } from "vitest";
 
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  delegatedArchivingRequestAlreadyInProgress,
   eServiceNotFound,
   eserviceWithoutValidDescriptors,
   gracePeriodDaysLowerThanDescriptor,
+  noDelegationForArchivingRequest,
   notValidEServiceState,
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
@@ -49,7 +51,7 @@ describe("API /eservices/${eServiceId}/submitDelegatedArchiving authorization te
     gracePeriodDays: 60,
   };
 
-  catalogService.scheduleEServiceArchiving = vi
+  catalogService.submitDelegatedEServiceArchiving = vi
     .fn()
     .mockResolvedValue(mockEserviceWithMetadata);
 
@@ -118,10 +120,18 @@ describe("API /eservices/${eServiceId}/submitDelegatedArchiving authorization te
       error: notValidEServiceState(mockEService.id),
       expectedStatus: 400,
     },
+    {
+      error: noDelegationForArchivingRequest(mockEService.id),
+      expectedStatus: 400,
+    },
+    {
+      error: delegatedArchivingRequestAlreadyInProgress(mockEService.id),
+      expectedStatus: 409,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.scheduleEServiceArchiving = vi
+      catalogService.submitDelegatedEServiceArchiving = vi
         .fn()
         .mockRejectedValue(error);
 
