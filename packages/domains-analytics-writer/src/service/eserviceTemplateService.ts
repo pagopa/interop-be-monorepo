@@ -2,14 +2,12 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+import { EserviceTemplateItemsSchema } from "pagopa-interop-kpi-models";
 
 import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { EserviceTemplateDbTable, DeletingDbTable } from "../model/db/index.js";
-import {
-  EserviceTemplateItemsSchema,
-  EserviceTemplateDeletingSchema,
-} from "../model/eserviceTemplate/eserviceTemplate.js";
+import { EserviceTemplateDeletingSchema } from "../model/eserviceTemplate/eserviceTemplate.js";
 import { eserviceTemplateRepository } from "../repository/eserviceTemplate/eserviceTemplate.repository.js";
 import { eserviceTemplateRiskAnalysisRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysis.repository.js";
 import { eserviceTemplateRiskAnalysisAnswerRepository } from "../repository/eserviceTemplate/eserviceTemplateRiskAnalysisAnswer.repository.js";
