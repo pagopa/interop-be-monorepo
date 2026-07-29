@@ -43,6 +43,9 @@ export async function handleEServiceTemplateNameUpdated(
 
   const eserviceTemplate = fromEServiceTemplateV2(eserviceTemplateV2Msg);
 
+  // Legacy events may not carry the previous name: fall back to the template id
+  const oldTemplateName = oldName ?? eserviceTemplate.id;
+
   const [htmlTemplate, eservices] = await Promise.all([
     retrieveHTMLTemplate(
       eventMailTemplateType.eserviceTemplateNameUpdatedMailTemplate
@@ -84,25 +87,37 @@ export async function handleEServiceTemplateNameUpdated(
       return [];
     }
 
-    return tenantEServices.map((eservice) => ({
-      correlationId: correlationId ?? generateId(),
-      email: {
-        subject: `Aggiornamento nome del template "${oldName}"`,
-        body: templateService.compileHtml(htmlTemplate, {
-          title: `Aggiornamento nome del template "${oldName}"`,
-          notificationType,
-          entityId: EServiceIdDescriptorId.parse(
-            `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
-          ),
-          ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
-          oldName: oldName ?? eserviceTemplate.id,
-          newName: eserviceTemplate.name,
-          selfcareId: t.selfcareId,
-          bffUrl: config.bffUrl,
-        }),
-      },
-      tenantId: t.tenantId,
-      ...mapRecipientToEmailPayload(t),
-    }));
+    return tenantEServices.map((eservice) => {
+      /**
+       * The instance rename happens asynchronously (eservice-template-instances-updater
+       * -> catalogProcess.internalUpdateTemplateInstanceName), so `eservice.name` may still
+       * hold the old name at this point. Both names are therefore rebuilt from the template
+       * name and the instance label, following the same rule as `buildInstanceName` in
+       * catalog-process (`packages/catalog-process/src/services/catalogService.ts`).
+       */
+      const instanceLabelSuffix = eservice.instanceLabel
+        ? ` - ${eservice.instanceLabel}`
+        : "";
+      return {
+        correlationId: correlationId ?? generateId(),
+        email: {
+          subject: `Aggiornamento nome del template "${oldTemplateName}"`,
+          body: templateService.compileHtml(htmlTemplate, {
+            title: `Aggiornamento nome del template "${oldTemplateName}"`,
+            notificationType,
+            entityId: EServiceIdDescriptorId.parse(
+              `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
+            ),
+            ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
+            oldName: `${oldTemplateName}${instanceLabelSuffix}`,
+            newName: `${eserviceTemplate.name}${instanceLabelSuffix}`,
+            selfcareId: t.selfcareId,
+            bffUrl: config.bffUrl,
+          }),
+        },
+        tenantId: t.tenantId,
+        ...mapRecipientToEmailPayload(t),
+      };
+    });
   });
 }

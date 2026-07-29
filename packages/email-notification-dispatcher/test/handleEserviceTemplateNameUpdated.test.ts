@@ -192,4 +192,59 @@ describe("handleEServiceTemplateNameUpdated", async () => {
       expect(message.email.body).toContain(eserviceTemplate.name);
     });
   });
+
+  it("should include the instance label in the old and new e-service names", async () => {
+    const instanceLabel = "istanza";
+    const labeledInstance: EService = {
+      ...getMockEService(
+        generateId<EServiceId>(),
+        instantiatorId,
+        [getMockDescriptorPublished()],
+        eserviceTemplateId
+      ),
+      name: `${oldName} - ${instanceLabel}`,
+      instanceLabel,
+    };
+    await addOneEService(labeledInstance);
+
+    const messages = await handleEServiceTemplateNameUpdated({
+      eserviceTemplateV2Msg: toEServiceTemplateV2(eserviceTemplate),
+      oldName,
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(
+      messages.some(
+        (message) =>
+          message.email.body.includes(
+            `Ti informiamo che il tuo e-service ${oldName} - ${instanceLabel} è stato rinominato in`
+          ) &&
+          message.email.body.includes(
+            `${eserviceTemplate.name} - ${instanceLabel} in quanto`
+          )
+      )
+    ).toBe(true);
+  });
+
+  it("should fall back to the template id in the subject when the old name is missing", async () => {
+    const messages = await handleEServiceTemplateNameUpdated({
+      eserviceTemplateV2Msg: toEServiceTemplateV2(eserviceTemplate),
+      oldName: undefined,
+      logger,
+      templateService,
+      readModelService,
+      correlationId: generateId<CorrelationId>(),
+    });
+
+    expect(messages.length).toBe(2);
+    messages.forEach((message) => {
+      expect(message.email.subject).toBe(
+        `Aggiornamento nome del template "${eserviceTemplateId}"`
+      );
+      expect(message.email.body).not.toContain("undefined");
+    });
+  });
 });
