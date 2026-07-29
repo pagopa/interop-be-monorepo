@@ -71,6 +71,8 @@ const defaultNotificationConfigs = {
       delegationApprovedRejectedToDelegator: false,
       eserviceNewVersionSubmittedToDelegator: false,
       eserviceNewVersionApprovedRejectedToDelegate: false,
+      eserviceArchivingRequestSubmittedToDelegator: false,
+      eserviceArchivingRequestApprovedRejectedToDelegate: false,
       delegationSubmittedRevokedToDelegate: false,
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
       clientKeyAddedDeletedToClientUsers: false,
@@ -97,6 +99,8 @@ const defaultNotificationConfigs = {
       delegationApprovedRejectedToDelegator: false,
       eserviceNewVersionSubmittedToDelegator: false,
       eserviceNewVersionApprovedRejectedToDelegate: false,
+      eserviceArchivingRequestSubmittedToDelegator: false,
+      eserviceArchivingRequestApprovedRejectedToDelegate: false,
       delegationSubmittedRevokedToDelegate: false,
       certifiedVerifiedAttributeAssignedRevokedToAssignee: false,
       clientKeyAddedDeletedToClientUsers: false,
@@ -211,9 +215,18 @@ export function notificationConfigServiceBuilder(
         `Updating notification configuration for user ${userId} in tenant ${organizationId}`
       );
 
+      const inAppConfig: NotificationConfig = {
+        ...defaultNotificationConfigs.user.inApp,
+        ...seed.inAppConfig,
+      };
+      const emailConfig: NotificationConfig = {
+        ...defaultNotificationConfigs.user.email,
+        ...seed.emailConfig,
+      };
+
       if (
-        !isNotificationConfigAllowedForUserRoles(seed.inAppConfig, userRoles) ||
-        !isNotificationConfigAllowedForUserRoles(seed.emailConfig, userRoles)
+        !isNotificationConfigAllowedForUserRoles(inAppConfig, userRoles) ||
+        !isNotificationConfigAllowedForUserRoles(emailConfig, userRoles)
       ) {
         throw notificationConfigNotAllowedForUserRoles(userId, organizationId);
       }
@@ -236,8 +249,8 @@ export function notificationConfigServiceBuilder(
         inAppNotificationPreference: seed.inAppNotificationPreference,
         emailNotificationPreference: seed.emailNotificationPreference,
         emailDigestPreference: seed.emailDigestPreference,
-        inAppConfig: seed.inAppConfig,
-        emailConfig: seed.emailConfig,
+        inAppConfig,
+        emailConfig,
         createdAt: existingConfig.data.createdAt,
         updatedAt: new Date(),
       };

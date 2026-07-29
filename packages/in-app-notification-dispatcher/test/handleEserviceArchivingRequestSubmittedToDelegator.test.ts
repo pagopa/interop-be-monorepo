@@ -87,7 +87,10 @@ describe("handleEserviceArchivingRequestSubmittedToDelegator", () => {
         readModelService
       )
     ).rejects.toThrow(
-      missingKafkaMessageDataError("eservice", "EServiceArchivingRequestedByDelegate")
+      missingKafkaMessageDataError(
+        "eservice",
+        "EServiceArchivingRequestedByDelegate"
+      )
     );
   });
 

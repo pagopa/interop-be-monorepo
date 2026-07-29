@@ -30,11 +30,23 @@ describe("API POST /userNotificationConfigs test", () => {
       inAppConfig: getMockNotificationConfig(),
       emailConfig: getMockNotificationConfig(),
     };
+  const baseUserNotificationConfig = getMockUserNotificationConfig();
   const serviceResponse: UserNotificationConfig = {
-    ...getMockUserNotificationConfig(),
+    ...baseUserNotificationConfig,
     userId,
     tenantId,
-    ...notificationConfigSeed,
+    inAppNotificationPreference: notificationConfigSeed.inAppNotificationPreference,
+    emailNotificationPreference:
+      notificationConfigSeed.emailNotificationPreference,
+    emailDigestPreference: notificationConfigSeed.emailDigestPreference,
+    inAppConfig: {
+      ...baseUserNotificationConfig.inAppConfig,
+      ...notificationConfigSeed.inAppConfig,
+    },
+    emailConfig: {
+      ...baseUserNotificationConfig.emailConfig,
+      ...notificationConfigSeed.emailConfig,
+    },
   };
   const apiResponse: notificationConfigApi.UserNotificationConfig =
     userNotificationConfigToApiUserNotificationConfig(serviceResponse);

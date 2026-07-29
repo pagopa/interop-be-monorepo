@@ -22,9 +22,7 @@ import {
   missingKafkaMessageDataError,
   toEServiceV2,
 } from "pagopa-interop-models";
-import {
-  getNotificationRecipients,
-} from "pagopa-interop-notification-commons";
+import { getNotificationRecipients } from "pagopa-interop-notification-commons";
 import { beforeEach, describe, expect, it, Mock } from "vitest";
 
 import { handleEserviceArchivingRequestApprovedRejectedToDelegate } from "../src/handlers/eservices/handleEserviceArchivingRequestApprovedRejectedToDelegate.js";

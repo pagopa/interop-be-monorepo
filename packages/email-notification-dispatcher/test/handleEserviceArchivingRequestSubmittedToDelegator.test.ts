@@ -139,7 +139,9 @@ describe("handleEserviceArchivingRequestSubmittedToDelegator", () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    const expectedDate = dateAtRomeZone(descriptor.archivingSchedule.archivableOn);
+    const expectedDate = dateAtRomeZone(
+      descriptor.archivingSchedule.archivableOn
+    );
     expect(messages).toHaveLength(3);
     messages.forEach((message) => {
       expect(message.email.subject).toBe(
@@ -149,7 +151,9 @@ describe("handleEserviceArchivingRequestSubmittedToDelegator", () => {
       expect(message.email.body).toContain(
         `versione ${descriptor.version} dell&#x27;e-service ${eservice.name}`
       );
-      expect(message.email.body).toContain("Puoi approvare o rifiutare la richiesta.");
+      expect(message.email.body).toContain(
+        "Puoi approvare o rifiutare la richiesta."
+      );
       expect(message.email.body).toContain(expectedDate);
     });
   });
@@ -171,7 +175,9 @@ describe("handleEserviceArchivingRequestSubmittedToDelegator", () => {
       correlationId: generateId<CorrelationId>(),
     });
 
-    const expectedDate = dateAtRomeZone(descriptor.archivingSchedule.archivableOn);
+    const expectedDate = dateAtRomeZone(
+      descriptor.archivingSchedule.archivableOn
+    );
     expect(messages).toHaveLength(3);
     messages.forEach((message) => {
       expect(message.email.subject).toBe(
@@ -181,7 +187,9 @@ describe("handleEserviceArchivingRequestSubmittedToDelegator", () => {
       expect(message.email.body).toContain(
         `archiviazione dell&#x27;e-service ${eservice.name}`
       );
-      expect(message.email.body).toContain("Puoi approvare o rifiutare la richiesta.");
+      expect(message.email.body).toContain(
+        "Puoi approvare o rifiutare la richiesta."
+      );
       expect(message.email.body).toContain(expectedDate);
     });
   });

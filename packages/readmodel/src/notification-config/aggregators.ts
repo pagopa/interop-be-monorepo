@@ -127,6 +127,14 @@ export const aggregateUserNotificationConfig = ({
       enabledInAppNotifications.includes(
         "eserviceNewVersionApprovedRejectedToDelegate"
       ),
+    eserviceArchivingRequestSubmittedToDelegator:
+      enabledInAppNotifications.includes(
+        "eserviceArchivingRequestSubmittedToDelegator"
+      ),
+    eserviceArchivingRequestApprovedRejectedToDelegate:
+      enabledInAppNotifications.includes(
+        "eserviceArchivingRequestApprovedRejectedToDelegate"
+      ),
     delegationSubmittedRevokedToDelegate: enabledInAppNotifications.includes(
       "delegationSubmittedRevokedToDelegate"
     ),
@@ -207,6 +215,14 @@ export const aggregateUserNotificationConfig = ({
     eserviceNewVersionApprovedRejectedToDelegate:
       enabledEmailNotifications.includes(
         "eserviceNewVersionApprovedRejectedToDelegate"
+      ),
+    eserviceArchivingRequestSubmittedToDelegator:
+      enabledEmailNotifications.includes(
+        "eserviceArchivingRequestSubmittedToDelegator"
+      ),
+    eserviceArchivingRequestApprovedRejectedToDelegate:
+      enabledEmailNotifications.includes(
+        "eserviceArchivingRequestApprovedRejectedToDelegate"
       ),
     delegationSubmittedRevokedToDelegate: enabledEmailNotifications.includes(
       "delegationSubmittedRevokedToDelegate"

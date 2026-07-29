@@ -197,6 +197,10 @@ describe("database test", async () => {
             !initialInAppConfig.eserviceNewVersionSubmittedToDelegator,
           eserviceNewVersionApprovedRejectedToDelegate:
             !initialInAppConfig.eserviceNewVersionApprovedRejectedToDelegate,
+          eserviceArchivingRequestSubmittedToDelegator:
+            !initialInAppConfig.eserviceArchivingRequestSubmittedToDelegator,
+          eserviceArchivingRequestApprovedRejectedToDelegate:
+            !initialInAppConfig.eserviceArchivingRequestApprovedRejectedToDelegate,
           delegationSubmittedRevokedToDelegate:
             !initialInAppConfig.delegationSubmittedRevokedToDelegate,
           certifiedVerifiedAttributeAssignedRevokedToAssignee:
@@ -247,6 +251,10 @@ describe("database test", async () => {
             !initialEmailConfig.eserviceNewVersionSubmittedToDelegator,
           eserviceNewVersionApprovedRejectedToDelegate:
             !initialEmailConfig.eserviceNewVersionApprovedRejectedToDelegate,
+          eserviceArchivingRequestSubmittedToDelegator:
+            !initialEmailConfig.eserviceArchivingRequestSubmittedToDelegator,
+          eserviceArchivingRequestApprovedRejectedToDelegate:
+            !initialEmailConfig.eserviceArchivingRequestApprovedRejectedToDelegate,
           delegationSubmittedRevokedToDelegate:
             !initialEmailConfig.delegationSubmittedRevokedToDelegate,
           certifiedVerifiedAttributeAssignedRevokedToAssignee:

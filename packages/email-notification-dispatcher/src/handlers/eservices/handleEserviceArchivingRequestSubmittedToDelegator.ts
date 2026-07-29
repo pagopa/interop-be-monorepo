@@ -36,9 +36,10 @@ type EServiceArchivingRequestSubmittedToDelegatorEvent = Extract<
   { type: EServiceArchivingRequestSubmittedToDelegatorEventType }
 >;
 
-type EServiceArchivingRequestSubmittedToDelegatorParams = HandlerCommonParams & {
-  decodedMessage: EServiceArchivingRequestSubmittedToDelegatorEvent;
-};
+type EServiceArchivingRequestSubmittedToDelegatorParams =
+  HandlerCommonParams & {
+    decodedMessage: EServiceArchivingRequestSubmittedToDelegatorEvent;
+  };
 
 export async function handleEserviceArchivingRequestSubmittedToDelegator(
   params: EServiceArchivingRequestSubmittedToDelegatorParams
@@ -57,7 +58,9 @@ export async function handleEserviceArchivingRequestSubmittedToDelegator(
 
   const eservice = fromEServiceV2(decodedMessage.data.eservice);
   const [htmlTemplate, delegation] = await Promise.all([
-    retrieveHTMLTemplate(eventMailTemplateType.eserviceStateChangedMailTemplate),
+    retrieveHTMLTemplate(
+      eventMailTemplateType.eserviceStateChangedMailTemplate
+    ),
     retrieveProducerDelegation(eservice, readModelService),
   ]);
 

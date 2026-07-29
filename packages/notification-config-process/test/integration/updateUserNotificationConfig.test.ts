@@ -15,6 +15,7 @@ import {
   UserNotificationConfigUpdatedV2,
   toUserNotificationConfigV2,
   NotificationType,
+  NotificationConfig,
   UserRole,
   userRole,
 } from "pagopa-interop-models";
@@ -143,12 +144,28 @@ describe("updateUserNotificationConfig", () => {
       messageType: UserNotificationConfigUpdatedV2,
       payload: writtenEvent.data,
     });
+    const expectedInAppConfig: NotificationConfig = {
+      ...userNotificationConfigSeed.inAppConfig,
+      eserviceArchivingRequestSubmittedToDelegator: false,
+      eserviceArchivingRequestApprovedRejectedToDelegate: false,
+    };
+    const expectedEmailConfig: NotificationConfig = {
+      ...userNotificationConfigSeed.emailConfig,
+      eserviceArchivingRequestSubmittedToDelegator: false,
+      eserviceArchivingRequestApprovedRejectedToDelegate: false,
+    };
     const expectedUserNotificationConfig: UserNotificationConfig = {
       id: serviceReturnValue.id,
       userId,
       tenantId,
       userRoles: [userRole.ADMIN_ROLE],
-      ...userNotificationConfigSeed,
+      inAppNotificationPreference:
+        userNotificationConfigSeed.inAppNotificationPreference,
+      emailNotificationPreference:
+        userNotificationConfigSeed.emailNotificationPreference,
+      emailDigestPreference: userNotificationConfigSeed.emailDigestPreference,
+      inAppConfig: expectedInAppConfig,
+      emailConfig: expectedEmailConfig,
       createdAt: userNotificationConfig.createdAt,
       updatedAt: new Date(),
     };

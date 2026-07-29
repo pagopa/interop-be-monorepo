@@ -113,11 +113,12 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       } satisfies EServiceDescriptorArchivingRequestApprovedByDelegatorV2,
     };
 
-    const notifications = await handleEserviceArchivingRequestApprovedRejectedToDelegate(
-      msg,
-      logger,
-      readModelService
-    );
+    const notifications =
+      await handleEserviceArchivingRequestApprovedRejectedToDelegate(
+        msg,
+        logger,
+        readModelService
+      );
 
     expect(notifications).toHaveLength(1);
     const expectedDate = dateAtRomeZone(
@@ -143,11 +144,12 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       } satisfies EServiceDescriptorArchivingRequestRejectedByDelegatorV2,
     };
 
-    const notifications = await handleEserviceArchivingRequestApprovedRejectedToDelegate(
-      msg,
-      logger,
-      readModelService
-    );
+    const notifications =
+      await handleEserviceArchivingRequestApprovedRejectedToDelegate(
+        msg,
+        logger,
+        readModelService
+      );
 
     expect(notifications).toHaveLength(1);
     expect(notifications[0]).toEqual({

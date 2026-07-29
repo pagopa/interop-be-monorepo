@@ -67,7 +67,10 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
     name: "Delegate Tenant",
   };
 
-  const users = [getMockUser(delegateTenant.id), getMockUser(delegateTenant.id)];
+  const users = [
+    getMockUser(delegateTenant.id),
+    getMockUser(delegateTenant.id),
+  ];
 
   const eservice: EService = {
     ...getMockEService(),
@@ -117,15 +120,18 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       } satisfies EServiceDescriptorArchivingRequestApprovedByDelegatorV2,
     };
 
-    const messages = await handleEserviceArchivingRequestApprovedRejectedToDelegate({
-      decodedMessage: event,
-      logger,
-      readModelService,
-      templateService,
-      correlationId: generateId<CorrelationId>(),
-    });
+    const messages =
+      await handleEserviceArchivingRequestApprovedRejectedToDelegate({
+        decodedMessage: event,
+        logger,
+        readModelService,
+        templateService,
+        correlationId: generateId<CorrelationId>(),
+      });
 
-    const expectedDate = dateAtRomeZone(descriptor.archivingSchedule.archivableOn);
+    const expectedDate = dateAtRomeZone(
+      descriptor.archivingSchedule.archivableOn
+    );
     expect(messages).toHaveLength(2);
     messages.forEach((message) => {
       expect(message.email.subject).toBe(
@@ -149,13 +155,14 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       } satisfies EServiceDescriptorArchivingRequestRejectedByDelegatorV2,
     };
 
-    const messages = await handleEserviceArchivingRequestApprovedRejectedToDelegate({
-      decodedMessage: event,
-      logger,
-      readModelService,
-      templateService,
-      correlationId: generateId<CorrelationId>(),
-    });
+    const messages =
+      await handleEserviceArchivingRequestApprovedRejectedToDelegate({
+        decodedMessage: event,
+        logger,
+        readModelService,
+        templateService,
+        correlationId: generateId<CorrelationId>(),
+      });
 
     expect(messages).toHaveLength(2);
     messages.forEach((message) => {
@@ -178,15 +185,18 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       } satisfies EServiceArchivingRequestApprovedByDelegatorV2,
     };
 
-    const messages = await handleEserviceArchivingRequestApprovedRejectedToDelegate({
-      decodedMessage: event,
-      logger,
-      readModelService,
-      templateService,
-      correlationId: generateId<CorrelationId>(),
-    });
+    const messages =
+      await handleEserviceArchivingRequestApprovedRejectedToDelegate({
+        decodedMessage: event,
+        logger,
+        readModelService,
+        templateService,
+        correlationId: generateId<CorrelationId>(),
+      });
 
-    const expectedDate = dateAtRomeZone(descriptor.archivingSchedule.archivableOn);
+    const expectedDate = dateAtRomeZone(
+      descriptor.archivingSchedule.archivableOn
+    );
     expect(messages).toHaveLength(2);
     messages.forEach((message) => {
       expect(message.email.subject).toBe(
@@ -209,13 +219,14 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       } satisfies EServiceArchivingRequestRejectedByDelegatorV2,
     };
 
-    const messages = await handleEserviceArchivingRequestApprovedRejectedToDelegate({
-      decodedMessage: event,
-      logger,
-      readModelService,
-      templateService,
-      correlationId: generateId<CorrelationId>(),
-    });
+    const messages =
+      await handleEserviceArchivingRequestApprovedRejectedToDelegate({
+        decodedMessage: event,
+        logger,
+        readModelService,
+        templateService,
+        correlationId: generateId<CorrelationId>(),
+      });
 
     expect(messages).toHaveLength(2);
     messages.forEach((message) => {

@@ -22,9 +22,9 @@ export function inAppNotificationServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<inAppNotificationApi.Notifications> => {
       logger.info("Getting notifications");
-      const notificationTypes = category
-        ? categoryToNotificationTypes[category]
-        : [];
+      const notificationTypes = (
+        category ? categoryToNotificationTypes[category] : []
+      ) as inAppNotificationApi.Notification["notificationType"][];
 
       return inAppNotificationManagerClient.getNotifications({
         headers,

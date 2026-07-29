@@ -88,7 +88,7 @@ function bodyAndDescriptorForDelegate(
       {
         type: "EServiceDescriptorArchivingRequestApprovedByDelegator",
       },
-      ({ data: { descriptorId } }) => {
+      ({ type, data: { descriptorId } }) => {
         const descriptor = retrieveDescriptor(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId)
@@ -100,7 +100,7 @@ function bodyAndDescriptorForDelegate(
             eservice.name,
             descriptor.version,
             descriptor.archivingSchedule?.archivableOn,
-            msg.type
+            type
           ),
           descriptor,
         };
@@ -110,7 +110,7 @@ function bodyAndDescriptorForDelegate(
       {
         type: "EServiceDescriptorArchivingRequestRejectedByDelegator",
       },
-      ({ data: { descriptorId } }) => {
+      ({ type, data: { descriptorId } }) => {
         const descriptor = retrieveDescriptor(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId)
@@ -122,7 +122,7 @@ function bodyAndDescriptorForDelegate(
             eservice.name,
             descriptor.version,
             descriptor.archivingSchedule?.archivableOn,
-            msg.type
+            type
           ),
           descriptor,
         };
@@ -132,7 +132,7 @@ function bodyAndDescriptorForDelegate(
       {
         type: "EServiceArchivingRequestApprovedByDelegator",
       },
-      () => {
+      ({ type }) => {
         const descriptor = retrieveLatestDescriptor(eservice);
 
         return {
@@ -140,7 +140,7 @@ function bodyAndDescriptorForDelegate(
             delegatorName,
             eservice.name,
             descriptor.archivingSchedule?.archivableOn,
-            msg.type
+            type
           ),
           descriptor,
         };
@@ -150,7 +150,7 @@ function bodyAndDescriptorForDelegate(
       {
         type: "EServiceArchivingRequestRejectedByDelegator",
       },
-      () => {
+      ({ type }) => {
         const descriptor = retrieveLatestDescriptor(eservice);
 
         return {
@@ -158,7 +158,7 @@ function bodyAndDescriptorForDelegate(
             delegatorName,
             eservice.name,
             descriptor.archivingSchedule?.archivableOn,
-            msg.type
+            type
           ),
           descriptor,
         };
