@@ -12,6 +12,20 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorApprovedByDelegator"
   | "EServiceDescriptorRejectedByDelegator";
 
+export type EserviceArchivingRequestSubmittedToDelegatorEventType =
+  | "EServiceArchivingRequestedByDelegate"
+  | "EServiceDescriptorArchivingRequestedByDelegate";
+
+export type EserviceArchivingRequestApprovedRejectedToDelegateDescriptorEventType =
+
+    | "EServiceDescriptorArchivingRequestApprovedByDelegator"
+    | "EServiceDescriptorArchivingRequestRejectedByDelegator";
+
+export type EserviceArchivingRequestApprovedRejectedToDelegateEserviceEventType =
+
+    | "EServiceArchivingRequestApprovedByDelegator"
+    | "EServiceArchivingRequestRejectedByDelegator";
+
 export const inAppTemplates = {
   // agreements - erogazione
   agreementSubmittedToProducer: (
@@ -242,6 +256,60 @@ export const inAppTemplates = {
       }))
       .exhaustive();
     return `L'ente delegante ${delegatorName} ha ${action} la pubblicazione della nuova versione dell'e-service ${eserviceName} che gestisci tramite delega.`;
+  },
+  eserviceDescriptorArchivingRequestSubmittedToDelegator: (
+    delegateName: string,
+    eserviceName: string,
+    descriptorVersion: string
+  ): string =>
+    `${delegateName} ha richiesto l'archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}. Puoi confermare o rifiutare la richiesta.`,
+  eserviceArchivingRequestSubmittedToDelegator: (
+    delegateName: string,
+    eserviceName: string
+  ): string =>
+    `${delegateName} ha richiesto l'archiviazione dell'e-service ${eserviceName}. Puoi confermare o rifiutare la richiesta.`,
+  eserviceDescriptorArchivingRequestApprovedRejectedToDelegate: (
+    delegatorName: string,
+    eserviceName: string,
+    descriptorVersion: string,
+    archivableOn: Date | undefined,
+    eventType: EserviceArchivingRequestApprovedRejectedToDelegateDescriptorEventType
+  ): string => {
+    const { action, additional } = match(eventType)
+      .with("EServiceDescriptorArchivingRequestApprovedByDelegator", () => ({
+        action: "approvato",
+        additional: archivableOn
+          ? ` L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}.`
+          : "",
+      }))
+      .with("EServiceDescriptorArchivingRequestRejectedByDelegator", () => ({
+        action: "rifiutato",
+        additional: "",
+      }))
+      .exhaustive();
+
+    return `${delegatorName} ha ${action} la tua richiesta di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}.${additional}`;
+  },
+  eserviceArchivingRequestApprovedRejectedToDelegate: (
+    delegatorName: string,
+    eserviceName: string,
+    archivableOn: Date | undefined,
+    eventType: EserviceArchivingRequestApprovedRejectedToDelegateEserviceEventType
+  ): string => {
+    const { action, additional } = match(eventType)
+      .with("EServiceArchivingRequestApprovedByDelegator", () => ({
+        action: "confermato",
+        additional: archivableOn
+          ? ` L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}.`
+          : "",
+      }))
+      .with("EServiceArchivingRequestRejectedByDelegator", () => ({
+        action: "rifiutato",
+        additional: "",
+      }))
+      .exhaustive();
+
+    return `${delegatorName} ha ${action} la tua richiesta di archiviazione dell'e-service ${eserviceName}.${additional}`;
   },
   delegationSubmittedToDelegate: (
     eserviceName: string,

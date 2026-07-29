@@ -5,6 +5,8 @@ import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
 import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceArchivingRequestApprovedRejectedToDelegate } from "./handleEserviceArchivingRequestApprovedRejectedToDelegate.js";
+import { handleEserviceArchivingRequestSubmittedToDelegator } from "./handleEserviceArchivingRequestSubmittedToDelegator.js";
 import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
 import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
@@ -109,6 +111,36 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
+          "EServiceArchivingRequestApprovedByDelegator",
+          "EServiceArchivingRequestRejectedByDelegator",
+          "EServiceDescriptorArchivingRequestApprovedByDelegator",
+          "EServiceDescriptorArchivingRequestRejectedByDelegator"
+        ),
+      },
+      (msg) =>
+        handleEserviceArchivingRequestApprovedRejectedToDelegate(
+          msg,
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceArchivingRequestedByDelegate",
+          "EServiceDescriptorArchivingRequestedByDelegate"
+        ),
+      },
+      (msg) =>
+        handleEserviceArchivingRequestSubmittedToDelegator(
+          msg,
+          logger,
+          readModelService
+        )
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceDescriptorArchivingCanceled",
           "EServiceArchivingCanceled"
         ),
@@ -163,14 +195,7 @@ export async function handleEServiceEvent(
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
           "MaintenanceEServiceDescriptorUnarchived",
-          // TODO: implement delegation archiving request notifications (PIN-10635)
-          "EServiceArchivingRequestedByDelegate",
-          "EServiceArchivingRequestApprovedByDelegator",
-          "EServiceArchivingRequestRejectedByDelegator",
           "EServiceArchivingRequestCanceledByDelegate",
-          "EServiceDescriptorArchivingRequestedByDelegate",
-          "EServiceDescriptorArchivingRequestApprovedByDelegator",
-          "EServiceDescriptorArchivingRequestRejectedByDelegator",
           "EServiceDescriptorArchivingRequestCanceledByDelegate"
         ),
       },

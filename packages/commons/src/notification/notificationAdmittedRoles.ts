@@ -152,6 +152,22 @@ export const notificationAdmittedRoles = {
     [REVIEWER_ROLE]: false,
     [VIEWER_ROLE]: false,
   },
+  eserviceArchivingRequestSubmittedToDelegator: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
+  eserviceArchivingRequestApprovedRejectedToDelegate: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
   delegationSubmittedRevokedToDelegate: {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,

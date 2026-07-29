@@ -7,6 +7,8 @@ import { match, P } from "ts-pattern";
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
 import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceArchivingRequestApprovedRejectedToDelegate } from "./handleEserviceArchivingRequestApprovedRejectedToDelegate.js";
+import { handleEserviceArchivingRequestSubmittedToDelegator } from "./handleEserviceArchivingRequestSubmittedToDelegator.js";
 import { handleEserviceArchivingCompletedToConsumer } from "./handleEserviceArchivingCompletedToConsumer.js";
 import { handleEserviceArchivingCompletedToProducer } from "./handleEserviceArchivingCompletedToProducer.js";
 import { handleEserviceArchivingScheduledToConsumer } from "./handleEserviceArchivingScheduledToConsumer.js";
@@ -264,6 +266,40 @@ export async function handleEServiceEvent(
         })
     )
     .with(
+      {
+        type: P.union(
+          "EServiceArchivingRequestApprovedByDelegator",
+          "EServiceArchivingRequestRejectedByDelegator",
+          "EServiceDescriptorArchivingRequestApprovedByDelegator",
+          "EServiceDescriptorArchivingRequestRejectedByDelegator"
+        ),
+      },
+      (decodedMessage) =>
+        handleEserviceArchivingRequestApprovedRejectedToDelegate({
+          decodedMessage,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceArchivingRequestedByDelegate",
+          "EServiceDescriptorArchivingRequestedByDelegate"
+        ),
+      },
+      (decodedMessage) =>
+        handleEserviceArchivingRequestSubmittedToDelegator({
+          decodedMessage,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       { type: "EServiceArchivingCanceled" },
       async ({ data: { eservice } }) => {
         const [prod, cons] = await Promise.all([
@@ -347,13 +383,7 @@ export async function handleEServiceEvent(
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
           "MaintenanceEServiceDescriptorUnarchived",
-          "EServiceArchivingRequestedByDelegate",
-          "EServiceArchivingRequestRejectedByDelegator",
-          "EServiceArchivingRequestApprovedByDelegator",
           "EServiceArchivingRequestCanceledByDelegate",
-          "EServiceDescriptorArchivingRequestedByDelegate",
-          "EServiceDescriptorArchivingRequestRejectedByDelegator",
-          "EServiceDescriptorArchivingRequestApprovedByDelegator",
           "EServiceDescriptorArchivingRequestCanceledByDelegate"
         ),
       },
