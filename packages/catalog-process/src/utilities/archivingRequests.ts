@@ -31,7 +31,7 @@ export function appendArchivingRequest<T extends ArchivingRequest>(
   return [...(previousArchivingRequests ?? []), newArchivingRequest];
 }
 
-function getLatestArchivingRequest<T extends ArchivingRequest>(
+export function getLatestArchivingRequest<T extends ArchivingRequest>(
   archivingRequests: T[] | undefined,
   eserviceId: EServiceId,
   descriptorId?: DescriptorId
@@ -45,7 +45,7 @@ function getLatestArchivingRequest<T extends ArchivingRequest>(
   return latestRequest;
 }
 
-function getLatestActiveArchivingRequest<T extends ArchivingRequest>(
+export function getLatestActiveArchivingRequest<T extends ArchivingRequest>(
   archivingRequests: T[] | undefined,
   eserviceId: EServiceId,
   descriptorId?: DescriptorId
@@ -101,4 +101,33 @@ export function calculateProjectedArchivingDateForArchivingRequest<
     };
   }
   return undefined;
+}
+
+export function updateLatestActiveArchivingRequest<T extends ArchivingRequest>(
+  archivingRequests: T[],
+  lastRequestUpdates: Partial<
+    Omit<
+      T,
+      "requesterId" | "requestedAt" | "gracePeriodDays" | "archivingReason"
+    >
+  >,
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): T[] {
+  const latestActiveArchivingRequest = getLatestActiveArchivingRequest(
+    archivingRequests,
+    eserviceId,
+    descriptorId
+  );
+
+  const updatedRequests = archivingRequests.map((request) =>
+    request === latestActiveArchivingRequest
+      ? {
+          ...request,
+          ...lastRequestUpdates,
+        }
+      : request
+  );
+
+  return updatedRequests;
 }

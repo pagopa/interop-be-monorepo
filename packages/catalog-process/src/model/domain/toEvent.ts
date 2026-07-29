@@ -1202,6 +1202,22 @@ export const toCreateEventEServiceArchivingRequestedByDelegate = (
   },
   correlationId,
 });
+export const toCreateEventEServiceArchivingRequestApprovedByDelegator = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceArchivingRequestApprovedByDelegator",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
 
 export const toCreateEventEServiceDescriptorArchivingRequestedByDelegate = (
   version: number,

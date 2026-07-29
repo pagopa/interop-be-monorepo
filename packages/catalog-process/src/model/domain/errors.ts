@@ -93,6 +93,8 @@ const errorCodes = {
   delegatedArchivingRequestNotActive: "0072",
   noDelegationForArchivingRequest: "0073",
   delegatedArchivingRequestAlreadyInProgress: "0074",
+  noActiveDelegationFound: "0075",
+  delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -851,5 +853,26 @@ export function noDelegationForArchivingRequest(
     detail: `No active producer delegation found for E-service ${eserviceId} to submit an archiving request`,
     code: "noDelegationForArchivingRequest",
     title: "No delegation for archiving request",
+  });
+}
+
+export function noActiveDelegationFound(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The E-service ${eserviceId} has no active delegation`,
+    code: "noActiveDelegationFound",
+    title: "No active delegation found for E-service",
+  });
+}
+
+export function delegatedArchiveRequestForIncorrectDelegateProducer(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} archiving request refers to a delegation no longer active`,
+    code: "delegatedArchiveRequestForIncorrectDelegateProducer",
+    title: "Archiving request with invalid requesterId",
   });
 }

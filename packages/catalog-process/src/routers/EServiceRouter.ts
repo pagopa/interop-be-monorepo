@@ -89,6 +89,7 @@ import {
   archiveEServiceErrorMapper,
   unarchiveDescriptorErrorMapper,
   submitDelegatedEServiceArchivingErrorMapper,
+  approveDelegatedEServiceArchivingErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -369,6 +370,33 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/eservices/:eServiceId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+          const { data: updatedEService, metadata } =
+            await catalogService.approveDelegatedEServiceArchiving(
+              unsafeBrandId(req.params.eServiceId),
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            approveDelegatedEServiceArchivingErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .get("/eservices/:eServiceId/consumers", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 
