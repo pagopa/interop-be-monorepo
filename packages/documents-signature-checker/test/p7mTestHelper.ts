@@ -1,25 +1,20 @@
-/* eslint-disable functional/no-let */
-import { Integer, OctetString, Utf8String } from "asn1js";
-import { webcrypto } from "node:crypto";
 /**
  * Test helper for creating CMS/P7M envelopes via pkijs.
  *
- * Provides three factory functions:
- * - {@link createValidP7m} — valid signed envelope wrapping arbitrary content
- * - {@link createP7mWithEmptyContent} — valid envelope with a zero-byte payload
- * - {@link createCorruptedP7m} — random bytes, not valid ASN.1
+ * - {@link createValidP7m}: valid signed envelope wrapping arbitrary content
+ * - {@link createP7mWithEmptyContent}: valid envelope with a zero byte payload
+ * - {@link createDetachedP7m}: valid envelope signing content it does not carry
+ * - {@link createCorruptedP7m}: random bytes, not valid ASN.1
  *
- * All crypto operations use `node:crypto` WebCrypto via `webcrypto.subtle`.
- * pkijs is initialized once with a Node.js CryptoEngine; the key pair and
- * self-signed certificate are generated once and cached for the whole test run.
+ * All crypto operations use `node:crypto` WebCrypto via `webcrypto.subtle`. The
+ * key pair and its self signed certificate are generated once per test run.
  */
+import { Integer, OctetString, Utf8String } from "asn1js";
+import { webcrypto } from "node:crypto";
 import * as pkijs from "pkijs";
 
-// Initialize pkijs crypto engine with Node.js WebCrypto
-const cryptoEngine = new pkijs.CryptoEngine({
-  crypto: webcrypto,
-});
-pkijs.setEngine("NodeJS", cryptoEngine);
+const ID_DATA = "1.2.840.113549.1.7.1";
+const ID_SIGNED_DATA = "1.2.840.113549.1.7.2";
 
 const SIGNING_ALGORITHM = {
   name: "RSASSA-PKCS1-v1_5",
@@ -33,14 +28,17 @@ interface KeyPairWithCert {
   certificate: pkijs.Certificate;
 }
 
-/**
- * Generates a self-signed X.509 certificate + private key.
- * Cached per test run to avoid regenerating for every scenario.
- */
+pkijs.setEngine(
+  "test-p7m-helper",
+  new pkijs.CryptoEngine({ crypto: webcrypto })
+);
+
 let cachedKeyPair: KeyPairWithCert | undefined;
 
 async function getOrCreateKeyPair(): Promise<KeyPairWithCert> {
-  if (cachedKeyPair) return cachedKeyPair;
+  if (cachedKeyPair) {
+    return cachedKeyPair;
+  }
 
   const keyPair = await webcrypto.subtle.generateKey(SIGNING_ALGORITHM, true, [
     "sign",
@@ -51,23 +49,16 @@ async function getOrCreateKeyPair(): Promise<KeyPairWithCert> {
   certificate.version = 2;
   certificate.serialNumber = new Integer({ value: 1 });
 
-  // Subject: CN=Test Signer
-  certificate.subject.typesAndValues.push(
-    new pkijs.AttributeTypeAndValue({
-      type: "2.5.4.3", // CN
-      value: new Utf8String({ value: "Test Signer" }),
-    })
+  // Issuer = subject: self signed
+  [certificate.subject, certificate.issuer].forEach((name) =>
+    name.typesAndValues.push(
+      new pkijs.AttributeTypeAndValue({
+        type: "2.5.4.3", // CN
+        value: new Utf8String({ value: "Test Signer" }),
+      })
+    )
   );
 
-  // Issuer = Subject (self-signed)
-  certificate.issuer.typesAndValues.push(
-    new pkijs.AttributeTypeAndValue({
-      type: "2.5.4.3",
-      value: new Utf8String({ value: "Test Signer" }),
-    })
-  );
-
-  // Validity: now → 1 year
   certificate.notBefore.value = new Date();
   const notAfter = new Date();
   notAfter.setFullYear(notAfter.getFullYear() + 1);
@@ -76,25 +67,23 @@ async function getOrCreateKeyPair(): Promise<KeyPairWithCert> {
   await certificate.subjectPublicKeyInfo.importKey(keyPair.publicKey);
   await certificate.sign(keyPair.privateKey, "SHA-256");
 
-  cachedKeyPair = {
-    privateKey: keyPair.privateKey,
-    certificate,
-  };
+  cachedKeyPair = { privateKey: keyPair.privateKey, certificate };
   return cachedKeyPair;
 }
 
-/**
- * Creates a valid CMS SignedData (p7m) envelope wrapping the given content.
- * This is the DER-encoded binary that SafeStorage would produce.
- */
-export async function createValidP7m(content: Buffer): Promise<Buffer> {
+async function createP7m(
+  encapsulatedContent: Buffer | undefined,
+  detachedContent?: Buffer
+): Promise<Buffer> {
   const { privateKey, certificate } = await getOrCreateKeyPair();
 
   const cmsSignedData = new pkijs.SignedData({
     version: 1,
     encapContentInfo: new pkijs.EncapsulatedContentInfo({
-      eContentType: "1.2.840.113549.1.7.1", // id-data
-      eContent: new OctetString({ valueHex: content }),
+      eContentType: ID_DATA,
+      ...(encapsulatedContent !== undefined && {
+        eContent: new OctetString({ valueHex: encapsulatedContent }),
+      }),
     }),
     signerInfos: [
       new pkijs.SignerInfo({
@@ -108,31 +97,38 @@ export async function createValidP7m(content: Buffer): Promise<Buffer> {
     certificates: [certificate],
   });
 
-  // Sign the CMS structure
-  await cmsSignedData.sign(privateKey, 0, "SHA-256");
+  await cmsSignedData.sign(privateKey, 0, "SHA-256", detachedContent);
 
-  // Wrap in ContentInfo
   const contentInfo = new pkijs.ContentInfo({
-    contentType: "1.2.840.113549.1.7.2", // id-signedData
+    contentType: ID_SIGNED_DATA,
     content: cmsSignedData.toSchema(true),
   });
 
-  // Encode to DER
-  const derBytes = contentInfo.toSchema().toBER(false);
-  return Buffer.from(derBytes);
+  return Buffer.from(contentInfo.toSchema().toBER(false));
 }
 
 /**
- * Creates a valid CMS SignedData but with an EMPTY content payload.
- * This simulates the 2024 bug where SafeStorage signed empty buffers.
+ * Valid CMS SignedData (p7m) envelope wrapping the given content: the binary
+ * SafeStorage produces.
  */
+export async function createValidP7m(content: Buffer): Promise<Buffer> {
+  return createP7m(content);
+}
+
+/** Valid CMS SignedData envelope wrapping an empty payload. */
 export async function createP7mWithEmptyContent(): Promise<Buffer> {
-  return createValidP7m(Buffer.alloc(0));
+  return createP7m(Buffer.alloc(0));
 }
 
 /**
- * Creates a corrupted p7m: random bytes that are NOT valid ASN.1.
+ * Valid CMS SignedData envelope that signs the given content without carrying
+ * it: the signature cannot be checked against the unsigned document.
  */
+export async function createDetachedP7m(content: Buffer): Promise<Buffer> {
+  return createP7m(undefined, content);
+}
+
+/** Corrupted p7m: bytes that are not valid ASN.1. */
 export function createCorruptedP7m(): Buffer {
   return Buffer.from("this-is-not-a-valid-p7m-file-just-garbage-bytes");
 }

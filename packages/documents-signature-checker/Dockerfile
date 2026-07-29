@@ -51,6 +51,5 @@ RUN chown -R app:app /app && chmod -R 700 /app
 USER app
 
 WORKDIR /app/packages/documents-signature-checker
-EXPOSE 3000
 
 CMD [ "node", "." ]

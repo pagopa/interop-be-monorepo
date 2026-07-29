@@ -3,7 +3,11 @@ import * as pkijs from "pkijs";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { inspectSignedCms } from "../src/utils/signedCmsUtils.js";
-import { createCorruptedP7m, createValidP7m } from "./p7mTestHelper.js";
+import {
+  createCorruptedP7m,
+  createDetachedP7m,
+  createValidP7m,
+} from "./p7mTestHelper.js";
 
 const PAYLOAD = Buffer.from("%PDF-1.4 signed cms utils payload");
 
@@ -58,6 +62,14 @@ describe("signedCmsUtils", () => {
 
     await expect(inspectSignedCms(serializedSignedData)).rejects.toThrow(
       "CMS SignedData has no signers"
+    );
+  });
+
+  it("should throw when the signature is detached and the envelope carries no content", async () => {
+    const detachedP7m = await createDetachedP7m(PAYLOAD);
+
+    await expect(inspectSignedCms(detachedP7m)).rejects.toThrow(
+      "CMS SignedData has no encapsulated content"
     );
   });
 

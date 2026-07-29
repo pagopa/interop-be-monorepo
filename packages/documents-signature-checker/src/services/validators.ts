@@ -3,37 +3,70 @@ import type {
   DocumentCheckIssueCode,
   DocumentEntityType,
 } from "../models/report.js";
+import type { SignedCmsCheckResult } from "../utils/signedCmsUtils.js";
 
-import {
-  inspectSignedCms,
-  type SignedCmsCheckResult,
-} from "../utils/signedCmsUtils.js";
+/**
+ * Result of trying to fetch a file from S3.
+ *
+ * `notFound` and `failed` are kept apart on purpose: an object that is really
+ * missing is an anomaly of the document, while any other S3 failure (bucket
+ * unreachable, credentials, throttling) means the job could not check it.
+ */
+export type DownloadOutcome =
+  | { status: "skipped" }
+  | { status: "downloaded"; content: Uint8Array }
+  | { status: "notFound" }
+  | { status: "failed"; error: string };
 
-type EntityIdentifier = {
+export type CmsInspection =
+  | ({ status: "valid" } & SignedCmsCheckResult)
+  | { status: "invalid"; error: string };
+
+export type UnsignedDocumentToCheck = {
+  path: string;
+  download: DownloadOutcome;
+};
+
+export type SignedDocumentToCheck = UnsignedDocumentToCheck & {
+  existsInReadmodel: boolean;
+  /** Set only when the signed file was downloaded. */
+  cms?: CmsInspection;
+};
+
+export type DocumentToCheck = {
   entityType: DocumentEntityType;
   entityId: string;
-};
-
-type DocumentFile = {
-  path: string | null | undefined;
-  content?: Uint8Array | null;
-};
-
-type SignedDocumentFile = DocumentFile & {
-  existsInReadmodel: boolean;
-};
-
-export type DocumentToCheck = EntityIdentifier & {
-  unsignedDocument: DocumentFile;
-  signedDocument: SignedDocumentFile;
+  createdAt: Date;
+  unsignedDocument: UnsignedDocumentToCheck;
+  signedDocument: SignedDocumentToCheck;
   extraFields?: Record<string, string | number | undefined>;
 };
 
-const PDF_FILE_SIGNATURE = "%PDF-";
-const cmsResultCache = new WeakMap<
-  DocumentToCheck,
-  Promise<SignedCmsCheckResult>
->();
+export type DocumentAssertion = (
+  document: DocumentToCheck
+) => DocumentCheckIssue | undefined;
+
+const PDF_HEADER = Buffer.from("%PDF-", "latin1");
+
+/** Wraps the bytes without copying them. */
+function toBuffer(content: Uint8Array): Buffer {
+  return Buffer.from(content.buffer, content.byteOffset, content.byteLength);
+}
+
+export function isMissingPath(path: string): boolean {
+  return path.trim() === "";
+}
+
+function downloadedContent(download: DownloadOutcome): Uint8Array | undefined {
+  return download.status === "downloaded" ? download.content : undefined;
+}
+
+function hasPdfHeader(content: Uint8Array): boolean {
+  return (
+    content.byteLength >= PDF_HEADER.byteLength &&
+    toBuffer(content).subarray(0, PDF_HEADER.byteLength).equals(PDF_HEADER)
+  );
+}
 
 export function makeIssue(
   document: DocumentToCheck,
@@ -45,51 +78,12 @@ export function makeIssue(
     code,
     entityType: document.entityType,
     entityId: document.entityId,
-    unsignedPath: document.unsignedDocument.path ?? "",
-    signedPath: document.signedDocument.path ?? "",
+    unsignedPath: document.unsignedDocument.path,
+    signedPath: document.signedDocument.path,
     message,
     extraFields: document.extraFields,
     details,
   };
-}
-
-function isMissingPath(path: string | null | undefined): boolean {
-  return path == null || path.trim() === "";
-}
-
-function hasPdfSignature(content: Uint8Array): boolean {
-  if (content.byteLength < PDF_FILE_SIGNATURE.length) {
-    return false;
-  }
-
-  return Buffer.from(content)
-    .subarray(0, PDF_FILE_SIGNATURE.length)
-    .toString("utf8")
-    .startsWith(PDF_FILE_SIGNATURE);
-}
-
-function hasContent(
-  content: Uint8Array | null | undefined
-): content is Uint8Array {
-  return content != null;
-}
-
-async function getSignedCmsCheck(
-  document: DocumentToCheck
-): Promise<SignedCmsCheckResult> {
-  const cached = cmsResultCache.get(document);
-  if (cached) {
-    return cached;
-  }
-
-  const content = document.signedDocument.content;
-  if (!hasContent(content)) {
-    throw new Error("Signed document content is missing");
-  }
-
-  const check = inspectSignedCms(content);
-  cmsResultCache.set(document, check);
-  return check;
 }
 
 export function assertUnsignedPathPresent(
@@ -104,32 +98,39 @@ export function assertUnsignedPathPresent(
     : undefined;
 }
 
+export function assertUnsignedFileDownloaded(
+  document: DocumentToCheck
+): DocumentCheckIssue | undefined {
+  const download = document.unsignedDocument.download;
+
+  return download.status === "failed"
+    ? makeIssue(
+        document,
+        "UNSIGNED_FILE_DOWNLOAD_ERROR",
+        "Unsigned document file could not be read from S3",
+        { error: download.error }
+      )
+    : undefined;
+}
+
 export function assertUnsignedFileExists(
   document: DocumentToCheck
 ): DocumentCheckIssue | undefined {
-  if (
-    isMissingPath(document.unsignedDocument.path) ||
-    hasContent(document.unsignedDocument.content)
-  ) {
-    return undefined;
-  }
-
-  return makeIssue(
-    document,
-    "UNSIGNED_FILE_MISSING",
-    "Unsigned document file is missing on S3"
-  );
+  return document.unsignedDocument.download.status === "notFound"
+    ? makeIssue(
+        document,
+        "UNSIGNED_FILE_MISSING",
+        "Unsigned document file is missing on S3"
+      )
+    : undefined;
 }
 
 export function assertUnsignedFileValid(
   document: DocumentToCheck
 ): DocumentCheckIssue | undefined {
-  const unsignedContent = document.unsignedDocument.content;
-  if (!hasContent(unsignedContent)) {
-    return undefined;
-  }
+  const content = downloadedContent(document.unsignedDocument.download);
 
-  if (unsignedContent.byteLength > 0 && hasPdfSignature(unsignedContent)) {
+  if (content === undefined || hasPdfHeader(content)) {
     return undefined;
   }
 
@@ -137,13 +138,11 @@ export function assertUnsignedFileValid(
     document,
     "UNSIGNED_FILE_INVALID",
     "Unsigned document file is not a valid PDF",
-    {
-      byteLength: unsignedContent.byteLength,
-    }
+    { byteLength: content.byteLength }
   );
 }
 
-export function assertSignedMetadataPresent(
+export function assertSignedRecordPresent(
   document: DocumentToCheck
 ): DocumentCheckIssue | undefined {
   return document.signedDocument.existsInReadmodel
@@ -158,117 +157,119 @@ export function assertSignedMetadataPresent(
 export function assertSignedPathPresent(
   document: DocumentToCheck
 ): DocumentCheckIssue | undefined {
-  if (
-    !document.signedDocument.existsInReadmodel ||
-    !isMissingPath(document.signedDocument.path)
-  ) {
-    return undefined;
-  }
+  return document.signedDocument.existsInReadmodel &&
+    isMissingPath(document.signedDocument.path)
+    ? makeIssue(
+        document,
+        "SIGNED_PATH_MISSING",
+        "Signed document path is missing"
+      )
+    : undefined;
+}
 
-  return makeIssue(
-    document,
-    "SIGNED_PATH_MISSING",
-    "Signed document path is missing"
-  );
+export function assertSignedFileDownloaded(
+  document: DocumentToCheck
+): DocumentCheckIssue | undefined {
+  const download = document.signedDocument.download;
+
+  return download.status === "failed"
+    ? makeIssue(
+        document,
+        "SIGNED_FILE_DOWNLOAD_ERROR",
+        "Signed document file could not be read from S3",
+        { error: download.error }
+      )
+    : undefined;
 }
 
 export function assertSignedFileExists(
   document: DocumentToCheck
 ): DocumentCheckIssue | undefined {
-  if (
-    !document.signedDocument.existsInReadmodel ||
-    isMissingPath(document.signedDocument.path) ||
-    hasContent(document.signedDocument.content)
-  ) {
+  return document.signedDocument.download.status === "notFound"
+    ? makeIssue(
+        document,
+        "SIGNED_FILE_MISSING",
+        "Signed document file is missing on S3"
+      )
+    : undefined;
+}
+
+export function assertSignedFileValidCms(
+  document: DocumentToCheck
+): DocumentCheckIssue | undefined {
+  const cms = document.signedDocument.cms;
+
+  return cms?.status === "invalid"
+    ? makeIssue(
+        document,
+        "SIGNED_FILE_INVALID_CMS",
+        "Signed document file is not a valid CMS/P7M",
+        { error: cms.error }
+      )
+    : undefined;
+}
+
+export function assertSignedFileNotEmptyPayload(
+  document: DocumentToCheck
+): DocumentCheckIssue | undefined {
+  const cms = document.signedDocument.cms;
+
+  if (cms?.status !== "valid" || cms.payload.byteLength > 0) {
     return undefined;
   }
 
   return makeIssue(
     document,
-    "SIGNED_FILE_MISSING",
-    "Signed document file is missing on S3"
+    "SIGNED_FILE_EMPTY_PAYLOAD",
+    "Signed document payload is empty",
+    { byteLength: cms.payload.byteLength }
   );
 }
 
-export async function assertSignedFileValidCms(
+export function assertSignedContentMatchesUnsigned(
   document: DocumentToCheck
-): Promise<DocumentCheckIssue | undefined> {
-  if (!hasContent(document.signedDocument.content)) {
-    return undefined;
-  }
+): DocumentCheckIssue | undefined {
+  const unsignedContent = downloadedContent(document.unsignedDocument.download);
+  const cms = document.signedDocument.cms;
 
-  try {
-    await getSignedCmsCheck(document);
-    return undefined;
-  } catch (error) {
-    return makeIssue(
-      document,
-      "SIGNED_FILE_INVALID_CMS",
-      "Signed document file is not a valid CMS/P7M",
-      {
-        error: error instanceof Error ? error.message : String(error),
-      }
-    );
-  }
-}
-
-export async function assertSignedFileNotEmptyPayload(
-  document: DocumentToCheck
-): Promise<DocumentCheckIssue | undefined> {
-  if (!hasContent(document.signedDocument.content)) {
-    return undefined;
-  }
-
-  try {
-    const signedCmsCheck = await getSignedCmsCheck(document);
-    if (signedCmsCheck.payload.byteLength > 0) {
-      return undefined;
-    }
-
-    return makeIssue(
-      document,
-      "SIGNED_FILE_EMPTY_PAYLOAD",
-      "Signed document payload is empty",
-      {
-        byteLength: signedCmsCheck.payload.byteLength,
-      }
-    );
-  } catch {
-    return undefined;
-  }
-}
-
-export async function assertSignedContentMatchesUnsigned(
-  document: DocumentToCheck
-): Promise<DocumentCheckIssue | undefined> {
-  const unsignedContent = document.unsignedDocument.content;
   if (
-    !hasContent(unsignedContent) ||
-    !hasContent(document.signedDocument.content)
+    unsignedContent === undefined ||
+    cms?.status !== "valid" ||
+    cms.payload.byteLength === 0
   ) {
     return undefined;
   }
 
-  try {
-    const signedCmsCheck = await getSignedCmsCheck(document);
-
-    if (
-      signedCmsCheck.payload.byteLength === 0 ||
-      Buffer.from(unsignedContent).equals(Buffer.from(signedCmsCheck.payload))
-    ) {
-      return undefined;
-    }
-
-    return makeIssue(
-      document,
-      "SIGNED_CONTENT_MISMATCH",
-      "Signed document payload does not match unsigned content",
-      {
-        unsignedByteLength: unsignedContent.byteLength,
-        signedPayloadByteLength: signedCmsCheck.payload.byteLength,
-      }
-    );
-  } catch {
+  if (toBuffer(unsignedContent).equals(toBuffer(cms.payload))) {
     return undefined;
   }
+
+  return makeIssue(
+    document,
+    "SIGNED_CONTENT_MISMATCH",
+    "Signed document payload does not match unsigned content",
+    {
+      unsignedByteLength: unsignedContent.byteLength,
+      signedPayloadByteLength: cms.payload.byteLength,
+    }
+  );
 }
+
+/**
+ * Every check run on a document, in reporting order. Each assertion is total and
+ * independent: it reports its own failure only, and stays silent when an earlier
+ * step already explains it (a file that was never downloaded is not "invalid").
+ */
+export const documentAssertions: readonly DocumentAssertion[] = [
+  assertUnsignedPathPresent,
+  assertUnsignedFileDownloaded,
+  assertUnsignedFileExists,
+  assertUnsignedFileValid,
+  assertSignedRecordPresent,
+  assertSignedPathPresent,
+  assertSignedFileDownloaded,
+  assertSignedFileExists,
+  assertSignedFileValidCms,
+  assertSignedFileNotEmptyPayload,
+  assertSignedContentMatchesUnsigned,
+];

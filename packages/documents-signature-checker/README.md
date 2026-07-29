@@ -13,15 +13,17 @@ Two classes of problems that could go undetected without an automated check:
 
 ## What it does
 
-The job runs once per execution against a configurable time window (default: the previous calendar day):
+The job runs once per execution against a configurable time window (default: the previous calendar day, UTC):
 
 1. Queries the readmodel for all agreements, purposes, and delegations created in the look-back window.
-2. Processes documents in batches to cap memory usage. For each batch:
-   - Attempts to download the unsigned PDF and the signed P7M from S3 in parallel. The unsigned file is fetched only if a path is present in the readmodel; the signed file is fetched only if a signed record exists and carries a path. Either file may be absent on S3.
-   - Runs all assertions (see [Checks](#checks) below) concurrently on each document and collects any failures.
+2. Processes documents in batches, capping how many files are held in memory at the same time. For each batch:
+   - Downloads the unsigned PDF and the signed P7M from S3 in parallel. The unsigned file is fetched only if a path is present in the readmodel; the signed file is fetched only if a signed record exists and carries a path.
+   - Parses the P7M once per document and verifies its signatures.
+   - Runs every assertion (see [Checks](#checks)) on the already resolved data and collects the failures.
    - Releases the downloaded file contents before the next batch starts.
-3. Logs every failed assertion at `ERROR` level so it can be caught by a monitoring alarm.
-4. Prints an `INFO` summary at the end with total counts broken down by entity type.
+3. Logs every failed assertion at `ERROR` level so it can be caught by a monitoring alarm, and every expected transient state at `WARN` level.
+4. Prints an `INFO` summary at the end with the totals and one line per entity type.
+5. Exits with a code that says whether the run can be trusted (see [Exit codes](#exit-codes)).
 
 ### Entity types covered
 
@@ -29,69 +31,99 @@ The job runs once per execution against a configurable time window (default: the
 - **Purpose**: risk analysis PDF generated on activation and on each new version activation
 - **Delegation**: contract PDF generated on activation and on revocation
 
+### Verdict of a document
+
+Every document ends up in exactly one bucket:
+
+- `conforming`: every assertion passed.
+- `nonConforming`: at least one assertion failed on the document itself. Logged at `ERROR`.
+- `pending`: the signed document is not there yet and the document is younger than `DOCUMENTS_SIGNING_GRACE_PERIOD_MINUTES`. SafeStorage signs asynchronously, so within that window a missing signature is expected: it is logged at `WARN` and must not raise an alarm.
+- `notChecked`: the job could not verify the document, because S3 answered with something other than "the object is not there" or because of an unexpected error. The anomaly is on the checker side, the run is incomplete and has to be repeated.
+
 ## Checks
 
-Assertions run concurrently for each document. Each assertion guards against reporting a downstream failure when an upstream one already explains it (e.g. `UNSIGNED_FILE_MISSING` is suppressed when `UNSIGNED_PATH_MISSING` already fired).
+Assertions are independent and each one guards its own precondition, so a document reports only the failures that are not already explained by an earlier one (a file that was never downloaded is not reported as invalid).
 
-- `UNSIGNED_PATH_MISSING`: the unsigned document has no path in the readmodel
-- `UNSIGNED_FILE_MISSING`: the unsigned PDF does not exist at the expected S3 path
-- `UNSIGNED_FILE_INVALID`: the downloaded file does not start with a valid PDF header (`%PDF-`)
-- `SIGNED_RECORD_MISSING`: the signed document record is absent from the readmodel
-- `SIGNED_PATH_MISSING`: the signed record exists but its S3 path is empty
-- `SIGNED_FILE_MISSING`: the signed P7M does not exist at the expected S3 path
-- `SIGNED_FILE_INVALID_CMS`: the signed file cannot be parsed as a valid CMS/P7M structure, or its signatures fail verification
-- `SIGNED_FILE_EMPTY_PAYLOAD`: the P7M is a structurally valid CMS envelope but encapsulates zero bytes
-- `SIGNED_CONTENT_MISMATCH`: the payload extracted from the P7M differs from the content of the unsigned PDF
-- `UNEXPECTED_CHECK_ERROR`: an unhandled exception was thrown during the assertion pipeline for a document
+| Code | Meaning |
+| --- | --- |
+| `UNSIGNED_PATH_MISSING` | the unsigned document has no path in the readmodel |
+| `UNSIGNED_FILE_MISSING` | the unsigned PDF does not exist at the expected S3 path |
+| `UNSIGNED_FILE_INVALID` | the downloaded file does not start with the PDF header (`%PDF-`) |
+| `UNSIGNED_FILE_DOWNLOAD_ERROR` | the unsigned file could not be read from S3 |
+| `SIGNED_RECORD_MISSING` | the signed document record is absent from the readmodel |
+| `SIGNED_PATH_MISSING` | the signed record exists but its S3 path is empty |
+| `SIGNED_FILE_MISSING` | the signed P7M does not exist at the expected S3 path |
+| `SIGNED_FILE_DOWNLOAD_ERROR` | the signed file could not be read from S3 |
+| `SIGNED_FILE_INVALID_CMS` | the signed file is not a parseable CMS/P7M envelope, carries no signer, is detached, or its signatures do not verify |
+| `SIGNED_FILE_EMPTY_PAYLOAD` | the P7M is a valid CMS envelope but encapsulates zero bytes |
+| `SIGNED_CONTENT_MISMATCH` | the payload extracted from the P7M differs from the unsigned PDF |
+| `SIGNING_PENDING` | the signed document is not available yet, within the grace period. Logged at `WARN` |
+| `UNEXPECTED_CHECK_ERROR` | an unexpected exception was thrown while verifying a document |
+
+`UNSIGNED_FILE_DOWNLOAD_ERROR`, `SIGNED_FILE_DOWNLOAD_ERROR` and `UNEXPECTED_CHECK_ERROR` mark the document as `notChecked`: they say the job failed, not the document.
+
+### Missing file or unreadable bucket
+
+`pagopa-interop-commons` wraps every S3 failure in a single `FileManagerError`, so a missing object, an expired credential and a throttled request all arrive at the job as the same error type. The job matches the error message against the "no such key" answers of S3 and reports `*_FILE_MISSING` only for those. Any other message becomes `*_FILE_DOWNLOAD_ERROR`, so a misconfigured bucket produces a failed run instead of thousands of documents falsely reported as missing.
 
 ### How content comparison works
 
 A CMS/P7M envelope defined by [RFC 5652](https://www.rfc-editor.org/rfc/rfc5652) contains the original document verbatim in its `EncapsulatedContentInfo.eContent` field. SafeStorage wraps the unsigned PDF as-is inside this field and signs the envelope.
 
-The comparison is therefore a direct byte-for-byte equality check between the `eContent` payload extracted from the P7M and the bytes of the unsigned PDF downloaded from S3. No hashing algorithm needs to be chosen or configured for this check: `pkijs` parses the CMS structure and exposes the raw payload, which is then compared with `Buffer.equals()`.
+The comparison is therefore a direct byte-for-byte equality check between the `eContent` payload extracted from the P7M and the bytes of the unsigned PDF downloaded from S3. No hashing algorithm needs to be chosen or configured for this check: `pkijs` parses the CMS structure and exposes the raw payload.
 
 For signature verification (`SIGNED_FILE_INVALID_CMS`), the algorithm is not configured externally either: the CMS standard requires SafeStorage to embed the `digestAlgorithm` and `signatureAlgorithm` OIDs inside the `SignerInfo` block of the envelope it produces. `pkijs` reads those OIDs from the file itself and uses them to verify the signature.
+
+### What the signature check does not cover
+
+Verification is cryptographic only: it proves that the envelope content was not altered after signing. It deliberately does not validate the certificate chain, its revocation status or the signing timestamp, which would require a trusted certificate list this job does not own.
 
 ## Configuration
 
 - `S3_BUCKET` *(required)*: S3 bucket containing unsigned PDF documents
 - `S3_BUCKET_SIGNED_DOCUMENTS` *(required)*: S3 bucket containing signed P7M documents
-- `DOCUMENTS_LOOK_BACK_DAYS` *(default: `1`)*: number of calendar days to look back from midnight of the current day
-- `DOCUMENTS_BATCH_SIZE` *(default: `25`)*: maximum number of documents to download and validate concurrently.
+- `DOCUMENTS_LOOK_BACK_DAYS` *(default: `1`)*: number of days to look back from midnight UTC of the current day. The window is `[midnight UTC - N days, midnight UTC)`, so it does not depend on the time zone of the machine running the job
+- `DOCUMENTS_BATCH_SIZE` *(default: `25`)*: number of documents downloaded and verified at the same time. Each one opens up to two concurrent S3 requests
+- `DOCUMENTS_SIGNING_GRACE_PERIOD_MINUTES` *(default: `60`)*: how long after its creation a document is allowed to have no signed counterpart before it is reported as an anomaly. It only matters when the job runs shortly after midnight, when the newest documents in the window may still be at SafeStorage
 - `READMODEL_SQL_DB_*` *(required)*: PostgreSQL connection parameters for the readmodel
 - `S3_CUSTOM_SERVER` *(default: `false`)*: set to `true` to use a custom S3-compatible endpoint (e.g. MinIO)
 - `LOG_LEVEL` *(default: `info`)*: logger verbosity
 
 ## Output
 
-On each run the job logs different `INFO` lines:
+On each run the job logs the window it checked, the number of records it fetched, and a summary:
 
 ```text
 Starting documents-signature-checker
-Documents signature checker started documentsLookBackDays=1 from=2026-04-13T22:00:00.000Z to=2026-04-14T22:00:00.000Z
+Documents signature checker started documentsLookBackDays=1 documentsBatchSize=25 signingGracePeriodMinutes=60 from=2026-04-14T00:00:00.000Z to=2026-04-15T00:00:00.000Z
 Documents signature checker fetched records agreements=10 purposes=0 delegations=0
 
 ...
 
-Documents signature checker summary processed=10 successful=1 issues=12 agreementConforming=1 agreementNonConforming=9 purposeConforming=0 purposeNonConforming=0 delegationConforming=0 delegationNonConforming=0 documentsLookBackDays=1 from=2026-04-13T22:00:00.000Z to=2026-04-14T22:00:00.000Z
+Documents signature checker summary processed=10 conforming=1 nonConforming=9 pending=0 notChecked=0 issues=9 documentsLookBackDays=1 from=2026-04-14T00:00:00.000Z to=2026-04-15T00:00:00.000Z
+Documents signature checker summary by entity type entityType=agreement conforming=1 nonConforming=9 pending=0 notChecked=0
+Documents signature checker summary by entity type entityType=purpose conforming=0 nonConforming=0 pending=0 notChecked=0
+Documents signature checker summary by entity type entityType=delegation conforming=0 nonConforming=0 pending=0 notChecked=0
 ```
 
-Each non-conforming document produces an `ERROR` log line containing the issue code, entity type, entity ID, and relevant S3 paths, for example:
+Each failed assertion produces one line containing the issue code, entity type, entity ID and both S3 paths:
 
 ```text
-Document check [SIGNED_CONTENT_MISMATCH]: entityType=agreement entityId=7ea74d10-b177-452d-9280-00ae40fb0f67 unsignedPath=smoke/agreements/7ea74d10-b177-452d-9280-00ae40fb0f67/fde64e92-2fc4-4986-a256-7413e176326c/contract.pdf signedPath=smoke/agreements/7ea74d10-b177-452d-9280-00ae40fb0f67/48324bde-5f7b-4e20-91e1-76cfcaed4136/signed.p7m message="Signed document payload does not match unsigned content" unsignedByteLength=37 signedPayloadByteLength=37
+Document check [SIGNED_CONTENT_MISMATCH]: entityType=agreement entityId=7ea74d10-b177-452d-9280-00ae40fb0f67 unsignedPath=agreements/7ea74d10-b177-452d-9280-00ae40fb0f67/fde64e92-2fc4-4986-a256-7413e176326c/contract.pdf signedPath=agreements/7ea74d10-b177-452d-9280-00ae40fb0f67/48324bde-5f7b-4e20-91e1-76cfcaed4136/signed.p7m message="Signed document payload does not match unsigned content" unsignedByteLength=37 signedPayloadByteLength=37
 ```
 
-To test the output you can run:
+### Exit codes
 
-```bash
-pnpm test:output
-```
+| Code | Meaning |
+| --- | --- |
+| `0` | every document in the window was checked. Non conforming documents do not fail the run: they are reported as `ERROR` lines for monitoring to catch |
+| `1` | at least one document could not be checked (`notChecked` greater than zero). The run is incomplete and has to be repeated |
+| `255` | the run itself failed, for example because the readmodel was unreachable |
 
 ## Running locally
 
 ```bash
-cp .env.example .env   # fill in readmodel and S3 credentials
+cp .env .env.local   # adjust readmodel and S3 credentials if needed
 pnpm start
 ```
 
@@ -101,7 +133,7 @@ pnpm start
 pnpm test
 ```
 
-Tests require Docker (PostgreSQL + MinIO containers are started automatically via testcontainers).
+Tests require Docker (PostgreSQL + MinIO containers are started automatically via testcontainers). `test/endToEnd.test.ts` spawns the real entry point as a child process and asserts the log lines and the exit code it produces.
 
 ## Dependencies
 
@@ -116,7 +148,7 @@ These two libraries are the only non-platform dependencies introduced by this pa
 - Both libraries are published by [Peculiar Ventures](https://github.com/PeculiarVentures), the same organization that maintains the W3C Web Crypto API polyfill used by major browsers.
 - `pkijs` is the implementation recommended in the [PKI.js website](https://pkijs.org) and is widely used in enterprise PKI tooling.
 - Neither library makes network calls, spawns processes, or accesses the filesystem. They operate entirely on the `Uint8Array` buffer passed to them.
-- All cryptographic operations are delegated to the Node.js built-in `crypto` module via the Web Crypto API (`globalThis.crypto`). `pkijs` itself does not implement any cryptographic primitives.
+- All cryptographic operations are delegated to the Node.js built-in `crypto` module via the Web Crypto API. `pkijs` itself does not implement any cryptographic primitives.
 - Both are released under the BSD-3-Clause license, which is permissive and compatible with the MPL-2.0 license of this package.
 
 ## Licensing

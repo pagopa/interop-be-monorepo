@@ -1,4 +1,4 @@
-import { and, eq, gte, lt } from "drizzle-orm";
+import { and, gte, lt, eq } from "drizzle-orm";
 import {
   agreementContractInReadmodelAgreement,
   agreementSignedContractInReadmodelAgreement,
@@ -9,13 +9,27 @@ import {
   type DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
 
+/** Half open interval `[from, to)` the job checks documents in. */
+export type TimeRange = {
+  from: Date;
+  to: Date;
+};
+
 export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
   return {
-    async getAgreementsContracts(from: Date, to: Date) {
+    /**
+     * Agreement contracts created in the range, each with the signed contract of
+     * the same agreement when the readmodel holds one. `signedId` is null exactly
+     * when no signed record exists.
+     */
+    async getAgreementContracts({ from, to }: TimeRange) {
       return await readModelDB
         .select({
-          unsigned: agreementContractInReadmodelAgreement,
-          signed: agreementSignedContractInReadmodelAgreement,
+          agreementId: agreementContractInReadmodelAgreement.agreementId,
+          unsignedPath: agreementContractInReadmodelAgreement.path,
+          createdAt: agreementContractInReadmodelAgreement.createdAt,
+          signedId: agreementSignedContractInReadmodelAgreement.id,
+          signedPath: agreementSignedContractInReadmodelAgreement.path,
         })
         .from(agreementContractInReadmodelAgreement)
         .leftJoin(
@@ -39,11 +53,16 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         );
     },
 
-    async getPurposeDocuments(from: Date, to: Date) {
+    async getPurposeVersionDocuments({ from, to }: TimeRange) {
       return await readModelDB
         .select({
-          unsigned: purposeVersionDocumentInReadmodelPurpose,
-          signed: purposeVersionSignedDocumentInReadmodelPurpose,
+          purposeId: purposeVersionDocumentInReadmodelPurpose.purposeId,
+          purposeVersionId:
+            purposeVersionDocumentInReadmodelPurpose.purposeVersionId,
+          unsignedPath: purposeVersionDocumentInReadmodelPurpose.path,
+          createdAt: purposeVersionDocumentInReadmodelPurpose.createdAt,
+          signedId: purposeVersionSignedDocumentInReadmodelPurpose.id,
+          signedPath: purposeVersionSignedDocumentInReadmodelPurpose.path,
         })
         .from(purposeVersionDocumentInReadmodelPurpose)
         .leftJoin(
@@ -73,11 +92,17 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         );
     },
 
-    async getDelegationContracts(from: Date, to: Date) {
+    async getDelegationContracts({ from, to }: TimeRange) {
       return await readModelDB
         .select({
-          unsigned: delegationContractDocumentInReadmodelDelegation,
-          signed: delegationSignedContractDocumentInReadmodelDelegation,
+          delegationId:
+            delegationContractDocumentInReadmodelDelegation.delegationId,
+          kind: delegationContractDocumentInReadmodelDelegation.kind,
+          unsignedPath: delegationContractDocumentInReadmodelDelegation.path,
+          createdAt: delegationContractDocumentInReadmodelDelegation.createdAt,
+          signedId: delegationSignedContractDocumentInReadmodelDelegation.id,
+          signedPath:
+            delegationSignedContractDocumentInReadmodelDelegation.path,
         })
         .from(delegationContractDocumentInReadmodelDelegation)
         .leftJoin(
@@ -108,3 +133,5 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
     },
   };
 }
+
+export type ReadModelServiceSQL = ReturnType<typeof readModelServiceBuilderSQL>;

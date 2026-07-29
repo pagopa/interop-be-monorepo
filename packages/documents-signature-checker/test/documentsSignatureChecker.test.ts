@@ -1,4 +1,3 @@
-/* eslint-disable functional/no-let */
 import type { Logger } from "pagopa-interop-commons";
 
 import {
@@ -30,8 +29,11 @@ import {
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 
+import type { EntityTypeReport } from "../src/models/report.js";
+
 import { config } from "../src/config/config.js";
 import { documentsSignatureCheckerServiceBuilder } from "../src/services/documentsSignatureCheckerService.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 import {
   createCorruptedP7m,
   createP7mWithEmptyContent,
@@ -52,7 +54,7 @@ const UNSIGNED_PDF = Buffer.from(
 const DIFFERENT_UNSIGNED_PDF = Buffer.from(
   "%PDF-1.4 test unsigned document with different content"
 );
-const REFERENCE_DATE = new Date(2026, 3, 15, 18, 30, 0, 0);
+const REFERENCE_DATE = new Date("2026-04-15T18:30:00.000Z");
 
 let validP7m: Buffer;
 let emptyContentP7m: Buffer;
@@ -67,9 +69,9 @@ type LoggerSpy = Logger & {
 
 function dateAtDayOffset(daysToSubtract: number, hour: number): Date {
   const date = new Date(REFERENCE_DATE);
-  date.setHours(0, 0, 0, 0);
-  date.setDate(date.getDate() - daysToSubtract);
-  date.setHours(hour, 0, 0, 0);
+  date.setUTCHours(0, 0, 0, 0);
+  date.setUTCDate(date.getUTCDate() - daysToSubtract);
+  date.setUTCHours(hour, 0, 0, 0);
   return date;
 }
 
@@ -88,6 +90,16 @@ interface ScenarioResult {
   signedPath?: string;
 }
 
+function entityCounts(overrides?: Partial<EntityTypeReport>): EntityTypeReport {
+  return {
+    conforming: 0,
+    nonConforming: 0,
+    pending: 0,
+    notChecked: 0,
+    ...overrides,
+  };
+}
+
 function makeLogger(): LoggerSpy {
   return {
     isDebugEnabled: vi.fn().mockReturnValue(false),
@@ -98,16 +110,23 @@ function makeLogger(): LoggerSpy {
   } as unknown as LoggerSpy;
 }
 
-function makeService(logger: Logger, documentsLookBackDays = 1) {
-  return documentsSignatureCheckerServiceBuilder(
-    readModelDB,
+function makeService(
+  logger: Logger,
+  {
+    documentsLookBackDays = 1,
+    unsignedBucket = config.s3Bucket,
+  }: { documentsLookBackDays?: number; unsignedBucket?: string } = {}
+) {
+  return documentsSignatureCheckerServiceBuilder({
+    readModelService: readModelServiceBuilderSQL(readModelDB),
     fileManager,
     logger,
-    config.s3Bucket,
-    config.s3BucketSigned,
+    unsignedBucket,
+    signedBucket: config.s3BucketSigned,
     documentsLookBackDays,
-    50
-  );
+    documentsBatchSize: 50,
+    signingGracePeriodMinutes: 60,
+  });
 }
 
 async function setupAgreementScenario(
@@ -307,29 +326,24 @@ describe("documents-signature-checker", () => {
 
     expect(report).toEqual({
       processedCount: 3,
-      successCount: 3,
+      conformingCount: 3,
+      nonConformingCount: 0,
+      pendingCount: 0,
+      notCheckedCount: 0,
       issueCount: 0,
       countsByEntityType: {
-        agreement: { conforming: 1, nonConforming: 0 },
-        purpose: { conforming: 1, nonConforming: 0 },
-        delegation: { conforming: 1, nonConforming: 0 },
+        agreement: entityCounts({ conforming: 1 }),
+        purpose: entityCounts({ conforming: 1 }),
+        delegation: entityCounts({ conforming: 1 }),
       },
       issues: [],
     });
     expect(logger.info).toHaveBeenCalledWith(
       expect.stringContaining(
-        "Documents signature checker summary processed=3 successful=3 issues=0"
+        "Documents signature checker summary processed=3 conforming=3 nonConforming=0 pending=0 notChecked=0 issues=0"
       )
     );
-    expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("agreementConforming=1")
-    );
-    expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("purposeConforming=1")
-    );
-    expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("delegationConforming=1")
-    );
+    expect(logger.error).not.toHaveBeenCalled();
   });
 
   it("should only include documents from the previous full day, excluding documents created today or 2+ days ago", async () => {
@@ -349,7 +363,7 @@ describe("documents-signature-checker", () => {
     const report = await makeService(makeLogger()).verify(REFERENCE_DATE);
 
     expect(report.processedCount).toBe(1);
-    expect(report.successCount).toBe(1);
+    expect(report.conformingCount).toBe(1);
     expect(report.issueCount).toBe(0);
   });
 
@@ -364,7 +378,7 @@ describe("documents-signature-checker", () => {
 
     expect(report).toMatchObject({
       processedCount: 1,
-      successCount: 0,
+      conformingCount: 0,
       issueCount: 1,
       issues: [
         {
@@ -393,7 +407,7 @@ describe("documents-signature-checker", () => {
 
     expect(report).toMatchObject({
       processedCount: 1,
-      successCount: 0,
+      conformingCount: 0,
       issueCount: 1,
       issues: [
         {
@@ -418,7 +432,7 @@ describe("documents-signature-checker", () => {
 
     expect(report).toMatchObject({
       processedCount: 1,
-      successCount: 0,
+      conformingCount: 0,
       issueCount: 1,
       issues: [
         {
@@ -440,7 +454,7 @@ describe("documents-signature-checker", () => {
 
     expect(report).toMatchObject({
       processedCount: 1,
-      successCount: 0,
+      conformingCount: 0,
       issueCount: 1,
       issues: [
         {
@@ -458,17 +472,22 @@ describe("documents-signature-checker", () => {
 
     expect(report).toEqual({
       processedCount: 0,
-      successCount: 0,
+      conformingCount: 0,
+      nonConformingCount: 0,
+      pendingCount: 0,
+      notCheckedCount: 0,
       issueCount: 0,
       countsByEntityType: {
-        agreement: { conforming: 0, nonConforming: 0 },
-        purpose: { conforming: 0, nonConforming: 0 },
-        delegation: { conforming: 0, nonConforming: 0 },
+        agreement: entityCounts(),
+        purpose: entityCounts(),
+        delegation: entityCounts(),
       },
       issues: [],
     });
     expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("processed=0 successful=0 issues=0")
+      expect.stringContaining(
+        "processed=0 conforming=0 nonConforming=0 pending=0 notChecked=0 issues=0"
+      )
     );
   });
 
@@ -483,7 +502,7 @@ describe("documents-signature-checker", () => {
 
     expect(report).toMatchObject({
       processedCount: 1,
-      successCount: 0,
+      conformingCount: 0,
       issueCount: 1,
       issues: [
         {
@@ -521,42 +540,101 @@ describe("documents-signature-checker", () => {
     const report = await makeService(logger).verify(REFERENCE_DATE);
 
     expect(report.processedCount).toBe(3);
-    expect(report.successCount).toBe(2);
+    expect(report.conformingCount).toBe(2);
     expect(report.countsByEntityType).toEqual({
-      agreement: { conforming: 1, nonConforming: 0 },
-      purpose: { conforming: 0, nonConforming: 1 },
-      delegation: { conforming: 1, nonConforming: 0 },
+      agreement: entityCounts({ conforming: 1 }),
+      purpose: entityCounts({ nonConforming: 1 }),
+      delegation: entityCounts({ conforming: 1 }),
     });
     expect(logger.info).toHaveBeenCalledWith(
-      expect.stringContaining("purposeNonConforming=1")
+      expect.stringContaining("entityType=purpose conforming=0 nonConforming=1")
     );
     expect(logger.error).toHaveBeenCalledWith(
       expect.stringContaining("SIGNED_FILE_MISSING")
     );
   });
 
-  it("should include documents up to DOCUMENTS_DAYS_AGE_TO_CHECK days back and exclude documents older than that threshold", async () => {
+  it("should include documents up to DOCUMENTS_LOOK_BACK_DAYS days back and exclude documents older than that threshold", async () => {
     await Promise.all([
-      // 1 day ago — within default window
+      // 1 day ago, within the default window
       setupAgreementScenario({
         documentDate: dateAtDayOffset(1, 10),
         signedS3Content: validP7m,
       }),
-      // 3 days ago — within the expanded 5-day window
+      // 3 days ago, within the expanded 5 day window
       setupPurposeScenario({
         documentDate: dateAtDayOffset(3, 14),
         signedS3Content: validP7m,
       }),
-      // 6 days ago — outside the 5-day window
+      // 6 days ago, outside the 5 day window
       setupDelegationScenario({
         documentDate: dateAtDayOffset(6, 8),
         signedS3Content: validP7m,
       }),
     ]);
 
-    const report = await makeService(makeLogger(), 5).verify(REFERENCE_DATE);
+    const report = await makeService(makeLogger(), {
+      documentsLookBackDays: 5,
+    }).verify(REFERENCE_DATE);
 
     expect(report.processedCount).toBe(2);
-    expect(report.successCount).toBe(2);
+    expect(report.conformingCount).toBe(2);
+  });
+
+  it("should report a document as notChecked, not as non conforming, when S3 cannot be read at all", async () => {
+    const logger = makeLogger();
+    const scenario = await setupAgreementScenario({
+      documentDate: dateAtDayOffset(1, 10),
+      signedS3Content: validP7m,
+    });
+
+    const report = await makeService(logger, {
+      unsignedBucket: "bucket-that-does-not-exist",
+    }).verify(REFERENCE_DATE);
+
+    expect(report).toMatchObject({
+      processedCount: 1,
+      conformingCount: 0,
+      nonConformingCount: 0,
+      notCheckedCount: 1,
+      issues: [
+        {
+          code: "UNSIGNED_FILE_DOWNLOAD_ERROR",
+          entityType: "agreement",
+          entityId: scenario.entityId,
+        },
+      ],
+    });
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.stringContaining("[UNSIGNED_FILE_DOWNLOAD_ERROR]")
+    );
+  });
+
+  it("should report a document created within the signing grace period as pending instead of raising an alarm", async () => {
+    const logger = makeLogger();
+    // Created ten minutes before the end of the window, checked twenty minutes
+    // after it: the job runs right after midnight, SafeStorage has not answered yet
+    const documentDate = new Date(
+      dateAtDayOffset(0, 0).getTime() - 10 * 60 * 1000
+    );
+    await setupAgreementScenario({
+      documentDate,
+      includeSignedRecord: false,
+    });
+
+    const report = await makeService(logger).verify(
+      new Date(dateAtDayOffset(0, 0).getTime() + 20 * 60 * 1000)
+    );
+
+    expect(report).toMatchObject({
+      processedCount: 1,
+      pendingCount: 1,
+      nonConformingCount: 0,
+      issues: [{ code: "SIGNING_PENDING" }],
+    });
+    expect(logger.warn).toHaveBeenCalledWith(
+      expect.stringContaining("[SIGNING_PENDING]")
+    );
+    expect(logger.error).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { defineConfig, defaultExclude } from "vitest/config";
+import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
@@ -8,6 +8,5 @@ export default defineConfig({
     fileParallelism: false,
     pool: "forks",
     reporters: ["verbose"],
-    exclude: [...defaultExclude, "**/output.test.ts"],
   },
 });
