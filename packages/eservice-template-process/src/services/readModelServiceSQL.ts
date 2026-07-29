@@ -1,8 +1,10 @@
 import {
   and,
+  asc,
   count,
   eq,
   exists,
+  getTableColumns,
   inArray,
   isNotNull,
   ne,
@@ -26,7 +28,10 @@ import {
   AttributeKind,
   EServiceTemplate,
   EServiceTemplateId,
+  EServiceTemplateVersion,
+  EServiceTemplateVersionState,
   ListResult,
+  RiskAnalysis,
   Tenant,
   TenantId,
   WithMetadata,
@@ -37,6 +42,8 @@ import {
 } from "pagopa-interop-models";
 import {
   aggregateEServiceTemplateArray,
+  aggregateEServiceTemplateRiskAnalysis,
+  aggregateEServiceTemplateVersion,
   AttributeReadModelService,
   EServiceTemplateReadModelService,
   TenantReadModelService,
@@ -75,6 +82,175 @@ export function readModelServiceBuilderSQL({
   attributeReadModelServiceSQL: AttributeReadModelService;
 }) {
   return {
+    async getEServiceTemplateVersions(
+      eserviceTemplateId: EServiceTemplateId,
+      {
+        states,
+        offset,
+        limit,
+      }: {
+        states?: EServiceTemplateVersionState[];
+        offset: number;
+        limit: number;
+      }
+    ): Promise<ListResult<EServiceTemplateVersion>> {
+      // An empty (but defined) `states` means nothing is visible to the caller.
+      if (states !== undefined && states.length === 0) {
+        return createListResult([], 0);
+      }
+      const versionsSQL = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(eserviceTemplateVersionInReadmodelEserviceTemplate)
+          )
+        )
+        .from(eserviceTemplateVersionInReadmodelEserviceTemplate)
+        .where(
+          and(
+            eq(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
+              eserviceTemplateId
+            ),
+            states
+              ? inArray(
+                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+                  states
+                )
+              : undefined
+          )
+        )
+        .orderBy(
+          asc(eserviceTemplateVersionInReadmodelEserviceTemplate.createdAt)
+        )
+        .offset(offset)
+        .limit(limit);
+
+      const totalCount = versionsSQL[0]?.totalCount ?? 0;
+
+      if (versionsSQL.length === 0) {
+        return createListResult([], totalCount);
+      }
+
+      const versionIds = versionsSQL.map((v) => v.id);
+      const [
+        interfacesSQL,
+        documentsSQL,
+        attributesSQL,
+        asyncExchangePropertiesSQL,
+      ] = await Promise.all([
+        readModelDB
+          .select()
+          .from(eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate)
+          .where(
+            inArray(
+              eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate.versionId,
+              versionIds
+            )
+          ),
+        readModelDB
+          .select()
+          .from(eserviceTemplateVersionDocumentInReadmodelEserviceTemplate)
+          .where(
+            inArray(
+              eserviceTemplateVersionDocumentInReadmodelEserviceTemplate.versionId,
+              versionIds
+            )
+          ),
+        readModelDB
+          .select()
+          .from(eserviceTemplateVersionAttributeInReadmodelEserviceTemplate)
+          .where(
+            inArray(
+              eserviceTemplateVersionAttributeInReadmodelEserviceTemplate.versionId,
+              versionIds
+            )
+          ),
+        readModelDB
+          .select()
+          .from(
+            eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate
+          )
+          .where(
+            inArray(
+              eserviceTemplateVersionAsyncExchangePropertiesInReadmodelEserviceTemplate.versionId,
+              versionIds
+            )
+          ),
+      ]);
+
+      const results = versionsSQL.map((versionSQL) =>
+        aggregateEServiceTemplateVersion({
+          versionSQL,
+          interfacesSQL: interfacesSQL.filter(
+            (i) => i.versionId === versionSQL.id
+          ),
+          documentsSQL: documentsSQL.filter(
+            (d) => d.versionId === versionSQL.id
+          ),
+          attributesSQL: attributesSQL.filter(
+            (a) => a.versionId === versionSQL.id
+          ),
+          asyncExchangePropertiesSQL: asyncExchangePropertiesSQL.find(
+            (a) => a.versionId === versionSQL.id
+          ),
+        })
+      );
+
+      return createListResult(results, totalCount);
+    },
+    async getEServiceTemplateRiskAnalyses(
+      eserviceTemplateId: EServiceTemplateId,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<RiskAnalysis>> {
+      const riskAnalysesSQL = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(
+              eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate
+            )
+          )
+        )
+        .from(eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate)
+        .where(
+          eq(
+            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId,
+            eserviceTemplateId
+          )
+        )
+        .orderBy(
+          asc(eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.createdAt)
+        )
+        .offset(offset)
+        .limit(limit);
+
+      const totalCount = riskAnalysesSQL[0]?.totalCount ?? 0;
+
+      if (riskAnalysesSQL.length === 0) {
+        return createListResult([], totalCount);
+      }
+
+      const formIds = riskAnalysesSQL.map((ra) => ra.riskAnalysisFormId);
+      const answersSQL = await readModelDB
+        .select()
+        .from(eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate)
+        .where(
+          inArray(
+            eserviceTemplateRiskAnalysisAnswerInReadmodelEserviceTemplate.riskAnalysisFormId,
+            formIds
+          )
+        );
+
+      const results = riskAnalysesSQL.map((riskAnalysisSQL) =>
+        aggregateEServiceTemplateRiskAnalysis(
+          riskAnalysisSQL,
+          answersSQL.filter(
+            (a) => a.riskAnalysisFormId === riskAnalysisSQL.riskAnalysisFormId
+          )
+        )
+      );
+
+      return createListResult(results, totalCount);
+    },
     async getEServiceTemplateById(
       id: EServiceTemplateId
     ): Promise<WithMetadata<EServiceTemplate> | undefined> {

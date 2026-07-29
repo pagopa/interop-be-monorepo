@@ -20,8 +20,10 @@ import {
 import {
   compactOrganizationToApi,
   eserviceTemplateToApiEServiceTemplate,
+  eserviceTemplateVersionToApiEServiceTemplateVersion,
   apiEServiceTemplateVersionStateToEServiceTemplateVersionState,
   documentToApiDocument,
+  riskAnalysisToApiEServiceTemplateRiskAnalysis,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { EServiceTemplateService } from "../services/eserviceTemplateService.js";
@@ -35,6 +37,7 @@ import {
   updateEServiceTemplateVersionAttributesErrorMapper,
   createEServiceTemplateVersionErrorMapper,
   getEServiceTemplateErrorMapper,
+  getEServiceTemplateVersionSubResourceErrorMapper,
   createRiskAnalysisErrorMapper,
   deleteRiskAnalysisErrorMapper,
   updateRiskAnalysisErrorMapper,
@@ -193,6 +196,255 @@ const eserviceTemplatesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/templates/:templateId/riskAnalyses", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
+          VIEWER_ROLE,
+        ]);
+
+        const { offset, limit } = req.query;
+
+        const riskAnalyses =
+          await eserviceTemplateService.getEServiceTemplateRiskAnalyses(
+            unsafeBrandId(req.params.templateId),
+            { offset, limit },
+            ctx
+          );
+
+        return res.status(200).send(
+          eserviceTemplateApi.EServiceTemplateRiskAnalyses.parse({
+            results: riskAnalyses.results.map(
+              riskAnalysisToApiEServiceTemplateRiskAnalysis
+            ),
+            totalCount: riskAnalyses.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getEServiceTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/templates/:templateId/versions", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
+          VIEWER_ROLE,
+        ]);
+
+        const { state, offset, limit } = req.query;
+
+        const versions =
+          await eserviceTemplateService.getEServiceTemplateVersions(
+            unsafeBrandId(req.params.templateId),
+            {
+              state: state
+                ? apiEServiceTemplateVersionStateToEServiceTemplateVersionState(
+                    state
+                  )
+                : undefined,
+              offset,
+              limit,
+            },
+            ctx
+          );
+
+        return res.status(200).send(
+          eserviceTemplateApi.EServiceTemplateVersions.parse({
+            results: versions.results.map(
+              eserviceTemplateVersionToApiEServiceTemplateVersion
+            ),
+            totalCount: versions.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getEServiceTemplateErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get(
+      "/templates/:templateId/versions/:templateVersionId/documents",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+            VIEWER_ROLE,
+          ]);
+          const { offset, limit } = req.query;
+          const documents =
+            await eserviceTemplateService.getEServiceTemplateVersionDocuments(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
+              { offset, limit },
+              ctx
+            );
+          return res.status(200).send(
+            eserviceTemplateApi.EServiceTemplateVersionDocuments.parse({
+              results: documents.results.map(documentToApiDocument),
+              totalCount: documents.totalCount,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateVersionSubResourceErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/templates/:templateId/versions/:templateVersionId/attributes/certified",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+            VIEWER_ROLE,
+          ]);
+          const { offset, limit } = req.query;
+          const attributes =
+            await eserviceTemplateService.getEServiceTemplateVersionAttributes(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
+              "certified",
+              { offset, limit },
+              ctx
+            );
+          return res.status(200).send(
+            eserviceTemplateApi.EServiceTemplateVersionAttributeReferences.parse(
+              {
+                results: attributes.results,
+                totalCount: attributes.totalCount,
+              }
+            )
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateVersionSubResourceErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/templates/:templateId/versions/:templateVersionId/attributes/declared",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+            VIEWER_ROLE,
+          ]);
+          const { offset, limit } = req.query;
+          const attributes =
+            await eserviceTemplateService.getEServiceTemplateVersionAttributes(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
+              "declared",
+              { offset, limit },
+              ctx
+            );
+          return res.status(200).send(
+            eserviceTemplateApi.EServiceTemplateVersionAttributeReferences.parse(
+              {
+                results: attributes.results,
+                totalCount: attributes.totalCount,
+              }
+            )
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateVersionSubResourceErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/templates/:templateId/versions/:templateVersionId/attributes/verified",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+            VIEWER_ROLE,
+          ]);
+          const { offset, limit } = req.query;
+          const attributes =
+            await eserviceTemplateService.getEServiceTemplateVersionAttributes(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.templateVersionId),
+              "verified",
+              { offset, limit },
+              ctx
+            );
+          return res.status(200).send(
+            eserviceTemplateApi.EServiceTemplateVersionAttributeReferences.parse(
+              {
+                results: attributes.results,
+                totalCount: attributes.totalCount,
+              }
+            )
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceTemplateVersionSubResourceErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete("/templates/:templateId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

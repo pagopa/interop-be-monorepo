@@ -7,6 +7,9 @@ import {
   TenantAttribute,
   TenantVerifier,
   TenantRevoker,
+  DeclaredTenantAttribute,
+  CertifiedTenantAttribute,
+  VerifiedTenantAttribute,
   TenantMail,
   TenantMailKind,
   tenantMailKind,
@@ -77,6 +80,38 @@ export function toApiTenantRevoker(
     extensionDate: revoker.extensionDate?.toJSON(),
     revocationDate: revoker.revocationDate.toJSON(),
     delegationId: revoker.delegationId,
+  };
+}
+
+export function toApiDeclaredTenantAttribute(
+  attribute: DeclaredTenantAttribute
+): tenantApi.DeclaredTenantAttribute {
+  return {
+    id: attribute.id,
+    assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
+    revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
+    delegationId: attribute.delegationId,
+  };
+}
+
+export function toApiCertifiedTenantAttribute(
+  attribute: CertifiedTenantAttribute
+): tenantApi.CertifiedTenantAttribute {
+  return {
+    id: attribute.id,
+    assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
+    revocationTimestamp: attribute.revocationTimestamp?.toJSON(),
+  };
+}
+
+export function toApiVerifiedTenantAttribute(
+  attribute: VerifiedTenantAttribute
+): tenantApi.VerifiedTenantAttribute {
+  return {
+    id: attribute.id,
+    assignmentTimestamp: attribute.assignmentTimestamp.toJSON(),
+    verifiedBy: attribute.verifiedBy.map(toApiTenantVerifier),
+    revokedBy: attribute.revokedBy.map(toApiTenantRevoker),
   };
 }
 

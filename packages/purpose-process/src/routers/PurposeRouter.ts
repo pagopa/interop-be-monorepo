@@ -378,6 +378,48 @@ const purposeRouter = (
         }
       }
     )
+    .get("/purposes/:purposeId/versions", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          SUPPORT_ROLE,
+          M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
+        ]);
+
+        const { state, offset, limit } = req.query;
+
+        const purposeVersions = await purposeService.getPurposeVersions(
+          unsafeBrandId(req.params.purposeId),
+          {
+            state: state
+              ? apiPurposeVersionStateToPurposeVersionState(state)
+              : undefined,
+            offset,
+            limit,
+          },
+          ctx
+        );
+
+        return res.status(200).send(
+          purposeApi.PurposeVersions.parse({
+            results: purposeVersions.results.map(
+              purposeVersionToApiPurposeVersion
+            ),
+            totalCount: purposeVersions.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getPurposeErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .post("/purposes/:purposeId/versions", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

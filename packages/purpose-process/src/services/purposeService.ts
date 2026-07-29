@@ -44,6 +44,7 @@ import {
   PurposeVersionDocument,
   PurposeVersionDocumentId,
   PurposeVersionId,
+  PurposeVersionState,
   PurposeVersionSignedDocument,
   PurposeVersionStamps,
   RiskAnalysis,
@@ -376,6 +377,41 @@ export function purposeServiceBuilder(
       );
 
       return purpose;
+    },
+    async getPurposeVersions(
+      purposeId: PurposeId,
+      {
+        state,
+        offset,
+        limit,
+      }: { state?: PurposeVersionState; offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<PurposeVersion>> {
+      logger.info(
+        `Retrieving versions for Purpose ${purposeId} with state ${state}, limit ${limit}, offset ${offset}`
+      );
+
+      const purpose = await retrievePurpose(purposeId, readModelService);
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      await assertRequesterCanRetrievePurpose(
+        purpose.data,
+        eservice,
+        authData,
+        readModelService
+      );
+
+      return await readModelService.getPurposeVersions(purposeId, {
+        state,
+        offset,
+        limit,
+      });
     },
     async fixPurposeRiskAnalysisTenantKind(
       purposeId: PurposeId,

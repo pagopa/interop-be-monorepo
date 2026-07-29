@@ -180,6 +180,23 @@ const retrieveEServiceTemplateVersion = (
   return eserviceTemplateVersion;
 };
 
+// Flattens the attribute groups of a template version (for a given kind) into a
+// paginated list of `{ id, groupIndex }` references. Mirrors the flattening the
+// m2m gateway used to do before delegating pagination to the process.
+const paginateTemplateVersionAttributeReferences = (
+  version: EServiceTemplateVersion,
+  kind: keyof EServiceTemplateVersion["attributes"],
+  { offset, limit }: { offset: number; limit: number }
+): ListResult<{ id: AttributeId; groupIndex: number }> => {
+  const flat = version.attributes[kind].flatMap((group, groupIndex) =>
+    group.map((attribute) => ({ id: attribute.id, groupIndex }))
+  );
+  return {
+    results: flat.slice(offset, offset + limit),
+    totalCount: flat.length,
+  };
+};
+
 const updateEServiceTemplateVersionState = (
   eserviceTemplateVersion: EServiceTemplateVersion,
   newState: EServiceTemplateVersionState
@@ -928,6 +945,156 @@ export function eserviceTemplateServiceBuilder(
         ),
         metadata: eserviceTemplate.metadata,
       };
+    },
+    async getEServiceTemplateRiskAnalyses(
+      eserviceTemplateId: EServiceTemplateId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<RiskAnalysis>> {
+      logger.info(
+        `Retrieving Risk Analyses for EService template ${eserviceTemplateId} offset ${offset} limit ${limit}`
+      );
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+      // Preserve the visibility behaviour of getEServiceTemplateById: this
+      // throws eserviceTemplateNotFound when the requester cannot see the
+      // template. Risk analyses are not visibility-filtered per item.
+      applyVisibilityToEServiceTemplate(eserviceTemplate.data, authData);
+
+      return readModelService.getEServiceTemplateRiskAnalyses(
+        eserviceTemplateId,
+        { offset, limit }
+      );
+    },
+    async getEServiceTemplateVersions(
+      eserviceTemplateId: EServiceTemplateId,
+      {
+        state,
+        offset,
+        limit,
+      }: {
+        state?: EServiceTemplateVersionState;
+        offset: number;
+        limit: number;
+      },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EServiceTemplateVersion>> {
+      logger.info(
+        `Retrieving versions for EService template ${eserviceTemplateId} state ${state} offset ${offset} limit ${limit}`
+      );
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      // Reuse the visibility rules of getEServiceTemplateById: this throws
+      // eserviceTemplateNotFound when the template is not visible, and hides
+      // draft versions from non-creator requesters. When the visibility filter
+      // removed some versions the requester may only see non-draft states.
+      const visibleTemplate = applyVisibilityToEServiceTemplate(
+        eserviceTemplate.data,
+        authData
+      );
+      const canSeeAllStates =
+        visibleTemplate.versions.length ===
+        eserviceTemplate.data.versions.length;
+      const nonDraftStates: EServiceTemplateVersionState[] = [
+        eserviceTemplateVersionState.published,
+        eserviceTemplateVersionState.suspended,
+        eserviceTemplateVersionState.deprecated,
+      ];
+      // States the requester is allowed to see (undefined = every state).
+      const visibleStates = canSeeAllStates ? undefined : nonDraftStates;
+      const isStateVisible = (s: EServiceTemplateVersionState): boolean =>
+        visibleStates === undefined || visibleStates.includes(s);
+
+      // Apply the optional user-provided `state` filter on top of the
+      // visibility restriction; a non-visible requested state yields no results.
+      const states =
+        state === undefined
+          ? visibleStates
+          : isStateVisible(state)
+            ? [state]
+            : [];
+
+      return readModelService.getEServiceTemplateVersions(eserviceTemplateId, {
+        states,
+        offset,
+        limit,
+      });
+    },
+    async getEServiceTemplateVersionDocuments(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<Document>> {
+      logger.info(
+        `Retrieving documents for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId} offset ${offset} limit ${limit}`
+      );
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+      // Reuse the visibility rules: throws eserviceTemplateNotFound when the
+      // template is not visible and eserviceTemplateVersionNotFound when the
+      // version is not visible (e.g. a draft version for a non-creator).
+      const visibleTemplate = applyVisibilityToEServiceTemplate(
+        eserviceTemplate.data,
+        authData
+      );
+      const version = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        visibleTemplate
+      );
+
+      const documents = version.docs;
+      return {
+        results: documents.slice(offset, offset + limit),
+        totalCount: documents.length,
+      };
+    },
+    async getEServiceTemplateVersionAttributes(
+      eserviceTemplateId: EServiceTemplateId,
+      eserviceTemplateVersionId: EServiceTemplateVersionId,
+      kind: keyof EServiceTemplateVersion["attributes"],
+      { offset, limit }: { offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<{ id: AttributeId; groupIndex: number }>> {
+      logger.info(
+        `Retrieving ${kind} attributes for EService template ${eserviceTemplateId} version ${eserviceTemplateVersionId} offset ${offset} limit ${limit}`
+      );
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+      const visibleTemplate = applyVisibilityToEServiceTemplate(
+        eserviceTemplate.data,
+        authData
+      );
+      const version = retrieveEServiceTemplateVersion(
+        eserviceTemplateVersionId,
+        visibleTemplate
+      );
+
+      return paginateTemplateVersionAttributeReferences(version, kind, {
+        offset,
+        limit,
+      });
     },
     async deleteEServiceTemplateVersion(
       eserviceTemplateId: EServiceTemplateId,

@@ -9,7 +9,6 @@ import {
   EServiceDocumentId,
   EServiceTemplateId,
   EServiceTemplateVersionId,
-  ListResult,
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -104,50 +103,28 @@ export function eserviceTemplateServiceBuilder(
   };
 
   // eslint-disable-next-line max-params
-  async function retrieveEServiceTemplateVersionAttributes(
-    eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
+  // Pagination and visibility of template version attributes are performed by
+  // eservice-template-process, which returns a page of `{ id, groupIndex }`
+  // references. The gateway resolves the full attribute details from the
+  // attribute registry and recombines them with their group index.
+  async function resolveTemplateVersionAttributeReferences(
+    attributeReferences: Array<{ id: string; groupIndex: number }>,
     versionId: EServiceTemplateVersionId,
-    attributeKind: keyof eserviceTemplateApi.Attributes,
-    { offset, limit }: { offset: number; limit: number },
     headers: M2MGatewayAppContext["headers"]
   ): Promise<
-    ListResult<{
+    Array<{
       attribute: attributeRegistryApi.Attribute;
       groupIndex: number;
     }>
   > {
-    const version = retrieveEServiceTemplateVersionById(
-      eserviceTemplate,
-      versionId
-    );
-    const kindAttributeGroups = version.attributes[attributeKind];
-    const allFlatKindAttributes: Array<{
-      attributeId: string;
-      groupIndex: number;
-    }> = kindAttributeGroups.flatMap((group, groupIndex) =>
-      group.map((attribute) => ({
-        attributeId: attribute.id,
-        groupIndex,
-      }))
-    );
-
-    const paginatedFlatKindAttributes = allFlatKindAttributes.slice(
-      offset,
-      offset + limit
-    );
-
-    const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
-      paginatedFlatKindAttributes.map((item) => item.attributeId);
-
     const attributeMap = await getResolvedAttributesMap(
-      attributeIdsToResolve,
+      attributeReferences.map((item) => item.id),
       headers,
       clients
     );
 
-    // Recombination: Map the paginated flat list with the resolved complete details
-    const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
-      const attributeDetailed = attributeMap.get(item.attributeId);
+    return attributeReferences.map((item) => {
+      const attributeDetailed = attributeMap.get(item.id);
 
       if (!attributeDetailed) {
         throw eserviceTemplateVersionAttributeNotFound(versionId);
@@ -158,11 +135,6 @@ export function eserviceTemplateServiceBuilder(
         groupIndex: item.groupIndex,
       };
     });
-
-    return {
-      results: attributesToReturn,
-      totalCount: allFlatKindAttributes.length,
-    };
   }
 
   const pollEServiceTemplate = (
@@ -401,20 +373,23 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving versions of eservice template with id ${templateId}, offset ${offset}, limit ${limit}, state ${state}`
       );
 
-      const { data } = await retrieveEServiceTemplateById(headers, templateId);
-
-      const filteredVersions = state
-        ? data.versions.filter((version) => version.state === state)
-        : data.versions;
-
-      const paginatedVersions = filteredVersions.slice(offset, offset + limit);
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.eserviceTemplateProcessClient.getEServiceTemplateVersions(
+          {
+            params: { templateId },
+            queries: { state, offset, limit },
+            headers,
+          }
+        );
 
       return {
-        results: paginatedVersions.map(toM2MGatewayEServiceTemplateVersion),
+        results: results.map(toM2MGatewayEServiceTemplateVersion),
         pagination: {
           limit,
           offset,
-          totalCount: filteredVersions.length,
+          totalCount,
         },
       };
     },
@@ -519,22 +494,23 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving Risk Analyses for E-Service Template ${templateId}`
       );
 
-      const { data: eserviceTemplate } = await retrieveEServiceTemplateById(
-        headers,
-        templateId
-      );
-
-      const paginated = eserviceTemplate.riskAnalysis.slice(
-        offset,
-        offset + limit
-      );
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.eserviceTemplateProcessClient.getEServiceTemplateRiskAnalyses(
+          {
+            params: { templateId },
+            queries: { offset, limit },
+            headers,
+          }
+        );
 
       return {
-        results: paginated.map(toM2MGatewayApiEServiceTemplateRiskAnalysis),
+        results: results.map(toM2MGatewayApiEServiceTemplateRiskAnalysis),
         pagination: {
           limit,
           offset,
-          totalCount: eserviceTemplate.riskAnalysis.length,
+          totalCount,
         },
       };
     },
@@ -743,24 +719,23 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving documents for eservice template version with id ${versionId} for eservice with id ${templateId}`
       );
 
-      const eserviceTemplate = await retrieveEServiceTemplateById(
-        headers,
-        templateId
-      );
-
-      const documents = retrieveEServiceTemplateVersionById(
-        eserviceTemplate,
-        versionId
-      ).docs;
-
-      const paginatedDocs = documents.slice(offset, offset + limit);
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.eserviceTemplateProcessClient.getEServiceTemplateVersionDocuments(
+          {
+            params: { templateId, templateVersionId: versionId },
+            queries: { offset, limit },
+            headers,
+          }
+        );
 
       return {
-        results: paginatedDocs.map(toM2MGatewayApiDocument),
+        results: results.map(toM2MGatewayApiDocument),
         pagination: {
           limit,
           offset,
-          totalCount: documents.length,
+          totalCount,
         },
       };
     },
@@ -1117,17 +1092,25 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving Certified Attributes for E-Service Template ${templateId} Version ${versionId}`
       );
 
-      const eserviceTemplateVersionAttributes =
-        await retrieveEServiceTemplateVersionAttributes(
-          await retrieveEServiceTemplateById(headers, templateId),
-          versionId,
-          "certified",
-          { offset, limit },
-          headers
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.eserviceTemplateProcessClient.getEServiceTemplateVersionCertifiedAttributes(
+          {
+            params: { templateId, templateVersionId: versionId },
+            queries: { offset, limit },
+            headers,
+          }
         );
 
+      const resolved = await resolveTemplateVersionAttributeReferences(
+        results,
+        versionId,
+        headers
+      );
+
       return {
-        results: eserviceTemplateVersionAttributes.results.map((item) => ({
+        results: resolved.map((item) => ({
           groupIndex: item.groupIndex,
           attribute: toM2MGatewayApiCertifiedAttribute({
             attribute: item.attribute,
@@ -1137,7 +1120,7 @@ export function eserviceTemplateServiceBuilder(
         pagination: {
           limit,
           offset,
-          totalCount: eserviceTemplateVersionAttributes.totalCount,
+          totalCount,
         },
       };
     },
@@ -1155,17 +1138,25 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving Declared Attributes for E-Service Template ${templateId} Version ${versionId}`
       );
 
-      const eserviceTemplateVersionAttributes =
-        await retrieveEServiceTemplateVersionAttributes(
-          await retrieveEServiceTemplateById(headers, templateId),
-          versionId,
-          "declared",
-          { offset, limit },
-          headers
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.eserviceTemplateProcessClient.getEServiceTemplateVersionDeclaredAttributes(
+          {
+            params: { templateId, templateVersionId: versionId },
+            queries: { offset, limit },
+            headers,
+          }
         );
 
+      const resolved = await resolveTemplateVersionAttributeReferences(
+        results,
+        versionId,
+        headers
+      );
+
       return {
-        results: eserviceTemplateVersionAttributes.results.map((item) => ({
+        results: resolved.map((item) => ({
           groupIndex: item.groupIndex,
           attribute: toM2MGatewayApiDeclaredAttribute({
             attribute: item.attribute,
@@ -1175,7 +1166,7 @@ export function eserviceTemplateServiceBuilder(
         pagination: {
           limit,
           offset,
-          totalCount: eserviceTemplateVersionAttributes.totalCount,
+          totalCount,
         },
       };
     },
@@ -1193,17 +1184,25 @@ export function eserviceTemplateServiceBuilder(
         `Retrieving Verified Attributes for E-Service Template ${templateId} Version ${versionId}`
       );
 
-      const eserviceTemplateVersionAttributes =
-        await retrieveEServiceTemplateVersionAttributes(
-          await retrieveEServiceTemplateById(headers, templateId),
-          versionId,
-          "verified",
-          { offset, limit },
-          headers
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.eserviceTemplateProcessClient.getEServiceTemplateVersionVerifiedAttributes(
+          {
+            params: { templateId, templateVersionId: versionId },
+            queries: { offset, limit },
+            headers,
+          }
         );
 
+      const resolved = await resolveTemplateVersionAttributeReferences(
+        results,
+        versionId,
+        headers
+      );
+
       return {
-        results: eserviceTemplateVersionAttributes.results.map((item) => ({
+        results: resolved.map((item) => ({
           groupIndex: item.groupIndex,
           attribute: toM2MGatewayApiVerifiedAttribute({
             attribute: item.attribute,
@@ -1213,7 +1212,7 @@ export function eserviceTemplateServiceBuilder(
         pagination: {
           limit,
           offset,
-          totalCount: eserviceTemplateVersionAttributes.totalCount,
+          totalCount,
         },
       };
     },

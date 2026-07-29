@@ -13,6 +13,7 @@ import {
   EServiceTemplate,
   CompactOrganization,
   genericInternalError,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -116,7 +117,7 @@ export const documentToApiDocument = (
   uploadDate: document.uploadDate.toJSON(),
 });
 
-const eserviceTemplateVersionToApiEServiceTemplateVersion = (
+export const eserviceTemplateVersionToApiEServiceTemplateVersion = (
   eserviceTemplateVersion: EServiceTemplateVersion
 ): eserviceTemplateApi.EServiceTemplateVersion => ({
   id: eserviceTemplateVersion.id,
@@ -191,6 +192,28 @@ export const eserviceTemplateToApiEServiceTemplate = (
   personalData: eserviceTemplate.personalData,
   asyncExchange: eserviceTemplate.asyncExchange,
 });
+
+export const riskAnalysisToApiEServiceTemplateRiskAnalysis = (
+  riskAnalysis: RiskAnalysis
+): eserviceTemplateApi.EServiceTemplateRiskAnalysis => {
+  if (!riskAnalysis.riskAnalysisForm.tenantKind) {
+    throw genericInternalError(
+      `Risk analysis form with id ${riskAnalysis.riskAnalysisForm.id} is missing tenantKind`
+    );
+  }
+  return {
+    id: riskAnalysis.id,
+    name: riskAnalysis.name,
+    createdAt: riskAnalysis.createdAt.toJSON(),
+    riskAnalysisForm: {
+      id: riskAnalysis.riskAnalysisForm.id,
+      version: riskAnalysis.riskAnalysisForm.version,
+      singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
+      multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
+    },
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
+  };
+};
 
 export const compactOrganizationToApi = (
   organization: CompactOrganization

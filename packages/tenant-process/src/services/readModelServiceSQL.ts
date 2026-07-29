@@ -1,4 +1,13 @@
-import { and, asc, eq, inArray, isNotNull, isNull, or } from "drizzle-orm";
+import {
+  and,
+  asc,
+  eq,
+  getTableColumns,
+  inArray,
+  isNotNull,
+  isNull,
+  or,
+} from "drizzle-orm";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ascLower,
@@ -29,6 +38,11 @@ import {
   unsafeBrandId,
   TenantVerifier,
   TenantRevoker,
+  DeclaredTenantAttribute,
+  CertifiedTenantAttribute,
+  VerifiedTenantAttribute,
+  tenantAttributeType,
+  stringToDate,
 } from "pagopa-interop-models";
 import {
   AgreementReadModelService,
@@ -44,6 +58,8 @@ import {
   DrizzleReturnType,
   eserviceInReadmodelCatalog,
   tenantCertifiedAttributeInReadmodelTenant,
+  tenantDeclaredAttributeInReadmodelTenant,
+  tenantVerifiedAttributeInReadmodelTenant,
   tenantFeatureInReadmodelTenant,
   tenantInReadmodelTenant,
   tenantVerifiedAttributeVerifierInReadmodelTenant,
@@ -63,6 +79,192 @@ export function readModelServiceBuilderSQL(
   delegationReadModelService: DelegationReadModelService
 ) {
   return {
+    async getTenantDeclaredAttributes(
+      tenantId: TenantId,
+      {
+        delegationId,
+        offset,
+        limit,
+      }: { delegationId?: DelegationId; offset: number; limit: number }
+    ): Promise<ListResult<DeclaredTenantAttribute>> {
+      const rows = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(tenantDeclaredAttributeInReadmodelTenant)
+          )
+        )
+        .from(tenantDeclaredAttributeInReadmodelTenant)
+        .where(
+          and(
+            eq(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantId),
+            delegationId
+              ? eq(
+                  tenantDeclaredAttributeInReadmodelTenant.delegationId,
+                  delegationId
+                )
+              : undefined
+          )
+        )
+        .orderBy(
+          asc(tenantDeclaredAttributeInReadmodelTenant.assignmentTimestamp)
+        )
+        .offset(offset)
+        .limit(limit);
+
+      const totalCount = rows[0]?.totalCount ?? 0;
+      const results: DeclaredTenantAttribute[] = rows.map((r) => ({
+        id: unsafeBrandId<AttributeId>(r.attributeId),
+        type: tenantAttributeType.DECLARED,
+        assignmentTimestamp: stringToDate(r.assignmentTimestamp),
+        ...(r.revocationTimestamp
+          ? { revocationTimestamp: stringToDate(r.revocationTimestamp) }
+          : {}),
+        ...(r.delegationId
+          ? { delegationId: unsafeBrandId<DelegationId>(r.delegationId) }
+          : {}),
+      }));
+
+      return createListResult(results, totalCount);
+    },
+    async getTenantCertifiedAttributes(
+      tenantId: TenantId,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<CertifiedTenantAttribute>> {
+      const rows = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(tenantCertifiedAttributeInReadmodelTenant)
+          )
+        )
+        .from(tenantCertifiedAttributeInReadmodelTenant)
+        .where(eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId))
+        .orderBy(
+          asc(tenantCertifiedAttributeInReadmodelTenant.assignmentTimestamp)
+        )
+        .offset(offset)
+        .limit(limit);
+
+      const totalCount = rows[0]?.totalCount ?? 0;
+      const results: CertifiedTenantAttribute[] = rows.map((r) => ({
+        id: unsafeBrandId<AttributeId>(r.attributeId),
+        type: tenantAttributeType.CERTIFIED,
+        assignmentTimestamp: stringToDate(r.assignmentTimestamp),
+        ...(r.revocationTimestamp
+          ? { revocationTimestamp: stringToDate(r.revocationTimestamp) }
+          : {}),
+      }));
+
+      return createListResult(results, totalCount);
+    },
+    async getTenantVerifiedAttributes(
+      tenantId: TenantId,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<VerifiedTenantAttribute>> {
+      const attributesSQL = await readModelDB
+        .select(
+          withTotalCount(
+            getTableColumns(tenantVerifiedAttributeInReadmodelTenant)
+          )
+        )
+        .from(tenantVerifiedAttributeInReadmodelTenant)
+        .where(eq(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantId))
+        .orderBy(
+          asc(tenantVerifiedAttributeInReadmodelTenant.assignmentTimestamp)
+        )
+        .offset(offset)
+        .limit(limit);
+
+      const totalCount = attributesSQL[0]?.totalCount ?? 0;
+
+      if (attributesSQL.length === 0) {
+        return createListResult([], totalCount);
+      }
+
+      const attributeIds = attributesSQL.map((a) => a.attributeId);
+      const [verifiersSQL, revokersSQL] = await Promise.all([
+        readModelDB
+          .select()
+          .from(tenantVerifiedAttributeVerifierInReadmodelTenant)
+          .where(
+            and(
+              eq(
+                tenantVerifiedAttributeVerifierInReadmodelTenant.tenantId,
+                tenantId
+              ),
+              inArray(
+                tenantVerifiedAttributeVerifierInReadmodelTenant.tenantVerifiedAttributeId,
+                attributeIds
+              )
+            )
+          ),
+        readModelDB
+          .select()
+          .from(tenantVerifiedAttributeRevokerInReadmodelTenant)
+          .where(
+            and(
+              eq(
+                tenantVerifiedAttributeRevokerInReadmodelTenant.tenantId,
+                tenantId
+              ),
+              inArray(
+                tenantVerifiedAttributeRevokerInReadmodelTenant.tenantVerifiedAttributeId,
+                attributeIds
+              )
+            )
+          ),
+      ]);
+
+      const results: VerifiedTenantAttribute[] = attributesSQL.map(
+        (attributeSQL) => {
+          const verifiedBy: TenantVerifier[] = verifiersSQL
+            .filter(
+              (v) => v.tenantVerifiedAttributeId === attributeSQL.attributeId
+            )
+            .map((v) => ({
+              id: unsafeBrandId(v.tenantVerifierId),
+              verificationDate: stringToDate(v.verificationDate),
+              ...(v.expirationDate
+                ? { expirationDate: stringToDate(v.expirationDate) }
+                : {}),
+              ...(v.extensionDate
+                ? { extensionDate: stringToDate(v.extensionDate) }
+                : {}),
+              ...(v.delegationId
+                ? { delegationId: unsafeBrandId<DelegationId>(v.delegationId) }
+                : {}),
+            }));
+
+          const revokedBy: TenantRevoker[] = revokersSQL
+            .filter(
+              (r) => r.tenantVerifiedAttributeId === attributeSQL.attributeId
+            )
+            .map((r) => ({
+              id: unsafeBrandId(r.tenantRevokerId),
+              verificationDate: stringToDate(r.verificationDate),
+              ...(r.expirationDate
+                ? { expirationDate: stringToDate(r.expirationDate) }
+                : {}),
+              ...(r.extensionDate
+                ? { extensionDate: stringToDate(r.extensionDate) }
+                : {}),
+              revocationDate: stringToDate(r.revocationDate),
+              ...(r.delegationId
+                ? { delegationId: unsafeBrandId<DelegationId>(r.delegationId) }
+                : {}),
+            }));
+
+          return {
+            id: unsafeBrandId<AttributeId>(attributeSQL.attributeId),
+            type: tenantAttributeType.VERIFIED,
+            assignmentTimestamp: stringToDate(attributeSQL.assignmentTimestamp),
+            verifiedBy,
+            revokedBy,
+          };
+        }
+      );
+
+      return createListResult(results, totalCount);
+    },
     async getTenants({
       name,
       features,

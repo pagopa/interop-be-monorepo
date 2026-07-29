@@ -10,7 +10,6 @@ import {
   EServiceDocumentId,
   EServiceId,
   GracePeriodDays,
-  ListResult,
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
@@ -101,47 +100,28 @@ export function eserviceServiceBuilder(
   };
 
   // eslint-disable-next-line max-params
-  async function retrieveEServiceDescriptorAttributes(
-    eservice: WithMaybeMetadata<catalogApi.EService>,
+  // Pagination and visibility of descriptor attributes are performed by
+  // catalog-process, which returns a page of `{ id, groupIndex }` references.
+  // The gateway resolves the full attribute details from the attribute registry
+  // and recombines them with their group index.
+  async function resolveDescriptorAttributeReferences(
+    attributeReferences: Array<{ id: string; groupIndex: number }>,
     descriptorId: DescriptorId,
-    attributeKind: keyof catalogApi.Attributes,
-    { offset, limit }: { offset: number; limit: number },
     headers: M2MGatewayAppContext["headers"]
   ): Promise<
-    ListResult<{
+    Array<{
       attribute: attributeRegistryApi.Attribute;
       groupIndex: number;
     }>
   > {
-    const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
-    const kindAttributeGroups = descriptor.attributes[attributeKind];
-    const allFlatKindAttributes: Array<{
-      attributeId: string;
-      groupIndex: number;
-    }> = kindAttributeGroups.flatMap((group, groupIndex) =>
-      group.map((attribute) => ({
-        attributeId: attribute.id,
-        groupIndex,
-      }))
-    );
-
-    const paginatedFlatKindAttributes = allFlatKindAttributes.slice(
-      offset,
-      offset + limit
-    );
-
-    const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
-      paginatedFlatKindAttributes.map((item) => item.attributeId);
-
     const attributeMap = await getResolvedAttributesMap(
-      attributeIdsToResolve,
+      attributeReferences.map((item) => item.id),
       headers,
       clients
     );
 
-    // Recombination: Map the paginated flat list with the resolved complete details
-    const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
-      const attributeDetailed = attributeMap.get(item.attributeId);
+    return attributeReferences.map((item) => {
+      const attributeDetailed = attributeMap.get(item.id);
 
       if (!attributeDetailed) {
         throw eserviceDescriptorAttributeNotFound(descriptorId);
@@ -152,11 +132,6 @@ export function eserviceServiceBuilder(
         groupIndex: item.groupIndex,
       };
     });
-
-    return {
-      results: attributesToReturn,
-      totalCount: allFlatKindAttributes.length,
-    };
   }
   async function createEServiceDescriptorAttributesGroup(
     eserviceId: EServiceId,
@@ -426,28 +401,20 @@ export function eserviceServiceBuilder(
       );
 
       const {
-        data: { descriptors },
-      } = await clients.catalogProcessClient.getEServiceById({
+        data: { results, totalCount },
+      } = await clients.catalogProcessClient.getEServiceDescriptors({
         params: { eServiceId: eserviceId },
+        queries: { state, offset, limit },
         headers,
       });
-
-      const filteredDescriptors = state
-        ? descriptors.filter((descriptor) => descriptor.state === state)
-        : descriptors;
-
-      const paginatedDescriptors = filteredDescriptors.slice(
-        offset,
-        offset + limit
-      );
 
       return {
         pagination: {
           limit,
           offset,
-          totalCount: filteredDescriptors.length,
+          totalCount,
         },
-        results: paginatedDescriptors.map(toM2MGatewayApiEServiceDescriptor),
+        results: results.map(toM2MGatewayApiEServiceDescriptor),
       };
     },
     async downloadEServiceDescriptorDocument(
@@ -1314,19 +1281,20 @@ export function eserviceServiceBuilder(
     ): Promise<m2mGatewayApiV3.EServiceRiskAnalyses> {
       logger.info(`Retrieving Risk Analyses for E-Service ${eserviceId}`);
 
-      const { data: eservice } = await retrieveEServiceById(
+      const {
+        data: { results, totalCount },
+      } = await clients.catalogProcessClient.getEServiceRiskAnalyses({
+        params: { eServiceId: eserviceId },
+        queries: { offset, limit },
         headers,
-        eserviceId
-      );
-
-      const paginated = eservice.riskAnalysis.slice(offset, offset + limit);
+      });
 
       return {
-        results: paginated.map(toM2MGatewayApiEServiceRiskAnalysis),
+        results: results.map(toM2MGatewayApiEServiceRiskAnalysis),
         pagination: {
           limit,
           offset,
-          totalCount: eservice.riskAnalysis.length,
+          totalCount,
         },
       };
     },
@@ -1376,16 +1344,25 @@ export function eserviceServiceBuilder(
         `Retrieving Certified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
-        await retrieveEServiceById(headers, eserviceId),
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.catalogProcessClient.getEServiceDescriptorCertifiedAttributes(
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            queries: { offset, limit },
+            headers,
+          }
+        );
+
+      const resolved = await resolveDescriptorAttributeReferences(
+        results,
         descriptorId,
-        "certified",
-        { offset, limit },
         headers
       );
 
       return {
-        results: eserviceAttributes.results.map((item) => ({
+        results: resolved.map((item) => ({
           groupIndex: item.groupIndex,
           attribute: toM2MGatewayApiCertifiedAttribute({
             attribute: item.attribute,
@@ -1395,7 +1372,7 @@ export function eserviceServiceBuilder(
         pagination: {
           limit,
           offset,
-          totalCount: eserviceAttributes.totalCount,
+          totalCount,
         },
       };
     },
@@ -1410,16 +1387,25 @@ export function eserviceServiceBuilder(
         `Retrieving Declared Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
-        await retrieveEServiceById(headers, eserviceId),
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.catalogProcessClient.getEServiceDescriptorDeclaredAttributes(
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            queries: { offset, limit },
+            headers,
+          }
+        );
+
+      const resolved = await resolveDescriptorAttributeReferences(
+        results,
         descriptorId,
-        "declared",
-        { offset, limit },
         headers
       );
 
       return {
-        results: eserviceAttributes.results.map((item) => ({
+        results: resolved.map((item) => ({
           groupIndex: item.groupIndex,
           attribute: toM2MGatewayApiDeclaredAttribute({
             attribute: item.attribute,
@@ -1429,7 +1415,7 @@ export function eserviceServiceBuilder(
         pagination: {
           limit,
           offset,
-          totalCount: eserviceAttributes.totalCount,
+          totalCount,
         },
       };
     },
@@ -1444,16 +1430,25 @@ export function eserviceServiceBuilder(
         `Retrieving Verified Attributes for E-Service ${eserviceId} Descriptor ${descriptorId}`
       );
 
-      const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
-        await retrieveEServiceById(headers, eserviceId),
+      const {
+        data: { results, totalCount },
+      } =
+        await clients.catalogProcessClient.getEServiceDescriptorVerifiedAttributes(
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            queries: { offset, limit },
+            headers,
+          }
+        );
+
+      const resolved = await resolveDescriptorAttributeReferences(
+        results,
         descriptorId,
-        "verified",
-        { offset, limit },
         headers
       );
 
       return {
-        results: eserviceAttributes.results.map((item) => ({
+        results: resolved.map((item) => ({
           groupIndex: item.groupIndex,
           attribute: toM2MGatewayApiVerifiedAttribute({
             attribute: item.attribute,
@@ -1463,7 +1458,7 @@ export function eserviceServiceBuilder(
         pagination: {
           limit,
           offset,
-          totalCount: eserviceAttributes.totalCount,
+          totalCount,
         },
       };
     },

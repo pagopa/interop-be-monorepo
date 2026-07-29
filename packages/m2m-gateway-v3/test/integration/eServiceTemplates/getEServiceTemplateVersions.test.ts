@@ -3,11 +3,10 @@ import {
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
 import {
-  getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -19,156 +18,93 @@ import {
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEServiceTemplateVersions", () => {
-  const mockParams: m2mGatewayApiV3.GetEServiceTemplateVersionsQueryParams = {
-    state: undefined,
-    offset: 0,
-    limit: 10,
-  };
+  const templateId = generateId();
 
   const mockApiTemplateVersion1 = getMockedApiEserviceTemplateVersion({
-    state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DRAFT,
-  });
-  const mockApiTemplateVersion2 = getMockedApiEserviceTemplateVersion({
-    state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DEPRECATED,
-  });
-  const mockApiTemplateVersion3 = getMockedApiEserviceTemplateVersion({
-    state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.DRAFT,
-  });
-  const mockApiTemplateVersion4 = getMockedApiEserviceTemplateVersion({
     state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.PUBLISHED,
   });
-  const mockApiTemplateVersion5 = getMockedApiEserviceTemplateVersion({
+  const mockApiTemplateVersion2 = getMockedApiEserviceTemplateVersion({
     state: eserviceTemplateApi.EServiceTemplateVersionState.Enum.SUSPENDED,
   });
 
-  const mockApiTemplate = getMockWithMetadata(
-    getMockedApiEServiceTemplate({
-      versions: [
-        mockApiTemplateVersion1,
-        mockApiTemplateVersion2,
-        mockApiTemplateVersion3,
-        mockApiTemplateVersion4,
-        mockApiTemplateVersion5,
-      ],
-    })
-  );
+  const testToM2MGatewayApiTemplateVersion = (
+    version: eserviceTemplateApi.EServiceTemplateVersion
+  ): m2mGatewayApiV3.EServiceTemplateVersion => ({
+    id: version.id,
+    state: version.state,
+    version: version.version,
+    voucherLifespan: version.voucherLifespan,
+    agreementApprovalPolicy: version.agreementApprovalPolicy,
+    dailyCallsPerConsumer: version.dailyCallsPerConsumer,
+    dailyCallsTotal: version.dailyCallsTotal,
+    deprecatedAt: version.deprecatedAt,
+    description: version.description,
+    publishedAt: version.publishedAt,
+    suspendedAt: version.suspendedAt,
+    asyncExchangeProperties: version.asyncExchangeProperties,
+  });
 
-  const mockGetTemplate = vi.fn().mockResolvedValue(mockApiTemplate);
+  // Pagination (and version visibility) is now performed by
+  // eservice-template-process.
+  const mockProcessResponse = getMockWithMetadata({
+    results: [mockApiTemplateVersion1, mockApiTemplateVersion2],
+    totalCount: 5,
+  });
+
+  const mockGetEServiceTemplateVersions = vi
+    .fn()
+    .mockResolvedValue(mockProcessResponse);
 
   mockInteropBeClients.eserviceTemplateProcessClient = {
-    getEServiceTemplateById: mockGetTemplate,
+    getEServiceTemplateVersions: mockGetEServiceTemplateVersions,
   } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
 
   beforeEach(() => {
-    mockGetTemplate.mockClear();
+    mockGetEServiceTemplateVersions.mockClear();
   });
 
-  const testToM2MGatewayApiEServiceTemplateVersion = (
-    template: eserviceTemplateApi.EServiceTemplateVersion
-  ): m2mGatewayApiV3.EServiceTemplateVersion => ({
-    id: template.id,
-    state: template.state,
-    version: template.version,
-    voucherLifespan: template.voucherLifespan,
-    agreementApprovalPolicy: template.agreementApprovalPolicy,
-    dailyCallsPerConsumer: template.dailyCallsPerConsumer,
-    dailyCallsTotal: template.dailyCallsTotal,
-    deprecatedAt: template.deprecatedAt,
-    description: template.description,
-    publishedAt: template.publishedAt,
-    suspendedAt: template.suspendedAt,
-    asyncExchangeProperties: template.asyncExchangeProperties,
-  });
-
-  const expectedM2MTemplateVersion1 =
-    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion1);
-  const expectedM2MTemplateVersion2 =
-    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion2);
-  const expectedM2MTemplateVersion3 =
-    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion3);
-  const expectedM2MTemplateVersion4 =
-    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion4);
-  const expectedM2MTemplateVersion5 =
-    testToM2MGatewayApiEServiceTemplateVersion(mockApiTemplateVersion5);
-
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mTemplateResponse: m2mGatewayApiV3.EServiceTemplateVersions = {
-      pagination: {
-        limit: mockParams.limit,
-        offset: mockParams.offset,
-        totalCount: mockApiTemplate.data.versions.length,
-      },
+  it("Should delegate pagination to eservice-template-process and map the results", async () => {
+    const expected: m2mGatewayApiV3.EServiceTemplateVersions = {
       results: [
-        expectedM2MTemplateVersion1,
-        expectedM2MTemplateVersion2,
-        expectedM2MTemplateVersion3,
-        expectedM2MTemplateVersion4,
-        expectedM2MTemplateVersion5,
+        testToM2MGatewayApiTemplateVersion(mockApiTemplateVersion1),
+        testToM2MGatewayApiTemplateVersion(mockApiTemplateVersion2),
       ],
+      pagination: {
+        offset: 0,
+        limit: 10,
+        totalCount: 5,
+      },
     };
 
     const result = await eserviceTemplateService.getEServiceTemplateVersions(
-      unsafeBrandId(mockApiTemplate.data.id),
-      mockParams,
+      unsafeBrandId(templateId),
+      { state: undefined, offset: 0, limit: 10 },
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toStrictEqual(m2mTemplateResponse);
+    expect(result).toStrictEqual(expected);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient
-          .getEServiceTemplateById,
-      params: {
-        templateId: mockApiTemplate.data.id,
-      },
+          .getEServiceTemplateVersions,
+      params: { templateId },
+      queries: { state: undefined, offset: 0, limit: 10 },
     });
   });
 
-  it("Should correctly apply pagination from the retrieved template (offset, limit)", async () => {
-    const expectedM2MTemplateVersion: m2mGatewayApiV3.EServiceTemplateVersion =
-      {
-        id: mockApiTemplateVersion2.id,
-        state: mockApiTemplateVersion2.state,
-        version: mockApiTemplateVersion2.version,
-        voucherLifespan: mockApiTemplateVersion2.voucherLifespan,
-        agreementApprovalPolicy:
-          mockApiTemplateVersion2.agreementApprovalPolicy,
-        dailyCallsPerConsumer: mockApiTemplateVersion2.dailyCallsPerConsumer,
-        dailyCallsTotal: mockApiTemplateVersion2.dailyCallsTotal,
-        deprecatedAt: mockApiTemplateVersion2.deprecatedAt,
-        description: mockApiTemplateVersion2.description,
-        publishedAt: mockApiTemplateVersion2.publishedAt,
-        suspendedAt: mockApiTemplateVersion2.suspendedAt,
-        asyncExchangeProperties:
-          mockApiTemplateVersion2.asyncExchangeProperties,
-      };
-    const m2mTemplateResponse: m2mGatewayApiV3.EServiceTemplateVersions = {
-      pagination: {
-        limit: mockParams.limit,
-        offset: mockParams.offset,
-        totalCount: 1,
-      },
-      results: [expectedM2MTemplateVersion],
-    };
-
-    const result = await eserviceTemplateService.getEServiceTemplateVersions(
-      unsafeBrandId(mockApiTemplate.data.id),
-      {
-        offset: 0,
-        limit: 10,
-        state: "DEPRECATED",
-      },
+  it("Should forward the state filter and pagination params to the process", async () => {
+    await eserviceTemplateService.getEServiceTemplateVersions(
+      unsafeBrandId(templateId),
+      { state: "PUBLISHED", offset: 2, limit: 2 },
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toStrictEqual(m2mTemplateResponse);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient
-          .getEServiceTemplateById,
-      params: {
-        templateId: mockApiTemplate.data.id,
-      },
+          .getEServiceTemplateVersions,
+      params: { templateId },
+      queries: { state: "PUBLISHED", offset: 2, limit: 2 },
     });
   });
 });

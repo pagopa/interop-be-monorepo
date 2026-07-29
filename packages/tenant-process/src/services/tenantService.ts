@@ -2615,6 +2615,53 @@ export function tenantServiceBuilder(
         .with([P.nullish, P.nullish], () => Promise.resolve())
         .exhaustive();
     },
+    async getTenantDeclaredAttributes(
+      tenantId: TenantId,
+      {
+        delegationId,
+        offset,
+        limit,
+      }: { delegationId?: DelegationId; offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<DeclaredTenantAttribute>> {
+      logger.info(`Retrieving declared attributes of tenant ${tenantId}`);
+      await retrieveTenant(tenantId, readModelService);
+      return await readModelService.getTenantDeclaredAttributes(tenantId, {
+        delegationId,
+        offset,
+        limit,
+      });
+    },
+    async getTenantCertifiedAttributes(
+      tenantId: TenantId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<CertifiedTenantAttribute>> {
+      logger.info(`Retrieving certified attributes of tenant ${tenantId}`);
+      await retrieveTenant(tenantId, readModelService);
+      return await readModelService.getTenantCertifiedAttributes(tenantId, {
+        offset,
+        limit,
+      });
+    },
+    async getTenantVerifiedAttributes(
+      tenantId: TenantId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<VerifiedTenantAttribute>> {
+      logger.info(`Retrieving verified attributes of tenant ${tenantId}`);
+      await retrieveTenant(tenantId, readModelService);
+      return await readModelService.getTenantVerifiedAttributes(tenantId, {
+        offset,
+        limit,
+      });
+    },
     async getTenantVerifiedAttributeVerifiers(
       tenantId: TenantId,
       attributeId: AttributeId,

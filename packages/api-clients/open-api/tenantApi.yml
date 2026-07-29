@@ -741,6 +741,46 @@ paths:
         schema:
           type: string
           format: uuid
+    get:
+      tags:
+        - tenant
+      operationId: getTenantVerifiedAttributes
+      description: Retrieve the verified attributes of a Tenant
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Tenant verified attributes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifiedTenantAttributes"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       tags:
         - tenantAttribute
@@ -1053,6 +1093,62 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /tenants/{tenantId}/attributes/declared:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - tenant
+      operationId: getTenantDeclaredAttributes
+      description: Retrieve the declared attributes of a Tenant
+      parameters:
+        - in: query
+          name: delegationId
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Tenant declared attributes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeclaredTenantAttributes"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /tenants/{tenantId}/attributes/certified:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1063,6 +1159,46 @@ paths:
         schema:
           type: string
           format: uuid
+    get:
+      tags:
+        - tenant
+      operationId: getTenantCertifiedAttributes
+      description: Retrieve the certified attributes of a Tenant
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Tenant certified attributes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertifiedTenantAttributes"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       tags:
         - tenantAttribute
@@ -1747,6 +1883,48 @@ components:
           $ref: "#/components/schemas/VerifiedTenantAttribute"
         certifiedDiscrete:
           $ref: "#/components/schemas/CertifiedDiscreteTenantAttribute"
+    DeclaredTenantAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeclaredTenantAttribute"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    CertifiedTenantAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertifiedTenantAttribute"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    VerifiedTenantAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/VerifiedTenantAttribute"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     DeclaredTenantAttribute:
       type: object
       additionalProperties: false

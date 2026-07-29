@@ -1,10 +1,9 @@
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
-  getMockedApiFullProducerKeychain,
   getMockedApiEservice,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -19,121 +18,93 @@ import {
 } from "../../mockUtils.js";
 
 describe("getProducerKeychainEServices", () => {
-  const mockParams: m2mGatewayApiV3.GetProducerKeychainEServicesQueryParams = {
-    offset: 0,
-    limit: 10,
-  };
+  const producerKeychainId = generateId();
 
   const mockApiEService1 = getMockedApiEservice();
   const mockApiEService2 = getMockedApiEservice();
-  const mockApiEServices = [mockApiEService1, mockApiEService2];
+
+  // Pagination (and the producer access check) is now performed by
+  // authorization-process: it returns the page of e-service ids, which the
+  // gateway resolves against catalog-process.
+  const mockGetProducerKeychainEServices = vi.fn().mockResolvedValue(
+    getMockWithMetadata({
+      results: [mockApiEService1.id, mockApiEService2.id],
+      totalCount: 5,
+    })
+  );
 
   const mockGetEServices = vi.fn(({ queries: { eservicesIds } }) =>
     Promise.resolve({
       data: {
-        results: mockApiEServices.filter((e) => eservicesIds.includes(e.id)),
+        results: [mockApiEService1, mockApiEService2].filter((e) =>
+          eservicesIds.includes(e.id)
+        ),
       },
     })
   );
+
+  mockInteropBeClients.authorizationClient = {
+    producerKeychain: {
+      getProducerKeychainEServices: mockGetProducerKeychainEServices,
+    },
+  } as unknown as PagoPAInteropBeClients["authorizationClient"];
 
   mockInteropBeClients.catalogProcessClient = {
     getEServices: mockGetEServices,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
-  const mockApiConsumerProducerKeychain = getMockedApiFullProducerKeychain({
-    eservices: [mockApiEService1.id, mockApiEService2.id],
-  });
-
-  const mockGetProducerKeychain = vi
-    .fn()
-    .mockResolvedValue(getMockWithMetadata(mockApiConsumerProducerKeychain));
-
-  mockInteropBeClients.authorizationClient = {
-    producerKeychain: {
-      getProducerKeychain: mockGetProducerKeychain,
-    },
-  } as unknown as PagoPAInteropBeClients["authorizationClient"];
-
-  const expectedM2MEService1: m2mGatewayApiV3.EService =
-    testToM2mGatewayApiEService(mockApiEService1);
-
-  const expectedM2MEService2: m2mGatewayApiV3.EService =
-    testToM2mGatewayApiEService(mockApiEService2);
-
   beforeEach(() => {
-    mockGetProducerKeychain.mockClear();
+    mockGetProducerKeychainEServices.mockClear();
     mockGetEServices.mockClear();
   });
 
-  it("Should succeed and perform API producerKeychains calls", async () => {
-    const m2mProducerKeychainEServicesResponse: m2mGatewayApiV3.EServices = {
-      pagination: {
-        limit: mockParams.limit,
-        offset: mockParams.offset,
-        totalCount: mockApiConsumerProducerKeychain.eservices.length,
-      },
-      results: [expectedM2MEService1, expectedM2MEService2],
+  it("Should delegate pagination to authorization-process and resolve the e-services", async () => {
+    const expected: m2mGatewayApiV3.EServices = {
+      pagination: { offset: 0, limit: 10, totalCount: 5 },
+      results: [
+        testToM2mGatewayApiEService(mockApiEService1),
+        testToM2mGatewayApiEService(mockApiEService2),
+      ],
     };
 
     const result = await producerKeychainService.getProducerKeychainEServices(
-      unsafeBrandId(mockApiConsumerProducerKeychain.id),
-      mockParams,
+      unsafeBrandId(producerKeychainId),
+      { offset: 0, limit: 10 },
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toStrictEqual(m2mProducerKeychainEServicesResponse);
+    expect(result).toStrictEqual(expected);
 
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockGetProducerKeychain,
-      params: {
-        producerKeychainId: mockApiConsumerProducerKeychain.id,
-      },
+      mockGet: mockGetProducerKeychainEServices,
+      params: { producerKeychainId },
+      queries: { offset: 0, limit: 10 },
     });
     expectApiClientGetToHaveBeenCalledWith({
       mockGet: mockGetEServices,
       queries: {
-        eservicesIds: mockApiEServices.map((e) => e.id),
-        limit: mockParams.limit,
+        eservicesIds: [mockApiEService1.id, mockApiEService2.id],
+        limit: 10,
         offset: 0,
       },
     });
   });
 
-  it("Should apply filters (offset, limit)", async () => {
-    const result1 = await producerKeychainService.getProducerKeychainEServices(
-      unsafeBrandId(mockApiConsumerProducerKeychain.id),
-      { offset: 0, limit: 1 },
+  it("Should not call catalog when the keychain page is empty", async () => {
+    mockGetProducerKeychainEServices.mockResolvedValueOnce(
+      getMockWithMetadata({ results: [], totalCount: 0 })
+    );
+
+    const result = await producerKeychainService.getProducerKeychainEServices(
+      unsafeBrandId(producerKeychainId),
+      { offset: 0, limit: 10 },
       getMockM2MAdminAppContext()
     );
 
-    expect(result1).toStrictEqual({
-      pagination: {
-        offset: 0,
-        limit: 1,
-        totalCount: 2,
-      },
-      results: [expectedM2MEService1],
+    expect(result).toStrictEqual({
+      pagination: { offset: 0, limit: 10, totalCount: 0 },
+      results: [],
     });
-
-    expect(mockGetProducerKeychain).toHaveBeenCalledTimes(1);
-    expect(mockGetEServices).toHaveBeenCalledTimes(1);
-
-    const result2 = await producerKeychainService.getProducerKeychainEServices(
-      unsafeBrandId(mockApiConsumerProducerKeychain.id),
-      { offset: 1, limit: 1 },
-      getMockM2MAdminAppContext()
-    );
-
-    expect(result2).toStrictEqual({
-      pagination: {
-        offset: 1,
-        limit: 1,
-        totalCount: 2,
-      },
-      results: [expectedM2MEService2],
-    });
-
-    expect(mockGetProducerKeychain).toHaveBeenCalledTimes(2);
-    expect(mockGetEServices).toHaveBeenCalledTimes(2);
+    expect(mockGetEServices).not.toHaveBeenCalled();
   });
 });

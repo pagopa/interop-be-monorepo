@@ -264,20 +264,20 @@ export function purposeServiceBuilder(
         `Retrieving versions for purpose with id ${purposeId} state ${state} offset ${offset} limit ${limit}`
       );
 
-      const { data } = await retrievePurposeById(purposeId, headers);
-
-      const filteredVersions = state
-        ? data.versions.filter((version) => version.state === state)
-        : data.versions;
-
-      const paginatedVersions = filteredVersions.slice(offset, offset + limit);
+      const {
+        data: { results, totalCount },
+      } = await clients.purposeProcessClient.getPurposeVersions({
+        params: { purposeId },
+        queries: { state, offset, limit },
+        headers,
+      });
 
       return {
-        results: paginatedVersions.map(toM2mGatewayApiPurposeVersion),
+        results: results.map(toM2mGatewayApiPurposeVersion),
         pagination: {
           limit,
           offset,
-          totalCount: filteredVersions.length,
+          totalCount,
         },
       };
     },

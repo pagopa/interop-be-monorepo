@@ -1,13 +1,10 @@
-import { generateMock } from "@anatine/zod-mock";
 import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiDeclaredTenantAttribute,
-  getMockedApiTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { z } from "zod";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
@@ -17,40 +14,13 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getDeclaredAttributes", () => {
+describe("getTenantDeclaredAttributes", () => {
+  const tenantId = generateId();
+
   const mockDeclaredAttribute1 = getMockedApiDeclaredTenantAttribute({
     revoked: true,
   });
   const mockDeclaredAttribute2 = getMockedApiDeclaredTenantAttribute();
-  const mockDeclaredAttribute3 = getMockedApiDeclaredTenantAttribute();
-  const mockDeclaredAttribute4 = getMockedApiDeclaredTenantAttribute();
-  const mockDeclaredAttribute5 = getMockedApiDeclaredTenantAttribute();
-  const otherMockedAttributes = generateMock(
-    z.array(tenantApi.TenantAttribute)
-  ).filter((attr) => attr.declared === undefined);
-
-  const mockTenantProcessResponse = getMockWithMetadata(
-    getMockedApiTenant({
-      attributes: [
-        {
-          declared: mockDeclaredAttribute1,
-        },
-        {
-          declared: mockDeclaredAttribute2,
-        },
-        {
-          declared: mockDeclaredAttribute3,
-        },
-        {
-          declared: mockDeclaredAttribute4,
-        },
-        {
-          declared: mockDeclaredAttribute5,
-        },
-        ...otherMockedAttributes,
-      ],
-    })
-  );
 
   const testToM2MGatewayApiDeclaredAttribute = (
     attribute: tenantApi.DeclaredTenantAttribute
@@ -61,129 +31,71 @@ describe("getDeclaredAttributes", () => {
     delegationId: attribute.delegationId,
   });
 
-  const m2mDeclaredAttributeResponse1 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute1
-  );
+  // Pagination (and the delegationId filter) is now performed by tenant-process:
+  // the gateway only forwards the query params and maps the paginated results.
+  const mockProcessResponse = getMockWithMetadata({
+    results: [mockDeclaredAttribute1, mockDeclaredAttribute2],
+    totalCount: 5,
+  });
 
-  const m2mDeclaredAttributeResponse2 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute2
-  );
-
-  const m2mDeclaredAttributeResponse3 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute3
-  );
-
-  const m2mDeclaredAttributeResponse4 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute4
-  );
-  const m2mDeclaredAttributeResponse5 = testToM2MGatewayApiDeclaredAttribute(
-    mockDeclaredAttribute5
-  );
-
-  const mockGetTenant = vi.fn().mockResolvedValue(mockTenantProcessResponse);
+  const mockGetTenantDeclaredAttributes = vi
+    .fn()
+    .mockResolvedValue(mockProcessResponse);
 
   mockInteropBeClients.tenantProcessClient = {
     tenant: {
-      getTenant: mockGetTenant,
+      getTenantDeclaredAttributes: mockGetTenantDeclaredAttributes,
     },
   } as unknown as PagoPAInteropBeClients["tenantProcessClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
-    mockGetTenant.mockClear();
+    mockGetTenantDeclaredAttributes.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mTenantsResponse: m2mGatewayApiV3.TenantDeclaredAttributes = {
-      pagination: {
-        limit: 10,
-        offset: 0,
-        totalCount: mockTenantProcessResponse.data.attributes.length,
-      },
+  it("Should delegate pagination to tenant-process and map the results", async () => {
+    const expected: m2mGatewayApiV3.TenantDeclaredAttributes = {
       results: [
-        m2mDeclaredAttributeResponse1,
-        m2mDeclaredAttributeResponse2,
-        m2mDeclaredAttributeResponse3,
-        m2mDeclaredAttributeResponse4,
-        m2mDeclaredAttributeResponse5,
+        testToM2MGatewayApiDeclaredAttribute(mockDeclaredAttribute1),
+        testToM2MGatewayApiDeclaredAttribute(mockDeclaredAttribute2),
       ],
+      pagination: {
+        offset: 0,
+        limit: 10,
+        totalCount: 5,
+      },
     };
 
     const result = await tenantService.getTenantDeclaredAttributes(
-      unsafeBrandId(mockTenantProcessResponse.data.id),
-      {
-        offset: 0,
-        limit: 10,
-      },
+      unsafeBrandId(tenantId),
+      { offset: 0, limit: 10 },
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toStrictEqual(m2mTenantsResponse);
+    expect(result).toStrictEqual(expected);
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.tenantProcessClient.tenant.getTenant,
-      params: {
-        id: mockTenantProcessResponse.data.id,
-      },
+      mockGet:
+        mockInteropBeClients.tenantProcessClient.tenant
+          .getTenantDeclaredAttributes,
+      params: { tenantId },
+      queries: { delegationId: undefined, offset: 0, limit: 10 },
     });
   });
 
-  it("Should apply filters (offset, limit)", async () => {
-    const m2mDeclaredAttributesResponse1: m2mGatewayApiV3.TenantDeclaredAttributes =
-      {
-        pagination: {
-          offset: 0,
-          limit: 2,
-          totalCount: mockTenantProcessResponse.data.attributes.length,
-        },
-        results: [m2mDeclaredAttributeResponse1, m2mDeclaredAttributeResponse2],
-      };
+  it("Should forward the delegationId filter and pagination params", async () => {
+    const delegationId = generateId();
 
-    const result1 = await tenantService.getTenantDeclaredAttributes(
-      unsafeBrandId(mockTenantProcessResponse.data.id),
-      {
-        offset: 0,
-        limit: 2,
-      },
+    await tenantService.getTenantDeclaredAttributes(
+      unsafeBrandId(tenantId),
+      { delegationId, offset: 2, limit: 2 },
       getMockM2MAdminAppContext()
     );
-    expect(result1).toStrictEqual(m2mDeclaredAttributesResponse1);
 
-    const m2mDeclaredAttributesResponse2: m2mGatewayApiV3.TenantDeclaredAttributes =
-      {
-        pagination: {
-          offset: 2,
-          limit: 2,
-          totalCount: mockTenantProcessResponse.data.attributes.length,
-        },
-        results: [m2mDeclaredAttributeResponse3, m2mDeclaredAttributeResponse4],
-      };
-    const result2 = await tenantService.getTenantDeclaredAttributes(
-      unsafeBrandId(mockTenantProcessResponse.data.id),
-      {
-        offset: 2,
-        limit: 2,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result2).toStrictEqual(m2mDeclaredAttributesResponse2);
-
-    const m2mDeclaredAttributesResponse3: m2mGatewayApiV3.TenantDeclaredAttributes =
-      {
-        pagination: {
-          offset: 4,
-          limit: 2,
-          totalCount: mockTenantProcessResponse.data.attributes.length,
-        },
-        results: [m2mDeclaredAttributeResponse5],
-      };
-    const result3 = await tenantService.getTenantDeclaredAttributes(
-      unsafeBrandId(mockTenantProcessResponse.data.id),
-      {
-        offset: 4,
-        limit: 2,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result3).toStrictEqual(m2mDeclaredAttributesResponse3);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet:
+        mockInteropBeClients.tenantProcessClient.tenant
+          .getTenantDeclaredAttributes,
+      params: { tenantId },
+      queries: { delegationId, offset: 2, limit: 2 },
+    });
   });
 });

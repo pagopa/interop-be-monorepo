@@ -625,6 +625,53 @@ paths:
   /eservices/{eServiceId}/descriptors:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the descriptors of an e-service
+      operationId: getEServiceDescriptors
+      description: Retrieve the descriptors of the specified e-service
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: state
+          required: false
+          schema:
+            $ref: "#/components/schemas/EServiceDescriptorState"
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: EService descriptors
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptors"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
     post:
       security:
         - bearerAuth: []
@@ -1710,6 +1757,51 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "409":
           $ref: "#/components/responses/Conflict"
+  /eservices/{eServiceId}/riskAnalyses:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the risk analyses of an e-service
+      operationId: getEServiceRiskAnalyses
+      description: Retrieve the risk analyses of the specified E-Service
+      parameters:
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: EService risk analyses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceRiskAnalyses"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/riskAnalysis:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2135,6 +2227,153 @@ paths:
           $ref: "#/components/responses/NotFound"
         "400":
           $ref: "#/components/responses/BadRequest"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/certified:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the certified attributes of a descriptor
+      operationId: getEServiceDescriptorCertifiedAttributes
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Descriptor certified attribute references
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorAttributeReferences"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/declared:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the declared attributes of a descriptor
+      operationId: getEServiceDescriptorDeclaredAttributes
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Descriptor declared attribute references
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorAttributeReferences"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/verified:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: eServiceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the verified attributes of a descriptor
+      operationId: getEServiceDescriptorVerifiedAttributes
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Descriptor verified attribute references
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorAttributeReferences"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -3459,6 +3698,20 @@ components:
       enum:
         - RECEIVE
         - DELIVER
+    EServiceRiskAnalyses:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceRiskAnalysis"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceRiskAnalysis:
       type: object
       additionalProperties: false
@@ -3673,6 +3926,45 @@ components:
           type: boolean
       required:
         - personalData
+    EServiceDescriptors:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptor"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    EServiceDescriptorAttributeReferences:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+                format: uuid
+              groupIndex:
+                type: integer
+                format: int32
+            required:
+              - id
+              - groupIndex
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceDescriptor:
       type: object
       additionalProperties: false

@@ -1522,6 +1522,40 @@ export function authorizationServiceBuilder(
         totalCount: filteredKeys.length,
       };
     },
+    async getProducerKeychainEServices(
+      {
+        producerKeychainId,
+        offset,
+        limit,
+      }: {
+        producerKeychainId: ProducerKeychainId;
+        offset: number;
+        limit: number;
+      },
+      {
+        authData,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<ListResult<EServiceId>> {
+      logger.info(
+        `Retrieving e-services for producer keychain ${producerKeychainId}`
+      );
+      const producerKeychain = await retrieveProducerKeychain(
+        producerKeychainId,
+        readModelService
+      );
+      assertOrganizationIsProducerKeychainProducer(
+        authData,
+        producerKeychain.data
+      );
+
+      const eservices = producerKeychain.data.eservices;
+
+      return {
+        results: eservices.slice(offset, offset + limit),
+        totalCount: eservices.length,
+      };
+    },
     async getProducerKeychainKeyById(
       {
         producerKeychainId,

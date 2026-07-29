@@ -308,9 +308,116 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+  /templates/{templateId}/riskAnalyses:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: templateId
+        in: path
+        description: The E-Service template id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      operationId: getEServiceTemplateRiskAnalyses
+      description: Retrieve the risk analyses of an e-service template
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: E-Service template risk analyses
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateRiskAnalyses"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: E-Service template not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /templates/{templateId}/versions:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the versions of an e-service template
+      operationId: getEServiceTemplateVersions
+      description: Retrieve the versions of the specified e-service template
+      parameters:
+        - name: templateId
+          in: path
+          description: The E-Service template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: state
+          required: false
+          schema:
+            $ref: "#/components/schemas/EServiceTemplateVersionState"
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: E-Service template versions
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersions"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: E-Service template not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -742,6 +849,62 @@ paths:
   /templates/{templateId}/versions/{templateVersionId}/documents:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the documents of an e-service template version
+      operationId: getEServiceTemplateVersionDocuments
+      parameters:
+        - name: templateId
+          in: path
+          description: the eservice template id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: templateVersionId
+          in: path
+          description: the eservice template version id
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: E-Service template version documents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionDocuments"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       security:
         - bearerAuth: []
@@ -1300,6 +1463,177 @@ paths:
                 $ref: "#/components/schemas/Problem"
         "409":
           description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/{templateId}/versions/{templateVersionId}/attributes/certified:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: templateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: templateVersionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the certified attributes of a template version
+      operationId: getEServiceTemplateVersionCertifiedAttributes
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Template version certified attribute references
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionAttributeReferences"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/{templateId}/versions/{templateVersionId}/attributes/declared:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: templateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: templateVersionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the declared attributes of a template version
+      operationId: getEServiceTemplateVersionDeclaredAttributes
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Template version declared attribute references
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionAttributeReferences"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+  /templates/{templateId}/versions/{templateVersionId}/attributes/verified:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: templateId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: templateVersionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Retrieve the verified attributes of a template version
+      operationId: getEServiceTemplateVersionVerifiedAttributes
+      parameters:
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Template version verified attribute references
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionAttributeReferences"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Not Found
           content:
             application/problem+json:
               schema:
@@ -2034,6 +2368,20 @@ components:
       enum:
         - RECEIVE
         - DELIVER
+    EServiceTemplateRiskAnalyses:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateRiskAnalysis"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceTemplateRiskAnalysis:
       type: object
       additionalProperties: false
@@ -2135,6 +2483,45 @@ components:
       required:
         - results
         - totalCount
+    EServiceTemplateVersionDocuments:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDoc"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    EServiceTemplateVersionAttributeReferences:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+                format: uuid
+              groupIndex:
+                type: integer
+                format: int32
+            required:
+              - id
+              - groupIndex
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceDoc:
       type: object
       additionalProperties: false
@@ -2205,6 +2592,20 @@ components:
         createdEServiceTemplateVersionId:
           type: string
           format: uuid
+    EServiceTemplateVersions:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersion"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
     EServiceTemplateVersion:
       type: object
       additionalProperties: false

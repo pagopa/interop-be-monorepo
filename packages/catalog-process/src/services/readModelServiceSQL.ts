@@ -6,6 +6,7 @@ import {
   desc,
   eq,
   exists,
+  getTableColumns,
   inArray,
   isNotNull,
   isNull,
@@ -31,7 +32,9 @@ import {
   Agreement,
   AgreementState,
   ListResult,
+  Descriptor,
   DescriptorId,
+  RiskAnalysis,
   WithMetadata,
   Attribute,
   EServiceId,
@@ -58,7 +61,9 @@ import {
   aggregateAgreementArray,
   aggregateAttributeArray,
   aggregateDelegation,
+  aggregateDescriptor,
   aggregateEserviceArray,
+  aggregateRiskAnalysis,
   CatalogReadModelService,
   EServiceTemplateReadModelService,
   TenantReadModelService,
@@ -131,6 +136,194 @@ export function readModelServiceBuilderSQL(
   tenantKindHistoryDB: DrizzleReturnType
 ) {
   return {
+    async getEServiceRiskAnalyses(
+      eserviceId: EServiceId,
+      { offset, limit }: { offset: number; limit: number }
+    ): Promise<ListResult<RiskAnalysis>> {
+      const riskAnalysesSQL = await readmodelDB
+        .select(
+          withTotalCount(
+            getTableColumns(eserviceRiskAnalysisInReadmodelCatalog)
+          )
+        )
+        .from(eserviceRiskAnalysisInReadmodelCatalog)
+        .where(
+          eq(eserviceRiskAnalysisInReadmodelCatalog.eserviceId, eserviceId)
+        )
+        .orderBy(asc(eserviceRiskAnalysisInReadmodelCatalog.createdAt))
+        .offset(offset)
+        .limit(limit);
+
+      const totalCount = riskAnalysesSQL[0]?.totalCount ?? 0;
+
+      if (riskAnalysesSQL.length === 0) {
+        return createListResult([], totalCount);
+      }
+
+      const formIds = riskAnalysesSQL.map((ra) => ra.riskAnalysisFormId);
+      const answersSQL = await readmodelDB
+        .select()
+        .from(eserviceRiskAnalysisAnswerInReadmodelCatalog)
+        .where(
+          inArray(
+            eserviceRiskAnalysisAnswerInReadmodelCatalog.riskAnalysisFormId,
+            formIds
+          )
+        );
+
+      const results = riskAnalysesSQL.map((riskAnalysisSQL) =>
+        aggregateRiskAnalysis(
+          riskAnalysisSQL,
+          answersSQL.filter(
+            (a) => a.riskAnalysisFormId === riskAnalysisSQL.riskAnalysisFormId
+          )
+        )
+      );
+
+      return createListResult(results, totalCount);
+    },
+    async getEServiceDescriptors(
+      eserviceId: EServiceId,
+      {
+        states,
+        offset,
+        limit,
+      }: { states?: DescriptorState[]; offset: number; limit: number }
+    ): Promise<ListResult<Descriptor>> {
+      // `states` is the set of descriptor states the caller is allowed to see
+      // (visibility) intersected with the optional user filter. `undefined`
+      // means no restriction; an empty array means nothing is visible.
+      if (states !== undefined && states.length === 0) {
+        return createListResult([], 0);
+      }
+      const descriptorsSQL = await readmodelDB
+        .select(
+          withTotalCount(getTableColumns(eserviceDescriptorInReadmodelCatalog))
+        )
+        .from(eserviceDescriptorInReadmodelCatalog)
+        .where(
+          and(
+            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
+            states
+              ? inArray(eserviceDescriptorInReadmodelCatalog.state, states)
+              : undefined
+          )
+        )
+        .orderBy(asc(eserviceDescriptorInReadmodelCatalog.createdAt))
+        .offset(offset)
+        .limit(limit);
+
+      const totalCount = descriptorsSQL[0]?.totalCount ?? 0;
+
+      if (descriptorsSQL.length === 0) {
+        return createListResult([], totalCount);
+      }
+
+      const descriptorIds = descriptorsSQL.map((d) => d.id);
+
+      const [
+        interfacesSQL,
+        documentsSQL,
+        attributesSQL,
+        rejectionReasonsSQL,
+        templateVersionRefsSQL,
+        archivingSchedulesSQL,
+        asyncExchangePropertiesSQL,
+      ] = await Promise.all([
+        readmodelDB
+          .select()
+          .from(eserviceDescriptorInterfaceInReadmodelCatalog)
+          .where(
+            inArray(
+              eserviceDescriptorInterfaceInReadmodelCatalog.descriptorId,
+              descriptorIds
+            )
+          ),
+        readmodelDB
+          .select()
+          .from(eserviceDescriptorDocumentInReadmodelCatalog)
+          .where(
+            inArray(
+              eserviceDescriptorDocumentInReadmodelCatalog.descriptorId,
+              descriptorIds
+            )
+          ),
+        readmodelDB
+          .select()
+          .from(eserviceDescriptorAttributeInReadmodelCatalog)
+          .where(
+            inArray(
+              eserviceDescriptorAttributeInReadmodelCatalog.descriptorId,
+              descriptorIds
+            )
+          ),
+        readmodelDB
+          .select()
+          .from(eserviceDescriptorRejectionReasonInReadmodelCatalog)
+          .where(
+            inArray(
+              eserviceDescriptorRejectionReasonInReadmodelCatalog.descriptorId,
+              descriptorIds
+            )
+          ),
+        readmodelDB
+          .select()
+          .from(eserviceDescriptorTemplateVersionRefInReadmodelCatalog)
+          .where(
+            inArray(
+              eserviceDescriptorTemplateVersionRefInReadmodelCatalog.descriptorId,
+              descriptorIds
+            )
+          ),
+        readmodelDB
+          .select()
+          .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+          .where(
+            inArray(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
+              descriptorIds
+            )
+          ),
+        readmodelDB
+          .select()
+          .from(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
+          .where(
+            inArray(
+              eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog.descriptorId,
+              descriptorIds
+            )
+          ),
+      ]);
+
+      const results = descriptorsSQL.map((descriptorSQL) =>
+        aggregateDescriptor({
+          descriptorSQL,
+          interfacesSQL: interfacesSQL.filter(
+            (i) => i.descriptorId === descriptorSQL.id
+          ),
+          documentsSQL: documentsSQL.filter(
+            (d) => d.descriptorId === descriptorSQL.id
+          ),
+          attributesSQL: attributesSQL.filter(
+            (a) => a.descriptorId === descriptorSQL.id
+          ),
+          rejectionReasonsSQL: rejectionReasonsSQL.filter(
+            (r) => r.descriptorId === descriptorSQL.id
+          ),
+          templateVersionRefSQL: templateVersionRefsSQL.find(
+            (t) => t.descriptorId === descriptorSQL.id
+          ),
+          archivingScheduleSQL: archivingSchedulesSQL.find(
+            (a) => a.descriptorId === descriptorSQL.id
+          ),
+          asyncExchangePropertiesSQL: asyncExchangePropertiesSQL.find(
+            (a) => a.descriptorId === descriptorSQL.id
+          ),
+        })
+      );
+
+      return createListResult(results, totalCount);
+    },
     // eslint-disable-next-line sonarjs/cognitive-complexity
     async getEServices(
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData,

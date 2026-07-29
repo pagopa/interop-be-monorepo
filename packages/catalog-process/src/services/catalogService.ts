@@ -272,6 +272,23 @@ const retrieveDescriptor = (
   eservice: WithMetadata<EService>
 ): Descriptor => retrieveDescriptorFromEService(descriptorId, eservice.data);
 
+// Flattens the attribute groups of a descriptor (for a given kind) into a
+// paginated list of `{ id, groupIndex }` references. Mirrors the flattening the
+// m2m gateway used to do before delegating pagination to the process.
+const paginateDescriptorAttributeReferences = (
+  descriptor: Descriptor,
+  kind: keyof Descriptor["attributes"],
+  { offset, limit }: { offset: number; limit: number }
+): ListResult<{ id: AttributeId; groupIndex: number }> => {
+  const flat = descriptor.attributes[kind].flatMap((group, groupIndex) =>
+    group.map((attribute) => ({ id: attribute.id, groupIndex }))
+  );
+  return {
+    results: flat.slice(offset, offset + limit),
+    totalCount: flat.length,
+  };
+};
+
 const retrieveDocument = (
   eserviceId: EServiceId,
   descriptor: Descriptor,
@@ -957,6 +974,141 @@ export function catalogServiceBuilder(
           version: eservice.metadata.version,
         },
       };
+    },
+    async getEServiceRiskAnalyses(
+      eserviceId: EServiceId,
+      { offset, limit }: { offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<
+        AppContext<
+          UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
+        >
+      >
+    ): Promise<ListResult<RiskAnalysis>> {
+      logger.info(
+        `Retrieving Risk Analyses for EService ${eserviceId} offset ${offset} limit ${limit}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      // Preserve the visibility behaviour of getEServiceById: this throws
+      // eServiceNotFound when the requester cannot see the e-service. Risk
+      // analyses themselves are not visibility-filtered per item.
+      await applyVisibilityToEService(
+        eservice.data,
+        authData,
+        readModelService
+      );
+      return readModelService.getEServiceRiskAnalyses(eserviceId, {
+        offset,
+        limit,
+      });
+    },
+    async getEServiceDescriptors(
+      eserviceId: EServiceId,
+      {
+        state,
+        offset,
+        limit,
+      }: { state?: DescriptorState; offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<
+        AppContext<
+          UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
+        >
+      >
+    ): Promise<ListResult<Descriptor>> {
+      logger.info(
+        `Retrieving descriptors for EService ${eserviceId} state ${state} offset ${offset} limit ${limit}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      // Reuse the exact visibility rules of getEServiceById: this throws
+      // eServiceNotFound when the e-service is not visible, and hides
+      // draft/inactive descriptors from non-privileged requesters. When the
+      // visibility filter removed some descriptors the requester may only see
+      // the active states; otherwise every state is visible.
+      const visibleEService = await applyVisibilityToEService(
+        eservice.data,
+        authData,
+        readModelService
+      );
+      const canSeeAllStates =
+        visibleEService.descriptors.length === eservice.data.descriptors.length;
+
+      // States a non-privileged requester is allowed to see: exactly the ones
+      // `applyVisibilityToEService`/`isActiveDescriptor` keeps, i.e. every state
+      // except `draft` and `waitingForApproval` (NOT `activeDescriptorStates`,
+      // which omits `archiving`/`archivingSuspended`).
+      const nonDraftDescriptorStates: DescriptorState[] = [
+        descriptorState.published,
+        descriptorState.suspended,
+        descriptorState.deprecated,
+        descriptorState.archived,
+        descriptorState.archiving,
+        descriptorState.archivingSuspended,
+      ];
+
+      // States the requester is allowed to see (undefined = every state).
+      const visibleStates = canSeeAllStates
+        ? undefined
+        : nonDraftDescriptorStates;
+      const isStateVisible = (s: DescriptorState): boolean =>
+        visibleStates === undefined || visibleStates.includes(s);
+
+      // Apply the optional user-provided `state` filter on top of the
+      // visibility restriction; a non-visible requested state yields no results.
+      const states =
+        state === undefined
+          ? visibleStates
+          : isStateVisible(state)
+            ? [state]
+            : [];
+
+      return readModelService.getEServiceDescriptors(eserviceId, {
+        states,
+        offset,
+        limit,
+      });
+    },
+    async getEServiceDescriptorAttributes(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      kind: keyof Descriptor["attributes"],
+      { offset, limit }: { offset: number; limit: number },
+      {
+        authData,
+        logger,
+      }: WithLogger<
+        AppContext<
+          UIAuthData | M2MAuthData | M2MAdminAuthData | InternalAuthData
+        >
+      >
+    ): Promise<ListResult<{ id: AttributeId; groupIndex: number }>> {
+      logger.info(
+        `Retrieving ${kind} attributes for EService ${eserviceId} descriptor ${descriptorId} offset ${offset} limit ${limit}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      // Reuse the visibility rules of getEServiceById: throws eServiceNotFound
+      // when the e-service is not visible and eServiceDescriptorNotFound when
+      // the descriptor is not visible (e.g. a draft descriptor for a
+      // non-privileged requester).
+      const visibleEService = await applyVisibilityToEService(
+        eservice.data,
+        authData,
+        readModelService
+      );
+      const descriptor = retrieveDescriptorFromEService(
+        descriptorId,
+        visibleEService
+      );
+
+      return paginateDescriptorAttributeReferences(descriptor, kind, {
+        offset,
+        limit,
+      });
     },
 
     async getEServices(

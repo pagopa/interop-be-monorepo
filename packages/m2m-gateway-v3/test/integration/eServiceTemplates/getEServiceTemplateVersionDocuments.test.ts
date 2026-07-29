@@ -1,234 +1,88 @@
-import {
-  m2mGatewayApiV3,
-  eserviceTemplateApi,
-} from "pagopa-interop-api-clients";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockedApiEserviceDoc,
-  getMockedApiEServiceTemplate,
-  getMockedApiEserviceTemplateVersion,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toM2MGatewayApiDocument } from "../../../src/api/eserviceTemplateApiConverter.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { WithMaybeMetadata } from "../../../src/clients/zodiosWithMetadataPatch.js";
 import {
   eserviceTemplateService,
+  expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
-  mockPollingResponse,
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEServiceTemplateVersionDocuments", () => {
-  type EServiceTemplateDocs = {
-    results: eserviceTemplateApi.EServiceDoc[];
-    totalCount: number;
-  };
+  const templateId = generateId();
+  const versionId = generateId();
 
-  const mockQueryParams: m2mGatewayApiV3.GetEServiceTemplateVersionDocumentsQueryParams =
-    {
-      offset: 0,
-      limit: 10,
-    };
+  const mockDoc1 = getMockedApiEserviceDoc();
+  const mockDoc2 = getMockedApiEserviceDoc();
 
-  const mockApiEServiceTemplateDoc1 = getMockedApiEserviceDoc();
-  const mockApiEServiceTemplateDoc2 = getMockedApiEserviceDoc();
-  const mockApiEServiceTemplateDoc3 = getMockedApiEserviceDoc();
-  const mockApiEServiceTemplateDoc4 = getMockedApiEserviceDoc();
-  const mockApiEServiceTemplateDoc5 = getMockedApiEserviceDoc();
+  // Pagination (and version visibility) is now performed by
+  // eservice-template-process.
+  const mockProcessResponse = getMockWithMetadata({
+    results: [mockDoc1, mockDoc2],
+    totalCount: 5,
+  });
 
-  const mockApiEServiceTemplateDocs = [
-    mockApiEServiceTemplateDoc1,
-    mockApiEServiceTemplateDoc2,
-    mockApiEServiceTemplateDoc3,
-    mockApiEServiceTemplateDoc4,
-    mockApiEServiceTemplateDoc5,
-  ];
-
-  const mockEServiceProcessResponse: WithMaybeMetadata<EServiceTemplateDocs> = {
-    data: {
-      results: mockApiEServiceTemplateDocs,
-      totalCount: mockApiEServiceTemplateDocs.length,
-    },
-    metadata: undefined,
-  };
-
-  const document1: eserviceTemplateApi.EServiceDoc = {
-    id: mockApiEServiceTemplateDoc1.id,
-    name: mockApiEServiceTemplateDoc1.name,
-    contentType: mockApiEServiceTemplateDoc1.contentType,
-    uploadDate: mockApiEServiceTemplateDoc1.uploadDate,
-    prettyName: mockApiEServiceTemplateDoc1.prettyName,
-    path: mockApiEServiceTemplateDoc1.path,
-    checksum: mockApiEServiceTemplateDoc1.checksum,
-  };
-
-  const document2: eserviceTemplateApi.EServiceDoc = {
-    id: mockApiEServiceTemplateDoc2.id,
-    name: mockApiEServiceTemplateDoc2.name,
-    contentType: mockApiEServiceTemplateDoc2.contentType,
-    uploadDate: mockApiEServiceTemplateDoc2.uploadDate,
-    prettyName: mockApiEServiceTemplateDoc2.prettyName,
-    path: mockApiEServiceTemplateDoc2.path,
-    checksum: mockApiEServiceTemplateDoc2.checksum,
-  };
-
-  const document3: eserviceTemplateApi.EServiceDoc = {
-    id: mockApiEServiceTemplateDoc3.id,
-    name: mockApiEServiceTemplateDoc3.name,
-    contentType: mockApiEServiceTemplateDoc3.contentType,
-    uploadDate: mockApiEServiceTemplateDoc3.uploadDate,
-    prettyName: mockApiEServiceTemplateDoc3.prettyName,
-    path: mockApiEServiceTemplateDoc3.path,
-    checksum: mockApiEServiceTemplateDoc3.checksum,
-  };
-
-  const document4: eserviceTemplateApi.EServiceDoc = {
-    id: mockApiEServiceTemplateDoc4.id,
-    name: mockApiEServiceTemplateDoc4.name,
-    contentType: mockApiEServiceTemplateDoc4.contentType,
-    uploadDate: mockApiEServiceTemplateDoc4.uploadDate,
-    prettyName: mockApiEServiceTemplateDoc4.prettyName,
-    path: mockApiEServiceTemplateDoc4.path,
-    checksum: mockApiEServiceTemplateDoc4.checksum,
-  };
-
-  const document5: eserviceTemplateApi.EServiceDoc = {
-    id: mockApiEServiceTemplateDoc5.id,
-    name: mockApiEServiceTemplateDoc5.name,
-    contentType: mockApiEServiceTemplateDoc5.contentType,
-    uploadDate: mockApiEServiceTemplateDoc5.uploadDate,
-    prettyName: mockApiEServiceTemplateDoc5.prettyName,
-    path: mockApiEServiceTemplateDoc5.path,
-    checksum: mockApiEServiceTemplateDoc5.checksum,
-  };
-
-  const m2mDocument1 = toM2MGatewayApiDocument(document1);
-  const m2mDocument2 = toM2MGatewayApiDocument(document2);
-  const m2mDocument3 = toM2MGatewayApiDocument(document3);
-  const m2mDocument4 = toM2MGatewayApiDocument(document4);
-  const m2mDocument5 = toM2MGatewayApiDocument(document5);
-
-  const m2mDocumentsResponse: m2mGatewayApiV3.Documents = {
-    pagination: {
-      limit: mockQueryParams.limit,
-      offset: mockQueryParams.offset,
-      totalCount: mockEServiceProcessResponse.data.totalCount,
-    },
-    results: [
-      m2mDocument1,
-      m2mDocument2,
-      m2mDocument3,
-      m2mDocument4,
-      m2mDocument5,
-    ],
-  };
-
-  const eserviceTemplate: eserviceTemplateApi.EServiceTemplate = {
-    ...getMockedApiEServiceTemplate(),
-    versions: [
-      {
-        ...getMockedApiEserviceTemplateVersion(),
-        docs: [document1, document2, document3, document4, document5],
-      },
-    ],
-  };
-
-  const mockEServiceTemplateProcessResponse =
-    getMockWithMetadata(eserviceTemplate);
-
-  const mockGetEServiceTemplate = vi.fn(
-    mockPollingResponse(mockEServiceTemplateProcessResponse, 1)
-  );
+  const mockGetEServiceTemplateVersionDocuments = vi
+    .fn()
+    .mockResolvedValue(mockProcessResponse);
 
   mockInteropBeClients.eserviceTemplateProcessClient = {
-    getEServiceTemplateById: mockGetEServiceTemplate,
+    getEServiceTemplateVersionDocuments:
+      mockGetEServiceTemplateVersionDocuments,
   } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
-    mockGetEServiceTemplate.mockClear();
+    mockGetEServiceTemplateVersionDocuments.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const result =
-      await eserviceTemplateService.getEServiceTemplateVersionDocuments(
-        unsafeBrandId(eserviceTemplate.id),
-        unsafeBrandId(eserviceTemplate.versions[0].id),
-        mockQueryParams,
-        getMockM2MAdminAppContext()
-      );
-
-    expect(result).toStrictEqual(m2mDocumentsResponse);
-  });
-
-  it("Should apply filters (offset, limit)", async () => {
-    const response1: m2mGatewayApiV3.Documents = {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: eserviceTemplate.versions[0].docs.length,
-      },
-      results: [m2mDocument1, m2mDocument2],
+  it("Should delegate pagination to eservice-template-process and map the results", async () => {
+    const expected: m2mGatewayApiV3.Documents = {
+      results: [
+        toM2MGatewayApiDocument(mockDoc1),
+        toM2MGatewayApiDocument(mockDoc2),
+      ],
+      pagination: { offset: 0, limit: 10, totalCount: 5 },
     };
 
     const result =
       await eserviceTemplateService.getEServiceTemplateVersionDocuments(
-        unsafeBrandId(eserviceTemplate.id),
-        unsafeBrandId(eserviceTemplate.versions[0].id),
-        {
-          offset: 0,
-          limit: 2,
-        },
+        unsafeBrandId(templateId),
+        unsafeBrandId(versionId),
+        { offset: 0, limit: 10 },
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toStrictEqual(response1);
+    expect(result).toStrictEqual(expected);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet:
+        mockInteropBeClients.eserviceTemplateProcessClient
+          .getEServiceTemplateVersionDocuments,
+      params: { templateId, templateVersionId: versionId },
+      queries: { offset: 0, limit: 10 },
+    });
+  });
 
-    const response2: m2mGatewayApiV3.Documents = {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: eserviceTemplate.versions[0].docs.length,
-      },
-      results: [m2mDocument3, m2mDocument4],
-    };
+  it("Should forward the pagination params to the process", async () => {
+    await eserviceTemplateService.getEServiceTemplateVersionDocuments(
+      unsafeBrandId(templateId),
+      unsafeBrandId(versionId),
+      { offset: 2, limit: 2 },
+      getMockM2MAdminAppContext()
+    );
 
-    const result2 =
-      await eserviceTemplateService.getEServiceTemplateVersionDocuments(
-        unsafeBrandId(eserviceTemplate.id),
-        unsafeBrandId(eserviceTemplate.versions[0].id),
-        {
-          offset: 2,
-          limit: 2,
-        },
-        getMockM2MAdminAppContext()
-      );
-
-    expect(result2).toStrictEqual(response2);
-
-    const response3: m2mGatewayApiV3.Documents = {
-      pagination: {
-        offset: 4,
-        limit: 2,
-        totalCount: eserviceTemplate.versions[0].docs.length,
-      },
-      results: [m2mDocument5],
-    };
-
-    const result3 =
-      await eserviceTemplateService.getEServiceTemplateVersionDocuments(
-        unsafeBrandId(eserviceTemplate.id),
-        unsafeBrandId(eserviceTemplate.versions[0].id),
-        {
-          offset: 4,
-          limit: 2,
-        },
-        getMockM2MAdminAppContext()
-      );
-
-    expect(result3).toStrictEqual(response3);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet:
+        mockInteropBeClients.eserviceTemplateProcessClient
+          .getEServiceTemplateVersionDocuments,
+      params: { templateId, templateVersionId: versionId },
+      queries: { offset: 2, limit: 2 },
+    });
   });
 });

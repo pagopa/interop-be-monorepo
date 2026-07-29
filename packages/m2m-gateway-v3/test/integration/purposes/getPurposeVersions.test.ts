@@ -1,10 +1,9 @@
 import { m2mGatewayApiV3, purposeApi } from "pagopa-interop-api-clients";
 import {
-  getMockedApiPurpose,
   getMockedApiPurposeVersion,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -19,200 +18,80 @@ import {
 } from "../../mockUtils.js";
 
 describe("getPurposeVersions", () => {
-  const mockParams: m2mGatewayApiV3.GetPurposeVersionsQueryParams = {
-    state: undefined,
-    offset: 0,
-    limit: 10,
-  };
+  const purposeId = generateId();
 
   const mockApiPurposeVersion1 = getMockedApiPurposeVersion();
   const mockApiPurposeVersion2 = getMockedApiPurposeVersion({
     state: purposeApi.PurposeVersionState.Enum.ACTIVE,
   });
-  const mockApiPurposeVersion3 = getMockedApiPurposeVersion({
-    state: purposeApi.PurposeVersionState.Enum.DRAFT,
-  });
-  const mockApiPurposeVersion4 = getMockedApiPurposeVersion({
-    state: purposeApi.PurposeVersionState.Enum.ACTIVE,
-  });
-  const mockApiPurposeVersion5 = getMockedApiPurposeVersion({
-    state: purposeApi.PurposeVersionState.Enum.SUSPENDED,
+
+  // Pagination is now performed by purpose-process: the gateway only forwards
+  // the query params and maps the paginated results.
+  const mockProcessResponse = getMockWithMetadata({
+    results: [mockApiPurposeVersion1, mockApiPurposeVersion2],
+    totalCount: 5,
   });
 
-  const mockApiPurpose = getMockWithMetadata(
-    getMockedApiPurpose({
-      versions: [
-        mockApiPurposeVersion1,
-        mockApiPurposeVersion2,
-        mockApiPurposeVersion3,
-        mockApiPurposeVersion4,
-        mockApiPurposeVersion5,
-      ],
-    })
-  );
-  const mockGetPurpose = vi.fn().mockResolvedValue(mockApiPurpose);
+  const mockGetPurposeVersions = vi.fn().mockResolvedValue(mockProcessResponse);
 
   mockInteropBeClients.purposeProcessClient = {
-    getPurpose: mockGetPurpose,
+    getPurposeVersions: mockGetPurposeVersions,
   } as unknown as PagoPAInteropBeClients["purposeProcessClient"];
 
   beforeEach(() => {
-    mockGetPurpose.mockClear();
+    mockGetPurposeVersions.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mPurposeResponse: m2mGatewayApiV3.PurposeVersions = {
-      pagination: {
-        limit: mockParams.limit,
-        offset: mockParams.offset,
-        totalCount: mockApiPurpose.data.versions.length,
-      },
+  it("Should delegate pagination to purpose-process and map the results", async () => {
+    const queryParams: m2mGatewayApiV3.GetPurposeVersionsQueryParams = {
+      state: undefined,
+      offset: 0,
+      limit: 10,
+    };
+
+    const expected: m2mGatewayApiV3.PurposeVersions = {
       results: [
         testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion1),
         testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion2),
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion3),
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion4),
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion5),
       ],
+      pagination: {
+        limit: queryParams.limit,
+        offset: queryParams.offset,
+        totalCount: 5,
+      },
     };
 
     const result = await purposeService.getPurposeVersions(
-      unsafeBrandId(mockApiPurpose.data.id),
-      mockParams,
+      unsafeBrandId(purposeId),
+      queryParams,
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toStrictEqual(m2mPurposeResponse);
+    expect(result).toStrictEqual(expected);
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.purposeProcessClient.getPurpose,
-      params: { id: mockApiPurpose.data.id },
+      mockGet: mockInteropBeClients.purposeProcessClient.getPurposeVersions,
+      params: { purposeId },
+      queries: { state: undefined, offset: 0, limit: 10 },
     });
   });
 
-  it("Should apply filters (offset, limit)", async () => {
-    const m2mPurposeResponse: m2mGatewayApiV3.PurposeVersions = {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: mockApiPurpose.data.versions.length,
-      },
-      results: [
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion1),
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion2),
-      ],
+  it("Should forward the state filter and pagination params to the process", async () => {
+    const queryParams: m2mGatewayApiV3.GetPurposeVersionsQueryParams = {
+      state: purposeApi.PurposeVersionState.Enum.ACTIVE,
+      offset: 2,
+      limit: 1,
     };
-    const result = await purposeService.getPurposeVersions(
-      unsafeBrandId(mockApiPurpose.data.id),
-      {
-        offset: 0,
-        limit: 2,
-        state: undefined,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result).toStrictEqual(m2mPurposeResponse);
 
-    const m2mPurposeResponse2: m2mGatewayApiV3.PurposeVersions = {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: mockApiPurpose.data.versions.length,
-      },
-      results: [
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion3),
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion4),
-      ],
-    };
-    const result2 = await purposeService.getPurposeVersions(
-      unsafeBrandId(mockApiPurpose.data.id),
-      {
-        offset: 2,
-        limit: 2,
-        state: undefined,
-      },
+    await purposeService.getPurposeVersions(
+      unsafeBrandId(purposeId),
+      queryParams,
       getMockM2MAdminAppContext()
     );
-    expect(result2).toStrictEqual(m2mPurposeResponse2);
 
-    const m2mPurposeResponse3: m2mGatewayApiV3.PurposeVersions = {
-      pagination: {
-        offset: 4,
-        limit: 2,
-        totalCount: mockApiPurpose.data.versions.length,
-      },
-      results: [testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion5)],
-    };
-    const result3 = await purposeService.getPurposeVersions(
-      unsafeBrandId(mockApiPurpose.data.id),
-      {
-        offset: 4,
-        limit: 2,
-        state: undefined,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result3).toStrictEqual(m2mPurposeResponse3);
-  });
-
-  it("Should apply filters (offset, limit, state)", async () => {
-    const m2mPurposeResponse1: m2mGatewayApiV3.PurposeVersions = {
-      pagination: {
-        offset: 0,
-        limit: 10,
-        totalCount: 2,
-      },
-      results: [
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion2),
-        testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion4),
-      ],
-    };
-    const result1 = await purposeService.getPurposeVersions(
-      unsafeBrandId(mockApiPurpose.data.id),
-      {
-        offset: 0,
-        limit: 10,
-        state: purposeApi.PurposeVersionState.Enum.ACTIVE,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result1).toStrictEqual(m2mPurposeResponse1);
-
-    const m2mPurposeResponse2: m2mGatewayApiV3.PurposeVersions = {
-      pagination: {
-        offset: 0,
-        limit: 1,
-        totalCount: 2,
-      },
-      results: [testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion2)],
-    };
-    const result2 = await purposeService.getPurposeVersions(
-      unsafeBrandId(mockApiPurpose.data.id),
-      {
-        offset: 0,
-        limit: 1,
-        state: "ACTIVE",
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result2).toStrictEqual(m2mPurposeResponse2);
-
-    const m2mPurposeResponse3: m2mGatewayApiV3.PurposeVersions = {
-      pagination: {
-        offset: 0,
-        limit: 10,
-        totalCount: 1,
-      },
-      results: [testToM2mGatewayApiPurposeVersion(mockApiPurposeVersion5)],
-    };
-    const result3 = await purposeService.getPurposeVersions(
-      unsafeBrandId(mockApiPurpose.data.id),
-      {
-        offset: 0,
-        limit: 10,
-        state: purposeApi.PurposeVersionState.Enum.SUSPENDED,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result3).toStrictEqual(m2mPurposeResponse3);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.purposeProcessClient.getPurposeVersions,
+      params: { purposeId },
+      queries: { state: "ACTIVE", offset: 2, limit: 1 },
+    });
   });
 });

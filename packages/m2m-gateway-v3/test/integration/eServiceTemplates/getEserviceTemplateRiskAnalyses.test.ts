@@ -6,7 +6,7 @@ import {
   getMockedApiEServiceTemplate,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -21,26 +21,12 @@ import {
 } from "../../mockUtils.js";
 
 describe("getEserviceTemplateRiskAnalyses", () => {
+  const templateId = generateId();
+
   const mockRiskAnalysis1: eserviceTemplateApi.EServiceTemplateRiskAnalysis =
     getMockedApiEServiceTemplate().riskAnalysis[0]!;
   const mockRiskAnalysis2: eserviceTemplateApi.EServiceTemplateRiskAnalysis =
     getMockedApiEServiceTemplate().riskAnalysis[0]!;
-  const mockRiskAnalysis3: eserviceTemplateApi.EServiceTemplateRiskAnalysis =
-    getMockedApiEServiceTemplate().riskAnalysis[0]!;
-  const mockRiskAnalysis4: eserviceTemplateApi.EServiceTemplateRiskAnalysis =
-    getMockedApiEServiceTemplate().riskAnalysis[0]!;
-  const mockRiskAnalysis5: eserviceTemplateApi.EServiceTemplateRiskAnalysis =
-    getMockedApiEServiceTemplate().riskAnalysis[0]!;
-  const mockEServiceTemplate: eserviceTemplateApi.EServiceTemplate = {
-    ...getMockedApiEServiceTemplate(),
-    riskAnalysis: [
-      mockRiskAnalysis1,
-      mockRiskAnalysis2,
-      mockRiskAnalysis3,
-      mockRiskAnalysis4,
-      mockRiskAnalysis5,
-    ],
-  };
 
   const testToM2MGatewayApiRiskAnalysis = (
     mockRiskAnalysis: eserviceTemplateApi.EServiceTemplateRiskAnalysis
@@ -58,134 +44,67 @@ describe("getEserviceTemplateRiskAnalyses", () => {
     tenantKind: mockRiskAnalysis.tenantKind,
   });
 
-  const m2mEServiceTemplateRiskAnalysis1 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis1);
-  const m2mEServiceTemplateRiskAnalysis2 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis2);
-  const m2mEServiceTemplateRiskAnalysis3 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis3);
-  const m2mEServiceTemplateRiskAnalysis4 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis4);
-  const m2mEServiceTemplateRiskAnalysis5 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis5);
+  // Pagination is now performed by eservice-template-process.
+  const mockProcessResponse = getMockWithMetadata({
+    results: [mockRiskAnalysis1, mockRiskAnalysis2],
+    totalCount: 5,
+  });
 
-  const mockGetEserviceTemplate = vi
+  const mockGetEServiceTemplateRiskAnalyses = vi
     .fn()
-    .mockResolvedValue(getMockWithMetadata(mockEServiceTemplate));
+    .mockResolvedValue(mockProcessResponse);
 
   mockInteropBeClients.eserviceTemplateProcessClient = {
-    getEServiceTemplateById: mockGetEserviceTemplate,
+    getEServiceTemplateRiskAnalyses: mockGetEServiceTemplateRiskAnalyses,
   } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
-    mockGetEserviceTemplate.mockClear();
+    mockGetEServiceTemplateRiskAnalyses.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mRiskAnalysesResponse: m2mGatewayApiV3.EServiceTemplateRiskAnalyses =
-      {
-        pagination: {
-          offset: 0,
-          limit: 10,
-          totalCount: mockEServiceTemplate.riskAnalysis.length,
-        },
-        results: [
-          m2mEServiceTemplateRiskAnalysis1,
-          m2mEServiceTemplateRiskAnalysis2,
-          m2mEServiceTemplateRiskAnalysis3,
-          m2mEServiceTemplateRiskAnalysis4,
-          m2mEServiceTemplateRiskAnalysis5,
-        ],
-      };
+  it("Should delegate pagination to eservice-template-process and map the results", async () => {
+    const expected: m2mGatewayApiV3.EServiceTemplateRiskAnalyses = {
+      results: [
+        testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis1),
+        testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis2),
+      ],
+      pagination: {
+        offset: 0,
+        limit: 10,
+        totalCount: 5,
+      },
+    };
 
     const result =
       await eserviceTemplateService.getEServiceTemplateRiskAnalyses(
-        unsafeBrandId(mockEServiceTemplate.id),
-        {
-          offset: 0,
-          limit: 10,
-        },
+        unsafeBrandId(templateId),
+        { offset: 0, limit: 10 },
         getMockM2MAdminAppContext()
       );
 
-    expect(result).toStrictEqual(m2mRiskAnalysesResponse);
+    expect(result).toStrictEqual(expected);
     expectApiClientGetToHaveBeenCalledWith({
       mockGet:
         mockInteropBeClients.eserviceTemplateProcessClient
-          .getEServiceTemplateById,
-      params: { templateId: mockEServiceTemplate.id },
+          .getEServiceTemplateRiskAnalyses,
+      params: { templateId },
+      queries: { offset: 0, limit: 10 },
     });
   });
 
-  it("Should apply filters (offset, limit)", async () => {
-    const response1: m2mGatewayApiV3.EServiceTemplateRiskAnalyses = {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: mockEServiceTemplate.riskAnalysis.length,
-      },
-      results: [
-        m2mEServiceTemplateRiskAnalysis1,
-        m2mEServiceTemplateRiskAnalysis2,
-      ],
-    };
+  it("Should forward the pagination params to the process", async () => {
+    await eserviceTemplateService.getEServiceTemplateRiskAnalyses(
+      unsafeBrandId(templateId),
+      { offset: 2, limit: 2 },
+      getMockM2MAdminAppContext()
+    );
 
-    const result =
-      await eserviceTemplateService.getEServiceTemplateRiskAnalyses(
-        unsafeBrandId(mockEServiceTemplate.id),
-        {
-          offset: 0,
-          limit: 2,
-        },
-        getMockM2MAdminAppContext()
-      );
-
-    expect(result).toStrictEqual(response1);
-
-    const response2: m2mGatewayApiV3.EServiceTemplateRiskAnalyses = {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: mockEServiceTemplate.riskAnalysis.length,
-      },
-      results: [
-        m2mEServiceTemplateRiskAnalysis3,
-        m2mEServiceTemplateRiskAnalysis4,
-      ],
-    };
-
-    const result2 =
-      await eserviceTemplateService.getEServiceTemplateRiskAnalyses(
-        unsafeBrandId(mockEServiceTemplate.id),
-        {
-          offset: 2,
-          limit: 2,
-        },
-        getMockM2MAdminAppContext()
-      );
-
-    expect(result2).toStrictEqual(response2);
-
-    const response3: m2mGatewayApiV3.EServiceTemplateRiskAnalyses = {
-      pagination: {
-        offset: 4,
-        limit: 2,
-        totalCount: mockEServiceTemplate.riskAnalysis.length,
-      },
-      results: [m2mEServiceTemplateRiskAnalysis5],
-    };
-
-    const result3 =
-      await eserviceTemplateService.getEServiceTemplateRiskAnalyses(
-        unsafeBrandId(mockEServiceTemplate.id),
-        {
-          offset: 4,
-          limit: 2,
-        },
-        getMockM2MAdminAppContext()
-      );
-
-    expect(result3).toStrictEqual(response3);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet:
+        mockInteropBeClients.eserviceTemplateProcessClient
+          .getEServiceTemplateRiskAnalyses,
+      params: { templateId },
+      queries: { offset: 2, limit: 2 },
+    });
   });
 });

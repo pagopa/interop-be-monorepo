@@ -30,6 +30,7 @@ import {
   descriptorToApiDescriptor,
   documentToApiDocument,
   eServiceToApiEService,
+  riskAnalysisToApiEServiceRiskAnalysis,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { CatalogService } from "../services/catalogService.js";
@@ -53,6 +54,7 @@ import {
   documentGetErrorMapper,
   documentUpdateErrorMapper,
   getEServiceErrorMapper,
+  getEServiceDescriptorSubResourceErrorMapper,
   publishDescriptorErrorMapper,
   rejectDelegatedEServiceDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
@@ -256,6 +258,207 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .get("/eservices/:eServiceId/riskAnalyses", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          M2M_ADMIN_ROLE,
+          INTERNAL_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
+        ]);
+
+        const { offset, limit } = req.query;
+
+        const riskAnalyses = await catalogService.getEServiceRiskAnalyses(
+          unsafeBrandId(req.params.eServiceId),
+          { offset, limit },
+          ctx
+        );
+
+        return res.status(200).send(
+          catalogApi.EServiceRiskAnalyses.parse({
+            results: riskAnalyses.results.map(
+              riskAnalysisToApiEServiceRiskAnalysis
+            ),
+            totalCount: riskAnalyses.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/eservices/:eServiceId/descriptors", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          SUPPORT_ROLE,
+          SECURITY_ROLE,
+          M2M_ROLE,
+          M2M_ADMIN_ROLE,
+          INTERNAL_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
+        ]);
+
+        const { state, offset, limit } = req.query;
+
+        const descriptors = await catalogService.getEServiceDescriptors(
+          unsafeBrandId(req.params.eServiceId),
+          {
+            state: state
+              ? apiDescriptorStateToDescriptorState(state)
+              : undefined,
+            offset,
+            limit,
+          },
+          ctx
+        );
+
+        return res.status(200).send(
+          catalogApi.EServiceDescriptors.parse({
+            results: descriptors.results.map(descriptorToApiDescriptor),
+            totalCount: descriptors.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, getEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get(
+      "/eservices/:eServiceId/descriptors/:descriptorId/attributes/certified",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            M2M_ADMIN_ROLE,
+            INTERNAL_ROLE,
+            REVIEWER_ROLE,
+            VIEWER_ROLE,
+          ]);
+          const { offset, limit } = req.query;
+          const attributes =
+            await catalogService.getEServiceDescriptorAttributes(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              "certified",
+              { offset, limit },
+              ctx
+            );
+          return res.status(200).send(
+            catalogApi.EServiceDescriptorAttributeReferences.parse({
+              results: attributes.results,
+              totalCount: attributes.totalCount,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceDescriptorSubResourceErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/:eServiceId/descriptors/:descriptorId/attributes/declared",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            M2M_ADMIN_ROLE,
+            INTERNAL_ROLE,
+            REVIEWER_ROLE,
+            VIEWER_ROLE,
+          ]);
+          const { offset, limit } = req.query;
+          const attributes =
+            await catalogService.getEServiceDescriptorAttributes(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              "declared",
+              { offset, limit },
+              ctx
+            );
+          return res.status(200).send(
+            catalogApi.EServiceDescriptorAttributeReferences.parse({
+              results: attributes.results,
+              totalCount: attributes.totalCount,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceDescriptorSubResourceErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eservices/:eServiceId/descriptors/:descriptorId/attributes/verified",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            API_ROLE,
+            SUPPORT_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            M2M_ADMIN_ROLE,
+            INTERNAL_ROLE,
+            REVIEWER_ROLE,
+            VIEWER_ROLE,
+          ]);
+          const { offset, limit } = req.query;
+          const attributes =
+            await catalogService.getEServiceDescriptorAttributes(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              "verified",
+              { offset, limit },
+              ctx
+            );
+          return res.status(200).send(
+            catalogApi.EServiceDescriptorAttributeReferences.parse({
+              results: attributes.results,
+              totalCount: attributes.totalCount,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceDescriptorSubResourceErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .put("/eservices/:eServiceId", async (req, res) => {
       const ctx = fromAppContext(req.ctx);
 

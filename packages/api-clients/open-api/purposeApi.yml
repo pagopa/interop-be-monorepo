@@ -683,6 +683,51 @@ paths:
         schema:
           type: string
           format: uuid
+    get:
+      tags:
+        - purpose
+      operationId: getPurposeVersions
+      description: Retrieve the versions of a Purpose
+      parameters:
+        - in: query
+          name: state
+          required: false
+          schema:
+            $ref: "#/components/schemas/PurposeVersionState"
+        - in: query
+          name: offset
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 0
+        - in: query
+          name: limit
+          required: true
+          schema:
+            type: integer
+            format: int32
+            minimum: 1
+            maximum: 50
+      responses:
+        "200":
+          description: Purpose versions requested
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PurposeVersions"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Purpose Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
     post:
       tags:
         - purpose
@@ -1964,6 +2009,20 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Purpose"
+        totalCount:
+          type: integer
+          format: int32
+      required:
+        - results
+        - totalCount
+    PurposeVersions:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/PurposeVersion"
         totalCount:
           type: integer
           format: int32

@@ -3,7 +3,7 @@ import {
   getMockedApiEservice,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -18,26 +18,12 @@ import {
 } from "../../mockUtils.js";
 
 describe("getEserviceRiskAnalyses", () => {
+  const eserviceId = generateId();
+
   const mockRiskAnalysis1: catalogApi.EServiceRiskAnalysis =
     getMockedApiEservice().riskAnalysis[0]!;
   const mockRiskAnalysis2: catalogApi.EServiceRiskAnalysis =
     getMockedApiEservice().riskAnalysis[0]!;
-  const mockRiskAnalysis3: catalogApi.EServiceRiskAnalysis =
-    getMockedApiEservice().riskAnalysis[0]!;
-  const mockRiskAnalysis4: catalogApi.EServiceRiskAnalysis =
-    getMockedApiEservice().riskAnalysis[0]!;
-  const mockRiskAnalysis5: catalogApi.EServiceRiskAnalysis =
-    getMockedApiEservice().riskAnalysis[0]!;
-  const mockEService: catalogApi.EService = {
-    ...getMockedApiEservice(),
-    riskAnalysis: [
-      mockRiskAnalysis1,
-      mockRiskAnalysis2,
-      mockRiskAnalysis3,
-      mockRiskAnalysis4,
-      mockRiskAnalysis5,
-    ],
-  };
 
   const testToM2MGatewayApiRiskAnalysis = (
     mockRiskAnalysis: catalogApi.EServiceRiskAnalysis
@@ -54,121 +40,65 @@ describe("getEserviceRiskAnalyses", () => {
     },
   });
 
-  const m2mEServiceRiskAnalysis1 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis1);
-  const m2mEServiceRiskAnalysis2 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis2);
-  const m2mEServiceRiskAnalysis3 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis3);
-  const m2mEServiceRiskAnalysis4 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis4);
-  const m2mEServiceRiskAnalysis5 =
-    testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis5);
+  // Pagination is now performed by catalog-process: the gateway only forwards
+  // the query params and maps the paginated results.
+  const mockProcessResponse = getMockWithMetadata({
+    results: [mockRiskAnalysis1, mockRiskAnalysis2],
+    totalCount: 5,
+  });
 
-  const mockGetEservice = vi
+  const mockGetEServiceRiskAnalyses = vi
     .fn()
-    .mockResolvedValue(getMockWithMetadata(mockEService));
+    .mockResolvedValue(mockProcessResponse);
 
   mockInteropBeClients.catalogProcessClient = {
-    getEServiceById: mockGetEservice,
+    getEServiceRiskAnalyses: mockGetEServiceRiskAnalyses,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
-    mockGetEservice.mockClear();
+    mockGetEServiceRiskAnalyses.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mRiskAnalysesResponse: m2mGatewayApiV3.EServiceRiskAnalyses = {
+  it("Should delegate pagination to catalog-process and map the results", async () => {
+    const expected: m2mGatewayApiV3.EServiceRiskAnalyses = {
+      results: [
+        testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis1),
+        testToM2MGatewayApiRiskAnalysis(mockRiskAnalysis2),
+      ],
       pagination: {
         offset: 0,
         limit: 10,
-        totalCount: mockEService.riskAnalysis.length,
+        totalCount: 5,
       },
-      results: [
-        m2mEServiceRiskAnalysis1,
-        m2mEServiceRiskAnalysis2,
-        m2mEServiceRiskAnalysis3,
-        m2mEServiceRiskAnalysis4,
-        m2mEServiceRiskAnalysis5,
-      ],
     };
 
     const result = await eserviceService.getEServiceRiskAnalyses(
-      unsafeBrandId(mockEService.id),
-      {
-        offset: 0,
-        limit: 10,
-      },
+      unsafeBrandId(eserviceId),
+      { offset: 0, limit: 10 },
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toStrictEqual(m2mRiskAnalysesResponse);
+    expect(result).toStrictEqual(expected);
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
-      params: { eServiceId: mockEService.id },
+      mockGet:
+        mockInteropBeClients.catalogProcessClient.getEServiceRiskAnalyses,
+      params: { eServiceId: eserviceId },
+      queries: { offset: 0, limit: 10 },
     });
   });
 
-  it("Should apply filters (offset, limit)", async () => {
-    const response1: m2mGatewayApiV3.EServiceRiskAnalyses = {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: mockEService.riskAnalysis.length,
-      },
-      results: [m2mEServiceRiskAnalysis1, m2mEServiceRiskAnalysis2],
-    };
-
-    const result = await eserviceService.getEServiceRiskAnalyses(
-      unsafeBrandId(mockEService.id),
-      {
-        offset: 0,
-        limit: 2,
-      },
+  it("Should forward the pagination params to the process", async () => {
+    await eserviceService.getEServiceRiskAnalyses(
+      unsafeBrandId(eserviceId),
+      { offset: 2, limit: 2 },
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toStrictEqual(response1);
-
-    const response2: m2mGatewayApiV3.EServiceRiskAnalyses = {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: mockEService.riskAnalysis.length,
-      },
-      results: [m2mEServiceRiskAnalysis3, m2mEServiceRiskAnalysis4],
-    };
-
-    const result2 = await eserviceService.getEServiceRiskAnalyses(
-      unsafeBrandId(mockEService.id),
-      {
-        offset: 2,
-        limit: 2,
-      },
-      getMockM2MAdminAppContext()
-    );
-
-    expect(result2).toStrictEqual(response2);
-
-    const response3: m2mGatewayApiV3.EServiceRiskAnalyses = {
-      pagination: {
-        offset: 4,
-        limit: 2,
-        totalCount: mockEService.riskAnalysis.length,
-      },
-      results: [m2mEServiceRiskAnalysis5],
-    };
-
-    const result3 = await eserviceService.getEServiceRiskAnalyses(
-      unsafeBrandId(mockEService.id),
-      {
-        offset: 4,
-        limit: 2,
-      },
-      getMockM2MAdminAppContext()
-    );
-
-    expect(result3).toStrictEqual(response3);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet:
+        mockInteropBeClients.catalogProcessClient.getEServiceRiskAnalyses,
+      params: { eServiceId: eserviceId },
+      queries: { offset: 2, limit: 2 },
+    });
   });
 });

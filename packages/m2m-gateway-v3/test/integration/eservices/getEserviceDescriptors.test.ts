@@ -1,10 +1,9 @@
 import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
-  getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { unsafeBrandId } from "pagopa-interop-models";
+import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
@@ -16,37 +15,12 @@ import {
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEserviceDescriptors", () => {
-  const mockCatalogProcessDescriptor1 = getMockedApiEserviceDescriptor({
-    state: "ARCHIVED",
-  });
+  const eserviceId = generateId();
 
-  const mockCatalogProcessDescriptor2 = getMockedApiEserviceDescriptor({
-    state: "ARCHIVED",
-  });
-
-  const mockCatalogProcessDescriptor3 = getMockedApiEserviceDescriptor({
-    state: "DEPRECATED",
-  });
-
-  const mockCatalogProcessDescriptor4 = getMockedApiEserviceDescriptor({
+  const mockDescriptor1 = getMockedApiEserviceDescriptor({
     state: "PUBLISHED",
   });
-
-  const mockCatalogProcessDescriptor5 = getMockedApiEserviceDescriptor({
-    state: "DRAFT",
-  });
-
-  const mockCatalogProcessResponse = getMockWithMetadata(
-    getMockedApiEservice({
-      descriptors: [
-        mockCatalogProcessDescriptor1,
-        mockCatalogProcessDescriptor2,
-        mockCatalogProcessDescriptor3,
-        mockCatalogProcessDescriptor4,
-        mockCatalogProcessDescriptor5,
-      ],
-    })
-  );
+  const mockDescriptor2 = getMockedApiEserviceDescriptor({ state: "ARCHIVED" });
 
   const testToM2MGatewayApiDescriptor = (
     descriptor: catalogApi.EServiceDescriptor
@@ -70,187 +44,63 @@ describe("getEserviceDescriptors", () => {
     asyncExchangeProperties: descriptor.asyncExchangeProperties,
   });
 
-  const m2mEserviceDescriptorResponse1: m2mGatewayApiV3.EServiceDescriptor =
-    testToM2MGatewayApiDescriptor(mockCatalogProcessDescriptor1);
-  const m2mEserviceDescriptorResponse2: m2mGatewayApiV3.EServiceDescriptor =
-    testToM2MGatewayApiDescriptor(mockCatalogProcessDescriptor2);
-  const m2mEserviceDescriptorResponse3: m2mGatewayApiV3.EServiceDescriptor =
-    testToM2MGatewayApiDescriptor(mockCatalogProcessDescriptor3);
-  const m2mEserviceDescriptorResponse4: m2mGatewayApiV3.EServiceDescriptor =
-    testToM2MGatewayApiDescriptor(mockCatalogProcessDescriptor4);
-  const m2mEserviceDescriptorResponse5: m2mGatewayApiV3.EServiceDescriptor =
-    testToM2MGatewayApiDescriptor(mockCatalogProcessDescriptor5);
+  // Pagination (and descriptor visibility) is now performed by catalog-process:
+  // the gateway only forwards the query params and maps the paginated results.
+  const mockProcessResponse = getMockWithMetadata({
+    results: [mockDescriptor1, mockDescriptor2],
+    totalCount: 5,
+  });
 
-  const mockGetEservice = vi.fn().mockResolvedValue(mockCatalogProcessResponse);
+  const mockGetEServiceDescriptors = vi
+    .fn()
+    .mockResolvedValue(mockProcessResponse);
 
   mockInteropBeClients.catalogProcessClient = {
-    getEServiceById: mockGetEservice,
+    getEServiceDescriptors: mockGetEServiceDescriptors,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
   beforeEach(() => {
-    // Clear mock counters and call information before each test
-    mockGetEservice.mockClear();
+    mockGetEServiceDescriptors.mockClear();
   });
 
-  it("Should succeed and perform API clients calls", async () => {
-    const m2mEserviceDescriptorsResponse: m2mGatewayApiV3.EServiceDescriptors =
-      {
-        pagination: {
-          offset: 0,
-          limit: 10,
-          totalCount: mockCatalogProcessResponse.data.descriptors.length,
-        },
-        results: [
-          m2mEserviceDescriptorResponse1,
-          m2mEserviceDescriptorResponse2,
-          m2mEserviceDescriptorResponse3,
-          m2mEserviceDescriptorResponse4,
-          m2mEserviceDescriptorResponse5,
-        ],
-      };
-
-    const result = await eserviceService.getEServiceDescriptors(
-      unsafeBrandId(mockCatalogProcessResponse.data.id),
-      {
+  it("Should delegate pagination to catalog-process and map the results", async () => {
+    const expected: m2mGatewayApiV3.EServiceDescriptors = {
+      results: [
+        testToM2MGatewayApiDescriptor(mockDescriptor1),
+        testToM2MGatewayApiDescriptor(mockDescriptor2),
+      ],
+      pagination: {
         offset: 0,
         limit: 10,
+        totalCount: 5,
       },
+    };
+
+    const result = await eserviceService.getEServiceDescriptors(
+      unsafeBrandId(eserviceId),
+      { state: undefined, offset: 0, limit: 10 },
       getMockM2MAdminAppContext()
     );
 
-    expect(result).toStrictEqual(m2mEserviceDescriptorsResponse);
+    expect(result).toStrictEqual(expected);
     expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceById,
-      params: { eServiceId: mockCatalogProcessResponse.data.id },
+      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceDescriptors,
+      params: { eServiceId: eserviceId },
+      queries: { state: undefined, offset: 0, limit: 10 },
     });
   });
 
-  it("Should apply filters (offset, limit)", async () => {
-    const m2mEserviceDescriptorsResponse1: m2mGatewayApiV3.EServiceDescriptors =
-      {
-        pagination: {
-          offset: 0,
-          limit: 2,
-          totalCount: mockCatalogProcessResponse.data.descriptors.length,
-        },
-        results: [
-          m2mEserviceDescriptorResponse1,
-          m2mEserviceDescriptorResponse2,
-        ],
-      };
-    const result = await eserviceService.getEServiceDescriptors(
-      unsafeBrandId(mockCatalogProcessResponse.data.id),
-      {
-        offset: 0,
-        limit: 2,
-      },
+  it("Should forward the state filter and pagination params to the process", async () => {
+    await eserviceService.getEServiceDescriptors(
+      unsafeBrandId(eserviceId),
+      { state: "PUBLISHED", offset: 2, limit: 2 },
       getMockM2MAdminAppContext()
     );
-    expect(result).toStrictEqual(m2mEserviceDescriptorsResponse1);
 
-    const m2mEserviceDescriptorsResponse2: m2mGatewayApiV3.EServiceDescriptors =
-      {
-        pagination: {
-          offset: 2,
-          limit: 2,
-          totalCount: mockCatalogProcessResponse.data.descriptors.length,
-        },
-        results: [
-          m2mEserviceDescriptorResponse3,
-          m2mEserviceDescriptorResponse4,
-        ],
-      };
-    const result2 = await eserviceService.getEServiceDescriptors(
-      unsafeBrandId(mockCatalogProcessResponse.data.id),
-      {
-        offset: 2,
-        limit: 2,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result2).toStrictEqual(m2mEserviceDescriptorsResponse2);
-
-    const m2mEserviceDescriptorsResponse3: m2mGatewayApiV3.EServiceDescriptors =
-      {
-        pagination: {
-          offset: 4,
-          limit: 2,
-          totalCount: mockCatalogProcessResponse.data.descriptors.length,
-        },
-        results: [m2mEserviceDescriptorResponse5],
-      };
-    const result3 = await eserviceService.getEServiceDescriptors(
-      unsafeBrandId(mockCatalogProcessResponse.data.id),
-      {
-        offset: 4,
-        limit: 2,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result3).toStrictEqual(m2mEserviceDescriptorsResponse3);
-  });
-
-  it("Should apply filters (offset, limit, state)", async () => {
-    const m2mEserviceDescriptorsResponse1: m2mGatewayApiV3.EServiceDescriptors =
-      {
-        pagination: {
-          offset: 0,
-          limit: 10,
-          totalCount: 2,
-        },
-        results: [
-          m2mEserviceDescriptorResponse1,
-          m2mEserviceDescriptorResponse2,
-        ],
-      };
-    const result = await eserviceService.getEServiceDescriptors(
-      unsafeBrandId(mockCatalogProcessResponse.data.id),
-      {
-        state: "ARCHIVED",
-        offset: 0,
-        limit: 10,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result).toStrictEqual(m2mEserviceDescriptorsResponse1);
-
-    const m2mEserviceDescriptorsResponse2: m2mGatewayApiV3.EServiceDescriptors =
-      {
-        pagination: {
-          offset: 0,
-          limit: 10,
-          totalCount: 1,
-        },
-        results: [m2mEserviceDescriptorResponse4],
-      };
-    const result2 = await eserviceService.getEServiceDescriptors(
-      unsafeBrandId(mockCatalogProcessResponse.data.id),
-      {
-        state: "PUBLISHED",
-        offset: 0,
-        limit: 10,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result2).toStrictEqual(m2mEserviceDescriptorsResponse2);
-    const m2mEserviceDescriptorsResponse3: m2mGatewayApiV3.EServiceDescriptors =
-      {
-        pagination: {
-          offset: 0,
-          limit: 1,
-          totalCount: 2,
-        },
-        results: [m2mEserviceDescriptorResponse1],
-      };
-    const result3 = await eserviceService.getEServiceDescriptors(
-      unsafeBrandId(mockCatalogProcessResponse.data.id),
-      {
-        state: "ARCHIVED",
-        offset: 0,
-        limit: 1,
-      },
-      getMockM2MAdminAppContext()
-    );
-    expect(result3).toStrictEqual(m2mEserviceDescriptorsResponse3);
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet: mockInteropBeClients.catalogProcessClient.getEServiceDescriptors,
+      params: { eServiceId: eserviceId },
+      queries: { state: "PUBLISHED", offset: 2, limit: 2 },
+    });
   });
 });

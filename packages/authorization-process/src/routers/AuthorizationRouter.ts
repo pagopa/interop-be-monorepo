@@ -1002,6 +1002,49 @@ const authorizationRouter = (
       }
     })
     .get(
+      "/producerKeychains/:producerKeychainId/eservices",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        const { offset, limit } = req.query;
+
+        try {
+          validateAuthorization(ctx, [
+            ADMIN_ROLE,
+            SECURITY_ROLE,
+            M2M_ROLE,
+            SUPPORT_ROLE,
+            M2M_ADMIN_ROLE,
+          ]);
+
+          const eservices =
+            await authorizationService.getProducerKeychainEServices(
+              {
+                producerKeychainId: unsafeBrandId(
+                  req.params.producerKeychainId
+                ),
+                offset,
+                limit,
+              },
+              ctx
+            );
+
+          return res.status(200).send(
+            authorizationApi.ProducerKeychainEServices.parse({
+              results: eservices.results,
+              totalCount: eservices.totalCount,
+            })
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getProducerKeychainKeysErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
       "/producerKeychains/:producerKeychainId/keys/:keyId",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);

@@ -10,13 +10,20 @@ import {
   validateAuthorization,
   setMetadataVersionHeader,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 
 import {
   apiTenantFeatureTypeToTenantFeatureType,
+  toApiCertifiedTenantAttribute,
+  toApiDeclaredTenantAttribute,
   toApiTenant,
   toApiTenantRevoker,
   toApiTenantVerifier,
+  toApiVerifiedTenantAttribute,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 import { TenantService } from "../services/tenantService.js";
@@ -46,6 +53,7 @@ import {
   maintenanceTenantUpdatedErrorMapper,
   maintenanceTenantDeleteRemoteIdErrorMapper,
   updateTenantDelegatedFeaturesErrorMapper,
+  getTenantAttributesErrorMapper,
   getTenantVerifiedAttributeVerifiersErrorMapper,
   getTenantVerifiedAttributeRevokersErrorMapper,
   internalAddCertifiedDiscreteAttributeErrorMapper,
@@ -546,6 +554,93 @@ const tenantsRouter = (
         }
       }
     )
+    .get("/tenants/:tenantId/attributes/declared", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE, VIEWER_ROLE]);
+
+        const { delegationId, offset, limit } = req.query;
+        const result = await tenantService.getTenantDeclaredAttributes(
+          unsafeBrandId(req.params.tenantId),
+          {
+            delegationId: delegationId
+              ? unsafeBrandId<DelegationId>(delegationId)
+              : undefined,
+            offset,
+            limit,
+          },
+          ctx
+        );
+        return res.status(200).send(
+          tenantApi.DeclaredTenantAttributes.parse({
+            results: result.results.map(toApiDeclaredTenantAttribute),
+            totalCount: result.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getTenantAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/tenants/:tenantId/attributes/certified", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE, VIEWER_ROLE]);
+
+        const { offset, limit } = req.query;
+        const result = await tenantService.getTenantCertifiedAttributes(
+          unsafeBrandId(req.params.tenantId),
+          { offset, limit },
+          ctx
+        );
+        return res.status(200).send(
+          tenantApi.CertifiedTenantAttributes.parse({
+            results: result.results.map(toApiCertifiedTenantAttribute),
+            totalCount: result.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getTenantAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .get("/tenants/:tenantId/attributes/verified", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE, VIEWER_ROLE]);
+
+        const { offset, limit } = req.query;
+        const result = await tenantService.getTenantVerifiedAttributes(
+          unsafeBrandId(req.params.tenantId),
+          { offset, limit },
+          ctx
+        );
+        return res.status(200).send(
+          tenantApi.VerifiedTenantAttributes.parse({
+            results: result.results.map(toApiVerifiedTenantAttribute),
+            totalCount: result.totalCount,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          getTenantAttributesErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get(
       "/tenants/:tenantId/attributes/verified/:attributeId/revokers",
       async (req, res) => {

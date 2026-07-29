@@ -15,6 +15,7 @@ import {
   Document,
   archivingScope,
   ArchivingScope,
+  RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -250,4 +251,19 @@ export const eServiceToApiEService = (
   instanceLabel: eservice.instanceLabel,
   archivingReason: eservice.archivingReason,
   asyncExchange: eservice.asyncExchange,
+});
+
+export const riskAnalysisToApiEServiceRiskAnalysis = (
+  riskAnalysis: RiskAnalysis
+): catalogApi.EServiceRiskAnalysis => ({
+  id: riskAnalysis.id,
+  name: riskAnalysis.name,
+  createdAt: riskAnalysis.createdAt.toJSON(),
+  riskAnalysisForm: {
+    id: riskAnalysis.riskAnalysisForm.id,
+    version: riskAnalysis.riskAnalysisForm.version,
+    singleAnswers: riskAnalysis.riskAnalysisForm.singleAnswers,
+    multiAnswers: riskAnalysis.riskAnalysisForm.multiAnswers,
+    tenantKind: riskAnalysis.riskAnalysisForm.tenantKind,
+  },
 });

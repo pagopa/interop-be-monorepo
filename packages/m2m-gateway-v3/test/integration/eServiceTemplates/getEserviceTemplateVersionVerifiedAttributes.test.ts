@@ -1,23 +1,15 @@
 import {
   attributeRegistryApi,
-  eserviceTemplateApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
-import {
-  getMockedApiEServiceTemplate,
-  getMockedApiEserviceTemplateVersion,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+import { getMockWithMetadata } from "pagopa-interop-commons-test";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { toM2MGatewayApiVerifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import {
-  eserviceTemplateVersionAttributeNotFound,
-  eserviceTemplateVersionNotFound,
-} from "../../../src/model/errors.js";
+import { eserviceTemplateVersionAttributeNotFound } from "../../../src/model/errors.js";
 import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -26,80 +18,49 @@ import {
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getEserviceTemplateVersionVerifiedAttributes", () => {
-  const attribute1: eserviceTemplateApi.Attribute = {
-    id: generateId(),
-    explicitAttributeVerification: false,
-  };
+  const templateId = generateId();
+  const versionId = generateId();
 
-  const attribute2: eserviceTemplateApi.Attribute = {
-    id: generateId(),
-    explicitAttributeVerification: false,
-  };
-
-  const attribute3: eserviceTemplateApi.Attribute = {
-    id: generateId(),
-    explicitAttributeVerification: false,
-  };
-
-  const attribute4: eserviceTemplateApi.Attribute = {
-    id: generateId(),
-    explicitAttributeVerification: false,
-  };
-
-  const attribute5: eserviceTemplateApi.Attribute = {
-    id: generateId(),
-    explicitAttributeVerification: false,
-  };
-
-  const attribute6: eserviceTemplateApi.Attribute = {
-    id: generateId(),
-    explicitAttributeVerification: false,
-  };
   const bulkAttribute1: attributeRegistryApi.Attribute = {
-    code: "code1",
-    id: attribute1.id,
+    id: generateId(),
     name: "Attribute Name 1",
     creationTime: new Date().toISOString(),
     description: "Description 1",
-    origin: "Origin 1",
     kind: "VERIFIED",
   };
-
   const bulkAttribute2: attributeRegistryApi.Attribute = {
-    code: "code2",
-    id: attribute2.id,
+    id: generateId(),
     name: "Attribute Name 2",
     creationTime: new Date().toISOString(),
     description: "Description 2",
-    origin: "Origin 2",
     kind: "VERIFIED",
   };
 
-  const bulkAttribute3: attributeRegistryApi.Attribute = {
-    code: "code3",
-    id: attribute3.id,
-    name: "Attribute Name 3",
-    creationTime: new Date().toISOString(),
-    description: "Description 3",
-    origin: "Origin 3",
-    kind: "VERIFIED",
-  };
+  const mockGetVersionVerifiedAttributes = vi.fn().mockResolvedValue(
+    getMockWithMetadata({
+      results: [
+        { id: bulkAttribute1.id, groupIndex: 0 },
+        { id: bulkAttribute2.id, groupIndex: 0 },
+      ],
+      totalCount: 2,
+    })
+  );
 
-  const version: eserviceTemplateApi.EServiceTemplateVersion = {
-    ...getMockedApiEserviceTemplateVersion(),
-    attributes: {
-      verified: [[attribute1, attribute2], [attribute3]],
-      declared: [[attribute4, attribute5]],
-      certified: [[attribute6]],
-    },
-  };
+  const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
+    data: { results: [bulkAttribute1, bulkAttribute2], totalCount: 2 },
+    metadata: {},
+  });
 
-  const eserviceTemplate: eserviceTemplateApi.EServiceTemplate = {
-    ...getMockedApiEServiceTemplate(),
-    versions: [version],
-  };
+  mockInteropBeClients.eserviceTemplateProcessClient = {
+    getEServiceTemplateVersionVerifiedAttributes:
+      mockGetVersionVerifiedAttributes,
+  } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
 
-  const response: m2mGatewayApiV3.EServiceTemplateVersionVerifiedAttribute[] = [
+  mockInteropBeClients.attributeProcessClient = {
+    getBulkedAttributes: mockGetBulkedAttributes,
+  } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
+
+  const expectedResults = [
     {
       groupIndex: 0,
       attribute: toM2MGatewayApiVerifiedAttribute({
@@ -114,176 +75,60 @@ describe("getEserviceTemplateVersionVerifiedAttributes", () => {
         logger: genericLogger,
       }),
     },
-    {
-      groupIndex: 1,
-      attribute: toM2MGatewayApiVerifiedAttribute({
-        attribute: bulkAttribute3,
-        logger: genericLogger,
-      }),
-    },
   ];
 
-  const mockEserviceTemplateResponse = getMockWithMetadata(eserviceTemplate);
-  const mockGetEServiceTemplateById = vi
-    .fn()
-    .mockResolvedValue(mockEserviceTemplateResponse);
-  const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
-    data: {
-      results: [bulkAttribute1, bulkAttribute2, bulkAttribute3],
-      totalCount: version.attributes.verified.length,
-    },
-    metadata: {},
-  });
-  mockInteropBeClients.eserviceTemplateProcessClient = {
-    getEServiceTemplateById: mockGetEServiceTemplateById,
-  } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
-
-  mockInteropBeClients.attributeProcessClient = {
-    getBulkedAttributes: mockGetBulkedAttributes,
-  } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
-
   beforeEach(() => {
-    mockGetEServiceTemplateById.mockClear();
+    mockGetVersionVerifiedAttributes.mockClear();
     mockGetBulkedAttributes.mockClear();
   });
 
-  it("Should succeed and perform service calls", async () => {
-    const attributes =
-      await eserviceTemplateService.getEserviceTemplateVersionVerifiedAttributes(
-        unsafeBrandId(eserviceTemplate.id),
-        unsafeBrandId(version.id),
-        { limit: 10, offset: 0 },
-        getMockM2MAdminAppContext()
-      );
-    expect(attributes.results).toStrictEqual(response);
-    expectApiClientGetToHaveBeenCalledWith({
-      mockGet: mockGetEServiceTemplateById,
-      params: { templateId: eserviceTemplate.id },
-    });
-
-    expect(mockGetBulkedAttributes).toHaveBeenCalledWith(
-      [attribute1.id, attribute2.id, attribute3.id],
-      expect.objectContaining({
-        queries: { limit: 50, offset: 0 },
-      })
-    );
-  });
-
-  it("Should apply filters (offset, limit)", async () => {
-    const response1: m2mGatewayApiV3.EServiceTemplateVersionVerifiedAttributes =
-      {
-        pagination: {
-          offset: 0,
-          limit: 2,
-          totalCount: 3,
-        },
-        results: [response[0], response[1]],
-      };
-
+  it("Should delegate pagination to eservice-template-process and resolve the attributes", async () => {
     const result =
       await eserviceTemplateService.getEserviceTemplateVersionVerifiedAttributes(
-        unsafeBrandId(eserviceTemplate.id),
-        unsafeBrandId(version.id),
-        { limit: 2, offset: 0 },
-        getMockM2MAdminAppContext()
-      );
-
-    expect(result).toStrictEqual(response1);
-
-    const response2: m2mGatewayApiV3.EServiceTemplateVersionVerifiedAttributes =
-      {
-        pagination: {
-          offset: 2,
-          limit: 2,
-          totalCount: 3,
-        },
-        results: [response[2]],
-      };
-
-    const result2 =
-      await eserviceTemplateService.getEserviceTemplateVersionVerifiedAttributes(
-        unsafeBrandId(eserviceTemplate.id),
-        unsafeBrandId(version.id),
-        { limit: 2, offset: 2 },
-        getMockM2MAdminAppContext()
-      );
-
-    expect(result2).toStrictEqual(response2);
-  });
-
-  it("Should throw eserviceTemplateVersionNotFound in case the returned eserviceTemplate has no version with the given id", async () => {
-    const nonExistingDescriptorId = generateId();
-    await expect(
-      eserviceTemplateService.getEserviceTemplateVersionVerifiedAttributes(
-        unsafeBrandId(eserviceTemplate.id),
-        unsafeBrandId(nonExistingDescriptorId),
+        unsafeBrandId(templateId),
+        unsafeBrandId(versionId),
         { limit: 10, offset: 0 },
         getMockM2MAdminAppContext()
-      )
-    ).rejects.toThrowError(
-      eserviceTemplateVersionNotFound(
-        unsafeBrandId(eserviceTemplate.id),
-        unsafeBrandId(nonExistingDescriptorId)
-      )
-    );
-  });
-  it("Should throw eserviceTemplateVersionAttributeNotFound in case an attribute ID is present but cannot be resolved by the Attribute Registry", async () => {
-    const MISSING_ATTRIBUTE_ID = "00000000-0000-0000-0000-000000000001";
+      );
 
-    const descriptorWithMissingAttribute: eserviceTemplateApi.EServiceTemplateVersion =
+    const expected: m2mGatewayApiV3.EServiceTemplateVersionVerifiedAttributes =
       {
-        ...getMockedApiEserviceTemplateVersion(),
-        attributes: {
-          certified: [],
-          declared: [],
-          verified: [
-            [
-              {
-                id: MISSING_ATTRIBUTE_ID,
-                explicitAttributeVerification: false,
-              },
-            ],
-          ],
-        },
+        results: expectedResults,
+        pagination: { limit: 10, offset: 0, totalCount: 2 },
       };
+    expect(result).toStrictEqual(expected);
 
-    const eserviceWithDescriptorWithoutAttribute: eserviceTemplateApi.EServiceTemplate =
-      getMockedApiEServiceTemplate({
-        versions: [descriptorWithMissingAttribute],
-      });
-    const mockEserviceTemplateResponse = getMockWithMetadata(
-      eserviceWithDescriptorWithoutAttribute
+    expectApiClientGetToHaveBeenCalledWith({
+      mockGet:
+        mockInteropBeClients.eserviceTemplateProcessClient
+          .getEServiceTemplateVersionVerifiedAttributes,
+      params: { templateId, templateVersionId: versionId },
+      queries: { offset: 0, limit: 10 },
+    });
+  });
+
+  it("Should throw eserviceTemplateVersionAttributeNotFound when a reference cannot be resolved", async () => {
+    const missingAttributeId = generateId();
+    mockGetVersionVerifiedAttributes.mockResolvedValueOnce(
+      getMockWithMetadata({
+        results: [{ id: missingAttributeId, groupIndex: 0 }],
+        totalCount: 1,
+      })
     );
-    const mockGetEServiceTemplateById = vi
-      .fn()
-      .mockResolvedValue(mockEserviceTemplateResponse);
-    const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
-      data: {
-        results: [],
-        totalCount: 0,
-      },
+    mockGetBulkedAttributes.mockResolvedValueOnce({
+      data: { results: [], totalCount: 0 },
       metadata: {},
     });
 
-    mockInteropBeClients.attributeProcessClient = {
-      getBulkedAttributes: mockGetBulkedAttributes,
-    } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
-
-    mockInteropBeClients.eserviceTemplateProcessClient = {
-      getEServiceTemplateById: mockGetEServiceTemplateById,
-    } as unknown as PagoPAInteropBeClients["eserviceTemplateProcessClient"];
-
     await expect(
       eserviceTemplateService.getEserviceTemplateVersionVerifiedAttributes(
-        unsafeBrandId(eserviceWithDescriptorWithoutAttribute.id),
-        unsafeBrandId(descriptorWithMissingAttribute.id),
+        unsafeBrandId(templateId),
+        unsafeBrandId(versionId),
         { limit: 10, offset: 0 },
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
-      eserviceTemplateVersionAttributeNotFound(
-        descriptorWithMissingAttribute.id
-      )
+      eserviceTemplateVersionAttributeNotFound(unsafeBrandId(versionId))
     );
   });
 });

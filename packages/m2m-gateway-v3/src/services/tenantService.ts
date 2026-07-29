@@ -169,30 +169,20 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApiV3.TenantDeclaredAttributes> {
       logger.info(`Retrieving tenant ${tenantId} declared attributes`);
 
-      const { data: tenant } = await retrieveTenantById(tenantId, headers);
-
-      const declaredAttributes = retrieveDeclaredAttributes(tenant);
-
-      const filteredDeclaredAttributes = delegationId
-        ? declaredAttributes.filter(
-            (declaredAttribute) =>
-              declaredAttribute.delegationId === delegationId
-          )
-        : declaredAttributes;
-
-      const paginatedDeclaredAttributes = filteredDeclaredAttributes.slice(
-        offset,
-        offset + limit
-      );
+      const {
+        data: { results, totalCount },
+      } = await clients.tenantProcessClient.tenant.getTenantDeclaredAttributes({
+        params: { tenantId },
+        queries: { delegationId, offset, limit },
+        headers,
+      });
 
       return {
-        results: paginatedDeclaredAttributes.map(
-          toM2MGatewayApiTenantDeclaredAttribute
-        ),
+        results: results.map(toM2MGatewayApiTenantDeclaredAttribute),
         pagination: {
           limit,
           offset,
-          totalCount: filteredDeclaredAttributes.length,
+          totalCount,
         },
       };
     },
@@ -277,23 +267,22 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApiV3.TenantCertifiedAttributes> {
       logger.info(`Retrieving tenant ${tenantId} certified attributes`);
 
-      const { data: tenant } = await retrieveTenantById(tenantId, headers);
-
-      const certifiedAttributes = retrieveCertifiedAttributes(tenant);
-
-      const paginatedCertifiedAttributes = certifiedAttributes.slice(
-        offset,
-        offset + limit
+      const {
+        data: { results, totalCount },
+      } = await clients.tenantProcessClient.tenant.getTenantCertifiedAttributes(
+        {
+          params: { tenantId },
+          queries: { offset, limit },
+          headers,
+        }
       );
 
       return {
-        results: paginatedCertifiedAttributes.map(
-          toM2MGatewayApiTenantCertifiedAttribute
-        ),
+        results: results.map(toM2MGatewayApiTenantCertifiedAttribute),
         pagination: {
           limit,
           offset,
-          totalCount: certifiedAttributes.length,
+          totalCount,
         },
       };
     },
@@ -356,23 +345,20 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
     ): Promise<m2mGatewayApiV3.TenantVerifiedAttributes> {
       logger.info(`Retrieving tenant ${tenantId} verified attributes`);
 
-      const { data: tenant } = await retrieveTenantById(tenantId, headers);
-
-      const verifiedAttributes = retrieveVerifiedAttributes(tenant);
-
-      const paginatedVerifiedAttributes = verifiedAttributes.slice(
-        offset,
-        offset + limit
-      );
+      const {
+        data: { results, totalCount },
+      } = await clients.tenantProcessClient.tenant.getTenantVerifiedAttributes({
+        params: { tenantId },
+        queries: { offset, limit },
+        headers,
+      });
 
       return {
-        results: paginatedVerifiedAttributes.map(
-          toM2MGatewayApiTenantVerifiedAttribute
-        ),
+        results: results.map(toM2MGatewayApiTenantVerifiedAttribute),
         pagination: {
           limit,
           offset,
-          totalCount: verifiedAttributes.length,
+          totalCount,
         },
       };
     },

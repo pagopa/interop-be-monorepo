@@ -21,7 +21,6 @@ import {
   pollResourceUntilDeletion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
 import { assertTenantHasSelfcareId } from "../utils/validators/tenantValidators.js";
 import { getSelfcareUserById, getInstitutionUser } from "./userService.js";
 
@@ -111,30 +110,32 @@ export function producerKeychainServiceBuilder(
         `Retrieving e-services for producer keychain with id ${keychainId}`
       );
 
-      const { data: keychain } = await retrieveProducerKeychainById(
-        keychainId,
-        headers
-      );
+      const {
+        data: { results: eserviceIds, totalCount },
+      } =
+        await clients.authorizationClient.producerKeychain.getProducerKeychainEServices(
+          {
+            params: { producerKeychainId: keychainId },
+            queries: { offset, limit },
+            headers,
+          }
+        );
 
-      assertProducerKeychainVisibilityIsFull(keychain);
-
-      const paginatedEServiceIds = keychain.eservices.slice(
-        offset,
-        offset + limit
-      );
-
-      const paginatedEServices = await clients.catalogProcessClient
-        .getEServices({
-          queries: { eservicesIds: paginatedEServiceIds, offset: 0, limit },
-          headers,
-        })
-        .then(({ data: eService }) => eService.results);
+      const paginatedEServices =
+        eserviceIds.length > 0
+          ? await clients.catalogProcessClient
+              .getEServices({
+                queries: { eservicesIds: eserviceIds, offset: 0, limit },
+                headers,
+              })
+              .then(({ data: eService }) => eService.results)
+          : [];
 
       return {
         pagination: {
           limit,
           offset,
-          totalCount: keychain.eservices.length,
+          totalCount,
         },
         results: paginatedEServices.map(toM2MGatewayApiEService),
       };

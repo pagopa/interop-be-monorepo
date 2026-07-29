@@ -4,6 +4,7 @@ import {
   desc,
   eq,
   exists,
+  getTableColumns,
   inArray,
   isNotNull,
   lte,
@@ -34,6 +35,12 @@ import {
   Agreement,
   agreementState,
   PurposeVersionState,
+  PurposeVersion,
+  PurposeVersionDocument,
+  PurposeVersionSignedDocument,
+  PurposeVersionStampKind,
+  stringToDate,
+  unsafeBrandId,
   delegationState,
   Delegation,
   delegationKind,
@@ -72,6 +79,10 @@ import {
   purposeVersionInReadmodelPurpose,
   purposeVersionSignedDocumentInReadmodelPurpose,
   purposeVersionStampInReadmodelPurpose,
+  PurposeVersionSQL,
+  PurposeVersionDocumentSQL,
+  PurposeVersionStampSQL,
+  PurposeVersionSignedDocumentSQL,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 
@@ -273,6 +284,74 @@ const getPurposesFilters = (
   ];
 };
 
+// Maps the SQL rows of a single purpose version (and its child rows) to a
+// PurposeVersion domain object. Mirrors the per-version logic of
+// aggregatePurpose (pagopa-interop-readmodel), kept local to avoid touching the
+// shared aggregator used by other consumers.
+const purposeVersionSQLToPurposeVersion = (
+  versionSQL: PurposeVersionSQL,
+  documentSQL: PurposeVersionDocumentSQL | undefined,
+  stampsSQL: PurposeVersionStampSQL[],
+  signedDocumentSQL: PurposeVersionSignedDocumentSQL | undefined
+): PurposeVersion => {
+  const riskAnalysis: PurposeVersionDocument | undefined = documentSQL
+    ? {
+        id: unsafeBrandId(documentSQL.id),
+        path: documentSQL.path,
+        contentType: documentSQL.contentType,
+        createdAt: stringToDate(documentSQL.createdAt),
+      }
+    : undefined;
+
+  const signedContract: PurposeVersionSignedDocument | undefined =
+    signedDocumentSQL
+      ? {
+          id: unsafeBrandId(signedDocumentSQL.id),
+          path: signedDocumentSQL.path,
+          contentType: signedDocumentSQL.contentType,
+          createdAt: stringToDate(signedDocumentSQL.createdAt),
+          signedAt: stringToDate(signedDocumentSQL.signedAt),
+        }
+      : undefined;
+
+  const creationStampSQL = stampsSQL.find(
+    (s) =>
+      PurposeVersionStampKind.parse(s.kind) ===
+      PurposeVersionStampKind.enum.creation
+  );
+
+  return {
+    id: unsafeBrandId(versionSQL.id),
+    state: PurposeVersionState.parse(versionSQL.state),
+    dailyCalls: versionSQL.dailyCalls,
+    createdAt: stringToDate(versionSQL.createdAt),
+    ...(versionSQL.rejectionReason
+      ? { rejectionReason: versionSQL.rejectionReason }
+      : {}),
+    ...(versionSQL.firstActivationAt
+      ? { firstActivationAt: stringToDate(versionSQL.firstActivationAt) }
+      : {}),
+    ...(versionSQL.suspendedAt
+      ? { suspendedAt: stringToDate(versionSQL.suspendedAt) }
+      : {}),
+    ...(versionSQL.updatedAt
+      ? { updatedAt: stringToDate(versionSQL.updatedAt) }
+      : {}),
+    ...(riskAnalysis ? { riskAnalysis } : {}),
+    ...(creationStampSQL
+      ? {
+          stamps: {
+            creation: {
+              who: unsafeBrandId(creationStampSQL.who),
+              when: stringToDate(creationStampSQL.when),
+            },
+          },
+        }
+      : {}),
+    ...(signedContract ? { signedContract } : {}),
+  };
+};
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({
   readModelDB,
@@ -319,6 +398,79 @@ export function readModelServiceBuilderSQL({
           ilikeEscaped(purposeInReadmodelPurpose.title, escapeSqlLike(title))
         )
       );
+    },
+    async getPurposeVersions(
+      purposeId: PurposeId,
+      {
+        state,
+        offset,
+        limit,
+      }: { state?: PurposeVersionState; offset: number; limit: number }
+    ): Promise<ListResult<PurposeVersion>> {
+      const versionsSQL = await readModelDB
+        .select(
+          withTotalCount(getTableColumns(purposeVersionInReadmodelPurpose))
+        )
+        .from(purposeVersionInReadmodelPurpose)
+        .where(
+          and(
+            eq(purposeVersionInReadmodelPurpose.purposeId, purposeId),
+            state
+              ? eq(purposeVersionInReadmodelPurpose.state, state)
+              : undefined
+          )
+        )
+        .orderBy(asc(purposeVersionInReadmodelPurpose.createdAt))
+        .offset(offset)
+        .limit(limit);
+
+      const totalCount = versionsSQL[0]?.totalCount ?? 0;
+      const versionIds = versionsSQL.map((v) => v.id);
+
+      if (versionIds.length === 0) {
+        return createListResult([], totalCount);
+      }
+
+      const [documentsSQL, stampsSQL, signedDocumentsSQL] = await Promise.all([
+        readModelDB
+          .select()
+          .from(purposeVersionDocumentInReadmodelPurpose)
+          .where(
+            inArray(
+              purposeVersionDocumentInReadmodelPurpose.purposeVersionId,
+              versionIds
+            )
+          ),
+        readModelDB
+          .select()
+          .from(purposeVersionStampInReadmodelPurpose)
+          .where(
+            inArray(
+              purposeVersionStampInReadmodelPurpose.purposeVersionId,
+              versionIds
+            )
+          ),
+        readModelDB
+          .select()
+          .from(purposeVersionSignedDocumentInReadmodelPurpose)
+          .where(
+            inArray(
+              purposeVersionSignedDocumentInReadmodelPurpose.purposeVersionId,
+              versionIds
+            )
+          ),
+      ]);
+
+      const results = versionsSQL.map((versionSQL) =>
+        purposeVersionSQLToPurposeVersion(
+          versionSQL,
+          documentsSQL.find((d) => d.purposeVersionId === versionSQL.id),
+          stampsSQL.filter((s) => s.purposeVersionId === versionSQL.id),
+          signedDocumentsSQL.find((d) => d.purposeVersionId === versionSQL.id)
+        )
+      );
+
+      return createListResult(results, totalCount);
     },
     async getTenantKindAt(
       tenantId: TenantId,
