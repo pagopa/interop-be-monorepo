@@ -28,6 +28,10 @@ const eventV2TypeMapper = (
       "EServiceArchivingScheduled",
       "EServiceArchivingCanceled",
       "EServiceArchivingCompleted",
+      "EServiceArchivingRequestedByDelegate",
+      "EServiceArchivingRequestRejectedByDelegator",
+      "EServiceArchivingRequestApprovedByDelegator",
+      "EServiceArchivingRequestCanceledByDelegate",
       "MaintenanceEServicePersonalDataFlagReset",
       () => "catalog_item_updated"
     )
@@ -59,6 +63,10 @@ const eventV2TypeMapper = (
       "EServiceDescriptorArchivingScheduled",
       "EServiceDescriptorArchivingCanceled",
       "EServiceDescriptorArchivingCompleted",
+      "EServiceDescriptorArchivingRequestedByDelegate",
+      "EServiceDescriptorArchivingRequestRejectedByDelegator",
+      "EServiceDescriptorArchivingRequestApprovedByDelegator",
+      "EServiceDescriptorArchivingRequestCanceledByDelegate",
       "MaintenanceEServiceDescriptorUnarchived",
       () => "catalog_item_descriptor_updated"
     )

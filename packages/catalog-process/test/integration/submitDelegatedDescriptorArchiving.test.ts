@@ -28,7 +28,6 @@ import { expect, describe, it, vi, beforeEach, afterEach } from "vitest";
 
 import {
   delegatedArchivingRequestAlreadyInProgress,
-  eserviceWithoutValidDescriptors,
   noDelegationForArchivingRequest,
   notValidDescriptorState,
 } from "../../src/model/domain/errors.js";
@@ -262,7 +261,8 @@ describe("schedule archiving of an Descriptor with delegation", () => {
     await addOneDelegation(mockDelegation);
 
     const expectedError = delegatedArchivingRequestAlreadyInProgress(
-      eservice.id
+      eservice.id,
+      descriptor.id
     );
 
     await expect(
@@ -385,7 +385,7 @@ describe("schedule archiving of an Descriptor with delegation", () => {
       await addOneEService(eservice);
       await addOneDelegation(mockDelegation);
 
-      const expectedError = eserviceWithoutValidDescriptors(eservice.id);
+      const expectedError = notValidDescriptorState(descriptor.id, state);
 
       await expect(
         catalogService.submitDelegatedDescriptorArchiving(

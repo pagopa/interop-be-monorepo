@@ -94,6 +94,12 @@ describe("schedule archiving of an EService with delegation", () => {
       .with("pending", () => expectedArchivingRequest)
       .exhaustive();
 
+  const addDaysToFixedDate = (days: GracePeriodDays): Date => {
+    const newDate = new Date(fixedDate);
+    newDate.setDate(newDate.getDate() + days + 1);
+    return newDate;
+  };
+
   const allowedStates: DescriptorState[] = [
     descriptorState.published,
     descriptorState.suspended,
@@ -428,6 +434,9 @@ describe("schedule archiving of an EService with delegation", () => {
 
   // new Date("2026-07-08T16:47:59")
   it("Should throw gracePeriodDaysLowerThanDescriptor when there is a descriptor in archiving", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(fixedDate);
+
     const descriptor: Descriptor = {
       ...mockDescriptor,
       version: "2",
@@ -440,10 +449,10 @@ describe("schedule archiving of an EService with delegation", () => {
       interface: getMockDocument(),
       state: descriptorState.archiving,
       archivingSchedule: {
-        archivableOn: new Date("2027-07-08T00:00:00"),
+        archivableOn: addDaysToFixedDate(120),
         scope: "Descriptor",
-        gracePeriodDays: 120, // but it's really 365
-        startedAt: new Date("2026-07-08T16:47:59"),
+        gracePeriodDays: 120,
+        startedAt: fixedDate,
       },
     };
 
@@ -468,7 +477,7 @@ describe("schedule archiving of an EService with delegation", () => {
     const expectedError = gracePeriodDaysLowerThanDescriptor(
       eservice.id,
       archivingDescriptor.id,
-      new Date(fixedDate.getTime() + mockGracePeriodDays * 24 * 60 * 60 * 1000),
+      addDaysToFixedDate(mockGracePeriodDays),
       archivingDescriptor.archivingSchedule!.archivableOn
     );
 
@@ -501,13 +510,13 @@ describe("schedule archiving of an EService with delegation", () => {
       state: descriptorState.deprecated,
       delegatedArchivingRequest: [
         {
-          requestedAt: new Date("2026-07-08T16:47:59"),
+          requestedAt: fixedDate,
           requesterId: mockDelegateTenant.id,
           gracePeriodDays: 120,
         },
       ],
     };
-    const expectedArchivingDate = new Date("2026-11-05T00:00:00"); // 120 days after 2026-07-08
+    const expectedArchivingDate = addDaysToFixedDate(120);
 
     const eservice: EService = {
       ...mockEService,
@@ -530,7 +539,7 @@ describe("schedule archiving of an EService with delegation", () => {
     const expectedError = gracePeriodDaysLowerThanDescriptor(
       eservice.id,
       archivingDescriptor.id,
-      new Date(fixedDate.getTime() + mockGracePeriodDays * 24 * 60 * 60 * 1000), // fixedDate + 30 days
+      addDaysToFixedDate(mockGracePeriodDays),
       expectedArchivingDate
     );
 

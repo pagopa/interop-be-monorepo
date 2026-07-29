@@ -882,6 +882,7 @@ export const submitDelegatedEServiceArchivingErrorMapper = (
       "notValidEServiceState", // EService only
       "notValidDescriptor", // Descriptor only
       "eserviceWithoutValidDescriptors",
+      "gracePeriodDaysLowerThanDescriptor",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(

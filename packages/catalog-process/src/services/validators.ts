@@ -978,7 +978,7 @@ export function assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
   for (const descriptor of eservice.descriptors) {
     const projectedArchivableOn =
       calculateProjectedArchivingDateForArchivingRequest(
-        requestedArchivableOn,
+        requestDate,
         descriptor.delegatedArchivingRequest,
         eservice.id,
         descriptor.id
