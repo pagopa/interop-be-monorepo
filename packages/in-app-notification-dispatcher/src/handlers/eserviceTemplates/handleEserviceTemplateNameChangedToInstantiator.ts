@@ -70,12 +70,19 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
       const entityId = EServiceIdDescriptorId.parse(
         `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
       );
+      const instanceLabelSuffix: string = eservice.instanceLabel
+        ? ` - ${eservice.instanceLabel}`
+        : "";
+      const oldEserviceName: string = `${
+        oldName ?? eserviceTemplate.id
+      }${instanceLabelSuffix}`;
+      const newEserviceName: string = `${eserviceTemplate.name}${instanceLabelSuffix}`;
       return {
         userId,
         tenantId,
         body: inAppTemplates.eserviceTemplateNameChangedToInstantiator(
-          eserviceTemplate,
-          oldName
+          oldEserviceName,
+          newEserviceName
         ),
         notificationType: "eserviceTemplateNameChangedToInstantiator",
         entityId,
