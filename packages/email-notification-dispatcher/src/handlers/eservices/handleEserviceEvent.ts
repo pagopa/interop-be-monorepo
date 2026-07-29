@@ -26,6 +26,7 @@ import { handleEserviceDescriptorRejectedByDelegator } from "./handleEserviceDes
 import { handleEserviceDescriptorSubmittedByDelegate } from "./handleEserviceDescriptorSubmittedByDelegate.js";
 import { handleEserviceDescriptorSuspendedToConsumer } from "./handleEserviceDescriptorSuspendedToConsumer.js";
 import { handleEserviceDescriptorSuspendedToProducer } from "./handleEserviceDescriptorSuspendedToProducer.js";
+import { handleEserviceNameUpdatedByTemplateUpdateToInstantiator } from "./handleEserviceNameUpdatedByTemplateUpdateToInstantiator.js";
 import { handleEserviceStateChanged } from "./handleEserviceStateChanged.js";
 
 export async function handleEServiceEvent(
@@ -140,7 +141,6 @@ export async function handleEServiceEvent(
       {
         type: P.union(
           "EServiceNameUpdated",
-          "EServiceNameUpdatedByTemplateUpdate",
           "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
           "EServiceDescriptorQuotasUpdatedByTemplateUpdate",
@@ -159,6 +159,25 @@ export async function handleEServiceEvent(
           correlationId,
         })
     )
+    .with({ type: "EServiceNameUpdatedByTemplateUpdate" }, async (payload) => {
+      const [instantiator, consumers] = await Promise.all([
+        handleEserviceNameUpdatedByTemplateUpdateToInstantiator({
+          payload,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        }),
+        handleEserviceStateChanged({
+          payload,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        }),
+      ]);
+      return [...instantiator, ...consumers];
+    })
     .with(
       { type: "EServiceDescriptorArchivingScheduled" },
       async ({ data: { eservice, descriptorId } }) => {
