@@ -1,5 +1,6 @@
 import { Descriptor, DescriptorState, EService } from "pagopa-interop-models";
 import { z } from "zod";
+
 import {
   eserviceWithoutValidDescriptors,
   invalidDescriptorVersion,

@@ -1,16 +1,17 @@
 import {
+  getMockAuthData,
+  getMockContext,
+  getMockKey,
+  getMockProducerKeychain,
+} from "pagopa-interop-commons-test";
+import {
   EServiceId,
   ProducerKeychain,
   TenantId,
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import {
-  getMockAuthData,
-  getMockContext,
-  getMockKey,
-  getMockProducerKeychain,
-} from "pagopa-interop-commons-test";
+
 import {
   addOneProducerKeychain,
   authorizationService,

@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { agreementApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
@@ -18,7 +19,7 @@ import {
   emptyErrorMapper,
   AgreementDocument,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
+
 import {
   agreementDocumentToApiAgreementDocument,
   agreementToApiAgreement,
@@ -26,6 +27,7 @@ import {
   apiAgreementStateToAgreementState,
   fromApiCompactTenant,
 } from "../model/domain/apiConverter.js";
+import { makeApiProblem } from "../model/domain/errors.js";
 import { AgreementService } from "../services/agreementService.js";
 import {
   approveAgreementErrorMapper,
@@ -49,7 +51,6 @@ import {
   generateAgreementDocumentsErrorMapper,
   generateAgreementSignedDocumentsErrorMapper,
 } from "../utilities/errorMappers.js";
-import { makeApiProblem } from "../model/domain/errors.js";
 
 const {
   ADMIN_ROLE,

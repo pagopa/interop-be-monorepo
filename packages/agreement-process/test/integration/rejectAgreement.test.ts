@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { addDays } from "date-fns";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -34,7 +35,7 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { addDays } from "date-fns";
+
 import { agreementRejectableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,

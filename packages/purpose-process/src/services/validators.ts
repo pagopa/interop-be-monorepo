@@ -1,8 +1,8 @@
+import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
   purposeApi,
   SelfcareV2InstitutionClient,
 } from "pagopa-interop-api-clients";
-import { matchesCertifiedDescriptorAttribute } from "pagopa-interop-agreement-lifecycle";
 import {
   isFeatureFlagEnabled,
   M2MAdminAuthData,
@@ -43,6 +43,8 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { config } from "../config/config.js";
 import {
   descriptorNotFound,
   duplicatedPurposeTitle,
@@ -70,7 +72,6 @@ import {
   tenantNotFound,
   userWithoutReviewerPrivileges,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { UpdatedQuotas } from "../model/domain/models.js";
 import {
   retrieveActiveAgreement,

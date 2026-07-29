@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { ClientPurposeSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import { ClientPurposeDeletingSchema } from "../../model/authorization/clientPurpose.js";
+import { DeletingDbTable, ClientDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
   generateMergeDeleteQuery,
   generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { DeletingDbTable, ClientDbTable } from "../../model/db/index.js";
-import {
-  ClientPurposeSchema,
-  ClientPurposeDeletingSchema,
-} from "../../model/authorization/clientPurpose.js";
 
 export function clientPurposeRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

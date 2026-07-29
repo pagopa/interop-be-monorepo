@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockClient,
+  getMockKey,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Client,
   ClientId,
@@ -15,16 +22,9 @@ import {
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockClient,
-  getMockKey,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { keyToApiKey } from "../../src/model/domain/apiConverter.js";
 import {
   clientNotFound,
@@ -34,6 +34,7 @@ import {
   userNotFound,
   userWithoutSecurityPrivileges,
 } from "../../src/model/domain/errors.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /clients/{clientId}/keys authorization test", () => {
   const consumerId: TenantId = generateId();

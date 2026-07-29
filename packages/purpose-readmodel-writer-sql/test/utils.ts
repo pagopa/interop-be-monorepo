@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { inject, afterEach, expect } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { purposeReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { eq } from "drizzle-orm";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { Purpose, PurposeId } from "pagopa-interop-models";
+import { purposeReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   PurposeItemsSQL,
   DrizzleReturnType,
@@ -24,6 +23,8 @@ import {
   RiskAnalysisReviewerSQL,
   riskAnalysisReviewerInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach, expect } from "vitest";
+
 import { purposeWriterServiceBuilder } from "../src/purposeWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

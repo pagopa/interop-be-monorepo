@@ -1,8 +1,6 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import path from "path";
-import { fileURLToPath } from "url";
 import {
   RefreshableInteropToken,
   dateAtRomeZone,
@@ -10,7 +8,6 @@ import {
   getFormRulesByVersion,
   dataType,
 } from "pagopa-interop-commons";
-import { getIpaCode } from "../../src/pdf-generator/pdfGenerator.js";
 import {
   getMockTenant,
   getMockValidRiskAnalysisFormTemplate,
@@ -25,6 +22,8 @@ import {
   toPurposeTemplateV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import {
   describe,
   it,
@@ -35,6 +34,10 @@ import {
   beforeAll,
   afterAll,
 } from "vitest";
+
+import { getInteropBeClients } from "../../src/clients/clientProvider.js";
+import { handlePurposeTemplateMessageV2 } from "../../src/handler/handlePurposeTemplateMessageV2.js";
+import { getIpaCode } from "../../src/pdf-generator/pdfGenerator.js";
 import {
   cleanup,
   pdfGenerator,
@@ -42,9 +45,6 @@ import {
   fileManager,
   readModelService,
 } from "../integrationUtils.js";
-
-import { handlePurposeTemplateMessageV2 } from "../../src/handler/handlePurposeTemplateMessageV2.js";
-import { getInteropBeClients } from "../../src/clients/clientProvider.js";
 
 const clients = getInteropBeClients();
 

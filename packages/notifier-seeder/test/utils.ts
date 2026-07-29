@@ -1,7 +1,8 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { afterAll, beforeAll } from "vitest";
 import { GenericContainer, StartedTestContainer } from "testcontainers";
+import { afterAll, beforeAll } from "vitest";
+
 import {
   QueueManager,
   initQueueManager,

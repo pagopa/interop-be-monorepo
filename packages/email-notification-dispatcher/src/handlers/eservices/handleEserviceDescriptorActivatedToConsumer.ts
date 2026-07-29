@@ -1,3 +1,4 @@
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   DescriptorId,
   fromEServiceV2,
@@ -16,10 +17,9 @@ import {
   mapRecipientToEmailPayload,
   descriptorNotFound,
 } from "pagopa-interop-notification-commons";
-import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
-import { dateAtRomeZone } from "pagopa-interop-commons";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 

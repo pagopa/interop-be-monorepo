@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ClientId, generateId } from "pagopa-interop-models";
-import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { api, mockClientService } from "../../vitest.api.setup.js";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
+import { ClientId, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { userNotFound } from "../../../src/model/errors.js";
 import { getMockm2mGatewayApiV3User } from "../../mockUtils.js";
+import { api, mockClientService } from "../../vitest.api.setup.js";
 
 describe("API GET /clients/:clientId/users", () => {
   const mockResponse: m2mGatewayApiV3.Users = {

@@ -1,3 +1,8 @@
+import { catalogApi } from "pagopa-interop-api-clients";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -6,14 +11,10 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { catalogApi } from "pagopa-interop-api-clients";
-import eservicesRouter from "./routers/EServiceRouter.js";
+
 import { config } from "./config/config.js";
+import eservicesRouter from "./routers/EServiceRouter.js";
 import { CatalogService } from "./services/catalogService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

@@ -1,4 +1,5 @@
 /* eslint-disable max-params */
+import { evaluateCertifiedAttributesSuspension } from "pagopa-interop-agreement-lifecycle";
 import {
   CreateEvent,
   isFeatureFlagEnabled,
@@ -19,8 +20,9 @@ import {
   agreementState,
   genericError,
 } from "pagopa-interop-models";
-import { evaluateCertifiedAttributesSuspension } from "pagopa-interop-agreement-lifecycle";
 import { match, P } from "ts-pattern";
+
+import { config } from "../config/config.js";
 import {
   agreementArchivableStates,
   matchingCertifiedAttributes,
@@ -39,7 +41,6 @@ import {
   toCreateEventAgreementUnsuspendedByPlatform,
   toCreateEventAgreementUnsuspendedByProducer,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
 import { createAgreementArchivedByUpgradeEvent } from "./agreementService.js";
 import { createStamp, getSuspensionStamps } from "./agreementStampUtils.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";

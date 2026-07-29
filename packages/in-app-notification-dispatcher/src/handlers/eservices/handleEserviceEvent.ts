@@ -1,15 +1,16 @@
-import { NewNotification, EServiceEventEnvelope } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { NewNotification, EServiceEventEnvelope } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
-import { handleEserviceStateChangedToProducer } from "./handleEserviceStateChangedToProducer.js";
-import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
-import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
-import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
-import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
 import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
 import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
+import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
+import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
+import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
+import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
+import { handleEserviceStateChangedToProducer } from "./handleEserviceStateChangedToProducer.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelope,

@@ -1,7 +1,3 @@
-import {
-  ConnectionTimeoutError,
-  createClient as createRedisClient,
-} from "redis";
 import { TenantId } from "pagopa-interop-models";
 import {
   BurstyRateLimiter,
@@ -9,7 +5,12 @@ import {
   RateLimiterRedis,
   RateLimiterRes,
 } from "rate-limiter-flexible";
+import {
+  ConnectionTimeoutError,
+  createClient as createRedisClient,
+} from "redis";
 import { match, P } from "ts-pattern";
+
 import { genericLogger, Logger } from "../logging/index.js";
 import { RateLimiter, RateLimiterStatus } from "./rateLimiterModel.js";
 

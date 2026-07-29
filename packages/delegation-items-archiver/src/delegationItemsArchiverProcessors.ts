@@ -1,12 +1,13 @@
-import { match } from "ts-pattern";
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+import { InteropHeaders } from "pagopa-interop-commons";
 import {
   agreementState,
   Delegation,
   DelegationId,
   purposeVersionState,
 } from "pagopa-interop-models";
-import { InteropHeaders } from "pagopa-interop-commons";
-import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export const processPurposes = async ({

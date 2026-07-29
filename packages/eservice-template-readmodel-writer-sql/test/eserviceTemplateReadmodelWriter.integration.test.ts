@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplate,
@@ -34,6 +33,8 @@ import {
   RiskAnalysis,
   tenantKind,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   eserviceTemplateReadModelService,

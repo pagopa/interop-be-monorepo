@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { m2mGatewayApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
 import {
@@ -9,7 +10,7 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { m2mGatewayApi } from "pagopa-interop-api-clients";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";

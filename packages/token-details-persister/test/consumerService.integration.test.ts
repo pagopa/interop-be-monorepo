@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
-import {
-  algorithm,
-  GeneratedTokenAuditDetails,
-  generateId,
-} from "pagopa-interop-models";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { KafkaMessage } from "kafkajs";
 import {
   formatDateyyyyMMdd,
   formatTimeHHmmss,
   genericLogger,
 } from "pagopa-interop-commons";
-import { KafkaMessage } from "kafkajs";
+import {
+  algorithm,
+  GeneratedConsumerTokenAuditDetails,
+  generateId,
+} from "pagopa-interop-models";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import { handleMessages } from ".././src/consumerService.js";
 import { config } from "../src/config/config.js";
 import { fileManager } from "./utils.js";
@@ -72,7 +73,7 @@ describe("consumerService", () => {
   });
 
   it("should write three entries on the bucket", async () => {
-    const auditMessages: GeneratedTokenAuditDetails[] = [
+    const auditMessages: GeneratedConsumerTokenAuditDetails[] = [
       getMockAuditDetails(),
       getMockAuditDetails(),
       getMockAuditDetails(),
@@ -150,7 +151,7 @@ describe("consumerService", () => {
   });
 });
 
-const getMockAuditDetails = (): GeneratedTokenAuditDetails => ({
+const getMockAuditDetails = (): GeneratedConsumerTokenAuditDetails => ({
   correlationId: generateId(),
   eserviceId: generateId(),
   descriptorId: generateId(),

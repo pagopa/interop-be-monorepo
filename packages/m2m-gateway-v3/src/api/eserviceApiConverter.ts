@@ -1,4 +1,5 @@
 import { catalogApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+
 import { toM2MGatewayApiRiskAnalysisForm } from "./riskAnalysisFormApiConverter.js";
 
 export function toGetEServicesQueryParams(
@@ -68,6 +69,7 @@ export function toM2MGatewayApiEServiceDescriptor(
           archivableOn: descriptor.archivingSchedule.archivableOn,
           startedAt: descriptor.archivingSchedule.startedAt,
           scope: descriptor.archivingSchedule.scope,
+          gracePeriodDays: descriptor.archivingSchedule.gracePeriodDays,
         }
       : undefined,
     asyncExchangeProperties: descriptor.asyncExchangeProperties,

@@ -1,6 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import * as jose from "jose";
-import { match, P } from "ts-pattern";
 import {
   JOSEError,
   JWSInvalid,
@@ -8,6 +7,7 @@ import {
   JWTClaimValidationFailed,
   JWTInvalid,
 } from "jose/errors";
+import { calculateJWKThumbprint } from "pagopa-interop-commons";
 import {
   DPoPProof,
   DPoPProofHeader,
@@ -17,8 +17,8 @@ import {
   DPoPProofResource,
   DPoPProofResourcePayload,
 } from "pagopa-interop-models";
+import { match, P } from "ts-pattern";
 
-import { calculateJWKThumbprint } from "pagopa-interop-commons";
 import {
   dpopJtiAlreadyCached,
   dpopProofInvalidClaims,

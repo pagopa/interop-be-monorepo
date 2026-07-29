@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import { Client, ClientId, generateId } from "pagopa-interop-models";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockClient,
   getMockWithMetadata,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test/index.js";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import { Client, ClientId, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { clientNotFound } from "../../src/model/domain/errors.js";
 import { testToPartialClient, testToFullClient } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /clients/{clientId} authorization test", () => {
   const mockClient: Client = getMockClient();

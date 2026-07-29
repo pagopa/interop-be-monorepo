@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { keyToClientJWKKey } from "pagopa-interop-commons";
 import {
   getMockClient,
   getMockKey,
@@ -15,7 +16,7 @@ import {
   ClientDeletedV1,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { keyToClientJWKKey } from "pagopa-interop-commons";
+
 import { handleMessageV1 } from "../src/keyConsumerServiceV1.js";
 import {
   clientJWKKeyReadModelService,

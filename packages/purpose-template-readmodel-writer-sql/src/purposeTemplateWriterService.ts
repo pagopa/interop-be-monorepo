@@ -1,3 +1,4 @@
+import { and, eq, lte } from "drizzle-orm";
 import {
   DescriptorId,
   EServiceDescriptorPurposeTemplate,
@@ -29,7 +30,6 @@ import {
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
   purposeTemplateTables,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, lte } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeTemplateWriterServiceBuilder(db: DrizzleReturnType) {

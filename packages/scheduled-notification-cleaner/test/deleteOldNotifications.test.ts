@@ -1,12 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
-import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-models";
 import { logger } from "pagopa-interop-commons";
+import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-models";
+import { describe, expect, it, vi } from "vitest";
+
+import { deleteOldNotifications } from "../src/deleteOldNotifications.js";
 import {
   addScheduledNotifications,
   getMockNotification,
   scheduledNotificationDB,
 } from "./utils.js";
-import { deleteOldNotifications } from "../src/deleteOldNotifications.js";
 
 describe("deleteOldNotifications", () => {
   const loggerInstance = logger({ serviceName: "test" });

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
@@ -17,6 +17,7 @@ import {
   unsafeBrandId,
   emptyErrorMapper,
 } from "pagopa-interop-models";
+
 import {
   toBffCatalogApiDescriptorDoc,
   toEserviceCatalogProcessQueryParams,
@@ -357,6 +358,7 @@ const catalogRouter = (
           await catalogService.scheduleArchiveEserviceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
+            req.body,
             ctx
           );
           return res.status(204).send();

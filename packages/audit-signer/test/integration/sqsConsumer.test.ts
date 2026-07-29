@@ -1,12 +1,13 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/no-empty-function */
 import "../unit/setup.js";
-import { describe, it, beforeEach, expect, vi } from "vitest";
 import { Message } from "@aws-sdk/client-sqs";
+import { describe, it, beforeEach, expect, vi } from "vitest";
+
 import { sqsMessageHandler } from "../../src/handlers/sqsMessageHandler.js";
-import * as decodeModule from "../../src/utils/decodeSQSEventMessage.js";
-import * as compressionModule from "../../src/utils/compression.js";
 import * as checksumModule from "../../src/utils/checksum.js";
+import * as compressionModule from "../../src/utils/compression.js";
+import * as decodeModule from "../../src/utils/decodeSQSEventMessage.js";
 import {
   mockDbService,
   mockFileManager,

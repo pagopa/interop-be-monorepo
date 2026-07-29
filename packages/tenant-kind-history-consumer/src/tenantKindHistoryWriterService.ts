@@ -1,11 +1,11 @@
 import { eq, and, desc, lte } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
 import {
   TenantKind,
   toTenantKindHistorySQL,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
-import { drizzle } from "drizzle-orm/node-postgres";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function tenantKindHistoryWriterServiceBuilder(

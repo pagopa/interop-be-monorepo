@@ -46,23 +46,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/TenantNotificationConfig"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant notification config not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     post:
       security:
         - bearerAuth: []
@@ -86,29 +74,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/TenantNotificationConfig"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant notification config not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /internal/tenantNotificationConfigs:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -135,29 +107,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/TenantNotificationConfig"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /internal/tenantNotificationConfigs/tenantId/{tenantId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -179,29 +135,13 @@ paths:
         "204":
           description: Tenant notification config deleted
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant notification config not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /userNotificationConfigs:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -221,23 +161,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserNotificationConfig"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: User notification config not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     post:
       security:
         - bearerAuth: []
@@ -261,29 +189,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserNotificationConfig"
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: User notification config not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /internal/ensureUserNotificationConfigExistsWithRoles:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -306,23 +218,11 @@ paths:
         "204":
           description: User notification config created or roles added if missing
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /internal/userNotificationConfigs/tenantId/{tenantId}/userId/{userId}/userRole/{userRole}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -355,29 +255,13 @@ paths:
         "204":
           description: User notification config role removed or config deleted
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "401":
-          description: Unauthorized
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Unauthorized"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: User notification config or role not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /status:
     get:
       security: []
@@ -394,6 +278,37 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
   parameters:
     CorrelationIdHeader:
       in: header

@@ -1,15 +1,16 @@
-import { describe, it, expect, vi } from "vitest";
-import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   cannotDeleteLastEServiceDescriptor,
   missingMetadata,
 } from "../../../src/model/errors.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("DELETE /eservices/:eServiceId/descriptors/:descriptorId router test", () => {
   const makeRequest = async (

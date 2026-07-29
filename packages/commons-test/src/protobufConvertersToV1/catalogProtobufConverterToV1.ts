@@ -1,4 +1,3 @@
-import { P, match } from "ts-pattern";
 import {
   AgreementApprovalPolicy,
   AgreementApprovalPolicyV1,
@@ -21,6 +20,7 @@ import {
   Technology,
   dateToBigInt,
 } from "pagopa-interop-models";
+import { P, match } from "ts-pattern";
 
 export const toAgreementApprovalPolicyV1 = (
   input: AgreementApprovalPolicy | undefined

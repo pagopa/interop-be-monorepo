@@ -1,27 +1,28 @@
 import {
-  EServiceId,
-  ProducerKeychainId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
-import { WithLogger } from "pagopa-interop-commons";
-import {
   authorizationApi,
   m2mGatewayApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
+import { WithLogger } from "pagopa-interop-commons";
+import {
+  EServiceId,
+  ProducerKeychainId,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+
+import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
+import { toM2MJWK } from "../api/keysApiConverter.js";
 import {
   toGetProducerKeychainsApiQueryParams,
   toM2MGatewayApiProducerKeychain,
 } from "../api/producerKeychainApiConverter.js";
-import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
-import { toM2MGatewayApiEService } from "../api/eserviceApiConverter.js";
-import { toM2MJWK } from "../api/keysApiConverter.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
 import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
+import { assertProducerKeychainVisibilityIsFull } from "../utils/validators/keychainValidators.js";
 
 export type ProducerKeychainService = ReturnType<
   typeof producerKeychainServiceBuilder

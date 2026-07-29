@@ -16,16 +16,17 @@ import {
   EServiceTemplateVersion,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  addOneEServiceTemplate,
-  eserviceTemplateService,
-  readLastEserviceTemplateEvent,
-} from "../integrationUtils.js";
+
 import {
   eserviceTemplateNotFound,
   eserviceTemplatePersonalDataFlagCanOnlyBeSetOnce,
   eserviceTemplateWithoutPublishedVersion,
 } from "../../src/model/domain/errors.js";
+import {
+  addOneEServiceTemplate,
+  eserviceTemplateService,
+  readLastEserviceTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("update EService Template personalData flag for an already created EService Template", async () => {
   it("should write on event-store for the update of the EService Template personalData flag (undefined -> true)", async () => {

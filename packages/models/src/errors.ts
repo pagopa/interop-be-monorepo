@@ -1,9 +1,10 @@
 /* eslint-disable max-classes-per-file */
+import { AxiosError, isAxiosError } from "axios";
 import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { z, ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { AxiosError, isAxiosError } from "axios";
+
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
@@ -493,6 +494,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
       "badRequestError",
       "invalidPdfSignatureError",
       "invalidFileUploadError",
+      "invalidContentTypeDetected",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("contentTooLargeError", () => HTTP_STATUS_PAYLOAD_TOO_LARGE)

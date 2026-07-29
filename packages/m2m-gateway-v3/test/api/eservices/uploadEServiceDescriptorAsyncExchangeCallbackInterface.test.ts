@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { ApiError, generateId } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   TestMultipartFileUpload,
   addMultipartFileToSupertestRequest,
 } from "../../multipartTestUtils.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("POST /eservices/:eserviceId/descriptors/:descriptorId/asyncExchangeCallbackInterface router test", () => {
   const mockDate = new Date();

@@ -1,11 +1,12 @@
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { generateId, PurposeId } from "pagopa-interop-models";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { api, mockPurposeService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockPurposeService } from "../../vitest.api.setup.js";
 
 describe("GET /purposes/:purposeId/remainingDailyCalls router test", () => {
   const authorizedRoles: AuthRole[] = [authRole.M2M_ADMIN_ROLE];
