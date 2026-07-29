@@ -21,6 +21,8 @@ import {
   DelegatedDescriptorArchivingRequest,
   DelegatedEServiceArchivingRequest,
   Delegation,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
   delegationKind,
   delegationState,
   Descriptor,
@@ -1039,6 +1041,25 @@ export function assertDelegatedEserviceHasActiveArchivingRequests(
 ): void {
   if (!hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
     throw delegatedArchivingRequestNotActive(eservice.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  const archivingRequests = descriptor.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eserviceId, descriptor.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasActiveArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestNotActive(eserviceId, descriptor.id);
   }
 }
 
