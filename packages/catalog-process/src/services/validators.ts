@@ -21,8 +21,6 @@ import {
   DelegatedDescriptorArchivingRequest,
   DelegatedEServiceArchivingRequest,
   Delegation,
-  DelegatedDescriptorArchivingRequest,
-  DelegatedEServiceArchivingRequest,
   delegationKind,
   delegationState,
   Descriptor,
