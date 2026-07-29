@@ -764,96 +764,70 @@ describe("Token Generation Read Model Checker tests", () => {
   });
 
   describe("eservices", () => {
-    it("should not detect differences when the catalog platform-states entries are correct", async () => {
-      const descriptor1: Descriptor = {
-        ...getMockDescriptor(),
+    it.each([
+      {
         state: descriptorState.published,
-        audience: ["pagopa.it"],
-      };
-      const descriptor2: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState.published,
-        audience: ["pagopa.it"],
-      };
-      const descriptor3: Descriptor = {
-        ...getMockDescriptor(),
+        expectedPlatformStatesState: itemState.active,
+      },
+      {
         state: descriptorState.deprecated,
-        audience: ["pagopa.it"],
-      };
+        expectedPlatformStatesState: itemState.active,
+      },
+      {
+        state: descriptorState.suspended,
+        expectedPlatformStatesState: itemState.inactive,
+      },
+      {
+        state: descriptorState.archiving,
+        expectedPlatformStatesState: itemState.active,
+      },
+      {
+        state: descriptorState.archivingSuspended,
+        expectedPlatformStatesState: itemState.inactive,
+      },
+    ])(
+      "should not detect differences when the catalog platform-states entries are correct %s",
+      async ({ state, expectedPlatformStatesState }) => {
+        const descriptor: Descriptor = {
+          ...getMockDescriptor(),
+          state: state,
+        };
 
-      const eservice1: EService = {
-        ...getMockEService(),
-        descriptors: [descriptor1],
-      };
-      const eservice2: EService = {
-        ...getMockEService(),
-        descriptors: [descriptor2, descriptor3],
-      };
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [descriptor],
+        };
 
-      // platform-states
-      const catalogEntryPK1 = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice1.id,
-        descriptorId: descriptor1.id,
-      });
-      const platformStatesCatalogEntry1: PlatformStatesCatalogEntry = {
-        PK: catalogEntryPK1,
-        state: itemState.active,
-        descriptorAudience: descriptor1.audience,
-        descriptorVoucherLifespan: descriptor1.voucherLifespan,
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-
-      const catalogEntryPK2 = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice2.id,
-        descriptorId: descriptor2.id,
-      });
-      const platformStatesCatalogEntry2: PlatformStatesCatalogEntry = {
-        PK: catalogEntryPK2,
-        state: itemState.active,
-        descriptorAudience: descriptor2.audience,
-        descriptorVoucherLifespan: descriptor2.voucherLifespan,
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-
-      const catalogEntryPK3 = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice2.id,
-        descriptorId: descriptor3.id,
-      });
-      const platformStatesCatalogEntry3: PlatformStatesCatalogEntry = {
-        PK: catalogEntryPK3,
-        state: itemState.active,
-        descriptorAudience: descriptor3.audience,
-        descriptorVoucherLifespan: descriptor3.voucherLifespan,
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-
-      const expectedDifferencesLength = 0;
-      const catalogDifferences =
-        await compareReadModelEServicesWithPlatformStates({
-          platformStatesEServiceById: new Map([
-            [
-              eservice1.id,
-              new Map([[descriptor1.id, platformStatesCatalogEntry1]]),
-            ],
-            [
-              eservice2.id,
-              new Map([
-                [descriptor2.id, platformStatesCatalogEntry2],
-                [descriptor3.id, platformStatesCatalogEntry3],
-              ]),
-            ],
-          ]),
-          eservicesById: new Map([
-            [eservice1.id, eservice1],
-            [eservice2.id, eservice2],
-          ]),
-          logger: genericLogger,
+        // platform-states
+        const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
         });
-      expect(catalogDifferences).toEqual(expectedDifferencesLength);
-    });
+        const platformStatesCatalogEntry: PlatformStatesCatalogEntry = {
+          PK: catalogEntryPK,
+          state: expectedPlatformStatesState,
+          descriptorAudience: descriptor.audience,
+          descriptorVoucherLifespan: descriptor.voucherLifespan,
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        };
+
+        const expectedDifferencesLength = 0;
+        const catalogDifferences =
+          await compareReadModelEServicesWithPlatformStates({
+            platformStatesEServiceById: new Map([
+              [
+                eservice.id,
+                new Map([[descriptor.id, platformStatesCatalogEntry]]),
+              ],
+            ]),
+            eservicesById: new Map([[eservice.id, eservice]]),
+            logger: genericLogger,
+          });
+
+        expect(catalogDifferences).toEqual(expectedDifferencesLength);
+      }
+    );
 
     it("should detect differences for wrong eservice states", async () => {
       const descriptor1: Descriptor = {
@@ -925,46 +899,52 @@ describe("Token Generation Read Model Checker tests", () => {
       expect(catalogDifferences).toEqual(expectedDifferencesLength);
     });
 
-    it("should detect differences when there's a platform-states catalog entry and the descriptor is not published, deprecated or suspended", async () => {
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState.archived,
-        audience: ["pagopa.it"],
-      };
+    it.each([
+      descriptorState.archived,
+      descriptorState.draft,
+      descriptorState.waitingForApproval,
+    ])(
+      "should detect differences when there's a platform-states catalog entry and the descriptor is not published, deprecated, suspended, archiving or archivingSuspended: descriptor state %s",
+      async (state) => {
+        const descriptor: Descriptor = {
+          ...getMockDescriptor(),
+          state: state,
+        };
 
-      const eservice: EService = {
-        ...getMockEService(),
-        descriptors: [descriptor],
-      };
+        const eservice: EService = {
+          ...getMockEService(),
+          descriptors: [descriptor],
+        };
 
-      // platform-states
-      const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
-        eserviceId: eservice.id,
-        descriptorId: descriptor.id,
-      });
-      const platformStatesCatalogEntry: PlatformStatesCatalogEntry = {
-        PK: catalogEntryPK,
-        state: itemState.inactive,
-        descriptorAudience: descriptor.audience,
-        descriptorVoucherLifespan: descriptor.voucherLifespan,
-        version: 1,
-        updatedAt: new Date().toISOString(),
-      };
-
-      const expectedDifferencesLength = 1;
-      const catalogDifferences =
-        await compareReadModelEServicesWithPlatformStates({
-          platformStatesEServiceById: new Map([
-            [
-              eservice.id,
-              new Map([[descriptor.id, platformStatesCatalogEntry]]),
-            ],
-          ]),
-          eservicesById: new Map([[eservice.id, eservice]]),
-          logger: genericLogger,
+        // platform-states
+        const catalogEntryPK = makePlatformStatesEServiceDescriptorPK({
+          eserviceId: eservice.id,
+          descriptorId: descriptor.id,
         });
-      expect(catalogDifferences).toEqual(expectedDifferencesLength);
-    });
+        const platformStatesCatalogEntry: PlatformStatesCatalogEntry = {
+          PK: catalogEntryPK,
+          state: itemState.inactive,
+          descriptorAudience: descriptor.audience,
+          descriptorVoucherLifespan: descriptor.voucherLifespan,
+          version: 1,
+          updatedAt: new Date().toISOString(),
+        };
+
+        const expectedDifferencesLength = 1;
+        const catalogDifferences =
+          await compareReadModelEServicesWithPlatformStates({
+            platformStatesEServiceById: new Map([
+              [
+                eservice.id,
+                new Map([[descriptor.id, platformStatesCatalogEntry]]),
+              ],
+            ]),
+            eservicesById: new Map([[eservice.id, eservice]]),
+            logger: genericLogger,
+          });
+        expect(catalogDifferences).toEqual(expectedDifferencesLength);
+      }
+    );
 
     it("should detect differences when the platform-states entry is missing and the descriptor is not archived", async () => {
       const descriptor: Descriptor = {

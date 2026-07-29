@@ -1463,6 +1463,12 @@ export function purposeServiceBuilder(
           createdAt: new Date(),
           state: purposeVersionState.waitingForApproval,
           dailyCalls: seed.dailyCalls,
+          stamps: {
+            creation: {
+              who: authData.userId,
+              when: new Date(),
+            },
+          },
         };
 
         const updatedPurpose = {
@@ -1640,6 +1646,7 @@ export function purposeServiceBuilder(
               return changePurposeVersionToWaitForApprovalFromDraftLogic(
                 purpose,
                 purposeVersion,
+                authData,
                 correlationId
               );
             }
@@ -2754,6 +2761,7 @@ const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
 function changePurposeVersionToWaitForApprovalFromDraftLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
+  authData: UIAuthData | M2MAdminAuthData,
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
@@ -2763,6 +2771,12 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
     ...purposeVersion,
     state: purposeVersionState.waitingForApproval,
     updatedAt: new Date(),
+    stamps: {
+      creation: {
+        who: authData.userId,
+        when: new Date(),
+      },
+    },
   };
 
   const updatedPurpose: Purpose = replacePurposeVersion(

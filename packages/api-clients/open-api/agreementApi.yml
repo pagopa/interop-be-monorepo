@@ -99,7 +99,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
-  "/agreements/{agreementId}/activate":
+  "/agreements/{agreementId}/approve":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
       - schema:
@@ -111,7 +111,7 @@ paths:
         description: identifier of the pending agreement to be activated
     post:
       summary: Agreement Activation
-      operationId: activateAgreement
+      operationId: approveAgreement
       requestBody:
         content:
           application/json:
@@ -154,6 +154,61 @@ paths:
       tags:
         - agreement
       description: Activates the pending agreement if all the pre-requisites are met.
+  "/agreements/{agreementId}/unsuspend":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+      - schema:
+          type: string
+          format: uuid
+        name: agreementId
+        in: path
+        required: true
+        description: identifier of the suspended agreement to be activated
+    post:
+      summary: Agreement Activation from Suspended
+      operationId: unsuspendAgreement
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegationRef"
+      responses:
+        "200":
+          description: Suspended agreement activated.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Agreement"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Agreement not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+      tags:
+        - agreement
+      description: Activates a suspended agreement if all the pre-requisites are met.
   "/agreements/{agreementId}/consumer-documents":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"

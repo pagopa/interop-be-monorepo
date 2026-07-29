@@ -444,7 +444,7 @@ export function agreementServiceBuilder(
       });
     },
 
-    async activateAgreement(
+    async approveAgreement(
       agreementId: string,
       delegationId: string | undefined,
       ctx: WithLogger<BffAppContext>
@@ -454,7 +454,26 @@ export function agreementServiceBuilder(
           delegationId ? ` with delegation ${delegationId}` : ""
         }`
       );
-      const agreement = await agreementProcessClient.activateAgreement(
+      const agreement = await agreementProcessClient.approveAgreement(
+        { delegationId },
+        {
+          params: { agreementId },
+          headers: ctx.headers,
+        }
+      );
+      return enrichAgreement(agreement, clients, ctx);
+    },
+    async unsuspendAgreement(
+      agreementId: string,
+      delegationId: string | undefined,
+      ctx: WithLogger<BffAppContext>
+    ): Promise<bffApi.Agreement> {
+      ctx.logger.info(
+        `Unsuspending agreement ${agreementId}${
+          delegationId ? ` with delegation ${delegationId}` : ""
+        }`
+      );
+      const agreement = await agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },

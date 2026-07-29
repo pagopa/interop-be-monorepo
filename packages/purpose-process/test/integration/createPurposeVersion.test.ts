@@ -410,12 +410,13 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
+    const authData = getMockAuthData(mockPurpose.consumerId);
     const purposeVersionResponse = await purposeService.createPurposeVersion(
       mockPurpose.id,
       {
         dailyCalls: 30,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({ authData })
     );
 
     const createdPurposeVersion =
@@ -441,6 +442,12 @@ describe("createPurposeVersion", () => {
       createdAt: new Date(),
       state: purposeVersionState.waitingForApproval,
       dailyCalls: 30,
+      stamps: {
+        creation: {
+          who: authData.userId,
+          when: new Date(),
+        },
+      },
     };
 
     const expectedPurpose: Purpose = sortPurpose({

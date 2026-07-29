@@ -6,12 +6,26 @@ import {
   makeApiProblemBuilder,
   parseErrorMessage,
 } from "pagopa-interop-models";
+import multer from "multer";
 import { z } from "zod";
 import { fromZodIssue } from "zod-validation-error";
 import { WithZodiosContext } from "@zodios/express";
 import { ExpressContext, fromAppContext } from "../context/context.js";
 
 const makeApiProblem = makeApiProblemBuilder({});
+
+// The multipart parsing middleware (multer/busboy) runs as a global middleware,
+// before routing, so its errors escape the route handlers and reach this
+// middleware. They are always caused by a malformed request body (e.g. a
+// "multipart/form-data" Content-Type without a boundary parameter, which makes
+// busboy throw "Multipart: Boundary not found"), so they must be reported as a
+// client error (400) and not as an unexpected server error (500).
+function isMultipartRequestError(error: unknown): boolean {
+  return (
+    error instanceof multer.MulterError ||
+    (error instanceof Error && error.message.startsWith("Multipart:"))
+  );
+}
 
 export function zodiosValidationErrorToApiProblem(
   zodError: {
@@ -49,6 +63,21 @@ export function errorsToApiProblemsMiddleware(
   }
 
   const ctx = fromAppContext(req.ctx);
+
+  if (isMultipartRequestError(error)) {
+    ctx.logger.warn(`Bad multipart request: ${parseErrorMessage(error)}`);
+    res
+      .status(constants.HTTP_STATUS_BAD_REQUEST)
+      .send(
+        makeApiProblem(
+          badRequestError("Invalid multipart/form-data request"),
+          () => constants.HTTP_STATUS_BAD_REQUEST,
+          ctx
+        )
+      );
+    return;
+  }
+
   ctx.logger.error(`Error in request: ${parseErrorMessage(error)}`);
 
   if (error instanceof SyntaxError) {

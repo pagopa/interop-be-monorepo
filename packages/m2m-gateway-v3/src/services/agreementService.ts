@@ -21,10 +21,6 @@ import {
   pollResourceWithMetadata,
 } from "../utils/polling.js";
 import {
-  assertAgreementIsPending,
-  assertAgreementIsSuspended,
-} from "../utils/validators/agreementValidators.js";
-import {
   toGetAgreementsApiQueryParams,
   toGetPurposesApiQueryParamsForAgreement,
   toM2MGatewayApiAgreement,
@@ -34,6 +30,10 @@ import { toM2MGatewayApiPurpose } from "../api/purposeApiConverter.js";
 import { config } from "../config/config.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
 import { agreementContractNotFound } from "../model/errors.js";
+import {
+  assertAgreementIsPending,
+  assertAgreementIsSuspended,
+} from "../utils/validators/agreementValidator.js";
 
 export type AgreementService = ReturnType<typeof agreementServiceBuilder>;
 
@@ -234,7 +234,7 @@ export function agreementServiceBuilder(
 
       assertAgreementIsPending(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.approveAgreement(
         { delegationId },
         {
           params: { agreementId },
@@ -326,7 +326,7 @@ export function agreementServiceBuilder(
 
       assertAgreementIsSuspended(agreement.data);
 
-      const response = await clients.agreementProcessClient.activateAgreement(
+      const response = await clients.agreementProcessClient.unsuspendAgreement(
         { delegationId },
         {
           params: { agreementId },

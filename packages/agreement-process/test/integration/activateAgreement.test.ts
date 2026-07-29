@@ -313,7 +313,7 @@ describe("activate agreement", () => {
         });
 
         const activateAgreementReturnValue =
-          await agreementService.activateAgreement(
+          await agreementService.approveAgreement(
             {
               agreementId: agreement.id,
               delegationId:
@@ -447,7 +447,7 @@ describe("activate agreement", () => {
       await addOneEService(eservice);
       await addOneAttribute(certifiedDiscreteAttribute);
 
-      await agreementService.activateAgreement(
+      await agreementService.approveAgreement(
         { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       );
@@ -550,7 +550,7 @@ describe("activate agreement", () => {
       await addOneEService(eservice);
       await addOneAttribute(certifiedDiscreteAttribute);
 
-      await agreementService.activateAgreement(
+      await agreementService.approveAgreement(
         { agreementId: agreement.id, delegationId: undefined },
         getMockContext({ authData })
       );
@@ -640,7 +640,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementService.activateAgreement(
+        agreementService.approveAgreement(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -769,7 +769,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementService.activateAgreement(
+        agreementService.approveAgreement(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -787,7 +787,7 @@ describe("activate agreement", () => {
       };
       await addOneAgreement(agreement);
       await expect(
-        agreementService.activateAgreement(
+        agreementService.approveAgreement(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -815,7 +815,7 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(
+        agreementService.approveAgreement(
           { agreementId: agreement.id, delegationId: consumerDelegation.id },
           getMockContext({ authData })
         )
@@ -844,7 +844,7 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(
+        agreementService.approveAgreement(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -853,6 +853,26 @@ describe("activate agreement", () => {
           authData.organizationId,
           producerDelegation.id
         )
+      );
+    });
+
+    it("Agreement Pending expected -- error case: throws agreementNotInExpectedState", async () => {
+      const consumerId = generateId<TenantId>();
+      const authData = getMockAuthData(consumerId);
+
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.active,
+        consumerId,
+      };
+      await addOneAgreement(agreement);
+      await expect(
+        agreementService.approveAgreement(
+          { agreementId: agreement.id, delegationId: undefined },
+          getMockContext({ authData })
+        )
+      ).rejects.toThrowError(
+        agreementNotInExpectedState(agreement.id, agreementState.active)
       );
     });
   });
@@ -990,7 +1010,7 @@ describe("activate agreement", () => {
           .otherwise(() => undefined);
 
         const activateAgreementReturnValue =
-          await agreementService.activateAgreement(
+          await agreementService.unsuspendAgreement(
             { agreementId: agreement.id, delegationId },
             getMockContext({ authData })
           );
@@ -1137,7 +1157,7 @@ describe("activate agreement", () => {
 
       const relatedAgreements = await addRelatedAgreements(agreement);
       const activateAgreementReturnValue =
-        await agreementService.activateAgreement(
+        await agreementService.unsuspendAgreement(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         );
@@ -1244,7 +1264,7 @@ describe("activate agreement", () => {
 
       const relatedAgreements = await addRelatedAgreements(agreement);
       const activateAgreementReturnValue =
-        await agreementService.activateAgreement(
+        await agreementService.unsuspendAgreement(
           { agreementId: agreement.id, delegationId: consumerDelegation.id },
           getMockContext({ authData })
         );
@@ -1468,7 +1488,7 @@ describe("activate agreement", () => {
             .otherwise(() => undefined);
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(
+            await agreementService.unsuspendAgreement(
               { agreementId: agreement.id, delegationId },
               getMockContext({ authData })
             );
@@ -1536,7 +1556,7 @@ describe("activate agreement", () => {
             .otherwise(() => undefined);
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(
+            await agreementService.unsuspendAgreement(
               { agreementId: agreement.id, delegationId },
               getMockContext({ authData })
             );
@@ -1759,7 +1779,7 @@ describe("activate agreement", () => {
           };
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(
+            await agreementService.unsuspendAgreement(
               { agreementId: agreement.id, delegationId },
               getMockContext({ authData })
             );
@@ -1834,7 +1854,7 @@ describe("activate agreement", () => {
           } = await setupCertifiedDiscreteSuspensionTest(false);
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(
+            await agreementService.unsuspendAgreement(
               { agreementId: agreement.id, delegationId },
               getMockContext({ authData })
             );
@@ -2071,7 +2091,7 @@ describe("activate agreement", () => {
             .otherwise(() => undefined);
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(
+            await agreementService.unsuspendAgreement(
               { agreementId: agreement.id, delegationId },
               getMockContext({ authData })
             );
@@ -2132,7 +2152,7 @@ describe("activate agreement", () => {
             .otherwise(() => undefined);
 
           const activateAgreementReturnValue =
-            await agreementService.activateAgreement(
+            await agreementService.unsuspendAgreement(
               { agreementId: agreement.id, delegationId },
               getMockContext({ authData })
             );
@@ -2207,7 +2227,7 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(
+        agreementService.unsuspendAgreement(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -2236,21 +2256,54 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(
+        agreementService.unsuspendAgreement(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
       ).rejects.toThrowError(tenantIsNotTheDelegate(authData.organizationId));
     });
+
+    it("Agreement Suspended expected -- error case: throws agreementNotInExpectedState", async () => {
+      const consumerId = generateId<TenantId>();
+      const authData = getMockAuthData(consumerId);
+
+      const agreement: Agreement = {
+        ...getMockAgreement(),
+        state: agreementState.pending,
+        consumerId,
+      };
+      await addOneAgreement(agreement);
+      await expect(
+        agreementService.unsuspendAgreement(
+          { agreementId: agreement.id, delegationId: undefined },
+          getMockContext({ authData })
+        )
+      ).rejects.toThrowError(
+        agreementNotInExpectedState(agreement.id, agreementState.pending)
+      );
+    });
   });
 
-  describe("All other error cases", () => {
+  describe.each([
+    {
+      state: agreementState.pending,
+      getMethod(service: typeof agreementService) {
+        return service.approveAgreement;
+      },
+    },
+    {
+      state: agreementState.suspended,
+      getMethod(service: typeof agreementService) {
+        return service.unsuspendAgreement;
+      },
+    },
+  ])("All other error cases", ({ state, getMethod }) => {
     it("should throw an agreementNotFound error when the Agreement does not exist", async () => {
       await addOneAgreement(getMockAgreement());
       const authData = getMockAuthData();
       const agreementId = generateId<AgreementId>();
       await expect(
-        agreementService.activateAgreement(
+        getMethod(agreementService)(
           { agreementId, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -2286,7 +2339,7 @@ describe("activate agreement", () => {
       await addSomeRandomDelegations(agreement, addOneDelegation);
 
       await expect(
-        agreementService.activateAgreement(
+        agreementService.unsuspendAgreement(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -2310,7 +2363,15 @@ describe("activate agreement", () => {
         };
         await addOneAgreement(agreement);
         await expect(
-          agreementService.activateAgreement(
+          agreementService.approveAgreement(
+            { agreementId: agreement.id, delegationId: undefined },
+            getMockContext({ authData })
+          )
+        ).rejects.toThrowError(
+          agreementNotInExpectedState(agreement.id, agreement.state)
+        );
+        await expect(
+          agreementService.unsuspendAgreement(
             { agreementId: agreement.id, delegationId: undefined },
             getMockContext({ authData })
           )
@@ -2326,14 +2387,12 @@ describe("activate agreement", () => {
 
       const agreement: Agreement = {
         ...getMockAgreement(),
-        state: randomArrayItem(
-          agreementActivableStates.filter((s) => s !== agreementState.pending)
-        ),
+        state: agreementState.suspended,
         consumerId,
       };
       await addOneAgreement(agreement);
       await expect(
-        agreementService.activateAgreement(
+        agreementService.unsuspendAgreement(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -2353,7 +2412,7 @@ describe("activate agreement", () => {
         ...getMockAgreement(),
         eserviceId: eservice.id,
         consumerId,
-        state: randomArrayItem(agreementActivableStates),
+        state: state,
         producerId,
       };
 
@@ -2361,7 +2420,7 @@ describe("activate agreement", () => {
       await addOneAgreement(agreement);
 
       await expect(
-        agreementService.activateAgreement(
+        getMethod(agreementService)(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )
@@ -2394,7 +2453,7 @@ describe("activate agreement", () => {
 
         const agreement: Agreement = {
           ...getMockAgreement(),
-          state: randomArrayItem(agreementActivableStates),
+          state: state,
           eserviceId: eservice.id,
           descriptorId: descriptor.id,
           producerId,
@@ -2405,7 +2464,7 @@ describe("activate agreement", () => {
         await addOneAgreement(agreement);
 
         await expect(
-          agreementService.activateAgreement(
+          getMethod(agreementService)(
             { agreementId: agreement.id, delegationId: undefined },
             getMockContext({ authData })
           )
@@ -2437,7 +2496,7 @@ describe("activate agreement", () => {
 
       const agreement: Agreement = {
         ...getMockAgreement(),
-        state: randomArrayItem(agreementActivableStates),
+        state: state,
         eserviceId: eservice.id,
         descriptorId: descriptor.id,
         producerId: producer.id,
@@ -2449,7 +2508,7 @@ describe("activate agreement", () => {
       await addOneTenant(producer);
 
       await expect(
-        agreementService.activateAgreement(
+        getMethod(agreementService)(
           { agreementId: agreement.id, delegationId: undefined },
           getMockContext({ authData })
         )

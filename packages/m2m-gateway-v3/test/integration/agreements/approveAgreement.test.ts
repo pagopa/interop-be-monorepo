@@ -37,7 +37,7 @@ describe("approveAgreement", () => {
   const mockDelegationRef = { delegationId: generateId() };
 
   const pollingTentatives = 2;
-  const mockActivateAgreement = vi
+  const mockApproveAgreement = vi
     .fn()
     .mockResolvedValue(mockAgreementProcessResponse);
   const mockGetAgreement = vi.fn(
@@ -46,11 +46,11 @@ describe("approveAgreement", () => {
 
   mockInteropBeClients.agreementProcessClient = {
     getAgreementById: mockGetAgreement,
-    activateAgreement: mockActivateAgreement,
+    approveAgreement: mockApproveAgreement,
   } as unknown as PagoPAInteropBeClients["agreementProcessClient"];
 
   beforeEach(() => {
-    mockActivateAgreement.mockClear();
+    mockApproveAgreement.mockClear();
     mockGetAgreement.mockClear();
   });
 
@@ -68,7 +68,7 @@ describe("approveAgreement", () => {
 
     expect(result).toStrictEqual(m2mAgreementResponse);
     expectApiClientPostToHaveBeenCalledWith({
-      mockPost: mockInteropBeClients.agreementProcessClient.activateAgreement,
+      mockPost: mockInteropBeClients.agreementProcessClient.approveAgreement,
       params: {
         agreementId: mockAgreementProcessResponse.data.id,
       },
@@ -102,7 +102,7 @@ describe("approveAgreement", () => {
 
   it("Should throw missingMetadata in case the agreement returned by the unsuspend agreement POST call has no metadata", async () => {
     mockGetAgreement.mockResolvedValueOnce(mockAgreementProcessResponse);
-    mockActivateAgreement.mockResolvedValueOnce({
+    mockApproveAgreement.mockResolvedValueOnce({
       ...mockAgreementProcessResponse,
       metadata: undefined,
     });
