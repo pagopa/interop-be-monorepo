@@ -14,6 +14,7 @@ import {
   ScheduledNotificationRow,
   parseEServiceIdDescriptorId,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleEserviceDescriptorArchivingScheduledReminderInApp(

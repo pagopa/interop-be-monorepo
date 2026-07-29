@@ -1,4 +1,5 @@
 import { match } from "ts-pattern";
+
 import {
   PurposeStateV2,
   PurposeV2,
@@ -12,9 +13,9 @@ import {
   RiskAnalysisSigningStateV2,
 } from "../gen/v2/purpose/purpose.js";
 import { PurposeRiskAnalysisFormV2 } from "../gen/v2/purpose/riskAnalysis.js";
-import { dateToBigInt } from "../utils.js";
-import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import { PurposeRiskAnalysisForm } from "../risk-analysis/riskAnalysis.js";
+import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
+import { dateToBigInt } from "../utils.js";
 import {
   Purpose,
   PurposeVersion,

@@ -12,6 +12,7 @@ import {
   agreementState,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { ActiveDelegations } from "../model/domain/models.js";
 
 export const createStamp = (

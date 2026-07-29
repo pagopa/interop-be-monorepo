@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -23,8 +22,9 @@ import {
   eserviceNotFound,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
-import { handlePurposeOverQuotaToConsumer } from "../src/handlers/purposes/handlePurposeOverQuotaToConsumer.js";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 
+import { handlePurposeOverQuotaToConsumer } from "../src/handlers/purposes/handlePurposeOverQuotaToConsumer.js";
 import {
   addOneEService,
   addOnePurpose,

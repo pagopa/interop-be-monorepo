@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import { clientKind, generateId, TenantId } from "pagopa-interop-models";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockClient,
   getMockWithMetadata,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { clientKind, generateId, TenantId } from "pagopa-interop-models";
 import request from "supertest";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { api, authorizationService } from "../vitest.api.setup.js";
-import { testToFullClient } from "../apiUtils.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
+import { testToFullClient } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /clientsConsumer authorization test", () => {
   const organizationId: TenantId = generateId();

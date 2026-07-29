@@ -37,6 +37,7 @@ import {
   CertifiedDiscreteTenantAttribute,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   getCustomMockCertifiedDiscreteTenantAttribute,

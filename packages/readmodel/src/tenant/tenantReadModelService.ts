@@ -1,4 +1,5 @@
 import { eq, inArray, SQL } from "drizzle-orm";
+import { ascLower } from "pagopa-interop-commons";
 import {
   Tenant,
   TenantId,
@@ -29,7 +30,7 @@ import {
   tenantVerifiedAttributeVerifierInReadmodelTenant,
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
-import { ascLower } from "pagopa-interop-commons";
+
 import { aggregateTenant, aggregateTenantArray } from "./aggregators.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

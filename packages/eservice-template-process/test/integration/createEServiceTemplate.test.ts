@@ -16,13 +16,14 @@ import {
   eserviceMode,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   eserviceTemplateDuplicate,
   inconsistentDailyCalls,
   originNotCompliant,
   asyncExchangeReceiveTemplateNotAllowed,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneEServiceTemplate,
   eserviceTemplateService,

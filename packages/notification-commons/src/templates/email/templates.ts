@@ -1,9 +1,10 @@
-import { fileURLToPath } from "url";
-import fs from "fs/promises";
 import fsSync from "fs";
-import path from "path";
-import { z } from "zod";
+import fs from "fs/promises";
 import { HtmlTemplateService } from "pagopa-interop-commons";
+import path from "path";
+import { fileURLToPath } from "url";
+import { z } from "zod";
+
 import { htmlTemplateNotFound } from "../../models/errors.js";
 
 export const eventMailTemplateType = {

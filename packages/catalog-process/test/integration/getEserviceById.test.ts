@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { AuthData, userRole } from "pagopa-interop-commons";
 import {
+  getMockAuthData,
+  getMockContext,
+  getMockDelegation,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "pagopa-interop-commons-test";
+import {
   Descriptor,
   descriptorState,
   EService,
@@ -10,20 +18,13 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import {
-  getMockAuthData,
-  getMockContext,
-  getMockDelegation,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "pagopa-interop-commons-test";
+
+import { eServiceNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneDelegation,
   addOneEService,
   catalogService,
 } from "../integrationUtils.js";
-import { eServiceNotFound } from "../../src/model/domain/errors.js";
 import { getContextsAllowedToSeeInactiveDescriptors } from "../mockUtils.js";
 
 describe("get eservice by id", () => {

@@ -1,25 +1,26 @@
-import { describe, it, expect, vi } from "vitest";
+import {
+  attributeRegistryApi,
+  catalogApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
+import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEservice,
   getMockedApiAttribute,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
-import request from "supertest";
-import {
-  attributeRegistryApi,
-  catalogApi,
-  m2mGatewayApiV3,
-} from "pagopa-interop-api-clients";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceDescriptorAttributeGroupNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
-import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedAttributes/groups/{groupIndex}/attributes router test", () => {
   const mockEService: catalogApi.EService = getMockedApiEservice();

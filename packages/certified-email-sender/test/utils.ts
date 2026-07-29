@@ -1,7 +1,6 @@
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { Agreement, EService, Tenant } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   catalogReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
@@ -11,6 +10,8 @@ import {
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { certifiedEmailSenderServiceBuilder } from "../src/services/certifiedEmailSenderService.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 

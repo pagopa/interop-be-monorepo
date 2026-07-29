@@ -1,5 +1,10 @@
 /* eslint-disable functional/immutable-data */
-import { match, P } from "ts-pattern";
+import {
+  FileManager,
+  logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   EServiceEventV2,
@@ -7,12 +12,8 @@ import {
   generateId,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  logger,
-  SafeStorageService,
-  SignatureServiceBuilder,
-} from "pagopa-interop-commons";
+import { match, P } from "ts-pattern";
+
 import { CatalogEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 

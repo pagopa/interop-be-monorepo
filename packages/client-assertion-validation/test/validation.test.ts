@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
-import { describe, expect, it } from "vitest";
+import * as jsonwebtoken from "jsonwebtoken";
+import { dateToSeconds, genericLogger } from "pagopa-interop-commons";
+import {
+  generateKeySet,
+  getMockClientAssertion,
+  getMockTokenGenStatesApiClient,
+  getMockTokenGenStatesConsumerClient,
+} from "pagopa-interop-commons-test";
 import {
   algorithm,
   ClientId,
@@ -13,22 +20,8 @@ import {
   interactionState,
   InteractionId,
 } from "pagopa-interop-models";
-import * as jsonwebtoken from "jsonwebtoken";
-import {
-  generateKeySet,
-  getMockClientAssertion,
-  getMockTokenGenStatesApiClient,
-  getMockTokenGenStatesConsumerClient,
-} from "pagopa-interop-commons-test";
-import { dateToSeconds, genericLogger } from "pagopa-interop-commons";
-import {
-  validateClientKindAndPlatformState,
-  validateRequestParameters,
-  verifyAsyncClientAssertion,
-  verifyClientAssertion,
-  verifyClientAssertionSignature,
-} from "../src/validation.js";
-import { validateAudience, validatePlatformState } from "../src/utils.js";
+import { describe, expect, it } from "vitest";
+
 import {
   algorithmNotAllowed,
   algorithmNotFound,
@@ -68,6 +61,14 @@ import {
   invalidEntityNumberClaimFormat,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest } from "../src/types.js";
+import { validateAudience, validatePlatformState } from "../src/utils.js";
+import {
+  validateClientKindAndPlatformState,
+  validateRequestParameters,
+  verifyAsyncClientAssertion,
+  verifyClientAssertion,
+  verifyClientAssertionSignature,
+} from "../src/validation.js";
 import {
   expectedAudiences,
   getMockAccessTokenRequest,

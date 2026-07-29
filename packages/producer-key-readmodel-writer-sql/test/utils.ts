@@ -1,13 +1,14 @@
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { producerJWKKeyReadModelServiceBuilder } from "pagopa-interop-readmodel";
-import { inject, afterEach } from "vitest";
 import { and, eq } from "drizzle-orm";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { ProducerKeychainId } from "pagopa-interop-models";
+import { producerJWKKeyReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
   ProducerJWKKeySQL,
   producerJwkKeyInReadmodelProducerJwkKey,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach } from "vitest";
+
 import { producerJWKKeyWriterServiceBuilder } from "../src/producerJWKKeyWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

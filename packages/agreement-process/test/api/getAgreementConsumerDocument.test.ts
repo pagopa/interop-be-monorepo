@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { agreementApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
 import {
   AgreementDocumentId,
   AgreementId,
   generateId,
 } from "pagopa-interop-models";
-import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { agreementApi } from "pagopa-interop-api-clients";
-import { api, agreementService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { agreementDocumentToApiAgreementDocument } from "../../src/model/domain/apiConverter.js";
 import {
   agreementDocumentNotFound,
   tenantNotAllowed,
 } from "../../src/model/domain/errors.js";
 import { getMockConsumerDocument } from "../mockUtils.js";
+import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API GET /agreements/{agreementId}/consumer-documents/{documentId} test", () => {
   const mockAgreement = getMockAgreement();

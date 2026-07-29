@@ -1,4 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
 import { retrieveServerUrlsAPI } from "pagopa-interop-commons";
 import {
   generateId,
@@ -8,6 +7,8 @@ import {
   openapiVersionNotRecognized,
   technology,
 } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import { readFileContent } from "../src/index.js";
 
 describe("retrieveServerUrlsAPI", () => {
@@ -243,6 +244,28 @@ describe("retrieveServerUrlsAPI", () => {
       retrieveServerUrlsAPI(invalidDoc, "INTERFACE", "Rest", resource)
     ).rejects.toThrow(invalidInterfaceFileDetected(resource));
   });
+  it("should throw invalidInterfaceFileDetected for OpenAPI 3.x REST interface without servers", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noServersDoc = {
+      name: "test.yaml",
+      text: vi.fn().mockResolvedValue("openapi: 3.0.0\n"),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noServersDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+  });
+  it("should throw invalidInterfaceFileDetected for OpenAPI 2.0 REST interface without host", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noHostDoc = {
+      name: "test.json",
+      text: vi.fn().mockResolvedValue(JSON.stringify({ openapi: "2.0" })),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noHostDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+  });
   it("should return an empty array for DOCUMENT kind", async () => {
     const documentDoc = {
       ...mockFile,
@@ -304,6 +327,47 @@ describe("retrieveServerUrlsAPI", () => {
 
       const urls = await retrieveServerUrlsAPI(
         yamlCallbackDoc,
+        "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+        technology.rest,
+        { id: generateId(), isEserviceTemplate: false }
+      );
+
+      expect(urls).toEqual([]);
+    });
+
+    it("should return an empty array for REST callback interface with empty servers array", async () => {
+      const restCallbackDoc = {
+        name: "callback.json",
+        text: vi.fn().mockResolvedValue(
+          JSON.stringify({
+            openapi: "3.0.0",
+            servers: [],
+          })
+        ),
+      } as unknown as File;
+
+      const urls = await retrieveServerUrlsAPI(
+        restCallbackDoc,
+        "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+        technology.rest,
+        { id: generateId(), isEserviceTemplate: false }
+      );
+
+      expect(urls).toEqual([]);
+    });
+
+    it("should return an empty array for REST callback interface without servers field", async () => {
+      const restCallbackDoc = {
+        name: "callback.json",
+        text: vi.fn().mockResolvedValue(
+          JSON.stringify({
+            openapi: "3.0.0",
+          })
+        ),
+      } as unknown as File;
+
+      const urls = await retrieveServerUrlsAPI(
+        restCallbackDoc,
         "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
         technology.rest,
         { id: generateId(), isEserviceTemplate: false }

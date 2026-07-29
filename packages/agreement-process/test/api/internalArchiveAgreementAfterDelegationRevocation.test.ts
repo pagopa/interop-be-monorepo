@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
 import {
   AgreementId,
   DelegationId,
   agreementState,
   generateId,
 } from "pagopa-interop-models";
-import { generateToken, getMockAgreement } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, agreementService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   agreementNotFound,
   agreementNotInExpectedState,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
+import { api, agreementService } from "../vitest.api.setup.js";
 
 describe("API POST /internal/delegations/{delegationId}/agreements/{agreementId}/archive test", () => {
   const mockAgreement = getMockAgreement();

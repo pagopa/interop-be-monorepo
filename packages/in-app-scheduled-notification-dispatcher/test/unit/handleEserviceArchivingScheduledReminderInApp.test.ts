@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { addDays } from "date-fns";
-import { describe, it, expect, vi } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   DescriptorId,
@@ -12,6 +11,8 @@ import {
   EService,
   archivingScope,
   descriptorState,
+  GracePeriodDays,
+  gracePeriodDays,
 } from "pagopa-interop-models";
 import {
   ScheduledNotificationRow,
@@ -19,9 +20,14 @@ import {
   schedulableEventType,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
+import { describe, it, expect, vi } from "vitest";
+
 import { handleEserviceArchivingScheduledReminderInApp } from "../../src/handlers/eservices/handleEserviceArchivingScheduledReminderInApp.js";
 
-const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
+const makeDescriptor = (
+  overrides: Partial<Descriptor> = {},
+  gracePeriodDaysValue: GracePeriodDays = 30
+): Descriptor => ({
   id: generateId<DescriptorId>(),
   version: "1",
   description: undefined,
@@ -47,6 +53,7 @@ const makeDescriptor = (overrides: Partial<Descriptor> = {}): Descriptor => ({
     archivableOn: addDays(new Date(), 7),
     startedAt: new Date(),
     scope: archivingScope.eservice,
+    gracePeriodDays: gracePeriodDaysValue,
   },
   ...overrides,
 });
@@ -103,6 +110,7 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
         archivableOn: addDays(new Date(), 7),
         startedAt: new Date(),
         scope: archivingScope.descriptor,
+        gracePeriodDays: 30,
       },
     });
     const eservice = makeEservice({ descriptors: [descriptor] });
@@ -117,81 +125,84 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
     expect(result).toEqual([]);
   });
 
-  it("notifies producer + all consumers across all eservice-scope descriptors with copy that does NOT cite a specific version", async () => {
-    const descriptorA = makeDescriptor();
-    const descriptorB = makeDescriptor();
-    const eservice = makeEservice({
-      descriptors: [descriptorA, descriptorB],
-    });
-    const consumerA = generateId<TenantId>();
-    const consumerB = generateId<TenantId>();
-    const producerUserId = generateId<UserId>();
-    const consumerAUserId = generateId<UserId>();
-    const consumerBUserId = generateId<UserId>();
+  it.each([...gracePeriodDays])(
+    "notifies producer + all consumers across all eservice-scope descriptors with copy that does NOT cite a specific version (gracePeriodDays: %d)",
+    async (gracePeriodDaysValue: GracePeriodDays) => {
+      const descriptorA = makeDescriptor({}, gracePeriodDaysValue);
+      const descriptorB = makeDescriptor({}, gracePeriodDaysValue);
+      const eservice = makeEservice({
+        descriptors: [descriptorA, descriptorB],
+      });
+      const consumerA = generateId<TenantId>();
+      const consumerB = generateId<TenantId>();
+      const producerUserId = generateId<UserId>();
+      const consumerAUserId = generateId<UserId>();
+      const consumerBUserId = generateId<UserId>();
 
-    const readModelService = {
-      notificationTypeBlocklist: [],
-      getEServiceById: vi.fn().mockResolvedValue(eservice),
-      getTenantById: vi.fn().mockResolvedValue({ name: "producer-tenant" }),
-      getAgreementsByEserviceId: vi.fn().mockResolvedValue([
-        {
-          consumerId: consumerA,
-          eserviceId: eservice.id,
-          descriptorId: descriptorA.id,
-        },
-        {
-          consumerId: consumerB,
-          eserviceId: eservice.id,
-          descriptorId: descriptorB.id,
-        },
-      ]),
-      getTenantUsersWithNotificationEnabled: vi
-        .fn()
-        .mockImplementation(
-          async (tenantIds: TenantId[], notifType: string) => {
-            if (notifType === "eserviceStateChangedToProducer") {
-              return [
-                {
-                  userId: producerUserId,
-                  tenantId: eservice.producerId,
+      const readModelService = {
+        notificationTypeBlocklist: [],
+        getEServiceById: vi.fn().mockResolvedValue(eservice),
+        getTenantById: vi.fn().mockResolvedValue({ name: "producer-tenant" }),
+        getAgreementsByEserviceId: vi.fn().mockResolvedValue([
+          {
+            consumerId: consumerA,
+            eserviceId: eservice.id,
+            descriptorId: descriptorA.id,
+          },
+          {
+            consumerId: consumerB,
+            eserviceId: eservice.id,
+            descriptorId: descriptorB.id,
+          },
+        ]),
+        getTenantUsersWithNotificationEnabled: vi
+          .fn()
+          .mockImplementation(
+            async (tenantIds: TenantId[], notifType: string) => {
+              if (notifType === "eserviceStateChangedToProducer") {
+                return [
+                  {
+                    userId: producerUserId,
+                    tenantId: eservice.producerId,
+                    userRoles: ["admin"],
+                  },
+                ];
+              }
+              if (notifType === "eserviceStateChangedToConsumer") {
+                return tenantIds.map((tenantId) => ({
+                  userId:
+                    tenantId === consumerA ? consumerAUserId : consumerBUserId,
+                  tenantId,
                   userRoles: ["admin"],
-                },
-              ];
+                }));
+              }
+              return [];
             }
-            if (notifType === "eserviceStateChangedToConsumer") {
-              return tenantIds.map((tenantId) => ({
-                userId:
-                  tenantId === consumerA ? consumerAUserId : consumerBUserId,
-                tenantId,
-                userRoles: ["admin"],
-              }));
-            }
-            return [];
-          }
-        ),
-    } as any;
+          ),
+      } as any;
 
-    const result = await handleEserviceArchivingScheduledReminderInApp(
-      buildRow(formatEServiceEntityId(eservice.id)),
-      readModelService,
-      genericLogger
-    );
+      const result = await handleEserviceArchivingScheduledReminderInApp(
+        buildRow(formatEServiceEntityId(eservice.id)),
+        readModelService,
+        genericLogger
+      );
 
-    expect(result).toHaveLength(3); // 1 producer + 2 consumers
-    const producer = result.find(
-      (n) => n.notificationType === "eserviceStateChangedToProducer"
-    );
-    const consumers = result.filter(
-      (n) => n.notificationType === "eserviceStateChangedToConsumer"
-    );
-    expect(producer?.userId).toBe(producerUserId);
-    expect(producer?.entityId).toBe(eservice.id);
-    expect(producer?.body).toContain("sarà archiviato");
-    expect(producer?.body).not.toMatch(/versione\s+\d/);
-    expect(consumers).toHaveLength(2);
-    expect(consumers.every((c) => c.body.includes("producer-tenant"))).toBe(
-      false
-    );
-    expect(consumers.every((c) => !/versione\s+\d/.test(c.body))).toBe(true);
-  });
+      expect(result).toHaveLength(3); // 1 producer + 2 consumers
+      const producer = result.find(
+        (n) => n.notificationType === "eserviceStateChangedToProducer"
+      );
+      const consumers = result.filter(
+        (n) => n.notificationType === "eserviceStateChangedToConsumer"
+      );
+      expect(producer?.userId).toBe(producerUserId);
+      expect(producer?.entityId).toBe(eservice.id);
+      expect(producer?.body).toContain("sarà archiviato");
+      expect(producer?.body).not.toMatch(/versione\s+\d/);
+      expect(consumers).toHaveLength(2);
+      expect(consumers.every((c) => c.body.includes("producer-tenant"))).toBe(
+        false
+      );
+      expect(consumers.every((c) => !/versione\s+\d/.test(c.body))).toBe(true);
+    }
+  );
 });
