@@ -406,7 +406,25 @@ describe("toBffApiRequesterCertifiedAttributes", () => {
         attributeId: input.attributeId,
         attributeName: input.attributeName,
         kind: expectedKind,
+        discreteValue: undefined,
       });
     }
   );
+
+  it("should preserve the discreteValue of a discrete assignment", () => {
+    const input: tenantApi.CertifiedAttribute = {
+      id: generateId(),
+      name: "tenant",
+      attributeId: generateId(),
+      attributeName: "attribute",
+      kind: "CERTIFIED_DISCRETE",
+      discreteValue: 42,
+    };
+
+    const result: bffApi.RequesterCertifiedAttribute =
+      toBffApiRequesterCertifiedAttributes(input);
+    bffApi.RequesterCertifiedAttribute.parse(result);
+
+    expect(result.discreteValue).toBe(input.discreteValue);
+  });
 });
