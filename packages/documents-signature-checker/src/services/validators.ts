@@ -22,12 +22,12 @@ export type CmsInspection =
   | ({ status: "valid" } & SignedCmsCheckResult)
   | { status: "invalid"; error: string };
 
-export type UnsignedDocumentToCheck = {
+type UnsignedDocumentToCheck = {
   path: string;
   download: DownloadOutcome;
 };
 
-export type SignedDocumentToCheck = UnsignedDocumentToCheck & {
+type SignedDocumentToCheck = UnsignedDocumentToCheck & {
   existsInReadmodel: boolean;
   /** Set only when the signed file was downloaded. */
   cms?: CmsInspection;
@@ -42,7 +42,7 @@ export type DocumentToCheck = {
   extraFields?: Record<string, string | number | undefined>;
 };
 
-export type DocumentAssertion = (
+type DocumentAssertion = (
   document: DocumentToCheck
 ) => DocumentCheckIssue | undefined;
 

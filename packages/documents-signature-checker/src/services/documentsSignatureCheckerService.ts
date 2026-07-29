@@ -39,7 +39,7 @@ const MINUTE_IN_MS = 60 * 1000;
 
 const entityTypes = ["agreement", "purpose", "delegation"] as const;
 
-export type DocumentsSignatureCheckerServiceBuilderParams = {
+type DocumentsSignatureCheckerServiceBuilderParams = {
   readModelService: ReadModelServiceSQL;
   fileManager: FileManager;
   logger: Logger;
@@ -461,7 +461,3 @@ export function documentsSignatureCheckerServiceBuilder({
     },
   };
 }
-
-export type DocumentsSignatureCheckerService = ReturnType<
-  typeof documentsSignatureCheckerServiceBuilder
->;

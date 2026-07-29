@@ -15,7 +15,7 @@ export type DocumentCheckIssueCode =
   | "SIGNING_PENDING"
   | "UNEXPECTED_CHECK_ERROR";
 
-export type IssueSeverity = "error" | "warning";
+type IssueSeverity = "error" | "warning";
 
 /**
  * Log severity of each issue code. `warning` marks expected transient states
