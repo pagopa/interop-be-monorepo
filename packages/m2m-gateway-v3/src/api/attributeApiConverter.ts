@@ -47,6 +47,7 @@ function convertAttribute(
   mapThrownErrorsToNotFound = false
 ):
   | m2mGatewayApiV3.CertifiedAttribute
+  | m2mGatewayApiV3.CertifiedDiscreteAttribute
   | m2mGatewayApiV3.DeclaredAttribute
   | m2mGatewayApiV3.VerifiedAttribute {
   try {
@@ -166,16 +167,6 @@ export function toGetCertifiedAttributesApiQueryParams(
     limit: params.limit,
     offset: params.offset,
     kinds: [attributeRegistryApi.AttributeKind.Values.CERTIFIED],
-  };
-}
-
-export function toGetCertifiedDiscreteAttributesApiQueryParams(
-  params: m2mGatewayApiV3.GetCertifiedDiscreteAttributesQueryParams
-): attributeRegistryApi.GetAttributesQueryParams {
-  return {
-    limit: params.limit,
-    offset: params.offset,
-    kinds: [attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE],
   };
 }
 

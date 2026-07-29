@@ -84,8 +84,6 @@ export type GetTenantCertifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenantCertifiedAttributes"
 >;
-export type GetTenantCertifiedDiscreteAttributesQueryParams =
-  QueryParametersByAlias<TenantApi, "getTenantCertifiedDiscreteAttributes">;
 export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenantVerifiedAttributes"
@@ -170,12 +168,6 @@ export type GetEServiceTemplateVersionCertifiedAttributesQueryParams =
   QueryParametersByAlias<
     EServiceTemplateApi,
     "getEServiceTemplateVersionCertifiedAttributes"
-  >;
-
-export type GetEServiceTemplateVersionCertifiedDiscreteAttributesQueryParams =
-  QueryParametersByAlias<
-    EServiceTemplateApi,
-    "getEServiceTemplateVersionCertifiedDiscreteAttributes"
   >;
 
 export type GetEServiceTemplateVersionDeclaredAttributesQueryParams =
