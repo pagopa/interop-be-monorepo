@@ -9,6 +9,7 @@ import {
   getMockDocument,
   getMockTenant,
   randomArrayItem,
+  decodeProtobufPayload,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -22,6 +23,9 @@ import {
   DescriptorState,
   GracePeriodDays,
   DelegatedDescriptorArchivingRequest,
+  toEServiceV2,
+  EServiceDescriptorArchivingRequestedByDelegateV2,
+  operationForbidden,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 import { expect, describe, it, vi, beforeEach, afterEach } from "vitest";
@@ -36,6 +40,7 @@ import {
   addOneEService,
   addOneTenant,
   catalogService,
+  readLastEserviceEvent,
 } from "../integrationUtils.js";
 
 describe("schedule archiving of an Descriptor with delegation", () => {
@@ -121,6 +126,72 @@ describe("schedule archiving of an Descriptor with delegation", () => {
   });
   afterEach(() => {
     vi.useRealTimers();
+  });
+
+  it("should write on event-store for the request of an archival process for a Descriptor", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.deprecated,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      descriptors: [descriptor, mockLatestDescriptor],
+    };
+
+    const mockDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegateId: mockDelegateTenant.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producer);
+    await addOneTenant(mockDelegateTenant);
+    await addOneEService(eservice);
+    await addOneDelegation(mockDelegation);
+
+    vi.useFakeTimers();
+    vi.setSystemTime(fixedDate);
+
+    const scheduleEServiceArchivingResponse =
+      await catalogService.submitDelegatedDescriptorArchiving(
+        eservice.id,
+        descriptor.id,
+        {
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(mockDelegateTenant.id) })
+      );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent.stream_id).toBe(eservice.id);
+    expect(writtenEvent.version).toBe("1");
+    expect(writtenEvent.type).toBe(
+      "EServiceDescriptorArchivingRequestedByDelegate"
+    );
+    expect(writtenEvent.event_version).toBe(2);
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorArchivingRequestedByDelegateV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedDescriptor: Descriptor = {
+      ...descriptor,
+      delegatedArchivingRequest: [expectedArchivingRequest],
+    };
+
+    const expectedEService: EService = {
+      ...eservice,
+      descriptors: [expectedDescriptor, mockLatestDescriptor],
+    };
+
+    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEService));
+    expect(scheduleEServiceArchivingResponse).toEqual({
+      data: expectedEService,
+      metadata: { version: parseInt(writtenEvent.version, 10) },
+    });
   });
 
   it.each(allowedStates)(
@@ -426,6 +497,44 @@ describe("schedule archiving of an Descriptor with delegation", () => {
           gracePeriodDays: mockGracePeriodDays,
         },
         getMockContext({ authData: getMockAuthData(mockDelegateTenant.id) })
+      )
+    ).rejects.toThrow(expectedError);
+  });
+
+  it("Should throw operationForbidden when the producer requests the archiving", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.deprecated,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      descriptors: [descriptor, mockLatestDescriptor],
+    };
+
+    const mockDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegateId: mockDelegateTenant.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producer);
+    await addOneTenant(mockDelegateTenant);
+    await addOneEService(eservice);
+    await addOneDelegation(mockDelegation);
+
+    const expectedError = operationForbidden;
+
+    await expect(
+      catalogService.submitDelegatedDescriptorArchiving(
+        eservice.id,
+        descriptor.id,
+        {
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrow(expectedError);
   });
