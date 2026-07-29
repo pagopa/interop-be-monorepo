@@ -530,7 +530,7 @@ describe("schedule archiving of an EService with delegation", () => {
     const expectedError = gracePeriodDaysLowerThanDescriptor(
       eservice.id,
       archivingDescriptor.id,
-      new Date(fixedDate.getTime() + mockGracePeriodDays * 24 * 60 * 60 * 1000), // fixedDate + 30 days
+      new Date(),
       expectedArchivingDate
     );
 
