@@ -1254,3 +1254,43 @@ export const toCreateEventEServiceArchivingRequestRejectedByDelegator = (
   },
   correlationId,
 });
+
+export const toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorArchivingRequestRejectedByDelegator",
+      event_version: 2,
+      data: {
+        descriptorId,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });
+
+export const toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator =
+  (
+    version: number,
+    descriptorId: DescriptorId,
+    eservice: EService,
+    correlationId: CorrelationId
+  ): CreateEvent<EServiceEvent> => ({
+    streamId: eservice.id,
+    version,
+    event: {
+      type: "EServiceDescriptorArchivingRequestApprovedByDelegator",
+      event_version: 2,
+      data: {
+        descriptorId,
+        eservice: toEServiceV2(eservice),
+      },
+    },
+    correlationId,
+  });
