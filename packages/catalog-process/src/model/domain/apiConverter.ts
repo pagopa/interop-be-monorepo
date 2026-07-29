@@ -218,6 +218,16 @@ export const descriptorToApiDescriptor = (
   asyncExchangeCallbackInterface: descriptor.asyncExchangeCallbackInterface
     ? documentToApiDocument(descriptor.asyncExchangeCallbackInterface)
     : undefined,
+  delegatedArchivingRequest: descriptor.delegatedArchivingRequest?.map(
+    (request) => ({
+      requestedAt: request.requestedAt.toJSON(),
+      requesterId: request.requesterId,
+      gracePeriodDays: request.gracePeriodDays,
+      acceptedAt: request.acceptedAt?.toJSON(),
+      rejectedAt: request.rejectedAt?.toJSON(),
+      rejectionReason: request.rejectionReason,
+    })
+  ),
 });
 
 export const eServiceToApiEService = (
@@ -250,4 +260,15 @@ export const eServiceToApiEService = (
   instanceLabel: eservice.instanceLabel,
   archivingReason: eservice.archivingReason,
   asyncExchange: eservice.asyncExchange,
+  delegatedArchivingRequest: eservice.delegatedArchivingRequest?.map(
+    (request) => ({
+      requestedAt: request.requestedAt.toJSON(),
+      requesterId: request.requesterId,
+      gracePeriodDays: request.gracePeriodDays,
+      acceptedAt: request.acceptedAt?.toJSON(),
+      rejectedAt: request.rejectedAt?.toJSON(),
+      rejectionReason: request.rejectionReason,
+      archivingReason: request.archivingReason,
+    })
+  ),
 });
