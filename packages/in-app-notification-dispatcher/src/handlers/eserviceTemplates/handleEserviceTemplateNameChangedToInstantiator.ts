@@ -70,13 +70,20 @@ export async function handleEserviceTemplateNameChangedToInstantiator(
       const entityId = EServiceIdDescriptorId.parse(
         `${eservice.id}/${retrieveLatestDescriptor(eservice).id}`
       );
-      const instanceLabelSuffix: string = eservice.instanceLabel
+      /**
+       * The instance rename happens asynchronously (eservice-template-instances-updater
+       * -> catalogProcess.internalUpdateTemplateInstanceName), so `eservice.name` may still
+       * hold the old name at this point. Both names are therefore rebuilt from the template
+       * name and the instance label, following the same rule as `buildInstanceName` in
+       * catalog-process (`packages/catalog-process/src/services/catalogService.ts`).
+       */
+      const instanceLabelSuffix = eservice.instanceLabel
         ? ` - ${eservice.instanceLabel}`
         : "";
-      const oldEserviceName: string = `${
+      const oldEserviceName = `${
         oldName ?? eserviceTemplate.id
       }${instanceLabelSuffix}`;
-      const newEserviceName: string = `${eserviceTemplate.name}${instanceLabelSuffix}`;
+      const newEserviceName = `${eserviceTemplate.name}${instanceLabelSuffix}`;
       return {
         userId,
         tenantId,

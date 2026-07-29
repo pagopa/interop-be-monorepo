@@ -13,7 +13,6 @@ import {
   EServiceTemplate,
   generateId,
   missingKafkaMessageDataError,
-  NewNotification,
   TenantId,
   toEServiceTemplateV2,
   UserId,
@@ -135,14 +134,10 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
       readModelService
     );
 
-    const instanceLabelSuffix: string = eservice1.instanceLabel
-      ? ` - ${eservice1.instanceLabel}`
-      : "";
-    const body: string =
-      inAppTemplates.eserviceTemplateNameChangedToInstantiator(
-        `oldName${instanceLabelSuffix}`,
-        `${eserviceTemplate.name}${instanceLabelSuffix}`
-      );
+    const body = inAppTemplates.eserviceTemplateNameChangedToInstantiator(
+      `oldName - ${eservice1.instanceLabel}`,
+      `${eserviceTemplate.name} - ${eservice1.instanceLabel}`
+    );
 
     const expectedNotifications = users.flatMap((user) => [
       {
@@ -168,14 +163,14 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
   });
 
   it("should include the instance label in the old and new e-service names", async () => {
-    const oldTemplateName: string = "eservice-template-807838540-0";
-    const newTemplateName: string = "eservice-template-807838540-1";
-    const instanceLabel: string = "istanza";
+    const oldTemplateName = "eservice-template-807838540-0";
+    const newTemplateName = "eservice-template-807838540-1";
+    const instanceLabel = "istanza";
     const renamedTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
       name: newTemplateName,
     };
-    const producerId: TenantId = generateId<TenantId>();
+    const producerId = generateId<TenantId>();
     const instance: EService = {
       ...getMockEService(
         generateId<EServiceId>(),
@@ -186,25 +181,62 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
       name: `${oldTemplateName} - ${instanceLabel}`,
       instanceLabel,
     };
-    const users: Array<{ userId: UserId; tenantId: TenantId }> = [
-      { userId: generateId<UserId>(), tenantId: producerId },
-    ];
+    const users = [{ userId: generateId<UserId>(), tenantId: producerId }];
     mockGetNotificationRecipients.mockResolvedValue(users);
     readModelService.getEServicesByTemplateId = vi
       .fn()
       .mockResolvedValue([instance]);
 
-    const notifications: NewNotification[] =
-      await handleEserviceTemplateNameChangedToInstantiator(
-        toEServiceTemplateV2(renamedTemplate),
-        oldTemplateName,
-        logger,
-        readModelService
-      );
+    const notifications = await handleEserviceTemplateNameChangedToInstantiator(
+      toEServiceTemplateV2(renamedTemplate),
+      oldTemplateName,
+      logger,
+      readModelService
+    );
 
-    const expectedBody: string =
+    const expectedBody =
       `Ti informiamo che il tuo e-service ${oldTemplateName} - ${instanceLabel} ` +
       `è stato rinominato in ${newTemplateName} - ${instanceLabel} in quanto ` +
+      "è stato modificato il template e-service da cui lo hai generato.";
+
+    expect(notifications).toHaveLength(1);
+    expect(notifications[0]?.body).toBe(expectedBody);
+  });
+
+  it("should not add any suffix when the instance has no instance label", async () => {
+    const oldTemplateName = "eservice-template-807838540-0";
+    const newTemplateName = "eservice-template-807838540-1";
+    const renamedTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      name: newTemplateName,
+    };
+    const producerId = generateId<TenantId>();
+    const instance: EService = {
+      ...getMockEService(
+        generateId<EServiceId>(),
+        producerId,
+        [getMockDescriptor(descriptorState.published)],
+        renamedTemplate.id
+      ),
+      name: oldTemplateName,
+      instanceLabel: undefined,
+    };
+    const users = [{ userId: generateId<UserId>(), tenantId: producerId }];
+    mockGetNotificationRecipients.mockResolvedValue(users);
+    readModelService.getEServicesByTemplateId = vi
+      .fn()
+      .mockResolvedValue([instance]);
+
+    const notifications = await handleEserviceTemplateNameChangedToInstantiator(
+      toEServiceTemplateV2(renamedTemplate),
+      oldTemplateName,
+      logger,
+      readModelService
+    );
+
+    const expectedBody =
+      `Ti informiamo che il tuo e-service ${oldTemplateName} ` +
+      `è stato rinominato in ${newTemplateName} in quanto ` +
       "è stato modificato il template e-service da cui lo hai generato.";
 
     expect(notifications).toHaveLength(1);
