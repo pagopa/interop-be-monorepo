@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
+import { PurposeRiskAnalysisAnswerSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
 
 import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import { PurposeDbTable } from "../../model/db/index.js";
-import { PurposeRiskAnalysisAnswerSchema } from "../../model/purpose/purposeRiskAnalysisAnswer.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
