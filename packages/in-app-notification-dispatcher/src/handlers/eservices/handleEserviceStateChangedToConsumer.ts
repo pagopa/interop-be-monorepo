@@ -114,15 +114,7 @@ function getDocumentName(
   documentId: string
 ): string | undefined {
   const descriptor = eservice.descriptors.find((d) => d.id === descriptorId);
-  if (!descriptor) {
-    return undefined;
-  }
-  const document = [
-    ...descriptor.docs,
-    descriptor.interface,
-    descriptor.asyncExchangeCallbackInterface,
-  ].find((doc) => doc != null && doc.id === documentId);
-  return document?.prettyName;
+  return descriptor?.docs?.find((d) => d.id === documentId)?.prettyName;
 }
 
 function getBodyAndDescriptorId(
