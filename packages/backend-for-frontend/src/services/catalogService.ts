@@ -29,6 +29,7 @@ import {
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
+  genericInternalError,
   RiskAnalysisId,
   TenantId,
   unsafeBrandId,
@@ -932,6 +933,22 @@ export function catalogServiceBuilder(
       });
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+
+      const eserviceTemplate = eservice.templateId
+        ? await eserviceTemplateProcessClient.getEServiceTemplateById({
+            headers,
+            params: {
+              templateId: eservice.templateId,
+            },
+          })
+        : undefined;
+
+      if (eserviceTemplate && !descriptor.templateVersionRef) {
+        throw genericInternalError(
+          `Missing templateVersionRef for descriptor ${descriptorId} of EService ${eserviceId} instantiated from template ${eserviceTemplate.id}`
+        );
+      }
+
       const attributeIds = getAttributeIds(descriptor);
       const [attributes, producerKeychainFlags] = await Promise.all([
         getAllBulkAttributes(attributeProcessClient, headers, attributeIds),
@@ -1025,6 +1042,14 @@ export function catalogServiceBuilder(
           hasProducerKeychainKeys
         ),
         archivingSchedule: descriptor.archivingSchedule,
+        templateRef:
+          eserviceTemplate && descriptor.templateVersionRef
+            ? {
+                templateId: eserviceTemplate.id,
+                templateName: eserviceTemplate.name,
+                templateVersionId: descriptor.templateVersionRef.id,
+              }
+            : undefined,
       };
     },
     getEServiceConsumers: async (
@@ -1437,6 +1462,35 @@ export function catalogServiceBuilder(
         },
       });
     },
+    approveDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Approving delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.approveDelegatedEServiceArchiving(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
+    rejectDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      body: catalogApi.RejectDelegatedArchivingSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Rejecting delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.rejectDelegatedEServiceArchiving(body, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
     submitDelegatedEServiceArchiving: async (
       eServiceId: EServiceId,
       seed: catalogApi.EServiceArchivingSeed,
@@ -1460,6 +1514,42 @@ export function catalogServiceBuilder(
         `Submitting delegated archiving for descriptor ${descriptorId} of EService ${eServiceId}`
       );
       await catalogProcessClient.submitDelegatedDescriptorArchiving(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    approveDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Approving delegated archiving request for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.approveDelegatedDescriptorArchiving(
+        undefined,
+        {
+          headers,
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+        }
+      );
+    },
+    rejectDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: catalogApi.RejectDelegatedDescriptorArchivingSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Rejecting delegated archiving request for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.rejectDelegatedDescriptorArchiving(body, {
         headers,
         params: {
           eServiceId,

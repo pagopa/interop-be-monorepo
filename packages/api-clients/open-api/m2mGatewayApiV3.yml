@@ -2903,9 +2903,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  /eservices/{eServiceId}/submitDelegatedArchiving:
+  /eservices/{eserviceId}/submitDelegatedArchiving:
     parameters:
-      - name: eServiceId
+      - name: eserviceId
         in: path
         description: the eservice id
         required: true
@@ -2950,9 +2950,9 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
+  /eservices/{eserviceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
     parameters:
-      - name: eServiceId
+      - name: eserviceId
         in: path
         description: the eservice id
         required: true
@@ -2995,7 +2995,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/EService"
+                $ref: "#/components/schemas/EServiceDescriptor"
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -13849,12 +13849,17 @@ components:
           $ref: "#/components/schemas/GracePeriodDays"
       required:
         - archivingReason
+    DelegateGracePeriodDays:
+      description: Number of days for the archiving grace period, explicitly chosen by the delegate requesting the archiving
+      type: integer
+      format: int32
+      enum: [30, 60, 90, 120]
     DelegateGracePeriodDaysSeed:
       type: object
       additionalProperties: false
       properties:
         gracePeriodDays:
-          $ref: "#/components/schemas/GracePeriodDays"
+          $ref: "#/components/schemas/DelegateGracePeriodDays"
       required:
         - gracePeriodDays
     DelegateEServiceArchivingSeed:
@@ -13867,7 +13872,7 @@ components:
           minLength: 10
           maxLength: 250
         gracePeriodDays:
-          $ref: "#/components/schemas/GracePeriodDays"
+          $ref: "#/components/schemas/DelegateGracePeriodDays"
       required:
         - archivingReason
         - gracePeriodDays
