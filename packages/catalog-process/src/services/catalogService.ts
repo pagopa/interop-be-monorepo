@@ -924,7 +924,7 @@ function createNextDescriptor(
   };
 }
 
-async function cloneDocumentForNewDescriptor(
+async function cloneDocument(
   document: Document,
   fileManager: FileManager,
   logger: Logger
@@ -2214,83 +2214,21 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      const clonedInterfaceId = generateId<EServiceDocumentId>();
-      const clonedInterfacePath =
-        descriptor.interface !== undefined
-          ? await fileManager.copy(
-              config.s3Bucket,
-              descriptor.interface.path,
-              config.eserviceDocumentsPath,
-              clonedInterfaceId,
-              descriptor.interface.name,
+      const clonedInterfaceDocument = descriptor.interface
+        ? await cloneDocument(descriptor.interface, fileManager, logger)
+        : undefined;
+
+      const clonedAsyncExchangeCallbackInterfaceDocument =
+        descriptor.asyncExchangeCallbackInterface
+          ? await cloneDocument(
+              descriptor.asyncExchangeCallbackInterface,
+              fileManager,
               logger
             )
-          : undefined;
-
-      const clonedInterfaceDocument: Document | undefined =
-        descriptor.interface !== undefined && clonedInterfacePath !== undefined
-          ? {
-              id: clonedInterfaceId,
-              name: descriptor.interface.name,
-              contentType: descriptor.interface.contentType,
-              prettyName: descriptor.interface.prettyName,
-              path: clonedInterfacePath,
-              checksum: descriptor.interface.checksum,
-              uploadDate: new Date(),
-            }
-          : undefined;
-
-      const clonedAsyncExchangeCallbackInterfaceId =
-        generateId<EServiceDocumentId>();
-      const clonedAsyncExchangeCallbackInterfacePath =
-        descriptor.asyncExchangeCallbackInterface !== undefined
-          ? await fileManager.copy(
-              config.s3Bucket,
-              descriptor.asyncExchangeCallbackInterface.path,
-              config.eserviceDocumentsPath,
-              clonedAsyncExchangeCallbackInterfaceId,
-              descriptor.asyncExchangeCallbackInterface.name,
-              logger
-            )
-          : undefined;
-
-      const clonedAsyncExchangeCallbackInterfaceDocument: Document | undefined =
-        descriptor.asyncExchangeCallbackInterface !== undefined &&
-        clonedAsyncExchangeCallbackInterfacePath !== undefined
-          ? {
-              id: clonedAsyncExchangeCallbackInterfaceId,
-              name: descriptor.asyncExchangeCallbackInterface.name,
-              contentType:
-                descriptor.asyncExchangeCallbackInterface.contentType,
-              prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
-              path: clonedAsyncExchangeCallbackInterfacePath,
-              checksum: descriptor.asyncExchangeCallbackInterface.checksum,
-              uploadDate: new Date(),
-            }
           : undefined;
 
       const clonedDocuments = await Promise.all(
-        descriptor.docs.map(async (doc: Document) => {
-          const clonedDocumentId = generateId<EServiceDocumentId>();
-          const clonedDocumentPath = await fileManager.copy(
-            config.s3Bucket,
-            doc.path,
-            config.eserviceDocumentsPath,
-            clonedDocumentId,
-            doc.name,
-            logger
-          );
-          const clonedDocument: Document = {
-            id: clonedDocumentId,
-            name: doc.name,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: clonedDocumentPath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-          return clonedDocument;
-        })
+        descriptor.docs.map((doc) => cloneDocument(doc, fileManager, logger))
       );
 
       const clonedEservice: EService = {
@@ -3926,29 +3864,7 @@ export function catalogServiceBuilder(
       }
 
       const docs = await Promise.all(
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        lastVersion.docs.map(async (doc) => {
-          const clonedDocumentId = generateId<EServiceDocumentId>();
-          const clonedDocumentPath = await fileManager.copy(
-            config.s3Bucket,
-            doc.path,
-            config.eserviceDocumentsPath,
-            clonedDocumentId,
-            doc.name,
-            logger
-          );
-          const clonedDocument: Document = {
-            id: clonedDocumentId,
-            name: doc.name,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: clonedDocumentPath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-
-          return clonedDocument;
-        })
+        lastVersion.docs.map((doc) => cloneDocument(doc, fileManager, logger))
       );
 
       const asyncExchangeEnabled =
@@ -3957,7 +3873,7 @@ export function catalogServiceBuilder(
 
       const clonedAsyncExchangeCallbackInterface =
         asyncExchangeEnabled && lastVersion.asyncExchangeCallbackInterface
-          ? await cloneDocumentForNewDescriptor(
+          ? await cloneDocument(
               lastVersion.asyncExchangeCallbackInterface,
               fileManager,
               logger
