@@ -291,7 +291,6 @@ export const upsertEService = async (
       archivingSchedulesSQL,
       archivingRequestsSQL,
       asyncExchangePropertiesSQL,
-      archivingRequestsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
     await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -360,11 +359,6 @@ export const upsertEService = async (
       await tx
         .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
         .values(asyncExchangePropsSQL);
-    }
-    for (const archivingRequestSQL of archivingRequestsSQL) {
-      await tx
-        .insert(eserviceDescriptorArchivingRequestInReadmodelCatalog)
-        .values(archivingRequestSQL);
     }
   });
 };
