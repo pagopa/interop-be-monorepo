@@ -78,8 +78,8 @@ CREATE TABLE domains.eservice_descriptor_template_version_ref (
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   contact_name VARCHAR(2048),
   contact_email VARCHAR(2048),
-  contact_url VARCHAR(2048),
-  terms_and_conditions_url VARCHAR(2048),
+  contact_url VARCHAR(65535),
+  terms_and_conditions_url VARCHAR(65535),
   deleted BOOLEAN,
   PRIMARY KEY (eservice_template_version_id, descriptor_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
