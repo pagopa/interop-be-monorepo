@@ -1437,6 +1437,35 @@ export function catalogServiceBuilder(
         },
       });
     },
+    approveDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Approving delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.approveDelegatedEServiceArchiving(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
+    rejectDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      body: catalogApi.RejectDelegatedArchivingSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Rejecting delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.rejectDelegatedEServiceArchiving(body, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
     submitDelegatedEServiceArchiving: async (
       eServiceId: EServiceId,
       seed: catalogApi.EServiceArchivingSeed,
