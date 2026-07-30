@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { DBConnection } from "../../db/db.js";
-import { createRepository } from "../createRepository.js";
-import { TenantDbTable } from "../../model/db/index.js";
 import { TenantVerifiedAttributeRevokerSchema } from "pagopa-interop-kpi-models";
+
+import { DBConnection } from "../../db/db.js";
+import { TenantDbTable } from "../../model/db/index.js";
+import { createRepository } from "../createRepository.js";
 
 export const tenantVerifiedAttributeRevokerRepository = (conn: DBConnection) =>
   createRepository(conn, {

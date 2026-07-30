@@ -1,23 +1,24 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { ClientKeySchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
 import {
-  buildColumnSet,
-  generateMergeQuery,
-  generateStagingDeleteQuery,
-} from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
+  ClientKeyDeletingSchema,
+  ClientKeyUserMigrationSchema,
+} from "../../model/authorization/clientKey.js";
 import {
   DeletingDbTable,
   ClientDbTable,
   ClientDbTablePartialTable,
 } from "../../model/db/index.js";
-import { ClientKeySchema } from "pagopa-interop-kpi-models";
 import {
-  ClientKeyDeletingSchema,
-  ClientKeyUserMigrationSchema,
-} from "../../model/authorization/clientKey.js";
+  buildColumnSet,
+  generateMergeQuery,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { createRepository } from "../createRepository.js";
 
 export function clientKeyRepository(conn: DBConnection) {

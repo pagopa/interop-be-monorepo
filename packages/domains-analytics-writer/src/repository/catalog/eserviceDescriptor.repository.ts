@@ -1,14 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { EserviceDescriptorSchema } from "pagopa-interop-kpi-models";
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
-import { DBConnection } from "../../db/db.js";
-import {
-  buildColumnSet,
-  generateStagingDeleteQuery,
-  generateMergeQuery,
-} from "../../utils/sqlQueryHelper.js";
+
 import { config } from "../../config/config.js";
-import { EserviceDescriptorSchema } from "pagopa-interop-kpi-models";
+import { DBConnection } from "../../db/db.js";
 import {
   EserviceDescriptorServerUrlsSchema,
   EserviceDescriptorDeletingSchema,
@@ -18,6 +14,11 @@ import {
   CatalogDbTable,
   DeletingDbTable,
 } from "../../model/db/index.js";
+import {
+  buildColumnSet,
+  generateStagingDeleteQuery,
+  generateMergeQuery,
+} from "../../utils/sqlQueryHelper.js";
 import { createRepository } from "../createRepository.js";
 
 export function eserviceDescriptorRepository(conn: DBConnection) {

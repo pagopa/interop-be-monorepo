@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { z } from "zod";
-import { IMain, ITask } from "pg-promise";
 import { genericInternalError } from "pagopa-interop-models";
+import { IMain, ITask } from "pg-promise";
+import { z } from "zod";
+
+import { config } from "../config/config.js";
 import { DBConnection } from "../db/db.js";
 import {
   DeletingDbTable,
   DomainDbTable,
   DomainDbTableSchemas,
 } from "../model/db/index.js";
-import { config } from "../config/config.js";
 import {
   buildColumnSet,
   generateMergeDeleteQuery,

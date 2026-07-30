@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { DBConnection } from "../../db/db.js";
-import { createRepository } from "../createRepository.js";
-import { PurposeDbTable } from "../../model/db/purpose.js";
-import { DeletingDbTable } from "../../model/db/deleting.js";
 import { PurposeSchema } from "pagopa-interop-kpi-models";
+
+import { DBConnection } from "../../db/db.js";
+import { DeletingDbTable } from "../../model/db/deleting.js";
+import { PurposeDbTable } from "../../model/db/purpose.js";
 import { PurposeDeletingSchema } from "../../model/purpose/purpose.js";
+import { createRepository } from "../createRepository.js";
 
 export const purposeRepo = (conn: DBConnection) =>
   createRepository(conn, {

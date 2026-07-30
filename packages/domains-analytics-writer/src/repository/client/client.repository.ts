@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { DBConnection } from "../../db/db.js";
-import { createRepository } from "../createRepository.js";
-import { ClientDbTable, DeletingDbTable } from "../../model/db/index.js";
 import { ClientSchema } from "pagopa-interop-kpi-models";
+
+import { DBConnection } from "../../db/db.js";
 import { ClientDeletingSchema } from "../../model/authorization/client.js";
+import { ClientDbTable, DeletingDbTable } from "../../model/db/index.js";
+import { createRepository } from "../createRepository.js";
 
 export const clientRepository = (conn: DBConnection) =>
   createRepository(conn, {

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { DBConnection } from "../../db/db.js";
-import { createRepository } from "../createRepository.js";
-import { EserviceTemplateDbTable } from "../../model/db/index.js";
 import { EserviceTemplateVersionSchema } from "pagopa-interop-kpi-models";
+
+import { DBConnection } from "../../db/db.js";
+import { EserviceTemplateDbTable } from "../../model/db/index.js";
+import { createRepository } from "../createRepository.js";
 
 export const eserviceTemplateVersionRepository = (conn: DBConnection) =>
   createRepository(conn, {

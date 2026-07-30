@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { PurposeTemplateEServiceDescriptorSchema } from "pagopa-interop-kpi-models";
+
 import { DBConnection } from "../../db/db.js";
-import { createRepository } from "../createRepository.js";
 import {
   PurposeTemplateDbTable,
   DeletingDbTable,
 } from "../../model/db/index.js";
-import { PurposeTemplateEServiceDescriptorSchema } from "pagopa-interop-kpi-models";
 import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { createRepository } from "../createRepository.js";
 
 export const purposeTemplateEServiceDescriptorRepository = (
   conn: DBConnection

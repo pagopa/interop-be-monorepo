@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { DBConnection } from "../../db/db.js";
-import { createRepository } from "../createRepository.js";
-import { CatalogDbTable } from "../../model/db/index.js";
 import { EserviceDescriptorRejectionReasonSchema } from "pagopa-interop-kpi-models";
+
+import { DBConnection } from "../../db/db.js";
+import { CatalogDbTable } from "../../model/db/index.js";
+import { createRepository } from "../createRepository.js";
 
 export const eserviceDescriptorRejectionRepository = (conn: DBConnection) =>
   createRepository(conn, {

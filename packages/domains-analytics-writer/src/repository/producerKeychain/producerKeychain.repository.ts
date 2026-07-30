@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { ProducerKeychainSchema } from "pagopa-interop-kpi-models";
+
 import { DBConnection } from "../../db/db.js";
-import { createRepository } from "../createRepository.js";
+import { ProducerKeychainDeletingSchema } from "../../model/authorization/producerKeychain.js";
 import {
   ProducerKeychainDbTable,
   DeletingDbTable,
 } from "../../model/db/index.js";
-import { ProducerKeychainSchema } from "pagopa-interop-kpi-models";
-import { ProducerKeychainDeletingSchema } from "../../model/authorization/producerKeychain.js";
+import { createRepository } from "../createRepository.js";
 
 export const producerKeychainRepository = (conn: DBConnection) =>
   createRepository(conn, {
