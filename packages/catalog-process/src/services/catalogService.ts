@@ -924,6 +924,29 @@ function createNextDescriptor(
   };
 }
 
+async function cloneDocumentForNewDescriptor(
+  document: Document,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<Document> {
+  const clonedDocumentId = generateId<EServiceDocumentId>();
+  const clonedDocumentPath = await fileManager.copy(
+    config.s3Bucket,
+    document.path,
+    config.eserviceDocumentsPath,
+    clonedDocumentId,
+    document.name,
+    logger
+  );
+
+  return {
+    ...document,
+    id: clonedDocumentId,
+    path: clonedDocumentPath,
+    uploadDate: new Date(),
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
@@ -3928,19 +3951,39 @@ export function catalogServiceBuilder(
         })
       );
 
-      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
-        description: lastVersion.description,
-        voucherLifespan: lastVersion.voucherLifespan,
-        audience: [],
-        dailyCallsPerConsumer:
-          lastVersion.dailyCallsPerConsumer ?? DEFAULT_DAILY_CALLS_PER_CONSUMER,
-        dailyCallsTotal:
-          lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
-        agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
-        attributes: lastVersion.attributes,
-        docs,
-        templateVersionId: lastVersion.id,
-      });
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
+      const clonedAsyncExchangeCallbackInterface =
+        asyncExchangeEnabled && lastVersion.asyncExchangeCallbackInterface
+          ? await cloneDocumentForNewDescriptor(
+              lastVersion.asyncExchangeCallbackInterface,
+              fileManager,
+              logger
+            )
+          : undefined;
+
+      const newDescriptor: Descriptor = {
+        ...createNextDescriptor(eservice.data, {
+          description: lastVersion.description,
+          voucherLifespan: lastVersion.voucherLifespan,
+          audience: [],
+          dailyCallsPerConsumer:
+            lastVersion.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
+          agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
+          attributes: lastVersion.attributes,
+          docs,
+          templateVersionId: lastVersion.id,
+          asyncExchangeProperties: asyncExchangeEnabled
+            ? lastVersion.asyncExchangeProperties
+            : undefined,
+        }),
+        asyncExchangeCallbackInterface: clonedAsyncExchangeCallbackInterface,
+      };
 
       const upgradedEService: EService = {
         ...eservice.data,
@@ -4285,6 +4328,27 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(eserviceInstanceDescriptorSeed);
 
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
+      const asyncExchangeProperties =
+        asyncExchangeEnabled && templateVersion.asyncExchangeProperties
+          ? {
+              ...templateVersion.asyncExchangeProperties,
+              responseTime:
+                latestDescriptor.asyncExchangeProperties?.responseTime ??
+                templateVersion.asyncExchangeProperties.responseTime,
+              resourceAvailableTime:
+                latestDescriptor.asyncExchangeProperties
+                  ?.resourceAvailableTime ??
+                templateVersion.asyncExchangeProperties.resourceAvailableTime,
+              maxResultSet:
+                latestDescriptor.asyncExchangeProperties?.maxResultSet ??
+                templateVersion.asyncExchangeProperties.maxResultSet,
+            }
+          : undefined;
+
       const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
         description: templateVersion.description,
         voucherLifespan: templateVersion.voucherLifespan,
@@ -4299,6 +4363,7 @@ export function catalogServiceBuilder(
         docs: [],
         attributes: templateVersion.attributes,
         templateVersionId: templateVersion.id,
+        asyncExchangeProperties,
       });
 
       const eserviceVersion = eservice.metadata.version;
@@ -4315,17 +4380,33 @@ export function catalogServiceBuilder(
         ctx.correlationId
       );
 
-      const { updatedDescriptor, events } = await templateVersion.docs.reduce(
+      const documentsToClone = [
+        ...templateVersion.docs.map((document) => ({
+          document,
+          kind: "DOCUMENT" as const,
+        })),
+        ...(asyncExchangeEnabled &&
+        templateVersion.asyncExchangeCallbackInterface
+          ? [
+              {
+                document: templateVersion.asyncExchangeCallbackInterface,
+                kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE" as const,
+              },
+            ]
+          : []),
+      ];
+
+      const { updatedDescriptor, events } = await documentsToClone.reduce(
         async (accPromise, doc, index) => {
           const acc = await accPromise;
 
           const clonedDocumentId = generateId<EServiceDocumentId>();
           const clonedDocumentPath = await fileManager.copy(
             config.s3Bucket,
-            doc.path,
+            doc.document.path,
             config.eserviceDocumentsPath,
             clonedDocumentId,
-            doc.name,
+            doc.document.name,
             ctx.logger
           );
 
@@ -4335,12 +4416,12 @@ export function catalogServiceBuilder(
               acc.updatedDescriptor.id,
               {
                 documentId: clonedDocumentId,
-                kind: "DOCUMENT",
-                prettyName: doc.prettyName,
+                kind: doc.kind,
+                prettyName: doc.document.prettyName,
                 filePath: clonedDocumentPath,
-                fileName: doc.name,
-                contentType: doc.contentType,
-                checksum: doc.checksum,
+                fileName: doc.document.name,
+                contentType: doc.document.contentType,
+                checksum: doc.document.checksum,
                 serverUrls: [],
               },
               ctx

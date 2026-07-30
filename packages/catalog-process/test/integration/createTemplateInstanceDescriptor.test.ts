@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { catalogApi } from "pagopa-interop-api-clients";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -24,9 +25,13 @@ import {
   EServiceTemplateVersion,
   EServiceTemplate,
   eserviceTemplateVersionState,
+  Document,
+  EServiceDocumentId,
+  generateId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { config } from "../../src/config/config.js";
 import {
   draftDescriptorAlreadyExists,
   eServiceNotFound,
@@ -37,6 +42,7 @@ import {
   addOneEService,
   addOneEServiceTemplate,
   catalogService,
+  fileManager,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 
@@ -137,6 +143,113 @@ describe("create descriptor", async () => {
         ...eservice,
         descriptors: [prevDescriptor, returnedDescriptor],
       }),
+    });
+  });
+
+  it("should inherit async exchange fields and callback when creating a new descriptor for a template instance", async () => {
+    vi.spyOn(fileManager, "copy");
+
+    const callbackDocumentId = generateId<EServiceDocumentId>();
+    const callbackDocument: Document = {
+      ...getMockDocument(),
+      id: callbackDocumentId,
+      name: "callback.yaml",
+      prettyName: "Callback interface",
+      path: `${config.eserviceDocumentsPath}/${callbackDocumentId}/callback.yaml`,
+    };
+    const templateVersion: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(),
+      state: eserviceTemplateVersionState.published,
+      asyncExchangeProperties: {
+        responseTime: 300,
+        resourceAvailableTime: 600,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 100,
+      },
+      asyncExchangeCallbackInterface: callbackDocument,
+    };
+    const template: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [templateVersion],
+      asyncExchange: true,
+    };
+    const previousDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      version: "1",
+      state: descriptorState.published,
+      templateVersionRef: {
+        id: templateVersion.id,
+      },
+      asyncExchangeProperties: {
+        responseTime: 900,
+        resourceAvailableTime: 1200,
+        confirmation: false,
+        bulk: true,
+        maxResultSet: 200,
+      },
+    };
+    const eservice: EService = {
+      ...getMockEService(),
+      descriptors: [previousDescriptor],
+      templateId: template.id,
+      asyncExchange: true,
+    };
+
+    await addOneEServiceTemplate(template);
+    await addOneEService(eservice);
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: callbackDocument.id,
+        name: callbackDocument.name,
+        content: Buffer.from("callback-content"),
+      },
+      genericLogger
+    );
+
+    const returnedDescriptor =
+      await catalogService.createTemplateInstanceDescriptor(
+        eservice.id,
+        {
+          audience: [],
+          dailyCallsPerConsumer: 60,
+          dailyCallsTotal: 600,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      );
+
+    expect(returnedDescriptor.asyncExchangeProperties).toEqual({
+      responseTime: 900,
+      resourceAvailableTime: 1200,
+      confirmation: true,
+      bulk: false,
+      maxResultSet: 200,
+    });
+    expect(returnedDescriptor.asyncExchangeCallbackInterface).toMatchObject({
+      name: callbackDocument.name,
+      prettyName: callbackDocument.prettyName,
+      contentType: callbackDocument.contentType,
+      checksum: callbackDocument.checksum,
+    });
+    expect(returnedDescriptor.asyncExchangeCallbackInterface?.id).not.toBe(
+      callbackDocument.id
+    );
+
+    expect(fileManager.copy).toHaveBeenCalledWith(
+      config.s3Bucket,
+      callbackDocument.path,
+      config.eserviceDocumentsPath,
+      returnedDescriptor.asyncExchangeCallbackInterface?.id,
+      callbackDocument.name,
+      genericLogger
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+    expect(writtenEvent).toMatchObject({
+      type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+      event_version: 2,
     });
   });
 
