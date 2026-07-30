@@ -1002,7 +1002,52 @@ paths:
         "404":
           $ref: "#/components/responses/NotFound"
         "409":
-          $ref: "#/components/responses/Conflict"
+          description: Attribute already revoked for the Tenant
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    put:
+      tags:
+        - tenantAttribute
+      operationId: updateCertifiedDiscreteAttributeById
+      description: Update the value of an assigned certified discrete attribute for a Tenant by the requester Tenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCertifiedDiscreteTenantAttributeSeed"
+        required: true
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "200":
+          description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "404":
+          description: Tenant Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+        "409":
+          description: Attribute already revoked for the Tenant
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /maintenance/tenants/{tenantId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1310,6 +1355,17 @@ components:
           maximum: 1000000000
       required:
         - id
+        - certifiedDiscreteValue
+    UpdateCertifiedDiscreteTenantAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
         - certifiedDiscreteValue
     TenantUnitType:
       type: string
