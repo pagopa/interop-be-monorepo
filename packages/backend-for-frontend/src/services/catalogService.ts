@@ -1521,6 +1521,42 @@ export function catalogServiceBuilder(
         },
       });
     },
+    approveDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Approving delegated archiving request for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.approveDelegatedDescriptorArchiving(
+        undefined,
+        {
+          headers,
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+        }
+      );
+    },
+    rejectDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: catalogApi.RejectDelegatedDescriptorArchivingSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Rejecting delegated archiving request for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.rejectDelegatedDescriptorArchiving(body, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
     updateAgreementApprovalPolicy: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
