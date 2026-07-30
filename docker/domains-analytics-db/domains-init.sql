@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS domains.attribute (
 
 CREATE TABLE domains.eservice (
   id VARCHAR(36),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   producer_id VARCHAR(36),
   name VARCHAR(2048) NOT NULL,
   description VARCHAR(2048) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE domains.eservice (
 CREATE TABLE domains.eservice_descriptor (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   version VARCHAR(2048) NOT NULL,
   description VARCHAR(2048),
   state VARCHAR(2048) NOT NULL,
@@ -60,7 +60,7 @@ CREATE TABLE domains.eservice_descriptor (
 
 CREATE TABLE domains.eservice_descriptor_async_exchange_properties (
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   response_time INTEGER NOT NULL,
   resource_available_time INTEGER NOT NULL,
@@ -74,7 +74,7 @@ CREATE TABLE domains.eservice_descriptor_async_exchange_properties (
 CREATE TABLE domains.eservice_descriptor_template_version_ref (
   eservice_template_version_id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   contact_name VARCHAR(2048),
   contact_email VARCHAR(2048),
@@ -87,7 +87,7 @@ CREATE TABLE domains.eservice_descriptor_template_version_ref (
 
 CREATE TABLE domains.eservice_descriptor_rejection_reason (
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   rejection_reason VARCHAR(2048) NOT NULL,
   rejected_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -98,7 +98,7 @@ CREATE TABLE domains.eservice_descriptor_rejection_reason (
 CREATE TABLE domains.eservice_descriptor_interface (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   kind VARCHAR(2048) NOT NULL,
   name VARCHAR(2048) NOT NULL,
@@ -116,7 +116,7 @@ CREATE TABLE domains.eservice_descriptor_interface (
 CREATE TABLE domains.eservice_descriptor_document (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   name VARCHAR(2048) NOT NULL,
   content_type VARCHAR(2048) NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE domains.eservice_descriptor_document (
 CREATE TABLE domains.eservice_descriptor_attribute (
   attribute_id VARCHAR(36) NOT NULL,
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR(2048) NOT NULL,
@@ -148,7 +148,7 @@ CREATE TABLE domains.eservice_descriptor_attribute (
 CREATE TABLE domains.eservice_risk_analysis (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   name VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
@@ -162,7 +162,7 @@ CREATE TABLE domains.eservice_risk_analysis (
 CREATE TABLE domains.eservice_risk_analysis_answer (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   risk_analysis_form_id VARCHAR(36) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   key VARCHAR(2048) NOT NULL,
