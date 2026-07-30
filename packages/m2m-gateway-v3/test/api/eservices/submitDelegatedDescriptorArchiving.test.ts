@@ -85,7 +85,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedA
     expect(res.status).toBe(403);
   });
 
-  it.only.each([30, 60, 90, 120])(
+  it.each([30, 60, 90, 120])(
     "Should return 200 when gracePeriodDays is %s",
     async (gracePeriodDays) => {
       mockEserviceService.submitDelegatedDescriptorArchiving = vi
