@@ -23,15 +23,15 @@ import {
   descriptorToApiDescriptor,
 } from "../../src/model/domain/apiConverter.js";
 import {
-  delegatedArchivingRequestAlreadyInProgress,
+  delegatedArchiveRequestForIncorrectDelegateProducer,
   eServiceDescriptorNotFound,
   eServiceNotFound,
-  noDelegationForArchivingRequest,
-  notValidDescriptorState,
+  noActiveDelegationFound,
+  noDelegatedArchivingRequestFound,
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
-describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegatedArchiving authorization test", () => {
+describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/rejectDelegatedArchiving authorization test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptorArchiving(),
     version: "1",
@@ -51,7 +51,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
 
   const mockEserviceWithMetadata = getMockWithMetadata(mockEService);
 
-  catalogService.submitDelegatedDescriptorArchiving = vi
+  catalogService.rejectDelegatedDescriptorArchiving = vi
     .fn()
     .mockResolvedValue(mockEserviceWithMetadata);
 
@@ -59,18 +59,18 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
     token: string,
     eServiceId: EServiceId,
     descriptorId: DescriptorId,
-    body: catalogApi.GracePeriodDaysSeed
+    body: catalogApi.RejectDelegatedDescriptorArchivingSeed
   ) =>
     request(api)
       .post(
-        `/eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegatedArchiving`
+        `/eservices/${eServiceId}/descriptors/${descriptorId}/rejectDelegatedArchiving`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
 
-  const gracePeriodDaysSeed: catalogApi.GracePeriodDaysSeed = {
-    gracePeriodDays: 60,
+  const rejectSeed: catalogApi.RejectDelegatedDescriptorArchivingSeed = {
+    rejectionReason: "Not now",
   };
 
   const authorizedRoles: AuthRole[] = [
@@ -86,7 +86,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
         token,
         mockEService.id,
         descriptor.id,
-        gracePeriodDaysSeed
+        rejectSeed
       );
 
       expect(res.status).toBe(200);
@@ -97,6 +97,13 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
     }
   );
 
+  it("Should return 200 when rejectionReason is omitted", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockEService.id, descriptor.id, {});
+
+    expect(res.status).toBe(200);
+  });
+
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
@@ -105,7 +112,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
       token,
       mockEService.id,
       descriptor.id,
-      gracePeriodDaysSeed
+      rejectSeed
     );
 
     expect(res.status).toBe(403);
@@ -125,15 +132,15 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
       expectedStatus: 403,
     },
     {
-      error: noDelegationForArchivingRequest(mockEService.id),
+      error: noDelegatedArchivingRequestFound(mockEService.id, descriptor.id),
       expectedStatus: 400,
     },
     {
-      error: notValidDescriptorState(descriptor.id, descriptor.state),
-      expectedStatus: 400,
+      error: noActiveDelegationFound(mockEService.id),
+      expectedStatus: 409,
     },
     {
-      error: delegatedArchivingRequestAlreadyInProgress(
+      error: delegatedArchiveRequestForIncorrectDelegateProducer(
         mockEService.id,
         descriptor.id
       ),
@@ -142,7 +149,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.submitDelegatedDescriptorArchiving = vi
+      catalogService.rejectDelegatedDescriptorArchiving = vi
         .fn()
         .mockRejectedValue(error);
 
@@ -151,7 +158,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
         token,
         mockEService.id,
         descriptor.id,
-        gracePeriodDaysSeed
+        rejectSeed
       );
 
       expect(res.status).toBe(expectedStatus);
@@ -170,20 +177,8 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
         token,
         eServiceId as EServiceId,
         descriptorId as DescriptorId,
-        gracePeriodDaysSeed
+        rejectSeed
       );
-
-      expect(res.status).toBe(400);
-    }
-  );
-
-  it.each([0, -1, 1, 29, 31, 1066])(
-    "Should return 400 if passed invalid gracePeriodDays: %s",
-    async (gracePeriodDays) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, mockEService.id, descriptor.id, {
-        gracePeriodDays,
-      } as catalogApi.GracePeriodDaysSeed);
 
       expect(res.status).toBe(400);
     }
