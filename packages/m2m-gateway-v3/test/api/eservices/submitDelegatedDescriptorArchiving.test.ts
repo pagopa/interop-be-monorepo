@@ -65,7 +65,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedA
       ).toHaveBeenCalledWith(
         mockApiEservice.id,
         mockApiDescriptor.id,
-        {},
+        mockSeed,
         expect.any(Object) // context
       );
       expect(res.status).toBe(200);

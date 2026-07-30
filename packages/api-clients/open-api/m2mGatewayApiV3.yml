@@ -13849,12 +13849,17 @@ components:
           $ref: "#/components/schemas/GracePeriodDays"
       required:
         - archivingReason
+    DelegateGracePeriodDays:
+      description: Number of days for the archiving grace period, explicitly chosen by the delegate requesting the archiving
+      type: integer
+      format: int32
+      enum: [30, 60, 90, 120]
     DelegateGracePeriodDaysSeed:
       type: object
       additionalProperties: false
       properties:
         gracePeriodDays:
-          $ref: "#/components/schemas/GracePeriodDays"
+          $ref: "#/components/schemas/DelegateGracePeriodDays"
       required:
         - gracePeriodDays
     DelegateEServiceArchivingSeed:
@@ -13867,7 +13872,7 @@ components:
           minLength: 10
           maxLength: 250
         gracePeriodDays:
-          $ref: "#/components/schemas/GracePeriodDays"
+          $ref: "#/components/schemas/DelegateGracePeriodDays"
       required:
         - archivingReason
         - gracePeriodDays
