@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   EserviceDescriptorSchema,
   EserviceDescriptorAttributeSchema,
@@ -9,6 +8,7 @@ import {
   EserviceDescriptorArchivingSchema,
   EserviceDescriptorAsyncExchangePropertiesSchema,
 } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const EserviceDescriptorServerUrlsSchema = EserviceDescriptorSchema.pick(
   {

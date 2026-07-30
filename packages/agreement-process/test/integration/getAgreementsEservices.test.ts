@@ -16,6 +16,7 @@ import {
   delegationState,
 } from "pagopa-interop-models";
 import { describe, beforeEach, it, expect } from "vitest";
+
 import { CompactEService } from "../../src/model/domain/models.js";
 import {
   addOneTenant,

@@ -1,3 +1,16 @@
+import camelcaseKeys from "camelcase-keys";
+import {
+  AgreementDbTable,
+  AttributeDbTable,
+  CatalogDbTable,
+  ClientDbTable,
+  ProducerKeychainDbTable,
+  DelegationDbTable,
+  EserviceTemplateDbTable,
+  PurposeDbTable,
+  PurposeTemplateDbTable,
+  TenantDbTable,
+} from "pagopa-interop-kpi-models";
 import {
   Agreement,
   Attribute,
@@ -23,23 +36,11 @@ import {
   aggregateEServiceTemplateArray,
   aggregatePurposeTemplateArray,
 } from "pagopa-interop-readmodel";
-import { z } from "zod";
 import { IConnected, IMain } from "pg-promise";
 import { IClient } from "pg-promise/typescript/pg-subset.js";
-import camelcaseKeys from "camelcase-keys";
+import { z } from "zod";
+
 import { config } from "../configs/config.js";
-import {
-  AgreementDbTable,
-  AttributeDbTable,
-  CatalogDbTable,
-  ClientDbTable,
-  ProducerKeychainDbTable,
-  DelegationDbTable,
-  EserviceTemplateDbTable,
-  PurposeDbTable,
-  PurposeTemplateDbTable,
-  TenantDbTable,
-} from "pagopa-interop-kpi-models";
 import { DomainDbTable, DomainDbTableSchemas } from "../model/db/index.js";
 
 type DBConnection = IConnected<unknown, IClient>;

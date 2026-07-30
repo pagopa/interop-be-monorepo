@@ -1,11 +1,10 @@
-import { fail } from "assert";
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import {
   DynamoDBClient,
   GetItemCommand,
   PutItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import { bigIntToDate, generateId } from "pagopa-interop-models";
+import { fail } from "assert";
+import { getUnixTime } from "date-fns";
 import {
   DocumentSignatureReference,
   DocumentSignatureReferenceSchema,
@@ -18,10 +17,12 @@ import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
 } from "pagopa-interop-commons-test";
-import { getUnixTime } from "date-fns";
-import { dynamoDBClient } from "../utils/utils.js";
+import { bigIntToDate, generateId } from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { config } from "../../src/config/config.js";
 import { FILE_KIND_CONFIG } from "../../src/utils/fileKind.config.js";
+import { dynamoDBClient } from "../utils/utils.js";
 
 describe("signatureServiceBuilder - Integration Tests", () => {
   beforeEach(async () => {

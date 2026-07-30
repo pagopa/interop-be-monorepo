@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockClient,
@@ -15,12 +14,13 @@ import {
   Key,
   Client,
 } from "pagopa-interop-models";
-import { handleClientKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleClientKeyAddedDeletedToClientUsers.js";
 import {
   inAppTemplates,
   getNotificationRecipients,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 
+import { handleClientKeyAddedDeletedToClientUsers } from "../src/handlers/authorizations/handleClientKeyAddedDeletedToClientUsers.js";
 import { addOneTenant, readModelService } from "./utils.js";
 
 describe("handleClientKeyAddedDeletedToClientUsers", () => {

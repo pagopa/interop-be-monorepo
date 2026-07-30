@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { ProducerKeychainSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const ProducerKeychainDeletingSchema = ProducerKeychainSchema.pick({
   id: true,

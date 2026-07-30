@@ -1,5 +1,7 @@
-import { describe, expect, it } from "vitest";
 import type { TemplateContext } from "openapi-zod-client";
+
+import { describe, expect, it } from "vitest";
+
 import { createEndpointChunkHelpers } from "../src/generatorUtils.js";
 
 const testMaxEndpointsPerChunk = 2;

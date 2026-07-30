@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import {
   AgreementId,
   ClientId,
@@ -13,8 +14,8 @@ import {
   TokenGenerationStatesClientKidPurposePK,
   UserId,
 } from "../brandedIds.js";
-import { ItemState } from "./platform-states-entry.js";
 import { clientKindTokenGenStates } from "./commons.js";
+import { ItemState } from "./platform-states-entry.js";
 
 const TokenGenerationStatesBaseEntry = z.object({
   publicKey: z.string(),

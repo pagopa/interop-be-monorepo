@@ -1,39 +1,5 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
-  Agreement,
-  Attribute,
-  Client,
-  Delegation,
-  EService,
-  EServiceTemplate,
-  ProducerKeychain,
-  Purpose,
-  PurposeTemplate,
-  Tenant,
-  WithMetadata,
-} from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
-import {
-  splitAgreementIntoObjectsSQL,
-  splitAttributeIntoObjectsSQL,
-  splitClientIntoObjectsSQL,
-  splitDelegationIntoObjectsSQL,
-  splitEserviceIntoObjectsSQL,
-  splitEServiceTemplateIntoObjectsSQL,
-  splitProducerKeychainIntoObjectsSQL,
-  splitPurposeIntoObjectsSQL,
-  splitTenantIntoObjectsSQL,
-  splitPurposeTemplateIntoObjectsSQL,
-} from "pagopa-interop-readmodel";
-import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
-import { z } from "zod";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
-import {
-  DBContext,
-  readModelServiceBuilderKPI,
-} from "../src/services/readModelServiceKPI.js";
-import { DomainDbTable, DomainDbTableSchemas } from "../src/model/db/index.js";
-import {
   AttributeSchema,
   AttributeDbTable,
   AgreementItemsSchema,
@@ -56,6 +22,41 @@ import {
   TenantDbTable,
   DomainDbTableReadModels,
 } from "pagopa-interop-kpi-models";
+import {
+  Agreement,
+  Attribute,
+  Client,
+  Delegation,
+  EService,
+  EServiceTemplate,
+  ProducerKeychain,
+  Purpose,
+  PurposeTemplate,
+  Tenant,
+  WithMetadata,
+} from "pagopa-interop-models";
+import {
+  splitAgreementIntoObjectsSQL,
+  splitAttributeIntoObjectsSQL,
+  splitClientIntoObjectsSQL,
+  splitDelegationIntoObjectsSQL,
+  splitEserviceIntoObjectsSQL,
+  splitEServiceTemplateIntoObjectsSQL,
+  splitProducerKeychainIntoObjectsSQL,
+  splitPurposeIntoObjectsSQL,
+  splitTenantIntoObjectsSQL,
+  splitPurposeTemplateIntoObjectsSQL,
+} from "pagopa-interop-readmodel";
+import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
+import { afterEach, inject } from "vitest";
+import { z } from "zod";
+
+import { DomainDbTable, DomainDbTableSchemas } from "../src/model/db/index.js";
+import {
+  DBContext,
+  readModelServiceBuilderKPI,
+} from "../src/services/readModelServiceKPI.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(

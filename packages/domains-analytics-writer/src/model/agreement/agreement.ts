@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { AgreementSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const AgreementDeletingSchema = AgreementSchema.pick({
   id: true,

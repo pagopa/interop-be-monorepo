@@ -1,14 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   buildDynamoDBTables,
   deleteDynamoDBTables,
@@ -66,7 +57,17 @@ import {
   TokenGenerationStatesConsumerClient,
   toKeyV1,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import {
   clientKindToTokenGenerationStatesClientKind,

@@ -1,16 +1,17 @@
 /* eslint-disable functional/immutable-data */
+import { TenantItemsSchema } from "pagopa-interop-kpi-models";
 import {
   fromTenantV2,
   genericInternalError,
   TenantEventEnvelopeV2,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import { splitTenantIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
+
 import { DBContext } from "../../db/db.js";
-import { tenantServiceBuilder } from "../../service/tenantService.js";
-import { TenantItemsSchema } from "pagopa-interop-kpi-models";
 import { TenantDeletingSchema } from "../../model/tenant/tenant.js";
+import { tenantServiceBuilder } from "../../service/tenantService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleTenantMessageV2(

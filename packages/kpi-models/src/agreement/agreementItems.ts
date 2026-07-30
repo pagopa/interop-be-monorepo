@@ -1,10 +1,11 @@
 import { z } from "zod";
+
 import { AgreementSchema } from "./agreement.js";
-import { AgreementStampSchema } from "./agreementStamp.js";
 import { AgreementAttributeSchema } from "./agreementAttribute.js";
 import { AgreementConsumerDocumentSchema } from "./agreementConsumerDocument.js";
 import { AgreementContractSchema } from "./agreementContract.js";
 import { AgreementSignedContractSchema } from "./agreementSignedContract.js";
+import { AgreementStampSchema } from "./agreementStamp.js";
 
 export const AgreementItemsSchema = z.object({
   agreementSQL: AgreementSchema,

@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import {
   PurposeTemplateId,
   PurposeTemplateM2MEventId,

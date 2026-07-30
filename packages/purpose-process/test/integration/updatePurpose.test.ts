@@ -1,6 +1,7 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { purposeApi } from "pagopa-interop-api-clients";
 import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   randomArrayItem,
@@ -43,8 +44,8 @@ import {
   riskAnalysisSigningState,
   riskAnalysisReviewMode,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,

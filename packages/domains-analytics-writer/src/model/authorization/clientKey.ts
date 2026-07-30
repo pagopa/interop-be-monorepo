@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { ClientKeySchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const ClientKeyDeletingSchema = ClientKeySchema.pick({
   clientId: true,

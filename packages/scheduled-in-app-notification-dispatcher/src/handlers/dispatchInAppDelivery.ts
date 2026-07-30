@@ -10,6 +10,7 @@ import {
   ScheduledNotificationRow,
 } from "pagopa-interop-scheduled-notification-db-models";
 import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../services/readModelServiceSQL.js";
 import { handleEserviceArchivingScheduledReminderInApp } from "./eservices/handleEserviceArchivingScheduledReminderInApp.js";
 import { handleEserviceDescriptorArchivingScheduledReminderInApp } from "./eservices/handleEserviceDescriptorArchivingScheduledReminderInApp.js";

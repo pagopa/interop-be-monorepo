@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   archivingScope,
   Descriptor,
@@ -10,13 +11,13 @@ import {
   NewNotification,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { match, P } from "ts-pattern";
 import {
   getNotificationRecipients,
   inAppTemplates,
   retrieveDescriptor,
 } from "pagopa-interop-notification-commons";
+import { match, P } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type EServiceStateChangedEventType =

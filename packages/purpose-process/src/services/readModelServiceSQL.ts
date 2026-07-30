@@ -1,4 +1,20 @@
 import {
+  and,
+  asc,
+  desc,
+  eq,
+  exists,
+  inArray,
+  isNotNull,
+  lte,
+  ne,
+  notExists,
+  or,
+  sql,
+  SQL,
+} from "drizzle-orm";
+import { alias, PgSelect } from "drizzle-orm/pg-core";
+import {
   ascLower,
   createListResult,
   escapeSqlLike,
@@ -32,6 +48,17 @@ import {
   TenantKind,
 } from "pagopa-interop-models";
 import {
+  aggregatePurposeArray,
+  AgreementReadModelService,
+  CatalogReadModelService,
+  ClientReadModelService,
+  DelegationReadModelService,
+  PurposeReadModelService,
+  PurposeTemplateReadModelService,
+  TenantReadModelService,
+  toPurposeAggregatorArray,
+} from "pagopa-interop-readmodel";
+import {
   agreementInReadmodelAgreement,
   delegationInReadmodelDelegation,
   DrizzleReturnType,
@@ -47,33 +74,6 @@ import {
   purposeVersionStampInReadmodelPurpose,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
-import {
-  aggregatePurposeArray,
-  AgreementReadModelService,
-  CatalogReadModelService,
-  ClientReadModelService,
-  DelegationReadModelService,
-  PurposeReadModelService,
-  PurposeTemplateReadModelService,
-  TenantReadModelService,
-  toPurposeAggregatorArray,
-} from "pagopa-interop-readmodel";
-import {
-  and,
-  asc,
-  desc,
-  eq,
-  exists,
-  inArray,
-  isNotNull,
-  lte,
-  ne,
-  notExists,
-  or,
-  sql,
-  SQL,
-} from "drizzle-orm";
-import { alias, PgSelect } from "drizzle-orm/pg-core";
 
 export type GetPurposesFilters = {
   title?: string;

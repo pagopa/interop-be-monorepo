@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AttributeId,
   Attribute,
@@ -9,8 +10,6 @@ import {
   TenantV2,
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveAttribute,
@@ -19,6 +18,8 @@ import {
   verifiedAttributeNotFoundInTenant,
 } from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type VerifiedAttributeAssignedRevokedEventType =
   | "TenantVerifiedAttributeAssigned"

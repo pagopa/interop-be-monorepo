@@ -19,6 +19,7 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { annotationDocumentToApiAnnotationDocument } from "../../src/model/domain/apiConverter.js";
 import {
   conflictDocumentPrettyNameDuplicate,

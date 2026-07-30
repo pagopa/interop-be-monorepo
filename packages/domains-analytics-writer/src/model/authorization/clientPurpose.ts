@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { ClientPurposeSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const ClientPurposeDeletingSchema = ClientPurposeSchema.pick({
   clientId: true,

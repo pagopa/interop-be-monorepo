@@ -1,6 +1,8 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { purposeApi } from "pagopa-interop-api-clients";
+import { rulesVersionNotFoundError } from "pagopa-interop-commons";
 import {
   getMockTenant,
   getMockPurpose,
@@ -32,22 +34,8 @@ import {
   RiskAnalysis,
   PurposeTemplateId,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
-import { rulesVersionNotFoundError } from "pagopa-interop-commons";
-import {
-  addOnePurpose,
-  readLastPurposeEvent,
-  purposeService,
-  addOneTenant,
-  addOneEService,
-  addOneDelegation,
-  sortUpdatePurposeReturn,
-} from "../integrationUtils.js";
-import {
-  buildRiskAnalysisSeed,
-  createUpdatedRiskAnalysisForm,
-} from "../mockUtils.js";
+
 import {
   duplicatedPurposeTitle,
   eServiceModeNotAllowed,
@@ -65,6 +53,19 @@ import {
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { UpdatePurposeReturn } from "../../src/services/purposeService.js";
+import {
+  addOnePurpose,
+  readLastPurposeEvent,
+  purposeService,
+  addOneTenant,
+  addOneEService,
+  addOneDelegation,
+  sortUpdatePurposeReturn,
+} from "../integrationUtils.js";
+import {
+  buildRiskAnalysisSeed,
+  createUpdatedRiskAnalysisForm,
+} from "../mockUtils.js";
 
 describe("patchUpdatePurpose", () => {
   let draftPurpose: Purpose;

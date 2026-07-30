@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { AttributeSchema } from "pagopa-interop-kpi-models";
 import {
   AttributeEventEnvelope,
   fromAttributeV1,
   genericInternalError,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import { splitAttributeIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { DBContext } from "../../db/db.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
-import { AttributeSchema } from "pagopa-interop-kpi-models";
 
 export async function handleAttributeMessageV1(
   messages: AttributeEventEnvelope[],

@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { EserviceDescriptorInterfaceSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const EserviceDescriptorInterfaceItemsSchema = z.object({
   interfaceSQL: EserviceDescriptorInterfaceSchema.optional(),

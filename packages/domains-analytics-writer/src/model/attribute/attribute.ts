@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { AttributeSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const AttributeDeletingSchema = AttributeSchema.pick({
   id: true,

@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/no-let */
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { handleAgreementDocument } from "../../src/handlers/handleAgreementDocument.js";
 
 describe("handleAgreementDocument", () => {

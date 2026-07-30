@@ -1,4 +1,3 @@
-import { tenantInReadmodelTenant } from "pagopa-interop-readmodel-models";
 import {
   TenantSchema,
   TenantCertifiedAttributeSchema,
@@ -11,6 +10,8 @@ import {
   TenantRemoteIdSchema,
   TenantCertifiedDiscreteAttributeSchema,
 } from "pagopa-interop-kpi-models";
+import { tenantInReadmodelTenant } from "pagopa-interop-readmodel-models";
+
 import { TenantSelfcareIdSchema } from "../tenant/tenant.js";
 
 export const TenantDbPartialTableConfig = {

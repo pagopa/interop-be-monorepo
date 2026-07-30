@@ -8,10 +8,11 @@ import {
   producerKeychainKeyInReadmodelProducerKeychain,
   producerKeychainUserInReadmodelProducerKeychain,
 } from "pagopa-interop-readmodel-models";
+
 import { ClientSchema } from "../authorization/client.js";
+import { ClientKeySchema } from "../authorization/clientKey.js";
 import { ClientPurposeSchema } from "../authorization/clientPurpose.js";
 import { ClientUserSchema } from "../authorization/clientUser.js";
-import { ClientKeySchema } from "../authorization/clientKey.js";
 import { ProducerKeychainSchema } from "../authorization/producerKeychain.js";
 import { ProducerKeychainEServiceSchema } from "../authorization/producerKeychainEService.js";
 import { ProducerKeychainKeySchema } from "../authorization/producerKeychainKey.js";

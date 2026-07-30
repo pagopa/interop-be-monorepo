@@ -1,13 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test";
-import { api, catalogService } from "../vitest.api.setup.js";
-import { EServiceId, generateId } from "pagopa-interop-models";
 import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { EServiceId, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
 import {
   eserviceInDraftState,
   eServiceNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("DELETE /maintenance/eservices/:eServiceId/personalDataFlag", () => {
   const defaultEServiceId = generateId<EServiceId>();

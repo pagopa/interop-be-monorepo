@@ -16,6 +16,7 @@ import {
   UserNotificationConfigRoleAddedV2,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi } from "vitest";
+
 import {
   addOneUserNotificationConfig,
   notificationConfigService,

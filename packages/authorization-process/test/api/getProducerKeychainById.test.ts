@@ -1,24 +1,25 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import {
-  ProducerKeychain,
-  ProducerKeychainId,
-  generateId,
-} from "pagopa-interop-models";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockProducerKeychain,
   getMockWithMetadata,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test/index.js";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import {
+  ProducerKeychain,
+  ProducerKeychainId,
+  generateId,
+} from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { producerKeychainNotFound } from "../../src/model/domain/errors.js";
 import {
   testToPartialProducerKeychain,
   testToFullProducerKeychain,
 } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /producerKeychains/{producerKeychainId} authorization test", () => {
   const mockProducerKeychain: ProducerKeychain = getMockProducerKeychain();

@@ -22,13 +22,14 @@ import {
   ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
+import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
 import {
   RegistryData,
   InternalCertifiedAttribute,
   shouldKindBeIncluded,
 } from "./openDataService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
-import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
 
 const AGENCY_CLASSIFICATION = "Agency";
 const MUNICIPALITY_CODE = "L6";

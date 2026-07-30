@@ -1,27 +1,28 @@
+import { DomainDbTableReadModels } from "pagopa-interop-kpi-models";
+
 import { AgreementDbTableConfig } from "./agreement.js";
 import { AttributeDbTableConfig } from "./attribute.js";
-import {
-  CatalogDbPartialTableConfig,
-  CatalogDbPartialTableReadModel,
-  CatalogDbTableConfig,
-} from "./catalog.js";
 import {
   ClientDbTableConfig,
   ProducerKeychainDbTableConfig,
   ClientDbTablePartialTableConfig,
   ClientDbTablePartialTableReadModel,
 } from "./authorization.js";
+import {
+  CatalogDbPartialTableConfig,
+  CatalogDbPartialTableReadModel,
+  CatalogDbTableConfig,
+} from "./catalog.js";
 import { DelegationDbTableConfig } from "./delegation.js";
-import { PurposeDbTableConfig } from "./purpose.js";
 import { DeletingDbTableConfig, DeletingDbTableReadModel } from "./deleting.js";
 import { EserviceTemplateDbTableConfig } from "./eserviceTemplate.js";
+import { PurposeDbTableConfig } from "./purpose.js";
+import { PurposeTemplateDbTableConfig } from "./purposeTemplate.js";
 import {
   TenantDbPartialTableConfig,
   TenantDbTableConfig,
   TenantDbPartialTableReadModel,
 } from "./tenant.js";
-import { PurposeTemplateDbTableConfig } from "./purposeTemplate.js";
-import { DomainDbTableReadModels } from "pagopa-interop-kpi-models";
 
 export const PartialDbTable = {
   ...TenantDbPartialTableConfig,

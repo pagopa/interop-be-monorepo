@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
+import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
+import { EserviceDescriptorDocumentSchema } from "pagopa-interop-kpi-models";
+import { EserviceDescriptorInterfaceSchema } from "pagopa-interop-kpi-models";
 import {
   EServiceEventEnvelopeV1,
   EServiceId,
@@ -9,28 +12,26 @@ import {
   genericInternalError,
   fromEServiceV1,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   splitDescriptorIntoObjectsSQL,
   splitEserviceIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { catalogServiceBuilder } from "../../service/catalogService.js";
+
 import { DBContext } from "../../db/db.js";
-import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
 import { EserviceDeletingSchema } from "../../model/catalog/eservice.js";
 import {
   EserviceDescriptorDeletingSchema,
   EserviceDescriptorItemsSchema,
   EserviceDescriptorServerUrlsSchema,
 } from "../../model/catalog/eserviceDescriptor.js";
-import { EserviceDescriptorDocumentSchema } from "pagopa-interop-kpi-models";
 import { EserviceDescriptorDocumentDeletingSchema } from "../../model/catalog/eserviceDescriptorDocument.js";
 import {
   EserviceDescriptorDocumentOrInterfaceDeletingSchema,
   EserviceDescriptorInterfaceItemsSchema,
 } from "../../model/catalog/eserviceDescriptorInterface.js";
-import { EserviceDescriptorInterfaceSchema } from "pagopa-interop-kpi-models";
+import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handleCatalogMessageV1(

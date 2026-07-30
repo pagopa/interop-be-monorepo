@@ -1,6 +1,6 @@
 import { createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 import { producerKeychainUserInReadmodelProducerKeychain } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
 export const ProducerKeychainUserSchema = createSelectSchema(
   producerKeychainUserInReadmodelProducerKeychain

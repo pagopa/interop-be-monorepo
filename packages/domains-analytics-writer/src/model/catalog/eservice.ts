@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { EserviceSchema } from "pagopa-interop-kpi-models";
+import { z } from "zod";
 
 export const EserviceDeletingSchema = EserviceSchema.pick({
   id: true,

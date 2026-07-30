@@ -1,8 +1,9 @@
 /* eslint-disable functional/immutable-data */
 
+import { format } from "date-fns";
 import { Logger } from "pagopa-interop-commons";
 import { generateId } from "pagopa-interop-models";
-import { format } from "date-fns";
+
 import { BaseEventData } from "../models/eventTypes.js";
 import { compressJson } from "./compression.js";
 import { groupEventsByDate } from "./groupEventsByDate.js";
