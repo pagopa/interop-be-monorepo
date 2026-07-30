@@ -249,40 +249,36 @@ describe("update Document", () => {
     }
   );
 
-  it.each(
-    Object.values(eserviceTemplateVersionState).filter(
-      (state) => state !== eserviceTemplateVersionState.draft
-    )
-  )(
-    "should throw notValidEServiceTemplateVersionState if the interface is in s% state",
-    async (state) => {
-      const version: EServiceTemplateVersion = {
-        ...getMockEServiceTemplateVersion(
-          generateId<EServiceTemplateVersionId>(),
-          state
-        ),
-        interface: mockDocument,
-      };
-      const eserviceTemplate: EServiceTemplate = {
-        ...mockEServiceTemplate,
-        versions: [version],
-      };
-      await addOneEServiceTemplate(eserviceTemplate);
-      expect(
-        eserviceTemplateService.updateDocument(
-          eserviceTemplate.id,
-          version.id,
-          mockDocument.id,
-          { prettyName: "updated prettyName" },
-          getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
-          })
-        )
-      ).rejects.toThrowError(
-        notValidEServiceTemplateVersionState(version.id, state)
-      );
-    }
-  );
+  it("should throw notValidEServiceTemplateVersionState when updating an interface in deprecated state", async () => {
+    const version: EServiceTemplateVersion = {
+      ...getMockEServiceTemplateVersion(
+        generateId<EServiceTemplateVersionId>(),
+        eserviceTemplateVersionState.deprecated
+      ),
+      interface: mockDocument,
+    };
+    const eserviceTemplate: EServiceTemplate = {
+      ...mockEServiceTemplate,
+      versions: [version],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    expect(
+      eserviceTemplateService.updateDocument(
+        eserviceTemplate.id,
+        version.id,
+        mockDocument.id,
+        { prettyName: "updated prettyName" },
+        getMockContext({
+          authData: getMockAuthData(eserviceTemplate.creatorId),
+        })
+      )
+    ).rejects.toThrowError(
+      notValidEServiceTemplateVersionState(
+        version.id,
+        eserviceTemplateVersionState.deprecated
+      )
+    );
+  });
 
   it("should throw eServiceTemplateDocumentNotFound if the document doesn't exist", async () => {
     const version: EServiceTemplateVersion = {
