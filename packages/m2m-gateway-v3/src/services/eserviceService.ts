@@ -802,7 +802,7 @@ export function eserviceServiceBuilder(
       descriptorId: DescriptorId,
       seed: m2mGatewayApiV3.DelegateGracePeriodDaysSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
-    ): Promise<m2mGatewayApiV3.EService> {
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
       logger.info(
         `Submitting delegated archiving for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
       );
@@ -816,7 +816,12 @@ export function eserviceServiceBuilder(
           }
         );
       const polledResource = await pollEService(response, headers);
-      return toM2MGatewayApiEService(polledResource.data);
+      const descriptor = retrieveEServiceDescriptorById(
+        polledResource,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
 
     async updatePublishedEServiceDelegation(

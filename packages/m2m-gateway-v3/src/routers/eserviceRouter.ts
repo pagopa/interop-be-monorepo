@@ -203,14 +203,16 @@ const eserviceRouter = (
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
 
-          const eservice =
+          const descriptor =
             await eserviceService.submitDelegatedDescriptorArchiving(
               unsafeBrandId(req.params.eserviceId),
               unsafeBrandId(req.params.descriptorId),
               req.body,
               ctx
             );
-          return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.EServiceDescriptor.parse(descriptor));
         } catch (error) {
           const errorRes = makeApiProblem(
             error,

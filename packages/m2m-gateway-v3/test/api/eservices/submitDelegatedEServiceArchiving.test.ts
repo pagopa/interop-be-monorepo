@@ -96,10 +96,6 @@ describe("POST /eservices/:eserviceId/submitDelegatedArchiving router test", () 
     },
     {
       ...mockSeed,
-      gracePeriodDays: undefined,
-    },
-    {
-      ...mockSeed,
       archivingReason: undefined,
     },
   ])("Should return 400 if passed invalid seed (seed #%#)", async (seed) => {
