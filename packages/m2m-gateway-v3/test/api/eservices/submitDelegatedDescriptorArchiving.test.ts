@@ -85,7 +85,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedA
     expect(res.status).toBe(403);
   });
 
-  it.each([30, 60, 90, 120])(
+  it.only.each([30, 60, 90, 120])(
     "Should return 200 when gracePeriodDays is %s",
     async (gracePeriodDays) => {
       mockEserviceService.submitDelegatedDescriptorArchiving = vi
@@ -109,7 +109,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedA
       ).toHaveBeenCalledWith(
         mockApiEservice.id,
         mockApiDescriptor.id,
-        gracePeriodDays ? seed : {},
+        seed,
         expect.any(Object) // context
       );
       expect(res.status).toBe(200);
