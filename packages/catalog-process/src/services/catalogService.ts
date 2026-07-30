@@ -260,6 +260,7 @@ import {
   assertDelegatedEserviceHasAtLeastOneArchivingRequests,
   assertDelegatedEserviceHasActiveArchivingRequests,
   assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
+  assertDelegatedDescriptorHasActiveArchivingRequests,
   assertDelegatedArchivingRequestDelegationIsStillValid,
 } from "./validators.js";
 
@@ -3660,6 +3661,11 @@ export function catalogServiceBuilder(
         eserviceId
       );
 
+      assertDelegatedDescriptorHasActiveArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
       const producerDelegation = await retrieveActiveProducerDelegation(
         eservice.data,
         readModelService
@@ -3726,6 +3732,11 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
       assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      assertDelegatedDescriptorHasActiveArchivingRequests(
         descriptor,
         eserviceId
       );
