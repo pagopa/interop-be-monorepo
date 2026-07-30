@@ -160,6 +160,7 @@ describe("create descriptor", async () => {
     const templateVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       state: eserviceTemplateVersionState.published,
+      docs: [],
       asyncExchangeProperties: {
         responseTime: 300,
         resourceAvailableTime: 600,
@@ -248,9 +249,16 @@ describe("create descriptor", async () => {
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
-      type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+      type: "EServiceDescriptorAdded",
       event_version: 2,
     });
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAddedV2,
+      payload: writtenEvent.data,
+    });
+    expect(
+      writtenPayload.eservice?.descriptors[1].asyncExchangeCallbackInterface
+    ).toBeDefined();
   });
 
   it("should write on event-store for the creation of a descriptor of a instance e-service (delegate)", async () => {

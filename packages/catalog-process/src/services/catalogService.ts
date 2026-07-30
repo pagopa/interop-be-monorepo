@@ -4265,22 +4265,34 @@ export function catalogServiceBuilder(
             }
           : undefined;
 
-      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
-        description: templateVersion.description,
-        voucherLifespan: templateVersion.voucherLifespan,
-        audience: eserviceInstanceDescriptorSeed.audience,
-        dailyCallsPerConsumer:
-          eserviceInstanceDescriptorSeed.dailyCallsPerConsumer,
-        dailyCallsTotal: eserviceInstanceDescriptorSeed.dailyCallsTotal,
-        agreementApprovalPolicy:
-          agreementApprovalPolicySeed ??
-          templateVersion.agreementApprovalPolicy ??
-          agreementApprovalPolicy.automatic,
-        docs: [],
-        attributes: templateVersion.attributes,
-        templateVersionId: templateVersion.id,
-        asyncExchangeProperties,
-      });
+      const clonedAsyncExchangeCallbackInterface =
+        asyncExchangeEnabled && templateVersion.asyncExchangeCallbackInterface
+          ? await cloneDocument(
+              templateVersion.asyncExchangeCallbackInterface,
+              fileManager,
+              ctx.logger
+            )
+          : undefined;
+
+      const newDescriptor: Descriptor = {
+        ...createNextDescriptor(eservice.data, {
+          description: templateVersion.description,
+          voucherLifespan: templateVersion.voucherLifespan,
+          audience: eserviceInstanceDescriptorSeed.audience,
+          dailyCallsPerConsumer:
+            eserviceInstanceDescriptorSeed.dailyCallsPerConsumer,
+          dailyCallsTotal: eserviceInstanceDescriptorSeed.dailyCallsTotal,
+          agreementApprovalPolicy:
+            agreementApprovalPolicySeed ??
+            templateVersion.agreementApprovalPolicy ??
+            agreementApprovalPolicy.automatic,
+          docs: [],
+          attributes: templateVersion.attributes,
+          templateVersionId: templateVersion.id,
+          asyncExchangeProperties,
+        }),
+        asyncExchangeCallbackInterface: clonedAsyncExchangeCallbackInterface,
+      };
 
       const eserviceVersion = eservice.metadata.version;
 
@@ -4296,33 +4308,17 @@ export function catalogServiceBuilder(
         ctx.correlationId
       );
 
-      const documentsToClone = [
-        ...templateVersion.docs.map((document) => ({
-          document,
-          kind: "DOCUMENT" as const,
-        })),
-        ...(asyncExchangeEnabled &&
-        templateVersion.asyncExchangeCallbackInterface
-          ? [
-              {
-                document: templateVersion.asyncExchangeCallbackInterface,
-                kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE" as const,
-              },
-            ]
-          : []),
-      ];
-
-      const { updatedDescriptor, events } = await documentsToClone.reduce(
+      const { updatedDescriptor, events } = await templateVersion.docs.reduce(
         async (accPromise, doc, index) => {
           const acc = await accPromise;
 
           const clonedDocumentId = generateId<EServiceDocumentId>();
           const clonedDocumentPath = await fileManager.copy(
             config.s3Bucket,
-            doc.document.path,
+            doc.path,
             config.eserviceDocumentsPath,
             clonedDocumentId,
-            doc.document.name,
+            doc.name,
             ctx.logger
           );
 
@@ -4332,12 +4328,12 @@ export function catalogServiceBuilder(
               acc.updatedDescriptor.id,
               {
                 documentId: clonedDocumentId,
-                kind: doc.kind,
-                prettyName: doc.document.prettyName,
+                kind: "DOCUMENT",
+                prettyName: doc.prettyName,
                 filePath: clonedDocumentPath,
-                fileName: doc.document.name,
-                contentType: doc.document.contentType,
-                checksum: doc.document.checksum,
+                fileName: doc.name,
+                contentType: doc.contentType,
+                checksum: doc.checksum,
                 serverUrls: [],
               },
               ctx
