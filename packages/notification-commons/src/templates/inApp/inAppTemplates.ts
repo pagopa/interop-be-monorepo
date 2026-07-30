@@ -219,6 +219,41 @@ export const inAppTemplates = {
       additional ? additional : ``
     }`;
   },
+  eserviceDescriptorArchivingRequestedByDelegateToDelegator: (
+    delegateName: string,
+    descriptorVersion: string,
+    eserviceName: string
+  ): string =>
+    `${delegateName} ha richiesto l'archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}. Puoi confermare o rifiutare la richiesta.`,
+  eserviceArchivingRequestedByDelegateToDelegator: (
+    delegateName: string,
+    eserviceName: string
+  ): string =>
+    `${delegateName} ha richiesto l'archiviazione dell'e-service ${eserviceName}. Puoi confermare o rifiutare la richiesta.`,
+  eserviceDescriptorArchivingRequestApprovedByDelegatorToDelegate: (
+    delegatorName: string,
+    descriptorVersion: string,
+    eserviceName: string,
+    archivableOn: Date | undefined
+  ): string =>
+    `${delegatorName} ha approvato la tua richiesta di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}${archivableOn ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}` : ""}.`,
+  eserviceDescriptorArchivingRequestRejectedByDelegatorToDelegate: (
+    delegatorName: string,
+    descriptorVersion: string,
+    eserviceName: string
+  ): string =>
+    `${delegatorName} ha rifiutato la tua richiesta di archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}.`,
+  eserviceArchivingRequestApprovedByDelegatorToDelegate: (
+    delegatorName: string,
+    eserviceName: string,
+    archivableOn: Date | undefined
+  ): string =>
+    `${delegatorName} ha confermato la tua richiesta di archiviazione dell'e-service ${eserviceName}${archivableOn ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}` : ""}.`,
+  eserviceArchivingRequestRejectedByDelegatorToDelegate: (
+    delegatorName: string,
+    eserviceName: string
+  ): string =>
+    `${delegatorName} ha rifiutato la tua richiesta di archiviazione dell'e-service ${eserviceName}.`,
   eserviceNewVersionSubmittedToDelegator: (
     delegateName: string,
     eserviceName: string

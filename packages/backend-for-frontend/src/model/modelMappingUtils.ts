@@ -122,6 +122,8 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
     purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
+    eserviceArchivingRequestedToDelegator: "/aderente/deleghe",
+    eserviceArchivingApprovedRejectedToDelegate: "/aderente/deleghe",
   } as const;
 
 export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
@@ -160,6 +162,8 @@ export const notificationTypeToCategory: Record<NotificationType, Category> = {
   producerKeychainKeyAddedDeletedToClientUsers: "AttributesAndKeys",
   purposeQuotaAdjustmentRequestToProducer: "Providers",
   purposeOverQuotaStateToConsumer: "Subscribers",
+  eserviceArchivingRequestedToDelegator: "Delegations",
+  eserviceArchivingApprovedRejectedToDelegate: "Delegations",
 };
 
 export const categoryToNotificationTypes: Record<Category, NotificationType[]> =

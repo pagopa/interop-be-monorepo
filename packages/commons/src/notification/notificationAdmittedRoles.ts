@@ -208,6 +208,22 @@ export const notificationAdmittedRoles = {
     [REVIEWER_ROLE]: false,
     [VIEWER_ROLE]: false,
   },
+  eserviceArchivingRequestedToDelegator: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
+  eserviceArchivingApprovedRejectedToDelegate: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
 } as const satisfies Record<NotificationType, Record<UserRole, boolean>> &
   Record<NotificationType, Record<typeof SUPPORT_ROLE, false>> & // To ensure that SUPPORT_ROLE cannot receive any notification
   Record<NotificationType, Record<typeof REVIEWER_ROLE, false>> & // To ensure that REVIEWER_ROLE cannot receive any notification
