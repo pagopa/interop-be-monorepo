@@ -2903,9 +2903,9 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  /eservices/{eServiceId}/submitDelegatedArchiving:
+  /eservices/{eserviceId}/submitDelegatedArchiving:
     parameters:
-      - name: eServiceId
+      - name: eserviceId
         in: path
         description: the eservice id
         required: true
@@ -2950,9 +2950,9 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
+  /eservices/{eserviceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
     parameters:
-      - name: eServiceId
+      - name: eserviceId
         in: path
         description: the eservice id
         required: true
