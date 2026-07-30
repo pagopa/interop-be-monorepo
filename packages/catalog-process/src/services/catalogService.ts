@@ -924,7 +924,7 @@ function createNextDescriptor(
   };
 }
 
-async function cloneDocument(
+async function cloneDocumentWithNewId(
   document: Document,
   fileManager: FileManager,
   logger: Logger
@@ -2215,12 +2215,16 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       const clonedInterfaceDocument = descriptor.interface
-        ? await cloneDocument(descriptor.interface, fileManager, logger)
+        ? await cloneDocumentWithNewId(
+            descriptor.interface,
+            fileManager,
+            logger
+          )
         : undefined;
 
       const clonedAsyncExchangeCallbackInterfaceDocument =
         descriptor.asyncExchangeCallbackInterface
-          ? await cloneDocument(
+          ? await cloneDocumentWithNewId(
               descriptor.asyncExchangeCallbackInterface,
               fileManager,
               logger
@@ -2228,7 +2232,9 @@ export function catalogServiceBuilder(
           : undefined;
 
       const clonedDocuments = await Promise.all(
-        descriptor.docs.map((doc) => cloneDocument(doc, fileManager, logger))
+        descriptor.docs.map((doc) =>
+          cloneDocumentWithNewId(doc, fileManager, logger)
+        )
       );
 
       const clonedEservice: EService = {
@@ -3864,7 +3870,9 @@ export function catalogServiceBuilder(
       }
 
       const docs = await Promise.all(
-        lastVersion.docs.map((doc) => cloneDocument(doc, fileManager, logger))
+        lastVersion.docs.map((doc) =>
+          cloneDocumentWithNewId(doc, fileManager, logger)
+        )
       );
 
       const asyncExchangeEnabled =
@@ -3873,7 +3881,7 @@ export function catalogServiceBuilder(
 
       const clonedAsyncExchangeCallbackInterface =
         asyncExchangeEnabled && lastVersion.asyncExchangeCallbackInterface
-          ? await cloneDocument(
+          ? await cloneDocumentWithNewId(
               lastVersion.asyncExchangeCallbackInterface,
               fileManager,
               logger
@@ -4267,7 +4275,7 @@ export function catalogServiceBuilder(
 
       const clonedAsyncExchangeCallbackInterface =
         asyncExchangeEnabled && templateVersion.asyncExchangeCallbackInterface
-          ? await cloneDocument(
+          ? await cloneDocumentWithNewId(
               templateVersion.asyncExchangeCallbackInterface,
               fileManager,
               ctx.logger
