@@ -1,3 +1,4 @@
+import { generateMock } from "@anatine/zod-mock";
 import {
   attributeRegistryApi,
   catalogApi,
@@ -9,7 +10,6 @@ import {
   eserviceTemplateApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
-import { generateMock } from "@anatine/zod-mock";
 import {
   ClientId,
   ProducerKeychainId,
@@ -17,8 +17,9 @@ import {
   algorithm,
   generateId,
 } from "pagopa-interop-models";
-import { z } from "zod";
 import { match } from "ts-pattern";
+import { z } from "zod";
+
 import {
   getMockClientJWKKey,
   getMockProducerJWKKey,
@@ -554,9 +555,9 @@ export function getMockedApiDeclaredTenantAttribute({
 
 export function getMockedApiAgreementDocument({
   id = generateId(),
-  name = "doc.txt",
-  path = `mock/path/${id}/doc.txt`,
-  contentType = "text/plain",
+  name = "file.pdf",
+  path = `mock/path/${id}/file.pdf`,
+  contentType = "application/pdf",
 }: {
   id?: string;
   name?: string;
@@ -575,9 +576,9 @@ export function getMockedApiAgreementDocument({
 
 export function getMockedApiEserviceDoc({
   id = generateId(),
-  name = "doc.txt",
-  path = `mock/path/${id}/doc.txt`,
-  contentType = "text/plain",
+  name = "file.pdf",
+  path = `mock/path/${id}/file.pdf`,
+  contentType = "application/pdf",
 }: {
   id?: string;
   name?: string;

@@ -1,5 +1,4 @@
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockTenant,
@@ -15,7 +14,6 @@ import {
   attributeKind,
   TenantAttribute,
 } from "pagopa-interop-models";
-import { handleCertifiedAttributeAssignedRevokedToAssignee } from "../src/handlers/tenants/handleCertifiedAttributeAssignedRevokedToAssignee.js";
 import {
   attributeNotFound,
   attributeOriginUndefined,
@@ -23,6 +21,9 @@ import {
   getNotificationRecipients,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
+
+import { handleCertifiedAttributeAssignedRevokedToAssignee } from "../src/handlers/tenants/handleCertifiedAttributeAssignedRevokedToAssignee.js";
 import { addOneAttribute, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {

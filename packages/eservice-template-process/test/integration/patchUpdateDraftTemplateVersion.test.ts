@@ -21,6 +21,8 @@ import {
   operationForbidden,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeEach } from "vitest";
+
+import { apiAgreementApprovalPolicyToAgreementApprovalPolicy } from "../../src/model/domain/apiConverter.js";
 import {
   inconsistentDailyCalls,
   attributeNotFound,
@@ -34,7 +36,6 @@ import {
   eserviceTemplateService,
   readLastEserviceTemplateEvent,
 } from "../integrationUtils.js";
-import { apiAgreementApprovalPolicyToAgreementApprovalPolicy } from "../../src/model/domain/apiConverter.js";
 
 describe("patchUpdateDraftTemplateVersion", () => {
   const mockTemplateVersion = getMockEServiceTemplateVersion();

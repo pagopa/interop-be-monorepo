@@ -3,6 +3,12 @@
 import { fail } from "assert";
 import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
+  invalidTemplateResult,
+  unexpectedRiskAnalysisTemplateRulesVersionError,
+  unexpectedRiskAnalysisTemplateFieldError,
+  missingExpectedRiskAnalysisTemplateFieldError,
+} from "pagopa-interop-commons";
+import {
   decodeProtobufPayload,
   getMockAuthData,
   getMockContext,
@@ -21,12 +27,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import {
-  invalidTemplateResult,
-  unexpectedRiskAnalysisTemplateRulesVersionError,
-  unexpectedRiskAnalysisTemplateFieldError,
-  missingExpectedRiskAnalysisTemplateFieldError,
-} from "pagopa-interop-commons";
+
 import {
   invalidFreeOfChargeReason,
   missingFreeOfChargeReason,

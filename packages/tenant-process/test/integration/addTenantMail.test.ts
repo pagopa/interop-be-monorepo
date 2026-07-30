@@ -1,13 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
-import {
-  Tenant,
-  protobufDecoder,
-  toTenantV2,
-  operationForbidden,
-  TenantMailAddedV2,
-} from "pagopa-interop-models";
-import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getMockAuthData,
@@ -16,6 +8,15 @@ import {
   getMockTenantMail,
   readLastEventByStreamId,
 } from "pagopa-interop-commons-test";
+import {
+  Tenant,
+  protobufDecoder,
+  toTenantV2,
+  operationForbidden,
+  TenantMailAddedV2,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+
 import {
   mailAlreadyExists,
   notValidMailAddress,

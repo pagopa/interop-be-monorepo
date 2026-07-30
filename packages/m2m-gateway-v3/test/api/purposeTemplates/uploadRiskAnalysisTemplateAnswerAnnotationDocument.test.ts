@@ -1,4 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import {
   generateId,
@@ -6,17 +7,17 @@ import {
   pollingMaxRetriesExceeded,
   PurposeTemplateId,
 } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import {
   TestMultipartFileAnnotationDocumentUpload,
   addTestMultipartFileAnnotationDocumentToSupertestRequest,
 } from "../../multipartTestUtils.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 
 describe("POST /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocuments router test", () => {
   const mockDate = new Date();
@@ -128,13 +129,22 @@ describe("POST /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocum
     }
   );
 
+  it("Should return 400 for invalidDocumentDetected error", async () => {
+    const error = invalidDocumentDetected(generateId());
+    mockPurposeTemplateService.uploadRiskAnalysisTemplateAnswerAnnotationDocument =
+      vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId(), mockFileUpload);
+
+    expect(res.status).toBe(400);
+  });
+
   it.each([
     missingMetadata(),
     pollingMaxRetriesExceeded(
       config.defaultPollingMaxRetries,
       config.defaultPollingRetryDelay
     ),
-    invalidDocumentDetected(generateId()),
   ])("Should return 500 in case of $code error", async (error) => {
     mockPurposeTemplateService.uploadRiskAnalysisTemplateAnswerAnnotationDocument =
       vi.fn().mockRejectedValue(error);

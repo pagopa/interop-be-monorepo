@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { and, eq, inArray } from "drizzle-orm";
+import { ascLower } from "pagopa-interop-commons";
 import {
   AttributeId,
   EService,
@@ -6,7 +8,13 @@ import {
   Attribute,
   descriptorState,
 } from "pagopa-interop-models";
-import { and, eq, inArray } from "drizzle-orm";
+import {
+  aggregateEserviceArray,
+  TenantReadModelService,
+  toEServiceAggregatorArray,
+  aggregateTenantArray,
+  AttributeReadModelService,
+} from "pagopa-interop-readmodel";
 import {
   attributeInReadmodelAttribute,
   DrizzleTransactionType,
@@ -43,14 +51,6 @@ import {
   TenantVerifiedAttributeVerifierSQL,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import {
-  aggregateEserviceArray,
-  TenantReadModelService,
-  toEServiceAggregatorArray,
-  aggregateTenantArray,
-  AttributeReadModelService,
-} from "pagopa-interop-readmodel";
-import { ascLower } from "pagopa-interop-commons";
 
 export function readModelServiceBuilderSQL(
   readModelDB: DrizzleReturnType,

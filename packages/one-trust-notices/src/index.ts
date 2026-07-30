@@ -4,20 +4,20 @@ import {
   withExecutionTime,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
-import { parseAndSanitizeHtml } from "./services/htmlParser.js";
-import { OneTrustNoticeDBSchema } from "./models/index.js";
 
 import { config } from "./config/config.js";
+import { OneTrustNoticeDBSchema } from "./models/index.js";
+import { parseAndSanitizeHtml } from "./services/htmlParser.js";
+import { OneTrustClient } from "./services/oneTrust.js";
+import { DynamoDbTableClient } from "./services/storage.js";
+import { ONE_TRUST_NOTICES } from "./utils/consts.js";
+import { resolveError } from "./utils/errors.js";
 import {
   getLatestNoticeBucketPath,
   getNoticeContent,
   getVersionedNoticeBucketPath,
   remapOneTrustNoticeVersionToDynamoDBSchemaUpdateObject,
 } from "./utils/utils.js";
-import { resolveError } from "./utils/errors.js";
-import { ONE_TRUST_NOTICES } from "./utils/consts.js";
-import { OneTrustClient } from "./services/oneTrust.js";
-import { DynamoDbTableClient } from "./services/storage.js";
 
 const loggerInstance = logger({
   serviceName: "one-trust-notices",

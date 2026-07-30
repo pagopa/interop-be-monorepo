@@ -1,4 +1,5 @@
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { getLatestVersionFormRules } from "pagopa-interop-commons";
 import {
   getMockedApiPurposeTemplate,
   getMockValidRiskAnalysisFormTemplate,
@@ -11,7 +12,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { getLatestVersionFormRules } from "pagopa-interop-commons";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";

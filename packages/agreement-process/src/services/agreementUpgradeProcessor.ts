@@ -17,6 +17,7 @@ import {
   agreementState,
   generateId,
 } from "pagopa-interop-models";
+
 import {
   matchingCertifiedAttributes,
   matchingCertifiedDiscreteAttributes,
@@ -24,12 +25,12 @@ import {
   matchingVerifiedAttributes,
   verifyConflictingAgreements,
 } from "../model/domain/agreement-validators.js";
+import { ActiveDelegations } from "../model/domain/models.js";
 import {
   toCreateEventAgreementAdded,
   toCreateEventAgreementArchivedByUpgrade,
   toCreateEventAgreementUpgraded,
 } from "../model/domain/toEvent.js";
-import { ActiveDelegations } from "../model/domain/models.js";
 import { createAndCopyDocumentsForClonedAgreement } from "./agreementService.js";
 import { createStamp } from "./agreementStampUtils.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";

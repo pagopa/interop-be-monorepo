@@ -20,13 +20,14 @@ import {
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
+import { agreementUpdatableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   agreementNotFound,
   agreementNotInExpectedState,
   tenantIsNotTheConsumer,
   tenantIsNotTheDelegateConsumer,
 } from "../../src/model/domain/errors.js";
-import { agreementUpdatableStates } from "../../src/model/domain/agreement-validators.js";
 import {
   addOneAgreement,
   addOneDelegation,

@@ -1,5 +1,7 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
+import { EventEnvelope } from "../events/events.js";
 import {
   ClonedEServiceAddedV1,
   EServiceAddedV1,
@@ -16,8 +18,6 @@ import {
   EServiceWithDescriptorsDeletedV1,
   MovedAttributesFromEserviceToDescriptorsV1,
 } from "../gen/v1/eservice/events.js";
-import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 import {
   DraftEServiceUpdatedV2,
   EServiceAddedV2,
@@ -77,6 +77,7 @@ import {
   MaintenanceEServicePersonalDataFlagResetV2,
   MaintenanceEServiceDescriptorUnarchivedV2,
 } from "../gen/v2/eservice/events.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
   return match(event)

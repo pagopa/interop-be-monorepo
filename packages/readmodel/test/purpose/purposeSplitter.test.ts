@@ -7,7 +7,6 @@ import {
   getMockPurposeVersionStamps,
   getMockValidRiskAnalysisForm,
 } from "pagopa-interop-commons-test";
-import { describe, it, expect } from "vitest";
 import {
   DelegationId,
   generateId,
@@ -38,6 +37,8 @@ import {
   PurposeVersionSignedDocumentSQL,
   PurposeVersionStampSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, it, expect } from "vitest";
+
 import { splitPurposeIntoObjectsSQL } from "../../src/purpose/splitters.js";
 
 describe("Purpose splitter", () => {

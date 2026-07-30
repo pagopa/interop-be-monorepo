@@ -1,16 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
-import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayEServiceTemplateVersion } from "../../../src/api/eserviceTemplateApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import { eserviceTemplateVersionNotFound } from "../../../src/model/errors.js";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 
 describe("GET /eserviceTemplates/:templateId/version/:versionId router test", () => {
   const authorizedRoles: AuthRole[] = [

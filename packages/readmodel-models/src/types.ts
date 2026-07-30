@@ -1,5 +1,6 @@
 import { InferSelectModel } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
+
 import {
   agreementAttributeInReadmodelAgreement,
   agreementConsumerDocumentInReadmodelAgreement,
