@@ -291,6 +291,39 @@ const tenantRouter = (
         }
       }
     )
+    .put(
+      "/tenants/:tenantId/certifiedDiscreteAttributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const certifiedDiscreteAttribute =
+            await tenantService.replaceTenantCertifiedDiscreteAttribute(
+              unsafeBrandId(req.params.tenantId),
+              unsafeBrandId(req.params.attributeId),
+              req.body,
+              ctx
+            );
+
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApiV3.TenantCertifiedDiscreteAttribute.parse(
+                certifiedDiscreteAttribute
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error replacing certified discrete attribute ${req.params.attributeId} for tenant ${req.params.tenantId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete(
       "/tenants/:tenantId/certifiedDiscreteAttributes/:attributeId",
       async (req, res) => {

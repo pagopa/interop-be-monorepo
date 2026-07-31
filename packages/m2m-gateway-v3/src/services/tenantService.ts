@@ -440,6 +440,43 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         certifiedDiscreteAttribute
       );
     },
+    async replaceTenantCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      attributeSeed: m2mGatewayApiV3.TenantCertifiedDiscreteAttributeSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.TenantCertifiedDiscreteAttribute> {
+      logger.info(
+        `Replacing certified discrete attribute ${attributeId} for tenant ${tenantId}`
+      );
+
+      console.log(
+        `Replacing certified discrete attribute ${attributeId} for tenant ${tenantId} with seed`,
+        attributeSeed
+      );
+
+      const updateResponse =
+        await clients.tenantProcessClient.tenantAttribute.updateCertifiedDiscreteAttributeById(
+          attributeSeed,
+          {
+            params: {
+              tenantId,
+              attributeId,
+            },
+            headers,
+          }
+        );
+
+      const { data: polledTenant } = await pollTenant(updateResponse, headers);
+      const certifiedDiscreteAttribute = retrieveCertifiedDiscreteAttribute(
+        polledTenant,
+        attributeId
+      );
+
+      return toM2MGatewayApiTenantCertifiedDiscreteAttribute(
+        certifiedDiscreteAttribute
+      );
+    },
     async revokeTenantCertifiedDiscreteAttribute(
       tenantId: TenantId,
       attributeId: AttributeId,
