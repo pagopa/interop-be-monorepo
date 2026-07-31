@@ -59,7 +59,7 @@ export function clientKeyRepository(conn: DBConnection) {
         await t.none(
           generateStagingDeleteQuery(
             tableName,
-            ["clientId", "kid", "userId"],
+            ["clientId", "kid"],
             keyRelationshipTableName
           )
         );
@@ -76,7 +76,7 @@ export function clientKeyRepository(conn: DBConnection) {
           ClientKeyUserMigrationSchema,
           schemaName,
           tableName,
-          ["clientId", "kid", "userId"],
+          ["clientId", "kid"],
           keyRelationshipTableName
         );
         await t.none(mergeQuery);

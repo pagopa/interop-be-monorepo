@@ -1,8 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import camelcaseKeys from "camelcase-keys";
+import crypto from "crypto";
 import { genericLogger } from "pagopa-interop-commons";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import {
+  getMockKey,
+  setupTestContainersVitest,
+} from "pagopa-interop-commons-test";
+import { Key, UserId } from "pagopa-interop-models";
 import { inject } from "vitest";
 import { z } from "zod";
 
@@ -38,7 +43,7 @@ const { analyticsPostgresDB } = await setupTestContainersVitest(
   undefined,
   undefined,
   undefined,
-  inject("analyticsSQLConfig")
+  inject("analyticsSQLConfig"),
 );
 const connection = await analyticsPostgresDB.connect();
 
@@ -237,18 +242,18 @@ await retryConnection(
     await setupDbService.setupPartialStagingTables(partialTables);
     await setupDbService.setupStagingDeletingTables(setupStagingDeletingTables);
   },
-  genericLogger
+  genericLogger,
 );
 
 export async function resetTargetTables(
-  tables: DomainDbTable[]
+  tables: DomainDbTable[],
 ): Promise<void> {
   await dbContext.conn.none(`TRUNCATE TABLE ${tables.join(",")} CASCADE;`);
 }
 
 export async function getTablesByName(
   db: DBConnection,
-  tables: string[]
+  tables: string[],
 ): Promise<Array<{ tablename: string }>> {
   const query = `
       SELECT tablename
@@ -262,7 +267,7 @@ export async function getTablesByName(
 export async function getOneFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
 ): Promise<z.infer<DomainDbTableSchemas[T]> | undefined> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
@@ -274,7 +279,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
 
   const row = await db.conn.oneOrNone(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values
+    values,
   );
 
   return row ? camelcaseKeys(row) : undefined;
@@ -283,7 +288,7 @@ export async function getOneFromDb<T extends DomainDbTable>(
 export async function getManyFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T,
-  where: Partial<z.infer<DomainDbTableSchemas[T]>>
+  where: Partial<z.infer<DomainDbTableSchemas[T]>>,
 ): Promise<Array<z.infer<DomainDbTableSchemas[T]>>> {
   const snakeCaseMapper = getColumnNameMapper(tableName);
 
@@ -295,8 +300,19 @@ export async function getManyFromDb<T extends DomainDbTable>(
 
   const rows = await db.conn.any(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE ${clause}`,
-    values
+    values,
   );
 
   return rows.map((row) => camelcaseKeys(row));
 }
+
+export const getMockRsaKey = (userId: UserId): Key => {
+  const publicKey = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+  const encodedPem = Buffer.from(
+    publicKey.export({ type: "pkcs1", format: "pem" }),
+  ).toString("base64url");
+
+  return { ...getMockKey(), encodedPem, userId };
+};
