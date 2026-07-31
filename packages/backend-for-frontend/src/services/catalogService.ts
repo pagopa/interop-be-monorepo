@@ -1478,7 +1478,7 @@ export function catalogServiceBuilder(
     },
     rejectDelegatedEServiceArchiving: async (
       eServiceId: EServiceId,
-      body: catalogApi.RejectDelegatedArchivingSeed,
+      body: catalogApi.RejectDelegatedEServiceArchivingSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
