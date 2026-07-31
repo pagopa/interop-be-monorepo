@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS domains.attribute (
 CREATE TABLE domains.eservice (
   id VARCHAR(36),
   metadata_version INTEGER NOT NULL,
-  producer_id VARCHAR(36),
+  producer_id VARCHAR(36) NOT NULL,
   name VARCHAR(2048) NOT NULL,
   description VARCHAR(2048) NOT NULL,
   technology VARCHAR(2048) NOT NULL,
@@ -72,7 +72,7 @@ CREATE TABLE domains.eservice_descriptor_async_exchange_properties (
 );
 
 CREATE TABLE domains.eservice_descriptor_template_version_ref (
-  eservice_template_version_id VARCHAR(36),
+  eservice_template_version_id VARCHAR(36) NOT NULL,
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
   metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
@@ -290,10 +290,10 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
   id VARCHAR(36),
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id VARCHAR(36),
+  risk_analysis_form_id VARCHAR(36) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   key VARCHAR(2048) NOT NULL,
-  value VARCHAR(65535),
+  value VARCHAR(65535) NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id, purpose_id),
   FOREIGN KEY (risk_analysis_form_id, purpose_id) REFERENCES domains.purpose_risk_analysis_form (id, purpose_id)
@@ -323,7 +323,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version (
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
-  id VARCHAR(36),
+  id VARCHAR(36) NOT NULL,
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
   purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
@@ -335,7 +335,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version_signed_document (
-  id VARCHAR(36),
+  id VARCHAR(36) NOT NULL,
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
   purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
@@ -760,8 +760,8 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template (
 CREATE TABLE IF NOT EXISTS domains.purpose_template_eservice_descriptor (
   metadata_version INTEGER NOT NULL,
   purpose_template_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template (id),
-  eservice_id VARCHAR(36),
-  descriptor_id VARCHAR(36),
+  eservice_id VARCHAR(36) NOT NULL,
+  descriptor_id VARCHAR(36) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (purpose_template_id, eservice_id)
@@ -824,7 +824,7 @@ CREATE TABLE IF NOT EXISTS domains.eservice_descriptor_archiving_schedule (
   scope VARCHAR(2048) NOT NULL,
   archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
   started_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  grace_period_days INTEGER,
+  grace_period_days INTEGER NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (eservice_id, descriptor_id)
 );
