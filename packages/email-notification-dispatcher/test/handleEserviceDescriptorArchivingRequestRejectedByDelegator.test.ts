@@ -190,6 +190,9 @@ describe("handleEserviceDescriptorArchivingRequestRejectedByDelegator", async ()
     readModelService.getTenantUsersWithNotificationEnabled = vi
       .fn()
       .mockResolvedValue([]);
+    readModelService.getTenantNotificationConfigByTenantId = vi
+      .fn()
+      .mockResolvedValue(undefined);
 
     const messages =
       await handleEserviceDescriptorArchivingRequestRejectedByDelegator({
