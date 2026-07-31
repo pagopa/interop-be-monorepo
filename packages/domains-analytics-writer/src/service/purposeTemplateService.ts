@@ -3,6 +3,7 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
 import {
+  PurposeTemplateEserviceTemplateVersionSchema,
   PurposeTemplateItemsSchema,
   PurposeTemplateEServiceDescriptorSchema,
 } from "pagopa-interop-kpi-models";
@@ -12,8 +13,10 @@ import { DBContext } from "../db/db.js";
 import { DeletingDbTable, PurposeTemplateDbTable } from "../model/db/index.js";
 import { PurposeTemplateDeletingSchema } from "../model/purposeTemplate/purposeTemplate.js";
 import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { PurposeTemplateEserviceTemplateVersionDeletingSchema } from "../model/purposeTemplate/purposeTemplateEserviceTemplateVersion.js";
 import { purposeTemplateRepository } from "../repository/purposeTemplate/purposeTemplate.repository.js";
 import { purposeTemplateEServiceDescriptorRepository } from "../repository/purposeTemplate/purposeTemplateEServiceDescriptor.repository.js";
+import { purposeTemplateEserviceTemplateVersionRepository } from "../repository/purposeTemplate/purposeTemplateEserviceTemplateVersion.repository.js";
 import { purposeTemplateRiskAnalysisAnswerRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswer.repository.js";
 import { purposeTemplateRiskAnalysisAnswerAnnotationRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.repository.js";
 import { purposeTemplateRiskAnalysisAnswerAnnotationDocumentRepository } from "../repository/purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.repository.js";
@@ -35,6 +38,8 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
     purposeTemplateRiskAnalysisAnswerAnnotationDocumentRepository(db.conn);
   const templateEserviceDescriptorRepo =
     purposeTemplateEServiceDescriptorRepository(db.conn);
+  const purposeTemplateEserviceTemplateVersionRepo =
+    purposeTemplateEserviceTemplateVersionRepository(db.conn);
 
   return {
     async upsertBatchPurposeTemplate(
@@ -192,6 +197,7 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
             PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
             PurposeTemplateDbTable.purpose_template_risk_analysis_form,
             PurposeTemplateDbTable.purpose_template_eservice_descriptor,
+            PurposeTemplateDbTable.purpose_template_eservice_template_version_purpose_template,
           ],
           DeletingDbTable.purpose_template_deleting_table
         );
@@ -232,6 +238,74 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
       await templateEserviceDescriptorRepo.cleanDeleting();
       genericLogger.info(
         `Staging deletion table cleaned for purpose template eservice descriptor`
+      );
+    },
+
+    async upsertBatchPurposeTemplateEServiceTemplateVersion(
+      dbContext: DBContext,
+      items: PurposeTemplateEserviceTemplateVersionSchema[]
+    ) {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          items,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await purposeTemplateEserviceTemplateVersionRepo.insert(
+            t,
+            dbContext.pgp,
+            batch
+          );
+          genericLogger.info(
+            `Staging data inserted for purpose template eservice template version batch: ${batch
+              .map((r) => r.purposeTemplateId)
+              .join(", ")}`
+          );
+        }
+
+        await purposeTemplateEserviceTemplateVersionRepo.merge(t);
+      });
+
+      genericLogger.info(
+        `Staging data merged into target tables for purpose template eservice template version`
+      );
+
+      await purposeTemplateEserviceTemplateVersionRepo.clean();
+      genericLogger.info(
+        `Staging table cleaned for purpose template eservice template version`
+      );
+    },
+
+    async deleteBatchPurposeTemplateEServiceTemplateVersion(
+      dbContext: DBContext,
+      records: PurposeTemplateEserviceTemplateVersionDeletingSchema[]
+    ) {
+      await dbContext.conn.tx(async (t) => {
+        for (const batch of batchMessages(
+          records,
+          config.dbMessagesToInsertPerBatch
+        )) {
+          await purposeTemplateEserviceTemplateVersionRepo.insertDeleting(
+            t,
+            dbContext.pgp,
+            batch
+          );
+          genericLogger.info(
+            `Staging deletion inserted for purpose template eservice template version batch: ${batch
+              .map((r) => JSON.stringify(r))
+              .join(", ")}`
+          );
+        }
+
+        await purposeTemplateEserviceTemplateVersionRepo.mergeDeleting(t);
+      });
+
+      genericLogger.info(
+        `Staging deletion merged into target tables for purpose template eservice template version`
+      );
+
+      await purposeTemplateEserviceTemplateVersionRepo.cleanDeleting();
+      genericLogger.info(
+        `Staging deletion table cleaned for purpose template eservice template version`
       );
     },
   };

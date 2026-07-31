@@ -4,6 +4,7 @@ import {
   PurposeTemplateRiskAnalysisAnswerSchema,
   PurposeTemplateRiskAnalysisAnswerAnnotationSchema,
   PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema,
+  PurposeTemplateEserviceTemplateVersionSchema,
   PurposeTemplateEServiceDescriptorSchema,
 } from "pagopa-interop-kpi-models";
 
@@ -17,6 +18,8 @@ export const PurposeTemplateDbTableConfig = {
     PurposeTemplateRiskAnalysisAnswerAnnotationSchema,
   purpose_template_risk_analysis_answer_annotation_document:
     PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema,
+  purpose_template_eservice_template_version_purpose_template:
+    PurposeTemplateEserviceTemplateVersionSchema,
 } as const;
 export type PurposeTemplateDbTableConfig = typeof PurposeTemplateDbTableConfig;
 export type PurposeTemplateDbTable = keyof typeof PurposeTemplateDbTableConfig;

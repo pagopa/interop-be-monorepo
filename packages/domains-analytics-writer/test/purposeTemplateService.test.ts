@@ -5,10 +5,13 @@
 import {
   getMockDescriptor,
   getMockEService,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
   getMockPurposeTemplate,
 } from "pagopa-interop-commons-test";
 import {
   EService,
+  EServiceTemplate,
   missingKafkaMessageDataError,
   PurposeTemplate,
   PurposeTemplateAddedV2,
@@ -16,12 +19,15 @@ import {
   PurposeTemplateDraftDeletedV2,
   PurposeTemplateDraftUpdatedV2,
   PurposeTemplateEServiceLinkedV2,
+  PurposeTemplateEServiceTemplateLinkedV2,
+  PurposeTemplateEServiceTemplateUnlinkedV2,
   PurposeTemplateEServiceUnlinkedV2,
   PurposeTemplateEventEnvelope,
   PurposeTemplatePublishedV2,
   purposeTemplateState,
   PurposeTemplateSuspendedV2,
   PurposeTemplateUnsuspendedV2,
+  toEServiceTemplateV2,
   toEServiceV2,
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
@@ -660,5 +666,144 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
       purposeTemplate.id
     );
     expect(retrievedPurposeTemplateEServiceDescriptors?.deleted).toBe(true);
+  });
+
+  it("PurposeTemplateEServiceTemplateLinked: insert purpose template linked EService template version", async () => {
+    const eserviceTemplateVersion = getMockEServiceTemplateVersion();
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+
+    const messagePurposeTemplateAdded: PurposeTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: purposeTemplate.id,
+      version: 0,
+      type: "PurposeTemplateAdded",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+      },
+      log_date: new Date(),
+    };
+
+    const payloadPurposeTemplateEServiceTemplateLinked: PurposeTemplateEServiceTemplateLinkedV2 =
+      {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId: eserviceTemplateVersion.id,
+        createdAt: BigInt(Date.now()),
+      };
+    const messagePurposeTemplateEServiceTemplateLinked: PurposeTemplateEventEnvelope =
+      {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: 1,
+        type: "PurposeTemplateEServiceTemplateLinked",
+        event_version: 2,
+        data: payloadPurposeTemplateEServiceTemplateLinked,
+        log_date: new Date(),
+      };
+
+    await handlePurposeTemplateMessageV2(
+      [
+        messagePurposeTemplateAdded,
+        messagePurposeTemplateEServiceTemplateLinked,
+      ],
+      dbContext
+    );
+
+    const retrievedPurposeTemplateEServiceTemplateVersion = await getOneFromDb(
+      dbContext,
+      PurposeTemplateDbTable.purpose_template_eservice_template_version_purpose_template,
+      {
+        purposeTemplateId: purposeTemplate.id,
+      }
+    );
+
+    expect(
+      retrievedPurposeTemplateEServiceTemplateVersion?.purposeTemplateId
+    ).toBe(purposeTemplate.id);
+    expect(
+      retrievedPurposeTemplateEServiceTemplateVersion?.eserviceTemplateId
+    ).toBe(eserviceTemplate.id);
+    expect(
+      retrievedPurposeTemplateEServiceTemplateVersion?.eserviceTemplateVersionId
+    ).toBe(eserviceTemplateVersion.id);
+  });
+
+  it("PurposeTemplateEServiceTemplateUnlinked: marks a purpose template linked EService template version as deleted", async () => {
+    const eserviceTemplateVersion = getMockEServiceTemplateVersion();
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [eserviceTemplateVersion],
+    };
+
+    const messagePurposeTemplateAdded: PurposeTemplateEventEnvelope = {
+      sequence_num: 1,
+      stream_id: purposeTemplate.id,
+      version: 0,
+      type: "PurposeTemplateAdded",
+      event_version: 2,
+      data: {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+      },
+      log_date: new Date(),
+    };
+
+    const messagePurposeTemplateEServiceTemplateLinked: PurposeTemplateEventEnvelope =
+      {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: 1,
+        type: "PurposeTemplateEServiceTemplateLinked",
+        event_version: 2,
+        data: {
+          purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+          eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+          eserviceTemplateVersionId: eserviceTemplateVersion.id,
+          createdAt: BigInt(Date.now()),
+        } satisfies PurposeTemplateEServiceTemplateLinkedV2,
+        log_date: new Date(),
+      };
+
+    const payloadPurposeTemplateEServiceTemplateUnlinked: PurposeTemplateEServiceTemplateUnlinkedV2 =
+      {
+        purposeTemplate: toPurposeTemplateV2(purposeTemplate),
+        eserviceTemplate: toEServiceTemplateV2(eserviceTemplate),
+        eserviceTemplateVersionId: eserviceTemplateVersion.id,
+      };
+    const messagePurposeTemplateEServiceTemplateUnlinked: PurposeTemplateEventEnvelope =
+      {
+        sequence_num: 1,
+        stream_id: purposeTemplate.id,
+        version: 2,
+        type: "PurposeTemplateEServiceTemplateUnlinked",
+        event_version: 2,
+        data: payloadPurposeTemplateEServiceTemplateUnlinked,
+        log_date: new Date(),
+      };
+
+    await handlePurposeTemplateMessageV2(
+      [
+        messagePurposeTemplateAdded,
+        messagePurposeTemplateEServiceTemplateLinked,
+        messagePurposeTemplateEServiceTemplateUnlinked,
+      ],
+      dbContext
+    );
+
+    const retrievedPurposeTemplateEServiceTemplateVersion = await getOneFromDb(
+      dbContext,
+      PurposeTemplateDbTable.purpose_template_eservice_template_version_purpose_template,
+      {
+        purposeTemplateId: purposeTemplate.id,
+      }
+    );
+
+    expect(
+      retrievedPurposeTemplateEServiceTemplateVersion?.purposeTemplateId
+    ).toBe(purposeTemplate.id);
+    expect(retrievedPurposeTemplateEServiceTemplateVersion?.deleted).toBe(true);
   });
 });

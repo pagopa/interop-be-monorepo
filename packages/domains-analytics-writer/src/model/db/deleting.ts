@@ -14,6 +14,7 @@ import {
   producerKeychainInReadmodelProducerKeychain,
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  eserviceTemplateVersionPurposeTemplateInReadmodelPurposeTemplate as purposeTemplateEserviceTemplateVersionInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
 import { z } from "zod";
 
@@ -30,6 +31,7 @@ import { EserviceTemplateDeletingSchema } from "../eserviceTemplate/eserviceTemp
 import { PurposeDeletingSchema } from "../purpose/purpose.js";
 import { PurposeTemplateDeletingSchema } from "../purposeTemplate/purposeTemplate.js";
 import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { PurposeTemplateEserviceTemplateVersionDeletingSchema } from "../purposeTemplate/purposeTemplateEserviceTemplateVersion.js";
 import { TenantDeletingSchema } from "../tenant/tenant.js";
 import { TenantMailDeletingSchema } from "../tenant/tenantMail.js";
 
@@ -51,6 +53,8 @@ export const DeletingDbTableConfig = {
   purpose_template_deleting_table: PurposeTemplateDeletingSchema,
   purpose_template_eservice_descriptor_deleting_table:
     PurposeTemplateEServiceDescriptorDeletingSchema,
+  purpose_template_eservice_template_version_purpose_template_deleting_table:
+    PurposeTemplateEserviceTemplateVersionDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
 
@@ -72,6 +76,8 @@ export const DeletingDbTableReadModel = {
   purpose_template_deleting_table: purposeTemplateInReadmodelPurposeTemplate,
   purpose_template_eservice_descriptor_deleting_table:
     purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
+  purpose_template_eservice_template_version_purpose_template_deleting_table:
+    purposeTemplateEserviceTemplateVersionInReadmodelPurposeTemplate,
 } as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
 

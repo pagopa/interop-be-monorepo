@@ -2,13 +2,16 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import {
+  PurposeTemplateEserviceTemplateVersionSchema,
   PurposeTemplateItemsSchema,
   PurposeTemplateEServiceDescriptorSchema,
 } from "pagopa-interop-kpi-models";
 import {
+  bigIntToDate,
   PurposeTemplateEventEnvelope,
   fromPurposeTemplateV2,
   missingKafkaMessageDataError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import { splitPurposeTemplateIntoObjectsSQL } from "pagopa-interop-readmodel";
 import { match, P } from "ts-pattern";
@@ -17,6 +20,7 @@ import { z } from "zod";
 import { DBContext } from "../../db/db.js";
 import { PurposeTemplateDeletingSchema } from "../../model/purposeTemplate/purposeTemplate.js";
 import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { PurposeTemplateEserviceTemplateVersionDeletingSchema } from "../../model/purposeTemplate/purposeTemplateEserviceTemplateVersion.js";
 import { purposeTemplateServiceBuilder } from "../../service/purposeTemplateService.js";
 
 export async function handlePurposeTemplateMessageV2(
@@ -30,6 +34,10 @@ export async function handlePurposeTemplateMessageV2(
   const upsertPurposeTemplateEserviceDescriptorBatch: PurposeTemplateEServiceDescriptorSchema[] =
     [];
   const deletePurposeTemplateEserviceDescriptorBatch: PurposeTemplateEServiceDescriptorDeletingSchema[] =
+    [];
+  const upsertPurposeTemplateEserviceTemplateVersionBatch: PurposeTemplateEserviceTemplateVersionSchema[] =
+    [];
+  const deletePurposeTemplateEserviceTemplateVersionBatch: PurposeTemplateEserviceTemplateVersionDeletingSchema[] =
     [];
 
   for (const message of messages) {
@@ -127,10 +135,51 @@ export async function handlePurposeTemplateMessageV2(
           >)
         );
       })
+      .with({ type: "PurposeTemplateEServiceTemplateLinked" }, async (msg) => {
+        if (!msg.data.purposeTemplate) {
+          throw missingKafkaMessageDataError("purposeTemplate", msg.type);
+        }
+        if (!msg.data.eserviceTemplate) {
+          throw missingKafkaMessageDataError("eserviceTemplate", msg.type);
+        }
+
+        upsertPurposeTemplateEserviceTemplateVersionBatch.push(
+          PurposeTemplateEserviceTemplateVersionSchema.parse({
+            purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
+            eserviceTemplateId: unsafeBrandId(msg.data.eserviceTemplate.id),
+            eserviceTemplateVersionId: unsafeBrandId(
+              msg.data.eserviceTemplateVersionId
+            ),
+            createdAt: bigIntToDate(msg.data.createdAt).toISOString(),
+            metadataVersion: msg.version,
+          } satisfies z.input<
+            typeof PurposeTemplateEserviceTemplateVersionSchema
+          >)
+        );
+      })
       .with(
-        { type: "PurposeTemplateEServiceTemplateLinked" },
         { type: "PurposeTemplateEServiceTemplateUnlinked" },
-        () => Promise.resolve()
+        async (msg) => {
+          if (!msg.data.purposeTemplate) {
+            throw missingKafkaMessageDataError("purposeTemplate", msg.type);
+          }
+          if (!msg.data.eserviceTemplate) {
+            throw missingKafkaMessageDataError("eserviceTemplate", msg.type);
+          }
+
+          deletePurposeTemplateEserviceTemplateVersionBatch.push(
+            PurposeTemplateEserviceTemplateVersionDeletingSchema.parse({
+              purposeTemplateId: unsafeBrandId(msg.data.purposeTemplate.id),
+              eserviceTemplateId: unsafeBrandId(msg.data.eserviceTemplate.id),
+              eserviceTemplateVersionId: unsafeBrandId(
+                msg.data.eserviceTemplateVersionId
+              ),
+              deleted: true,
+            } satisfies z.input<
+              typeof PurposeTemplateEserviceTemplateVersionDeletingSchema
+            >)
+          );
+        }
       )
       .exhaustive();
   }
@@ -160,6 +209,20 @@ export async function handlePurposeTemplateMessageV2(
     await purposeTemplateService.deleteBatchTemplateEServiceDescriptor(
       dbContext,
       deletePurposeTemplateEserviceDescriptorBatch
+    );
+  }
+
+  if (upsertPurposeTemplateEserviceTemplateVersionBatch.length > 0) {
+    await purposeTemplateService.upsertBatchPurposeTemplateEServiceTemplateVersion(
+      dbContext,
+      upsertPurposeTemplateEserviceTemplateVersionBatch
+    );
+  }
+
+  if (deletePurposeTemplateEserviceTemplateVersionBatch.length > 0) {
+    await purposeTemplateService.deleteBatchPurposeTemplateEServiceTemplateVersion(
+      dbContext,
+      deletePurposeTemplateEserviceTemplateVersionBatch
     );
   }
 }

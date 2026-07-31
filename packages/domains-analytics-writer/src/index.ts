@@ -166,6 +166,14 @@ await retryConnection(
         name: DeletingDbTable.purpose_template_eservice_descriptor_deleting_table,
         columns: ["purposeTemplateId", "eserviceId", "descriptorId"],
       },
+      {
+        name: DeletingDbTable.purpose_template_eservice_template_version_purpose_template_deleting_table,
+        columns: [
+          "purposeTemplateId",
+          "eserviceTemplateId",
+          "eserviceTemplateVersionId",
+        ],
+      },
     ]);
   },
   logger({ serviceName: config.serviceName })

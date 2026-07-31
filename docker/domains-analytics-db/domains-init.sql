@@ -767,6 +767,16 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_eservice_descriptor (
   PRIMARY KEY (purpose_template_id, eservice_id)
 );
 
+CREATE TABLE IF NOT EXISTS domains.purpose_template_eservice_template_version_purpose_template (
+  metadata_version INTEGER NOT NULL,
+  purpose_template_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template (id),
+  eservice_template_id VARCHAR(36) NOT NULL,
+  eservice_template_version_id VARCHAR(36) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  deleted BOOLEAN,
+  PRIMARY KEY (purpose_template_id, eservice_template_id)
+);
+
 CREATE TABLE IF NOT EXISTS domains.purpose_template_risk_analysis_form (
   id VARCHAR(36),
   purpose_template_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template (id),
