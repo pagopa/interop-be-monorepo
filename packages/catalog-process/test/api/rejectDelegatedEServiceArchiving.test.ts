@@ -43,9 +43,10 @@ describe("API /eservices/:eServiceId/rejectDelegatedArchiving authorization test
 
   const mockApiEservice = eServiceToApiEService(mockEService);
 
-  const mockRejectReasonSeed: catalogApi.RejectDelegatedArchivingSeed = {
-    rejectionReason: "Rejection reason",
-  };
+  const mockRejectReasonSeed: catalogApi.RejectDelegatedEServiceArchivingSeed =
+    {
+      rejectionReason: "Rejection reason",
+    };
 
   catalogService.rejectDelegatedEServiceArchiving = vi
     .fn()
@@ -54,7 +55,7 @@ describe("API /eservices/:eServiceId/rejectDelegatedArchiving authorization test
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    body: catalogApi.RejectDelegatedArchivingSeed = mockRejectReasonSeed
+    body: catalogApi.RejectDelegatedEServiceArchivingSeed = mockRejectReasonSeed
   ) =>
     request(api)
       .post(`/eservices/${eServiceId}/rejectDelegatedArchiving`)
@@ -142,7 +143,7 @@ describe("API /eservices/:eServiceId/rejectDelegatedArchiving authorization test
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        body as catalogApi.RejectDelegatedArchivingSeed
+        body as catalogApi.RejectDelegatedEServiceArchivingSeed
       );
 
       expect(res.status).toBe(400);
