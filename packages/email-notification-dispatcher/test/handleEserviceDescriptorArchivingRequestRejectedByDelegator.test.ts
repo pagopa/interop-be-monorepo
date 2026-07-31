@@ -170,7 +170,7 @@ describe("handleEserviceDescriptorArchivingRequestRejectedByDelegator", async ()
         correlationId: generateId<CorrelationId>(),
       });
 
-    expect(messages.length).toEqual(2);
+    expect(messages.length).toEqual(3);
     expect(
       messages.every(
         (m) =>
@@ -202,5 +202,25 @@ describe("handleEserviceDescriptorArchivingRequestRejectedByDelegator", async ()
       });
 
     expect(messages).toEqual([]);
+  });
+
+  it("should also generate a message to the delegate contact email (includeTenantContactEmails: true)", async () => {
+    const messages =
+      await handleEserviceDescriptorArchivingRequestRejectedByDelegator({
+        eserviceV2Msg: toEServiceV2(eservice),
+        descriptorId: archivingDescriptorId,
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+
+    expect(messages.length).toEqual(3);
+    expect(
+      messages.some(
+        (m) =>
+          m.type === "Tenant" && m.address === delegateTenant.mails[0].address
+      )
+    ).toBe(true);
   });
 });

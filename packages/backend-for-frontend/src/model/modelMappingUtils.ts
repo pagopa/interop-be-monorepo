@@ -122,8 +122,8 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
     purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
-    eserviceArchivingRequestedToDelegator: "/aderente/deleghe",
-    eserviceArchivingApprovedRejectedToDelegate: "/aderente/deleghe",
+    eserviceArchivingRequestedToDelegator: "/erogazione/e-service",
+    eserviceArchivingApprovedRejectedToDelegate: "/erogazione/e-service",
   } as const;
 
 export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =

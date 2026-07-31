@@ -63,7 +63,7 @@ export async function handleEserviceDescriptorArchivingRequestRejectedByDelegato
     notificationType,
     readModelService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {
@@ -82,7 +82,7 @@ export async function handleEserviceDescriptorArchivingRequestRejectedByDelegato
       body: templateService.compileHtml(htmlTemplate, {
         title: subject,
         notificationType,
-        entityId: eservice.id,
+        entityId: `${eservice.id}/${descriptor.id}`,
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,

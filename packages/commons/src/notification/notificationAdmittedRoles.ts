@@ -210,7 +210,7 @@ export const notificationAdmittedRoles = {
   },
   eserviceArchivingRequestedToDelegator: {
     [ADMIN_ROLE]: true,
-    [API_ROLE]: false,
+    [API_ROLE]: true,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
     [REVIEWER_ROLE]: false,
@@ -218,7 +218,7 @@ export const notificationAdmittedRoles = {
   },
   eserviceArchivingApprovedRejectedToDelegate: {
     [ADMIN_ROLE]: true,
-    [API_ROLE]: false,
+    [API_ROLE]: true,
     [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
     [REVIEWER_ROLE]: false,

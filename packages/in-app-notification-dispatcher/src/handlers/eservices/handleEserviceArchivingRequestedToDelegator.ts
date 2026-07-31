@@ -1,6 +1,7 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   DescriptorId,
+  EServiceIdDescriptorId,
   EServiceEventV2,
   NewNotification,
   fromEServiceV2,
@@ -70,7 +71,7 @@ export async function handleEserviceArchivingRequestedToDelegator(
     readModelService
   );
 
-  const body = match(msg)
+  const { body, entityId } = match(msg)
     .with(
       { type: "EServiceDescriptorArchivingRequestedByDelegate" },
       ({ data: { descriptorId } }) => {
@@ -78,19 +79,29 @@ export async function handleEserviceArchivingRequestedToDelegator(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId)
         );
-        return inAppTemplates.eserviceDescriptorArchivingRequestedByDelegateToDelegator(
-          delegate.name,
-          descriptor.version,
-          eservice.name
-        );
+        return {
+          body: inAppTemplates.eserviceDescriptorArchivingRequestedByDelegateToDelegator(
+            delegate.name,
+            descriptor.version,
+            eservice.name
+          ),
+          entityId: EServiceIdDescriptorId.parse(
+            `${eservice.id}/${descriptor.id}`
+          ),
+        };
       }
     )
     .with({ type: "EServiceArchivingRequestedByDelegate" }, () => {
-      retrieveLatestDescriptor(eservice);
-      return inAppTemplates.eserviceArchivingRequestedByDelegateToDelegator(
-        delegate.name,
-        eservice.name
-      );
+      const descriptor = retrieveLatestDescriptor(eservice);
+      return {
+        body: inAppTemplates.eserviceArchivingRequestedByDelegateToDelegator(
+          delegate.name,
+          eservice.name
+        ),
+        entityId: EServiceIdDescriptorId.parse(
+          `${eservice.id}/${descriptor.id}`
+        ),
+      };
     })
     .exhaustive();
 
@@ -99,6 +110,6 @@ export async function handleEserviceArchivingRequestedToDelegator(
     tenantId,
     body,
     notificationType: "eserviceArchivingRequestedToDelegator",
-    entityId: producerDelegation.id,
+    entityId,
   }));
 }

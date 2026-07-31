@@ -1,4 +1,3 @@
-import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   DescriptorId,
   EmailNotificationMessagePayload,
@@ -74,9 +73,6 @@ export async function handleEserviceDescriptorArchivingRequestedByDelegate(
     return [];
   }
 
-  const archivableOn = descriptor.archivingSchedule
-    ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
-    : undefined;
   const subject = `Nuova richiesta di archiviazione di una versione di un e-service`;
 
   return targets.map((t) => ({
@@ -86,12 +82,11 @@ export async function handleEserviceDescriptorArchivingRequestedByDelegate(
       body: templateService.compileHtml(htmlTemplate, {
         title: subject,
         notificationType,
-        entityId: eservice.id,
+        entityId: `${eservice.id}/${descriptor.id}`,
         ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
-        archivableOn,
         ctaLabel: "Valuta la richiesta",
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,

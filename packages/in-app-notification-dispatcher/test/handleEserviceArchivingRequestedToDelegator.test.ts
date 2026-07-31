@@ -169,7 +169,7 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
       userId,
       tenantId: delegatorTenant.id,
       notificationType: "eserviceArchivingRequestedToDelegator",
-      entityId: delegation.id,
+      entityId: `${eservice.id}/${archivingDescriptorId}`,
       body: inAppTemplates.eserviceDescriptorArchivingRequestedByDelegateToDelegator(
         delegateTenant.name,
         archivingDescriptor.version,
@@ -261,7 +261,7 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
       userId,
       tenantId: delegatorTenant.id,
       notificationType: "eserviceArchivingRequestedToDelegator",
-      entityId: delegation.id,
+      entityId: `${eservice.id}/${archivingDescriptorId}`,
       body: inAppTemplates.eserviceArchivingRequestedByDelegateToDelegator(
         delegateTenant.name,
         eservice.name

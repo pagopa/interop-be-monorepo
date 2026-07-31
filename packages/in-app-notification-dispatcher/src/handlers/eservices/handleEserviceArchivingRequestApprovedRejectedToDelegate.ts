@@ -1,6 +1,7 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   DescriptorId,
+  EServiceIdDescriptorId,
   EServiceEventV2,
   NewNotification,
   fromEServiceV2,
@@ -69,7 +70,7 @@ export async function handleEserviceArchivingRequestApprovedRejectedToDelegate(
 
   const delegator = await retrieveTenant(eservice.producerId, readModelService);
 
-  const body = match(msg)
+  const { body, entityId } = match(msg)
     .with(
       { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
       ({ data: { descriptorId } }) => {
@@ -77,12 +78,17 @@ export async function handleEserviceArchivingRequestApprovedRejectedToDelegate(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId)
         );
-        return inAppTemplates.eserviceDescriptorArchivingRequestApprovedByDelegatorToDelegate(
-          delegator.name,
-          descriptor.version,
-          eservice.name,
-          descriptor.archivingSchedule?.archivableOn
-        );
+        return {
+          body: inAppTemplates.eserviceDescriptorArchivingRequestApprovedByDelegatorToDelegate(
+            delegator.name,
+            descriptor.version,
+            eservice.name,
+            descriptor.archivingSchedule?.archivableOn
+          ),
+          entityId: EServiceIdDescriptorId.parse(
+            `${eservice.id}/${descriptor.id}`
+          ),
+        };
       }
     )
     .with(
@@ -92,27 +98,43 @@ export async function handleEserviceArchivingRequestApprovedRejectedToDelegate(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId)
         );
-        return inAppTemplates.eserviceDescriptorArchivingRequestRejectedByDelegatorToDelegate(
-          delegator.name,
-          descriptor.version,
-          eservice.name
-        );
+        return {
+          body: inAppTemplates.eserviceDescriptorArchivingRequestRejectedByDelegatorToDelegate(
+            delegator.name,
+            descriptor.version,
+            eservice.name
+          ),
+          entityId: EServiceIdDescriptorId.parse(
+            `${eservice.id}/${descriptor.id}`
+          ),
+        };
       }
     )
     .with({ type: "EServiceArchivingRequestApprovedByDelegator" }, () => {
       const descriptor = retrieveLatestDescriptor(eservice);
-      return inAppTemplates.eserviceArchivingRequestApprovedByDelegatorToDelegate(
-        delegator.name,
-        eservice.name,
-        descriptor.archivingSchedule?.archivableOn
-      );
+      return {
+        body: inAppTemplates.eserviceArchivingRequestApprovedByDelegatorToDelegate(
+          delegator.name,
+          eservice.name,
+          descriptor.archivingSchedule?.archivableOn
+        ),
+        entityId: EServiceIdDescriptorId.parse(
+          `${eservice.id}/${descriptor.id}`
+        ),
+      };
     })
-    .with({ type: "EServiceArchivingRequestRejectedByDelegator" }, () =>
-      inAppTemplates.eserviceArchivingRequestRejectedByDelegatorToDelegate(
-        delegator.name,
-        eservice.name
-      )
-    )
+    .with({ type: "EServiceArchivingRequestRejectedByDelegator" }, () => {
+      const descriptor = retrieveLatestDescriptor(eservice);
+      return {
+        body: inAppTemplates.eserviceArchivingRequestRejectedByDelegatorToDelegate(
+          delegator.name,
+          eservice.name
+        ),
+        entityId: EServiceIdDescriptorId.parse(
+          `${eservice.id}/${descriptor.id}`
+        ),
+      };
+    })
     .exhaustive();
 
   return usersWithNotifications.map(({ userId, tenantId }) => ({
@@ -120,6 +142,6 @@ export async function handleEserviceArchivingRequestApprovedRejectedToDelegate(
     tenantId,
     body,
     notificationType: "eserviceArchivingApprovedRejectedToDelegate",
-    entityId: producerDelegation.id,
+    entityId,
   }));
 }

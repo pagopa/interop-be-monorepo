@@ -10,6 +10,7 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,
+  retrieveLatestDescriptor,
   retrieveProducerDelegation,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
@@ -39,6 +40,7 @@ export async function handleEserviceArchivingRequestRejectedByDelegator(
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
+  const descriptor = retrieveLatestDescriptor(eservice);
 
   const [htmlTemplate, delegation] = await Promise.all([
     retrieveHTMLTemplate(
@@ -57,7 +59,7 @@ export async function handleEserviceArchivingRequestRejectedByDelegator(
     notificationType,
     readModelService,
     logger,
-    includeTenantContactEmails: false,
+    includeTenantContactEmails: true,
   });
 
   if (targets.length === 0) {
@@ -76,7 +78,7 @@ export async function handleEserviceArchivingRequestRejectedByDelegator(
       body: templateService.compileHtml(htmlTemplate, {
         title: subject,
         notificationType,
-        entityId: eservice.id,
+        entityId: `${eservice.id}/${descriptor.id}`,
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,

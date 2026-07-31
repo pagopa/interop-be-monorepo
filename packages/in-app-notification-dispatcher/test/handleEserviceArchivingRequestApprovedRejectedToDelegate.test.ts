@@ -181,7 +181,7 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       userId,
       tenantId: delegateTenant.id,
       notificationType: "eserviceArchivingApprovedRejectedToDelegate",
-      entityId: delegation.id,
+      entityId: `${eservice.id}/${archivingDescriptorId}`,
       body: inAppTemplates.eserviceDescriptorArchivingRequestApprovedByDelegatorToDelegate(
         delegatorTenant.name,
         archivingDescriptor.version,
@@ -215,7 +215,7 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       userId,
       tenantId: delegateTenant.id,
       notificationType: "eserviceArchivingApprovedRejectedToDelegate",
-      entityId: delegation.id,
+      entityId: `${eservice.id}/${archivingDescriptorId}`,
       body: inAppTemplates.eserviceDescriptorArchivingRequestRejectedByDelegatorToDelegate(
         delegatorTenant.name,
         archivingDescriptor.version,
@@ -269,7 +269,7 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       userId,
       tenantId: delegateTenant.id,
       notificationType: "eserviceArchivingApprovedRejectedToDelegate",
-      entityId: delegation.id,
+      entityId: `${eservice.id}/${archivingDescriptorId}`,
       body: inAppTemplates.eserviceArchivingRequestApprovedByDelegatorToDelegate(
         delegatorTenant.name,
         eservice.name,
@@ -301,7 +301,7 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       userId,
       tenantId: delegateTenant.id,
       notificationType: "eserviceArchivingApprovedRejectedToDelegate",
-      entityId: delegation.id,
+      entityId: `${eservice.id}/${archivingDescriptorId}`,
       body: inAppTemplates.eserviceArchivingRequestRejectedByDelegatorToDelegate(
         delegatorTenant.name,
         eservice.name
