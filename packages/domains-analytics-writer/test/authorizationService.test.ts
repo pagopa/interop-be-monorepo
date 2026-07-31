@@ -12,6 +12,7 @@ import {
   generateId,
   PurposeId,
   Key,
+  KeyRelationshipToUserMigratedV1,
   AuthorizationEventEnvelopeV2,
   toClientV2,
   ClientV2,
@@ -300,6 +301,47 @@ describe("Authorization messages consumers - handleAuthorizationMessageV1", () =
       }
     );
     expect(purpose).toBeUndefined();
+  });
+
+  it("KeyRelationshipToUserMigrated: updates client key user relationship", async () => {
+    const userId: UserId = generateId<UserId>();
+    const key: Key = { ...getMockKey(), userId: "" as UserId };
+
+    const client = toClientV1({
+      ...mockClient,
+      users: [userId],
+      keys: [key],
+    });
+
+    const payloadAdd: ClientAddedV1 = { client };
+    const payloadMigration: KeyRelationshipToUserMigratedV1 = {
+      clientId: client.id,
+      keyId: key.kid,
+      userId,
+    };
+
+    const addMsg: AuthorizationEventEnvelopeV1 = {
+      ...mockMessage,
+      type: "ClientAdded",
+      data: payloadAdd,
+    };
+
+    const migrationMsg: AuthorizationEventEnvelopeV1 = {
+      ...mockMessage,
+      version: 2,
+      type: "KeyRelationshipToUserMigrated",
+      data: payloadMigration,
+    };
+
+    await handleAuthorizationMessageV1([addMsg, migrationMsg], dbContext);
+
+    const storedKey = await getOneFromDb(dbContext, ClientDbTable.client_key, {
+      clientId: client.id,
+      kid: key.kid,
+    });
+
+    expect(storedKey?.userId).toBe(userId);
+    expect(storedKey?.metadataVersion).toBe(2);
   });
 
   it("ClientAdded: should throw error when client is missing", async () => {
