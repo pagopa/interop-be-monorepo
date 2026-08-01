@@ -167,7 +167,7 @@ await retryConnection(
         columns: ["purposeTemplateId", "eserviceId", "descriptorId"],
       },
       {
-        name: DeletingDbTable.purpose_template_eservice_template_version_purpose_template_deleting_table,
+        name: DeletingDbTable.purpose_template_eservice_template_version_deleting_table,
         columns: [
           "purposeTemplateId",
           "eserviceTemplateId",

@@ -767,7 +767,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template_eservice_descriptor (
   PRIMARY KEY (purpose_template_id, eservice_id)
 );
 
-CREATE TABLE IF NOT EXISTS domains.purpose_template_eservice_template_version_purpose_template (
+CREATE TABLE IF NOT EXISTS domains.purpose_template_eservice_template_version (
   metadata_version INTEGER NOT NULL,
   purpose_template_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template (id),
   eservice_template_id VARCHAR(36) NOT NULL,

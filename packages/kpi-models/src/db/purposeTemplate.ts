@@ -26,7 +26,7 @@ export const PurposeTemplateDbTableConfig = {
     PurposeTemplateRiskAnalysisAnswerAnnotationSchema,
   purpose_template_risk_analysis_answer_annotation_document:
     PurposeTemplateRiskAnalysisAnswerAnnotationDocumentSchema,
-  purpose_template_eservice_template_version_purpose_template:
+  purpose_template_eservice_template_version:
     PurposeTemplateEserviceTemplateVersionSchema,
 } as const;
 export type PurposeTemplateDbTableConfig = typeof PurposeTemplateDbTableConfig;
@@ -43,7 +43,7 @@ export const PurposeTemplateDbTableReadModel = {
     purposeTemplateRiskAnalysisAnswerAnnotationInReadmodelPurposeTemplate,
   purpose_template_risk_analysis_answer_annotation_document:
     purposeTemplateRiskAnalysisAnswerAnnotationDocumentInReadmodelPurposeTemplate,
-  purpose_template_eservice_template_version_purpose_template:
+  purpose_template_eservice_template_version:
     purposeTemplateEserviceTemplateVersionInReadmodelPurposeTemplate,
 } as const;
 export type PurposeTemplateDbTableReadModel =
@@ -52,5 +52,5 @@ export type PurposeTemplateDbTableReadModel =
 export type PurposeTemplateDbTable = keyof typeof PurposeTemplateDbTableConfig;
 
 export const PurposeTemplateDbTable = Object.fromEntries(
-  Object.keys(PurposeTemplateDbTableConfig).map((k) => [k, k])
+  Object.keys(PurposeTemplateDbTableConfig).map((k) => [k, k]),
 ) as { [K in PurposeTemplateDbTable]: K };

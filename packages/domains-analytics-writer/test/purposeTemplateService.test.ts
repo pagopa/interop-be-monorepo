@@ -715,7 +715,7 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
 
     const retrievedPurposeTemplateEServiceTemplateVersion = await getOneFromDb(
       dbContext,
-      PurposeTemplateDbTable.purpose_template_eservice_template_version_purpose_template,
+      PurposeTemplateDbTable.purpose_template_eservice_template_version,
       {
         purposeTemplateId: purposeTemplate.id,
       }
@@ -795,7 +795,7 @@ describe("Purpose template messages consumers - handlePurposeTemplateMessageV2",
 
     const retrievedPurposeTemplateEServiceTemplateVersion = await getOneFromDb(
       dbContext,
-      PurposeTemplateDbTable.purpose_template_eservice_template_version_purpose_template,
+      PurposeTemplateDbTable.purpose_template_eservice_template_version,
       {
         purposeTemplateId: purposeTemplate.id,
       }

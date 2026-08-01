@@ -14,12 +14,12 @@ export const purposeTemplateEserviceTemplateVersionRepository = (
 ) =>
   createRepository(conn, {
     tableName:
-      PurposeTemplateDbTable.purpose_template_eservice_template_version_purpose_template,
+      PurposeTemplateDbTable.purpose_template_eservice_template_version,
     schema: PurposeTemplateEserviceTemplateVersionSchema,
     keyColumns: ["purposeTemplateId", "eserviceTemplateId"],
     deleting: {
       deletingTableName:
-        DeletingDbTable.purpose_template_eservice_template_version_purpose_template_deleting_table,
+        DeletingDbTable.purpose_template_eservice_template_version_deleting_table,
       deletingSchema: PurposeTemplateEserviceTemplateVersionDeletingSchema,
       deletingKeyColumns: [
         "purposeTemplateId",

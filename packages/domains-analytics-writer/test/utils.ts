@@ -136,7 +136,7 @@ export const producerKeychainTables: ProducerKeychainDbTable[] = [
 export const purposeTemplateTables: PurposeTemplateDbTable[] = [
   PurposeTemplateDbTable.purpose_template,
   PurposeTemplateDbTable.purpose_template_eservice_descriptor,
-  PurposeTemplateDbTable.purpose_template_eservice_template_version_purpose_template,
+  PurposeTemplateDbTable.purpose_template_eservice_template_version,
   PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
   PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
   PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
@@ -165,7 +165,7 @@ export const deletingTables: DeletingDbTable[] = [
   DeletingDbTable.eservice_template_deleting_table,
   DeletingDbTable.purpose_template_deleting_table,
   DeletingDbTable.purpose_template_eservice_descriptor_deleting_table,
-  DeletingDbTable.purpose_template_eservice_template_version_purpose_template_deleting_table,
+  DeletingDbTable.purpose_template_eservice_template_version_deleting_table,
 ];
 
 export const domainTables: DomainDbTable[] = [
@@ -228,7 +228,7 @@ export const setupStagingDeletingTables: DeletingDbTableConfigMap[] = [
     columns: ["purposeTemplateId", "eserviceId", "descriptorId"],
   },
   {
-    name: DeletingDbTable.purpose_template_eservice_template_version_purpose_template_deleting_table,
+    name: DeletingDbTable.purpose_template_eservice_template_version_deleting_table,
     columns: [
       "purposeTemplateId",
       "eserviceTemplateId",

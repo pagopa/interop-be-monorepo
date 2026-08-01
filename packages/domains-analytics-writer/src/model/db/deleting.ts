@@ -53,7 +53,7 @@ export const DeletingDbTableConfig = {
   purpose_template_deleting_table: PurposeTemplateDeletingSchema,
   purpose_template_eservice_descriptor_deleting_table:
     PurposeTemplateEServiceDescriptorDeletingSchema,
-  purpose_template_eservice_template_version_purpose_template_deleting_table:
+  purpose_template_eservice_template_version_deleting_table:
     PurposeTemplateEserviceTemplateVersionDeletingSchema,
 } as const;
 export type DeletingDbTableConfig = typeof DeletingDbTableConfig;
@@ -76,7 +76,7 @@ export const DeletingDbTableReadModel = {
   purpose_template_deleting_table: purposeTemplateInReadmodelPurposeTemplate,
   purpose_template_eservice_descriptor_deleting_table:
     purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
-  purpose_template_eservice_template_version_purpose_template_deleting_table:
+  purpose_template_eservice_template_version_deleting_table:
     purposeTemplateEserviceTemplateVersionInReadmodelPurposeTemplate,
 } as const;
 export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
@@ -84,7 +84,7 @@ export type DeletingDbTableReadModel = typeof DeletingDbTableReadModel;
 export type DeletingDbTable = keyof DeletingDbTableConfig;
 
 export const DeletingDbTable = Object.fromEntries(
-  Object.keys(DeletingDbTableConfig).map((k) => [k, k])
+  Object.keys(DeletingDbTableConfig).map((k) => [k, k]),
 ) as { [K in DeletingDbTable]: K };
 
 export type DeletingDbTableConfigMap = {

@@ -197,7 +197,7 @@ export function purposeTemplateServiceBuilder(db: DBContext) {
             PurposeTemplateDbTable.purpose_template_risk_analysis_answer,
             PurposeTemplateDbTable.purpose_template_risk_analysis_form,
             PurposeTemplateDbTable.purpose_template_eservice_descriptor,
-            PurposeTemplateDbTable.purpose_template_eservice_template_version_purpose_template,
+            PurposeTemplateDbTable.purpose_template_eservice_template_version,
           ],
           DeletingDbTable.purpose_template_deleting_table
         );
