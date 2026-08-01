@@ -25,5 +25,5 @@ export type PurposeTemplateDbTableConfig = typeof PurposeTemplateDbTableConfig;
 export type PurposeTemplateDbTable = keyof typeof PurposeTemplateDbTableConfig;
 
 export const PurposeTemplateDbTable = Object.fromEntries(
-  Object.keys(PurposeTemplateDbTableConfig).map((k) => [k, k]),
+  Object.keys(PurposeTemplateDbTableConfig).map((k) => [k, k])
 ) as { [K in PurposeTemplateDbTable]: K };
