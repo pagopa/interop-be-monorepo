@@ -2829,7 +2829,7 @@ function assignRiskAnalysisReviewerLogic(
   event: CreateEvent<PurposeEventV2> | undefined;
   updatedPurpose: Purpose;
 } {
-  const previousReviewMode = purpose.data.reviewerWorkflow?.reviewMode;
+  const previousReviewMode = purpose.data.reviewMode;
   const previousReviewers = purpose.data.reviewerWorkflow?.reviewers ?? [];
   const previousReviewerIds = purpose.data.reviewerWorkflow?.reviewerIds ?? [];
   const requestedReviewers = (review?.reviewerIds ?? []).map((id) =>
@@ -2898,7 +2898,7 @@ function assignRiskAnalysisReviewerLogic(
         toEvent: (updatedPurpose) =>
           toCreateEventPurposeRiskAnalysisSelfAssigned({
             ...eventPayload(updatedPurpose),
-            oldReviewers: previousReviewers,
+            oldReviewers: previousReviewerIds,
           }),
       })
     )
