@@ -2304,8 +2304,11 @@ export function catalogServiceBuilder(
 
       assertDescriptorIsNotAlreadyArchived(descriptor);
 
+      const descriptorAfterCleanup =
+        deletePendingDescriptorArchivingRequests(descriptor);
+
       const updatedDescriptor = updateDescriptorState(
-        descriptor,
+        descriptorAfterCleanup,
         descriptorState.archived
       );
 
@@ -2341,15 +2344,21 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      console.log("before cleanup", eservice.delegatedArchivingRequest);
       assertEServiceIsNotAlreadyArchived(eservice);
 
-      const descriptors = eservice.descriptors.map((d) =>
+      const eserviceAfterRequestCleanup =
+        (eservice.delegatedArchivingRequest?.length ?? 0) > 0
+          ? deletePendingEServiceArchivingRequests(eservice)
+          : eservice;
+
+      const descriptors = eserviceAfterRequestCleanup.descriptors.map((d) =>
         d.state === descriptorState.archived
           ? d
           : updateDescriptorState(d, descriptorState.archived)
       );
       const updatedEservice: EService = {
-        ...eservice,
+        ...eserviceAfterRequestCleanup,
         descriptors,
       };
 
@@ -4905,6 +4914,39 @@ const processDescriptorPublication = async (
       : archiveDescriptorLogic(eservice.id, currentActiveDescriptor, logger)
   );
 };
+
+function deletePendingEServiceArchivingRequests(eservice: EService): EService {
+  const descriptorsAfterRequestDeletion = eservice.descriptors.map(
+    (descriptor) => deletePendingDescriptorArchivingRequests(descriptor)
+  );
+
+  const eserviceAfterRequestDeletion: EService = {
+    ...eservice,
+    descriptors: descriptorsAfterRequestDeletion,
+    delegatedArchivingRequest: eservice.delegatedArchivingRequest?.filter(
+      (request) => request.acceptedAt || request.rejectedAt
+    ),
+  };
+  console.log(
+    "after cleanup",
+    eserviceAfterRequestDeletion.delegatedArchivingRequest
+  );
+
+  return eserviceAfterRequestDeletion;
+}
+
+function deletePendingDescriptorArchivingRequests(
+  descriptor: Descriptor
+): Descriptor {
+  const descriptorAfterRequestDeletion: Descriptor = {
+    ...descriptor,
+    delegatedArchivingRequest: descriptor.delegatedArchivingRequest?.filter(
+      (request) => request.acceptedAt || request.rejectedAt
+    ),
+  };
+
+  return descriptorAfterRequestDeletion;
+}
 
 /**
  * Retains the existing `dailyCallsPerConsumer` value on certified attributes.

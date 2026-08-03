@@ -13,6 +13,7 @@ import {
   descriptorState,
   EService,
   EServiceArchivingCompletedV2,
+  generateId,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -214,5 +215,77 @@ describe("archiveEService", () => {
     expect(
       catalogService.archiveEService(eservice.id, getMockContextInternal({}))
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
+  });
+
+  it.only("should delete pending archiving requests for the eservice", async () => {
+    const descriptors: Descriptor[] = Array.from({ length: 2 }, (_, idx) => ({
+      ...getMockDescriptor(),
+      interface: getMockDocument(),
+      version: (idx + 1).toString(),
+      state: [descriptorState.published, descriptorState.deprecated][idx],
+    }));
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors,
+      delegatedArchivingRequest: [
+        {
+          requestedAt: new Date(),
+          requesterId: generateId(),
+          gracePeriodDays: 30,
+          archivingReason: "Test rejected request",
+          rejectedAt: new Date(),
+          rejectionReason: "rejection reason",
+        },
+        {
+          requestedAt: new Date(),
+          requesterId: generateId(),
+          gracePeriodDays: 30,
+          archivingReason: "Test accepted request",
+          acceptedAt: new Date(),
+        },
+        {
+          requestedAt: new Date(),
+          requesterId: generateId(),
+          gracePeriodDays: 30,
+          archivingReason: "Test pending request",
+        },
+      ],
+    };
+    console.log("Before archiving", eservice.delegatedArchivingRequest);
+    await addOneEService(eservice);
+    console.log("After addOne", eservice.delegatedArchivingRequest);
+    await catalogService.archiveEService(
+      eservice.id,
+      getMockContextInternal({})
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceArchivingCompletedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedArchivingRequests = [
+      {
+        requestedAt: new Date(),
+        requesterId: generateId(),
+        gracePeriodDays: 30,
+        archivingReason: "Test archiving reason",
+        rejectedAt: new Date(),
+        rejectionReason: "Test rejection reason",
+      },
+      {
+        requestedAt: new Date(),
+        requesterId: generateId(),
+        gracePeriodDays: 30,
+        archivingReason: "Test archiving reason",
+        acceptedAt: new Date(),
+      },
+    ];
+    expect(writtenPayload.eservice?.delegatedArchivingRequest).toEqual(
+      expectedArchivingRequests
+    );
   });
 });

@@ -355,6 +355,7 @@ export const upsertEService = async (
         .values(asyncExchangePropsSQL);
     }
     for (const archivingRequestSQL of archivingRequestsSQL) {
+      console.log("values", archivingRequestSQL);
       await tx
         .insert(eserviceDescriptorArchivingRequestInReadmodelCatalog)
         .values(archivingRequestSQL);
