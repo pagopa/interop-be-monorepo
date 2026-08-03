@@ -106,11 +106,19 @@ function previousReviewerWorkflow(
     .returnType<ReviewerWorkflow | undefined>()
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
       reviewerIds: previousReviewers,
+      reviewers: previousReviewers.map((id) => ({
+        id,
+        sentToReviewerAt: previousSentToReviewerAt,
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
       sentToReviewerAt: previousSentToReviewerAt,
     }))
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () => ({
       reviewerIds: previousReviewers,
+      reviewers: previousReviewers.map((id) => ({
+        id,
+        sentToReviewerAt: undefined,
+      })),
       signingState: RiskAnalysisSigningState.Values.Draft,
       sentToReviewerAt: undefined,
     }))
@@ -219,8 +227,12 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
       reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
+      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
@@ -302,6 +314,10 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
       reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: undefined,
+      })),
       signingState: RiskAnalysisSigningState.Values.Draft,
       sentToReviewerAt: undefined,
     };
@@ -391,8 +407,12 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
       reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
+      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
@@ -617,6 +637,10 @@ describe("assignRiskAnalysisReviewer", () => {
       );
       expect(updatedPurpose.reviewerWorkflow).toEqual({
         reviewerIds: requestedReviewerIds,
+        reviewers: requestedReviewerIds.map((id) => ({
+          id,
+          sentToReviewerAt: undefined,
+        })),
         signingState: RiskAnalysisSigningState.Values.Draft,
         sentToReviewerAt: undefined,
       } satisfies ReviewerWorkflow);
@@ -706,8 +730,17 @@ describe("assignRiskAnalysisReviewer", () => {
       );
       expect(updatedPurpose.reviewerWorkflow).toEqual({
         reviewerIds: requestedReviewerIds,
+        reviewers: requestedReviewerIds.map((id) => ({
+          id,
+          sentToReviewerAt:
+            previousReviewMode ===
+              riskAnalysisReviewMode.reviewerWritesReviewerSigns &&
+            previousReviewers.includes(id)
+              ? previousSentToReviewerAt
+              : new Date(),
+        })),
         signingState: RiskAnalysisSigningState.Values.Assigned,
-        sentToReviewerAt: new Date(),
+        sentToReviewerAt: undefined,
       } satisfies ReviewerWorkflow);
 
       const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -1103,11 +1136,13 @@ describe("assignRiskAnalysisReviewer", () => {
   });
 
   it("should throw reviewerWorkflowConflict if the risk analysis has already been signed", async () => {
+    const reviewerId = generateId<UserId>();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [generateId<UserId>()],
+        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
         signingState: RiskAnalysisSigningState.Values.Signed,
         signedBy: generateId<UserId>(),
       },
