@@ -17,6 +17,7 @@ import {
   Delegation,
   delegationKind,
   delegationState,
+  descriptorState,
   EService,
   genericError,
   ProducerKeychain,
@@ -42,6 +43,7 @@ import {
   tenantNotAllowedOnClient,
   missingSelfcareId,
   duplicatedMembersInSeed,
+  archivedStateNotAllowed,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -226,3 +228,13 @@ export function assertMembersAreUnique(members: string[]) {
     throw duplicatedMembersInSeed();
   }
 }
+
+export const assertEServiceIsArchived = (eservice: EService): void => {
+  if (
+    eservice.descriptors.every(
+      (descriptor) => descriptor.state === descriptorState.archived
+    )
+  ) {
+    throw archivedStateNotAllowed(eservice.id);
+  }
+};
