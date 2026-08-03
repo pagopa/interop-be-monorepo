@@ -32312,7 +32312,7 @@ components:
         - SUBMITTED
         - SIGNED
         - REJECTED
-    ReviewerWorkflowUser:
+    Reviewer:
       description: A designated reviewer enriched with its user details
       allOf:
         - $ref: "#/components/schemas/CompactUser"
@@ -32329,7 +32329,7 @@ components:
         reviewers:
           type: array
           items:
-            $ref: "#/components/schemas/ReviewerWorkflowUser"
+            $ref: "#/components/schemas/Reviewer"
         signingState:
           $ref: "#/components/schemas/RiskAnalysisSigningState"
         signedBy:
