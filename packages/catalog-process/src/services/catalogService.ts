@@ -1325,22 +1325,11 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       const eservice = await retrieveEService(eserviceId, readModelService);
 
-      console.log("test requester is producer");
       assertRequesterIsProducer(eservice.data.producerId, authData);
-      console.log("test archiving is present");
       assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
-
-      console.log(
-        "test delegatedEservice active requests",
-        eservice.data.delegatedArchivingRequest
-      );
       assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
-
       assertEServiceArchivable(eservice.data);
-      console.log(
-        "test getLastActiveRequest",
-        eservice.data.delegatedArchivingRequest
-      );
+
       const latestActiveRequest = getLatestActiveArchivingRequest(
         eservice.data.delegatedArchivingRequest,
         eserviceId
