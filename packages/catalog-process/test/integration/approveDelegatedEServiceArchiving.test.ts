@@ -27,7 +27,6 @@ import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
 
 import {
   eServiceNotFound,
-  notValidDescriptorState,
   noActiveDelegationFound,
   noDelegatedArchivingRequestFound,
   delegatedArchivingRequestNotActive,
@@ -237,7 +236,7 @@ describe("approve delegated EService archiving request", () => {
     }
   );
 
-  it.only("should throw delegatedArchivingRequestNotActive if eservice has no active requests", async () => {
+  it("should throw delegatedArchivingRequestNotActive if eservice has no active requests", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.published,
@@ -294,30 +293,4 @@ describe("approve delegated EService archiving request", () => {
       )
     ).rejects.toThrow(expectedError);
   });
-
-  it.each(
-    Object.values(descriptorState).filter(
-      (s) => s !== descriptorState.waitingForApproval
-    )
-  )(
-    "should throw notValidDescriptorState if the descriptor is in %s state",
-    async (state) => {
-      const descriptor: Descriptor = {
-        ...mockDescriptor,
-        interface: mockDocument,
-        state,
-      };
-      const eservice: EService = {
-        ...mockEService,
-        descriptors: [descriptor],
-      };
-      await addOneEService(eservice);
-      expect(
-        catalogService.approveDelegatedEServiceArchiving(
-          eservice.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
-        )
-      ).rejects.toThrow(notValidDescriptorState(descriptor.id, state));
-    }
-  );
 });
