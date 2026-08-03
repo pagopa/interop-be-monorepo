@@ -131,7 +131,7 @@ describe("importEService", () => {
     description: "Descrizione del test EService",
     technology: "REST",
     openapi: "3.0.0",
-    servers: [],
+    servers: [{ url: "https://example.com" }],
     mode: "RECEIVE",
     descriptor: {
       description: "Descrizione del descriptor",

@@ -1,5 +1,9 @@
 /* eslint-disable functional/immutable-data */
 import {
+  ClientItemsSchema,
+  ProducerKeychainItemsSchema,
+} from "pagopa-interop-kpi-models";
+import {
   AuthorizationEventEnvelopeV2,
   fromClientV2,
   fromProducerKeychainV2,
@@ -13,14 +17,8 @@ import { match, P } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import {
-  ClientItemsSchema,
-  ClientDeletingSchema,
-} from "../../model/authorization/client.js";
-import {
-  ProducerKeychainItemsSchema,
-  ProducerKeychainDeletingSchema,
-} from "../../model/authorization/producerKeychain.js";
+import { ClientDeletingSchema } from "../../model/authorization/client.js";
+import { ProducerKeychainDeletingSchema } from "../../model/authorization/producerKeychain.js";
 import { authorizationServiceBuilder } from "../../service/authorizationService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 

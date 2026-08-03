@@ -29,6 +29,7 @@ import {
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
+  genericInternalError,
   RiskAnalysisId,
   TenantId,
   unsafeBrandId,
@@ -748,11 +749,11 @@ export function catalogServiceBuilder(
     },
     scheduleArchiveEService: async (
       eServiceId: EServiceId,
-      archiveReason: bffApi.EServiceArchivingReasonSeed,
+      seed: bffApi.EServiceArchivingSeed,
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(`Scheduling archive for EService ${eServiceId}`);
-      await catalogProcessClient.scheduleEServiceArchiving(archiveReason, {
+      await catalogProcessClient.scheduleEServiceArchiving(seed, {
         headers,
         params: {
           eServiceId,
@@ -932,6 +933,22 @@ export function catalogServiceBuilder(
       });
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+
+      const eserviceTemplate = eservice.templateId
+        ? await eserviceTemplateProcessClient.getEServiceTemplateById({
+            headers,
+            params: {
+              templateId: eservice.templateId,
+            },
+          })
+        : undefined;
+
+      if (eserviceTemplate && !descriptor.templateVersionRef) {
+        throw genericInternalError(
+          `Missing templateVersionRef for descriptor ${descriptorId} of EService ${eserviceId} instantiated from template ${eserviceTemplate.id}`
+        );
+      }
+
       const attributeIds = getAttributeIds(descriptor);
       const [attributes, producerKeychainFlags] = await Promise.all([
         getAllBulkAttributes(attributeProcessClient, headers, attributeIds),
@@ -1025,6 +1042,14 @@ export function catalogServiceBuilder(
           hasProducerKeychainKeys
         ),
         archivingSchedule: descriptor.archivingSchedule,
+        templateRef:
+          eserviceTemplate && descriptor.templateVersionRef
+            ? {
+                templateId: eserviceTemplate.id,
+                templateName: eserviceTemplate.name,
+                templateVersionId: descriptor.templateVersionRef.id,
+              }
+            : undefined,
       };
     },
     getEServiceConsumers: async (
@@ -1393,21 +1418,19 @@ export function catalogServiceBuilder(
     scheduleArchiveEserviceDescriptor: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
+      seed: catalogApi.GracePeriodDaysSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> => {
       logger.info(
         `Scheduling descriptor ${descriptorId} of EService ${eServiceId}`
       );
-      await catalogProcessClient.scheduleEServiceDescriptorArchiving(
-        undefined,
-        {
-          headers,
-          params: {
-            eServiceId,
-            descriptorId,
-          },
-        }
-      );
+      await catalogProcessClient.scheduleEServiceDescriptorArchiving(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
     },
 
     cancelEServiceDescriptorArchiving: async (

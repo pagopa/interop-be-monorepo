@@ -245,6 +245,7 @@ export const getMockBffApiCatalogEServiceDescriptor =
       z.string().datetime({ offset: true }).optional()
     ),
     archivedAt: generateMock(z.string().datetime({ offset: true }).optional()),
+    templateRef: generateMock(bffApi.EServiceTemplateRef.optional()),
   });
 
 export const getMockBffApiCreatedEServiceDescriptor = (
@@ -1192,16 +1193,6 @@ export const getMockBffApiCatalogPurposeTemplate =
     purposeTitle: generateMock(z.string()),
     purposeDescription: generateMock(z.string()),
     creator: generateMock(bffApi.CatalogTenant),
-  });
-
-export const getMockBffApiEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor =
-  (
-    purposeTemplateId: PurposeTemplateId = generateId()
-  ): bffApi.EServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor => ({
-    purposeTemplateId,
-    createdAt: generateMock(z.string().datetime({ offset: true })),
-    eservice: generateMock(bffApi.CompactPurposeTemplateEService),
-    descriptor: generateMock(bffApi.CompactDescriptor),
   });
 
 export const getMockBffApiLinkableEService = (

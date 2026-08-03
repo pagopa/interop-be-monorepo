@@ -108,13 +108,13 @@ export function asyncTokenServiceBuilder({
   tokenGenerator,
   dynamoDBClient,
   redisRateLimiter,
-  producer,
+  consumerTokenAuditProducer,
   fileManager,
 }: {
   tokenGenerator: InteropTokenGenerator;
   dynamoDBClient: DynamoDBClient;
   redisRateLimiter: RateLimiter;
-  producer: Awaited<ReturnType<typeof initProducer>>;
+  consumerTokenAuditProducer: Awaited<ReturnType<typeof initProducer>>;
   fileManager: FileManager;
 }) {
   return {
@@ -203,7 +203,7 @@ export function asyncTokenServiceBuilder({
       return await generateAsyncTokenByScope(scope, {
         dynamoDBClient,
         redisRateLimiter,
-        producer,
+        producer: consumerTokenAuditProducer,
         fileManager,
         clientAssertionJWT,
         clientAssertionJWS: body.client_assertion,
