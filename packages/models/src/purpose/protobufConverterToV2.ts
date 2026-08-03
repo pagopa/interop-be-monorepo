@@ -107,6 +107,10 @@ export const toRiskAnalysisReviewModeV2 = (
 ): RiskAnalysisReviewModeV2 =>
   match(input)
     .with(
+      riskAnalysisReviewMode.adminWritesAdminSigns,
+      () => RiskAnalysisReviewModeV2.ADMIN_WRITES_ADMIN_SIGNS
+    )
+    .with(
       riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       () => RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS
     )
@@ -152,7 +156,6 @@ export const toRiskAnalysisReviewerV2 = (
 export const toReviewerWorkflowV2 = (
   input: ReviewerWorkflow
 ): ReviewerWorkflowV2 => ({
-  reviewMode: toRiskAnalysisReviewModeV2(input.reviewMode),
   reviewerIds: input.reviewerIds,
   reviewers: input.reviewers.map(toRiskAnalysisReviewerV2),
   signingState: toRiskAnalysisSigningStateV2(input.signingState),
@@ -168,6 +171,9 @@ export const toPurposeV2 = (input: Purpose): PurposeV2 => ({
   updatedAt: dateToBigInt(input.updatedAt),
   riskAnalysisForm: input.riskAnalysisForm
     ? toPurposeRiskAnalysisFormV2(input.riskAnalysisForm)
+    : undefined,
+  reviewMode: input.reviewMode
+    ? toRiskAnalysisReviewModeV2(input.reviewMode)
     : undefined,
   reviewerWorkflow: input.reviewerWorkflow
     ? toReviewerWorkflowV2(input.reviewerWorkflow)

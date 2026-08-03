@@ -25,6 +25,7 @@ import {
   purposeNotInDraftState,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
+  missingReviewers,
 } from "../../src/model/domain/errors.js";
 import { api, purposeService } from "../vitest.api.setup.js";
 
@@ -37,10 +38,8 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
   );
 
   const defaultBody: purposeApi.RiskAnalysisAssignmentSeed = {
-    review: {
-      reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
-      reviewerIds: [generateId()],
-    },
+    reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+    reviewerIds: [generateId()],
   };
 
   beforeEach(() => {
@@ -110,6 +109,10 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
       error: reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id),
       expectedStatus: 400,
     },
+    {
+      error: missingReviewers(mockPurpose.id),
+      expectedStatus: 400,
+    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -124,26 +127,20 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
 
   it.each([
     { purposeId: "invalid" as PurposeId },
-    { body: { review: {} } },
+    { body: {} },
+    {
+      body: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] },
+    },
     {
       body: {
-        review: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] },
+        reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+        reviewerIds: [],
       },
     },
     {
       body: {
-        review: {
-          reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
-          reviewerIds: [],
-        },
-      },
-    },
-    {
-      body: {
-        review: {
-          reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
-          reviewerIds: ["not-a-uuid"],
-        },
+        reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+        reviewerIds: ["not-a-uuid"],
       },
     },
     { body: { ...defaultBody, extraField: 1 } },

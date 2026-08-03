@@ -58,7 +58,6 @@ describe("Purpose splitter", () => {
     ];
 
     const reviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerIds: reviewers.map((reviewer) => reviewer.id),
       reviewers,
       signingState: riskAnalysisSigningState.signed,
@@ -98,6 +97,7 @@ describe("Purpose splitter", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
       purposeTemplateId: generateId<PurposeTemplateId>(),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow,
     };
     const {
@@ -126,7 +126,8 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: purpose.purposeTemplateId!,
-      reviewerWorkflowReviewMode: reviewerWorkflow.reviewMode,
+      reviewMode: purpose.reviewMode!,
+      reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
@@ -312,6 +313,7 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: null,
+      reviewMode: null,
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: null,
       reviewerWorkflowSignedBy: null,

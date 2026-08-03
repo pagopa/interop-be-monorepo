@@ -42,6 +42,7 @@ export const splitPurposeIntoObjectsSQL = (
     riskAnalysisForm,
     versions,
     purposeTemplateId,
+    reviewMode,
     reviewerWorkflow,
     ...rest
   }: Purpose,
@@ -66,7 +67,9 @@ export const splitPurposeIntoObjectsSQL = (
     isFreeOfCharge,
     freeOfChargeReason: freeOfChargeReason || null,
     purposeTemplateId: purposeTemplateId || null,
-    reviewerWorkflowReviewMode: reviewerWorkflow?.reviewMode ?? null,
+    reviewMode: reviewMode ?? null,
+    // legacy column, the review mode now lives on the purpose
+    reviewerWorkflowReviewMode: null,
     reviewerWorkflowSigningState: reviewerWorkflow?.signingState ?? null,
     reviewerWorkflowSignedBy: reviewerWorkflow?.signedBy ?? null,
     reviewerWorkflowRejectionReason: reviewerWorkflow?.rejectionReason ?? null,
