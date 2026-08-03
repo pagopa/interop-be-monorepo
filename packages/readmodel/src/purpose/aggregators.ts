@@ -274,13 +274,14 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
           ),
         }
       : {}),
-    ...(purposeSQL.reviewerWorkflowReviewMode &&
-    purposeSQL.reviewerWorkflowSigningState
+    ...(purposeSQL.reviewMode
+      ? {
+          reviewMode: RiskAnalysisReviewMode.parse(purposeSQL.reviewMode),
+        }
+      : {}),
+    ...(purposeSQL.reviewerWorkflowSigningState
       ? {
           reviewerWorkflow: {
-            reviewMode: RiskAnalysisReviewMode.parse(
-              purposeSQL.reviewerWorkflowReviewMode
-            ),
             signingState: RiskAnalysisSigningState.parse(
               purposeSQL.reviewerWorkflowSigningState
             ),

@@ -27,6 +27,7 @@ export const PurposeVersionState = z.enum([
 export type PurposeVersionState = z.infer<typeof PurposeVersionState>;
 
 export const riskAnalysisReviewMode = {
+  adminWritesAdminSigns: "AdminWritesAdminSigns",
   reviewerWritesReviewerSigns: "ReviewerWritesReviewerSigns",
   adminWritesReviewerSigns: "AdminWritesReviewerSigns",
 } as const;
@@ -98,7 +99,6 @@ export const PurposeVersion = z.object({
 export type PurposeVersion = z.infer<typeof PurposeVersion>;
 
 export const ReviewerWorkflow = z.object({
-  reviewMode: RiskAnalysisReviewMode,
   reviewerIds: z.array(UserId),
   signingState: RiskAnalysisSigningState,
   signedBy: UserId.optional(),
@@ -123,6 +123,7 @@ export const Purpose = z.object({
   isFreeOfCharge: z.boolean(),
   freeOfChargeReason: z.string().optional(),
   purposeTemplateId: PurposeTemplateId.optional(),
+  reviewMode: RiskAnalysisReviewMode.optional(),
   reviewerWorkflow: ReviewerWorkflow.optional(),
 });
 export type Purpose = z.infer<typeof Purpose>;

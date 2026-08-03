@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS readmodel_purpose.purpose (
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR,
   purpose_template_id UUID,
+  review_mode VARCHAR,
   reviewer_workflow_review_mode VARCHAR,
   reviewer_workflow_signing_state VARCHAR,
   reviewer_workflow_signed_by UUID,

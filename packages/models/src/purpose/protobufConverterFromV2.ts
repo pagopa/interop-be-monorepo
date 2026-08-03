@@ -133,6 +133,8 @@ export const fromRiskAnalysisReviewModeV2 = (
   input: RiskAnalysisReviewModeV2
 ): RiskAnalysisReviewMode => {
   switch (input) {
+    case RiskAnalysisReviewModeV2.ADMIN_WRITES_ADMIN_SIGNS:
+      return riskAnalysisReviewMode.adminWritesAdminSigns;
     case RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS:
       return riskAnalysisReviewMode.reviewerWritesReviewerSigns;
     case RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS:
@@ -160,7 +162,6 @@ export const fromRiskAnalysisSigningStateV2 = (
 export const fromReviewerWorkflowV2 = (
   input: ReviewerWorkflowV2
 ): ReviewerWorkflow => ({
-  reviewMode: fromRiskAnalysisReviewModeV2(input.reviewMode),
   reviewerIds: input.reviewerIds.map(unsafeBrandId<UserId>),
   signingState: fromRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy ? unsafeBrandId<UserId>(input.signedBy) : undefined,
@@ -185,6 +186,10 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
   purposeTemplateId: input.purposeTemplateId
     ? unsafeBrandId<PurposeTemplateId>(input.purposeTemplateId)
     : undefined,
+  reviewMode:
+    input.reviewMode !== undefined
+      ? fromRiskAnalysisReviewModeV2(input.reviewMode)
+      : undefined,
   reviewerWorkflow: input.reviewerWorkflow
     ? fromReviewerWorkflowV2(input.reviewerWorkflow)
     : undefined,

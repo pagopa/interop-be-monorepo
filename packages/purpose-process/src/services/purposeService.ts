@@ -107,6 +107,7 @@ import {
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
   reviewerWorkflowConflict,
+  missingReviewers,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -544,12 +545,7 @@ export function purposeServiceBuilder(
     },
     async assignRiskAnalysisReviewer(
       purposeId: PurposeId,
-      seed: {
-        review?: {
-          reviewMode: RiskAnalysisReviewMode;
-          reviewerIds: string[];
-        };
-      },
+      seed: RiskAnalysisReviewAssignment,
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<WithMetadata<Purpose>> {
       logger.info(`Assigning risk analysis reviewer to Purpose ${purposeId}`);
@@ -584,7 +580,11 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
       }
 
-      if (seed.review !== undefined) {
+      if (seed.reviewMode !== riskAnalysisReviewMode.adminWritesAdminSigns) {
+        if (seed.reviewerIds.length === 0) {
+          throw missingReviewers(purposeId);
+        }
+
         const consumer = await retrieveTenant(
           purpose.data.consumerId,
           readModelService
@@ -592,7 +592,7 @@ export function purposeServiceBuilder(
         assertTenantHasSelfcareId(consumer);
 
         await Promise.all(
-          seed.review.reviewerIds.map((reviewerId) =>
+          seed.reviewerIds.map((reviewerId) =>
             assertUserSelfcareReviewerPrivileges({
               selfcareId: consumer.selfcareId,
               consumerId: purpose.data.consumerId,
@@ -606,7 +606,7 @@ export function purposeServiceBuilder(
 
       const { event, updatedPurpose } = assignRiskAnalysisReviewerLogic(
         purpose,
-        seed.review,
+        seed,
         correlationId
       );
 
@@ -643,7 +643,8 @@ export function purposeServiceBuilder(
       }
 
       if (
-        workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+        purpose.data.reviewMode !==
+        riskAnalysisReviewMode.adminWritesReviewerSigns
       ) {
         throw submitNotAllowedForReviewMode(purposeId);
       }
@@ -724,19 +725,22 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotFound(purposeId);
       }
 
-      const isReviewerWritesSignable = match(workflow)
+      const isReviewerWritesSignable = match([
+        purpose.data.reviewMode,
+        workflow.signingState,
+      ])
         .with(
-          {
-            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-            signingState: riskAnalysisSigningState.submitted,
-          },
+          [
+            riskAnalysisReviewMode.adminWritesReviewerSigns,
+            riskAnalysisSigningState.submitted,
+          ],
           () => false
         )
         .with(
-          {
-            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-            signingState: riskAnalysisSigningState.assigned,
-          },
+          [
+            riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            riskAnalysisSigningState.assigned,
+          ],
           () => true
         )
         .otherwise(() => {
@@ -816,7 +820,8 @@ export function purposeServiceBuilder(
       }
 
       if (
-        workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+        purpose.data.reviewMode !==
+        riskAnalysisReviewMode.adminWritesReviewerSigns
       ) {
         throw rejectNotAllowedInCurrentMode(purposeId);
       }
@@ -870,7 +875,7 @@ export function purposeServiceBuilder(
       }
 
       if (
-        workflow.reviewMode !==
+        purpose.data.reviewMode !==
         riskAnalysisReviewMode.reviewerWritesReviewerSigns
       ) {
         throw editNotAllowedForReviewMode(purposeId);
@@ -2758,8 +2763,9 @@ type RiskAnalysisReviewerTransition = {
 
 /**
  * Applies the requested reviewer assignment to the purpose, one branch per
- * transition between the previous and the requested review mode, where the
- * absence of a review means AdminWritesAdminSigns.
+ * transition between the previous and the requested review mode, where
+ * AdminWritesAdminSigns has no reviewer workflow and an undefined previous
+ * mode is a purpose that was never assigned.
  *
  * Each branch declares the whole outcome of its transition:
  * - the resulting reviewer workflow, if any;
@@ -2771,15 +2777,15 @@ type RiskAnalysisReviewerTransition = {
  */
 function assignRiskAnalysisReviewerLogic(
   purpose: WithMetadata<Purpose>,
-  review: RiskAnalysisReviewAssignment | undefined,
+  review: RiskAnalysisReviewAssignment,
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEventV2> | undefined;
   updatedPurpose: Purpose;
 } {
-  const previousReviewMode = purpose.data.reviewerWorkflow?.reviewMode;
+  const previousReviewMode = purpose.data.reviewMode;
   const previousReviewers = purpose.data.reviewerWorkflow?.reviewerIds ?? [];
-  const requestedReviewers = (review?.reviewerIds ?? []).map((id) =>
+  const requestedReviewers = review.reviewerIds.map((id) =>
     unsafeBrandId<UserId>(id)
   );
   const addedReviewers = requestedReviewers.filter(
@@ -2798,39 +2804,64 @@ function assignRiskAnalysisReviewerLogic(
   });
 
   const transition = match<
-    [
-      RiskAnalysisReviewMode | undefined,
-      RiskAnalysisReviewAssignment | undefined,
-    ],
+    [RiskAnalysisReviewMode | undefined, RiskAnalysisReviewMode],
     RiskAnalysisReviewerTransition
-  >([previousReviewMode, review])
+  >([previousReviewMode, review.reviewMode])
     /**
-     * AdminWritesAdminSigns -> AdminWritesAdminSigns: nothing changes.
+     * never assigned -> AdminWritesAdminSigns: nothing changes but the review
+     * mode, which still has to be persisted.
      */
-    .with([undefined, undefined], () => ({
-      reviewerWorkflow: undefined,
-      riskAnalysisForm: purpose.data.riskAnalysisForm,
-      toEvent: () => undefined,
-    }))
-    /**
-     * AdminWritesReviewerSigns -> AdminWritesAdminSigns: the admin takes the
-     * signature back and was already the writer, so his form survives.
-     */
-    .with([riskAnalysisReviewMode.adminWritesReviewerSigns, undefined], () => ({
+    .with([undefined, riskAnalysisReviewMode.adminWritesAdminSigns], () => ({
       reviewerWorkflow: undefined,
       riskAnalysisForm: purpose.data.riskAnalysisForm,
       toEvent: (updatedPurpose) =>
         toCreateEventPurposeRiskAnalysisSelfAssigned({
           ...eventPayload(updatedPurpose),
-          oldReviewers: previousReviewers,
+          oldReviewers: [],
         }),
     }))
+    /**
+     * AdminWritesAdminSigns -> AdminWritesAdminSigns: nothing changes.
+     */
+    .with(
+      [
+        riskAnalysisReviewMode.adminWritesAdminSigns,
+        riskAnalysisReviewMode.adminWritesAdminSigns,
+      ],
+      () => ({
+        reviewerWorkflow: undefined,
+        riskAnalysisForm: purpose.data.riskAnalysisForm,
+        toEvent: () => undefined,
+      })
+    )
+    /**
+     * AdminWritesReviewerSigns -> AdminWritesAdminSigns: the admin takes the
+     * signature back and was already the writer, so his form survives.
+     */
+    .with(
+      [
+        riskAnalysisReviewMode.adminWritesReviewerSigns,
+        riskAnalysisReviewMode.adminWritesAdminSigns,
+      ],
+      () => ({
+        reviewerWorkflow: undefined,
+        riskAnalysisForm: purpose.data.riskAnalysisForm,
+        toEvent: (updatedPurpose) =>
+          toCreateEventPurposeRiskAnalysisSelfAssigned({
+            ...eventPayload(updatedPurpose),
+            oldReviewers: previousReviewers,
+          }),
+      })
+    )
     /**
      * ReviewerWritesReviewerSigns -> AdminWritesAdminSigns: the admin becomes
      * the writer, so the reviewer's form is discarded.
      */
     .with(
-      [riskAnalysisReviewMode.reviewerWritesReviewerSigns, undefined],
+      [
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        riskAnalysisReviewMode.adminWritesAdminSigns,
+      ],
       () => ({
         reviewerWorkflow: undefined,
         riskAnalysisForm: undefined,
@@ -2842,18 +2873,21 @@ function assignRiskAnalysisReviewerLogic(
       })
     )
     /**
-     * AdminWritesAdminSigns | AdminWritesReviewerSigns ->
+     * never assigned | AdminWritesAdminSigns | AdminWritesReviewerSigns ->
      * AdminWritesReviewerSigns: the admin keeps the writing duty, so his form
      * survives and the reviewers are involved only at submit time.
      */
     .with(
       [
-        P.union(undefined, riskAnalysisReviewMode.adminWritesReviewerSigns),
-        { reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns },
+        P.union(
+          undefined,
+          riskAnalysisReviewMode.adminWritesAdminSigns,
+          riskAnalysisReviewMode.adminWritesReviewerSigns
+        ),
+        riskAnalysisReviewMode.adminWritesReviewerSigns,
       ],
       () => ({
         reviewerWorkflow: {
-          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
           reviewerIds: requestedReviewers,
           signingState: riskAnalysisSigningState.draft,
           sentToReviewerAt: undefined,
@@ -2875,11 +2909,10 @@ function assignRiskAnalysisReviewerLogic(
     .with(
       [
         riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        { reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns },
+        riskAnalysisReviewMode.adminWritesReviewerSigns,
       ],
       () => ({
         reviewerWorkflow: {
-          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
           reviewerIds: requestedReviewers,
           signingState: riskAnalysisSigningState.draft,
           sentToReviewerAt: undefined,
@@ -2894,18 +2927,21 @@ function assignRiskAnalysisReviewerLogic(
       })
     )
     /**
-     * AdminWritesAdminSigns | AdminWritesReviewerSigns ->
+     * never assigned | AdminWritesAdminSigns | AdminWritesReviewerSigns ->
      * ReviewerWritesReviewerSigns: the reviewer becomes the writer, so the
      * admin's form is discarded and the reviewers are involved right away.
      */
     .with(
       [
-        P.union(undefined, riskAnalysisReviewMode.adminWritesReviewerSigns),
-        { reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns },
+        P.union(
+          undefined,
+          riskAnalysisReviewMode.adminWritesAdminSigns,
+          riskAnalysisReviewMode.adminWritesReviewerSigns
+        ),
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       ],
       () => ({
         reviewerWorkflow: {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: requestedReviewers,
           signingState: riskAnalysisSigningState.assigned,
           sentToReviewerAt: new Date(),
@@ -2927,11 +2963,10 @@ function assignRiskAnalysisReviewerLogic(
     .with(
       [
         riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        { reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns },
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       ],
       () => ({
         reviewerWorkflow: {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: requestedReviewers,
           signingState: riskAnalysisSigningState.assigned,
           sentToReviewerAt: new Date(),
@@ -2950,6 +2985,7 @@ function assignRiskAnalysisReviewerLogic(
   const updatedPurpose: Purpose = {
     ...purpose.data,
     riskAnalysisForm: transition.riskAnalysisForm,
+    reviewMode: review.reviewMode,
     reviewerWorkflow: transition.reviewerWorkflow,
     updatedAt: new Date(),
   };
