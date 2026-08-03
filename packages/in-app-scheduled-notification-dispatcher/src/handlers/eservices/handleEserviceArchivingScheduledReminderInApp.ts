@@ -1,14 +1,13 @@
 import { Logger } from "pagopa-interop-commons";
 import {
   EService,
-  EServiceIdDescriptorId,
+  EServiceId,
   NewNotification,
   TenantId,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
   inAppTemplates,
-  retrieveLatestDescriptor,
 } from "pagopa-interop-notification-commons";
 import {
   ScheduledNotificationRow,
@@ -52,10 +51,7 @@ export async function handleEserviceArchivingScheduledReminderInApp(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );
 
-  const latestDescriptor = retrieveLatestDescriptor(eservice);
-  const entityId = EServiceIdDescriptorId.parse(
-    `${eservice.id}/${latestDescriptor.id}`
-  );
+  const entityId = eservice.id;
 
   const producerNotifications = await buildProducerNotifications({
     eservice,
@@ -79,7 +75,7 @@ export async function handleEserviceArchivingScheduledReminderInApp(
 type BuilderParams = {
   eservice: EService;
   archivableOn: Date;
-  entityId: EServiceIdDescriptorId;
+  entityId: EServiceId;
   readModelService: ReadModelServiceSQL;
   log: Logger;
 };
