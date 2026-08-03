@@ -1338,7 +1338,6 @@ export function catalogServiceBuilder(
         eservice.data,
         readModelService
       );
-      console.log("test delegated is active", producerDelegation);
       assertDelegatedArchivingRequestDelegationIsStillValid(
         producerDelegation,
         latestActiveRequest,
