@@ -1702,6 +1702,7 @@ components:
       type: string
       description: Risk analysis review mode
       enum:
+        - ADMIN_WRITES_ADMIN_SIGNS
         - REVIEWER_WRITES_REVIEWER_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
     RiskAnalysisSigningState:
@@ -1731,8 +1732,6 @@ components:
       additionalProperties: false
       description: Reviewer workflow state for a purpose risk analysis
       properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
         reviewers:
           type: array
           items:
@@ -1745,7 +1744,6 @@ components:
         rejectionReason:
           type: string
       required:
-        - reviewMode
         - reviewers
         - signingState
     RiskAnalysisAssignmentSeed:
@@ -1753,21 +1751,16 @@ components:
       additionalProperties: false
       description: Payload to assign reviewer mode and reviewers to a purpose risk analysis
       properties:
-        review:
-          type: object
-          additionalProperties: false
-          properties:
-            reviewMode:
-              $ref: "#/components/schemas/RiskAnalysisReviewMode"
-            reviewerIds:
-              type: array
-              items:
-                type: string
-                format: uuid
-              minItems: 1
-          required:
-            - reviewMode
-            - reviewerIds
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
+        reviewerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+          minItems: 1
+      required:
+        - reviewMode
     RiskAnalysisRejectionSeed:
       type: object
       additionalProperties: false
@@ -1957,6 +1950,8 @@ components:
         purposeTemplateId:
           type: string
           format: uuid
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
         reviewerWorkflow:
           $ref: "#/components/schemas/ReviewerWorkflow"
       required:
