@@ -151,6 +151,10 @@ export const eventMailTemplateType = {
     "eservice-archiving-request-approved-by-delegator-mail",
   eserviceArchivingRequestRejectedByDelegatorMailTemplate:
     "eservice-archiving-request-rejected-by-delegator-mail",
+  eserviceArchivingRequestCanceledByDelegateToProducerMailTemplate:
+    "eservice-archiving-request-canceled-by-delegate-to-producer-mail",
+  eserviceArchivingRequestCanceledByDelegateToDelegateMailTemplate:
+    "eservice-archiving-request-canceled-by-delegate-to-delegate-mail",
   eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate:
     "eservice-state-changed-to-producer-scheduled-reminder-descriptor-mail",
   eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate:

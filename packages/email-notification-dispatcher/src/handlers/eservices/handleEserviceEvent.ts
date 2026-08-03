@@ -1,4 +1,5 @@
 import {
+  bigIntToDate,
   EmailNotificationMessagePayload,
   EServiceEvent,
 } from "pagopa-interop-models";
@@ -10,6 +11,8 @@ import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchi
 import { handleEserviceArchivingCompletedToConsumer } from "./handleEserviceArchivingCompletedToConsumer.js";
 import { handleEserviceArchivingCompletedToProducer } from "./handleEserviceArchivingCompletedToProducer.js";
 import { handleEserviceArchivingRequestApprovedByDelegator } from "./handleEserviceArchivingRequestApprovedByDelegator.js";
+import { handleEServiceArchivingRequestCanceledByDelegateToDelegate } from "./handleEserviceArchivingRequestCanceledByDelegateToDelegate.js";
+import { handleEServiceArchivingRequestCanceledByDelegateToProducer } from "./handleEserviceArchivingRequestCanceledByDelegateToProducer.js";
 import { handleEserviceArchivingRequestedByDelegate } from "./handleEserviceArchivingRequestedByDelegate.js";
 import { handleEserviceArchivingRequestRejectedByDelegator } from "./handleEserviceArchivingRequestRejectedByDelegator.js";
 import { handleEserviceArchivingScheduledToConsumer } from "./handleEserviceArchivingScheduledToConsumer.js";
@@ -385,6 +388,37 @@ export async function handleEServiceEvent(
         })
     )
     .with(
+      { type: "EServiceArchivingRequestCanceledByDelegate" },
+      { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
+      async ({ data }) => {
+        const eservice = data.eservice;
+        const descriptorId =
+          "descriptorId" in data ? data.descriptorId : undefined;
+        const requestedOn = bigIntToDate(data.requestedOn);
+        const [prod, delegate] = await Promise.all([
+          handleEServiceArchivingRequestCanceledByDelegateToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            requestedOn,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEServiceArchivingRequestCanceledByDelegateToDelegate({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            requestedOn,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...delegate];
+      }
+    )
+    .with(
       {
         type: P.union(
           "EServiceAdded",
@@ -419,9 +453,7 @@ export async function handleEServiceEvent(
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
-          "MaintenanceEServiceDescriptorUnarchived",
-          "EServiceArchivingRequestCanceledByDelegate",
-          "EServiceDescriptorArchivingRequestCanceledByDelegate"
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {

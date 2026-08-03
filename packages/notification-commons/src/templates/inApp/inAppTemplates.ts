@@ -251,6 +251,16 @@ export const inAppTemplates = {
     `L'ente delegante ${delegatorName} ha approvato la tua richiesta di archiviazione dell'e-service ${eserviceName}${archivableOn ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}` : ""}.`,
   eserviceArchivingRequestRejectedByDelegatorToDelegate: (
     delegatorName: string,
+    requestedOn: Date
+  ): string =>
+    `È stata annullata la richiesta di archiviazione inviata il giorno ${dateAtRomeZone(requestedOn)} a ${delegatorName}.`,
+  eserviceArchivingRequestRejectedByDelegatorToProducer: (
+    delegateName: string,
+    requestedOn: Date
+  ): string =>
+    `${delegateName} ha annullato la richiesta di archiviazione inviata il giorno ${dateAtRomeZone(requestedOn)}.`,
+  eserviceArchivingRequestCanceledToDelegate: (
+    delegatorName: string,
     eserviceName: string
   ): string =>
     `L'ente delegante ${delegatorName} ha rifiutato la tua richiesta di archiviazione dell'e-service ${eserviceName}.`,
