@@ -32338,7 +32338,6 @@ components:
         rejectionReason:
           type: string
       required:
-        - reviewers
         - signingState
     RiskAnalysisAssignmentSeed:
       type: object
