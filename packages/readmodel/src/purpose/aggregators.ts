@@ -234,6 +234,11 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
     return [...acc, version];
   }, []);
 
+  // purposes projected before the review mode moved onto the purpose still
+  // carry it in the reviewer workflow column
+  const reviewMode =
+    purposeSQL.reviewMode ?? purposeSQL.reviewerWorkflowReviewMode;
+
   const purpose: Purpose = {
     id: unsafeBrandId(purposeSQL.id),
     title: purposeSQL.title,
@@ -274,10 +279,8 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
           ),
         }
       : {}),
-    ...(purposeSQL.reviewMode
-      ? {
-          reviewMode: RiskAnalysisReviewMode.parse(purposeSQL.reviewMode),
-        }
+    ...(reviewMode
+      ? { reviewMode: RiskAnalysisReviewMode.parse(reviewMode) }
       : {}),
     ...(purposeSQL.reviewerWorkflowSigningState
       ? {
