@@ -77,6 +77,10 @@ export const importEServiceErrorMapper = (
       "inconsistentDailyCalls",
       "eserviceNotInReceiveMode",
       "riskAnalysisValidationFailed",
+      // 500 in the sibling creation mappers, but here the caller has already
+      // uploaded the documents and deletes them only on a 4xx: a 500 leaks them
+      "tenantNotFound",
+      "tenantKindNotFound",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
