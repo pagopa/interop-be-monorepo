@@ -24,6 +24,8 @@ import {
   originNotCompliant,
   riskAnalysisDuplicated,
   riskAnalysisValidationFailed,
+  tenantKindNotFound,
+  tenantNotFound,
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
@@ -165,6 +167,14 @@ describe("API /import/eservices authorization test", () => {
     },
     {
       error: riskAnalysisValidationFailed([]),
+      expectedStatus: 400,
+    },
+    {
+      error: tenantKindNotFound(mockEservice.producerId),
+      expectedStatus: 400,
+    },
+    {
+      error: tenantNotFound(mockEservice.producerId),
       expectedStatus: 400,
     },
   ])(

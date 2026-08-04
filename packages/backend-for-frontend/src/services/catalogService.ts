@@ -1703,7 +1703,8 @@ export function catalogServiceBuilder(
       };
       const technology = apiTechnologyToTechnology(importedEservice.technology);
 
-      // lets the uploaded documents reference the eservice before it exists
+      // the documents are uploaded before the eservice exists, so its id is
+      // generated here and catalog-process creates the eservice with it
       const eserviceId = generateId<EServiceId>();
 
       const uploadedPaths: string[] = [];

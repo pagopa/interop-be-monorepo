@@ -513,6 +513,21 @@ export async function assertEserviceIdAvailable(
   }
 }
 
+// template instances deliberately run only the producer check: their derived
+// name always collides with the template they are instantiated from
+export async function assertEServiceNameAvailable(
+  name: string,
+  producerId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  await assertEServiceNameAvailableForProducer(
+    name,
+    producerId,
+    readModelService
+  );
+  await assertEServiceNameNotConflictingWithTemplate(name, readModelService);
+}
+
 export function assertEServiceNotTemplateInstance(
   eserviceId: EServiceId,
   templateId: EServiceTemplateId | undefined
