@@ -44,8 +44,8 @@ packages/models/src/gen
 packages/*/src/model/generated
 packages/*/src/generated
 
-# MinIO container data
-docker/minio-data
+# RustFS container data
+docker/rustfs-data
 
 # DynamoDB container data
 docker/dynamo-db-data
