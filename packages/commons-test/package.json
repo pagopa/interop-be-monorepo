@@ -26,7 +26,6 @@
     "@aws-sdk/util-dynamodb": "catalog:",
     "@faker-js/faker": "catalog:",
     "@protobuf-ts/runtime": "catalog:",
-    "@types/adm-zip": "catalog:",
     "@types/jsonwebtoken": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
