@@ -319,9 +319,11 @@ message EServiceArchivingRequestApprovedByDelegatorV2 {
 
 message EServiceArchivingRequestCanceledByDelegateV2 {
   EServiceV2 eservice = 1;
+  int64 requestedOn = 2;
 }
 
 message EServiceDescriptorArchivingRequestCanceledByDelegateV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
+  int64 requestedOn = 3;
 }

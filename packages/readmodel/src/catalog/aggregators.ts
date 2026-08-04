@@ -878,19 +878,8 @@ export const toEServiceAggregatorArray = (
 
       const archivingRequestSQL = row.archivingRequests;
       if (archivingRequestSQL?.descriptorId) {
-        const archivingRequestPK = archivingRequestSQL
-          ? makeUniqueKey([
-              archivingRequestSQL.eserviceId,
-              archivingRequestSQL.descriptorId,
-              archivingRequestSQL.requestedAt,
-            ])
-          : undefined;
-        if (
-          archivingRequestSQL &&
-          archivingRequestPK &&
-          !descriptorArchivingRequestIdSet.has(archivingRequestPK)
-        ) {
-          descriptorArchivingRequestIdSet.add(archivingRequestPK);
+        if (!descriptorArchivingRequestIdSet.has(archivingRequestSQL.id)) {
+          descriptorArchivingRequestIdSet.add(archivingRequestSQL.id);
           // eslint-disable-next-line functional/immutable-data
           archivingRequestsSQL.push(archivingRequestSQL);
         }
@@ -928,18 +917,8 @@ export const toEServiceAggregatorArray = (
 
     const archivingRequestEService = row.archivingRequests;
     if (archivingRequestEService?.descriptorId === null) {
-      const archivingRequestPK = archivingRequestEService
-        ? makeUniqueKey([
-            archivingRequestEService.eserviceId,
-            archivingRequestEService.requestedAt,
-          ])
-        : undefined;
-      if (
-        archivingRequestEService &&
-        archivingRequestPK &&
-        !eserviceArchivingRequestIdSet.has(archivingRequestPK)
-      ) {
-        eserviceArchivingRequestIdSet.add(archivingRequestPK);
+      if (!eserviceArchivingRequestIdSet.has(archivingRequestEService.id)) {
+        eserviceArchivingRequestIdSet.add(archivingRequestEService.id);
         // eslint-disable-next-line functional/immutable-data
         archivingRequestsSQL.push(archivingRequestEService);
       }
