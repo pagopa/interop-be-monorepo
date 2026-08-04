@@ -229,12 +229,16 @@ export function assertMembersAreUnique(members: string[]) {
   }
 }
 
-export const assertEServiceIsArchived = (eservice: EService): void => {
-  if (
-    eservice.descriptors.every(
-      (descriptor) => descriptor.state === descriptorState.archived
-    )
-  ) {
+export const assertEServiceIsNotArchived = (eservice: EService): void => {
+  if (eservice.descriptors.length === 0) {
+    return;
+  }
+
+  const isArchived = eservice.descriptors.every(
+    (descriptor) => descriptor.state === descriptorState.archived
+  );
+
+  if (isArchived) {
     throw archivedStateNotAllowed(eservice.id);
   }
 };
