@@ -247,6 +247,10 @@ describe("import eservice", () => {
         getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toMatchObject({ code: "eserviceNotInReceiveMode" });
+
+    // this case throws after the creation events are already accumulated
+    const events = await postgresDB.any("SELECT * FROM catalog.events");
+    expect(events).toEqual([]);
   });
 
   it("should throw riskAnalysisDuplicated if the seed contains two risk analyses with the same name", async () => {

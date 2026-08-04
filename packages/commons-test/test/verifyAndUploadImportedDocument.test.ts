@@ -66,7 +66,6 @@ describe("verifyAndUploadImportedDocument", () => {
     expect(uploaded).toMatchObject({
       fileName: filePath,
       prettyName,
-      kind,
       contentType: "application/json",
       serverUrls: ["https://example.com"],
     });

@@ -392,10 +392,7 @@ const resolveMaxSizeForKind = (
     : (limits.maxInterfaceFileSizeBytes ?? limits.maxFileSizeBytes);
 
 // eslint-disable-next-line max-params
-export async function verifyAndCreateDocument<
-  T,
-  K extends "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
->(
+export async function verifyAndCreateDocument<T>(
   fileManager: FileManager,
   resource: {
     // logging purposes
@@ -403,7 +400,7 @@ export async function verifyAndCreateDocument<
     isEserviceTemplate: boolean;
   },
   technology: Technology,
-  kind: K,
+  kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
   doc: File,
   documentId: string,
   documentContainer: string,
@@ -414,7 +411,7 @@ export async function verifyAndCreateDocument<
     fileName: string,
     filePath: string,
     prettyName: string,
-    kind: K,
+    kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
     serverUrls: string[],
     contentType: string,
     checksum: string
@@ -480,7 +477,6 @@ export type EserviceImportUploadedDocument = {
   fileName: string;
   filePath: string;
   prettyName: string;
-  kind: "INTERFACE" | "DOCUMENT";
   serverUrls: string[];
   contentType: string;
   checksum: string;
@@ -530,7 +526,7 @@ Promise<EserviceImportUploadedDocument> => {
       fileName,
       filePath,
       prettyName,
-      kind,
+      _kind,
       serverUrls,
       contentType,
       checksum
@@ -539,7 +535,6 @@ Promise<EserviceImportUploadedDocument> => {
       fileName,
       filePath,
       prettyName,
-      kind,
       serverUrls,
       contentType,
       checksum,

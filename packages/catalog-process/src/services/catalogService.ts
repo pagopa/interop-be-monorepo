@@ -225,6 +225,7 @@ import {
   assertNoExistingProducerDelegationForDescriptorArchiving,
   assertNoExistingProducerDelegationForEServiceArchiving,
   assertEserviceIdAvailable,
+  assertEServiceNameAvailable,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -239,7 +240,6 @@ import {
   assertDescriptorUpdatableAfterPublish,
   assertEServiceUpdatableAfterPublish,
   hasRoleToAccessInactiveDescriptors,
-  assertEServiceNameNotConflictingWithTemplate,
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
@@ -669,6 +669,8 @@ async function innerCreateEService(
 ): Promise<{
   eService: EService;
   events: Array<CreateEvent<EServiceEvent>>;
+  // stream version of the last event returned, for callers that append to it
+  version: number;
 }> {
   validateNoHyperlinksSafe(seed.name);
   validateNoHyperlinksSafe(seed.description);
@@ -778,9 +780,13 @@ async function innerCreateEService(
     correlationId
   );
 
+  const events = [eserviceCreationEvent, descriptorCreationEvent];
+
   return {
     eService: eserviceWithDescriptor,
-    events: [eserviceCreationEvent, descriptorCreationEvent],
+    events,
+    // the events above are the whole stream so far, starting at version 0
+    version: events.length - 1,
   };
 }
 
@@ -843,15 +849,17 @@ function innerAddRiskAnalysisToEserviceEvent(
 async function addRiskAnalysesToImportedEservice(
   eservice: EService,
   events: Array<CreateEvent<EServiceEvent>>,
+  version: number,
   riskAnalysisSeeds: catalogApi.EServiceRiskAnalysisSeed[],
   readModelService: ReadModelServiceSQL,
-  ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+  ctx: WithLogger<AppContext<UIAuthData>>
 ): Promise<{
   eservice: EService;
   events: Array<CreateEvent<EServiceEvent>>;
+  version: number;
 }> {
   if (riskAnalysisSeeds.length === 0) {
-    return { eservice, events };
+    return { eservice, events, version };
   }
 
   assertIsReceiveEservice(eservice);
@@ -861,62 +869,63 @@ async function addRiskAnalysesToImportedEservice(
 
   const newEvents = [...events];
   let lastEservice = eservice;
+  let lastVersion = version;
   for (const riskAnalysisSeed of riskAnalysisSeeds) {
     const { eservice: updatedEservice, event } =
       innerAddRiskAnalysisToEserviceEvent(
         lastEservice,
-        // with k events accumulated, the next event expects stream version k - 1
-        newEvents.length - 1,
+        lastVersion,
         riskAnalysisSeed,
         tenant.kind,
         ctx.correlationId
       );
     newEvents.push(event);
     lastEservice = updatedEservice;
+    lastVersion += 1;
   }
 
-  return { eservice: lastEservice, events: newEvents };
+  return { eservice: lastEservice, events: newEvents, version: lastVersion };
 }
 
 async function addDocumentsToImportedEservice(
   eservice: EService,
   events: Array<CreateEvent<EServiceEvent>>,
+  version: number,
   descriptorId: DescriptorId,
   descriptorSeed: catalogApi.EServiceImportDescriptorSeed,
-  ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+  ctx: WithLogger<AppContext<UIAuthData>>
 ): Promise<{
   eservice: EService;
   events: Array<CreateEvent<EServiceEvent>>;
+  version: number;
 }> {
+  const documentSeeds: catalogApi.CreateEServiceDescriptorDocumentSeed[] = [
+    ...(descriptorSeed.interface
+      ? [{ ...descriptorSeed.interface, kind: "INTERFACE" as const }]
+      : []),
+    ...descriptorSeed.docs.map((doc) => ({
+      ...doc,
+      kind: "DOCUMENT" as const,
+    })),
+  ];
+
   const newEvents = [...events];
   let lastEservice = eservice;
-
-  const addDocumentEvent = async (
-    documentSeed: catalogApi.CreateEServiceDescriptorDocumentSeed
-  ): Promise<void> => {
+  let lastVersion = version;
+  for (const documentSeed of documentSeeds) {
     const { eService: updatedEservice, event } =
       await innerAddDocumentToEserviceEvent(
-        {
-          data: lastEservice,
-          // with k events accumulated, the next event expects stream version k - 1
-          metadata: { version: newEvents.length - 1 },
-        },
+        { data: lastEservice, metadata: { version: lastVersion } },
         descriptorId,
         documentSeed,
         ctx
       );
     newEvents.push(event);
     lastEservice = updatedEservice;
-  };
-
-  if (descriptorSeed.interface) {
-    await addDocumentEvent({ ...descriptorSeed.interface, kind: "INTERFACE" });
-  }
-  for (const doc of descriptorSeed.docs) {
-    await addDocumentEvent({ ...doc, kind: "DOCUMENT" });
+    lastVersion += 1;
   }
 
-  return { eservice: lastEservice, events: newEvents };
+  return { eservice: lastEservice, events: newEvents, version: lastVersion };
 }
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -1266,13 +1275,9 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
-      await assertEServiceNameAvailableForProducer(
+      await assertEServiceNameAvailable(
         seed.name,
         ctx.authData.organizationId,
-        readModelService
-      );
-      await assertEServiceNameNotConflictingWithTemplate(
-        seed.name,
         readModelService
       );
 
@@ -1294,7 +1299,7 @@ export function catalogServiceBuilder(
 
     async importEService(
       seed: catalogApi.EServiceImportSeed,
-      ctx: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+      ctx: WithLogger<AppContext<UIAuthData>>
     ): Promise<
       WithMetadata<{ eservice: EService; createdDescriptorId: DescriptorId }>
     > {
@@ -1302,13 +1307,9 @@ export function catalogServiceBuilder(
 
       const eserviceId = unsafeBrandId<EServiceId>(seed.eserviceId);
       await assertEserviceIdAvailable(eserviceId, readModelService);
-      await assertEServiceNameAvailableForProducer(
+      await assertEServiceNameAvailable(
         seed.name,
         ctx.authData.organizationId,
-        readModelService
-      );
-      await assertEServiceNameNotConflictingWithTemplate(
-        seed.name,
         readModelService
       );
 
@@ -1330,18 +1331,22 @@ export function catalogServiceBuilder(
         isClientAccessDelegable: seed.isClientAccessDelegable,
       };
 
-      const { eService: createdEservice, events: creationEvents } =
-        await innerCreateEService(
-          { seed: eserviceSeed, template: undefined, eserviceId },
-          readModelService,
-          ctx
-        );
+      const {
+        eService: createdEservice,
+        events: creationEvents,
+        version: creationVersion,
+      } = await innerCreateEService(
+        { seed: eserviceSeed, template: undefined, eserviceId },
+        readModelService,
+        ctx
+      );
 
       const createdDescriptor = createdEservice.descriptors[0];
 
       const withRiskAnalyses = await addRiskAnalysesToImportedEservice(
         createdEservice,
         creationEvents,
+        creationVersion,
         seed.riskAnalysis,
         readModelService,
         ctx
@@ -1350,6 +1355,7 @@ export function catalogServiceBuilder(
       const withDocuments = await addDocumentsToImportedEservice(
         withRiskAnalyses.eservice,
         withRiskAnalyses.events,
+        withRiskAnalyses.version,
         createdDescriptor.id,
         seed.descriptor,
         ctx
@@ -2588,14 +2594,9 @@ export function catalogServiceBuilder(
           ? `${eservice.data.name}${suffix}`
           : `${eservice.data.name.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
 
-      await assertEServiceNameAvailableForProducer(
+      await assertEServiceNameAvailable(
         clonedEServiceName,
         eservice.data.producerId,
-        readModelService
-      );
-
-      await assertEServiceNameNotConflictingWithTemplate(
-        clonedEServiceName,
         readModelService
       );
 
@@ -3519,14 +3520,9 @@ export function catalogServiceBuilder(
       assertEServiceUpdatableAfterPublish(eservice.data);
 
       if (name !== eservice.data.name) {
-        await assertEServiceNameAvailableForProducer(
+        await assertEServiceNameAvailable(
           name,
           eservice.data.producerId,
-          readModelService
-        );
-
-        await assertEServiceNameNotConflictingWithTemplate(
-          name,
           readModelService
         );
       }
@@ -6150,12 +6146,11 @@ async function updateDraftEService(
   validateNoHyperlinksSafe(description);
 
   if (name && name !== eservice.data.name) {
-    await assertEServiceNameAvailableForProducer(
+    await assertEServiceNameAvailable(
       name,
       eservice.data.producerId,
       readModelService
     );
-    await assertEServiceNameNotConflictingWithTemplate(name, readModelService);
   }
 
   const updatedTechnology = technology

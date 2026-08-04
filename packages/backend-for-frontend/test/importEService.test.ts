@@ -288,6 +288,41 @@ describe("importEService", () => {
       fs.unlinkSync(zipPath);
     });
 
+    it("should keep the uploaded documents when the import succeeds", async () => {
+      const zipPath = path.join(__dirname, "testKeepOnSuccess.zip");
+      zip.writeZip(zipPath);
+
+      await fileManager.storeBytes(
+        {
+          bucket: config.importEserviceContainer,
+          path: `${config.importEservicePath}`,
+          resourceId: `${tenantId}`,
+          name: `${fileResource.filename}`,
+          content: fs.readFileSync(zipPath),
+        },
+        genericLogger
+      );
+
+      const deleteSpy = vi.spyOn(fileManager, "delete");
+
+      try {
+        await catalogService.importEService(fileResource, bffMockContext);
+
+        const [importSeed] = mockImportEService.mock.calls[0];
+        // the committed eservice points at these objects
+        expect(deleteSpy).not.toHaveBeenCalled();
+        expect(
+          await fileManager.listFiles(
+            config.eserviceDocumentsContainer,
+            genericLogger
+          )
+        ).toContain(importSeed.descriptor.interface.filePath);
+      } finally {
+        deleteSpy.mockRestore();
+        fs.unlinkSync(zipPath);
+      }
+    });
+
     it("should import eService when the zip has a root folder whose name differs from the file name", async () => {
       const rootFolderName = "myRoot";
       const docPath = "documents/doc1.pdf";
