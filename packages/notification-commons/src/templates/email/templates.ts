@@ -155,6 +155,10 @@ export const eventMailTemplateType = {
     "eservice-archiving-request-canceled-by-delegate-to-producer-mail",
   eserviceArchivingRequestCanceledByDelegateToDelegateMailTemplate:
     "eservice-archiving-request-canceled-by-delegate-to-delegate-mail",
+  eserviceDescriptorArchivingRequestCanceledByDelegateToProducerMailTemplate:
+    "eservice-descriptor-archiving-request-canceled-by-delegate-to-producer-mail",
+  eserviceDescriptorArchivingRequestCanceledByDelegateToDelegateMailTemplate:
+    "eservice-descriptor-archiving-request-canceled-by-delegate-to-delegate-mail",
   eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate:
     "eservice-state-changed-to-producer-scheduled-reminder-descriptor-mail",
   eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate:

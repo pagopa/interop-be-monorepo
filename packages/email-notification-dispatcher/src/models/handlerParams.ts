@@ -42,13 +42,6 @@ export type EServiceDescriptorHandlerParams = HandlerCommonParams & {
   descriptorId: string;
 };
 
-export type EServiceDescriptorDelegateArchiveCanceledHandlerParams =
-  HandlerCommonParams & {
-    eserviceV2Msg?: EServiceV2;
-    descriptorId?: string;
-    requestedOn: Date;
-  };
-
 export type ClientPurposeHandlerParams = HandlerCommonParams & {
   purposeId: PurposeId;
 };

@@ -1,31 +1,34 @@
 import {
+  DescriptorId,
   EmailNotificationMessagePayload,
   NotificationType,
   fromEServiceV2,
   generateId,
   missingKafkaMessageDataError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
+  retrieveDescriptor,
   retrieveHTMLTemplate,
-  retrieveLatestDescriptor,
   retrieveProducerDelegation,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
 
 import { config } from "../../config/config.js";
-import { EServiceHandlerParams } from "../../models/handlerParams.js";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "eserviceArchivingRequestedToDelegator";
 
-export async function handleEServiceArchivingRequestCanceledByDelegateToProducer(
-  data: EServiceHandlerParams
+export async function handleEServiceDescriptorArchivingRequestCanceledByDelegateToDelegate(
+  data: EServiceDescriptorHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
+    descriptorId: descriptorIdFromEvent,
     readModelService,
     logger,
     templateService,
@@ -35,16 +38,17 @@ export async function handleEServiceArchivingRequestCanceledByDelegateToProducer
   if (!eserviceV2Msg) {
     throw missingKafkaMessageDataError(
       "eservice",
-      "EServiceArchivingRequestCanceledByDelegate"
+      "EServiceDescriptorArchivingRequestCanceledByDelegate"
     );
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
-  const descriptorId = retrieveLatestDescriptor(eservice).id;
+  const descriptorId = unsafeBrandId<DescriptorId>(descriptorIdFromEvent);
+  const descriptor = retrieveDescriptor(eservice, descriptorId);
 
   const [htmlTemplate, delegation] = await Promise.all([
     retrieveHTMLTemplate(
-      eventMailTemplateType.eserviceArchivingRequestCanceledByDelegateToProducerMailTemplate
+      eventMailTemplateType.eserviceDescriptorArchivingRequestCanceledByDelegateToDelegateMailTemplate
     ),
     retrieveProducerDelegation(eservice, readModelService),
   ]);
@@ -55,7 +59,7 @@ export async function handleEServiceArchivingRequestCanceledByDelegateToProducer
   ]);
 
   const targets = await getRecipientsForTenants({
-    tenants: [producer],
+    tenants: [delegate],
     notificationType,
     readModelService,
     logger,
@@ -64,7 +68,7 @@ export async function handleEServiceArchivingRequestCanceledByDelegateToProducer
 
   if (targets.length === 0) {
     logger.info(
-      `No users with email notifications enabled for handleEServiceArchivingRequestCanceledByDelegateToProducer - entityId: ${eservice.id}, eventType: ${notificationType}`
+      `No users with email notifications enabled for handleEServiceDescriptorArchivingRequestCanceledByDelegateToDelegate - entityId: ${eservice.id}, eventType: ${notificationType}`
     );
     return [];
   }
@@ -79,9 +83,10 @@ export async function handleEServiceArchivingRequestCanceledByDelegateToProducer
         title: subject,
         notificationType,
         entityId: `${eservice.id}/${descriptorId}`,
-        ...(t.type === "Tenant" ? { recipientName: producer.name } : {}),
-        delegateName: delegate.name,
+        ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
+        producerName: producer.name,
         eserviceName: eservice.name,
+        versionNumber: descriptor.version,
         ctaLabel: "Accedi a PDND",
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,

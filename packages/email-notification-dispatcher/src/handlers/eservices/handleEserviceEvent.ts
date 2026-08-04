@@ -1,5 +1,4 @@
 import {
-  bigIntToDate,
   EmailNotificationMessagePayload,
   EServiceEvent,
 } from "pagopa-interop-models";
@@ -26,6 +25,8 @@ import { handleEserviceDescriptorArchivingCanceledToProducer } from "./handleEse
 import { handleEserviceDescriptorArchivingCompletedToConsumer } from "./handleEserviceDescriptorArchivingCompletedToConsumer.js";
 import { handleEserviceDescriptorArchivingCompletedToProducer } from "./handleEserviceDescriptorArchivingCompletedToProducer.js";
 import { handleEserviceDescriptorArchivingRequestApprovedByDelegator } from "./handleEserviceDescriptorArchivingRequestApprovedByDelegator.js";
+import { handleEServiceDescriptorArchivingRequestCanceledByDelegateToDelegate } from "./handleEserviceDescriptorArchivingRequestCanceledByDelegateToDelegate.js";
+import { handleEServiceDescriptorArchivingRequestCanceledByDelegateToProducer } from "./handleEserviceDescriptorArchivingRequestCanceledByDelegateToProducer.js";
 import { handleEserviceDescriptorArchivingRequestedByDelegate } from "./handleEserviceDescriptorArchivingRequestedByDelegate.js";
 import { handleEserviceDescriptorArchivingRequestRejectedByDelegator } from "./handleEserviceDescriptorArchivingRequestRejectedByDelegator.js";
 import { handleEserviceDescriptorArchivingScheduledToConsumer } from "./handleEserviceDescriptorArchivingScheduledToConsumer.js";
@@ -389,17 +390,10 @@ export async function handleEServiceEvent(
     )
     .with(
       { type: "EServiceArchivingRequestCanceledByDelegate" },
-      { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
-      async ({ data }) => {
-        const eservice = data.eservice;
-        const descriptorId =
-          "descriptorId" in data ? data.descriptorId : undefined;
-        const requestedOn = bigIntToDate(data.requestedOn);
+      async ({ data: { eservice } }) => {
         const [prod, delegate] = await Promise.all([
           handleEServiceArchivingRequestCanceledByDelegateToProducer({
             eserviceV2Msg: eservice,
-            descriptorId,
-            requestedOn,
             logger,
             readModelService,
             templateService,
@@ -407,8 +401,30 @@ export async function handleEServiceEvent(
           }),
           handleEServiceArchivingRequestCanceledByDelegateToDelegate({
             eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...delegate];
+      }
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, delegate] = await Promise.all([
+          handleEServiceDescriptorArchivingRequestCanceledByDelegateToProducer({
+            eserviceV2Msg: eservice,
             descriptorId,
-            requestedOn,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEServiceDescriptorArchivingRequestCanceledByDelegateToDelegate({
+            eserviceV2Msg: eservice,
+            descriptorId,
             logger,
             readModelService,
             templateService,

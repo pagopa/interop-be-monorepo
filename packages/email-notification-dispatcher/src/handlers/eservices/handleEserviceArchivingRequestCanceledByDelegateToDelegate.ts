@@ -1,13 +1,9 @@
-import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
-  DescriptorId,
-  EService,
   EmailNotificationMessagePayload,
   NotificationType,
   fromEServiceV2,
   generateId,
   missingKafkaMessageDataError,
-  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   eventMailTemplateType,
@@ -20,23 +16,13 @@ import {
 } from "pagopa-interop-notification-commons";
 
 import { config } from "../../config/config.js";
-import { EServiceDescriptorDelegateArchiveCanceledHandlerParams } from "../../models/handlerParams.js";
+import { EServiceHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "eserviceArchivingRequestedToDelegator";
 
-function getDescriptorIdFromEvent(
-  data: EServiceDescriptorDelegateArchiveCanceledHandlerParams,
-  eservice: EService
-): DescriptorId {
-  if (data.descriptorId) {
-    return unsafeBrandId<DescriptorId>(data.descriptorId);
-  }
-  return retrieveLatestDescriptor(eservice).id;
-}
-
 export async function handleEServiceArchivingRequestCanceledByDelegateToDelegate(
-  data: EServiceDescriptorDelegateArchiveCanceledHandlerParams
+  data: EServiceHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
     eserviceV2Msg,
@@ -54,7 +40,7 @@ export async function handleEServiceArchivingRequestCanceledByDelegateToDelegate
   }
 
   const eservice = fromEServiceV2(eserviceV2Msg);
-  const descriptorId = getDescriptorIdFromEvent(data, eservice);
+  const descriptorId = retrieveLatestDescriptor(eservice).id;
 
   const [htmlTemplate, delegation] = await Promise.all([
     retrieveHTMLTemplate(
@@ -84,7 +70,6 @@ export async function handleEServiceArchivingRequestCanceledByDelegateToDelegate
   }
 
   const subject = `Annullamento richiesta di archiviazione`;
-  const requestedOn = dateAtRomeZone(data.requestedOn);
 
   return targets.map((t) => ({
     correlationId: correlationId ?? generateId(),
@@ -96,7 +81,7 @@ export async function handleEServiceArchivingRequestCanceledByDelegateToDelegate
         entityId: `${eservice.id}/${descriptorId}`,
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         producerName: producer.name,
-        requestedOn,
+        eserviceName: eservice.name,
         ctaLabel: "Accedi a PDND",
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,

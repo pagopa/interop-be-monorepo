@@ -79,8 +79,6 @@ describe("handleEserviceArchivingRequestCanceledByDelegateToProducer", async () 
 
   const { logger } = getMockContext({});
 
-  const requestedOn = new Date("2026-07-14T00:00:00.000Z");
-
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
@@ -109,27 +107,22 @@ describe("handleEserviceArchivingRequestCanceledByDelegateToProducer", async () 
       );
   });
 
-  it.each([undefined, descriptorId])(
-    "should throw missingKafkaMessageDataError when eservice is undefined and descriptorId is %s",
-    async (descriptorId) => {
-      await expect(() =>
-        handleEServiceArchivingRequestCanceledByDelegateToProducer({
-          eserviceV2Msg: undefined,
-          descriptorId,
-          requestedOn,
-          logger,
-          templateService,
-          readModelService,
-          correlationId: generateId<CorrelationId>(),
-        })
-      ).rejects.toThrow(
-        missingKafkaMessageDataError(
-          "eservice",
-          "EServiceArchivingRequestCanceledByDelegate"
-        )
-      );
-    }
-  );
+  it("should throw missingKafkaMessageDataError when eservice is undefined", async () => {
+    await expect(() =>
+      handleEServiceArchivingRequestCanceledByDelegateToProducer({
+        eserviceV2Msg: undefined,
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      })
+    ).rejects.toThrow(
+      missingKafkaMessageDataError(
+        "eservice",
+        "EServiceArchivingRequestCanceledByDelegate"
+      )
+    );
+  });
 
   it("should throw tenantNotFound when delegator is not found", async () => {
     const unknownDelegatorId = generateId<TenantId>();
@@ -153,8 +146,6 @@ describe("handleEserviceArchivingRequestCanceledByDelegateToProducer", async () 
     await expect(() =>
       handleEServiceArchivingRequestCanceledByDelegateToProducer({
         eserviceV2Msg: toEServiceV2(eserviceUnknownDelegator),
-        descriptorId: undefined,
-        requestedOn,
         logger,
         templateService,
         readModelService,
@@ -163,41 +154,34 @@ describe("handleEserviceArchivingRequestCanceledByDelegateToProducer", async () 
     ).rejects.toThrow(tenantNotFound(unknownDelegatorId));
   });
 
-  it.each([undefined, descriptorId])(
-    "should generate one message per delegator user with the expected subject with descriptorId %s",
-    async (descriptorId) => {
-      const messages =
-        await handleEServiceArchivingRequestCanceledByDelegateToProducer({
-          eserviceV2Msg: toEServiceV2(eservice),
-          descriptorId,
-          requestedOn,
-          logger,
-          templateService,
-          readModelService,
-          correlationId: generateId<CorrelationId>(),
-        });
+  it("should generate one message per delegator user with the expected subject", async () => {
+    const messages =
+      await handleEServiceArchivingRequestCanceledByDelegateToProducer({
+        eserviceV2Msg: toEServiceV2(eservice),
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
 
-      expect(messages.length).toEqual(3);
-      expect(
-        messages.every(
-          (m) => m.email.subject === `Annullamento richiesta di archiviazione`
-        )
-      ).toBe(true);
-      expect(
-        messages.some((m) => m.type === "User" && m.userId === users[0].id)
-      ).toBe(true);
-      expect(
-        messages.some((m) => m.type === "User" && m.userId === users[1].id)
-      ).toBe(true);
-    }
-  );
+    expect(messages.length).toEqual(3);
+    expect(
+      messages.every(
+        (m) => m.email.subject === `Annullamento richiesta di archiviazione`
+      )
+    ).toBe(true);
+    expect(
+      messages.some((m) => m.type === "User" && m.userId === users[0].id)
+    ).toBe(true);
+    expect(
+      messages.some((m) => m.type === "User" && m.userId === users[1].id)
+    ).toBe(true);
+  });
 
   it("should also generate a message to the delegator contact email (includeTenantContactEmails: true)", async () => {
     const messages =
       await handleEServiceArchivingRequestCanceledByDelegateToProducer({
         eserviceV2Msg: toEServiceV2(eservice),
-        descriptorId,
-        requestedOn,
         logger,
         templateService,
         readModelService,
@@ -225,8 +209,6 @@ describe("handleEserviceArchivingRequestCanceledByDelegateToProducer", async () 
     const messages =
       await handleEServiceArchivingRequestCanceledByDelegateToProducer({
         eserviceV2Msg: toEServiceV2(eservice),
-        descriptorId,
-        requestedOn,
         logger,
         templateService,
         readModelService,

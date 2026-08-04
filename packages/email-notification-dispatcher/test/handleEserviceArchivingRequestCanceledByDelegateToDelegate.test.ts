@@ -79,8 +79,6 @@ describe("handleEServiceArchivingRequestCanceledByDelegateToDelegate", async () 
 
   const { logger } = getMockContext({});
 
-  const requestedOn = new Date("2026-07-14T00:00:00.000Z");
-
   beforeEach(async () => {
     await addOneEService(eservice);
     await addOneDelegation(delegation);
@@ -113,8 +111,6 @@ describe("handleEServiceArchivingRequestCanceledByDelegateToDelegate", async () 
     await expect(() =>
       handleEServiceArchivingRequestCanceledByDelegateToDelegate({
         eserviceV2Msg: undefined,
-        descriptorId,
-        requestedOn,
         logger,
         templateService,
         readModelService,
@@ -150,8 +146,6 @@ describe("handleEServiceArchivingRequestCanceledByDelegateToDelegate", async () 
     await expect(() =>
       handleEServiceArchivingRequestCanceledByDelegateToDelegate({
         eserviceV2Msg: toEServiceV2(eserviceUnknownDelegator),
-        descriptorId,
-        requestedOn,
         logger,
         templateService,
         readModelService,
@@ -164,8 +158,6 @@ describe("handleEServiceArchivingRequestCanceledByDelegateToDelegate", async () 
     const messages =
       await handleEServiceArchivingRequestCanceledByDelegateToDelegate({
         eserviceV2Msg: toEServiceV2(eservice),
-        descriptorId,
-        requestedOn,
         logger,
         templateService,
         readModelService,
@@ -190,8 +182,6 @@ describe("handleEServiceArchivingRequestCanceledByDelegateToDelegate", async () 
     const messages =
       await handleEServiceArchivingRequestCanceledByDelegateToDelegate({
         eserviceV2Msg: toEServiceV2(eservice),
-        descriptorId,
-        requestedOn,
         logger,
         templateService,
         readModelService,
@@ -219,8 +209,6 @@ describe("handleEServiceArchivingRequestCanceledByDelegateToDelegate", async () 
     const messages =
       await handleEServiceArchivingRequestCanceledByDelegateToDelegate({
         eserviceV2Msg: toEServiceV2(eservice),
-        descriptorId,
-        requestedOn,
         logger,
         templateService,
         readModelService,
