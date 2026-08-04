@@ -2347,9 +2347,7 @@ export function catalogServiceBuilder(
       assertEServiceIsNotAlreadyArchived(eservice);
 
       const eserviceAfterRequestCleanup =
-        (eservice.delegatedArchivingRequest?.length ?? 0) > 0
-          ? deletePendingEServiceArchivingRequests(eservice)
-          : eservice;
+        deletePendingEServiceArchivingRequests(eservice);
 
       const descriptors = eserviceAfterRequestCleanup.descriptors.map((d) =>
         d.state === descriptorState.archived
