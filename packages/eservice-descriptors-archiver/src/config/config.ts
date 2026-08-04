@@ -1,5 +1,7 @@
 import {
   AgreementTopicConfig,
+  CatalogTopicConfig,
+  DelegationTopicConfig,
   TokenGenerationConfig,
   KafkaConsumerConfig,
   ReadModelSQLDbConfig,
@@ -11,6 +13,8 @@ const EserviceDescriptorsArchiverConfig = KafkaConsumerConfig.and(
 )
   .and(ReadModelSQLDbConfig)
   .and(AgreementTopicConfig)
+  .and(CatalogTopicConfig)
+  .and(DelegationTopicConfig)
   .and(
     z
       .object({
