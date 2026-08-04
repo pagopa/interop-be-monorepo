@@ -131,7 +131,7 @@ describe("handleEServiceDescriptorArchivingRequestCanceledByDelegateToDelegate",
       ...getMockEService(),
       id: generateId<EServiceId>(),
       producerId: unknownDelegatorId,
-      descriptors: [getMockDescriptor(descriptorState.archiving)],
+      descriptors: [descriptor],
     };
     await addOneEService(eserviceUnknownDelegator);
     await addOneDelegation(
