@@ -197,6 +197,7 @@ import {
   appendArchivingRequest,
   getLatestActiveArchivingRequest,
   getLatestArchivingRequest,
+  hasActiveArchivingRequest,
   updateLatestActiveArchivingRequest,
 } from "../utilities/archivingRequests.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -2512,6 +2513,84 @@ export function catalogServiceBuilder(
             );
 
       await repository.createEvent(event);
+    },
+    async internalArchiveDelegatedArchivingRequest(
+      eserviceId: EServiceId,
+      seed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal archiving delegated archiving request for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const rejectionReason = seed.reason;
+
+      if (seed.descriptorId) {
+        const descriptorId = unsafeBrandId<DescriptorId>(seed.descriptorId);
+        const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+        if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+          logger.info(
+            `No active delegated descriptor archiving request found for descriptor ${descriptorId} of EService ${eserviceId}`
+          );
+          return;
+        }
+
+        const updatedRequests = updateLatestActiveArchivingRequest(
+          descriptor.delegatedArchivingRequest ?? [],
+          {
+            rejectedAt: new Date(),
+            rejectionReason,
+          },
+          eserviceId,
+          descriptorId
+        );
+
+        const updatedEService = replaceDescriptor(eservice.data, {
+          ...descriptor,
+          delegatedArchivingRequest: updatedRequests,
+        });
+
+        await repository.createEvent(
+          toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator(
+            eservice.metadata.version,
+            descriptorId,
+            updatedEService,
+            correlationId
+          )
+        );
+        return;
+      }
+
+      if (!hasActiveArchivingRequest(eservice.data.delegatedArchivingRequest)) {
+        logger.info(
+          `No active delegated eService archiving request found for EService ${eserviceId}`
+        );
+        return;
+      }
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason,
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceArchivingRequestRejectedByDelegator(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
     },
     async archiveEService(
       eserviceId: EServiceId,
