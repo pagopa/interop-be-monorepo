@@ -5,7 +5,6 @@ import {
   NewNotification,
   fromEServiceV2,
   missingKafkaMessageDataError,
-  bigIntToDate,
 } from "pagopa-interop-models";
 import {
   activeProducerDelegationNotFound,
@@ -68,22 +67,39 @@ export async function handleEserviceArchivingRequestCanceledToProducer(
     producerDelegation.delegateId,
     readModelService
   );
-  const requestedOn = bigIntToDate(msg.data.requestedOn);
 
-  const body =
-    inAppTemplates.eserviceArchivingRequestRejectedByDelegatorToProducer(
-      delegate.name,
-      requestedOn
-    );
-  const entityId = match(msg)
+  const { body, entityId } = match<
+    ArchivingRequestCanceledEvent,
+    { body: string; entityId: EServiceIdDescriptorId }
+  >(msg)
     .with(
       { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
-      ({ data: { descriptorId } }) =>
-        EServiceIdDescriptorId.parse(`${eservice.id}/${descriptorId}`)
+      ({ data: { descriptorId } }) => {
+        const descriptor =
+          eservice.descriptors.find((d) => d.id === descriptorId) ??
+          retrieveLatestDescriptor(eservice);
+        const body =
+          inAppTemplates.eserviceDescriptorArchivingRequestCanceledToProducer(
+            delegate.name,
+            eservice.name,
+            descriptor.version
+          );
+        const entityId = EServiceIdDescriptorId.parse(
+          `${eservice.id}/${descriptor.id}`
+        );
+        return { body, entityId };
+      }
     )
     .with({ type: "EServiceArchivingRequestCanceledByDelegate" }, () => {
       const descriptor = retrieveLatestDescriptor(eservice);
-      return EServiceIdDescriptorId.parse(`${eservice.id}/${descriptor.id}`);
+      const body = inAppTemplates.eserviceArchivingRequestCanceledToProducer(
+        delegate.name,
+        eservice.name
+      );
+      const entityId = EServiceIdDescriptorId.parse(
+        `${eservice.id}/${descriptor.id}`
+      );
+      return { body, entityId };
     })
     .exhaustive();
 

@@ -251,9 +251,9 @@ export const inAppTemplates = {
     `L'ente delegante ${delegatorName} ha approvato la tua richiesta di archiviazione dell'e-service ${eserviceName}${archivableOn ? `. L'archiviazione avverrà il giorno ${dateAtRomeZone(archivableOn)}` : ""}.`,
   eserviceArchivingRequestRejectedByDelegatorToDelegate: (
     delegatorName: string,
-    requestedOn: Date
+    eserviceName: string
   ): string =>
-    `È stata annullata la richiesta di archiviazione inviata il giorno ${dateAtRomeZone(requestedOn)} a ${delegatorName}.`,
+    `L'ente delegante ${delegatorName} ha rifiutato la tua richiesta di archiviazione dell'e-service ${eserviceName}.`,
   eserviceArchivingRequestRejectedByDelegatorToProducer: (
     delegateName: string,
     requestedOn: Date
@@ -263,7 +263,24 @@ export const inAppTemplates = {
     delegatorName: string,
     eserviceName: string
   ): string =>
-    `L'ente delegante ${delegatorName} ha rifiutato la tua richiesta di archiviazione dell'e-service ${eserviceName}.`,
+    `È stata annullata la richiesta di archiviazione per l'e-service ${eserviceName} inviata a ${delegatorName}.`,
+  eserviceArchivingRequestCanceledToProducer: (
+    delegatorName: string,
+    eserviceName: string
+  ): string =>
+    `${delegatorName} ha annullato la richiesta di archiviazione per l'e-service ${eserviceName}.`,
+  eserviceDescriptorArchivingRequestCanceledToDelegate: (
+    delegatorName: string,
+    eserviceName: string,
+    descriptorVersion: string
+  ): string =>
+    `È stata annullata la richiesta di archiviazione per la versione ${descriptorVersion} dell'e-service ${eserviceName} inviata all'ente delegante ${delegatorName}.`,
+  eserviceDescriptorArchivingRequestCanceledToProducer: (
+    delegatorName: string,
+    eserviceName: string,
+    descriptorVersion: string
+  ): string =>
+    `L'ente delegato ${delegatorName} ha annullato la richiesta di archiviazione per la versione ${descriptorVersion} dell'e-service ${eserviceName}.`,
   eserviceNewVersionSubmittedToDelegator: (
     delegateName: string,
     eserviceName: string
