@@ -1,6 +1,12 @@
 import {
+  CreateBucketCommand,
+  S3Client,
+  S3ServiceException,
+} from "@aws-sdk/client-s3";
+import {
   AnalyticsSQLDbConfig,
   EventStoreConfig,
+  FileManagerConfig,
   InAppNotificationDBConfig,
   M2MEventSQLDbConfig,
   ReadModelSQLDbConfig,
@@ -18,9 +24,11 @@ export const TEST_POSTGRES_ANALYTICS_DB_IMAGE = "postgres:15";
 export const TEST_DYNAMODB_PORT = 8000;
 export const TEST_DYNAMODB_IMAGE = "amazon/dynamodb-local:latest";
 
-export const TEST_MINIO_PORT = 9000;
-export const TEST_MINIO_IMAGE =
-  "quay.io/minio/minio:RELEASE.2024-02-06T21-36-22Z";
+export const TEST_RUSTFS_PORT = 9000;
+export const TEST_RUSTFS_IMAGE = "rustfs/rustfs:1.0.0-beta.12";
+
+const TEST_RUSTFS_BUCKET_CREATION_RETRIES = 60;
+const TEST_RUSTFS_BUCKET_CREATION_RETRY_DELAY_MS = 1000;
 
 export const TEST_MAILPIT_HTTP_PORT = 8025;
 export const TEST_MAILPIT_SMTP_PORT = 465;
@@ -103,26 +111,79 @@ export const dynamoDBContainer = (): GenericContainer =>
     .withExposedPorts(TEST_DYNAMODB_PORT);
 
 /**
- * Starts a MinIO container for testing purposes.
+ * Starts a RustFS container for testing purposes.
  *
- * @param config - The configuration for the MinIO container.
+ * RustFS is an S3-compatible object storage used to replace AWS S3 in the local
+ * test environment. Buckets cannot be pre-created by making directories on disk:
+ * they must be created through the S3 API once the server is running
+ * (see `createS3Buckets`).
+ *
  * @returns A promise that resolves to the started test container.
  */
-export const minioContainer = (config: S3Config): GenericContainer =>
-  new GenericContainer(TEST_MINIO_IMAGE)
+export const rustfsContainer = (): GenericContainer =>
+  new GenericContainer(TEST_RUSTFS_IMAGE)
     .withEnvironment({
-      MINIO_ROOT_USER: "testawskey",
-      MINIO_ROOT_PASSWORD: "testawssecret",
-      MINIO_SITE_REGION: "eu-south-1",
+      RUSTFS_ACCESS_KEY: "testawskey",
+      RUSTFS_SECRET_KEY: "testawssecret",
+      RUSTFS_REGION: "eu-south-1",
+      RUSTFS_VOLUMES: "/data",
     })
-    .withEntrypoint(["sh", "-c"])
-    .withCommand([
-      `mkdir -p /data/${config.s3Bucket} &&
-       mkdir -p /data/test-bucket-1 &&
-       mkdir -p /data/test-bucket-2 &&
-       /usr/bin/minio server /data`,
-    ])
-    .withExposedPorts(TEST_MINIO_PORT);
+    .withExposedPorts(TEST_RUSTFS_PORT);
+
+const isBucketAlreadyExistsError = (error: unknown): boolean =>
+  error instanceof S3ServiceException &&
+  (error.name === "BucketAlreadyOwnedByYou" ||
+    error.name === "BucketAlreadyExists");
+
+const createBucketWithRetry = async (
+  client: S3Client,
+  bucket: string,
+  retriesLeft: number
+): Promise<void> => {
+  try {
+    await client.send(new CreateBucketCommand({ Bucket: bucket }));
+  } catch (error) {
+    if (isBucketAlreadyExistsError(error)) {
+      return;
+    }
+    if (retriesLeft <= 0) {
+      throw error;
+    }
+    await new Promise((resolve) =>
+      setTimeout(resolve, TEST_RUSTFS_BUCKET_CREATION_RETRY_DELAY_MS)
+    );
+    await createBucketWithRetry(client, bucket, retriesLeft - 1);
+  }
+};
+
+/**
+ * Creates the given buckets on a running RustFS test container through the S3
+ * API. It builds the S3 client with the same configuration used by the
+ * application file manager and retries on failure to tolerate the server
+ * warm-up time right after the container has started.
+ *
+ * @param config - The file manager configuration pointing to the started RustFS container.
+ * @param bucketNames - The names of the buckets to create.
+ */
+export const createS3Buckets = async (
+  config: FileManagerConfig & S3Config,
+  bucketNames: string[]
+): Promise<void> => {
+  const client = new S3Client({
+    endpoint: config.s3CustomServer
+      ? `${config.s3ServerHost}:${config.s3ServerPort}`
+      : undefined,
+    forcePathStyle: config.s3CustomServer,
+  });
+
+  for (const bucket of bucketNames) {
+    await createBucketWithRetry(
+      client,
+      bucket,
+      TEST_RUSTFS_BUCKET_CREATION_RETRIES
+    );
+  }
+};
 
 export const mailpitContainer = (): GenericContainer =>
   new GenericContainer(TEST_MAILPIT_IMAGE)
