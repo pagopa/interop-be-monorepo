@@ -63,6 +63,7 @@ const errorCodes = {
   riskAnalysisTenantKindMismatch: "0042",
   unableToDetermineTenantKind: "0043",
   reviewerWorkflowConflict: "0044",
+  missingReviewers: "0045",
   reviewerWorkflowNotFound: "0046",
   reviewerWorkflowNotSubmittable: "0047",
   submitNotAllowedForReviewMode: "0048",
@@ -78,7 +79,7 @@ const errorCodes = {
   missingSelfcareId: "0058",
   reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
-  missingReviewers: "0061",
+  reviewersNotAllowedForReviewMode: "0061",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -706,5 +707,15 @@ export function missingReviewers(purposeId: PurposeId): ApiError<ErrorCodes> {
     detail: `At least one reviewer must be provided for purpose ${purposeId} when the review mode is not AdminWritesAdminSigns`,
     code: "missingReviewers",
     title: "Missing reviewers",
+  });
+}
+
+export function reviewersNotAllowedForReviewMode(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No reviewer can be provided for purpose ${purposeId} when the review mode is AdminWritesAdminSigns`,
+    code: "reviewersNotAllowedForReviewMode",
+    title: "Reviewers not allowed for review mode",
   });
 }

@@ -42,6 +42,7 @@ import {
   userWithoutReviewerPrivileges,
   missingSelfcareId,
   missingReviewers,
+  reviewersNotAllowedForReviewMode,
   purposeFromTemplateCannotBeModified,
   purposeNotInDraftState,
   reviewerWorkflowConflict,
@@ -919,6 +920,24 @@ describe("assignRiskAnalysisReviewer", () => {
       ).rejects.toThrowError(missingReviewers(mockPurpose.id));
     }
   );
+
+  it("should throw reviewersNotAllowedForReviewMode if reviewers are provided for adminWritesAdminSigns", async () => {
+    const mockPurpose = await addPurposeInReviewMode({
+      previousReviewMode: undefined,
+      previousReviewers: [],
+    });
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      )
+    ).rejects.toThrowError(reviewersNotAllowedForReviewMode(mockPurpose.id));
+  });
 
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const randomId: PurposeId = generateId();
