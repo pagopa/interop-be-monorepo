@@ -29,13 +29,12 @@ import {
   incompleteTokenGenerationStatesConsumerClient,
   tokenGenerationStatesEntryNotFound,
 } from "../src/model/domain/errors.js";
-import {
-  fallbackAudit,
-  retrieveKey,
-} from "../src/utilities/tokenServiceHelpers.js";
+import { fallbackAudit } from "../src/utilities/audit.js";
+import { retrieveKey } from "../src/utilities/tokenServiceHelpers.js";
 import { dynamoDBClient, fileManager } from "./integrationUtils.js";
 import {
-  getMockAuditMessage,
+  getMockConsumerTokenAuditMessage,
+  getMockApiTokenAuditMessage,
   mockKMSClient,
   mockProducer,
 } from "./mockUtils.js";
@@ -296,24 +295,29 @@ describe("unit tests", () => {
 
   describe("fallbackAudit", () => {
     it("should write the audit message to the file storage", async () => {
-      const mockAuditMessage = getMockAuditMessage();
+      const mockAuditMessage = getMockConsumerTokenAuditMessage();
 
       const fileListBeforeAudit = await fileManager.listFiles(
-        config.s3Bucket,
+        config.s3BucketConsumerTokenAuditFallback,
         genericLogger
       );
       expect(fileListBeforeAudit).toHaveLength(0);
 
-      await fallbackAudit(mockAuditMessage, fileManager, genericLogger);
+      await fallbackAudit({
+        messageBody: mockAuditMessage,
+        bucket: config.s3BucketConsumerTokenAuditFallback,
+        fileManager,
+        logger: genericLogger,
+      });
 
       const fileListAfterAudit = await fileManager.listFiles(
-        config.s3Bucket,
+        config.s3BucketConsumerTokenAuditFallback,
         genericLogger
       );
       expect(fileListAfterAudit).toHaveLength(1);
 
       const fileContent = await fileManager.get(
-        config.s3Bucket,
+        config.s3BucketConsumerTokenAuditFallback,
         fileListAfterAudit[0],
         genericLogger
       );
@@ -325,15 +329,71 @@ describe("unit tests", () => {
     });
 
     it("should throw fallbackAuditFailed in case of unsuccessful file write operation", async () => {
-      const mockAuditMessage = getMockAuditMessage();
+      const mockAuditMessage = getMockConsumerTokenAuditMessage();
 
       mockProducer.send.mockImplementationOnce(async () => Promise.reject());
       vi.spyOn(fileManager, "storeBytes").mockImplementationOnce(() =>
         Promise.reject()
       );
 
-      expect(
-        fallbackAudit(mockAuditMessage, fileManager, genericLogger)
+      await expect(
+        fallbackAudit({
+          messageBody: mockAuditMessage,
+          bucket: config.s3BucketConsumerTokenAuditFallback,
+          fileManager,
+          logger: genericLogger,
+        })
+      ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.clientId));
+    });
+
+    it("should write the api token audit message to the file storage", async () => {
+      const mockAuditMessage = getMockApiTokenAuditMessage();
+
+      const fileListBeforeAudit = await fileManager.listFiles(
+        config.s3BucketApiTokenAuditFallback,
+        genericLogger
+      );
+      expect(fileListBeforeAudit).toHaveLength(0);
+
+      await fallbackAudit({
+        messageBody: mockAuditMessage,
+        bucket: config.s3BucketApiTokenAuditFallback,
+        fileManager,
+        logger: genericLogger,
+      });
+
+      const fileListAfterAudit = await fileManager.listFiles(
+        config.s3BucketApiTokenAuditFallback,
+        genericLogger
+      );
+      expect(fileListAfterAudit).toHaveLength(1);
+
+      const fileContent = await fileManager.get(
+        config.s3BucketApiTokenAuditFallback,
+        fileListAfterAudit[0],
+        genericLogger
+      );
+
+      const expectedFileContent = JSON.stringify(mockAuditMessage);
+
+      const decodedFileContent = Buffer.from(fileContent).toString();
+      expect(decodedFileContent).toEqual(expectedFileContent);
+    });
+
+    it("should throw fallbackAuditFailed for api token in case of unsuccessful file write operation", async () => {
+      const mockAuditMessage = getMockApiTokenAuditMessage();
+
+      vi.spyOn(fileManager, "storeBytes").mockImplementationOnce(() =>
+        Promise.reject()
+      );
+
+      await expect(
+        fallbackAudit({
+          messageBody: mockAuditMessage,
+          bucket: config.s3BucketApiTokenAuditFallback,
+          fileManager,
+          logger: genericLogger,
+        })
       ).rejects.toThrowError(fallbackAuditFailed(mockAuditMessage.clientId));
     });
   });

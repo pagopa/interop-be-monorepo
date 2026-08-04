@@ -5,6 +5,7 @@ import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 
 import {
   toApiCertifiedAttributeProcessSeed,
+  toApiCertifiedDiscreteAttributeProcessSeed,
   toCompactAttribute,
 } from "../api/attributeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
@@ -39,6 +40,22 @@ export function attributeServiceBuilder(
 
       return attributeClient.createCertifiedAttribute(
         toApiCertifiedAttributeProcessSeed(seed),
+        {
+          headers,
+        }
+      );
+    },
+
+    async createCertifiedDiscreteAttribute(
+      seed: bffApi.AttributeSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<bffApi.Attribute> {
+      logger.info(
+        `Creating certified discrete attribute with name ${seed.name}`
+      );
+
+      return attributeClient.createCertifiedDiscreteAttribute(
+        toApiCertifiedDiscreteAttributeProcessSeed(seed),
         {
           headers,
         }
