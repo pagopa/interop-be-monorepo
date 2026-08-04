@@ -10,7 +10,6 @@ import {
   inAppNotificationApi,
 } from "pagopa-interop-api-clients";
 import { genericLogger } from "pagopa-interop-commons";
-import * as apiUtils from "pagopa-interop-commons";
 import {
   createDummyStub,
   getMockAuthData,
@@ -26,7 +25,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import path from "path";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type {
   AuthorizationProcessClient,
@@ -79,12 +78,15 @@ describe("importEService", () => {
     riskAnalysis: [],
   };
 
+  const importEServiceResponse = {
+    eservice: baseEService,
+    createdDescriptorId: baseEService.descriptors[0].id,
+  };
+
+  const mockImportEService = vi.fn();
+
   const mockCatalogProcessClient = {
-    createEService: vi.fn().mockResolvedValue(baseEService),
-    getEServiceById: vi.fn().mockResolvedValue(baseEService),
-    createEServiceDocument: vi.fn().mockResolvedValue(getMockDocument()),
-    createRiskAnalysis: vi.fn().mockResolvedValue(undefined),
-    deleteEService: vi.fn().mockResolvedValue(undefined),
+    importEService: mockImportEService,
   } as unknown as catalogApi.CatalogProcessClient;
   const mockTenantProcessClient = createDummyStub<TenantProcessClient>();
   const mockAgreementProcessClient =
@@ -99,11 +101,6 @@ describe("importEService", () => {
 
   const mockInAppNotificationManagerClient =
     createDummyStub<inAppNotificationApi.InAppNotificationManagerClient>();
-
-  const mockPollingFunction = vi.fn(() => Promise.resolve());
-  vi.spyOn(apiUtils, "createPollingByCondition").mockImplementation(
-    () => mockPollingFunction
-  );
 
   const catalogService = catalogServiceBuilder(
     mockCatalogProcessClient,
@@ -156,6 +153,71 @@ describe("importEService", () => {
   };
   const bffMockContext = getBffMockContext(getMockContext({ authData }));
 
+  const firstDocFilename = "doc1.json";
+  const secondDocFilename = "doc2.json";
+
+  const configurationWithDocs = {
+    ...configuration,
+    descriptor: {
+      ...configuration.descriptor,
+      docs: [
+        { ...getMockDocument(), path: firstDocFilename, prettyName: "first" },
+        { ...getMockDocument(), path: secondDocFilename, prettyName: "second" },
+      ],
+    },
+  };
+
+  const badRequestAxiosError = (): AxiosError =>
+    new AxiosError("Bad Request", "400", undefined, undefined, {
+      status: 400,
+      data: {},
+      statusText: "Bad Request",
+      config: {} as InternalAxiosRequestConfig,
+      headers: {},
+    });
+
+  const storeImportZip = async (
+    filename: string,
+    zipConfiguration: { descriptor: { docs: Array<{ path: string }> } }
+  ): Promise<{
+    zipPath: string;
+    importFileResource: bffApi.FileResource;
+  }> => {
+    const importZip = new AdmZip();
+    importZip.addFile(
+      jsonFilename,
+      Buffer.from(JSON.stringify(zipConfiguration))
+    );
+    zipConfiguration.descriptor.docs.forEach((doc) =>
+      importZip.addFile(doc.path, Buffer.from(JSON.stringify(doc)))
+    );
+
+    const zipPath = path.join(__dirname, filename);
+    importZip.writeZip(zipPath);
+
+    await fileManager.storeBytes(
+      {
+        bucket: config.importEserviceContainer,
+        path: `${config.importEservicePath}`,
+        resourceId: `${tenantId}`,
+        name: filename,
+        content: fs.readFileSync(zipPath),
+      },
+      genericLogger
+    );
+
+    return {
+      zipPath,
+      importFileResource: { filename, url: "/import/folder" },
+    };
+  };
+
+  beforeEach(() => {
+    // drop queued mockRejectedValueOnce values leaked by a failing test
+    mockImportEService.mockReset();
+    mockImportEService.mockResolvedValue(importEServiceResponse);
+  });
+
   describe("success case", () => {
     it("should import eService from url", async () => {
       const zipPath = path.join(__dirname, "test.zip");
@@ -186,6 +248,43 @@ describe("importEService", () => {
         id: baseEService.id,
         descriptorId: baseEService.descriptors[0].id,
       });
+
+      expect(mockImportEService).toHaveBeenCalledTimes(1);
+      const [importSeed] = mockImportEService.mock.calls[0];
+      expect(importSeed).toMatchObject({
+        name: configuration.name,
+        description: configuration.description,
+        technology: "REST",
+        mode: "RECEIVE",
+        riskAnalysis: [],
+        isSignalHubEnabled: false,
+        isConsumerDelegable: false,
+        isClientAccessDelegable: false,
+        descriptor: {
+          description: configuration.descriptor.description,
+          audience: configuration.descriptor.audience,
+          voucherLifespan: configuration.descriptor.voucherLifespan,
+          dailyCallsPerConsumer: configuration.descriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: configuration.descriptor.dailyCallsTotal,
+          agreementApprovalPolicy:
+            configuration.descriptor.agreementApprovalPolicy,
+          docs: [],
+        },
+      });
+      expect(importSeed.descriptor.interface).toMatchObject({
+        fileName: jsonFilename,
+        contentType: "application/json",
+        prettyName: configuration.descriptor.interface.prettyName,
+        serverUrls: ["https://example.com"],
+      });
+      expect(importSeed.descriptor.interface.filePath).toContain(
+        config.eserviceDocumentsPath
+      );
+      expect(importSeed.descriptor.interface.checksum).toBeDefined();
+      expect(importSeed.eserviceId).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      );
+
       fs.unlinkSync(zipPath);
     });
 
@@ -241,7 +340,60 @@ describe("importEService", () => {
         id: baseEService.id,
         descriptorId: baseEService.descriptors[0].id,
       });
+
+      expect(mockImportEService).toHaveBeenCalledTimes(1);
+      const [importSeed] = mockImportEService.mock.calls[0];
+      expect(importSeed.descriptor.docs).toHaveLength(1);
+      expect(importSeed.descriptor.docs[0]).toMatchObject({
+        fileName: docPath,
+        prettyName: "doc1 prettyName",
+        contentType: "application/pdf",
+        serverUrls: [],
+      });
+
       fs.unlinkSync(zipPath);
+    });
+
+    it("should convert the risk analyses of the configuration into the import seed", async () => {
+      const configurationWithRiskAnalysis = {
+        ...configuration,
+        riskAnalysis: [
+          {
+            name: "test risk analysis",
+            riskAnalysisForm: {
+              version: "3.0",
+              singleAnswers: [{ key: "purpose", value: "INSTITUTIONAL" }],
+              multiAnswers: [
+                { key: "personalDataTypes", values: ["OTHER", "GENERAL"] },
+              ],
+            },
+          },
+        ],
+      };
+      const { zipPath, importFileResource } = await storeImportZip(
+        "test_risk_analysis.zip",
+        configurationWithRiskAnalysis
+      );
+
+      try {
+        await catalogService.importEService(importFileResource, bffMockContext);
+
+        const [importSeed] = mockImportEService.mock.calls[0];
+        expect(importSeed.riskAnalysis).toEqual([
+          {
+            name: "test risk analysis",
+            riskAnalysisForm: {
+              version: "3.0",
+              answers: {
+                purpose: ["INSTITUTIONAL"],
+                personalDataTypes: ["OTHER", "GENERAL"],
+              },
+            },
+          },
+        ]);
+      } finally {
+        fs.unlinkSync(zipPath);
+      }
     });
   });
   describe("error case", () => {
@@ -439,73 +591,19 @@ describe("importEService", () => {
       );
       fs.unlinkSync(zipPath);
     });
-    it("should delete created eservice and re-throw error when createRiskAnalysis fails", async () => {
-      const configurationWithRiskAnalysis = {
-        ...configuration,
-        riskAnalysis: [
-          {
-            name: "expired risk analysis",
-            riskAnalysisForm: {
-              version: "1.0",
-              singleAnswers: [
-                { key: "purpose", value: "INSTITUTIONAL" },
-                {
-                  key: "institutionalPurpose",
-                  value: "MyPurpose",
-                },
-                {
-                  key: "personalDataTypes",
-                  value: "OTHER",
-                },
-                {
-                  key: "otherPersonalDataTypes",
-                  value: "MyData",
-                },
-                { key: "legalBasis", value: "LEGAL_OBLIGATION" },
-                {
-                  key: "legalObligationReference",
-                  value: "MyReference",
-                },
-                { key: "knowsDataQuantity", value: "NO" },
-                {
-                  key: "deliveryMethod",
-                  value: "CLEARTEXT",
-                },
-                {
-                  key: "doneDpia",
-                  value: "NO",
-                },
-                {
-                  key: "ppiIsTenantManager",
-                  value: "YES",
-                },
-                {
-                  key: "doesUseThirdPartyData",
-                  value: "NO",
-                },
-                {
-                  key: "usesThirdPartyData",
-                  value: "NO",
-                },
-              ],
-              multiAnswers: [],
-            },
-          },
-        ],
-      };
-
-      const zipWithRa = new AdmZip();
-      zipWithRa.addFile(
+    it("should delete the uploaded documents and re-throw the error when the catalog-process import call fails", async () => {
+      const zipWithInterface = new AdmZip();
+      zipWithInterface.addFile(
         jsonFilename,
-        Buffer.from(JSON.stringify(configurationWithRiskAnalysis))
+        Buffer.from(JSON.stringify(configuration))
       );
 
       const zipPath = path.join(__dirname, "test_ra.zip");
-      zipWithRa.writeZip(zipPath);
+      zipWithInterface.writeZip(zipPath);
 
       const zipContent = fs.readFileSync(zipPath);
 
-      const raFileResource: bffApi.FileResource = {
+      const importFileResource: bffApi.FileResource = {
         filename: "test_ra.zip",
         url: "/import/folder",
       };
@@ -515,13 +613,13 @@ describe("importEService", () => {
           bucket: config.importEserviceContainer,
           path: `${config.importEservicePath}`,
           resourceId: `${tenantId}`,
-          name: `${raFileResource.filename}`,
+          name: `${importFileResource.filename}`,
           content: zipContent,
         },
         genericLogger
       );
 
-      const riskAnalysisError = new AxiosError(
+      const importError = new AxiosError(
         "Risk analysis validation failed",
         "400",
         undefined,
@@ -549,26 +647,161 @@ describe("importEService", () => {
         }
       );
 
-      const mockCreateRiskAnalysis = vi
-        .fn()
-        .mockRejectedValue(riskAnalysisError);
-      const mockDeleteEService = vi.fn().mockResolvedValue(undefined);
+      mockImportEService.mockRejectedValueOnce(importError);
+      const deleteSpy = vi.spyOn(fileManager, "delete");
 
-      mockCatalogProcessClient.createRiskAnalysis = mockCreateRiskAnalysis;
-      mockCatalogProcessClient.deleteEService = mockDeleteEService;
+      try {
+        await expect(
+          catalogService.importEService(importFileResource, bffMockContext)
+        ).rejects.toThrowError(importError);
 
-      await expect(
-        catalogService.importEService(raFileResource, bffMockContext)
-      ).rejects.toThrowError(riskAnalysisError);
+        expect(deleteSpy).toHaveBeenCalledTimes(1);
+        const [deletedContainer, deletedPath] = deleteSpy.mock.calls[0];
+        expect(deletedContainer).toBe(config.eserviceDocumentsContainer);
+        expect(deletedPath).toContain(config.eserviceDocumentsPath);
+        expect(deletedPath).toContain(jsonFilename);
+      } finally {
+        deleteSpy.mockRestore();
+        fs.unlinkSync(zipPath);
+      }
+    });
 
-      expect(mockDeleteEService).toHaveBeenCalledWith(undefined, {
-        headers: bffMockContext.headers,
-        params: {
-          eServiceId: baseEService.id,
-        },
-      });
+    it("should delete every uploaded document when the import fails after an interface and multiple docs were uploaded", async () => {
+      const { zipPath, importFileResource } = await storeImportZip(
+        "test_multi_docs.zip",
+        configurationWithDocs
+      );
 
-      fs.unlinkSync(zipPath);
+      const importError = badRequestAxiosError();
+      mockImportEService.mockRejectedValueOnce(importError);
+      const deleteSpy = vi.spyOn(fileManager, "delete");
+
+      try {
+        await expect(
+          catalogService.importEService(importFileResource, bffMockContext)
+        ).rejects.toThrowError(importError);
+
+        expect(deleteSpy).toHaveBeenCalledTimes(3);
+        const deletedPaths = deleteSpy.mock.calls.map(([, path]) => path);
+        expect(deletedPaths.some((p) => p.includes(jsonFilename))).toBe(true);
+        expect(deletedPaths.some((p) => p.includes(firstDocFilename))).toBe(
+          true
+        );
+        expect(deletedPaths.some((p) => p.includes(secondDocFilename))).toBe(
+          true
+        );
+      } finally {
+        deleteSpy.mockRestore();
+        fs.unlinkSync(zipPath);
+      }
+    });
+
+    it("should delete the already uploaded documents when a later document fails to upload before the catalog-process call", async () => {
+      const { zipPath, importFileResource } = await storeImportZip(
+        "test_late_failure.zip",
+        configurationWithDocs
+      );
+
+      const deleteSpy = vi.spyOn(fileManager, "delete");
+      // captured before spying, otherwise the passthrough would recurse
+      const storeBytes = fileManager.storeBytes.bind(fileManager);
+      const storeBytesSpy = vi
+        .spyOn(fileManager, "storeBytes")
+        .mockImplementationOnce(storeBytes)
+        .mockImplementationOnce(storeBytes)
+        .mockRejectedValueOnce(new Error("storeBytes failed"));
+
+      try {
+        await expect(
+          catalogService.importEService(importFileResource, bffMockContext)
+        ).rejects.toThrowError("storeBytes failed");
+
+        // the interface and the first doc were uploaded before the failure
+        expect(deleteSpy).toHaveBeenCalledTimes(2);
+        expect(mockImportEService).not.toHaveBeenCalled();
+      } finally {
+        storeBytesSpy.mockRestore();
+        deleteSpy.mockRestore();
+        fs.unlinkSync(zipPath);
+      }
+    });
+
+    it("should keep the uploaded documents when the catalog-process call fails without a response", async () => {
+      const { zipPath, importFileResource } = await storeImportZip(
+        "test_no_response.zip",
+        configuration
+      );
+
+      const networkError = new AxiosError("socket hang up", "ECONNRESET");
+      mockImportEService.mockRejectedValueOnce(networkError);
+      const deleteSpy = vi.spyOn(fileManager, "delete");
+
+      try {
+        await expect(
+          catalogService.importEService(importFileResource, bffMockContext)
+        ).rejects.toThrowError(networkError);
+
+        expect(deleteSpy).not.toHaveBeenCalled();
+      } finally {
+        deleteSpy.mockRestore();
+        fs.unlinkSync(zipPath);
+      }
+    });
+
+    it("should keep the uploaded documents when the catalog-process call fails with a 5xx", async () => {
+      const { zipPath, importFileResource } = await storeImportZip(
+        "test_gateway_timeout.zip",
+        configuration
+      );
+
+      const gatewayTimeout = new AxiosError(
+        "Gateway Timeout",
+        "504",
+        undefined,
+        undefined,
+        {
+          status: 504,
+          data: {},
+          statusText: "Gateway Timeout",
+          config: {} as InternalAxiosRequestConfig,
+          headers: {},
+        }
+      );
+      mockImportEService.mockRejectedValueOnce(gatewayTimeout);
+      const deleteSpy = vi.spyOn(fileManager, "delete");
+
+      try {
+        await expect(
+          catalogService.importEService(importFileResource, bffMockContext)
+        ).rejects.toThrowError(gatewayTimeout);
+
+        expect(deleteSpy).not.toHaveBeenCalled();
+      } finally {
+        deleteSpy.mockRestore();
+        fs.unlinkSync(zipPath);
+      }
+    });
+
+    it("should keep the uploaded documents when the import call succeeds but the response cannot be read", async () => {
+      const { zipPath, importFileResource } = await storeImportZip(
+        "test_unreadable_response.zip",
+        configuration
+      );
+
+      // a malformed 200 body throws after the commit: keep the files
+      mockImportEService.mockResolvedValueOnce(undefined);
+      const deleteSpy = vi.spyOn(fileManager, "delete");
+
+      try {
+        await expect(
+          catalogService.importEService(importFileResource, bffMockContext)
+        ).rejects.toThrowError(TypeError);
+
+        expect(deleteSpy).not.toHaveBeenCalled();
+      } finally {
+        deleteSpy.mockRestore();
+        fs.unlinkSync(zipPath);
+      }
     });
   });
 });

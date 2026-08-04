@@ -392,7 +392,10 @@ const resolveMaxSizeForKind = (
     : (limits.maxInterfaceFileSizeBytes ?? limits.maxFileSizeBytes);
 
 // eslint-disable-next-line max-params
-export async function verifyAndCreateDocument<T>(
+export async function verifyAndCreateDocument<
+  T,
+  K extends "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+>(
   fileManager: FileManager,
   resource: {
     // logging purposes
@@ -400,7 +403,7 @@ export async function verifyAndCreateDocument<T>(
     isEserviceTemplate: boolean;
   },
   technology: Technology,
-  kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+  kind: K,
   doc: File,
   documentId: string,
   documentContainer: string,
@@ -411,7 +414,7 @@ export async function verifyAndCreateDocument<T>(
     fileName: string,
     filePath: string,
     prettyName: string,
-    kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+    kind: K,
     serverUrls: string[],
     contentType: string,
     checksum: string
@@ -472,7 +475,18 @@ export async function verifyAndCreateDocument<T>(
   }
 }
 
-export const verifyAndCreateImportedDocument = async <T>(
+export type EserviceImportUploadedDocument = {
+  documentId: string;
+  fileName: string;
+  filePath: string;
+  prettyName: string;
+  kind: "INTERFACE" | "DOCUMENT";
+  serverUrls: string[];
+  contentType: string;
+  checksum: string;
+};
+
+export const verifyAndUploadImportedDocument = async (
   fileManager: FileManager,
   eserviceId: EServiceId,
   technology: Technology,
@@ -482,22 +496,12 @@ export const verifyAndCreateImportedDocument = async <T>(
     path: string;
   },
   kind: "INTERFACE" | "DOCUMENT",
-  createDocumentHandler: (
-    documentId: string,
-    fileName: string,
-    filePath: string,
-    prettyName: string,
-    kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
-    serverUrls: string[],
-    contentType: string,
-    checksum: string
-  ) => Promise<T>,
   eserviceDocumentsContainer: string,
   eserviceDocumentsPath: string,
   fileSizeLimits: FileSizeLimits,
   logger: Logger
 ): // eslint-disable-next-line max-params
-Promise<void> => {
+Promise<EserviceImportUploadedDocument> => {
   const entry = entriesMap.get(doc.path);
   if (!entry) {
     throw genericError("Invalid file");
@@ -511,7 +515,7 @@ Promise<void> => {
 
   const documentId = randomUUID();
 
-  await verifyAndCreateDocument(
+  return await verifyAndCreateDocument(
     fileManager,
     { id: eserviceId, isEserviceTemplate: false },
     technology,
@@ -521,7 +525,25 @@ Promise<void> => {
     eserviceDocumentsContainer,
     eserviceDocumentsPath,
     doc.prettyName,
-    createDocumentHandler,
+    async (
+      documentId,
+      fileName,
+      filePath,
+      prettyName,
+      kind,
+      serverUrls,
+      contentType,
+      checksum
+    ) => ({
+      documentId,
+      fileName,
+      filePath,
+      prettyName,
+      kind,
+      serverUrls,
+      contentType,
+      checksum,
+    }),
     fileSizeLimits,
     logger
   );
