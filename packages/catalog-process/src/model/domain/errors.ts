@@ -90,6 +90,7 @@ const errorCodes = {
   eserviceTemplateInterfaceTechnologyMismatch: "0069",
   gracePeriodDaysLowerThanDescriptor: "0070",
   interfaceDocumentNotUpdatable: "0071",
+  eserviceAlreadyExists: "0072",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -816,5 +817,15 @@ export function gracePeriodDaysLowerThanDescriptor(
     detail: `Requested archiving date ${dateAtRomeZone(requestedArchivableOn)} for EService ${eserviceId} cannot be lower than expected archiving date ${dateAtRomeZone(expectedArchivableOn)} already scheduled for Descriptor ${descriptorId}`,
     code: "gracePeriodDaysLowerThanDescriptor",
     title: "Grace period days lower than descriptor",
+  });
+}
+
+export function eserviceAlreadyExists(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService with id ${eserviceId} already exists`,
+    code: "eserviceAlreadyExists",
+    title: "EService already exists",
   });
 }

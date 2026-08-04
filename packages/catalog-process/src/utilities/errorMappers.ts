@@ -67,6 +67,29 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const importEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "invalidDelegationFlags",
+      "inconsistentDailyCalls",
+      "eserviceNotInReceiveMode",
+      "riskAnalysisValidationFailed",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "eserviceAlreadyExists",
+      "eServiceNameDuplicateForProducer",
+      "eserviceTemplateNameConflict",
+      "riskAnalysisDuplicated",
+      "documentPrettyNameDuplicate",
+      "checksumDuplicate",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const updateEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
