@@ -127,11 +127,12 @@ describe("handleEServiceDescriptorArchivingRequestCanceledByDelegateToProducer",
 
   it("should throw tenantNotFound when delegator is not found", async () => {
     const unknownDelegatorId = generateId<TenantId>();
+    const unknownDescriptor = getMockDescriptor(descriptorState.archiving);
     const eserviceUnknownDelegator: EService = {
       ...getMockEService(),
       id: generateId<EServiceId>(),
       producerId: unknownDelegatorId,
-      descriptors: [descriptor],
+      descriptors: [unknownDescriptor],
     };
     await addOneEService(eserviceUnknownDelegator);
     await addOneDelegation(
@@ -147,7 +148,7 @@ describe("handleEServiceDescriptorArchivingRequestCanceledByDelegateToProducer",
     await expect(() =>
       handleEServiceDescriptorArchivingRequestCanceledByDelegateToProducer({
         eserviceV2Msg: toEServiceV2(eserviceUnknownDelegator),
-        descriptorId,
+        descriptorId: unknownDescriptor.id,
         logger,
         templateService,
         readModelService,
