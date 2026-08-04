@@ -27,6 +27,10 @@ export const TEST_DYNAMODB_IMAGE = "amazon/dynamodb-local:latest";
 export const TEST_RUSTFS_PORT = 9000;
 export const TEST_RUSTFS_IMAGE = "rustfs/rustfs:1.0.0-beta.12";
 
+const TEST_RUSTFS_ACCESS_KEY = "testawskey";
+const TEST_RUSTFS_SECRET_KEY = "testawssecret";
+const TEST_RUSTFS_REGION = "eu-south-1";
+
 const TEST_RUSTFS_BUCKET_CREATION_RETRIES = 60;
 const TEST_RUSTFS_BUCKET_CREATION_RETRY_DELAY_MS = 1000;
 
@@ -123,9 +127,9 @@ export const dynamoDBContainer = (): GenericContainer =>
 export const rustfsContainer = (): GenericContainer =>
   new GenericContainer(TEST_RUSTFS_IMAGE)
     .withEnvironment({
-      RUSTFS_ACCESS_KEY: "testawskey",
-      RUSTFS_SECRET_KEY: "testawssecret",
-      RUSTFS_REGION: "eu-south-1",
+      RUSTFS_ACCESS_KEY: TEST_RUSTFS_ACCESS_KEY,
+      RUSTFS_SECRET_KEY: TEST_RUSTFS_SECRET_KEY,
+      RUSTFS_REGION: TEST_RUSTFS_REGION,
       RUSTFS_VOLUMES: "/data",
     })
     .withExposedPorts(TEST_RUSTFS_PORT);
@@ -174,6 +178,11 @@ export const createS3Buckets = async (
       ? `${config.s3ServerHost}:${config.s3ServerPort}`
       : undefined,
     forcePathStyle: config.s3CustomServer,
+    region: TEST_RUSTFS_REGION,
+    credentials: {
+      accessKeyId: TEST_RUSTFS_ACCESS_KEY,
+      secretAccessKey: TEST_RUSTFS_SECRET_KEY,
+    },
   });
 
   for (const bucket of bucketNames) {
