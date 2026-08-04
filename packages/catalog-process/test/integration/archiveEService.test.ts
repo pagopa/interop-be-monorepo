@@ -8,6 +8,7 @@ import {
   getMockDocument,
 } from "pagopa-interop-commons-test";
 import {
+  DelegatedDescriptorArchivingRequest,
   DelegatedEServiceArchivingRequest,
   Descriptor,
   DescriptorState,
@@ -218,13 +219,13 @@ describe("archiveEService", () => {
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
 
-  it("should delete pending archiving requests for the eservice", async () => {
-    const descriptors: Descriptor[] = Array.from({ length: 2 }, (_, idx) => ({
+  it("should delete pending delegated archiving requests for the eservice", async () => {
+    const descriptor: Descriptor = {
       ...getMockDescriptor(),
       interface: getMockDocument(),
-      version: (idx + 1).toString(),
-      state: [descriptorState.published, descriptorState.deprecated][idx],
-    }));
+      version: "1",
+      state: descriptorState.published,
+    };
 
     const delegatedPendingRequest: DelegatedEServiceArchivingRequest = {
       requestedAt: new Date(),
@@ -250,7 +251,7 @@ describe("archiveEService", () => {
 
     const eservice: EService = {
       ...mockEService,
-      descriptors,
+      descriptors: [descriptor],
       delegatedArchivingRequest: [
         delegatedPendingRequest,
         delegatedRejectedRequest,
@@ -271,31 +272,87 @@ describe("archiveEService", () => {
     });
 
     const expectedArchivingRequests = [
-      {
-        ...delegatedRejectedRequest,
-        rejectedAt:
-          writtenPayload.eservice!.delegatedArchivingRequest![0]!.rejectedAt,
-        requestedAt:
-          writtenPayload.eservice!.delegatedArchivingRequest![0]!.requestedAt,
-        gracePeriodDays: Number(
-          writtenPayload.eservice!.delegatedArchivingRequest![0]!
-            .gracePeriodDays
-        ),
-      },
-      {
-        ...delegatedAcceptedRequest,
-        acceptedAt:
-          writtenPayload.eservice!.delegatedArchivingRequest![1]!.acceptedAt,
-        requestedAt:
-          writtenPayload.eservice!.delegatedArchivingRequest![1]!.requestedAt,
-        gracePeriodDays: Number(
-          writtenPayload.eservice!.delegatedArchivingRequest![1]!
-            .gracePeriodDays
-        ),
-      },
+      delegatedRejectedRequest,
+      delegatedAcceptedRequest,
     ];
+
+    const expectedEService: EService = {
+      ...eservice,
+      delegatedArchivingRequest: expectedArchivingRequests,
+    };
+
     expect(writtenPayload.eservice?.delegatedArchivingRequest).toEqual(
-      expectedArchivingRequests
+      toEServiceV2(expectedEService).delegatedArchivingRequest
+    );
+  });
+
+  it("should delete pending delegated descriptor requests for the nested descriptors", async () => {
+    const delegatedPendingRequest: DelegatedDescriptorArchivingRequest = {
+      requestedAt: new Date(),
+      requesterId: generateId(),
+      gracePeriodDays: 30,
+    };
+    const delegatedRejectedRequest: DelegatedDescriptorArchivingRequest = {
+      requestedAt: new Date(),
+      requesterId: generateId(),
+      gracePeriodDays: 30,
+      rejectedAt: new Date(),
+      rejectionReason: "rejection reason",
+    };
+    const delegatedAcceptedRequest: DelegatedDescriptorArchivingRequest = {
+      requestedAt: new Date(),
+      requesterId: generateId(),
+      gracePeriodDays: 30,
+      acceptedAt: new Date(),
+    };
+    const descriptor: Descriptor = {
+      ...getMockDescriptor(),
+      interface: getMockDocument(),
+      version: "1",
+      state: descriptorState.published,
+      delegatedArchivingRequest: [
+        delegatedPendingRequest,
+        delegatedRejectedRequest,
+        delegatedAcceptedRequest,
+      ],
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    await catalogService.archiveEService(
+      eservice.id,
+      getMockContextInternal({})
+    );
+
+    const writtenEvent = await readLastEserviceEvent(eservice.id);
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: EServiceArchivingCompletedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedArchivingRequests = [
+      delegatedRejectedRequest,
+      delegatedAcceptedRequest,
+    ];
+
+    const expectedEService: EService = {
+      ...eservice,
+      descriptors: [
+        {
+          ...descriptor,
+          delegatedArchivingRequest: expectedArchivingRequests,
+        },
+      ],
+    };
+
+    expect(
+      writtenPayload.eservice?.descriptors[0]?.delegatedArchivingRequest
+    ).toEqual(
+      toEServiceV2(expectedEService).descriptors[0].delegatedArchivingRequest
     );
   });
 });
