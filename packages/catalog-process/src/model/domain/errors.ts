@@ -97,6 +97,7 @@ const errorCodes = {
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
   interfaceDocumentNotUpdatable: "0077",
   eserviceCloningWithActiveOrPendingDelegation: "0078",
+  eserviceAlreadyExists: "0079",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -897,5 +898,15 @@ export function delegatedArchivingRequestNotActive(
     detail: `The delegated archiving request for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} is no longer active as it has already been processed (accepted or rejected). The delegate must resubmit.`,
     code: "delegatedArchivingRequestNotActive",
     title: "Delegated archiving request not active",
+  });
+}
+
+export function eserviceAlreadyExists(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService with id ${eserviceId} already exists`,
+    code: "eserviceAlreadyExists",
+    title: "EService already exists",
   });
 }

@@ -51,6 +51,7 @@ import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
 import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
+  eserviceAlreadyExists,
   eServiceNameDuplicateForProducer,
   eServiceRiskAnalysisIsRequired,
   invalidDelegationFlags,
@@ -525,6 +526,16 @@ export async function assertEServiceNameNotConflictingWithTemplate(
     });
   if (eserviceTemplateWithSameNameExists) {
     throw eserviceTemplateNameConflict(name);
+  }
+}
+
+export async function assertEserviceIdAvailable(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const eservice = await readModelService.getEServiceById(eserviceId);
+  if (eservice !== undefined) {
+    throw eserviceAlreadyExists(eserviceId);
   }
 }
 
