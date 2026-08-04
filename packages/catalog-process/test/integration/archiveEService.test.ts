@@ -202,7 +202,7 @@ describe("archiveEService", () => {
         descriptors,
       };
       await addOneEService(eservice);
-      expect(
+      await expect(
         catalogService.archiveEService(eservice.id, getMockContextInternal({}))
       ).rejects.toThrowError(eServiceAlreadyArchived(eservice.id));
     }
@@ -214,7 +214,7 @@ describe("archiveEService", () => {
       descriptors: [],
     };
 
-    expect(
+    await expect(
       catalogService.archiveEService(eservice.id, getMockContextInternal({}))
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
