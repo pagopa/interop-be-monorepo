@@ -2344,7 +2344,6 @@ export function catalogServiceBuilder(
         readModelService
       );
 
-      console.log("before cleanup", eservice.delegatedArchivingRequest);
       assertEServiceIsNotAlreadyArchived(eservice);
 
       const eserviceAfterRequestCleanup =
@@ -4927,10 +4926,6 @@ function deletePendingEServiceArchivingRequests(eservice: EService): EService {
       (request) => request.acceptedAt || request.rejectedAt
     ),
   };
-  console.log(
-    "after cleanup",
-    eserviceAfterRequestDeletion.delegatedArchivingRequest
-  );
 
   return eserviceAfterRequestDeletion;
 }

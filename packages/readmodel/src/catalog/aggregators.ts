@@ -333,13 +333,8 @@ export const aggregateEservice = ({
       ]);
       return acc;
     }, new Map<string, EServiceDescriptorArchivingRequestSQL[]>());
-  console.log("archivingRequestsSQL", archivingRequestsSQL);
   const archivingRequestsSQLWithNullDescriptorId = archivingRequestsSQL.filter(
     (a) => a.descriptorId === null
-  );
-  console.log(
-    "archivingRequestsSQLWithNullDescriptorId",
-    archivingRequestsSQLWithNullDescriptorId
   );
   const descriptors = [...descriptorsSQL]
     .sort((d1, d2) => Number(d1.version) - Number(d2.version))
