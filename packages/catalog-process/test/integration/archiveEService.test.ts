@@ -8,6 +8,7 @@ import {
   getMockDocument,
 } from "pagopa-interop-commons-test";
 import {
+  DelegatedEServiceArchivingRequest,
   Descriptor,
   DescriptorState,
   descriptorState,
@@ -217,7 +218,7 @@ describe("archiveEService", () => {
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
 
-  it.only("should delete pending archiving requests for the eservice", async () => {
+  it("should delete pending archiving requests for the eservice", async () => {
     const descriptors: Descriptor[] = Array.from({ length: 2 }, (_, idx) => ({
       ...getMockDescriptor(),
       interface: getMockDocument(),
@@ -225,36 +226,38 @@ describe("archiveEService", () => {
       state: [descriptorState.published, descriptorState.deprecated][idx],
     }));
 
+    const delegatedPendingRequest: DelegatedEServiceArchivingRequest = {
+      requestedAt: new Date(),
+      requesterId: generateId(),
+      gracePeriodDays: 30,
+      archivingReason: "Test pending request",
+    };
+    const delegatedRejectedRequest: DelegatedEServiceArchivingRequest = {
+      requestedAt: new Date(),
+      requesterId: generateId(),
+      gracePeriodDays: 30,
+      archivingReason: "Test rejected request",
+      rejectedAt: new Date(),
+      rejectionReason: "rejection reason",
+    };
+    const delegatedAcceptedRequest: DelegatedEServiceArchivingRequest = {
+      requestedAt: new Date(),
+      requesterId: generateId(),
+      gracePeriodDays: 30,
+      archivingReason: "Test accepted request",
+      acceptedAt: new Date(),
+    };
+
     const eservice: EService = {
       ...mockEService,
       descriptors,
       delegatedArchivingRequest: [
-        {
-          requestedAt: new Date(),
-          requesterId: generateId(),
-          gracePeriodDays: 30,
-          archivingReason: "Test rejected request",
-          rejectedAt: new Date(),
-          rejectionReason: "rejection reason",
-        },
-        {
-          requestedAt: new Date(),
-          requesterId: generateId(),
-          gracePeriodDays: 30,
-          archivingReason: "Test accepted request",
-          acceptedAt: new Date(),
-        },
-        {
-          requestedAt: new Date(),
-          requesterId: generateId(),
-          gracePeriodDays: 30,
-          archivingReason: "Test pending request",
-        },
+        delegatedPendingRequest,
+        delegatedRejectedRequest,
+        delegatedAcceptedRequest,
       ],
     };
-    console.log("Before archiving", eservice.delegatedArchivingRequest);
     await addOneEService(eservice);
-    console.log("After addOne", eservice.delegatedArchivingRequest);
     await catalogService.archiveEService(
       eservice.id,
       getMockContextInternal({})
@@ -269,19 +272,26 @@ describe("archiveEService", () => {
 
     const expectedArchivingRequests = [
       {
-        requestedAt: new Date(),
-        requesterId: generateId(),
-        gracePeriodDays: 30,
-        archivingReason: "Test archiving reason",
-        rejectedAt: new Date(),
-        rejectionReason: "Test rejection reason",
+        ...delegatedRejectedRequest,
+        rejectedAt:
+          writtenPayload.eservice!.delegatedArchivingRequest![0]!.rejectedAt,
+        requestedAt:
+          writtenPayload.eservice!.delegatedArchivingRequest![0]!.requestedAt,
+        gracePeriodDays: Number(
+          writtenPayload.eservice!.delegatedArchivingRequest![0]!
+            .gracePeriodDays
+        ),
       },
       {
-        requestedAt: new Date(),
-        requesterId: generateId(),
-        gracePeriodDays: 30,
-        archivingReason: "Test archiving reason",
-        acceptedAt: new Date(),
+        ...delegatedAcceptedRequest,
+        acceptedAt:
+          writtenPayload.eservice!.delegatedArchivingRequest![1]!.acceptedAt,
+        requestedAt:
+          writtenPayload.eservice!.delegatedArchivingRequest![1]!.requestedAt,
+        gracePeriodDays: Number(
+          writtenPayload.eservice!.delegatedArchivingRequest![1]!
+            .gracePeriodDays
+        ),
       },
     ];
     expect(writtenPayload.eservice?.delegatedArchivingRequest).toEqual(
