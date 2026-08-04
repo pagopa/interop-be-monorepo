@@ -2346,16 +2346,13 @@ export function catalogServiceBuilder(
 
       assertEServiceIsNotAlreadyArchived(eservice);
 
-      const eserviceAfterRequestCleanup =
-        deletePendingEServiceArchivingRequests(eservice);
-
-      const descriptors = eserviceAfterRequestCleanup.descriptors.map((d) =>
+      const descriptors = eservice.descriptors.map((d) =>
         d.state === descriptorState.archived
           ? d
           : updateDescriptorState(d, descriptorState.archived)
       );
       const updatedEservice: EService = {
-        ...eserviceAfterRequestCleanup,
+        ...eservice,
         descriptors,
       };
 
@@ -4911,22 +4908,6 @@ const processDescriptorPublication = async (
       : archiveDescriptorLogic(eservice.id, currentActiveDescriptor, logger)
   );
 };
-
-function deletePendingEServiceArchivingRequests(eservice: EService): EService {
-  const descriptorsAfterRequestDeletion = eservice.descriptors.map(
-    (descriptor) => deletePendingDescriptorArchivingRequests(descriptor)
-  );
-
-  const eserviceAfterRequestDeletion: EService = {
-    ...eservice,
-    descriptors: descriptorsAfterRequestDeletion,
-    delegatedArchivingRequest: eservice.delegatedArchivingRequest?.filter(
-      (request) => request.acceptedAt || request.rejectedAt
-    ),
-  };
-
-  return eserviceAfterRequestDeletion;
-}
 
 function deletePendingDescriptorArchivingRequests(
   descriptor: Descriptor
