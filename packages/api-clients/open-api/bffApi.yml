@@ -2120,12 +2120,12 @@ paths:
         - bearerAuth: []
       tags:
         - eservices
-      summary: Submit a delegated archiving request for an E-Service
-      description: Allows a delegate to request the archiving of the specified E-Service
+      summary: Approve a delegated archiving request for an E-Service
+      description: Allows the owner (delegator) to approve a delegate's archiving request
       operationId: approveDelegatedEServiceArchiving
       responses:
         "204":
-          description: Delegated archiving request submitted
+          description: Delegated archiving request approved
           headers:
             "X-Rate-Limit-Limit":
               schema:

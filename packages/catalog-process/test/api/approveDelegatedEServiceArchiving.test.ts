@@ -19,6 +19,7 @@ import { describe, it, expect, vi } from "vitest";
 
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  delegatedArchiveRequestForIncorrectDelegateProducer,
   delegatedArchivingRequestNotActive,
   eServiceDescriptorNotFound,
   eServiceNotFound,
@@ -111,6 +112,12 @@ describe("API /eservices/:eServiceId/approveDelegatedArchiving authorization tes
     {
       error: noActiveDelegationFound(mockEService.id),
       expectedStatus: 404,
+    },
+    {
+      error: delegatedArchiveRequestForIncorrectDelegateProducer(
+        mockEService.id
+      ),
+      expectedStatus: 403,
     },
     {
       error: gracePeriodDaysLowerThanDescriptor(
