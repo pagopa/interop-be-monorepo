@@ -125,6 +125,7 @@ describe("submitRiskAnalysis", () => {
         { id: unsafeBrandId(generateId()), sentToReviewerAt: new Date() },
       ],
       signingState: riskAnalysisSigningState.rejected,
+      rejectedBy: unsafeBrandId(generateId()),
       rejectionReason: "some reason",
     };
 
@@ -163,6 +164,9 @@ describe("submitRiskAnalysis", () => {
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(updatedPurpose),
     });
+
+    expect(updatedPurpose.reviewerWorkflow?.rejectedBy).toBeUndefined();
+    expect(updatedPurpose.reviewerWorkflow?.rejectionReason).toBeUndefined();
 
     vi.useRealTimers();
   });

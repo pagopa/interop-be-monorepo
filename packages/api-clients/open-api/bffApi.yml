@@ -32335,6 +32335,9 @@ components:
         signedBy:
           type: string
           format: uuid
+        rejectedBy:
+          type: string
+          format: uuid
         rejectionReason:
           type: string
       required:

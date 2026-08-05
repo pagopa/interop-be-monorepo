@@ -79,6 +79,8 @@ describe("rejectRiskAnalysis", () => {
       sortPurpose(updatedPurpose)
     );
 
+    expect(updatedPurpose.reviewerWorkflow?.rejectedBy).toEqual(reviewerId);
+
     vi.useRealTimers();
   });
 
