@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+
 import { parseAndSanitizeHtml } from "../src/services/htmlParser.js";
 
 describe("parseAndSanitizeHtml", () => {

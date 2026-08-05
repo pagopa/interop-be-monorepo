@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import winston from "winston";
 import { ClientId, CorrelationId, SpanId } from "pagopa-interop-models";
+import winston from "winston";
+
 import { LoggerConfig } from "../config/loggerConfig.js";
 import { bigIntReplacer } from "./utils.js";
 

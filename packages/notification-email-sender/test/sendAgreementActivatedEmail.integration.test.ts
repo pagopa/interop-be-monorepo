@@ -1,7 +1,6 @@
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import axios, { AxiosResponse } from "axios";
+import fs from "fs/promises";
+import Mail from "nodemailer/lib/mailer/index.js";
 import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
@@ -17,8 +16,10 @@ import {
   tenantMailKind,
   toAgreementV2,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import { afterEach, beforeAll, describe, expect, it, vi, vitest } from "vitest";
-import Mail from "nodemailer/lib/mailer/index.js";
+
 import {
   agreementStampDateNotFound,
   descriptorNotFound,

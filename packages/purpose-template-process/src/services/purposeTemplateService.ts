@@ -49,6 +49,8 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { purposeTemplateToApiPurposeTemplateSeed } from "../model/domain/apiConverter.js";
 import {
   associationEServicesForPurposeTemplateFailed,
   associationEServiceTemplatesForPurposeTemplateFailed,
@@ -90,7 +92,6 @@ import {
   cleanupAnnotationDocsForRemovedAnswers,
   deleteRiskAnalysisTemplateAnswerAnnotationDocuments,
 } from "../utilities/riskAnalysisDocUtils.js";
-import { purposeTemplateToApiPurposeTemplateSeed } from "../model/domain/apiConverter.js";
 import {
   GetPurposeTemplateEServiceDescriptorsFilters,
   GetPurposeTemplateEServiceTemplatesFilters,

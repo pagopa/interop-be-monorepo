@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
-import { Tenant, generateId } from "pagopa-interop-models";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import { tenantApi } from "pagopa-interop-api-clients";
-import { api, tenantService } from "../vitest.api.setup.js";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { Tenant, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toApiTenant } from "../../src/model/domain/apiConverter.js";
 import {
   attributeNotFound,
   certifiedAttributeAlreadyAssigned,
@@ -13,7 +14,7 @@ import {
   tenantNotFound,
   tenantNotFoundByExternalId,
 } from "../../src/model/domain/errors.js";
-import { toApiTenant } from "../../src/model/domain/apiConverter.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API POST /m2m/tenants test", () => {
   const tenant: Tenant = getMockTenant();

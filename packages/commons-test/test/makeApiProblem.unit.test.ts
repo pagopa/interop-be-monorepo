@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { AxiosError, AxiosResponse } from "axios";
 import { constants } from "http2";
 import {
   ApiError,
@@ -17,7 +18,7 @@ import {
 import { match } from "ts-pattern";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { AxiosError, AxiosResponse } from "axios";
+
 import { getMockContext } from "../src/testUtils.js";
 
 export const testErrorCodes = {

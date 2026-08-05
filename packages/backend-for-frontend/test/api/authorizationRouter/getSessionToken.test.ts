@@ -1,25 +1,26 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
 import {
   generateId,
   tokenVerificationFailed,
   tooManyRequestsError,
 } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { bffApi } from "pagopa-interop-api-clients";
-import { api, services } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import {
-  getMockGetSessionTokenReturnType,
-  getMockBffApiIdentityToken,
-} from "../../mockUtils.js";
 import {
   missingUserRolesInIdentityToken,
   tenantBySelfcareIdNotFound,
   tenantLoginNotAllowed,
 } from "../../../src/model/errors.js";
+import {
+  getMockGetSessionTokenReturnType,
+  getMockBffApiIdentityToken,
+} from "../../mockUtils.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API POST /session/tokens", () => {
   const mockIdentityToken = getMockBffApiIdentityToken();

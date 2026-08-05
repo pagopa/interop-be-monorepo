@@ -10,8 +10,8 @@ import {
   makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+
 import { parseIPACertifiedAttributesImporterConfig } from "./config/config.js";
-import { getRegistryData } from "./services/openDataService.js";
 import {
   assignNewAttributes,
   createTenantProcessClient,
@@ -22,6 +22,7 @@ import {
   getTenantUpsertData,
   revokeAttributes,
 } from "./services/ipaCertifiedAttributesImporterService.js";
+import { getRegistryData } from "./services/openDataService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const config = parseIPACertifiedAttributesImporterConfig(process.env);

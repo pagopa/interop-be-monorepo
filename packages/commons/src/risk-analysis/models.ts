@@ -8,8 +8,9 @@ import {
   TenantKind,
   generateId,
 } from "pagopa-interop-models";
-import { DataType } from "./rules/riskAnalysisFormRules.js";
+
 import { RiskAnalysisValidationIssue } from "./riskAnalysisValidationErrors.js";
+import { DataType } from "./rules/riskAnalysisFormRules.js";
 
 export type RiskAnalysisValidationInvalid = {
   type: "invalid";

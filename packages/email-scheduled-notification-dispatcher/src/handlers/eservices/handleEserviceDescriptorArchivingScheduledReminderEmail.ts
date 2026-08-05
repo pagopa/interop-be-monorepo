@@ -1,14 +1,14 @@
 import {
+  HtmlTemplateService,
+  Logger,
+  dateAtRomeZone,
+} from "pagopa-interop-commons";
+import {
   CorrelationId,
   EmailNotificationMessagePayload,
   NotificationType,
   TenantId,
 } from "pagopa-interop-models";
-import {
-  HtmlTemplateService,
-  Logger,
-  dateAtRomeZone,
-} from "pagopa-interop-commons";
 import {
   eventMailTemplateType,
   getRecipientsForTenants,
@@ -20,6 +20,7 @@ import {
   ScheduledNotificationRow,
   parseEServiceIdDescriptorId,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 const PRODUCER_NOTIFICATION: NotificationType =
@@ -107,7 +108,7 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
         archivableOn: archivableOnFormatted,
-        ctaLabel: "Visualizza e-service",
+        ctaLabel: "Accedi a PDND",
         selfcareId: t.selfcareId,
         bffUrl,
       }),
@@ -164,7 +165,7 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
             eserviceVersion: descriptor.version,
             producerName: producerTenant.name,
             archivableOn: archivableOnFormatted,
-            ctaLabel: "Visualizza e-service",
+            ctaLabel: "Accedi a PDND",
             selfcareId: t.selfcareId,
             bffUrl,
           }),

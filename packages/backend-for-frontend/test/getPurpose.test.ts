@@ -1,24 +1,26 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   purposeApi,
   catalogApi,
   tenantApi,
   agreementApi,
 } from "pagopa-interop-api-clients";
-import { generateId, PurposeId, TenantId, UserId } from "pagopa-interop-models";
 import { UIAuthData, userRole } from "pagopa-interop-commons";
 import {
   getMockAuthData,
   getMockContext,
   getMockedApiEserviceDescriptor,
 } from "pagopa-interop-commons-test";
+import { generateId, PurposeId, TenantId, UserId } from "pagopa-interop-models";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type {
   AuthorizationProcessClient,
   DelegationProcessClient,
   PagoPAInteropBeClients,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
+
 import { purposeServiceBuilder } from "../src/services/purposeService.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 

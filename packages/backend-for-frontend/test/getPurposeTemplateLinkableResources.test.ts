@@ -1,10 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
 import {
   catalogApi,
   eserviceTemplateApi,
   purposeTemplateApi,
 } from "pagopa-interop-api-clients";
-import { generateId, PurposeTemplateId, TenantId } from "pagopa-interop-models";
 import { AuthData } from "pagopa-interop-commons";
 import {
   getMockAuthData,
@@ -14,8 +12,11 @@ import {
   getMockedApiEServiceTemplate,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
+import { generateId, PurposeTemplateId, TenantId } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import type { TenantProcessClient } from "../src/clients/clientsProvider.js";
-import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
+
 import {
   eserviceDescriptorNotFound,
   eServiceNotFound,
@@ -23,6 +24,7 @@ import {
   eserviceTemplateVersionNotFound,
   tenantNotFound,
 } from "../src/model/errors.js";
+import { purposeTemplateServiceBuilder } from "../src/services/purposeTemplateService.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 
 describe("getPurposeTemplateLinkableResources (service)", () => {

@@ -1,7 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach } from "vitest";
+import {
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+  getMockDocument,
+  getMockEServiceTemplateAttribute,
+  getMockValidEServiceTemplateRiskAnalysis,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplateAddedV2,
   EServiceTemplateEventEnvelope,
@@ -18,15 +24,10 @@ import {
   EServiceTemplateVersionPublishedV2,
   EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
 } from "pagopa-interop-models";
-import {
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-  getMockDocument,
-  getMockEServiceTemplateAttribute,
-  getMockValidEServiceTemplateRiskAnalysis,
-} from "pagopa-interop-commons-test";
-import { EserviceTemplateDbTable } from "../src/model/db/index.js";
+import { describe, it, expect, beforeEach } from "vitest";
+
 import { handleEserviceTemplateMessageV2 } from "../src/handlers/eservice-template/consumerServiceV2.js";
+import { EserviceTemplateDbTable } from "../src/model/db/index.js";
 import {
   dbContext,
   getOneFromDb,

@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, PurposeTemplateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId, PurposeTemplateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, services } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { getMockBffApiPurposeTemplateWithCompactCreator } from "../../mockUtils.js";
 import { tenantNotFound } from "../../../src/model/errors.js";
+import { getMockBffApiPurposeTemplateWithCompactCreator } from "../../mockUtils.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /purposeTemplates/{purposeTemplateId}", () => {
   const mockPurposeTemplate = getMockBffApiPurposeTemplateWithCompactCreator();

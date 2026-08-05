@@ -3,6 +3,7 @@ import type {
   FileManager,
   RefreshableInteropToken,
 } from "pagopa-interop-commons";
+
 import {
   getMockDescriptor,
   getMockDocument,
@@ -33,6 +34,7 @@ import {
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi, afterEach } from "vitest";
+
 import { addOneEService, readModelService } from "./utils.js";
 
 const updateTemplateInstanceNameFn = vi.fn();

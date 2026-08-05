@@ -1,4 +1,10 @@
 import {
+  getMockContext,
+  getMockDocument,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+} from "pagopa-interop-commons-test";
+import {
   EServiceTemplateId,
   EServiceTemplateVersion,
   EServiceTemplateVersionId,
@@ -7,12 +13,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  getMockContext,
-  getMockDocument,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-} from "pagopa-interop-commons-test";
+
 import {
   eserviceTemplateDocumentNotFound,
   eserviceTemplateNotFound,

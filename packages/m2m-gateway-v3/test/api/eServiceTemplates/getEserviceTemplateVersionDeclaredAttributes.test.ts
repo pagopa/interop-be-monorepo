@@ -1,24 +1,25 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import {
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
-import {
-  eserviceTemplateApi,
-  m2mGatewayApiV3,
-} from "pagopa-interop-api-clients";
-import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceTemplateVersionAttributeNotFound,
   eserviceTemplateVersionNotFound,
 } from "../../../src/model/errors.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockEServiceTemplateService } from "../../vitest.api.setup.js";
 
 describe("GET /eserviceTemplates/{templateId}/versions/{versionId}/declaredAttributes router test", () => {
   const attribute1: eserviceTemplateApi.Attribute = {

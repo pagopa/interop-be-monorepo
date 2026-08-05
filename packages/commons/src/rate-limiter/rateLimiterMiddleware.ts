@@ -1,13 +1,14 @@
-import { constants } from "http2";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { constants } from "http2";
 import {
   TenantId,
   genericError,
   makeApiProblemBuilder,
   tooManyRequestsError,
 } from "pagopa-interop-models";
-import { ExpressContext, fromAppContext } from "../context/context.js";
+
 import { getUserInfoFromAuthData } from "../auth/authData.js";
+import { ExpressContext, fromAppContext } from "../context/context.js";
 import { RateLimiter } from "./rateLimiterModel.js";
 import { rateLimiterHeadersFromStatus } from "./rateLimiterUtils.js";
 
