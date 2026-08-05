@@ -52,16 +52,18 @@ describe("Purpose splitter", () => {
     const firstActivationAt = new Date();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
+    const reviewMode = riskAnalysisReviewMode.adminWritesReviewerSigns;
     const reviewers: RiskAnalysisReviewer[] = [
       { id: generateId<UserId>(), sentToReviewerAt: new Date() },
       { id: generateId<UserId>(), sentToReviewerAt: new Date() },
     ];
 
     const reviewerWorkflow: ReviewerWorkflow = {
-      reviewerIds: reviewers.map((reviewer) => reviewer.id),
       reviewers,
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
+      signedAt: new Date(),
+      rejectedBy: generateId<UserId>(),
       rejectionReason: "Reviewer workflow rejection reason",
       sentToReviewerAt: new Date(),
     };
@@ -97,7 +99,7 @@ describe("Purpose splitter", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
       purposeTemplateId: generateId<PurposeTemplateId>(),
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewMode,
       reviewerWorkflow,
     };
     const {
@@ -126,10 +128,12 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: purpose.purposeTemplateId!,
-      reviewMode: purpose.reviewMode!,
+      reviewMode,
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
+      reviewerWorkflowSignedAt: reviewerWorkflow.signedAt!.toISOString(),
+      reviewerWorkflowRejectedBy: reviewerWorkflow.rejectedBy!,
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
       // the send date is stored per reviewer, the legacy column is left behind
       reviewerWorkflowSentToReviewerAt: null,
@@ -317,6 +321,8 @@ describe("Purpose splitter", () => {
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: null,
       reviewerWorkflowSignedBy: null,
+      reviewerWorkflowSignedAt: null,
+      reviewerWorkflowRejectedBy: null,
       reviewerWorkflowRejectionReason: null,
       reviewerWorkflowSentToReviewerAt: null,
     };

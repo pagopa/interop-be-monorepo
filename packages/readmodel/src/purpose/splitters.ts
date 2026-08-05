@@ -72,6 +72,8 @@ export const splitPurposeIntoObjectsSQL = (
     reviewerWorkflowReviewMode: null,
     reviewerWorkflowSigningState: reviewerWorkflow?.signingState ?? null,
     reviewerWorkflowSignedBy: reviewerWorkflow?.signedBy ?? null,
+    reviewerWorkflowSignedAt: dateToString(reviewerWorkflow?.signedAt),
+    reviewerWorkflowRejectedBy: reviewerWorkflow?.rejectedBy ?? null,
     reviewerWorkflowRejectionReason: reviewerWorkflow?.rejectionReason ?? null,
     reviewerWorkflowSentToReviewerAt: null,
   };

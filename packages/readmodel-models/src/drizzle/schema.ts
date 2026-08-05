@@ -904,6 +904,11 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
     reviewerWorkflowReviewMode: varchar("reviewer_workflow_review_mode"),
     reviewerWorkflowSigningState: varchar("reviewer_workflow_signing_state"),
     reviewerWorkflowSignedBy: uuid("reviewer_workflow_signed_by"),
+    reviewerWorkflowSignedAt: timestamp("reviewer_workflow_signed_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    reviewerWorkflowRejectedBy: uuid("reviewer_workflow_rejected_by"),
     reviewerWorkflowRejectionReason: varchar(
       "reviewer_workflow_rejection_reason"
     ),

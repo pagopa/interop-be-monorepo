@@ -105,10 +105,11 @@ export const RiskAnalysisReviewer = z.object({
 export type RiskAnalysisReviewer = z.infer<typeof RiskAnalysisReviewer>;
 
 export const ReviewerWorkflow = z.object({
-  reviewerIds: z.array(UserId),
   reviewers: z.array(RiskAnalysisReviewer),
   signingState: RiskAnalysisSigningState,
   signedBy: UserId.optional(),
+  signedAt: z.coerce.date().optional(),
+  rejectedBy: UserId.optional(),
   rejectionReason: z.string().optional(),
   sentToReviewerAt: z.coerce.date().optional(),
 });

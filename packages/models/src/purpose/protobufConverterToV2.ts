@@ -156,10 +156,12 @@ export const toRiskAnalysisReviewerV2 = (
 export const toReviewerWorkflowV2 = (
   input: ReviewerWorkflow
 ): ReviewerWorkflowV2 => ({
-  reviewerIds: input.reviewerIds,
+  reviewerIds: [],
   reviewers: input.reviewers.map(toRiskAnalysisReviewerV2),
   signingState: toRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy,
+  signedAt: dateToBigInt(input.signedAt),
+  rejectedBy: input.rejectedBy,
   rejectionReason: input.rejectionReason,
   sentToReviewerAt: dateToBigInt(input.sentToReviewerAt),
 });
