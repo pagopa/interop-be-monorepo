@@ -14031,6 +14031,10 @@ components:
           format: date-time
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
         asyncExchangeCallbackInterface:
@@ -14167,6 +14171,10 @@ components:
           type: boolean
         archivingReason:
           type: string
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         asyncExchange:
           type: boolean
     ProducerEServiceDetails:
@@ -14205,9 +14213,64 @@ components:
           type: boolean
         asyncExchange:
           type: boolean
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         latestActiveDescriptorId:
           type: string
           format: uuid
+    DelegatedDescriptorArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+    DelegatedEServiceArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+        - archivingReason
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+        archivingReason:
+          type: string
     ArchivingSchedule:
       type: object
       additionalProperties: false
@@ -14405,6 +14468,10 @@ components:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -14461,6 +14528,10 @@ components:
           type: string
         asyncExchange:
           type: boolean
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false

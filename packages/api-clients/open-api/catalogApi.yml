@@ -3541,6 +3541,10 @@ components:
           type: boolean
         archivingReason:
           type: string
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         asyncExchange:
           type: boolean
     CreatedEServiceRiskAnalysis:
@@ -3934,6 +3938,61 @@ components:
           $ref: "#/components/schemas/EServiceDoc"
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
+    DelegatedDescriptorArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+    DelegatedEServiceArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+        - archivingReason
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+        archivingReason:
+          type: string
     ArchivingSchedule:
       type: object
       additionalProperties: false
