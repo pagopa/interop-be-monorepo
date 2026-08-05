@@ -6,16 +6,14 @@ import {
 import {
   contentTooLargeError,
   genericError,
-  invalidInterfaceFileDetected,
+  invalidImportedInterfaceFileDetected,
   Technology,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 
-import { getMockEService } from "../src/index.js";
 import { fileManager, s3Bucket } from "./utils.js";
 
 describe("verifyAndUploadImportedDocument", () => {
-  const eservice = getMockEService();
   const technology = Technology.Enum.Rest;
   const kind = "INTERFACE";
   const noLimitFileSizePolicy = {
@@ -49,7 +47,6 @@ describe("verifyAndUploadImportedDocument", () => {
 
     const uploaded = await verifyAndUploadImportedDocument(
       fileManager,
-      eservice.id,
       technology,
       entriesMap,
       {
@@ -82,7 +79,6 @@ describe("verifyAndUploadImportedDocument", () => {
     await expect(
       verifyAndUploadImportedDocument(
         fileManager,
-        eservice.id,
         technology,
         entriesMap,
         {
@@ -116,7 +112,6 @@ describe("verifyAndUploadImportedDocument", () => {
     await expect(
       verifyAndUploadImportedDocument(
         fileManager,
-        eservice.id,
         technology,
         entriesMap,
         {
@@ -153,7 +148,7 @@ describe("verifyAndUploadImportedDocument", () => {
       }),
     },
   ])(
-    "should throw invalidInterfaceFileDetected for an imported REST interface with $description",
+    "should throw invalidImportedInterfaceFileDetected for an imported REST interface with $description",
     async ({ fileContent }) => {
       const filePath = "test.openapi.3.0.2.json";
       const zipEntry = createMockZipEntry(fileContent, filePath);
@@ -164,7 +159,6 @@ describe("verifyAndUploadImportedDocument", () => {
       await expect(
         verifyAndUploadImportedDocument(
           fileManager,
-          eservice.id,
           technology,
           entriesMap,
           {
@@ -177,12 +171,7 @@ describe("verifyAndUploadImportedDocument", () => {
           noLimitFileSizePolicy,
           genericLogger
         )
-      ).rejects.toThrow(
-        invalidInterfaceFileDetected({
-          id: eservice.id,
-          isEserviceTemplate: false,
-        })
-      );
+      ).rejects.toThrow(invalidImportedInterfaceFileDetected(filePath));
     }
   );
 });

@@ -13,7 +13,6 @@ import {
 import {
   EServiceDescriptorDocumentAddedV2,
   EServiceDescriptorInterfaceAddedV2,
-  EServiceId,
   Tenant,
   descriptorState,
   generateId,
@@ -23,7 +22,6 @@ import {
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 
 import {
-  eserviceAlreadyExists,
   eServiceNameDuplicateForProducer,
   originNotCompliant,
 } from "../../src/model/domain/errors.js";
@@ -80,9 +78,7 @@ describe("import eservice", () => {
     serverUrls: [],
   };
 
-  const eserviceId = generateId<EServiceId>();
   const importSeed: catalogApi.EServiceImportSeed = {
-    eserviceId,
     name: "imported eservice",
     description: "imported eservice description",
     technology: "REST",
@@ -119,9 +115,9 @@ describe("import eservice", () => {
       getMockContext({ authData: getMockAuthData(producer.id) })
     );
 
+    const eserviceId = response.data.eservice.id;
     const descriptorId = response.data.createdDescriptorId;
 
-    expect(response.data.eservice.id).toBe(eserviceId);
     expect(response.data.eservice.descriptors[0].id).toBe(descriptorId);
     expect(response.metadata.version).toBe(6);
 
@@ -218,7 +214,8 @@ describe("import eservice", () => {
       getMockContext({ authData: getMockAuthData(producer.id) })
     );
 
-    expect(response.data.eservice.id).toBe(eserviceId);
+    const eserviceId = response.data.eservice.id;
+
     expect(response.metadata.version).toBe(1);
 
     const lastEvent = await readLastEserviceEvent(eserviceId);
@@ -299,21 +296,6 @@ describe("import eservice", () => {
 
     const events = await postgresDB.any("SELECT * FROM catalog.events");
     expect(events).toEqual([]);
-  });
-
-  it("should throw eserviceAlreadyExists if an eservice with the same id already exists", async () => {
-    await addOneTenant(producer);
-    await addOneEService({
-      ...getMockEService(),
-      id: eserviceId,
-    });
-
-    await expect(
-      catalogService.importEService(
-        importSeed,
-        getMockContext({ authData: getMockAuthData(producer.id) })
-      )
-    ).rejects.toThrowError(eserviceAlreadyExists(eserviceId));
   });
 
   it("should throw eServiceNameDuplicateForProducer if an eservice with the same name already exists", async () => {

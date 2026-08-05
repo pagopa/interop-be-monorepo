@@ -281,9 +281,6 @@ describe("importEService", () => {
         config.eserviceDocumentsPath
       );
       expect(importSeed.descriptor.interface.checksum).toBeDefined();
-      expect(importSeed.eserviceId).toMatch(
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-      );
 
       fs.unlinkSync(zipPath);
     });
