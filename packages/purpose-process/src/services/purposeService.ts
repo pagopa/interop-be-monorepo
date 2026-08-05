@@ -109,6 +109,7 @@ import {
   reviewerWorkflowNotAllowedForReceiveMode,
   reviewerWorkflowConflict,
   missingReviewers,
+  reviewersNotAllowedForReviewMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -581,7 +582,11 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
       }
 
-      if (seed.reviewMode !== riskAnalysisReviewMode.adminWritesAdminSigns) {
+      if (seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns) {
+        if (seed.reviewerIds.length > 0) {
+          throw reviewersNotAllowedForReviewMode(purposeId);
+        }
+      } else {
         if (seed.reviewerIds.length === 0) {
           throw missingReviewers(purposeId);
         }

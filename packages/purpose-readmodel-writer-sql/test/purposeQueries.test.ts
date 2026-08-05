@@ -75,8 +75,8 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        reviewMode: "AdminWritesReviewerSigns",
         reviewerWorkflow: {
-          reviewMode: "AdminWritesReviewerSigns",
           reviewerIds: [generateId<UserId>(), generateId<UserId>()],
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
@@ -212,8 +212,8 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        reviewMode: "AdminWritesReviewerSigns",
         reviewerWorkflow: {
-          reviewMode: "AdminWritesReviewerSigns",
           reviewerIds: [generateId<UserId>(), generateId<UserId>()],
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
