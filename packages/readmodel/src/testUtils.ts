@@ -349,16 +349,16 @@ export const upsertEService = async (
         .values(archivingScheduleSQL);
     }
 
-    for (const archivingRequestSQL of archivingRequestsSQL) {
-      await tx
-        .insert(eserviceDescriptorArchivingRequestInReadmodelCatalog)
-        .values(archivingRequestSQL);
-    }
-
     for (const asyncExchangePropsSQL of asyncExchangePropertiesSQL) {
       await tx
         .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
         .values(asyncExchangePropsSQL);
+    }
+
+    for (const archivingRequestSQL of archivingRequestsSQL) {
+      await tx
+        .insert(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+        .values(archivingRequestSQL);
     }
   });
 };
