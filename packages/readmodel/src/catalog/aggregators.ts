@@ -414,22 +414,24 @@ export const aggregateEservice = ({
       : {}),
     ...(archivingRequestsSQLWithNullDescriptorId.length > 0
       ? {
-          delegatedArchivingRequest: archivingRequestsSQLWithNullDescriptorId
-            .map<DelegatedEServiceArchivingRequest>((archivingRequest) => ({
-              gracePeriodDays: GracePeriodDays.parse(
-                archivingRequest.gracePeriodDays
-              ),
-              archivingReason: archivingRequest.archivingReason ?? "",
-              requestedAt: stringToDate(archivingRequest.requestedAt),
-              requesterId: unsafeBrandId(archivingRequest.requesterId),
-              rejectedAt: archivingRequest.rejectedAt
-                ? stringToDate(archivingRequest.rejectedAt)
-                : undefined,
-              acceptedAt: archivingRequest.acceptedAt
-                ? stringToDate(archivingRequest.acceptedAt)
-                : undefined,
-              rejectionReason: archivingRequest.rejectionReason ?? undefined,
-            })),
+          delegatedArchivingRequest:
+            archivingRequestsSQLWithNullDescriptorId.map<DelegatedEServiceArchivingRequest>(
+              (archivingRequest) => ({
+                gracePeriodDays: GracePeriodDays.parse(
+                  archivingRequest.gracePeriodDays
+                ),
+                archivingReason: archivingRequest.archivingReason ?? "",
+                requestedAt: stringToDate(archivingRequest.requestedAt),
+                requesterId: unsafeBrandId(archivingRequest.requesterId),
+                rejectedAt: archivingRequest.rejectedAt
+                  ? stringToDate(archivingRequest.rejectedAt)
+                  : undefined,
+                acceptedAt: archivingRequest.acceptedAt
+                  ? stringToDate(archivingRequest.acceptedAt)
+                  : undefined,
+                rejectionReason: archivingRequest.rejectionReason ?? undefined,
+              })
+            ),
         }
       : {}),
   };
