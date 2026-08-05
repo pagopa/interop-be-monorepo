@@ -489,7 +489,7 @@ export async function assertEServiceNameAvailableForProducer(
   }
 }
 
-export async function assertEServiceNameNotConflictingWithTemplate(
+async function assertEServiceNameNotConflictingWithTemplate(
   name: string,
   readModelService: ReadModelServiceSQL
 ): Promise<void> {
