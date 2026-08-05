@@ -1,3 +1,4 @@
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   EmailNotificationMessagePayload,
   NotificationType,
@@ -69,6 +70,9 @@ export async function handleEserviceArchivingRequestedByDelegate(
     return [];
   }
 
+  const archivableOn = descriptor.archivingSchedule
+    ? dateAtRomeZone(descriptor.archivingSchedule.archivableOn)
+    : undefined;
   const subject = `Nuova richiesta di archiviazione di un e-service`;
 
   return targets.map((t) => ({
@@ -82,7 +86,8 @@ export async function handleEserviceArchivingRequestedByDelegate(
         ...(t.type === "Tenant" ? { recipientName: delegator.name } : {}),
         delegateName: delegate.name,
         eserviceName: eservice.name,
-        ctaLabel: "Valuta la richiesta",
+        archivableOn,
+        ctaLabel: "Visualizza l'e-service",
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

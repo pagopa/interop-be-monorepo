@@ -87,6 +87,7 @@ export async function handleEserviceDescriptorArchivingRequestRejectedByDelegato
         delegatorName: delegator.name,
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
+        ctaLabel: "Leggi la motivazione",
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

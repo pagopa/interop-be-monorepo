@@ -82,6 +82,7 @@ export async function handleEserviceArchivingRequestRejectedByDelegator(
         ...(t.type === "Tenant" ? { recipientName: delegate.name } : {}),
         delegatorName: delegator.name,
         eserviceName: eservice.name,
+        ctaLabel: "Leggi la motivazione",
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),
