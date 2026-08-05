@@ -8,10 +8,11 @@ import {
   CommonErrorCodes,
   contentTooLargeError,
   EService,
-  EServiceId,
   genericError,
   interfaceExtractingInfoError,
   invalidContentTypeDetected,
+  invalidImportedInterfaceFileDetected,
+  invalidImportedServerUrl,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
   invalidFileUploadError,
@@ -484,7 +485,6 @@ export type EserviceImportUploadedDocument = {
 
 export const verifyAndUploadImportedDocument = async (
   fileManager: FileManager,
-  eserviceId: EServiceId,
   technology: Technology,
   entriesMap: Map<string, AdmZip.IZipEntry>,
   doc: {
@@ -511,35 +511,48 @@ Promise<EserviceImportUploadedDocument> => {
 
   const documentId = randomUUID();
 
-  return await verifyAndCreateDocument(
-    fileManager,
-    { id: eserviceId, isEserviceTemplate: false },
-    technology,
-    kind,
-    file,
-    documentId,
-    eserviceDocumentsContainer,
-    eserviceDocumentsPath,
-    doc.prettyName,
-    async (
+  try {
+    return await verifyAndCreateDocument(
+      fileManager,
+      { id: documentId, isEserviceTemplate: false },
+      technology,
+      kind,
+      file,
       documentId,
-      fileName,
-      filePath,
-      prettyName,
-      _kind,
-      serverUrls,
-      contentType,
-      checksum
-    ) => ({
-      documentId,
-      fileName,
-      filePath,
-      prettyName,
-      serverUrls,
-      contentType,
-      checksum,
-    }),
-    fileSizeLimits,
-    logger
-  );
+      eserviceDocumentsContainer,
+      eserviceDocumentsPath,
+      doc.prettyName,
+      async (
+        documentId,
+        fileName,
+        filePath,
+        prettyName,
+        _kind,
+        serverUrls,
+        contentType,
+        checksum
+      ) => ({
+        documentId,
+        fileName,
+        filePath,
+        prettyName,
+        serverUrls,
+        contentType,
+        checksum,
+      }),
+      fileSizeLimits,
+      logger
+    );
+  } catch (error) {
+    // the eservice does not exist yet: rethrow errors that would reference it
+    // as their import variants
+    throw match(error)
+      .with({ code: "invalidEserviceInterfaceFileDetected" }, () =>
+        invalidImportedInterfaceFileDetected(doc.path)
+      )
+      .with({ code: "invalidServerUrl" }, () =>
+        invalidImportedServerUrl(doc.path)
+      )
+      .otherwise(() => error);
+  }
 };

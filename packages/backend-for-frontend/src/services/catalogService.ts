@@ -29,7 +29,6 @@ import {
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
-  generateId,
   genericInternalError,
   RiskAnalysisId,
   TenantId,
@@ -1849,10 +1848,6 @@ export function catalogServiceBuilder(
       };
       const technology = apiTechnologyToTechnology(importedEservice.technology);
 
-      // the documents are uploaded before the eservice exists, so its id is
-      // generated here and catalog-process creates the eservice with it
-      const eserviceId = generateId<EServiceId>();
-
       const uploadedPaths: string[] = [];
 
       const uploadImportedDocument = async (
@@ -1861,7 +1856,6 @@ export function catalogServiceBuilder(
       ): Promise<catalogApi.EServiceImportDocumentSeed> => {
         const uploaded = await verifyAndUploadImportedDocument(
           fileManager,
-          eserviceId,
           technology,
           entriesMap,
           doc,
@@ -1895,7 +1889,6 @@ export function catalogServiceBuilder(
         }
 
         const importSeed: catalogApi.EServiceImportSeed = {
-          eserviceId,
           name: importedEservice.name,
           description: importedEservice.description,
           technology: importedEservice.technology,
