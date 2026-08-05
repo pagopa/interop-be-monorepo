@@ -101,7 +101,7 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
         archivableOn: archivableOnFormatted,
-        ctaLabel: "Visualizza e-service",
+        ctaLabel: "Accedi a PDND",
         selfcareId: t.selfcareId,
         bffUrl,
       }),

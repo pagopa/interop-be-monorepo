@@ -98,7 +98,7 @@ export async function handleEserviceArchivingScheduledReminderEmail(
         ...(t.type === "Tenant" ? { recipientName: producerTenant.name } : {}),
         eserviceName: eservice.name,
         archivableOn: archivableOnFormatted,
-        ctaLabel: "Visualizza e-service",
+        ctaLabel: "Accedi a PDND",
         selfcareId: t.selfcareId,
         bffUrl,
       }),
