@@ -80,8 +80,7 @@ const errorCodes = {
   reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
   reviewersNotAllowedForReviewMode: "0061",
-  missingReviewers: "0062",
-  purposeMetadataVersionMismatch: "0063",
+  purposeMetadataVersionMismatch: "0062",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
