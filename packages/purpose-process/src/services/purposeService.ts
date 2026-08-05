@@ -796,14 +796,17 @@ export function purposeServiceBuilder(
         });
       }
 
+      const now = new Date();
+
       const updatedPurpose: Purpose = {
         ...purpose.data,
         reviewerWorkflow: {
           ...workflow,
           signingState: riskAnalysisSigningState.signed,
           signedBy: authData.userId,
+          signedAt: now,
         },
-        updatedAt: new Date(),
+        updatedAt: now,
       };
 
       const event = await repository.createEvent(

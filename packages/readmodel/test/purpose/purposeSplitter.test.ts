@@ -62,6 +62,7 @@ describe("Purpose splitter", () => {
       reviewers,
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
+      signedAt: new Date(),
       rejectedBy: generateId<UserId>(),
       rejectionReason: "Reviewer workflow rejection reason",
       sentToReviewerAt: new Date(),
@@ -131,6 +132,7 @@ describe("Purpose splitter", () => {
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
+      reviewerWorkflowSignedAt: reviewerWorkflow.signedAt!.toISOString(),
       reviewerWorkflowRejectedBy: reviewerWorkflow.rejectedBy!,
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
       // the send date is stored per reviewer, the legacy column is left behind
@@ -319,6 +321,7 @@ describe("Purpose splitter", () => {
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: null,
       reviewerWorkflowSignedBy: null,
+      reviewerWorkflowSignedAt: null,
       reviewerWorkflowRejectedBy: null,
       reviewerWorkflowRejectionReason: null,
       reviewerWorkflowSentToReviewerAt: null,

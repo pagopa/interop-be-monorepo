@@ -101,4 +101,5 @@ message ReviewerWorkflowV2 {
   optional int64 sentToReviewerAt = 6;
   repeated RiskAnalysisReviewerV2 reviewers = 7;
   optional string rejectedBy = 8;
+  optional int64 signedAt = 9;
 }
