@@ -415,11 +415,6 @@ export const aggregateEservice = ({
     ...(archivingRequestsSQLWithNullDescriptorId.length > 0
       ? {
           delegatedArchivingRequest: archivingRequestsSQLWithNullDescriptorId
-            .filter(
-              (archivingRequest) =>
-                archivingRequest.archivingReason !== null &&
-                archivingRequest.descriptorId === null
-            )
             .map<DelegatedEServiceArchivingRequest>((archivingRequest) => ({
               gracePeriodDays: GracePeriodDays.parse(
                 archivingRequest.gracePeriodDays
