@@ -755,6 +755,17 @@ export function invalidInterfaceFileDetected(resource: {
   });
 }
 
+// import variant: identifies the file by its archive path, as the eservice does not exist yet
+export function invalidImportedInterfaceFileDetected(
+  filePath: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The imported interface file ${filePath} is invalid`,
+    code: "invalidEserviceInterfaceFileDetected",
+    title: "Invalid interface file detected",
+  });
+}
+
 export function invalidInterfaceData(resource: {
   id: string;
   isEserviceTemplate: boolean;
@@ -859,6 +870,17 @@ export function invalidServerUrl(resource: {
     detail: `The interface file for ${
       resource.isEserviceTemplate ? "EserviceTemplate" : "EService"
     } with ID ${resource.id} has invalid server URL`,
+    code: "invalidServerUrl",
+    title: "Invalid server URL",
+  });
+}
+
+// import variant: identifies the file by its archive path, as the eservice does not exist yet
+export function invalidImportedServerUrl(
+  filePath: string
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
+    detail: `The imported interface file ${filePath} has invalid server URL`,
     code: "invalidServerUrl",
     title: "Invalid server URL",
   });

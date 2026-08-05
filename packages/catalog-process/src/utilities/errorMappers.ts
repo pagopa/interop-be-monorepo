@@ -84,7 +84,6 @@ export const importEServiceErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
-      "eserviceAlreadyExists",
       "eServiceNameDuplicateForProducer",
       "eserviceTemplateNameConflict",
       "riskAnalysisDuplicated",

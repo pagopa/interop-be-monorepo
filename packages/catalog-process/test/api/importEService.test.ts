@@ -15,7 +15,6 @@ import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   checksumDuplicate,
   documentPrettyNameDuplicate,
-  eserviceAlreadyExists,
   eServiceNameDuplicateForProducer,
   eserviceNotInReceiveMode,
   eserviceTemplateNameConflict,
@@ -46,7 +45,6 @@ describe("API /import/eservices authorization test", () => {
   );
 
   const importSeed: catalogApi.EServiceImportSeed = {
-    eserviceId: mockEservice.id,
     name: apiEservice.name,
     description: apiEservice.description,
     technology: "REST",
@@ -127,10 +125,6 @@ describe("API /import/eservices authorization test", () => {
       expectedStatus: 403,
     },
     {
-      error: eserviceAlreadyExists(mockEservice.id),
-      expectedStatus: 409,
-    },
-    {
       error: eServiceNameDuplicateForProducer(
         mockEservice.name,
         mockEservice.producerId
@@ -191,8 +185,6 @@ describe("API /import/eservices authorization test", () => {
   it.each([
     {},
     { ...importSeed, invalidParam: "invalidValue" },
-    { ...importSeed, eserviceId: undefined },
-    { ...importSeed, eserviceId: "not-a-uuid" },
     { ...importSeed, name: 1 },
     { ...importSeed, technology: "INVALID_TECH" },
     { ...importSeed, mode: "INVALID_MODE" },
