@@ -33,9 +33,19 @@ export function dateToSeconds(date: Date): number {
   return Math.floor(date.getTime() / 1000);
 }
 
-export const secondsToMilliseconds = (timestamp: number): number => {
-  if (timestamp.toString().length === 10) {
-    return timestamp * 1000;
+/**
+ * Normalizes a Unix timestamp expressed in seconds, milliseconds, microseconds
+ * or nanoseconds (decimals allowed) to integer milliseconds.
+ * Values >= 1e10 cannot be seconds (they would be dates after year 2286), so
+ * the value is divided by 1000 until it falls in the seconds range; the
+ * s/ms/µs/ns representations of dates between 2001 and 2286 lie in disjoint
+ * ranges, so no realistic timestamp is ambiguous.
+ */
+export const timestampToMilliseconds = (timestamp: number): number => {
+  if (!Number.isFinite(timestamp)) {
+    return timestamp;
   }
-  return timestamp;
+  return timestamp >= 1e10
+    ? timestampToMilliseconds(timestamp / 1000)
+    : Math.round(timestamp * 1000);
 };
