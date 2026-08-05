@@ -407,12 +407,13 @@ export function getMockedApiEserviceDescriptor({
   interfaceDoc,
   attributes,
   archivingSchedule,
+  delegatedArchivingRequest,
 }: {
   state?: catalogApi.EServiceDescriptorState;
   interfaceDoc?: catalogApi.EServiceDoc;
   attributes?: catalogApi.Attributes;
   archivingSchedule?: catalogApi.ArchivingSchedule;
-  delegatedArchivingRequest?: catalogApi.DelegatedDescriptorArchivingRequest;
+  delegatedArchivingRequest?: catalogApi.DelegatedDescriptorArchivingRequest[];
 } = {}): catalogApi.EServiceDescriptor {
   return {
     id: generateId(),
@@ -437,9 +438,11 @@ export function getMockedApiEserviceDescriptor({
     ...(archivingSchedule
       ? { archivingSchedule: generateMock(catalogApi.ArchivingSchedule) }
       : {}),
-    delegatedArchivingRequest: generateMock(
-      catalogApi.DelegatedDescriptorArchivingRequest.optional()
-    ),
+    delegatedArchivingRequest:
+      delegatedArchivingRequest ??
+      generateMock(
+        z.array(catalogApi.DelegatedDescriptorArchivingRequest).optional()
+      ),
   };
 }
 
