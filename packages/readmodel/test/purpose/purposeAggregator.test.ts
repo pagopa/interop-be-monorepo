@@ -58,7 +58,6 @@ describe("Purpose aggregator", () => {
         purposeTemplateId: generateId<PurposeTemplateId>(),
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewerIds: reviewers.map((reviewer) => reviewer.id),
           reviewers,
           signingState: riskAnalysisSigningState.signed,
           signedBy: generateId<UserId>(),

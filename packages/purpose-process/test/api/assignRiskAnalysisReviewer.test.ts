@@ -26,6 +26,7 @@ import {
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
   missingReviewers,
+  reviewersNotAllowedForReviewMode,
 } from "../../src/model/domain/errors.js";
 import { api, purposeService } from "../vitest.api.setup.js";
 
@@ -111,6 +112,10 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     },
     {
       error: missingReviewers(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: reviewersNotAllowedForReviewMode(mockPurpose.id),
       expectedStatus: 400,
     },
   ])(

@@ -93,7 +93,8 @@ message RiskAnalysisReviewerV2 {
 
 message ReviewerWorkflowV2 {
   reserved 1;
-  repeated string reviewerIds = 2;
+  // Superseded by reviewers
+  repeated string reviewerIds = 2 [deprecated = true];
   RiskAnalysisSigningStateV2 signingState = 3;
   optional string signedBy = 4;
   optional string rejectionReason = 5;

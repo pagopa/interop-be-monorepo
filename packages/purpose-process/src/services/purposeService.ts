@@ -109,6 +109,7 @@ import {
   reviewerWorkflowNotAllowedForReceiveMode,
   reviewerWorkflowConflict,
   missingReviewers,
+  reviewersNotAllowedForReviewMode,
   purposeMetadataVersionMismatch,
 } from "../model/domain/errors.js";
 import {
@@ -582,7 +583,11 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
       }
 
-      if (seed.reviewMode !== riskAnalysisReviewMode.adminWritesAdminSigns) {
+      if (seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns) {
+        if (seed.reviewerIds.length > 0) {
+          throw reviewersNotAllowedForReviewMode(purposeId);
+        }
+      } else {
         if (seed.reviewerIds.length === 0) {
           throw missingReviewers(purposeId);
         }
@@ -762,7 +767,9 @@ export function purposeServiceBuilder(
           throw reviewerWorkflowNotInSignableState(purposeId);
         });
 
-      if (!workflow.reviewerIds.includes(authData.userId)) {
+      if (
+        !workflow.reviewers.some((reviewer) => reviewer.id === authData.userId)
+      ) {
         throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
@@ -841,7 +848,9 @@ export function purposeServiceBuilder(
         throw rejectNotAllowedInCurrentMode(purposeId);
       }
 
-      if (!workflow.reviewerIds.includes(authData.userId)) {
+      if (
+        !workflow.reviewers.some((reviewer) => reviewer.id === authData.userId)
+      ) {
         throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
@@ -900,7 +909,9 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotEditable(purposeId);
       }
 
-      if (!workflow.reviewerIds.includes(authData.userId)) {
+      if (
+        !workflow.reviewers.some((reviewer) => reviewer.id === authData.userId)
+      ) {
         throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
@@ -2841,7 +2852,7 @@ function assignRiskAnalysisReviewerLogic(
 } {
   const previousReviewMode = purpose.data.reviewMode;
   const previousReviewers = purpose.data.reviewerWorkflow?.reviewers ?? [];
-  const previousReviewerIds = purpose.data.reviewerWorkflow?.reviewerIds ?? [];
+  const previousReviewerIds = previousReviewers.map((reviewer) => reviewer.id);
   const requestedReviewers = (review?.reviewerIds ?? []).map((id) =>
     unsafeBrandId<UserId>(id)
   );
@@ -2947,7 +2958,6 @@ function assignRiskAnalysisReviewerLogic(
       ],
       () => ({
         reviewerWorkflow: {
-          reviewerIds: requestedReviewers,
           reviewers: stampNone(requestedReviewers),
           signingState: riskAnalysisSigningState.draft,
           sentToReviewerAt: undefined,
@@ -2973,7 +2983,6 @@ function assignRiskAnalysisReviewerLogic(
       ],
       () => ({
         reviewerWorkflow: {
-          reviewerIds: requestedReviewers,
           reviewers: stampNone(requestedReviewers),
           signingState: riskAnalysisSigningState.draft,
           sentToReviewerAt: undefined,
@@ -3003,7 +3012,6 @@ function assignRiskAnalysisReviewerLogic(
       ],
       () => ({
         reviewerWorkflow: {
-          reviewerIds: requestedReviewers,
           reviewers: stampAll(requestedReviewers, now),
           signingState: riskAnalysisSigningState.assigned,
           sentToReviewerAt: undefined,
@@ -3029,7 +3037,6 @@ function assignRiskAnalysisReviewerLogic(
       ],
       () => ({
         reviewerWorkflow: {
-          reviewerIds: requestedReviewers,
           reviewers: stampOnlyNew(requestedReviewers, previousReviewers, now),
           signingState: riskAnalysisSigningState.assigned,
           sentToReviewerAt: undefined,

@@ -99,9 +99,9 @@ describe("getPurpose — reviewer enrichment", () => {
     isFreeOfCharge: false,
     createdAt: new Date().toISOString(),
     versions: [],
+    reviewMode:
+      purposeApi.RiskAnalysisReviewMode.Values.REVIEWER_WRITES_REVIEWER_SIGNS,
     reviewerWorkflow: {
-      reviewMode:
-        purposeApi.RiskAnalysisReviewMode.Values.REVIEWER_WRITES_REVIEWER_SIGNS,
       reviewers: [{ id: reviewerId, sentToReviewerAt }],
       signingState: purposeApi.RiskAnalysisSigningState.Values.ASSIGNED,
     },

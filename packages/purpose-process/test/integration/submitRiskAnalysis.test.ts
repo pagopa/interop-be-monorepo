@@ -64,16 +64,17 @@ describe("submitRiskAnalysis", () => {
     vi.setSystemTime(new Date());
 
     const workflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [unsafeBrandId(generateId())],
+      reviewers: [
+        { id: unsafeBrandId(generateId()), sentToReviewerAt: undefined },
+      ],
       signingState: riskAnalysisSigningState.draft,
-      sentToReviewerAt: undefined,
     };
 
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: workflow,
     };
 
@@ -85,6 +86,13 @@ describe("submitRiskAnalysis", () => {
       mockPurpose.id,
       { riskAnalysisForm: validFormSeed },
       getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+    );
+
+    expect(updatedPurpose.reviewerWorkflow?.reviewers).toEqual(
+      workflow.reviewers.map((reviewer) => ({
+        ...reviewer,
+        sentToReviewerAt: new Date(),
+      }))
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -113,17 +121,18 @@ describe("submitRiskAnalysis", () => {
     vi.setSystemTime(new Date());
 
     const workflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [unsafeBrandId(generateId())],
+      reviewers: [
+        { id: unsafeBrandId(generateId()), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.rejected,
       rejectionReason: "some reason",
-      sentToReviewerAt: new Date(),
     };
 
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: workflow,
     };
 
@@ -190,11 +199,12 @@ describe("submitRiskAnalysis", () => {
   it("should throw submitNotAllowedForReviewMode if review mode is ReviewerWritesReviewerSigns", async () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [unsafeBrandId(generateId())],
+        reviewers: [
+          { id: unsafeBrandId(generateId()), sentToReviewerAt: undefined },
+        ],
         signingState: riskAnalysisSigningState.draft,
-        sentToReviewerAt: undefined,
       },
     };
 
@@ -218,11 +228,12 @@ describe("submitRiskAnalysis", () => {
     async ({ signingState }) => {
       const mockPurpose: Purpose = {
         ...getMockPurpose([getMockPurposeVersion()]),
+        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-          reviewerIds: [unsafeBrandId(generateId())],
+          reviewers: [
+            { id: unsafeBrandId(generateId()), sentToReviewerAt: new Date() },
+          ],
           signingState,
-          sentToReviewerAt: new Date(),
         },
       };
 
@@ -240,14 +251,15 @@ describe("submitRiskAnalysis", () => {
 
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const workflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [unsafeBrandId(generateId())],
+      reviewers: [
+        { id: unsafeBrandId(generateId()), sentToReviewerAt: undefined },
+      ],
       signingState: riskAnalysisSigningState.draft,
-      sentToReviewerAt: undefined,
     };
 
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: workflow,
     };
 
