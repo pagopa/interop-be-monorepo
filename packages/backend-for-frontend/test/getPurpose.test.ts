@@ -101,8 +101,6 @@ describe("getPurpose — reviewer enrichment", () => {
     reviewMode:
       purposeApi.RiskAnalysisReviewMode.Values.REVIEWER_WRITES_REVIEWER_SIGNS,
     reviewerWorkflow: {
-      reviewMode:
-        purposeApi.RiskAnalysisReviewMode.Values.REVIEWER_WRITES_REVIEWER_SIGNS,
       reviewers: [{ id: reviewerId, sentToReviewerAt }],
       signingState: purposeApi.RiskAnalysisSigningState.Values.ASSIGNED,
     },

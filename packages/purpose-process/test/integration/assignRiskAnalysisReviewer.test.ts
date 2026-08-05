@@ -106,7 +106,6 @@ function previousReviewerWorkflow(
   return match(previousReviewMode)
     .returnType<ReviewerWorkflow | undefined>()
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
-      reviewerIds: previousReviewers,
       reviewers: previousReviewers.map((id) => ({
         id,
         sentToReviewerAt: previousSentToReviewerAt,
@@ -115,7 +114,6 @@ function previousReviewerWorkflow(
       sentToReviewerAt: previousSentToReviewerAt,
     }))
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () => ({
-      reviewerIds: previousReviewers,
       reviewers: previousReviewers.map((id) => ({
         id,
         sentToReviewerAt: undefined,
@@ -227,7 +225,6 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
       reviewers: reviewerIds.map((id) => ({
         id: unsafeBrandId(id),
         sentToReviewerAt: new Date(),
@@ -314,7 +311,6 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
       reviewers: reviewerIds.map((id) => ({
         id: unsafeBrandId(id),
         sentToReviewerAt: undefined,
@@ -407,7 +403,6 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
       reviewers: reviewerIds.map((id) => ({
         id: unsafeBrandId(id),
         sentToReviewerAt: new Date(),
@@ -572,7 +567,7 @@ describe("assignRiskAnalysisReviewer", () => {
 
     expect(writtenPayload.purpose?.riskAnalysisForm).toBeUndefined();
     expect(writtenPayload.oldReviewers).toEqual(
-      mockPurpose.reviewerWorkflow?.reviewerIds
+      mockPurpose.reviewerWorkflow?.reviewers.map((reviewer) => reviewer.id)
     );
   });
 
@@ -637,7 +632,6 @@ describe("assignRiskAnalysisReviewer", () => {
         riskAnalysisReviewMode.adminWritesReviewerSigns
       );
       expect(updatedPurpose.reviewerWorkflow).toEqual({
-        reviewerIds: requestedReviewerIds,
         reviewers: requestedReviewerIds.map((id) => ({
           id,
           sentToReviewerAt: undefined,
@@ -730,7 +724,6 @@ describe("assignRiskAnalysisReviewer", () => {
         riskAnalysisReviewMode.reviewerWritesReviewerSigns
       );
       expect(updatedPurpose.reviewerWorkflow).toEqual({
-        reviewerIds: requestedReviewerIds,
         reviewers: requestedReviewerIds.map((id) => ({
           id,
           sentToReviewerAt:
@@ -1160,7 +1153,6 @@ describe("assignRiskAnalysisReviewer", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
         reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
         signingState: RiskAnalysisSigningState.Values.Signed,
         signedBy: generateId<UserId>(),

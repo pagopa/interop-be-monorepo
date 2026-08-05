@@ -519,14 +519,16 @@ describe("getPurposes", async () => {
   it("should get purposes with filters: signingStates", async () => {
     const reviewerId: UserId = generateId();
     const assignedWorkflow: ReviewerWorkflow = {
-      reviewerIds: [unsafeBrandId(reviewerId)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.assigned,
-      sentToReviewerAt: new Date(),
     };
     const submittedWorkflow: ReviewerWorkflow = {
-      reviewerIds: [unsafeBrandId(reviewerId)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.submitted,
-      sentToReviewerAt: new Date(),
     };
 
     const assignedPurpose: Purpose = {
@@ -593,24 +595,28 @@ describe("getPurposes", async () => {
     const reviewerIdWithoutPurposes: UserId = generateId();
 
     const submittedReviewer1Workflow: ReviewerWorkflow = {
-      reviewerIds: [unsafeBrandId(reviewerId1)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId1), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.submitted,
-      sentToReviewerAt: new Date(),
     };
     const submittedReviewer2Workflow: ReviewerWorkflow = {
-      reviewerIds: [unsafeBrandId(reviewerId2)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId2), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.submitted,
-      sentToReviewerAt: new Date(),
     };
     const assignedReviewer1Workflow: ReviewerWorkflow = {
-      reviewerIds: [unsafeBrandId(reviewerId1)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId1), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.assigned,
-      sentToReviewerAt: new Date(),
     };
     const assignedReviewer2Workflow: ReviewerWorkflow = {
-      reviewerIds: [unsafeBrandId(reviewerId2)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId2), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.assigned,
-      sentToReviewerAt: new Date(),
     };
 
     const submittedReviewer1Purpose: Purpose = {

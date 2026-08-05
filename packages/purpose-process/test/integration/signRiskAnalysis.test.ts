@@ -63,9 +63,8 @@ describe("signRiskAnalysis", () => {
       riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -110,9 +109,8 @@ describe("signRiskAnalysis", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -179,9 +177,8 @@ describe("signRiskAnalysis", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
         signingState: riskAnalysisSigningState.draft,
-        sentToReviewerAt: undefined,
       },
     };
 
@@ -202,9 +199,8 @@ describe("signRiskAnalysis", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [generateId<UserId>()],
+        reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -229,9 +225,8 @@ describe("signRiskAnalysis", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
       riskAnalysisForm: undefined,
     };
@@ -257,9 +252,8 @@ describe("signRiskAnalysis", () => {
       riskAnalysisForm: getMockExpiredRiskAnalysisForm(tenantKind.PA),
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 

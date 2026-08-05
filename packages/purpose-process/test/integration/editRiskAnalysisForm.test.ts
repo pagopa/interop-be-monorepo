@@ -66,9 +66,8 @@ describe("editRiskAnalysisForm", () => {
       eserviceId: mockEService.id,
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -157,7 +156,7 @@ describe("editRiskAnalysisForm", () => {
       eserviceId: mockEService.id,
       reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId }],
         signingState: riskAnalysisSigningState.draft,
       },
     };
@@ -189,10 +188,9 @@ describe("editRiskAnalysisForm", () => {
       eserviceId: mockEService.id,
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.signed,
         signedBy: reviewerId,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -223,9 +221,8 @@ describe("editRiskAnalysisForm", () => {
       eserviceId: mockEService.id,
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -257,9 +254,8 @@ describe("editRiskAnalysisForm", () => {
       eserviceId: mockEService.id,
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [generateId<UserId>()],
+        reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -293,9 +289,8 @@ describe("editRiskAnalysisForm", () => {
       eserviceId: mockEService.id,
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 

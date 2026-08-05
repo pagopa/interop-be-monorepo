@@ -171,8 +171,14 @@ export const fromRiskAnalysisReviewerV2 = (
 export const fromReviewerWorkflowV2 = (
   input: ReviewerWorkflowV2
 ): ReviewerWorkflow => ({
-  reviewerIds: input.reviewerIds.map(unsafeBrandId<UserId>),
-  reviewers: input.reviewers.map(fromRiskAnalysisReviewerV2),
+  // Events emitted before the reviewers field existed only carry their ids
+  reviewers:
+    input.reviewers.length > 0
+      ? input.reviewers.map(fromRiskAnalysisReviewerV2)
+      : input.reviewerIds.map((id) => ({
+          id: unsafeBrandId<UserId>(id),
+          sentToReviewerAt: bigIntToDate(input.sentToReviewerAt),
+        })),
   signingState: fromRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy ? unsafeBrandId<UserId>(input.signedBy) : undefined,
   rejectionReason: input.rejectionReason,

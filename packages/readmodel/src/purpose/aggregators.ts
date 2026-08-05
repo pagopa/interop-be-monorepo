@@ -302,9 +302,6 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
             signingState: RiskAnalysisSigningState.parse(
               purposeSQL.reviewerWorkflowSigningState
             ),
-            reviewerIds: reviewersSQL.map((r) =>
-              unsafeBrandId<UserId>(r.reviewerId)
-            ),
             reviewers,
             ...(purposeSQL.reviewerWorkflowSignedBy
               ? {

@@ -59,7 +59,6 @@ describe("Purpose splitter", () => {
     ];
 
     const reviewerWorkflow: ReviewerWorkflow = {
-      reviewerIds: reviewers.map((reviewer) => reviewer.id),
       reviewers,
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
