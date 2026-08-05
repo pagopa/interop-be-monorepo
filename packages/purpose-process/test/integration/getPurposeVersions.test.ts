@@ -120,6 +120,14 @@ describe("getPurposeVersions", () => {
     expect(page3.results.map((v) => v.id)).toEqual([version5.id]);
   });
 
+  it("should return an empty page but keep the full totalCount when offset is beyond the last version", async () => {
+    await setup();
+
+    const result = await getVersions(10, 2);
+    expect(result.results).toEqual([]);
+    expect(result.totalCount).toBe(5);
+  });
+
   it("should filter by state and compute totalCount over the filtered set", async () => {
     await setup();
 

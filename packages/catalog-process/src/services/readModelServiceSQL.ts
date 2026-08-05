@@ -24,6 +24,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
+  resolveTotalCount,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -140,6 +141,10 @@ export function readModelServiceBuilderSQL(
       eserviceId: EServiceId,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<RiskAnalysis>> {
+      const filter = eq(
+        eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
+        eserviceId
+      );
       const riskAnalysesSQL = await readmodelDB
         .select(
           withTotalCount(
@@ -147,14 +152,17 @@ export function readModelServiceBuilderSQL(
           )
         )
         .from(eserviceRiskAnalysisInReadmodelCatalog)
-        .where(
-          eq(eserviceRiskAnalysisInReadmodelCatalog.eserviceId, eserviceId)
-        )
+        .where(filter)
         .orderBy(asc(eserviceRiskAnalysisInReadmodelCatalog.createdAt))
         .offset(offset)
         .limit(limit);
 
-      const totalCount = riskAnalysesSQL[0]?.totalCount ?? 0;
+      const totalCount = await resolveTotalCount(
+        riskAnalysesSQL,
+        readmodelDB,
+        eserviceRiskAnalysisInReadmodelCatalog,
+        filter
+      );
 
       if (riskAnalysesSQL.length === 0) {
         return createListResult([], totalCount);
@@ -196,24 +204,28 @@ export function readModelServiceBuilderSQL(
       if (states !== undefined && states.length === 0) {
         return createListResult([], 0);
       }
+      const filter = and(
+        eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
+        states
+          ? inArray(eserviceDescriptorInReadmodelCatalog.state, states)
+          : undefined
+      );
       const descriptorsSQL = await readmodelDB
         .select(
           withTotalCount(getTableColumns(eserviceDescriptorInReadmodelCatalog))
         )
         .from(eserviceDescriptorInReadmodelCatalog)
-        .where(
-          and(
-            eq(eserviceDescriptorInReadmodelCatalog.eserviceId, eserviceId),
-            states
-              ? inArray(eserviceDescriptorInReadmodelCatalog.state, states)
-              : undefined
-          )
-        )
+        .where(filter)
         .orderBy(asc(eserviceDescriptorInReadmodelCatalog.createdAt))
         .offset(offset)
         .limit(limit);
 
-      const totalCount = descriptorsSQL[0]?.totalCount ?? 0;
+      const totalCount = await resolveTotalCount(
+        descriptorsSQL,
+        readmodelDB,
+        eserviceDescriptorInReadmodelCatalog,
+        filter
+      );
 
       if (descriptorsSQL.length === 0) {
         return createListResult([], totalCount);

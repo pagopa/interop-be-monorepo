@@ -20,6 +20,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
+  resolveTotalCount,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -98,6 +99,18 @@ export function readModelServiceBuilderSQL({
       if (states !== undefined && states.length === 0) {
         return createListResult([], 0);
       }
+      const filter = and(
+        eq(
+          eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
+          eserviceTemplateId
+        ),
+        states
+          ? inArray(
+              eserviceTemplateVersionInReadmodelEserviceTemplate.state,
+              states
+            )
+          : undefined
+      );
       const versionsSQL = await readModelDB
         .select(
           withTotalCount(
@@ -105,27 +118,19 @@ export function readModelServiceBuilderSQL({
           )
         )
         .from(eserviceTemplateVersionInReadmodelEserviceTemplate)
-        .where(
-          and(
-            eq(
-              eserviceTemplateVersionInReadmodelEserviceTemplate.eserviceTemplateId,
-              eserviceTemplateId
-            ),
-            states
-              ? inArray(
-                  eserviceTemplateVersionInReadmodelEserviceTemplate.state,
-                  states
-                )
-              : undefined
-          )
-        )
+        .where(filter)
         .orderBy(
           asc(eserviceTemplateVersionInReadmodelEserviceTemplate.createdAt)
         )
         .offset(offset)
         .limit(limit);
 
-      const totalCount = versionsSQL[0]?.totalCount ?? 0;
+      const totalCount = await resolveTotalCount(
+        versionsSQL,
+        readModelDB,
+        eserviceTemplateVersionInReadmodelEserviceTemplate,
+        filter
+      );
 
       if (versionsSQL.length === 0) {
         return createListResult([], totalCount);
@@ -202,6 +207,10 @@ export function readModelServiceBuilderSQL({
       eserviceTemplateId: EServiceTemplateId,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<RiskAnalysis>> {
+      const filter = eq(
+        eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId,
+        eserviceTemplateId
+      );
       const riskAnalysesSQL = await readModelDB
         .select(
           withTotalCount(
@@ -211,19 +220,19 @@ export function readModelServiceBuilderSQL({
           )
         )
         .from(eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate)
-        .where(
-          eq(
-            eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.eserviceTemplateId,
-            eserviceTemplateId
-          )
-        )
+        .where(filter)
         .orderBy(
           asc(eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate.createdAt)
         )
         .offset(offset)
         .limit(limit);
 
-      const totalCount = riskAnalysesSQL[0]?.totalCount ?? 0;
+      const totalCount = await resolveTotalCount(
+        riskAnalysesSQL,
+        readModelDB,
+        eserviceTemplateRiskAnalysisInReadmodelEserviceTemplate,
+        filter
+      );
 
       if (riskAnalysesSQL.length === 0) {
         return createListResult([], totalCount);

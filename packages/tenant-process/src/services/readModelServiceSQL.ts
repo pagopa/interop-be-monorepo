@@ -15,6 +15,7 @@ import {
   escapeSqlLike,
   ilikeEscaped,
   lowerCase,
+  resolveTotalCount,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -87,6 +88,15 @@ export function readModelServiceBuilderSQL(
         limit,
       }: { delegationId?: DelegationId; offset: number; limit: number }
     ): Promise<ListResult<DeclaredTenantAttribute>> {
+      const filter = and(
+        eq(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantId),
+        delegationId
+          ? eq(
+              tenantDeclaredAttributeInReadmodelTenant.delegationId,
+              delegationId
+            )
+          : undefined
+      );
       const rows = await readModelDB
         .select(
           withTotalCount(
@@ -94,24 +104,19 @@ export function readModelServiceBuilderSQL(
           )
         )
         .from(tenantDeclaredAttributeInReadmodelTenant)
-        .where(
-          and(
-            eq(tenantDeclaredAttributeInReadmodelTenant.tenantId, tenantId),
-            delegationId
-              ? eq(
-                  tenantDeclaredAttributeInReadmodelTenant.delegationId,
-                  delegationId
-                )
-              : undefined
-          )
-        )
+        .where(filter)
         .orderBy(
           asc(tenantDeclaredAttributeInReadmodelTenant.assignmentTimestamp)
         )
         .offset(offset)
         .limit(limit);
 
-      const totalCount = rows[0]?.totalCount ?? 0;
+      const totalCount = await resolveTotalCount(
+        rows,
+        readModelDB,
+        tenantDeclaredAttributeInReadmodelTenant,
+        filter
+      );
       const results: DeclaredTenantAttribute[] = rows.map((r) => ({
         id: unsafeBrandId<AttributeId>(r.attributeId),
         type: tenantAttributeType.DECLARED,
@@ -130,6 +135,10 @@ export function readModelServiceBuilderSQL(
       tenantId: TenantId,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<CertifiedTenantAttribute>> {
+      const filter = eq(
+        tenantCertifiedAttributeInReadmodelTenant.tenantId,
+        tenantId
+      );
       const rows = await readModelDB
         .select(
           withTotalCount(
@@ -137,14 +146,19 @@ export function readModelServiceBuilderSQL(
           )
         )
         .from(tenantCertifiedAttributeInReadmodelTenant)
-        .where(eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, tenantId))
+        .where(filter)
         .orderBy(
           asc(tenantCertifiedAttributeInReadmodelTenant.assignmentTimestamp)
         )
         .offset(offset)
         .limit(limit);
 
-      const totalCount = rows[0]?.totalCount ?? 0;
+      const totalCount = await resolveTotalCount(
+        rows,
+        readModelDB,
+        tenantCertifiedAttributeInReadmodelTenant,
+        filter
+      );
       const results: CertifiedTenantAttribute[] = rows.map((r) => ({
         id: unsafeBrandId<AttributeId>(r.attributeId),
         type: tenantAttributeType.CERTIFIED,
@@ -160,6 +174,10 @@ export function readModelServiceBuilderSQL(
       tenantId: TenantId,
       { offset, limit }: { offset: number; limit: number }
     ): Promise<ListResult<VerifiedTenantAttribute>> {
+      const filter = eq(
+        tenantVerifiedAttributeInReadmodelTenant.tenantId,
+        tenantId
+      );
       const attributesSQL = await readModelDB
         .select(
           withTotalCount(
@@ -167,14 +185,19 @@ export function readModelServiceBuilderSQL(
           )
         )
         .from(tenantVerifiedAttributeInReadmodelTenant)
-        .where(eq(tenantVerifiedAttributeInReadmodelTenant.tenantId, tenantId))
+        .where(filter)
         .orderBy(
           asc(tenantVerifiedAttributeInReadmodelTenant.assignmentTimestamp)
         )
         .offset(offset)
         .limit(limit);
 
-      const totalCount = attributesSQL[0]?.totalCount ?? 0;
+      const totalCount = await resolveTotalCount(
+        attributesSQL,
+        readModelDB,
+        tenantVerifiedAttributeInReadmodelTenant,
+        filter
+      );
 
       if (attributesSQL.length === 0) {
         return createListResult([], totalCount);

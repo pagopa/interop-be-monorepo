@@ -20,6 +20,7 @@ import {
   createListResult,
   escapeSqlLike,
   ilikeEscaped,
+  resolveTotalCount,
   withTotalCount,
 } from "pagopa-interop-commons";
 import {
@@ -407,24 +408,26 @@ export function readModelServiceBuilderSQL({
         limit,
       }: { state?: PurposeVersionState; offset: number; limit: number }
     ): Promise<ListResult<PurposeVersion>> {
+      const filter = and(
+        eq(purposeVersionInReadmodelPurpose.purposeId, purposeId),
+        state ? eq(purposeVersionInReadmodelPurpose.state, state) : undefined
+      );
       const versionsSQL = await readModelDB
         .select(
           withTotalCount(getTableColumns(purposeVersionInReadmodelPurpose))
         )
         .from(purposeVersionInReadmodelPurpose)
-        .where(
-          and(
-            eq(purposeVersionInReadmodelPurpose.purposeId, purposeId),
-            state
-              ? eq(purposeVersionInReadmodelPurpose.state, state)
-              : undefined
-          )
-        )
+        .where(filter)
         .orderBy(asc(purposeVersionInReadmodelPurpose.createdAt))
         .offset(offset)
         .limit(limit);
 
-      const totalCount = versionsSQL[0]?.totalCount ?? 0;
+      const totalCount = await resolveTotalCount(
+        versionsSQL,
+        readModelDB,
+        purposeVersionInReadmodelPurpose,
+        filter
+      );
       const versionIds = versionsSQL.map((v) => v.id);
 
       if (versionIds.length === 0) {

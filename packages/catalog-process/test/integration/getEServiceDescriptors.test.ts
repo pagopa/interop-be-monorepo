@@ -75,6 +75,19 @@ describe("getEServiceDescriptors", () => {
     expect(result.results.map((d) => d.id)).toEqual([publishedDescriptor.id]);
   });
 
+  it("should return an empty page but keep the full totalCount when offset is beyond the last descriptor", async () => {
+    await setup();
+
+    const result = await catalogService.getEServiceDescriptors(
+      eservice.id,
+      { offset: 10, limit: 10 },
+      getMockContext({ authData: getMockAuthData(producer.id) })
+    );
+
+    expect(result.results).toEqual([]);
+    expect(result.totalCount).toBe(2);
+  });
+
   it("should let the producer filter by a draft state", async () => {
     await setup();
 

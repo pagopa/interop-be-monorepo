@@ -143,6 +143,34 @@ describe("get tenant attributes", () => {
     expect(result.results[0].revokedBy).toEqual([]);
   });
 
+  it("should return an empty page but keep the full totalCount when offset is beyond the last attribute", async () => {
+    await addOneTenant(tenant);
+
+    const declared = await tenantService.getTenantDeclaredAttributes(
+      tenantId,
+      { offset: 10, limit: 10 },
+      getMockContext({})
+    );
+    expect(declared.results).toEqual([]);
+    expect(declared.totalCount).toBe(2);
+
+    const certified = await tenantService.getTenantCertifiedAttributes(
+      tenantId,
+      { offset: 10, limit: 10 },
+      getMockContext({})
+    );
+    expect(certified.results).toEqual([]);
+    expect(certified.totalCount).toBe(2);
+
+    const verified = await tenantService.getTenantVerifiedAttributes(
+      tenantId,
+      { offset: 10, limit: 10 },
+      getMockContext({})
+    );
+    expect(verified.results).toEqual([]);
+    expect(verified.totalCount).toBe(1);
+  });
+
   it("should throw tenantNotFound when the tenant does not exist", async () => {
     const notExistingTenantId: TenantId = generateId();
 
