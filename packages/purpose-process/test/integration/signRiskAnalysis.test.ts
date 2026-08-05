@@ -201,7 +201,6 @@ describe("signRiskAnalysis", () => {
   });
 
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
-    const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
       reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
@@ -285,12 +284,10 @@ describe("signRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
