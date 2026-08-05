@@ -17,12 +17,10 @@ describe("uiAuthDataValidationMiddleware", () => {
       .send();
   // ^ using GET /purposes/:purposeId as a dummy endpoint to test the middleware
 
-  services.purposeService.getPurpose = vi
-    .fn()
-    .mockResolvedValue({
-      data: getMockBffApiPurpose(),
-      metadata: { version: 0 },
-    });
+  services.purposeService.getPurpose = vi.fn().mockResolvedValue({
+    data: getMockBffApiPurpose(),
+    metadata: { version: 0 },
+  });
 
   it.each(Object.values(userRole))(
     "Should correctly accept tokens with role %s",
