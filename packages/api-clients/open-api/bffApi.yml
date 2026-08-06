@@ -14621,6 +14621,10 @@ components:
         archivableOn:
           type: string
           format: date-time
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
     TemplateInstanceInterfaceServerUrlSeed:
       type: object
       additionalProperties: false

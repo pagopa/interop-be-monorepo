@@ -451,6 +451,9 @@ export function toCompactDescriptor(
     version: descriptor.version,
     templateVersionId: descriptor.templateVersionRef?.id,
     archivableOn: descriptor.archivingSchedule?.archivableOn,
+    ...(descriptor.delegatedArchivingRequest
+      ? { delegatedArchivingRequest: descriptor.delegatedArchivingRequest }
+      : {}),
   };
 }
 
