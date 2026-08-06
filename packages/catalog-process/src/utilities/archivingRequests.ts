@@ -1,15 +1,7 @@
 import {
   DelegatedDescriptorArchivingRequest,
   DelegatedEServiceArchivingRequest,
-  DescriptorId,
-  EServiceId,
 } from "pagopa-interop-models";
-
-import {
-  delegatedArchivingRequestNotActive,
-  noDelegatedArchivingRequestFound,
-} from "../model/domain/errors.js";
-import { calculateArchivableOn } from "./dateCalculator.js";
 
 type ArchivingRequest =
   | DelegatedDescriptorArchivingRequest
@@ -31,36 +23,6 @@ export function appendArchivingRequest<T extends ArchivingRequest>(
   return [...(previousArchivingRequests ?? []), newArchivingRequest];
 }
 
-function getLatestArchivingRequest<T extends ArchivingRequest>(
-  archivingRequests: T[] | undefined,
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
-): T {
-  if (!archivingRequests) {
-    throw noDelegatedArchivingRequestFound(eserviceId, descriptorId);
-  }
-  const latestRequest = archivingRequests.reduce((latest, current) =>
-    current.requestedAt > latest.requestedAt ? current : latest
-  );
-  return latestRequest;
-}
-
-function getLatestActiveArchivingRequest<T extends ArchivingRequest>(
-  archivingRequests: T[] | undefined,
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
-): T {
-  const latestArchivingRequest = getLatestArchivingRequest(
-    archivingRequests,
-    eserviceId,
-    descriptorId
-  );
-  if (!isActiveArchivingRequest(latestArchivingRequest)) {
-    throw delegatedArchivingRequestNotActive(eserviceId, descriptorId);
-  }
-  return latestArchivingRequest;
-}
-
 export function hasActiveArchivingRequest<T extends ArchivingRequest>(
   archivingRequests: T[] | undefined
 ): boolean {
@@ -71,34 +33,4 @@ export function hasActiveArchivingRequest<T extends ArchivingRequest>(
     isActiveArchivingRequest
   );
   return activeArchivingRequests.length > 0;
-}
-
-export function calculateProjectedArchivingDateForArchivingRequest<
-  T extends ArchivingRequest,
->(
-  requestDate: Date,
-  archivingRequests: T[] | undefined,
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
-): { archivableOn: Date; gracePeriodDays: number } | undefined {
-  if (
-    archivingRequests &&
-    archivingRequests.length > 0 &&
-    hasActiveArchivingRequest(archivingRequests)
-  ) {
-    const latestActiveRequest = getLatestActiveArchivingRequest(
-      archivingRequests,
-      eserviceId,
-      descriptorId
-    );
-    const archivableOn = calculateArchivableOn(
-      requestDate,
-      latestActiveRequest.gracePeriodDays
-    ).archivableOn;
-    return {
-      archivableOn,
-      gracePeriodDays: latestActiveRequest.gracePeriodDays,
-    };
-  }
-  return undefined;
 }

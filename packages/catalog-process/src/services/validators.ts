@@ -85,10 +85,7 @@ import {
   gracePeriodDaysLowerThanDescriptor,
   delegatedArchivingRequestAlreadyInProgress,
 } from "../model/domain/errors.js";
-import {
-  calculateProjectedArchivingDateForArchivingRequest,
-  hasActiveArchivingRequest,
-} from "../utilities/archivingRequests.js";
+import { hasActiveArchivingRequest } from "../utilities/archivingRequests.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
@@ -959,52 +956,21 @@ export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
   }
 }
 
-export function assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
-  requestDate: Date,
-  eservice: EService,
-  gracePeriodDays: GracePeriodDays
-): void {
-  const { archivableOn: requestedArchivableOn } = calculateArchivableOn(
-    requestDate,
-    gracePeriodDays
-  );
-
-  for (const descriptor of eservice.descriptors) {
-    const projectedArchivableOn =
-      calculateProjectedArchivingDateForArchivingRequest(
-        requestDate,
-        descriptor.delegatedArchivingRequest,
-        eservice.id,
-        descriptor.id
-      );
-    if (
-      projectedArchivableOn &&
-      requestedArchivableOn < projectedArchivableOn.archivableOn
-    ) {
-      throw gracePeriodDaysLowerThanDescriptor(
-        eservice.id,
-        descriptor.id,
-        requestedArchivableOn,
-        projectedArchivableOn.archivableOn
-      );
-    }
-  }
-}
-
 export function assertDelegatedEserviceHasNoActiveArchivingRequests(
   eservice: EService
 ): void {
-  if (hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
+  const eserviceHasPendingArchivingRequests = hasActiveArchivingRequest(
+    eservice.delegatedArchivingRequest
+  );
+  const descriptorsHavePendingArchivingRequests = eservice.descriptors.some(
+    (descriptor) =>
+      hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)
+  );
+  if (
+    eserviceHasPendingArchivingRequests ||
+    descriptorsHavePendingArchivingRequests
+  ) {
     throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
-  }
-}
-
-export function assertDelegatedDescriptorHasNoActiveArchivingRequests(
-  descriptor: Descriptor,
-  eserviceId: EServiceId
-): void {
-  if (hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
-    throw delegatedArchivingRequestAlreadyInProgress(eserviceId, descriptor.id);
   }
 }
 
