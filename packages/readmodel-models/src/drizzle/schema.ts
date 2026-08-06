@@ -526,7 +526,7 @@ export const eserviceDescriptorArchivingRequestInReadmodelCatalog =
   readmodelCatalog.table(
     "eservice_descriptor_archiving_request",
     {
-      id: uuid().notNull(),
+      id: uuid().primaryKey().notNull(),
       eserviceId: uuid("eservice_id").notNull(),
       metadataVersion: integer("metadata_version").notNull(),
       descriptorId: uuid("descriptor_id"), // if we archive the e-service, this will be null
@@ -564,7 +564,7 @@ export const eserviceDescriptorArchivingRequestInReadmodelCatalog =
           eserviceInReadmodelCatalog.id,
           eserviceInReadmodelCatalog.metadataVersion,
         ],
-        name: "eservice_descriptor_archivin_eservice_id_metadata_version_fkey1",
+        name: "eservice_descriptor_archiving_eservice_id_metadata_version_fkey1",
       }),
     ]
   );
