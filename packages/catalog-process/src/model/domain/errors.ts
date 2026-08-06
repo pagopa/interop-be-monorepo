@@ -812,11 +812,10 @@ export function gracePeriodDaysLowerThanDescriptor(
 }
 
 export function delegatedArchivingRequestAlreadyInProgress(
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
+  eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `An archiving request for EService ${eserviceId}${descriptorId ? ` and Descriptor ${descriptorId}` : ""} is already in progress`,
+    detail: `An archiving request for EService ${eserviceId} is already in progress`,
     code: "delegatedArchivingRequestAlreadyInProgress",
     title: "Delegated archiving request already in progress",
   });

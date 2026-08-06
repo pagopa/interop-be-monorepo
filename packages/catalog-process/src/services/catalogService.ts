@@ -246,8 +246,6 @@ import {
   assertEServiceGracePeriodIsNotLowerThanDescriptors,
   assertRequesterIsDelegateForArchiving,
   assertDelegatedEserviceHasNoActiveArchivingRequests,
-  assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors,
-  assertDelegatedDescriptorHasNoActiveArchivingRequests,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -3384,11 +3382,6 @@ export function catalogServiceBuilder(
         eservice.data,
         seed.gracePeriodDays
       );
-      assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
-        new Date(),
-        eservice.data,
-        seed.gracePeriodDays
-      );
 
       const updatedRequests = appendArchivingRequest(
         eservice.data.delegatedArchivingRequest,
@@ -3448,10 +3441,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       assertDescriptorArchivable(descriptor, eservice.data);
-      assertDelegatedDescriptorHasNoActiveArchivingRequests(
-        descriptor,
-        eserviceId
-      );
+      assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
 
       const updatedRequests = appendArchivingRequest(
         descriptor.delegatedArchivingRequest,
