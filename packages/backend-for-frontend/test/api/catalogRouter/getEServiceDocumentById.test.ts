@@ -49,7 +49,7 @@ describe("API GET /eservices/:eServiceId/descriptors/:descriptorId/documents/:do
       mockResponse.contentType
     );
     expect(res.headers[constants.HTTP2_HEADER_CONTENT_DISPOSITION]).toBe(
-      `attachment; filename="Specifica API_Servizio Anagrafe_Comune di Forl_v1.yaml"; filename*=UTF-8''${encodeURIComponent(
+      `attachment; filename="Specifica API_Servizio Anagrafe_Comune di Forl__v1.yaml"; filename*=UTF-8''${encodeURIComponent(
         mockResponse.filename
       )}`
     );
