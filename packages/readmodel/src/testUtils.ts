@@ -289,8 +289,8 @@ export const upsertEService = async (
       rejectionReasonsSQL,
       templateVersionRefsSQL,
       archivingSchedulesSQL,
-      archivingRequestsSQL,
       asyncExchangePropertiesSQL,
+      archivingRequestsSQL,
     } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
     await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
