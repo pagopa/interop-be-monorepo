@@ -34,12 +34,11 @@ export function dateToSeconds(date: Date): number {
 }
 
 /**
- * Normalizes a Unix timestamp expressed in seconds, milliseconds, microseconds
- * or nanoseconds (decimals allowed) to integer milliseconds.
- * Values >= 1e10 cannot be seconds (they would be dates after year 2286), so
- * the value is divided by 1000 until it falls in the seconds range; the
- * s/ms/µs/ns representations of dates between 2001 and 2286 lie in disjoint
- * ranges, so no realistic timestamp is ambiguous.
+ * Normalizes a Unix timestamp in seconds, milliseconds, microseconds or
+ * nanoseconds (decimals allowed) to integer milliseconds. Unambiguous because
+ * the s/ms/µs/ns forms of any date between 2001 and 2286 lie in disjoint
+ * ranges; anything below 1e10 reads as seconds, so this is for token
+ * timestamps, which fall in that window.
  */
 export const timestampToMilliseconds = (timestamp: number): number => {
   if (!Number.isFinite(timestamp)) {
