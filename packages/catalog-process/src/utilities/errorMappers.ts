@@ -897,7 +897,6 @@ export const approveDelegatedEServiceArchivingErrorMapper = (
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound", // Descriptor only
-      "noActiveDelegationFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -909,7 +908,11 @@ export const approveDelegatedEServiceArchivingErrorMapper = (
       "gracePeriodDaysLowerThanDescriptor",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "delegatedArchivingRequestNotActive",
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const rejectDelegatedEServiceArchivingErrorMapper = (
@@ -919,7 +922,6 @@ export const rejectDelegatedEServiceArchivingErrorMapper = (
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound", // Descriptor only
-      "noActiveDelegationFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
@@ -928,7 +930,11 @@ export const rejectDelegatedEServiceArchivingErrorMapper = (
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("noDelegatedArchivingRequestFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "delegatedArchivingRequestNotActive",
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const rejectDelegatedArchivingErrorMapper = (

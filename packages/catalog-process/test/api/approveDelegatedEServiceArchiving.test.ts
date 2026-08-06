@@ -110,7 +110,7 @@ describe("API /eservices/:eServiceId/approveDelegatedArchiving authorization tes
     },
     {
       error: noActiveDelegationFound(mockEService.id),
-      expectedStatus: 404,
+      expectedStatus: 409,
     },
     {
       error: gracePeriodDaysLowerThanDescriptor(
