@@ -18,6 +18,7 @@ describe("API GET /eservices/:eServiceId/descriptors/:descriptorId/documents/:do
   const mockResponse = {
     contentType: "application/octet-stream",
     document: Buffer.from("content"),
+    filename: "Specifica API_Servizio Anagrafe_Comune di Forlì_v1.yaml",
   };
 
   beforeEach(() => {
@@ -46,6 +47,11 @@ describe("API GET /eservices/:eServiceId/descriptors/:descriptorId/documents/:do
     expect(res.status).toBe(200);
     expect(res.headers[constants.HTTP2_HEADER_CONTENT_TYPE]).toBe(
       mockResponse.contentType
+    );
+    expect(res.headers[constants.HTTP2_HEADER_CONTENT_DISPOSITION]).toBe(
+      `attachment; filename="Specifica API_Servizio Anagrafe_Comune di Forl_v1.yaml"; filename*=UTF-8''${encodeURIComponent(
+        mockResponse.filename
+      )}`
     );
     expect(res.body).toEqual(mockResponse.document);
   });
