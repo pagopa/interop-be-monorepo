@@ -76,6 +76,14 @@ describe("getProducerEServiceDetails", () => {
     mode: catalogApi.EServiceMode.Values.RECEIVE,
     riskAnalysis: [],
     asyncExchange: true,
+    delegatedArchivingRequest: [
+      {
+        requestedAt: "2026-08-04T10:00:00.000Z",
+        requesterId: generateId<TenantId>(),
+        gracePeriodDays: 60,
+        archivingReason: "Requested by delegate",
+      },
+    ],
   };
 
   const mockGetEServiceById = vi.fn();
@@ -140,6 +148,9 @@ describe("getProducerEServiceDetails", () => {
 
     expect(result.asyncExchange).toBe(true);
     expect(result.latestActiveDescriptorId).toBe(publishedDescriptor.id);
+    expect(result.delegatedArchivingRequest).toEqual(
+      eService.delegatedArchivingRequest
+    );
   });
 
   it("should return undefined latestActiveDescriptorId when no active descriptor exists", async () => {

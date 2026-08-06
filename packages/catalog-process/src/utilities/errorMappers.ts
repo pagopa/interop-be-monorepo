@@ -899,7 +899,11 @@ export const approveDelegatedEServiceArchivingErrorMapper = (
       "eServiceDescriptorNotFound", // Descriptor only
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "operationForbidden",
+      "delegatedArchiveRequestForIncorrectDelegateProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with(
       "noDelegatedArchivingRequestFound",
       "notValidEServiceState", // EService only

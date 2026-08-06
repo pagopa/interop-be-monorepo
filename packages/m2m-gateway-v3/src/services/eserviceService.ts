@@ -782,7 +782,9 @@ export function eserviceServiceBuilder(
       eserviceId: EServiceId,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EService> {
-      logger.info(`Scheduling archive for eservice with id ${eserviceId}`);
+      logger.info(
+        `Approving delegated archiving request for eservice with id ${eserviceId}`
+      );
 
       const response =
         await clients.catalogProcessClient.approveDelegatedEServiceArchiving(
@@ -800,7 +802,9 @@ export function eserviceServiceBuilder(
       seed: m2mGatewayApiV3.RejectDelegatedArchivingSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EService> {
-      logger.info(`Scheduling archive for eservice with id ${eserviceId}`);
+      logger.info(
+        `Rejecting delegated archiving request for eservice with id ${eserviceId}`
+      );
 
       const response =
         await clients.catalogProcessClient.rejectDelegatedEServiceArchiving(
