@@ -275,6 +275,17 @@ export const fromDescriptorV2 = (input: EServiceDescriptorV2): Descriptor => ({
     input.serverUrlsDescriptions.length > 0
       ? input.serverUrlsDescriptions
       : undefined,
+  delegatedArchivingRequest:
+    input.delegatedArchivingRequest.length > 0
+      ? input.delegatedArchivingRequest.map((request) => ({
+          requestedAt: bigIntToDate(request.requestedAt),
+          acceptedAt: bigIntToDate(request.acceptedAt),
+          rejectedAt: bigIntToDate(request.rejectedAt),
+          rejectionReason: request.rejectionReason,
+          requesterId: unsafeBrandId(request.requesterId),
+          gracePeriodDays: fromGracePeriodDaysV2(request.gracePeriodDays),
+        }))
+      : undefined,
 });
 
 export const fromRiskAnalysisFormV2 = (
@@ -325,5 +336,17 @@ export const fromEServiceV2 = (input: EServiceV2): EService => ({
   templateId:
     input.templateId != null
       ? unsafeBrandId<EServiceTemplateId>(input.templateId)
+      : undefined,
+  delegatedArchivingRequest:
+    input.delegatedArchivingRequest.length > 0
+      ? input.delegatedArchivingRequest.map((request) => ({
+          requestedAt: bigIntToDate(request.requestedAt),
+          acceptedAt: bigIntToDate(request.acceptedAt),
+          rejectedAt: bigIntToDate(request.rejectedAt),
+          rejectionReason: request.rejectionReason,
+          requesterId: unsafeBrandId(request.requesterId),
+          gracePeriodDays: fromGracePeriodDaysV2(request.gracePeriodDays),
+          archivingReason: request.archivingReason,
+        }))
       : undefined,
 });

@@ -162,7 +162,15 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
-          "MaintenanceEServiceDescriptorUnarchived"
+          "MaintenanceEServiceDescriptorUnarchived",
+          "EServiceArchivingRequestedByDelegate",
+          "EServiceArchivingRequestApprovedByDelegator",
+          "EServiceArchivingRequestRejectedByDelegator",
+          "EServiceArchivingRequestCanceledByDelegate",
+          "EServiceDescriptorArchivingRequestedByDelegate",
+          "EServiceDescriptorArchivingRequestApprovedByDelegator",
+          "EServiceDescriptorArchivingRequestRejectedByDelegator",
+          "EServiceDescriptorArchivingRequestCanceledByDelegate"
         ),
       },
       () => {

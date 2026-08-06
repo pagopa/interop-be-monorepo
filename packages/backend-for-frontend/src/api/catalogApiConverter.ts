@@ -144,6 +144,11 @@ export async function toBffCatalogDescriptorEService(
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
     archivingReason: eservice.archivingReason,
+    ...(eservice.delegatedArchivingRequest
+      ? {
+          delegatedArchivingRequest: eservice.delegatedArchivingRequest,
+        }
+      : {}),
     asyncExchange: eservice.asyncExchange,
     hasProducerKeychain,
     hasProducerKeychainKeys,
@@ -325,6 +330,11 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     personalData: eservice.personalData,
     instanceLabel: eservice.instanceLabel,
     asyncExchange: eservice.asyncExchange,
+    ...(eservice.delegatedArchivingRequest
+      ? {
+          delegatedArchivingRequest: eservice.delegatedArchivingRequest,
+        }
+      : {}),
   };
 }
 

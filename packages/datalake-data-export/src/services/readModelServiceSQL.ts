@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { isNotNull, eq, ne, and, sql } from "drizzle-orm";
+import { isNotNull, isNull, eq, ne, and, or, sql } from "drizzle-orm";
 import {
   agreementState,
   delegationState,
@@ -27,6 +27,7 @@ import {
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
@@ -93,6 +94,8 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           riskAnalysisAnswer: sql<null>`NULL`,
           archivingSchedule:
             eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          archivingRequests:
+            eserviceDescriptorArchivingRequestInReadmodelCatalog,
           asyncExchangeProperties: sql<null>`NULL`,
         })
         .from(eserviceInReadmodelCatalog)
@@ -143,6 +146,24 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
           eq(
             eserviceDescriptorInReadmodelCatalog.id,
             eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingRequestInReadmodelCatalog,
+          or(
+            eq(
+              eserviceDescriptorInReadmodelCatalog.id,
+              eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+            ),
+            and(
+              eq(
+                eserviceInReadmodelCatalog.id,
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId
+              ),
+              isNull(
+                eserviceDescriptorArchivingRequestInReadmodelCatalog.descriptorId
+              )
+            )
           )
         )
         .where(
