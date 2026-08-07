@@ -256,19 +256,19 @@ export const inAppTemplates = {
     `L'ente delegante ${delegatorName} ha rifiutato la tua richiesta di archiviazione dell'e-service ${eserviceName}.`,
   eserviceArchivingRequestRejectedByDelegatorToProducer: (
     delegateName: string,
-    requestedOn: Date
+    eserviceName: string
   ): string =>
-    `${delegateName} ha annullato la richiesta di archiviazione inviata il giorno ${dateAtRomeZone(requestedOn)}.`,
+    `L'ente delegato ${delegateName} ha annullato la richiesta di archiviazione per l'e-service ${eserviceName}.`,
   eserviceArchivingRequestCanceledToDelegate: (
     delegatorName: string,
     eserviceName: string
   ): string =>
-    `È stata annullata la richiesta di archiviazione per l'e-service ${eserviceName} inviata a ${delegatorName}.`,
+    `È stata annullata la richiesta di archiviazione per l'e-service ${eserviceName} inviata all'ente delegante ${delegatorName}.`,
   eserviceArchivingRequestCanceledToProducer: (
     delegatorName: string,
     eserviceName: string
   ): string =>
-    `${delegatorName} ha annullato la richiesta di archiviazione per l'e-service ${eserviceName}.`,
+    `L'ente delegato ${delegatorName} ha annullato la richiesta di archiviazione per l'e-service ${eserviceName}.`,
   eserviceDescriptorArchivingRequestCanceledToDelegate: (
     delegatorName: string,
     eserviceName: string,
