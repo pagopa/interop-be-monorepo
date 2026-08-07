@@ -82,6 +82,7 @@ import {
   riskAnalysisNotFound,
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
+  interfaceDocumentNotUpdatable,
   missingAsyncExchangeProperties,
   missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
@@ -107,13 +108,11 @@ import {
   toCreateEventEServiceTemplateVersionPublished,
   toCreateEventEServiceTemplateVersionInterfaceAdded,
   toCreateEventEServiceTemplateVersionDocumentAdded,
-  toCreateEventEServiceTemplateVersionInterfaceUpdated,
   toCreateEventEServiceTemplateVersionDocumentUpdated,
   toCreateEventEServiceTemplateVersionDocumentDeleted,
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
   toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded,
-  toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated,
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted,
 } from "../model/domain/toEvent.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
@@ -1912,15 +1911,13 @@ export function eserviceTemplateServiceBuilder(
         documentId
       );
 
-      const isInterface = document.id === version?.interface?.id;
-      const isAsyncExchangeCallbackInterface =
-        document.id === version?.asyncExchangeCallbackInterface?.id;
-
+      // The interface and the async exchange callback interface cannot be
+      // updated: only regular documents are updatable through this operation.
       if (
-        (isInterface || isAsyncExchangeCallbackInterface) &&
-        versionStatesNotAllowingInterfaceOperations(version)
+        document.id === version.interface?.id ||
+        document.id === version.asyncExchangeCallbackInterface?.id
       ) {
-        throw notValidEServiceTemplateVersionState(version.id, version.state);
+        throw interfaceDocumentNotUpdatable(version.id, documentId);
       }
 
       if (
@@ -1949,45 +1946,22 @@ export function eserviceTemplateServiceBuilder(
             v.id === eserviceTemplateVersionId
               ? {
                   ...v,
-                  interface: isInterface ? updatedDocument : v.interface,
                   docs: v.docs.map((doc) =>
                     doc.id === documentId ? updatedDocument : doc
                   ),
-                  asyncExchangeCallbackInterface:
-                    isAsyncExchangeCallbackInterface
-                      ? updatedDocument
-                      : v.asyncExchangeCallbackInterface,
                 }
               : v
         ),
       };
 
-      const event = isInterface
-        ? toCreateEventEServiceTemplateVersionInterfaceUpdated(
-            eserviceTemplateId,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            documentId,
-            newEserviceTemplate,
-            correlationId
-          )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated(
-              eserviceTemplateId,
-              eserviceTemplate.metadata.version,
-              eserviceTemplateVersionId,
-              documentId,
-              newEserviceTemplate,
-              correlationId
-            )
-          : toCreateEventEServiceTemplateVersionDocumentUpdated(
-              eserviceTemplateId,
-              eserviceTemplate.metadata.version,
-              eserviceTemplateVersionId,
-              documentId,
-              newEserviceTemplate,
-              correlationId
-            );
+      const event = toCreateEventEServiceTemplateVersionDocumentUpdated(
+        eserviceTemplateId,
+        eserviceTemplate.metadata.version,
+        eserviceTemplateVersionId,
+        documentId,
+        newEserviceTemplate,
+        correlationId
+      );
 
       await repository.createEvent(event);
       return updatedDocument;
