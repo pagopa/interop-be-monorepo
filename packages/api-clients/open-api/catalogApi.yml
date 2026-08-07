@@ -3691,12 +3691,12 @@ components:
           type: boolean
         archivingReason:
           type: string
-        asyncExchange:
-          type: boolean
         delegatedArchivingRequest:
           type: array
           items:
             $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+        asyncExchange:
+          type: boolean
     CreatedEServiceRiskAnalysis:
       type: object
       additionalProperties: false
@@ -4185,31 +4185,6 @@ components:
       type: integer
       format: int32
       enum: [30, 60, 90, 120]
-    DelegatedArchivingRequest:
-      type: object
-      additionalProperties: false
-      description: A delegate's request to archive a descriptor, pending the delegator's approval or rejection
-      properties:
-        requestedAt:
-          type: string
-          format: date-time
-        requesterId:
-          type: string
-          format: uuid
-        gracePeriodDays:
-          $ref: "#/components/schemas/GracePeriodDays"
-        acceptedAt:
-          type: string
-          format: date-time
-        rejectedAt:
-          type: string
-          format: date-time
-        rejectionReason:
-          type: string
-      required:
-        - requestedAt
-        - requesterId
-        - gracePeriodDays
     GracePeriodDaysSeed:
       type: object
       additionalProperties: false
