@@ -15,6 +15,7 @@ import {
   RiskAnalysisId,
   TenantId,
   TenantKind,
+  Technology,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -86,7 +87,9 @@ const errorCodes = {
   certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
   eserviceDescriptorWithActiveOrPendingDelegation: "0067",
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
-  gracePeriodDaysLowerThanDescriptor: "0069",
+  eserviceTemplateInterfaceTechnologyMismatch: "0069",
+  gracePeriodDaysLowerThanDescriptor: "0070",
+  interfaceDocumentNotUpdatable: "0071",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -153,6 +156,17 @@ export function eServiceDocumentNotFound(
     detail: `Document with id ${documentId} not found in EService ${eserviceId} / Descriptor ${descriptorId}`,
     code: "eServiceDocumentNotFound",
     title: "EService document not found",
+  });
+}
+
+export function interfaceDocumentNotUpdatable(
+  descriptorId: DescriptorId,
+  documentId: EServiceDocumentId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} is the interface or the async exchange callback interface of descriptor ${descriptorId} and cannot be updated`,
+    code: "interfaceDocumentNotUpdatable",
+    title: "Interface document not updatable",
   });
 }
 
@@ -494,6 +508,18 @@ export function eserviceTemplateInterfaceNotFound(
     detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
     code: "eserviceTemplateInterfaceNotFound",
     title: "EService template interface document not found",
+  });
+}
+
+export function eserviceTemplateInterfaceTechnologyMismatch(
+  eserviceTemplateId: EServiceTemplateId,
+  templateTechnology: Technology,
+  interfaceTechnology: Technology
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${eserviceTemplateId} has technology ${templateTechnology}, which is incompatible with interface technology ${interfaceTechnology}`,
+    code: "eserviceTemplateInterfaceTechnologyMismatch",
+    title: "EService template interface technology mismatch",
   });
 }
 

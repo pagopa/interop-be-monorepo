@@ -15,8 +15,8 @@ CREATE TABLE IF NOT EXISTS domains.attribute (
 
 CREATE TABLE domains.eservice (
   id VARCHAR(36),
-  metadata_version INTEGER,
-  producer_id VARCHAR(36),
+  metadata_version INTEGER NOT NULL,
+  producer_id VARCHAR(36) NOT NULL,
   name VARCHAR(2048) NOT NULL,
   description VARCHAR(2048) NOT NULL,
   technology VARCHAR(2048) NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE domains.eservice (
 CREATE TABLE domains.eservice_descriptor (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   version VARCHAR(2048) NOT NULL,
   description VARCHAR(2048),
   state VARCHAR(2048) NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE domains.eservice_descriptor (
   agreement_approval_policy VARCHAR(2048),
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   server_urls VARCHAR(65535) NOT NULL,
-  server_urls_descriptions VARCHAR(65535) NOT NULL,
+  server_urls_descriptions VARCHAR(65535),
   published_at TIMESTAMP WITH TIME ZONE,
   suspended_at TIMESTAMP WITH TIME ZONE,
   deprecated_at TIMESTAMP WITH TIME ZONE,
@@ -60,7 +60,7 @@ CREATE TABLE domains.eservice_descriptor (
 
 CREATE TABLE domains.eservice_descriptor_async_exchange_properties (
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   response_time INTEGER NOT NULL,
   resource_available_time INTEGER NOT NULL,
@@ -72,14 +72,14 @@ CREATE TABLE domains.eservice_descriptor_async_exchange_properties (
 );
 
 CREATE TABLE domains.eservice_descriptor_template_version_ref (
-  eservice_template_version_id VARCHAR(36),
+  eservice_template_version_id VARCHAR(36) NOT NULL,
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
-  contact_name VARCHAR(2048),
-  contact_email VARCHAR(2048),
-  contact_url VARCHAR(2048),
-  terms_and_conditions_url VARCHAR(2048),
+  contact_name VARCHAR(65535),
+  contact_email VARCHAR(65535),
+  contact_url VARCHAR(65535),
+  terms_and_conditions_url VARCHAR(65535),
   deleted BOOLEAN,
   PRIMARY KEY (eservice_template_version_id, descriptor_id),
   FOREIGN KEY (eservice_id) REFERENCES domains.eservice (id)
@@ -87,7 +87,7 @@ CREATE TABLE domains.eservice_descriptor_template_version_ref (
 
 CREATE TABLE domains.eservice_descriptor_rejection_reason (
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   rejection_reason VARCHAR(2048) NOT NULL,
   rejected_at TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -98,7 +98,7 @@ CREATE TABLE domains.eservice_descriptor_rejection_reason (
 CREATE TABLE domains.eservice_descriptor_interface (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   kind VARCHAR(2048) NOT NULL,
   name VARCHAR(2048) NOT NULL,
@@ -116,7 +116,7 @@ CREATE TABLE domains.eservice_descriptor_interface (
 CREATE TABLE domains.eservice_descriptor_document (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   name VARCHAR(2048) NOT NULL,
   content_type VARCHAR(2048) NOT NULL,
@@ -132,7 +132,7 @@ CREATE TABLE domains.eservice_descriptor_document (
 CREATE TABLE domains.eservice_descriptor_attribute (
   attribute_id VARCHAR(36) NOT NULL,
   eservice_id VARCHAR(36) NOT NULL REFERENCES domains.eservice (id),
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   descriptor_id VARCHAR(36) NOT NULL REFERENCES domains.eservice_descriptor (id),
   explicit_attribute_verification BOOLEAN NOT NULL,
   kind VARCHAR(2048) NOT NULL,
@@ -148,7 +148,7 @@ CREATE TABLE domains.eservice_descriptor_attribute (
 CREATE TABLE domains.eservice_risk_analysis (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   name VARCHAR(2048) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   risk_analysis_form_id VARCHAR(36) UNIQUE NOT NULL,
@@ -162,7 +162,7 @@ CREATE TABLE domains.eservice_risk_analysis (
 CREATE TABLE domains.eservice_risk_analysis_answer (
   id VARCHAR(36),
   eservice_id VARCHAR(36) NOT NULL,
-  metadata_version INTEGER,
+  metadata_version INTEGER NOT NULL,
   risk_analysis_form_id VARCHAR(36) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   key VARCHAR(2048) NOT NULL,
@@ -290,10 +290,10 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_answer (
   id VARCHAR(36),
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
-  risk_analysis_form_id VARCHAR(36),
+  risk_analysis_form_id VARCHAR(36) NOT NULL,
   kind VARCHAR(2048) NOT NULL,
   key VARCHAR(2048) NOT NULL,
-  value VARCHAR(65535),
+  value VARCHAR(65535) NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (id, purpose_id),
   FOREIGN KEY (risk_analysis_form_id, purpose_id) REFERENCES domains.purpose_risk_analysis_form (id, purpose_id)
@@ -323,7 +323,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version (
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
-  id VARCHAR(36),
+  id VARCHAR(36) NOT NULL,
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
   purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
@@ -335,7 +335,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_version_document (
 );
 
 CREATE TABLE IF NOT EXISTS domains.purpose_version_signed_document (
-  id VARCHAR(36),
+  id VARCHAR(36) NOT NULL,
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
   purpose_version_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_version(id),
@@ -760,8 +760,8 @@ CREATE TABLE IF NOT EXISTS domains.purpose_template (
 CREATE TABLE IF NOT EXISTS domains.purpose_template_eservice_descriptor (
   metadata_version INTEGER NOT NULL,
   purpose_template_id VARCHAR(36) NOT NULL REFERENCES domains.purpose_template (id),
-  eservice_id VARCHAR(36),
-  descriptor_id VARCHAR(36),
+  eservice_id VARCHAR(36) NOT NULL,
+  descriptor_id VARCHAR(36) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (purpose_template_id, eservice_id)
@@ -824,7 +824,7 @@ CREATE TABLE IF NOT EXISTS domains.eservice_descriptor_archiving_schedule (
   scope VARCHAR(2048) NOT NULL,
   archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
   started_at TIMESTAMP WITH TIME ZONE NOT NULL,
-  grace_period_days INTEGER,
+  grace_period_days INTEGER NOT NULL,
   deleted BOOLEAN,
   PRIMARY KEY (eservice_id, descriptor_id)
 );
