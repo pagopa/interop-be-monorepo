@@ -1334,10 +1334,9 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
       assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
-
       assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
-
       assertEServiceArchivable(eservice.data);
+
       const latestActiveRequest = getLatestActiveArchivingRequest(
         eservice.data.delegatedArchivingRequest,
         eserviceId
@@ -1346,7 +1345,6 @@ export function catalogServiceBuilder(
         eservice.data,
         readModelService
       );
-
       assertDelegatedArchivingRequestDelegationIsStillValid(
         producerDelegation,
         latestActiveRequest,
@@ -1403,7 +1401,7 @@ export function catalogServiceBuilder(
     },
     async rejectDelegatedEServiceArchiving(
       eserviceId: EServiceId,
-      body: catalogApi.RejectDelegatedArchivingSeed,
+      body: catalogApi.RejectDelegatedEServiceArchivingSeed,
       {
         authData,
         correlationId,

@@ -163,7 +163,6 @@ export async function handleEServiceEvent(
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
           "MaintenanceEServiceDescriptorUnarchived",
-          // TODO: implement delegation archiving request notifications (PIN-10635)
           "EServiceArchivingRequestedByDelegate",
           "EServiceArchivingRequestApprovedByDelegator",
           "EServiceArchivingRequestRejectedByDelegator",

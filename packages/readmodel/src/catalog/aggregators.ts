@@ -414,27 +414,24 @@ export const aggregateEservice = ({
       : {}),
     ...(archivingRequestsSQLWithNullDescriptorId.length > 0
       ? {
-          delegatedArchivingRequest: archivingRequestsSQLWithNullDescriptorId
-            .filter(
-              (archivingRequest) =>
-                archivingRequest.archivingReason !== null &&
-                archivingRequest.descriptorId === null
-            )
-            .map<DelegatedEServiceArchivingRequest>((archivingRequest) => ({
-              gracePeriodDays: GracePeriodDays.parse(
-                archivingRequest.gracePeriodDays
-              ),
-              archivingReason: archivingRequest.archivingReason ?? "",
-              requestedAt: stringToDate(archivingRequest.requestedAt),
-              requesterId: unsafeBrandId(archivingRequest.requesterId),
-              rejectedAt: archivingRequest.rejectedAt
-                ? stringToDate(archivingRequest.rejectedAt)
-                : undefined,
-              acceptedAt: archivingRequest.acceptedAt
-                ? stringToDate(archivingRequest.acceptedAt)
-                : undefined,
-              rejectionReason: archivingRequest.rejectionReason ?? undefined,
-            })),
+          delegatedArchivingRequest:
+            archivingRequestsSQLWithNullDescriptorId.map<DelegatedEServiceArchivingRequest>(
+              (archivingRequest) => ({
+                gracePeriodDays: GracePeriodDays.parse(
+                  archivingRequest.gracePeriodDays
+                ),
+                archivingReason: archivingRequest.archivingReason ?? "",
+                requestedAt: stringToDate(archivingRequest.requestedAt),
+                requesterId: unsafeBrandId(archivingRequest.requesterId),
+                rejectedAt: archivingRequest.rejectedAt
+                  ? stringToDate(archivingRequest.rejectedAt)
+                  : undefined,
+                acceptedAt: archivingRequest.acceptedAt
+                  ? stringToDate(archivingRequest.acceptedAt)
+                  : undefined,
+                rejectionReason: archivingRequest.rejectionReason ?? undefined,
+              })
+            ),
         }
       : {}),
   };
@@ -878,19 +875,8 @@ export const toEServiceAggregatorArray = (
 
       const archivingRequestSQL = row.archivingRequests;
       if (archivingRequestSQL?.descriptorId) {
-        const archivingRequestPK = archivingRequestSQL
-          ? makeUniqueKey([
-              archivingRequestSQL.eserviceId,
-              archivingRequestSQL.descriptorId,
-              archivingRequestSQL.requestedAt,
-            ])
-          : undefined;
-        if (
-          archivingRequestSQL &&
-          archivingRequestPK &&
-          !descriptorArchivingRequestIdSet.has(archivingRequestPK)
-        ) {
-          descriptorArchivingRequestIdSet.add(archivingRequestPK);
+        if (!descriptorArchivingRequestIdSet.has(archivingRequestSQL.id)) {
+          descriptorArchivingRequestIdSet.add(archivingRequestSQL.id);
           // eslint-disable-next-line functional/immutable-data
           archivingRequestsSQL.push(archivingRequestSQL);
         }
@@ -928,18 +914,8 @@ export const toEServiceAggregatorArray = (
 
     const archivingRequestEService = row.archivingRequests;
     if (archivingRequestEService?.descriptorId === null) {
-      const archivingRequestPK = archivingRequestEService
-        ? makeUniqueKey([
-            archivingRequestEService.eserviceId,
-            archivingRequestEService.requestedAt,
-          ])
-        : undefined;
-      if (
-        archivingRequestEService &&
-        archivingRequestPK &&
-        !eserviceArchivingRequestIdSet.has(archivingRequestPK)
-      ) {
-        eserviceArchivingRequestIdSet.add(archivingRequestPK);
+      if (!eserviceArchivingRequestIdSet.has(archivingRequestEService.id)) {
+        eserviceArchivingRequestIdSet.add(archivingRequestEService.id);
         // eslint-disable-next-line functional/immutable-data
         archivingRequestsSQL.push(archivingRequestEService);
       }

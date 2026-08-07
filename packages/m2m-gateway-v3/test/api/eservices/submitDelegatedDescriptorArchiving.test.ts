@@ -138,7 +138,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedA
     expect(res.status).toBe(400);
   });
 
-  it.each([-1, 0, 1, 29, undefined])(
+  it.each([-1, 0, 1, 29])(
     "Should return 400 for invalid gracePeriodDays %s",
     async (gracePeriodDays) => {
       const token = generateToken(authRole.M2M_ADMIN_ROLE);

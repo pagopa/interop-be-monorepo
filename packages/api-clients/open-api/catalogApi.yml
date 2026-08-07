@@ -471,6 +471,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/rejectDelegatedArchiving:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -494,7 +496,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RejectDelegatedArchivingSeed"
+              $ref: "#/components/schemas/RejectDelegatedEServiceArchivingSeed"
       responses:
         "200":
           description: Delegated archiving request rejected.
@@ -513,6 +515,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/submitDelegatedArchiving:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -3687,6 +3691,10 @@ components:
           type: boolean
         archivingReason:
           type: string
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         asyncExchange:
           type: boolean
         delegatedArchivingRequest:
@@ -4087,7 +4095,58 @@ components:
         delegatedArchivingRequest:
           type: array
           items:
-            $ref: "#/components/schemas/DelegatedArchivingRequest"
+            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
+    DelegatedDescriptorArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+    DelegatedEServiceArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+        - archivingReason
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+        archivingReason:
+          type: string
     ArchivingSchedule:
       type: object
       additionalProperties: false
@@ -4187,7 +4246,7 @@ components:
       required:
         - archivingReason
         - gracePeriodDays
-    RejectDelegatedArchivingSeed:
+    RejectDelegatedEServiceArchivingSeed:
       type: object
       additionalProperties: false
       description: Seed for an owner to reject a delegated archiving request
