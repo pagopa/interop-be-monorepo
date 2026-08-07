@@ -518,7 +518,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            submitDelegatedEServiceArchivingErrorMapper,
+            cancelDelegatedEServiceArchivingErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

@@ -997,10 +997,7 @@ export const cancelDelegatedEServiceArchivingErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "noDelegationForArchivingRequest",
-      "notValidEServiceState", // EService only
-      "notValidDescriptor", // Descriptor only
-      "eserviceWithoutValidDescriptors",
-      "gracePeriodDaysLowerThanDescriptor",
+      "noDelegatedArchivingRequestFound",
       "delegatedArchivingRequestNotActive",
       "noActiveDelegationFound",
       "delegatedArchiveRequestForIncorrectDelegateProducer",
