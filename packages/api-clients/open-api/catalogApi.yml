@@ -3691,10 +3691,6 @@ components:
           type: boolean
         archivingReason:
           type: string
-        delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         asyncExchange:
           type: boolean
         delegatedArchivingRequest:
@@ -4214,16 +4210,6 @@ components:
         - requestedAt
         - requesterId
         - gracePeriodDays
-    DelegatedEServiceArchivingRequest:
-      allOf:
-        - $ref: "#/components/schemas/DelegatedArchivingRequest"
-        - type: object
-          additionalProperties: false
-          properties:
-            archivingReason:
-              type: string
-          required:
-            - archivingReason
     GracePeriodDaysSeed:
       type: object
       additionalProperties: false

@@ -140,9 +140,15 @@ export function updateLatestActiveArchivingRequest<T extends ArchivingRequest>(
 
 export function removeActiveArchivingRequest<T extends ArchivingRequest>(
   archivingRequests: T[] | undefined
-): T[] {
+): T[] | undefined {
   if (!archivingRequests) {
-    return [];
+    return undefined;
   }
-  return archivingRequests.filter(isNotActiveArchivingRequest);
+  const filteredRequests = archivingRequests.filter(
+    isNotActiveArchivingRequest
+  );
+  if (filteredRequests.length === 0) {
+    return undefined;
+  }
+  return filteredRequests;
 }
