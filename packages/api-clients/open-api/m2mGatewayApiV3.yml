@@ -8479,7 +8479,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TenantCertifiedDiscreteAttributeSeed"
+              $ref: "#/components/schemas/UpdateTenantCertifiedDiscreteAttributeSeed"
         required: true
       responses:
         "200":
@@ -14126,6 +14126,17 @@ components:
           maximum: 1000000000
       required:
         - id
+        - certifiedDiscreteValue
+    UpdateTenantCertifiedDiscreteAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
         - certifiedDiscreteValue
     TenantDeclaredAttribute:
       type: object

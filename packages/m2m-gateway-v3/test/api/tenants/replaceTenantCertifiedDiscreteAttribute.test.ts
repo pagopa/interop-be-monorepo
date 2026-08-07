@@ -25,11 +25,11 @@ describe("PUT /tenants/:tenantId/certifiedDiscreteAttributes/:attributeId router
   const mockTenantId = generateId<TenantId>();
   const mockAttributeId = generateId<AttributeId>();
 
-  const mockUpdateSeed: m2mGatewayApiV3.TenantCertifiedDiscreteAttributeSeed = {
-    id: mockApiResponse.id,
-    certifiedDiscreteValue:
-      mockApiResponse.discreteValue === 17520 ? 17521 : 17520,
-  };
+  const mockUpdateSeed: m2mGatewayApiV3.UpdateTenantCertifiedDiscreteAttributeSeed =
+    {
+      certifiedDiscreteValue:
+        mockApiResponse.discreteValue === 17520 ? 17521 : 17520,
+    };
 
   const mockM2MEUpdateSeed = toM2MGatewayApiTenantCertifiedDiscreteAttribute({
     ...mockApiResponse,
@@ -40,7 +40,7 @@ describe("PUT /tenants/:tenantId/certifiedDiscreteAttributes/:attributeId router
     token: string,
     tenantId: TenantId = mockTenantId,
     attributeId: AttributeId = mockAttributeId,
-    body: m2mGatewayApiV3.TenantCertifiedDiscreteAttributeSeed = mockUpdateSeed
+    body: m2mGatewayApiV3.UpdateTenantCertifiedDiscreteAttributeSeed = mockUpdateSeed
   ) =>
     request(api)
       .put(
@@ -90,7 +90,7 @@ describe("PUT /tenants/:tenantId/certifiedDiscreteAttributes/:attributeId router
   });
 
   it.each([
-    { ...mockUpdateSeed, id: undefined },
+    { ...mockUpdateSeed, certifiedDiscreteValue: undefined },
     { ...mockUpdateSeed, certifiedDiscreteValue: -1 },
   ])("Should return 400 if passed invalid seed %s", async (seed) => {
     const token = generateToken(authRole.M2M_ADMIN_ROLE);

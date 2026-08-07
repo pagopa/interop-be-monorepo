@@ -52,9 +52,8 @@ describe("replaceTenantCertifiedDiscreteAttribute", () => {
     })
   );
 
-  const mockTenantCertifiedDiscreteAttributeSeed: m2mGatewayApiV3.TenantCertifiedDiscreteAttributeSeed =
+  const mockTenantCertifiedDiscreteAttributeSeed: m2mGatewayApiV3.UpdateTenantCertifiedDiscreteAttributeSeed =
     {
-      id: mockCertifiedDiscreteAttribute2.id,
       certifiedDiscreteValue:
         mockCertifiedDiscreteAttribute2.discreteValue === 17520
           ? 17521
@@ -150,7 +149,6 @@ describe("replaceTenantCertifiedDiscreteAttribute", () => {
         unsafeBrandId(mockTenantProcessResponse.data.id),
         unsafeBrandId(nonExistentAttributeId),
         {
-          id: nonExistentAttributeId,
           certifiedDiscreteValue: 5270,
         },
         getMockM2MAdminAppContext()
