@@ -149,7 +149,7 @@ describe("getProducerEServiceDetails", () => {
     expect(result.asyncExchange).toBe(true);
     expect(result.latestActiveDescriptorId).toBe(publishedDescriptor.id);
     expect(result.delegatedArchivingRequest).toEqual(
-      eService.delegatedArchivingRequest
+      eService.delegatedArchivingRequest?.[0]
     );
   });
 
