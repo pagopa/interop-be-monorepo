@@ -89,10 +89,8 @@ const errorCodes = {
   eserviceArchivingWithActiveOrPendingDelegation: "0068",
   eserviceTemplateInterfaceTechnologyMismatch: "0069",
   gracePeriodDaysLowerThanDescriptor: "0070",
-  noDelegatedArchivingRequestFound: "0071",
-  delegatedArchivingRequestNotActive: "0072",
-  noDelegationForArchivingRequest: "0073",
-  delegatedArchivingRequestAlreadyInProgress: "0074",
+  noDelegationForArchivingRequest: "0071",
+  delegatedArchivingRequestAlreadyInProgress: "0072",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -818,28 +816,6 @@ export function delegatedArchivingRequestAlreadyInProgress(
     detail: `An archiving request for EService ${eserviceId} is already in progress`,
     code: "delegatedArchivingRequestAlreadyInProgress",
     title: "Delegated archiving request already in progress",
-  });
-}
-
-export function noDelegatedArchivingRequestFound(
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `No active delegated archiving request found for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""}`,
-    code: "noDelegatedArchivingRequestFound",
-    title: "No delegated archiving request found",
-  });
-}
-
-export function delegatedArchivingRequestNotActive(
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The delegated archiving request for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} has been rejected and is no longer active. The delegate must resubmit.`,
-    code: "delegatedArchivingRequestNotActive",
-    title: "Delegated archiving request not active",
   });
 }
 
