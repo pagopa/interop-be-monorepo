@@ -304,7 +304,7 @@ describe("schedule archiving of an Descriptor with delegation", () => {
     }
   );
 
-  it("Should throw delegatedArchivingRequestAlreadyInProgress if there is already an active archiving request", async () => {
+  it("Should throw delegatedArchivingRequestAlreadyInProgress if there is already an active archiving request for the same descriptor", async () => {
     const existingArchivingRequest = getExistingArchivingRequest("pending");
 
     const descriptor: Descriptor = {
@@ -332,8 +332,100 @@ describe("schedule archiving of an Descriptor with delegation", () => {
     await addOneDelegation(mockDelegation);
 
     const expectedError = delegatedArchivingRequestAlreadyInProgress(
-      eservice.id,
-      descriptor.id
+      eservice.id
+    );
+
+    await expect(
+      catalogService.submitDelegatedDescriptorArchiving(
+        eservice.id,
+        descriptor.id,
+        {
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(mockDelegateTenant.id) })
+      )
+    ).rejects.toThrow(expectedError);
+  });
+
+  it("Should throw delegatedArchivingRequestAlreadyInProgress if there is already an active archiving request for a different descriptor", async () => {
+    const existingArchivingRequest = getExistingArchivingRequest("pending");
+
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.deprecated,
+    };
+
+    const lastDescriptor: Descriptor = {
+      ...mockLatestDescriptor,
+      delegatedArchivingRequest: [existingArchivingRequest],
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      descriptors: [descriptor, lastDescriptor],
+    };
+
+    const mockDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegateId: mockDelegateTenant.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producer);
+    await addOneTenant(mockDelegateTenant);
+    await addOneEService(eservice);
+    await addOneDelegation(mockDelegation);
+
+    const expectedError = delegatedArchivingRequestAlreadyInProgress(
+      eservice.id
+    );
+
+    await expect(
+      catalogService.submitDelegatedDescriptorArchiving(
+        eservice.id,
+        descriptor.id,
+        {
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(mockDelegateTenant.id) })
+      )
+    ).rejects.toThrow(expectedError);
+  });
+
+  it("Should throw delegatedArchivingRequestAlreadyInProgress if there is already an active archiving request for e-service", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.deprecated,
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      descriptors: [descriptor, mockLatestDescriptor],
+      delegatedArchivingRequest: [
+        {
+          ...getExistingArchivingRequest("pending"),
+          archivingReason: "Mock reason",
+        },
+      ],
+    };
+
+    const mockDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegateId: mockDelegateTenant.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producer);
+    await addOneTenant(mockDelegateTenant);
+    await addOneEService(eservice);
+    await addOneDelegation(mockDelegation);
+
+    const expectedError = delegatedArchivingRequestAlreadyInProgress(
+      eservice.id
     );
 
     await expect(

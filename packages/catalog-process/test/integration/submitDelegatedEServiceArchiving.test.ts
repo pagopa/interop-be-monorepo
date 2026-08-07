@@ -296,7 +296,7 @@ describe("schedule archiving of an EService with delegation", () => {
     }
   );
 
-  it("Should throw delegatedArchivingRequestAlreadyInProgress if there is already an active archiving request", async () => {
+  it("Should throw delegatedArchivingRequestAlreadyInProgress if there is already an active archiving request for e-service", async () => {
     const existingArchivingRequest = getExistingArchivingRequest("pending");
 
     const descriptor: Descriptor = {
@@ -310,6 +310,54 @@ describe("schedule archiving of an EService with delegation", () => {
       producerId: producer.id,
       descriptors: [descriptor],
       delegatedArchivingRequest: [existingArchivingRequest],
+    };
+
+    const mockDelegation = getMockDelegation({
+      kind: delegationKind.delegatedProducer,
+      eserviceId: eservice.id,
+      delegateId: mockDelegateTenant.id,
+      state: delegationState.active,
+    });
+
+    await addOneTenant(producer);
+    await addOneTenant(mockDelegateTenant);
+    await addOneEService(eservice);
+    await addOneDelegation(mockDelegation);
+
+    const expectedError = delegatedArchivingRequestAlreadyInProgress(
+      eservice.id
+    );
+
+    await expect(
+      catalogService.submitDelegatedEServiceArchiving(
+        eservice.id,
+        {
+          archivingReason: mockArchivingReason,
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(mockDelegateTenant.id) })
+      )
+    ).rejects.toThrow(expectedError);
+  });
+
+  it("Should throw delegatedArchivingRequestAlreadyInProgress if there is already an active archiving request for descriptor", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      interface: mockDocument,
+      delegatedArchivingRequest: [
+        {
+          gracePeriodDays: mockGracePeriodDays,
+          requestedAt: fixedDate,
+          requesterId: mockDelegateTenant.id,
+        },
+      ],
+    };
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      descriptors: [descriptor],
     };
 
     const mockDelegation = getMockDelegation({
@@ -583,68 +631,6 @@ describe("schedule archiving of an EService with delegation", () => {
       archivingDescriptor.id,
       addDaysToFixedDate(mockGracePeriodDays),
       archivingDescriptor.archivingSchedule!.archivableOn
-    );
-
-    await expect(
-      catalogService.submitDelegatedEServiceArchiving(
-        eservice.id,
-        {
-          archivingReason: mockArchivingReason,
-          gracePeriodDays: mockGracePeriodDays,
-        },
-        getMockContext({ authData: getMockAuthData(mockDelegateTenant.id) })
-      )
-    ).rejects.toThrow(expectedError);
-  });
-
-  it("Should throw gracePeriodDaysLowerThanDescriptor when there is a descriptor in projected archiving", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(fixedDate);
-
-    const descriptor: Descriptor = {
-      ...mockDescriptor,
-      version: "2",
-      state: descriptorState.published,
-      interface: mockDocument,
-    };
-
-    const archivingDescriptor: Descriptor = {
-      ...getMockDescriptor(),
-      interface: getMockDocument(),
-      state: descriptorState.deprecated,
-      delegatedArchivingRequest: [
-        {
-          requestedAt: fixedDate,
-          requesterId: mockDelegateTenant.id,
-          gracePeriodDays: 120,
-        },
-      ],
-    };
-    const expectedArchivingDate = addDaysToFixedDate(120);
-
-    const eservice: EService = {
-      ...mockEService,
-      producerId: producer.id,
-      descriptors: [archivingDescriptor, descriptor],
-    };
-
-    const mockDelegation = getMockDelegation({
-      kind: delegationKind.delegatedProducer,
-      eserviceId: eservice.id,
-      delegateId: mockDelegateTenant.id,
-      state: delegationState.active,
-    });
-
-    await addOneTenant(producer);
-    await addOneTenant(mockDelegateTenant);
-    await addOneEService(eservice);
-    await addOneDelegation(mockDelegation);
-
-    const expectedError = gracePeriodDaysLowerThanDescriptor(
-      eservice.id,
-      archivingDescriptor.id,
-      addDaysToFixedDate(mockGracePeriodDays),
-      expectedArchivingDate
     );
 
     await expect(
