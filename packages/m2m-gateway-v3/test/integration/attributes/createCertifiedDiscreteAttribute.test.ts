@@ -104,8 +104,6 @@ describe("createCertifiedAttribute", () => {
         },
       };
 
-      console.log("mockResponse", mockResponse.data);
-
       mockInteropBeClients.attributeProcessClient.getAttributeById =
         mockGetAttribute.mockResolvedValueOnce(mockResponse);
 
