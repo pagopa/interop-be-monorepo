@@ -37,7 +37,6 @@ export async function handleMessageV2(
           "EServiceDescriptorSuspended",
           "EServiceDescriptorInterfaceAdded",
           "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceDescriptorDocumentDeleted",
@@ -83,7 +82,6 @@ export async function handleMessageV2(
           "EServiceArchivingRequestCanceledByDelegate",
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "MaintenanceEServiceDescriptorUnarchived"
         ),

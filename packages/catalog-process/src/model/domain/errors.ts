@@ -95,6 +95,7 @@ const errorCodes = {
   delegatedArchivingRequestAlreadyInProgress: "0074",
   noActiveDelegationFound: "0075",
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
+  interfaceDocumentNotUpdatable: "0077",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -161,6 +162,17 @@ export function eServiceDocumentNotFound(
     detail: `Document with id ${documentId} not found in EService ${eserviceId} / Descriptor ${descriptorId}`,
     code: "eServiceDocumentNotFound",
     title: "EService document not found",
+  });
+}
+
+export function interfaceDocumentNotUpdatable(
+  descriptorId: DescriptorId,
+  documentId: EServiceDocumentId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} is the interface or the async exchange callback interface of descriptor ${descriptorId} and cannot be updated`,
+    code: "interfaceDocumentNotUpdatable",
+    title: "Interface document not updatable",
   });
 }
 

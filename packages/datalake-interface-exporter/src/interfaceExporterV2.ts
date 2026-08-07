@@ -52,7 +52,6 @@ export async function exportInterfaceV2(
           "EServiceDraftDescriptorDeleted",
           "EServiceDescriptorInterfaceAdded",
           "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceDescriptorDocumentDeleted",
@@ -98,7 +97,6 @@ export async function exportInterfaceV2(
           "EServiceArchivingRequestCanceledByDelegate",
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "MaintenanceEServiceDescriptorUnarchived"
         ),
