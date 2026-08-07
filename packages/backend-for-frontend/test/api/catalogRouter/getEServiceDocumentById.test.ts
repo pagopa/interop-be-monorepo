@@ -18,6 +18,7 @@ describe("API GET /eservices/:eServiceId/descriptors/:descriptorId/documents/:do
   const mockResponse = {
     contentType: "application/octet-stream",
     document: Buffer.from("content"),
+    isInterface: true,
     filename: "Specifica API_Servizio Anagrafe_Comune di Forlì_v1.yaml",
   };
 

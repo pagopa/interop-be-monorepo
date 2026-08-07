@@ -538,18 +538,22 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          const { contentType, document, filename } =
+          const { contentType, document, filename, isInterface } =
             await catalogService.getEServiceDocumentById(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               unsafeBrandId(req.params.documentId),
               ctx
             );
-          return res
-            .header(
+
+          if (isInterface && typeof filename == "string") {
+            res.header(
               constants.HTTP2_HEADER_CONTENT_DISPOSITION,
               buildAttachmentContentDisposition(filename)
-            )
+            );
+          }
+
+          return res
             .header(constants.HTTP2_HEADER_CONTENT_TYPE, contentType)
             .status(200)
             .send(document);

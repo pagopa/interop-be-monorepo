@@ -1179,7 +1179,12 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<{ contentType: string; document: Buffer; filename: string }> => {
+    ): Promise<{
+      contentType: string;
+      document: Buffer;
+      filename?: string;
+      isInterface: boolean;
+    }> => {
       logger.info(
         `Retrieving document ${documentId} of descriptor ${descriptorId} of EService ${eServiceId}`
       );
@@ -1214,14 +1219,29 @@ export function catalogServiceBuilder(
         logger
       );
 
-      const filename = buildDescriptorDocumentFilename({
-        eserviceName: eservice.name,
-        producerName: producerTenant.name,
-        descriptorVersion: descriptor.version,
-        documentName: name,
-      });
+      const isInterface = descriptor.interface?.id === documentId;
 
-      return { contentType, document: Buffer.from(stream), filename };
+      const output: {
+        contentType: string;
+        document: Buffer;
+        isInterface: boolean;
+        filename?: string;
+      } = {
+        contentType,
+        document: Buffer.from(stream),
+        isInterface,
+      };
+
+      if (isInterface) {
+        output.filename = buildDescriptorDocumentFilename({
+          eserviceName: eservice.name,
+          producerName: producerTenant.name,
+          descriptorVersion: descriptor.version,
+          documentName: name,
+        });
+      }
+
+      return output;
     },
     createDescriptor: async (
       eServiceId: EServiceId,

@@ -33,6 +33,14 @@ describe("getEServiceDocumentById", () => {
   const descriptorId: DescriptorId = generateId<DescriptorId>();
   const documentId: EServiceDocumentId = generateId<EServiceDocumentId>();
 
+  const document = {
+    ...getMockCatalogApiEServiceDoc(),
+    id: documentId,
+    name: "openapi.yaml",
+    contentType: "application/octet-stream",
+    path: "path/to/openapi.yaml",
+  };
+
   const descriptor: catalogApi.EServiceDescriptor = {
     id: descriptorId,
     state: "PUBLISHED",
@@ -49,6 +57,7 @@ describe("getEServiceDocumentById", () => {
     dailyCallsTotal: 1,
     docs: [],
     agreementApprovalPolicy: "AUTOMATIC",
+    interface: document,
   };
 
   const eService: catalogApi.EService = {
@@ -60,14 +69,6 @@ describe("getEServiceDocumentById", () => {
     descriptors: [descriptor],
     mode: "RECEIVE",
     riskAnalysis: [],
-  };
-
-  const document = {
-    ...getMockCatalogApiEServiceDoc(),
-    id: documentId,
-    name: "openapi.yaml",
-    contentType: "application/octet-stream",
-    path: "path/to/openapi.yaml",
   };
 
   const mockCatalogProcessClient = {
@@ -147,6 +148,7 @@ describe("getEServiceDocumentById", () => {
     expect(result).toEqual({
       contentType: document.contentType,
       document: mockBuffer,
+      isInterface: true,
       filename: "Specifica API_Servizio Anagrafe_Comune di Forlì_v3.yaml",
     });
   });
