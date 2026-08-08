@@ -385,7 +385,7 @@ export const createMockEServiceTemplate = (
  */
 export const createMockEServiceTemplateVersion = (
   state: EServiceTemplateVersionState = eserviceTemplateVersionState.draft,
-  version: string = "1",
+  version = "1",
   createdAt?: Date,
   overrides?: Partial<EServiceTemplateVersion>
 ): EServiceTemplateVersion => ({

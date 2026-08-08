@@ -27,7 +27,7 @@ describe("API PUT /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDiscr
       .mockResolvedValue({ version: 1 });
   });
 
-  const makeRequest = async (token: string, value: number = 100) =>
+  const makeRequest = async (token: string, value = 100) =>
     request(api)
       .put(
         `/internal/origin/${targetTenant.externalId.origin}/remoteId/${tRemoteId}/certifiedDiscreteAttributes/origin/${attribute.origin}/externalId/${attribute.code}`

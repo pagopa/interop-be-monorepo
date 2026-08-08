@@ -459,8 +459,8 @@ export const getMockCompleteRiskAnalysisFormTemplate = (
 export const getMockRiskAnalysisTemplateAnswerAnnotationDocument = (
   id: RiskAnalysisTemplateAnswerAnnotationDocumentId = generateId(),
   purposeTemplateId: PurposeTemplateId = generateId(),
-  basePath: string = "purposeTemplateAnnotationsPath",
-  name: string = `Document-${id}`
+  basePath = "purposeTemplateAnnotationsPath",
+  name = `Document-${id}`
 ): RiskAnalysisTemplateAnswerAnnotationDocument => ({
   id,
   name,
@@ -474,8 +474,8 @@ export const getMockRiskAnalysisTemplateAnswerAnnotationDocument = (
 export const getMockRiskAnalysisTemplateDocument = (
   id: RiskAnalysisTemplateDocumentId = generateId(),
   purposeTemplateId: PurposeTemplateId = generateId(),
-  basePath: string = "purposeTemplatePath",
-  name: string = `Document-${id}`
+  basePath = "purposeTemplatePath",
+  name = `Document-${id}`
 ): RiskAnalysisTemplateDocument => ({
   id,
   name,
@@ -488,8 +488,8 @@ export const getMockRiskAnalysisTemplateDocument = (
 export const getMockRiskAnalysisTemplateSignedDocument = (
   id: RiskAnalysisTemplateDocumentId = generateId(),
   purposeTemplateId: PurposeTemplateId = generateId(),
-  basePath: string = "purposeTemplatePath",
-  name: string = `Document-${id}-signed`
+  basePath = "purposeTemplatePath",
+  name = `Document-${id}-signed`
 ): RiskAnalysisTemplateSignedDocument => ({
   ...getMockRiskAnalysisTemplateDocument(id, purposeTemplateId, basePath, name),
   signedAt: new Date(),
@@ -497,7 +497,7 @@ export const getMockRiskAnalysisTemplateSignedDocument = (
 
 export const getMockRiskAnalysisTemplateAnswerAnnotation = (
   id: RiskAnalysisTemplateAnswerAnnotationId = generateId(),
-  docNumber: number = 0
+  docNumber = 0
 ): RiskAnalysisTemplateAnswerAnnotation => ({
   id,
   text: "Annotation text in answer",

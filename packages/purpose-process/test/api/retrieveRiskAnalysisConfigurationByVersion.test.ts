@@ -33,7 +33,7 @@ describe("API GET /purposes/riskAnalysis/version/{riskAnalysisVersion} test", ()
 
   const makeRequest = async (
     token: string,
-    riskAnalysisVersion: string = "1",
+    riskAnalysisVersion = "1",
     query: { eserviceId: EServiceId } = { eserviceId: generateId() }
   ) =>
     request(api)

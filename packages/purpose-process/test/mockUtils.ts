@@ -180,7 +180,7 @@ export const getMockEServiceForPurposeFromTemplate = (
   producerId: TenantId = generateId<TenantId>(),
   descriptors: Descriptor[] = [],
   templateId?: EServiceTemplateId | undefined,
-  personalData: boolean = true
+  personalData = true
 ): EService => ({
   ...getMockEService(eserviceId, producerId, descriptors, templateId),
   personalData,

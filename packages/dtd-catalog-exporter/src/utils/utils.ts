@@ -46,7 +46,7 @@ export function getAllTenantsIds(eservices: EService[]): TenantId[] {
 export function getAllEservicesAttributesIds(
   eservices: EService[]
 ): AttributeId[] {
-  const attributesIds: Set<AttributeId> = new Set();
+  const attributesIds = new Set<AttributeId>();
 
   eservices.forEach((eservice) => {
     const activeDescriptor = getLatestActiveDescriptor(eservice);
@@ -67,7 +67,7 @@ export function getAllEservicesAttributesIds(
  * @returns The array of attributes ids
  */
 export function getAllTenantsAttributesIds(tenants: Tenant[]): AttributeId[] {
-  const attributesIds: Set<AttributeId> = new Set();
+  const attributesIds = new Set<AttributeId>();
 
   tenants.forEach((tenant) => {
     tenant.attributes.forEach((attr) => attributesIds.add(attr.id));

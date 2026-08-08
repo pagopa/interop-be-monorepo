@@ -45,8 +45,8 @@ export default [
       "@typescript-eslint/switch-exhaustiveness-check": "error",
       "@typescript-eslint/consistent-type-definitions": "off",
       "@typescript-eslint/array-type": "off",
-      "@typescript-eslint/consistent-generic-constructors": "off",
-      "@typescript-eslint/no-inferrable-types": "off",
+      "@typescript-eslint/consistent-generic-constructors": "error",
+      "@typescript-eslint/no-inferrable-types": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
@@ -57,7 +57,7 @@ export default [
       ],
       "complexity": "off",
       "max-lines-per-function": "off",
-      "perfectionist/sort-array-includes": "off",
+      "perfectionist/sort-array-includes": "error",
       "perfectionist/sort-classes": "off",
       "perfectionist/sort-decorators": "off",
       "perfectionist/sort-enums": "off",

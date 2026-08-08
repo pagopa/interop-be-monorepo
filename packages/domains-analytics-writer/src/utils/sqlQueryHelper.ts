@@ -112,8 +112,8 @@ export function generateMergeDeleteQuery<
   targetTableName: TargetTable,
   stagingTableName: StagingTable,
   deleteKeysOn: ColumnKeys[],
-  useIdAsSourceDeleteKey: boolean = true,
-  physicalDelete: boolean = true,
+  useIdAsSourceDeleteKey = true,
+  physicalDelete = true,
   additionalKeysToUpdate?: ColumnKeys[]
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
@@ -170,7 +170,7 @@ export async function mergeDeletingCascadeById<
   id: DeleteKey,
   deletingTargetTableNames: [...TargetTable],
   deletingStagingTableName: StagingTable,
-  isPhysicalDelete: boolean = false
+  isPhysicalDelete = false
 ): Promise<void> {
   const useIdAsSourceDeleteKey = true;
 

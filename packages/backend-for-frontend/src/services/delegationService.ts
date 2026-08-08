@@ -49,7 +49,7 @@ async function enhanceDelegation<
     hasNotifications: boolean | undefined,
     producer: tenantApi.Tenant
   ) => T,
-  cachedTenants: Map<string, tenantApi.Tenant> = new Map(),
+  cachedTenants = new Map<string, tenantApi.Tenant>(),
   notifications: string[] | undefined
 ): Promise<T> {
   const delegator = await getTenantById(
@@ -172,7 +172,7 @@ export async function getTenantById(
   tenantClient: TenantProcessClient,
   headers: BffAppContext["headers"],
   tenantId: string,
-  tenantMap: Map<string, tenantApi.Tenant> = new Map()
+  tenantMap = new Map<string, tenantApi.Tenant>()
 ): Promise<tenantApi.Tenant> {
   return (
     tenantMap.get(tenantId) ??

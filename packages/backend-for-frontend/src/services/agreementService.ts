@@ -989,7 +989,7 @@ async function getConsumerProducerEserviceDelegation(
     delegationProcessClient,
   }: PagoPAInteropBeClients,
   { headers }: WithLogger<BffAppContext>,
-  cachedTenants: Map<string, tenantApi.Tenant> = new Map()
+  cachedTenants = new Map<string, tenantApi.Tenant>()
 ): Promise<{
   consumer: tenantApi.Tenant;
   producer: tenantApi.Tenant;

@@ -159,7 +159,7 @@ describe("getCertifiedAttributes", () => {
   });
 
   it("should get certified attributes certified by the passed certifier id", async () => {
-    const certifierId: string = "test";
+    const certifierId = "test";
     const tenantCertifier = {
       ...getMockTenant(),
       features: [{ type: "PersistentCertifier" as const, certifierId }],
@@ -229,7 +229,7 @@ describe("getCertifiedAttributes", () => {
   });
 
   it("should not return the attributes when they are revoked", async () => {
-    const certifierId: string = "test";
+    const certifierId = "test";
     const tenantCertifier = {
       ...getMockTenant(),
       features: [{ type: "PersistentCertifier" as const, certifierId }],
@@ -289,7 +289,7 @@ describe("getCertifiedAttributes", () => {
   });
 
   it("should throw tenantNotFound error if the caller tenant is not present in the read model", async () => {
-    const certifierId: string = "test";
+    const certifierId = "test";
     const tenantCertifier = {
       ...getMockTenant(),
       features: [{ type: "PersistentCertifier" as const, certifierId }],
@@ -340,7 +340,7 @@ describe("getCertifiedAttributes", () => {
   });
 
   it("should throw tenantIsNotACertifier error if the caller tenant is not a certifier", async () => {
-    const certifierId: string = "test";
+    const certifierId = "test";
     const tenantNotCertifier = {
       ...getMockTenant(),
       features: [],
