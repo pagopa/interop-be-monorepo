@@ -1346,10 +1346,12 @@ export function catalogServiceBuilder(
         latestActiveRequest.gracePeriodDays
       );
 
+      const now = new Date();
+
       const updatedRequests = updateLatestActiveArchivingRequest(
         eservice.data.delegatedArchivingRequest ?? [],
         {
-          acceptedAt: new Date(),
+          acceptedAt: now,
         },
         eserviceId
       );
@@ -1365,7 +1367,7 @@ export function catalogServiceBuilder(
       );
 
       const archivableEservice = await processEserviceArchiving(
-        lastRequest.requestedAt,
+        now,
         updatedEService,
         {
           gracePeriodDays: lastRequest.gracePeriodDays,
