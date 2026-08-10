@@ -133,7 +133,6 @@ async function handleEServiceEventV2(
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
             "EServiceDescriptorInterfaceAdded",
-            "EServiceDescriptorInterfaceUpdated",
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorArchivingScheduled",
             "EServiceDescriptorArchivingCanceled",
@@ -143,7 +142,6 @@ async function handleEServiceEventV2(
             "EServiceDescriptorArchivingRequestApprovedByDelegator",
             "EServiceDescriptorArchivingRequestCanceledByDelegate",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "MaintenanceEServiceDescriptorUnarchived"
           ),
