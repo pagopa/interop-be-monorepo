@@ -477,6 +477,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -526,6 +528,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}:
     post:
       security:

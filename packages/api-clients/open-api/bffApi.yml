@@ -2157,6 +2157,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
     parameters:
       - name: eServiceId
@@ -2214,6 +2216,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
     post:
       security:
