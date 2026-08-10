@@ -643,12 +643,6 @@ paths:
       summary: Cancel a delegated archiving request for a descriptor
       operationId: cancelDelegatedDescriptorArchiving
       description: Allows a delegate to cancel the archiving request of the specified Descriptor.
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/GracePeriodDaysSeed"
       responses:
         "200":
           description: Delegated archiving request canceled.
