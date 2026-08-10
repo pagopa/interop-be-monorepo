@@ -3096,6 +3096,108 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/approveDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Approve a delegated archiving request for an E-Service Descriptor
+      operationId: approveDelegatedDescriptorArchiving
+      description: Allows the owner (delegator) to approve a delegate's descriptor archiving request, starting the regular archiving grace period.
+      responses:
+        "200":
+          description: Delegated archiving request approved.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/rejectDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Reject a delegated archiving request for an E-Service Descriptor
+      operationId: rejectDelegatedDescriptorArchiving
+      description: Allows the owner (delegator) to reject a delegate's descriptor archiving request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request rejected.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /eservices/{eserviceId}/delegation:
     parameters:
       - name: eserviceId
