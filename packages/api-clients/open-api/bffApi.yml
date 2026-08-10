@@ -2331,7 +2331,7 @@ paths:
         - eservices
       summary: Submit a delegated archiving request for an E-Service
       operationId: submitDelegatedEServiceArchiving
-      description: Allows a delegate to request the archiving of the specified E-Service. The owner must then confirm by calling scheduleArchive.
+      description: Allows a delegate to request the archiving of the specified E-Service. The owner must then approve or reject the request.
       requestBody:
         required: true
         content:
@@ -2365,6 +2365,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
     parameters:
       - name: eServiceId
@@ -2422,6 +2424,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
     post:
       security:

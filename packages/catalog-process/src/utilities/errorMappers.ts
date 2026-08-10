@@ -871,7 +871,7 @@ export const unarchiveDescriptorErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const submitDelegatedEServiceArchivingErrorMapper = (
+export const submitDelegatedArchivingErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
