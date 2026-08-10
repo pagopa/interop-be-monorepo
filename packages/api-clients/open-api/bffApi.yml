@@ -13717,9 +13717,7 @@ components:
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
+          $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
         asyncExchangeCallbackInterface:
@@ -13857,9 +13855,7 @@ components:
         archivingReason:
           type: string
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+          $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         asyncExchange:
           type: boolean
     ProducerEServiceDetails:
@@ -13899,9 +13895,7 @@ components:
         asyncExchange:
           type: boolean
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+          $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         latestActiveDescriptorId:
           type: string
           format: uuid
@@ -14154,9 +14148,7 @@ components:
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
+          $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -14214,9 +14206,7 @@ components:
         asyncExchange:
           type: boolean
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+          $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false
@@ -14621,6 +14611,8 @@ components:
         archivableOn:
           type: string
           format: date-time
+        delegatedArchivingRequest:
+          $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
     TemplateInstanceInterfaceServerUrlSeed:
       type: object
       additionalProperties: false

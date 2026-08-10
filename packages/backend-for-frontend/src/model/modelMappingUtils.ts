@@ -52,6 +52,18 @@ export function getValidDescriptor(
   );
 }
 
+export function getLastArchivingRequest<
+  T extends { requestedAt: string; acceptedAt?: string },
+>(archivingRequests: T[] | undefined): T | undefined {
+  return archivingRequests
+    ?.filter((request) => request.acceptedAt === undefined)
+    .sort(
+      (a, b) =>
+        new Date(a.requestedAt).getTime() - new Date(b.requestedAt).getTime()
+    )
+    .at(-1);
+}
+
 export function getLatestTenantContactEmail(
   tenant: tenantApi.Tenant
 ): bffApi.Mail | undefined {
