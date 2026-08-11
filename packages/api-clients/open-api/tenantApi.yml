@@ -232,7 +232,7 @@ paths:
         Used when the attribute origin should be deducted from requester
       responses:
         "200":
-          description: Tenant created or updated
+          description: Updated Tenant
           content:
             application/json:
               schema:
