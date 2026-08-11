@@ -824,6 +824,48 @@ export function eserviceServiceBuilder(
       return toM2MGatewayApiEServiceDescriptor(descriptor);
     },
 
+    async approveDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(
+        `Approving delegated archiving request for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.approveDelegatedEServiceArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+    async rejectDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApiV3.RejectDelegatedEServiceArchivingSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(
+        `Rejecting delegated archiving request for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.rejectDelegatedEServiceArchiving(
+          {
+            ...seed,
+          },
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+
     async updatePublishedEServiceDelegation(
       eserviceId: EServiceId,
       seed: m2mGatewayApiV3.EServiceDelegationUpdateSeed,

@@ -170,6 +170,57 @@ const eserviceRouter = (
       }
     })
     .post(
+      "/eservices/:eserviceId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eservice =
+            await eserviceService.approveDelegatedEServiceArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              ctx
+            );
+          return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error approving delegated archiving request for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/rejectDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eservice =
+            await eserviceService.rejectDelegatedEServiceArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              req.body,
+              ctx
+            );
+          return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error rejecting delegated archiving request for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
       "/eservices/:eserviceId/submitDelegatedArchiving",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
