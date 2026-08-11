@@ -3009,7 +3009,7 @@ paths:
         - eservices
       summary: Submit a delegated archiving request for an E-Service
       operationId: submitDelegatedEServiceArchiving
-      description: Allows a delegate to request the archiving of the specified E-Service. The owner must then confirm by calling scheduleArchive.
+      description: Allows a delegate to request the archiving of the specified E-Service. The owner must then approve or reject the request.
       requestBody:
         required: true
         content:
@@ -3042,6 +3042,10 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
     parameters:
       - name: eserviceId
@@ -3144,6 +3148,10 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/rejectDelegatedArchiving:
     parameters:
       - name: eserviceId
@@ -3198,6 +3206,10 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/delegation:
     parameters:
       - name: eserviceId
@@ -11339,10 +11351,8 @@ components:
             - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED
             - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED
             - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
-            - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
             - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
             - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
-            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
             - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_RISK_ANALYSIS_ADDED
             - ESERVICE_RISK_ANALYSIS_UPDATED
@@ -11440,9 +11450,7 @@ components:
             - ESERVICE_TEMPLATE_VERSION_DOCUMENT_UPDATED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
-            - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
             - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
-            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
             - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_TEMPLATE_VERSION_PUBLISHED
             - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED

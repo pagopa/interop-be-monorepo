@@ -107,6 +107,7 @@ import {
   eServiceTemplateWithoutPublishedVersion,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
+  interfaceDocumentNotUpdatable,
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
@@ -158,7 +159,6 @@ import {
   toCreateEventEServiceDraftDescriptorUpdated,
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
-  toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceIsClientAccessDelegableDisabled,
   toCreateEventEServiceIsClientAccessDelegableEnabled,
   toCreateEventEServiceIsConsumerDelegableDisabled,
@@ -175,7 +175,6 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded,
-  toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated,
   toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted,
   toCreateEventEServiceInstanceLabelUpdated,
   toCreateEventEServiceDescriptorArchivingScheduled,
@@ -255,8 +254,6 @@ import {
   assertEServiceGracePeriodIsNotLowerThanDescriptors,
   assertRequesterIsDelegateForArchiving,
   assertDelegatedEserviceHasNoActiveArchivingRequests,
-  assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors,
-  assertDelegatedDescriptorHasNoActiveArchivingRequests,
   assertDelegatedEserviceHasAtLeastOneArchivingRequests,
   assertDelegatedEserviceHasActiveArchivingRequests,
   assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
@@ -1353,10 +1350,12 @@ export function catalogServiceBuilder(
         latestActiveRequest.gracePeriodDays
       );
 
+      const now = new Date();
+
       const updatedRequests = updateLatestActiveArchivingRequest(
         eservice.data.delegatedArchivingRequest ?? [],
         {
-          acceptedAt: new Date(),
+          acceptedAt: now,
         },
         eserviceId
       );
@@ -1372,7 +1371,7 @@ export function catalogServiceBuilder(
       );
 
       const archivableEservice = await processEserviceArchiving(
-        lastRequest.requestedAt,
+        now,
         updatedEService,
         {
           gracePeriodDays: lastRequest.gracePeriodDays,
@@ -1638,15 +1637,13 @@ export function catalogServiceBuilder(
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
 
-      const isInterface = document.id === descriptor?.interface?.id;
-      const isAsyncExchangeCallbackInterface =
-        document.id === descriptor?.asyncExchangeCallbackInterface?.id;
-
+      // The interface and the async exchange callback interface cannot be
+      // updated: only regular documents are updatable through this operation.
       if (
-        (isInterface || isAsyncExchangeCallbackInterface) &&
-        descriptorStatesNotAllowingInterfaceOperations(descriptor)
+        document.id === descriptor.interface?.id ||
+        document.id === descriptor.asyncExchangeCallbackInterface?.id
       ) {
-        throw notValidDescriptorState(descriptor.id, descriptor.state);
+        throw interfaceDocumentNotUpdatable(descriptor.id, documentId);
       }
 
       if (
@@ -1674,13 +1671,9 @@ export function catalogServiceBuilder(
           d.id === descriptorId
             ? {
                 ...d,
-                interface: isInterface ? updatedDocument : d.interface,
                 docs: d.docs.map((doc) =>
                   doc.id === documentId ? updatedDocument : doc
                 ),
-                asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
-                  ? updatedDocument
-                  : d.asyncExchangeCallbackInterface,
               }
             : d
         ),
@@ -1692,26 +1685,12 @@ export function catalogServiceBuilder(
         eservice: newEservice,
       };
 
-      const event = isInterface
-        ? toCreateEventEServiceInterfaceUpdated(
-            eserviceId,
-            eservice.metadata.version,
-            eventPayload,
-            correlationId
-          )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated(
-              eserviceId,
-              eservice.metadata.version,
-              eventPayload,
-              correlationId
-            )
-          : toCreateEventEServiceDocumentUpdated(
-              eserviceId,
-              eservice.metadata.version,
-              eventPayload,
-              correlationId
-            );
+      const event = toCreateEventEServiceDocumentUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        eventPayload,
+        correlationId
+      );
 
       await repository.createEvent(event);
       return updatedDocument;
@@ -3538,11 +3517,6 @@ export function catalogServiceBuilder(
         eservice.data,
         seed.gracePeriodDays
       );
-      assertProjectedEServiceGracePeriodIsNotLowerThanDescriptors(
-        new Date(),
-        eservice.data,
-        seed.gracePeriodDays
-      );
 
       const updatedRequests = appendArchivingRequest(
         eservice.data.delegatedArchivingRequest,
@@ -3602,10 +3576,7 @@ export function catalogServiceBuilder(
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
       assertDescriptorArchivable(descriptor, eservice.data);
-      assertDelegatedDescriptorHasNoActiveArchivingRequests(
-        descriptor,
-        eserviceId
-      );
+      assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
 
       const updatedRequests = appendArchivingRequest(
         descriptor.delegatedArchivingRequest,

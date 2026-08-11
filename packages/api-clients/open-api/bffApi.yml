@@ -2331,7 +2331,7 @@ paths:
         - eservices
       summary: Submit a delegated archiving request for an E-Service
       operationId: submitDelegatedEServiceArchiving
-      description: Allows a delegate to request the archiving of the specified E-Service. The owner must then confirm by calling scheduleArchive.
+      description: Allows a delegate to request the archiving of the specified E-Service. The owner must then approve or reject the request.
       requestBody:
         required: true
         content:
@@ -2365,6 +2365,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
     parameters:
       - name: eServiceId
@@ -2473,6 +2475,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /eservices/{eServiceId}/descriptors/{descriptorId}/rejectDelegatedArchiving:
     parameters:
       - name: eServiceId
@@ -2530,6 +2534,8 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
     post:
       security:
@@ -5066,8 +5072,11 @@ paths:
     get:
       tags:
         - tenants
-      summary: Gets the certified attributes of the requester
-      description: Retrieve the certified attributes
+      summary: Gets the certified attributes assigned by the requester as certifier
+      description: >-
+        Retrieves the certified attributes assigned by the requester tenant
+        acting as certifier, paired with the tenants they are assigned to.
+        It does not return the attributes assigned to the requester tenant.
       operationId: getRequesterCertifiedAttributes
       parameters:
         - in: query
@@ -14140,9 +14149,7 @@ components:
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
+          $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
         asyncExchangeCallbackInterface:
@@ -14280,9 +14287,7 @@ components:
         archivingReason:
           type: string
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+          $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         asyncExchange:
           type: boolean
     ProducerEServiceDetails:
@@ -14322,9 +14327,7 @@ components:
         asyncExchange:
           type: boolean
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+          $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         latestActiveDescriptorId:
           type: string
           format: uuid
@@ -14577,9 +14580,7 @@ components:
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
+          $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -14637,9 +14638,7 @@ components:
         asyncExchange:
           type: boolean
         delegatedArchivingRequest:
-          type: array
-          items:
-            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+          $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false
@@ -15044,6 +15043,8 @@ components:
         archivableOn:
           type: string
           format: date-time
+        delegatedArchivingRequest:
+          $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
     TemplateInstanceInterfaceServerUrlSeed:
       type: object
       additionalProperties: false
