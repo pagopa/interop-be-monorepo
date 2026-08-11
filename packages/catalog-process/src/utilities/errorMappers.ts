@@ -181,7 +181,11 @@ export const documentUpdateErrorMapper = (
       "eServiceDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "notValidDescriptor",
+      "interfaceDocumentNotUpdatable",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -867,7 +871,7 @@ export const unarchiveDescriptorErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const submitDelegatedEServiceArchivingErrorMapper = (
+export const submitDelegatedArchivingErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
@@ -897,10 +901,13 @@ export const approveDelegatedEServiceArchivingErrorMapper = (
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound", // Descriptor only
-      "noActiveDelegationFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "operationForbidden",
+      "delegatedArchiveRequestForIncorrectDelegateProducer",
+      () => HTTP_STATUS_FORBIDDEN
+    )
     .with(
       "noDelegatedArchivingRequestFound",
       "notValidEServiceState", // EService only
@@ -909,7 +916,11 @@ export const approveDelegatedEServiceArchivingErrorMapper = (
       "gracePeriodDaysLowerThanDescriptor",
       () => HTTP_STATUS_BAD_REQUEST
     )
-    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "delegatedArchivingRequestNotActive",
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const rejectDelegatedEServiceArchivingErrorMapper = (
@@ -919,7 +930,6 @@ export const rejectDelegatedEServiceArchivingErrorMapper = (
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound", // Descriptor only
-      "noActiveDelegationFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with(
@@ -928,7 +938,11 @@ export const rejectDelegatedEServiceArchivingErrorMapper = (
       () => HTTP_STATUS_FORBIDDEN
     )
     .with("noDelegatedArchivingRequestFound", () => HTTP_STATUS_BAD_REQUEST)
-    .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "delegatedArchivingRequestNotActive",
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const rejectDelegatedArchivingErrorMapper = (

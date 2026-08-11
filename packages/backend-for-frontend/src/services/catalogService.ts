@@ -64,6 +64,7 @@ import {
   tenantNotFound,
 } from "../model/errors.js";
 import {
+  getLastArchivingRequest,
   getLatestActiveDescriptor,
   getLatestTenantContactEmail,
 } from "../model/modelMappingUtils.js";
@@ -544,6 +545,9 @@ export function catalogServiceBuilder(
               }
             : undefined,
         archivingSchedule: descriptor.archivingSchedule,
+        delegatedArchivingRequest: getLastArchivingRequest(
+          descriptor.delegatedArchivingRequest
+        ),
       };
     },
     getProducerEServiceDetails: async (
@@ -584,6 +588,9 @@ export function catalogServiceBuilder(
         isClientAccessDelegable: eservice.isClientAccessDelegable,
         personalData: eservice.personalData,
         asyncExchange: eservice.asyncExchange,
+        delegatedArchivingRequest: getLastArchivingRequest(
+          eservice.delegatedArchivingRequest
+        ),
         latestActiveDescriptorId: getLatestActiveDescriptor(eservice)?.id,
       };
     },
@@ -1042,6 +1049,9 @@ export function catalogServiceBuilder(
           hasProducerKeychainKeys
         ),
         archivingSchedule: descriptor.archivingSchedule,
+        delegatedArchivingRequest: getLastArchivingRequest(
+          descriptor.delegatedArchivingRequest
+        ),
         templateRef:
           eserviceTemplate && descriptor.templateVersionRef
             ? {

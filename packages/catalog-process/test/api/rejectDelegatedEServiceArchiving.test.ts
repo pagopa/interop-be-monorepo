@@ -110,7 +110,7 @@ describe("API /eservices/:eServiceId/rejectDelegatedArchiving authorization test
     },
     {
       error: noActiveDelegationFound(mockEService.id),
-      expectedStatus: 404,
+      expectedStatus: 409,
     },
     {
       error: delegatedArchiveRequestForIncorrectDelegateProducer(

@@ -169,13 +169,14 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor_archiving_reque
   id UUID NOT NULL,
   eservice_id UUID NOT NULL REFERENCES readmodel_catalog.eservice (id) ON DELETE CASCADE,
   metadata_version INTEGER NOT NULL,
-  descriptor_id UUID REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE, -- se eservice -> null
+  descriptor_id UUID REFERENCES readmodel_catalog.eservice_descriptor (id) ON DELETE CASCADE,
   grace_period_days INTEGER NOT NULL,
-  requester_id UUID NOT NULL, -- Delegato
+  requester_id UUID NOT NULL,
   requested_at TIMESTAMP WITH TIME ZONE NOT NULL,
   accepted_at TIMESTAMP WITH TIME ZONE,
   rejected_at TIMESTAMP WITH TIME ZONE,
   rejection_reason VARCHAR,
   archiving_reason VARCHAR,
+  PRIMARY KEY (id),
   FOREIGN KEY (eservice_id, metadata_version) REFERENCES readmodel_catalog.eservice (id, metadata_version) DEFERRABLE INITIALLY DEFERRED
 );

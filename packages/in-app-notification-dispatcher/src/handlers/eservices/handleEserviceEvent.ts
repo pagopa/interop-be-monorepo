@@ -151,9 +151,7 @@ export async function handleEServiceEvent(
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
           "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
@@ -163,7 +161,6 @@ export async function handleEServiceEvent(
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
           "MaintenanceEServiceDescriptorUnarchived",
-          // TODO: implement delegation archiving request notifications (PIN-10635)
           "EServiceArchivingRequestedByDelegate",
           "EServiceArchivingRequestApprovedByDelegator",
           "EServiceArchivingRequestRejectedByDelegator",
