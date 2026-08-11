@@ -73,7 +73,7 @@ describe("API GET /tenants/attributes/certified test", () => {
   });
 
   beforeEach(() => {
-    tenantService.getCertifiedAttributes = vi
+    tenantService.getCertifiedAttributesByCertifier = vi
       .fn()
       .mockResolvedValue(mockResponse);
   });
@@ -119,7 +119,9 @@ describe("API GET /tenants/attributes/certified test", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      tenantService.getCertifiedAttributes = vi.fn().mockRejectedValue(error);
+      tenantService.getCertifiedAttributesByCertifier = vi
+        .fn()
+        .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
