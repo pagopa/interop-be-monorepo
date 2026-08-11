@@ -18,7 +18,7 @@ import { api, mockEserviceService } from "../../vitest.api.setup.js";
 describe("POST /eservices/:eserviceId/rejectDelegatedArchiving router test", () => {
   const mockEService: catalogApi.EService = getMockedApiEservice();
 
-  const mockSeed: m2mGatewayApiV3.RejectDelegatedArchivingSeed = {
+  const mockSeed: m2mGatewayApiV3.RejectDelegatedEServiceArchivingSeed = {
     rejectionReason: "Not needed",
   };
 
@@ -28,7 +28,7 @@ describe("POST /eservices/:eserviceId/rejectDelegatedArchiving router test", () 
   const makeRequest = async (
     token: string,
     eserviceId: string = mockEService.id,
-    body: m2mGatewayApiV3.RejectDelegatedArchivingSeed = mockSeed
+    body: m2mGatewayApiV3.RejectDelegatedEServiceArchivingSeed = mockSeed
   ) =>
     request(api)
       .post(`${appBasePath}/eservices/${eserviceId}/rejectDelegatedArchiving`)

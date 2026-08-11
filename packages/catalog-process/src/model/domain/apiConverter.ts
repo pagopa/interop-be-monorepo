@@ -218,16 +218,18 @@ export const descriptorToApiDescriptor = (
   asyncExchangeCallbackInterface: descriptor.asyncExchangeCallbackInterface
     ? documentToApiDocument(descriptor.asyncExchangeCallbackInterface)
     : undefined,
-  delegatedArchivingRequest: descriptor.delegatedArchivingRequest?.map(
-    (request) => ({
-      requestedAt: request.requestedAt.toJSON(),
-      requesterId: request.requesterId,
-      gracePeriodDays: request.gracePeriodDays,
-      acceptedAt: request.acceptedAt?.toJSON(),
-      rejectedAt: request.rejectedAt?.toJSON(),
-      rejectionReason: request.rejectionReason,
-    })
-  ),
+  delegatedArchivingRequest:
+    descriptor.delegatedArchivingRequest &&
+    descriptor.delegatedArchivingRequest.length > 0
+      ? descriptor.delegatedArchivingRequest.map((request) => ({
+          requestedAt: request.requestedAt.toJSON(),
+          requesterId: request.requesterId,
+          gracePeriodDays: request.gracePeriodDays,
+          rejectedAt: request.rejectedAt?.toJSON(),
+          rejectionReason: request.rejectionReason,
+          acceptedAt: request.acceptedAt?.toJSON(),
+        }))
+      : undefined,
 });
 
 export const eServiceToApiEService = (
@@ -260,15 +262,17 @@ export const eServiceToApiEService = (
   instanceLabel: eservice.instanceLabel,
   archivingReason: eservice.archivingReason,
   asyncExchange: eservice.asyncExchange,
-  delegatedArchivingRequest: eservice.delegatedArchivingRequest?.map(
-    (request) => ({
-      requestedAt: request.requestedAt.toJSON(),
-      requesterId: request.requesterId,
-      gracePeriodDays: request.gracePeriodDays,
-      acceptedAt: request.acceptedAt?.toJSON(),
-      rejectedAt: request.rejectedAt?.toJSON(),
-      rejectionReason: request.rejectionReason,
-      archivingReason: request.archivingReason,
-    })
-  ),
+  delegatedArchivingRequest:
+    eservice.delegatedArchivingRequest &&
+    eservice.delegatedArchivingRequest.length > 0
+      ? eservice.delegatedArchivingRequest.map((request) => ({
+          requestedAt: request.requestedAt.toJSON(),
+          requesterId: request.requesterId,
+          gracePeriodDays: request.gracePeriodDays,
+          rejectedAt: request.rejectedAt?.toJSON(),
+          rejectionReason: request.rejectionReason,
+          acceptedAt: request.acceptedAt?.toJSON(),
+          archivingReason: request.archivingReason,
+        }))
+      : undefined,
 });

@@ -450,7 +450,7 @@ const catalogRouter = (
             error,
             emptyErrorMapper,
             ctx,
-            `Error approving delegated archiving request for eService ${req.params.eServiceId}`
+            `Error rejecting delegated archiving request for eService ${req.params.eServiceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
