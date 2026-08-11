@@ -28,7 +28,7 @@ import {
   updateTenantVerifiedAttributeErrorMapper,
   selfcareUpsertTenantErrorMapper,
   addCertifiedAttributeErrorMapper,
-  getCertifiedAttributesErrorMapper,
+  getCertifiedAttributesByCertifierErrorMapper,
   revokeCertifiedAttributeErrorMapper,
   maintenanceTenantDeletedErrorMapper,
   maintenanceTenantPromotedToCertifierErrorMapper,
@@ -266,7 +266,7 @@ const tenantsRouter = (
 
         const { offset, limit } = req.query;
         const { results, totalCount } =
-          await tenantService.getCertifiedAttributes(
+          await tenantService.getCertifiedAttributesByCertifier(
             {
               offset,
               limit,
@@ -283,7 +283,7 @@ const tenantsRouter = (
       } catch (error) {
         const errorRes = makeApiProblem(
           error,
-          getCertifiedAttributesErrorMapper,
+          getCertifiedAttributesByCertifierErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
