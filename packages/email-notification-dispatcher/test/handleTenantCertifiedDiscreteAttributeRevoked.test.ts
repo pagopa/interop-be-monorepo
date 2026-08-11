@@ -24,7 +24,7 @@ import { attributeNotFound } from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { handleTenantCertifiedAttributeUpdated } from "../src/handlers/tenants/handleTenantCertifiedAttributeUpdated.js";
+import { handleTenantCertifiedDiscreteAttributeRevoked } from "../src/handlers/tenants/handleTenantCertifiedDiscreteAttributeRevoked.js";
 import {
   addOneAttribute,
   addOneTenant,
@@ -33,8 +33,9 @@ import {
   templateService,
 } from "./utils.js";
 
-describe("handleTenantCertifiedAttributeUpdated", async () => {
+describe("handleTenantCertifiedDiscreteAttributeRevoked", async () => {
   const targetTenantId = generateId<TenantId>();
+  const certifierTenantId = generateId<TenantId>();
   const certifierId = generateId();
   const attributeId = generateId<AttributeId>();
 
@@ -43,10 +44,41 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
     origin: certifierId,
   };
 
+  const certifiedAttributeANAC: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified ANAC Attribute",
+    origin: "ANAC",
+  };
+  const certifiedAttributeIPA: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified IPA Attribute",
+    origin: "IPA",
+  };
+  const certifiedAttributeIVASS: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified IVASS Attribute",
+    origin: "IVASS",
+  };
+  const certifiedAttributeISTAT: Attribute = {
+    ...getMockAttribute("Certified"),
+    name: "Certified ISTAT Attribute",
+    origin: "ISTAT",
+  };
+
   const targetTenant: Tenant = {
     ...getMockTenant(targetTenantId),
     name: "Target Tenant",
     mails: [getMockTenantMail()],
+  };
+  const certifierTenant: Tenant = {
+    ...getMockTenant(certifierTenantId),
+    name: "Certifier Tenant",
+    features: [
+      {
+        type: "PersistentCertifier",
+        certifierId,
+      },
+    ],
   };
   const users = [getMockUser(targetTenantId), getMockUser(targetTenantId)];
 
@@ -54,7 +86,12 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
 
   beforeEach(async () => {
     await addOneTenant(targetTenant);
+    await addOneTenant(certifierTenant);
     await addOneAttribute(attribute);
+    await addOneAttribute(certifiedAttributeANAC);
+    await addOneAttribute(certifiedAttributeIPA);
+    await addOneAttribute(certifiedAttributeIVASS);
+    await addOneAttribute(certifiedAttributeISTAT);
     readModelService.getTenantNotificationConfigByTenantId = vi
       .fn()
       .mockResolvedValue({
@@ -81,7 +118,7 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
 
   it("should throw missingKafkaMessageDataError when tenant is undefined", async () => {
     await expect(() =>
-      handleTenantCertifiedAttributeUpdated({
+      handleTenantCertifiedDiscreteAttributeRevoked({
         tenantV2Msg: undefined,
         attributeId: generateId(),
         logger,
@@ -90,7 +127,10 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
         correlationId: generateId<CorrelationId>(),
       })
     ).rejects.toThrow(
-      missingKafkaMessageDataError("tenant", "TenantCertifiedAttributeUpdated")
+      missingKafkaMessageDataError(
+        "tenant",
+        "TenantCertifiedDiscreteAttributeRevoked"
+      )
     );
   });
 
@@ -98,7 +138,7 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
     const unknownAttributeId = generateId<AttributeId>();
 
     await expect(() =>
-      handleTenantCertifiedAttributeUpdated({
+      handleTenantCertifiedDiscreteAttributeRevoked({
         tenantV2Msg: toTenantV2(targetTenant),
         attributeId: unknownAttributeId,
         logger,
@@ -117,7 +157,7 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
     };
     await addOneAttribute(attributeWithNoOrigin);
 
-    const messages = await handleTenantCertifiedAttributeUpdated({
+    const messages = await handleTenantCertifiedDiscreteAttributeRevoked({
       tenantV2Msg: toTenantV2(targetTenant),
       attributeId: attributeWithNoOrigin.id,
       logger,
@@ -129,8 +169,8 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
     expect(messages.length).toEqual(0);
   });
 
-  it("should generate one message per user of the tenant that is updated with the attribute", async () => {
-    const messages = await handleTenantCertifiedAttributeUpdated({
+  it("should generate one message per user of the tenant that is revoked the attribute", async () => {
+    const messages = await handleTenantCertifiedDiscreteAttributeRevoked({
       tenantV2Msg: toTenantV2(targetTenant),
       attributeId,
       logger,
@@ -164,7 +204,7 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
         },
       ]);
 
-    const messages = await handleTenantCertifiedAttributeUpdated({
+    const messages = await handleTenantCertifiedDiscreteAttributeRevoked({
       tenantV2Msg: toTenantV2(targetTenant),
       attributeId,
       logger,
@@ -187,7 +227,7 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
   });
 
   it("should generate a complete and correct message", async () => {
-    const messages = await handleTenantCertifiedAttributeUpdated({
+    const messages = await handleTenantCertifiedDiscreteAttributeRevoked({
       tenantV2Msg: toTenantV2(targetTenant),
       attributeId,
       logger,
@@ -201,7 +241,7 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
       expect(message.email.body).toContain("<!-- Footer -->");
       expect(message.email.body).toContain("<!-- Title & Main Message -->");
       expect(message.email.body).toContain(
-        `Un tuo attributo certificato è stato aggiornato`
+        `Un tuo attributo certificato è stato revocato`
       );
       match(message.type)
         .with("User", () => {
@@ -214,4 +254,51 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
       expect(message.email.body).toContain(attribute.name);
     });
   });
+
+  it.each<{
+    certifiedAttribute: Attribute;
+  }>([
+    {
+      certifiedAttribute: certifiedAttributeANAC,
+    },
+    {
+      certifiedAttribute: certifiedAttributeIVASS,
+    },
+    {
+      certifiedAttribute: certifiedAttributeIPA,
+    },
+    {
+      certifiedAttribute: certifiedAttributeISTAT,
+    },
+  ])(
+    "should generate a complete and correct message for certified origin $certifiedAttribute.origin",
+    async ({ certifiedAttribute }) => {
+      const messages = await handleTenantCertifiedDiscreteAttributeRevoked({
+        tenantV2Msg: toTenantV2(targetTenant),
+        attributeId: certifiedAttribute.id,
+        logger,
+        templateService,
+        readModelService,
+        correlationId: generateId<CorrelationId>(),
+      });
+
+      expect(messages.length).toBe(2);
+      messages.forEach((message) => {
+        expect(message.email.body).toContain("<!-- Footer -->");
+        expect(message.email.body).toContain("<!-- Title & Main Message -->");
+        expect(message.email.body).toContain(
+          `Un tuo attributo certificato è stato revocato`
+        );
+        match(message.type)
+          .with("User", () => {
+            expect(message.email.body).toContain("{{ recipientName }}");
+          })
+          .with("Tenant", () => {
+            expect(message.email.body).toContain(targetTenant.name);
+          })
+          .exhaustive();
+        expect(message.email.body).toContain(certifiedAttribute.name);
+      });
+    }
+  );
 });
