@@ -24,7 +24,7 @@ import {
   tenantService,
 } from "../integrationUtils.js";
 
-describe("getCertifiedAttributes", () => {
+describe("getCertifiedAttributesByCertifier", () => {
   it("should get standard and discrete certified attributes", async () => {
     const certifierId: string = "test";
     const tenantCertifier: Tenant = {
@@ -60,7 +60,7 @@ describe("getCertifiedAttributes", () => {
       attributes: [tenantCertifiedAttribute, tenantCertifiedDiscreteAttribute],
     });
 
-    const result = await tenantService.getCertifiedAttributes(
+    const result = await tenantService.getCertifiedAttributesByCertifier(
       { offset: 0, limit: 50 },
       getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
     );
@@ -123,11 +123,11 @@ describe("getCertifiedAttributes", () => {
       attributes: [tenantCertifiedAttribute, tenantCertifiedDiscreteAttribute],
     });
 
-    const firstPage = await tenantService.getCertifiedAttributes(
+    const firstPage = await tenantService.getCertifiedAttributesByCertifier(
       { offset: 0, limit: 1 },
       getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
     );
-    const secondPage = await tenantService.getCertifiedAttributes(
+    const secondPage = await tenantService.getCertifiedAttributesByCertifier(
       { offset: 1, limit: 1 },
       getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
     );
@@ -199,7 +199,7 @@ describe("getCertifiedAttributes", () => {
     await addOneTenant(tenantCertifier);
     await addOneTenant(tenantWithCertifiedAttributes);
 
-    const result = await tenantService.getCertifiedAttributes(
+    const result = await tenantService.getCertifiedAttributesByCertifier(
       {
         offset: 0,
         limit: 50,
@@ -269,7 +269,7 @@ describe("getCertifiedAttributes", () => {
     await addOneTenant(tenantCertifier);
     await addOneTenant(tenantWithCertifiedAttributes);
 
-    const result = await tenantService.getCertifiedAttributes(
+    const result = await tenantService.getCertifiedAttributesByCertifier(
       {
         offset: 0,
         limit: 50,
@@ -328,8 +328,8 @@ describe("getCertifiedAttributes", () => {
 
     await addOneTenant(tenantWithCertifiedAttributes);
 
-    void expect(
-      tenantService.getCertifiedAttributes(
+    await expect(
+      tenantService.getCertifiedAttributesByCertifier(
         {
           offset: 0,
           limit: 50,
@@ -380,8 +380,8 @@ describe("getCertifiedAttributes", () => {
     await addOneTenant(tenantNotCertifier);
     await addOneTenant(tenantWithCertifiedAttributes);
 
-    void expect(
-      tenantService.getCertifiedAttributes(
+    await expect(
+      tenantService.getCertifiedAttributesByCertifier(
         {
           offset: 0,
           limit: 50,
