@@ -1206,13 +1206,6 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
-      const producerTenant = await tenantProcessClient.tenant.getTenant({
-        headers,
-        params: {
-          id: eservice.producerId,
-        },
-      });
-
       const stream = await fileManager.get(
         config.eserviceDocumentsContainer,
         path,
@@ -1233,6 +1226,13 @@ export function catalogServiceBuilder(
       };
 
       if (isInterface) {
+        const producerTenant = await tenantProcessClient.tenant.getTenant({
+          headers,
+          params: {
+            id: eservice.producerId,
+          },
+        });
+
         output.filename = buildDescriptorDocumentFilename({
           eserviceName: eservice.name,
           producerName: producerTenant.name,
