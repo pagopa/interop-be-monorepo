@@ -4173,6 +4173,8 @@ components:
         rejectionReason:
           type: string
           minLength: 1
+      required:
+        - rejectionReason
     ForceTargetState:
       type: object
       additionalProperties: false

@@ -91,8 +91,8 @@ import {
   submitDelegatedArchivingErrorMapper,
   approveDelegatedEServiceArchivingErrorMapper,
   rejectDelegatedEServiceArchivingErrorMapper,
-  approveDelegatedArchivingErrorMapper,
-  rejectDelegatedArchivingErrorMapper,
+  approveDelegatedDescriptorArchivingErrorMapper,
+  rejectDelegatedDescriptorArchivingErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -547,7 +547,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            approveDelegatedArchivingErrorMapper,
+            approveDelegatedDescriptorArchivingErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -576,7 +576,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            rejectDelegatedArchivingErrorMapper,
+            rejectDelegatedDescriptorArchivingErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

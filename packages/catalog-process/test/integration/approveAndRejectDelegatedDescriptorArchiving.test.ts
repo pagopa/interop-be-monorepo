@@ -259,33 +259,6 @@ describe("approve/reject delegated archiving request for a Descriptor", () => {
   });
 
   describe("reject", () => {
-    it("Should reject a pending request without requiring a rejection reason", async () => {
-      const descriptor: Descriptor = {
-        ...getMockDescriptor(),
-        state: descriptorState.deprecated,
-        interface: mockDocument,
-        delegatedArchivingRequest: [pendingRequest],
-      };
-      const eservice = buildEservice(descriptor);
-      await setupActiveDelegation(eservice);
-
-      const response = await catalogService.rejectDelegatedDescriptorArchiving(
-        eservice.id,
-        descriptor.id,
-        {},
-        getMockContext({ authData: getMockAuthData(producer.id) })
-      );
-
-      const receivedDescriptor = response.data.descriptors[0];
-      expect(receivedDescriptor.state).toBe(descriptorState.deprecated);
-      expect(
-        receivedDescriptor.delegatedArchivingRequest?.[0].rejectedAt
-      ).toBeDefined();
-      expect(
-        receivedDescriptor.delegatedArchivingRequest?.[0].rejectionReason
-      ).toBeUndefined();
-    });
-
     it("Should reject a pending request with a rejection reason", async () => {
       const descriptor: Descriptor = {
         ...getMockDescriptor(),
@@ -304,6 +277,10 @@ describe("approve/reject delegated archiving request for a Descriptor", () => {
       );
 
       const receivedDescriptor = response.data.descriptors[0];
+      expect(receivedDescriptor.state).toBe(descriptorState.deprecated);
+      expect(
+        receivedDescriptor.delegatedArchivingRequest?.[0].rejectedAt
+      ).toBeDefined();
       expect(
         receivedDescriptor.delegatedArchivingRequest?.[0].rejectionReason
       ).toBe("Not the right time");
@@ -327,7 +304,7 @@ describe("approve/reject delegated archiving request for a Descriptor", () => {
         catalogService.rejectDelegatedDescriptorArchiving(
           eservice.id,
           descriptor.id,
-          {},
+          { rejectionReason: "Not the right time" },
           getMockContext({ authData: getMockAuthData(producer.id) })
         )
       ).rejects.toThrow(expectedError);
@@ -347,7 +324,7 @@ describe("approve/reject delegated archiving request for a Descriptor", () => {
         catalogService.rejectDelegatedDescriptorArchiving(
           eservice.id,
           descriptor.id,
-          {},
+          { rejectionReason: "Not the right time" },
           getMockContext({ authData: getMockAuthData(mockDelegateTenant.id) })
         )
       ).rejects.toThrow(operationForbidden);
