@@ -83,7 +83,9 @@ import {
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
   gracePeriodDaysLowerThanDescriptor,
+  delegatedArchivingRequestAlreadyInProgress,
 } from "../model/domain/errors.js";
+import { hasActiveArchivingRequest } from "../utilities/archivingRequests.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
@@ -951,5 +953,35 @@ export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
         descriptor.archivingSchedule.archivableOn
       );
     }
+  }
+}
+
+export function assertDelegatedEserviceHasNoActiveArchivingRequests(
+  eservice: EService
+): void {
+  const eserviceHasPendingArchivingRequests = hasActiveArchivingRequest(
+    eservice.delegatedArchivingRequest
+  );
+  const descriptorsHavePendingArchivingRequests = eservice.descriptors.some(
+    (descriptor) =>
+      hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)
+  );
+  if (
+    eserviceHasPendingArchivingRequests ||
+    descriptorsHavePendingArchivingRequests
+  ) {
+    throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
+  }
+}
+
+export function assertRequesterIsDelegateForArchiving(
+  producerDelegation: Delegation,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    authData.organizationId !== producerDelegation.delegateId
+  ) {
+    throw operationForbidden;
   }
 }

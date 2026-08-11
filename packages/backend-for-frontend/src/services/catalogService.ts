@@ -1472,6 +1472,36 @@ export function catalogServiceBuilder(
         },
       });
     },
+    submitDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      seed: catalogApi.EServiceArchivingSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(`Submitting delegated archiving for EService ${eServiceId}`);
+      await catalogProcessClient.submitDelegatedEServiceArchiving(seed, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
+    submitDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.GracePeriodDaysSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Submitting delegated archiving for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.submitDelegatedDescriptorArchiving(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
     updateAgreementApprovalPolicy: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,

@@ -777,6 +777,52 @@ export function eserviceServiceBuilder(
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
     },
+    async submitDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      seed: m2mGatewayApiV3.DelegateEServiceArchivingSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(
+        `Submitting delegated archiving for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.submitDelegatedEServiceArchiving(
+          seed,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
+    async submitDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApiV3.DelegateGracePeriodDaysSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Submitting delegated archiving for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.submitDelegatedDescriptorArchiving(
+          seed,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      const descriptor = retrieveEServiceDescriptorById(
+        polledResource,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
 
     async updatePublishedEServiceDelegation(
       eserviceId: EServiceId,

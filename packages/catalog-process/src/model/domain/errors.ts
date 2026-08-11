@@ -90,6 +90,8 @@ const errorCodes = {
   eserviceTemplateInterfaceTechnologyMismatch: "0069",
   gracePeriodDaysLowerThanDescriptor: "0070",
   interfaceDocumentNotUpdatable: "0071",
+  noDelegationForArchivingRequest: "0072",
+  delegatedArchivingRequestAlreadyInProgress: "0073",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -816,5 +818,25 @@ export function gracePeriodDaysLowerThanDescriptor(
     detail: `Requested archiving date ${dateAtRomeZone(requestedArchivableOn)} for EService ${eserviceId} cannot be lower than expected archiving date ${dateAtRomeZone(expectedArchivableOn)} already scheduled for Descriptor ${descriptorId}`,
     code: "gracePeriodDaysLowerThanDescriptor",
     title: "Grace period days lower than descriptor",
+  });
+}
+
+export function delegatedArchivingRequestAlreadyInProgress(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `An archiving request for EService ${eserviceId} is already in progress`,
+    code: "delegatedArchivingRequestAlreadyInProgress",
+    title: "Delegated archiving request already in progress",
+  });
+}
+
+export function noDelegationForArchivingRequest(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No active producer delegation found for E-service ${eserviceId} to submit an archiving request`,
+    code: "noDelegationForArchivingRequest",
+    title: "No delegation for archiving request",
   });
 }
