@@ -2966,7 +2966,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RejectDelegatedArchivingSeed"
+              $ref: "#/components/schemas/RejectDelegatedEServiceArchivingSeed"
       responses:
         "200":
           description: Delegated archiving request rejected.
@@ -14004,7 +14004,7 @@ components:
           $ref: "#/components/schemas/GracePeriodDays"
       required:
         - archivingReason
-    RejectDelegatedArchivingSeed:
+    RejectDelegatedEServiceArchivingSeed:
       type: object
       additionalProperties: false
       description: Seed for an owner to reject a delegated archiving request

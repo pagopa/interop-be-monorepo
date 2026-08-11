@@ -799,7 +799,7 @@ export function eserviceServiceBuilder(
     },
     async rejectDelegatedEServiceArchiving(
       eserviceId: EServiceId,
-      seed: m2mGatewayApiV3.RejectDelegatedArchivingSeed,
+      seed: m2mGatewayApiV3.RejectDelegatedEServiceArchivingSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EService> {
       logger.info(
