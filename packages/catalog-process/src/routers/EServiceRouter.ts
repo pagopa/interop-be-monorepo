@@ -88,7 +88,7 @@ import {
   cancelEServiceArchivingErrorMapper,
   archiveEServiceErrorMapper,
   unarchiveDescriptorErrorMapper,
-  submitDelegatedEServiceArchivingErrorMapper,
+  submitDelegatedArchivingErrorMapper,
   approveDelegatedEServiceArchivingErrorMapper,
   rejectDelegatedEServiceArchivingErrorMapper,
   approveDelegatedArchivingErrorMapper,
@@ -491,7 +491,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            submitDelegatedEServiceArchivingErrorMapper,
+            submitDelegatedArchivingErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
@@ -547,7 +547,7 @@ const eservicesRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            submitDelegatedEServiceArchivingErrorMapper,
+            submitDelegatedArchivingErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

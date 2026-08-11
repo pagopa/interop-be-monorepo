@@ -435,7 +435,7 @@ describe("getCatalogEServiceDescriptor", () => {
       toApiEServiceDoc(asyncExchangeCallbackInterface)
     );
     expect(result.delegatedArchivingRequest).toEqual(
-      delegatedDescriptorArchivingRequest
+      delegatedDescriptorArchivingRequest[0]
     );
     expect(() =>
       bffApi.EServiceDoc.parse(result.asyncExchangeCallbackInterface)

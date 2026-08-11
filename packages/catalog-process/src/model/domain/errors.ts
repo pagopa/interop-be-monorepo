@@ -95,6 +95,7 @@ const errorCodes = {
   delegatedArchivingRequestAlreadyInProgress: "0074",
   noActiveDelegationFound: "0075",
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
+  interfaceDocumentNotUpdatable: "0077",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -161,6 +162,17 @@ export function eServiceDocumentNotFound(
     detail: `Document with id ${documentId} not found in EService ${eserviceId} / Descriptor ${descriptorId}`,
     code: "eServiceDocumentNotFound",
     title: "EService document not found",
+  });
+}
+
+export function interfaceDocumentNotUpdatable(
+  descriptorId: DescriptorId,
+  documentId: EServiceDocumentId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} is the interface or the async exchange callback interface of descriptor ${descriptorId} and cannot be updated`,
+    code: "interfaceDocumentNotUpdatable",
+    title: "Interface document not updatable",
   });
 }
 
@@ -814,35 +826,12 @@ export function gracePeriodDaysLowerThanDescriptor(
 }
 
 export function delegatedArchivingRequestAlreadyInProgress(
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
+  eserviceId: EServiceId
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `An archiving request for EService ${eserviceId}${descriptorId ? ` and Descriptor ${descriptorId}` : ""} is already in progress`,
+    detail: `An archiving request for EService ${eserviceId} is already in progress`,
     code: "delegatedArchivingRequestAlreadyInProgress",
     title: "Delegated archiving request already in progress",
-  });
-}
-
-export function noDelegatedArchivingRequestFound(
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `No active delegated archiving request found for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""}`,
-    code: "noDelegatedArchivingRequestFound",
-    title: "No delegated archiving request found",
-  });
-}
-
-export function delegatedArchivingRequestNotActive(
-  eserviceId: EServiceId,
-  descriptorId?: DescriptorId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `The delegated archiving request for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} has been rejected and is no longer active. The delegate must resubmit.`,
-    code: "delegatedArchivingRequestNotActive",
-    title: "Delegated archiving request not active",
   });
 }
 
@@ -874,5 +863,27 @@ export function delegatedArchiveRequestForIncorrectDelegateProducer(
     detail: `The E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} archiving request refers to a delegation no longer active`,
     code: "delegatedArchiveRequestForIncorrectDelegateProducer",
     title: "Archiving request with invalid requesterId",
+  });
+}
+
+export function noDelegatedArchivingRequestFound(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No active delegated archiving request found for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""}`,
+    code: "noDelegatedArchivingRequestFound",
+    title: "No delegated archiving request found",
+  });
+}
+
+export function delegatedArchivingRequestNotActive(
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The delegated archiving request for E-service ${eserviceId}${descriptorId ? ` and descriptor ${descriptorId}` : ""} has been rejected and is no longer active. The delegate must resubmit.`,
+    code: "delegatedArchivingRequestNotActive",
+    title: "Delegated archiving request not active",
   });
 }
