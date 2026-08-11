@@ -19,7 +19,7 @@ import { TenantHandlerParams } from "../../models/handlerParams.js";
 const notificationType: NotificationType =
   "certifiedVerifiedAttributeAssignedRevokedToAssignee";
 
-export async function handleTenantCertifiedAttributeUpdated(
+export async function handleTenantCertifiedDiscreteAttributeUpdated(
   data: TenantHandlerParams
 ): Promise<EmailNotificationMessagePayload[]> {
   const {
@@ -34,7 +34,7 @@ export async function handleTenantCertifiedAttributeUpdated(
   if (!tenantV2Msg) {
     throw missingKafkaMessageDataError(
       "tenant",
-      "TenantCertifiedAttributeUpdated"
+      "TenantCertifiedDiscreteAttributeUpdated"
     );
   }
 
@@ -49,7 +49,7 @@ export async function handleTenantCertifiedAttributeUpdated(
 
   if (!attribute.origin) {
     logger.error(
-      `Origin of certified attribute ${attribute.id} cannot be undefined.`
+      `Origin of certified discrete attribute ${attribute.id} cannot be undefined.`
     );
     return [];
   }
@@ -64,7 +64,7 @@ export async function handleTenantCertifiedAttributeUpdated(
 
   if (targets.length === 0) {
     logger.info(
-      `No users with email notifications enabled for handleTenantCertifiedAttributeUpdated - entityId: ${tenant.id}, eventType: ${notificationType}`
+      `No users with email notifications enabled for handleTenantCertifiedDiscreteAttributeUpdated - entityId: ${tenant.id}, eventType: ${notificationType}`
     );
     return [];
   }
