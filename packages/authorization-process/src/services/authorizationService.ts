@@ -14,6 +14,7 @@ import {
   isUiAuthData,
   M2MAdminAuthData,
   M2MAuthData,
+  sanitizePublicKey,
   UIAuthData,
   userRole,
   WithLogger,
@@ -905,12 +906,15 @@ export function authorizationServiceBuilder(
         userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
-      const jwk = createJWK({ pemKeyBase64: keySeed.key });
+      const { jwk, sanitizedPemKeyBase64 } = await sanitizePublicKey({
+        pemKeyBase64: keySeed.key,
+        alg: keySeed.alg,
+      });
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
         kid: calculateKid(jwk),
-        encodedPem: keySeed.key,
+        encodedPem: sanitizedPemKeyBase64,
         algorithm: keySeed.alg,
         use: ApiKeyUseToKeyUse(keySeed.use),
         userId: authData.userId,
@@ -1369,12 +1373,15 @@ export function authorizationServiceBuilder(
         userRolesToCheck: [userRole.ADMIN_ROLE, userRole.SECURITY_ROLE],
       });
 
-      const jwk = createJWK({ pemKeyBase64: keySeed.key });
+      const { jwk, sanitizedPemKeyBase64 } = await sanitizePublicKey({
+        pemKeyBase64: keySeed.key,
+        alg: keySeed.alg,
+      });
       const newKey: Key = {
         name: keySeed.name,
         createdAt: new Date(),
         kid: calculateKid(jwk),
-        encodedPem: keySeed.key,
+        encodedPem: sanitizedPemKeyBase64,
         algorithm: keySeed.alg,
         use: ApiKeyUseToKeyUse(keySeed.use),
         userId: authData.userId,

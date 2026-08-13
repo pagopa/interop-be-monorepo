@@ -5,9 +5,17 @@ import {
   authorizationApi,
   selfcareV2ClientApi,
 } from "pagopa-interop-api-clients";
-import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
+import {
+  AuthData,
+  calculateKid,
+  createJWK,
+  createPublicKey,
+  decodeBase64ToPem,
+} from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
+  dirtifyEncodedPem,
+  generateKeySet,
   getMockAuthData,
   getMockClient,
   getMockContext,
@@ -65,8 +73,13 @@ describe("createProducerKeychainKey", () => {
   }).publicKey;
 
   const base64Key = Buffer.from(
-    key.export({ type: "pkcs1", format: "pem" })
+    key.export({ type: "spki", format: "pem" })
   ).toString("base64url");
+
+  // The key is persisted sanitized: canonical SPKI PEM, standard base64
+  const sanitizedBase64Key = Buffer.from(
+    key.export({ type: "spki", format: "pem" })
+  ).toString("base64");
 
   const keySeed: authorizationApi.KeySeed = {
     name: "key seed",
@@ -139,7 +152,7 @@ describe("createProducerKeychainKey", () => {
           name: keySeed.name,
           createdAt: new Date(),
           kid: writtenPayload.kid,
-          encodedPem: keySeed.key,
+          encodedPem: sanitizedBase64Key,
           algorithm: keySeed.alg,
           use: "Enc",
           userId,
@@ -417,7 +430,7 @@ describe("createProducerKeychainKey", () => {
     }).publicKey;
 
     const base64Key = Buffer.from(
-      key.export({ type: "pkcs1", format: "pem" })
+      key.export({ type: "spki", format: "pem" })
     ).toString("base64url");
 
     const keySeed: authorizationApi.KeySeed = {
@@ -438,5 +451,100 @@ describe("createProducerKeychainKey", () => {
         getMockContext({ authData: mockAuthData })
       )
     ).rejects.toThrowError(invalidKeyLength(1024, 2048));
+  });
+
+  it("should sanitize the key before persisting it", async () => {
+    const { publicKeyEncodedPem } = generateKeySet();
+    const dirtyEncodedPem = dirtifyEncodedPem(publicKeyEncodedPem);
+
+    await addOneProducerKeychain(mockProducerKeychain);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    const createdKey = await authorizationService.createProducerKeychainKey(
+      {
+        producerKeychainId: mockProducerKeychain.id,
+        keySeed: { ...keySeed, key: dirtyEncodedPem },
+      },
+      getMockContext({ authData: mockAuthData })
+    );
+
+    expect(createdKey.data.encodedPem).not.toEqual(dirtyEncodedPem);
+    expect(createdKey.data.encodedPem).toEqual(publicKeyEncodedPem);
+
+    // The kid must not change because of the sanitization
+    expect(createdKey.data.kid).toEqual(
+      calculateKid(createJWK({ pemKeyBase64: dirtyEncodedPem }))
+    );
+
+    // The sanitized key must still be readable by the token issuance path
+    expect(() =>
+      createPublicKey({ key: createdKey.data.encodedPem })
+    ).not.toThrow();
+
+    const writtenEvent = await readLastEventByStreamId(
+      mockProducerKeychain.id,
+      '"authorization"',
+      postgresDB
+    );
+    const writtenPayload = decodeProtobufPayload({
+      messageType: ProducerKeychainKeyAddedV2,
+      payload: writtenEvent.data,
+    });
+    expect(writtenPayload.producerKeychain?.keys[0].encodedPem).toEqual(
+      publicKeyEncodedPem
+    );
+    expect(
+      decodeBase64ToPem(
+        writtenPayload.producerKeychain?.keys[0].encodedPem ?? ""
+      ).endsWith("-----END PUBLIC KEY-----\n")
+    ).toBe(true);
+  });
+
+  it("should throw keyAlreadyExists if the sanitized key matches a key stored before the sanitization", async () => {
+    const { publicKeyEncodedPem } = generateKeySet();
+    const dirtyEncodedPem = dirtifyEncodedPem(publicKeyEncodedPem);
+
+    const alreadyStoredKey: Key = {
+      ...getMockKey(),
+      encodedPem: dirtyEncodedPem,
+      kid: calculateKid(createJWK({ pemKeyBase64: dirtyEncodedPem })),
+    };
+
+    await addOneProducerKeychain({
+      ...mockProducerKeychain,
+      keys: [alreadyStoredKey],
+    });
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    await expect(
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed: { ...keySeed, key: publicKeyEncodedPem },
+        },
+        getMockContext({ authData: mockAuthData })
+      )
+    ).rejects.toThrowError(keyAlreadyExists(alreadyStoredKey.kid));
+  });
+
+  it("should throw invalidPublicKey if the key is in PKCS#1 format", async () => {
+    const pkcs1Key = Buffer.from(
+      crypto
+        .generateKeyPairSync("rsa", { modulusLength: 2048 })
+        .publicKey.export({ type: "pkcs1", format: "pem" })
+    ).toString("base64");
+
+    await addOneProducerKeychain(mockProducerKeychain);
+    mockSelfcareV2ClientCall([mockSelfCareUsers]);
+
+    await expect(
+      authorizationService.createProducerKeychainKey(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          keySeed: { ...keySeed, key: pkcs1Key },
+        },
+        getMockContext({ authData: mockAuthData })
+      )
+    ).rejects.toThrowError(invalidPublicKey());
   });
 });

@@ -1,4 +1,6 @@
 import {
+  dirtifyEncodedPem,
+  generateKeySet,
   getMockClient,
   getMockKey,
   getMockProducerKeychain,
@@ -30,6 +32,8 @@ import {
   EServiceId,
   ProducerKeychain,
   ProducerKeychainDeletedV2,
+  KeysAddedV1,
+  toKeyV1,
 } from "pagopa-interop-models";
 import { describe, it, expect, beforeEach } from "vitest";
 
@@ -406,6 +410,47 @@ describe("Authorization messages consumers - handleAuthorizationMessageV1", () =
 
     expect(users).toHaveLength(1);
     expect(users[0].metadataVersion).toBe(3);
+  });
+
+  it("KeysAdded: stores a key uploaded before the sanitization", async () => {
+    const userId: UserId = generateId<UserId>();
+    const client: ClientV1 = toClientV1({ ...mockClient, users: [userId] });
+
+    const key: Key = {
+      ...getMockKey(),
+      userId,
+      encodedPem: dirtifyEncodedPem(generateKeySet().publicKeyEncodedPem),
+    };
+
+    const addMsg: AuthorizationEventEnvelopeV1 = {
+      ...mockMessage,
+      type: "ClientAdded",
+      data: { client } satisfies ClientAddedV1,
+    };
+
+    const keysMsg: AuthorizationEventEnvelopeV1 = {
+      ...mockMessage,
+      version: 2,
+      type: "KeysAdded",
+      data: {
+        clientId: client.id,
+        keys: [{ keyId: key.kid, value: toKeyV1(key) }],
+      } satisfies KeysAddedV1,
+    };
+
+    await handleAuthorizationMessageV1([addMsg, keysMsg], dbContext);
+
+    const storedKeys = await getManyFromDb(
+      dbContext,
+      ClientDbTable.client_key,
+      {
+        clientId: client.id,
+        kid: key.kid,
+      }
+    );
+    expect(storedKeys).toHaveLength(1);
+    expect(storedKeys[0].encodedPem).toBe(key.encodedPem);
+    expect(storedKeys[0].metadataVersion).toBe(2);
   });
 });
 

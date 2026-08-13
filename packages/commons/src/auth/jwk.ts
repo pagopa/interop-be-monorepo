@@ -1,4 +1,5 @@
 import crypto, { createHash, JsonWebKey, KeyObject } from "crypto";
+import { importSPKI } from "jose";
 import jwksClient, { JwksClient } from "jwks-rsa";
 import {
   notAnRSAKey,
@@ -126,6 +127,14 @@ function tryToCreatePublicKey(key: string): KeyObject {
   }
 }
 
+async function tryToImportSPKI(pem: string, alg: string): Promise<KeyObject> {
+  try {
+    return await importSPKI<KeyObject>(pem, alg);
+  } catch {
+    throw invalidPublicKey();
+  }
+}
+
 export function createPublicKey({
   key,
   strictCheck = true,
@@ -145,6 +154,67 @@ export function createPublicKey({
     assertValidRSAKeyLength(publicKey);
   }
   return publicKey;
+}
+
+const SPKI_BEGIN_MARKER = "-----BEGIN PUBLIC KEY-----";
+const SPKI_END_MARKER = "-----END PUBLIC KEY-----";
+const BASE64_BODY_REGEX = /^[A-Za-z0-9+/]+={0,2}$/;
+
+/* Reads stay on the tolerant `createPublicKey` path: keys stored before this
+sanitization cannot be corrected and jose rejects them. The kid is unaffected,
+it derives from the key material and not from its encoding. */
+export async function sanitizePublicKey({
+  pemKeyBase64,
+  alg,
+}: {
+  pemKeyBase64: string;
+  alg: string;
+}): Promise<{ jwk: JsonWebKey; sanitizedPemKeyBase64: string }> {
+  const pemKey = decodeBase64ToPem(pemKeyBase64);
+
+  assertSingleKey(pemKey);
+  assertNotPrivateKey(pemKey);
+  assertNotCertificate(pemKey);
+
+  // indexOf instead of a regex: a lazy group between the two markers
+  // backtracks polynomially on crafted input.
+  const envelopeStart = pemKey.indexOf(SPKI_BEGIN_MARKER);
+  if (envelopeStart === -1) {
+    throw invalidPublicKey();
+  }
+
+  const bodyStart = envelopeStart + SPKI_BEGIN_MARKER.length;
+  const bodyEnd = pemKey.indexOf(SPKI_END_MARKER, bodyStart);
+  if (bodyEnd === -1) {
+    throw invalidPublicKey();
+  }
+
+  // jose decodes the body with `Buffer.from(body, "base64")`, which drops
+  // characters outside the alphabet; readers use OpenSSL, which does not.
+  const body = pemKey.slice(bodyStart, bodyEnd).replace(/\s/g, "");
+  if (!BASE64_BODY_REGEX.test(body)) {
+    throw invalidPublicKey();
+  }
+
+  const publicKey = await tryToImportSPKI(
+    `${SPKI_BEGIN_MARKER}\n${body}\n${SPKI_END_MARKER}\n`,
+    alg
+  );
+
+  assertValidRSAKey(publicKey);
+  assertValidRSAKeyLength(publicKey);
+
+  // Exported from the parsed key, so the stored PEM is readable by construction.
+  const sanitizedPem = publicKey
+    .export({ type: "spki", format: "pem" })
+    .toString();
+
+  return {
+    jwk: publicKey.export({ format: "jwk" }),
+    sanitizedPemKeyBase64: Buffer.from(sanitizedPem, "utf-8").toString(
+      "base64"
+    ),
+  };
 }
 
 export function sortJWK(jwk: JsonWebKey): JsonWebKey {
