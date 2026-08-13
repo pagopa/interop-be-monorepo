@@ -1,6 +1,10 @@
 import { KeyObject } from "crypto";
 import * as jose from "jose";
-import { createPublicKey, decodeBase64ToPem } from "pagopa-interop-commons";
+import {
+  createPublicKey,
+  decodeBase64ToPem,
+  sanitizePublicKey,
+} from "pagopa-interop-commons";
 import { algorithm } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -17,5 +21,16 @@ describe("key import", async () => {
   it("succeeds when importing the same PEM with crypto", async () => {
     const result = createPublicKey({ key: encodedPEM });
     expect(result).toBeInstanceOf(KeyObject);
+  });
+
+  it("succeeds when importing the same PEM with jose after sanitization", async () => {
+    const { sanitizedPemKeyBase64 } = await sanitizePublicKey({
+      pemKeyBase64: encodedPEM,
+      alg: algorithm.RS256,
+    });
+
+    await expect(
+      jose.importSPKI(decodeBase64ToPem(sanitizedPemKeyBase64), algorithm.RS256)
+    ).resolves.toBeInstanceOf(KeyObject);
   });
 });
