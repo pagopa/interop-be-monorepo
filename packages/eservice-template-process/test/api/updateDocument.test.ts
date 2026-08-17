@@ -17,6 +17,7 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import {
+  interfaceDocumentNotUpdatable,
   documentPrettyNameDuplicate,
   eserviceTemplateDocumentNotFound,
   eserviceTemplateNotFound,
@@ -107,6 +108,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/documents/
       error: notValidEServiceTemplateVersionState(
         mockEserviceTemplate.versions[0].id,
         eserviceTemplateVersionState.draft
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceDocumentNotUpdatable(
+        mockEserviceTemplate.versions[0].id,
+        docId
       ),
       expectedStatus: 400,
     },

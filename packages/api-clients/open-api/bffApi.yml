@@ -4643,8 +4643,11 @@ paths:
     get:
       tags:
         - tenants
-      summary: Gets the certified attributes of the requester
-      description: Retrieve the certified attributes
+      summary: Gets the certified attributes assigned by the requester as certifier
+      description: >-
+        Retrieves the certified attributes assigned by the requester tenant
+        acting as certifier, paired with the tenants they are assigned to.
+        It does not return the attributes assigned to the requester tenant.
       operationId: getRequesterCertifiedAttributes
       parameters:
         - in: query
@@ -14966,6 +14969,9 @@ components:
             type: string
         requireCorrections:
           type: boolean
+        archivableOn:
+          type: string
+          format: date-time
     ProducerEService:
       type: object
       additionalProperties: false
