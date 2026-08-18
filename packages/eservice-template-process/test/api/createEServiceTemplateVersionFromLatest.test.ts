@@ -8,7 +8,6 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
-  Attribute,
   EServiceTemplate,
   EServiceTemplateId,
   EServiceTemplateVersion,
@@ -20,46 +19,17 @@ import { describe, it, expect, vi } from "vitest";
 
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import {
-  attributeDiscreteConfigNotAllowed,
-  attributeDuplicatedInGroup,
-  attributeNotFound,
   draftEServiceTemplateVersionAlreadyExists,
   eserviceTemplateNotFound,
   eserviceTemplateWithoutPublishedVersion,
-  inconsistentDailyCalls,
 } from "../../src/model/domain/errors.js";
-import { buildCreateVersionSeed } from "../mockUtils.js";
 import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
-describe("API POST /templates/:templateId/versions", () => {
-  const mockVersion = getMockEServiceTemplateVersion();
-  const attribute: Attribute = {
-    name: "Attribute name",
-    id: generateId(),
-    kind: "Declared",
-    description: "Attribute Description",
-    creationTime: new Date(),
-  };
-
-  const versionSeed: eserviceTemplateApi.EServiceTemplateVersionSeed = {
-    ...buildCreateVersionSeed(mockVersion),
-    attributes: {
-      certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
-      verified: [],
-    },
-  };
-
+describe("API POST /templates/:templateId/versions/fromLatest", () => {
   const newVersion: EServiceTemplateVersion = {
-    ...mockVersion,
-    version: 1,
-    createdAt: new Date(),
-    id: mockVersion.id,
-    attributes: {
-      certified: [],
-      declared: [[{ id: attribute.id, explicitAttributeVerification: false }]],
-      verified: [],
-    },
+    ...getMockEServiceTemplateVersion(),
+    version: 2,
+    docs: [],
   };
 
   const eserviceTemplate: EServiceTemplate = {
@@ -78,26 +48,21 @@ describe("API POST /templates/:templateId/versions", () => {
       createdEServiceTemplateVersionId: newVersion.id,
     });
 
-  eserviceTemplateService.createEServiceTemplateVersion = vi
+  eserviceTemplateService.createEServiceTemplateVersionFromLatest = vi
     .fn()
     .mockResolvedValue(serviceResponse);
 
   const makeRequest = async (
     token: string,
-    eserviceTemplateId: EServiceTemplateId,
-    body: eserviceTemplateApi.EServiceTemplateVersionSeed = versionSeed
+    eserviceTemplateId: EServiceTemplateId
   ) =>
     request(api)
-      .post(`/templates/${eserviceTemplateId}/versions`)
+      .post(`/templates/${eserviceTemplateId}/versions/fromLatest`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
-      .send(body);
+      .send();
 
-  const authorizedRoles: AuthRole[] = [
-    authRole.ADMIN_ROLE,
-    authRole.API_ROLE,
-    authRole.M2M_ADMIN_ROLE,
-  ];
+  const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE, authRole.API_ROLE];
   it.each(authorizedRoles)(
     "Should return 200 for user with role %s",
     async (role) => {
@@ -110,6 +75,25 @@ describe("API POST /templates/:templateId/versions", () => {
       );
     }
   );
+
+  it("Should route to createEServiceTemplateVersionFromLatest and not to the templateVersionId route", async () => {
+    eserviceTemplateService.createEServiceTemplateVersionFromLatest = vi
+      .fn()
+      .mockResolvedValue(serviceResponse);
+    eserviceTemplateService.updateDraftTemplateVersion = vi.fn();
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, eserviceTemplate.id);
+
+    expect(res.status).toBe(200);
+    expect(
+      eserviceTemplateService.createEServiceTemplateVersionFromLatest
+    ).toHaveBeenCalled();
+    expect(
+      eserviceTemplateService.updateDraftTemplateVersion
+    ).not.toHaveBeenCalled();
+  });
+
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
@@ -123,11 +107,6 @@ describe("API POST /templates/:templateId/versions", () => {
       error: eserviceTemplateNotFound(eserviceTemplate.id),
       expectedStatus: 404,
     },
-    // {
-    //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    //   error: templateInstanceNotAllowed(eservice.id, eservice.templateId!),
-    //   expectedStatus: 403,
-    // },
     {
       error: eserviceTemplateWithoutPublishedVersion(eserviceTemplate.id),
       expectedStatus: 409,
@@ -140,26 +119,10 @@ describe("API POST /templates/:templateId/versions", () => {
       error: draftEServiceTemplateVersionAlreadyExists(eserviceTemplate.id),
       expectedStatus: 400,
     },
-    {
-      error: attributeNotFound(generateId()),
-      expectedStatus: 400,
-    },
-    {
-      error: inconsistentDailyCalls(),
-      expectedStatus: 400,
-    },
-    {
-      error: attributeDuplicatedInGroup(generateId()),
-      expectedStatus: 400,
-    },
-    {
-      error: attributeDiscreteConfigNotAllowed(generateId()),
-      expectedStatus: 400,
-    },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      eserviceTemplateService.createEServiceTemplateVersion = vi
+      eserviceTemplateService.createEServiceTemplateVersionFromLatest = vi
         .fn()
         .mockRejectedValue(error);
 
@@ -168,30 +131,17 @@ describe("API POST /templates/:templateId/versions", () => {
       expect(res.status).toBe(expectedStatus);
     }
   );
-  it("Should return 400 if passed invalid query param", async () => {
+
+  it("Should return 400 if passed an invalid template id", async () => {
+    eserviceTemplateService.createEServiceTemplateVersionFromLatest = vi
+      .fn()
+      .mockResolvedValue(serviceResponse);
+
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, "111" as EServiceTemplateId);
     expect(res.status).toBe(400);
+    expect(
+      eserviceTemplateService.createEServiceTemplateVersionFromLatest
+    ).not.toHaveBeenCalled();
   });
-
-  it.each([
-    [{}, eserviceTemplate.id],
-    [{ ...versionSeed, voucherLifespan: "invalid" }, eserviceTemplate.id],
-    [{ ...versionSeed, agreementApprovalPolicy: null }, eserviceTemplate.id],
-    [{ ...versionSeed, dailyCallsTotal: -1 }, eserviceTemplate.id],
-    [{ ...versionSeed, attributes: undefined }, eserviceTemplate.id],
-    [{}, "invalidId"],
-  ])(
-    "Should return 400 if passed invalid version params: %s (eserviceTemplateId: %s)",
-    async (body, eserviceTemplateId) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(
-        token,
-        eserviceTemplateId as EServiceTemplateId,
-        body as eserviceTemplateApi.EServiceTemplateVersionSeed
-      );
-
-      expect(res.status).toBe(400);
-    }
-  );
 });

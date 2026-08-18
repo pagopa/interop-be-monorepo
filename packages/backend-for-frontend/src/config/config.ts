@@ -166,11 +166,9 @@ type EServiceTemplateProcessServerConfig = z.infer<
 const EServiceTemplateS3Config = z
   .object({
     ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
-    ESERVICE_TEMPLATE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
     eserviceTemplateDocumentsContainer: c.ESERVICE_TEMPLATE_DOCUMENTS_CONTAINER,
-    eserviceTemplateDocumentsPath: c.ESERVICE_TEMPLATE_DOCUMENTS_PATH,
   }));
 type EServiceTemplateS3Config = z.infer<typeof EServiceTemplateS3Config>;
 

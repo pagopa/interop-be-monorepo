@@ -923,6 +923,32 @@ function createNextDescriptor(
   };
 }
 
+async function cloneDocument(
+  doc: Document,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<Document> {
+  const clonedDocumentId = generateId<EServiceDocumentId>();
+  const clonedDocumentPath = await fileManager.copy(
+    config.s3Bucket,
+    doc.path,
+    config.eserviceDocumentsPath,
+    clonedDocumentId,
+    doc.name,
+    logger
+  );
+
+  return {
+    id: clonedDocumentId,
+    name: doc.name,
+    contentType: doc.contentType,
+    prettyName: doc.prettyName,
+    path: clonedDocumentPath,
+    checksum: doc.checksum,
+    uploadDate: new Date(),
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
@@ -1635,51 +1661,135 @@ export function catalogServiceBuilder(
         correlationId
       );
 
-      const { events, updatedEServiceWithDocs } =
-        eserviceDescriptorSeed.docs.reduce(
-          (acc, document, index) => {
-            const newDocument: Document = {
-              id: unsafeBrandId(document.documentId),
-              name: document.fileName,
-              contentType: document.contentType,
-              prettyName: document.prettyName,
-              path: document.filePath,
-              checksum: document.checksum,
-              uploadDate: new Date(),
-            };
+      const createdEvents = await repository.createEvents([
+        descriptorCreationEvent,
+      ]);
 
-            const currentDescriptor =
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              acc.updatedEServiceWithDocs.descriptors.find(
-                (d) => d.id === newDescriptor.id
-              )!;
+      return {
+        data: {
+          eservice: updatedEService,
+          createdDescriptorId: newDescriptor.id,
+        },
+        metadata: {
+          version: createdEvents.latestNewVersions.get(updatedEService.id) ?? 0,
+        },
+      };
+    },
+
+    async createDescriptorFromLatest(
+      eserviceId: EServiceId,
+      ctx: WithLogger<AppContext<UIAuthData>>
+    ): Promise<
+      WithMetadata<{
+        eservice: EService;
+        createdDescriptorId: DescriptorId;
+      }>
+    > {
+      ctx.logger.info(
+        `Creating Descriptor from the latest one for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertEserviceIsNotInArchivingOrArchivedState(eservice.data);
+
+      assertEServiceNotTemplateInstance(
+        eservice.data.id,
+        eservice.data.templateId
+      );
+
+      await assertRequesterIsDelegateProducerOrProducer(
+        eservice.data.producerId,
+        eservice.data.id,
+        ctx.authData,
+        readModelService
+      );
+      assertHasNoDraftOrWaitingForApprovalDescriptor(eservice.data);
+
+      const previousDescriptor = getLatestDescriptor(eservice.data);
+
+      const eserviceVersion = eservice.metadata.version;
+
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
+      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
+        description: previousDescriptor.description,
+        voucherLifespan: previousDescriptor.voucherLifespan,
+        audience: [],
+        dailyCallsPerConsumer: previousDescriptor.dailyCallsPerConsumer,
+        dailyCallsTotal: previousDescriptor.dailyCallsTotal,
+        agreementApprovalPolicy: previousDescriptor.agreementApprovalPolicy,
+        attributes: previousDescriptor.attributes,
+        docs: [],
+        templateVersionId: undefined,
+        asyncExchangeProperties: asyncExchangeEnabled
+          ? previousDescriptor.asyncExchangeProperties
+          : undefined,
+      });
+
+      assertAsyncExchangeBulkAllowedForDescriptor(
+        eservice.data.technology,
+        newDescriptor.asyncExchangeProperties,
+        eservice.data.id,
+        newDescriptor.id
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        descriptors: [...eservice.data.descriptors, newDescriptor],
+      };
+
+      const descriptorCreationEvent = toCreateEventEServiceDescriptorAdded(
+        updatedEService,
+        eserviceVersion,
+        newDescriptor.id,
+        ctx.correlationId
+      );
+
+      const { events, updatedEServiceWithDocs } =
+        await previousDescriptor.docs.reduce(
+          async (accPromise, doc, index) => {
+            const acc = await accPromise;
+
+            const newDocument = await cloneDocument(
+              doc,
+              fileManager,
+              ctx.logger
+            );
+
+            const updatedDescriptor: Descriptor = {
+              ...acc.descriptor,
+              docs: [...acc.descriptor.docs, newDocument],
+            };
 
             const updatedEServiceWithDocs = replaceDescriptor(
               acc.updatedEServiceWithDocs,
-              {
-                ...currentDescriptor,
-                docs: [...currentDescriptor.docs, newDocument],
-              }
+              updatedDescriptor
             );
             const version = eserviceVersion + index + 1;
             const documentEvent = toCreateEventEServiceDocumentAdded(
               version,
               {
                 descriptorId: newDescriptor.id,
-                documentId: unsafeBrandId(document.documentId),
+                documentId: newDocument.id,
                 eservice: updatedEServiceWithDocs,
               },
-              correlationId
+              ctx.correlationId
             );
+
             return {
               events: [...acc.events, documentEvent],
               updatedEServiceWithDocs,
+              descriptor: updatedDescriptor,
             };
           },
-          {
+          Promise.resolve({
             events: [descriptorCreationEvent],
             updatedEServiceWithDocs: updatedEService,
-          }
+            descriptor: newDescriptor,
+          })
         );
 
       const createdEvents = await repository.createEvents(events);
@@ -2226,27 +2336,9 @@ export function catalogServiceBuilder(
           : undefined;
 
       const clonedDocuments = await Promise.all(
-        descriptor.docs.map(async (doc: Document) => {
-          const clonedDocumentId = generateId<EServiceDocumentId>();
-          const clonedDocumentPath = await fileManager.copy(
-            config.s3Bucket,
-            doc.path,
-            config.eserviceDocumentsPath,
-            clonedDocumentId,
-            doc.name,
-            logger
-          );
-          const clonedDocument: Document = {
-            id: clonedDocumentId,
-            name: doc.name,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: clonedDocumentPath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-          return clonedDocument;
-        })
+        descriptor.docs.map((doc: Document) =>
+          cloneDocument(doc, fileManager, logger)
+        )
       );
 
       const clonedEservice: EService = {

@@ -290,6 +290,19 @@ export const createEServiceTemplateVersionErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createEServiceTemplateVersionFromLatestErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eserviceTemplateNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "draftEServiceTemplateVersionAlreadyExists",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("eserviceTemplateWithoutPublishedVersion", () => HTTP_STATUS_CONFLICT)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const createEServiceTemplateDocumentErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

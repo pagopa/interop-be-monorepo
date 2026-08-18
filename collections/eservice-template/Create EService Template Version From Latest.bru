@@ -1,0 +1,24 @@
+meta {
+  name: Create EService Template Version From Latest
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{host-template}}/templates/:eserviceTemplateId/versions/fromLatest
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceTemplateId: {{eserviceTemplateId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  eserviceTemplateVersionId: res.body.createdEServiceTemplateVersionId
+}
