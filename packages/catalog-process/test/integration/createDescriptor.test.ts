@@ -6,6 +6,7 @@ import {
   getMockContext,
   getMockDelegation,
   getMockAuthData,
+  readEventByStreamIdAndVersion,
   getMockDescriptor,
   getMockDocument,
   getMockEService,
@@ -20,6 +21,7 @@ import {
   Descriptor,
   descriptorState,
   operationForbidden,
+  EServiceDescriptorDocumentAddedV2,
   delegationState,
   delegationKind,
   EServiceTemplateId,
@@ -45,6 +47,7 @@ import {
   addOneDelegation,
   addOneEService,
   catalogService,
+  postgresDB,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 import { buildCreateDescriptorSeed } from "../mockUtils.js";
@@ -139,6 +142,7 @@ describe("create descriptor", async () => {
   });
 
   it("should write on event-store for the creation of a descriptor (eservice already had one descriptor)", async () => {
+    const mockDocument = getMockDocument();
     const existingDescriptor: Descriptor = {
       ...getMockDescriptor(),
       interface: getMockDocument(),
@@ -146,7 +150,7 @@ describe("create descriptor", async () => {
     };
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
-      docs: [],
+      docs: [mockDocument],
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -179,7 +183,13 @@ describe("create descriptor", async () => {
     );
 
     const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
-    const descriptorCreationEvent = await readLastEserviceEvent(eservice.id);
+    const descriptorCreationEvent = await readEventByStreamIdAndVersion(
+      eservice.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+    const documentAdditionEvent = await readLastEserviceEvent(eservice.id);
 
     expect(descriptorCreationEvent).toMatchObject({
       stream_id: eservice.id,
@@ -187,10 +197,20 @@ describe("create descriptor", async () => {
       type: "EServiceDescriptorAdded",
       event_version: 2,
     });
+    expect(documentAdditionEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "2",
+      type: "EServiceDescriptorDocumentAdded",
+      event_version: 2,
+    });
 
     const descriptorCreationPayload = decodeProtobufPayload({
       messageType: EServiceDescriptorAddedV2,
       payload: descriptorCreationEvent.data,
+    });
+    const documentAdditionPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorDocumentAddedV2,
+      payload: documentAdditionEvent.data,
     });
 
     const newDescriptor: Descriptor = {
@@ -213,21 +233,36 @@ describe("create descriptor", async () => {
       ...eservice,
       descriptors: [...eservice.descriptors, newDescriptor],
     };
+    const expectedEserviceAfterDocumentAddition: EService = {
+      ...expectedEserviceAfterDescriptorCreation,
+      descriptors: expectedEserviceAfterDescriptorCreation.descriptors.map(
+        (d) =>
+          d.id === newDescriptor.id
+            ? { ...newDescriptor, docs: [mockDocument] }
+            : d
+      ),
+    };
 
     expect(createDescriptorResponse).toEqual({
       data: {
         createdDescriptorId: newDescriptorId,
-        eservice: expectedEserviceAfterDescriptorCreation,
+        eservice: expectedEserviceAfterDocumentAddition,
       },
-      metadata: { version: 1 },
+      metadata: { version: 2 },
     });
     expect(descriptorCreationPayload).toEqual({
       descriptorId: newDescriptorId,
       eservice: toEServiceV2(expectedEserviceAfterDescriptorCreation),
     });
+    expect(documentAdditionPayload).toEqual({
+      documentId: mockDocument.id,
+      descriptorId: newDescriptorId,
+      eservice: toEServiceV2(expectedEserviceAfterDocumentAddition),
+    });
   });
 
   it("should write on event-store for the creation of a descriptor (delegate)", async () => {
+    const mockDocument = getMockDocument();
     const existingDescriptor: Descriptor = {
       ...getMockDescriptor(),
       interface: getMockDocument(),
@@ -235,7 +270,7 @@ describe("create descriptor", async () => {
     };
     const mockDescriptor: Descriptor = {
       ...getMockDescriptor(),
-      docs: [],
+      docs: [mockDocument],
     };
     const eservice: EService = {
       ...getMockEService(),
@@ -276,7 +311,13 @@ describe("create descriptor", async () => {
     );
 
     const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
-    const descriptorCreationEvent = await readLastEserviceEvent(eservice.id);
+    const descriptorCreationEvent = await readEventByStreamIdAndVersion(
+      eservice.id,
+      1,
+      "catalog",
+      postgresDB
+    );
+    const documentAdditionEvent = await readLastEserviceEvent(eservice.id);
 
     expect(descriptorCreationEvent).toMatchObject({
       stream_id: eservice.id,
@@ -284,10 +325,20 @@ describe("create descriptor", async () => {
       type: "EServiceDescriptorAdded",
       event_version: 2,
     });
+    expect(documentAdditionEvent).toMatchObject({
+      stream_id: eservice.id,
+      version: "2",
+      type: "EServiceDescriptorDocumentAdded",
+      event_version: 2,
+    });
 
     const descriptorCreationPayload = decodeProtobufPayload({
       messageType: EServiceDescriptorAddedV2,
       payload: descriptorCreationEvent.data,
+    });
+    const documentAdditionPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorDocumentAddedV2,
+      payload: documentAdditionEvent.data,
     });
 
     const newDescriptor: Descriptor = {
@@ -310,17 +361,31 @@ describe("create descriptor", async () => {
       ...eservice,
       descriptors: [...eservice.descriptors, newDescriptor],
     };
+    const expectedEserviceAfterDocumentAddition: EService = {
+      ...expectedEserviceAfterDescriptorCreation,
+      descriptors: expectedEserviceAfterDescriptorCreation.descriptors.map(
+        (d) =>
+          d.id === newDescriptor.id
+            ? { ...newDescriptor, docs: [mockDocument] }
+            : d
+      ),
+    };
 
     expect(createDescriptorResponse).toEqual({
       data: {
         createdDescriptorId: newDescriptorId,
-        eservice: expectedEserviceAfterDescriptorCreation,
+        eservice: expectedEserviceAfterDocumentAddition,
       },
-      metadata: { version: 1 },
+      metadata: { version: 2 },
     });
     expect(descriptorCreationPayload).toEqual({
       descriptorId: newDescriptorId,
       eservice: toEServiceV2(expectedEserviceAfterDescriptorCreation),
+    });
+    expect(documentAdditionPayload).toEqual({
+      documentId: mockDocument.id,
+      descriptorId: newDescriptorId,
+      eservice: toEServiceV2(expectedEserviceAfterDocumentAddition),
     });
   });
 

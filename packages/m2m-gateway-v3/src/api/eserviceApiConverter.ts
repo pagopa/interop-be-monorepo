@@ -91,6 +91,7 @@ export function toCatalogApiEServiceDescriptorSeed(
       verified: [],
       certified: [],
     },
+    docs: [],
     asyncExchangeProperties: descriptor.asyncExchangeProperties,
   };
 }

@@ -2958,6 +2958,14 @@ components:
           $ref: "#/components/schemas/AgreementApprovalPolicy"
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
+        docs:
+          # Deprecated: kept only so a not-yet-updated BFF can still create a
+          # descriptor with pre-cloned documents during the rolling deploy.
+          # Remove once no caller sends it: cloning now lives in createDescriptorFromLatest.
+          deprecated: true
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
     CreatedEServiceDescriptor:

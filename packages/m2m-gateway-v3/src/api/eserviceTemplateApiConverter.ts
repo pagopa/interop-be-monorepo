@@ -92,5 +92,6 @@ export function toEServiceTemplateApiEServiceTemplateVersionSeed(
       verified: [],
       certified: [],
     },
+    docs: [],
   };
 }

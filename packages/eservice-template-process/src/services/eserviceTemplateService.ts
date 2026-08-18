@@ -1,6 +1,7 @@
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
+  CreateEvent,
   DB,
   FileManager,
   RiskAnalysisValidatedForm,
@@ -43,6 +44,7 @@ import {
   TenantId,
   Tenant,
   EServiceTemplateEvent,
+  CorrelationId,
   CompactOrganization,
   technology,
   RiskAnalysis,
@@ -444,6 +446,77 @@ const createNextEServiceTemplateVersion = (
   createdAt: new Date(),
   attributes: seed.attributes,
 });
+
+const cloneDocument = async (
+  doc: Document,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<Document> => {
+  const clonedDocumentId = generateId<EServiceDocumentId>();
+  const clonedDocumentPath = await fileManager.copy(
+    config.s3Bucket,
+    doc.path,
+    config.eserviceTemplateDocumentsPath,
+    clonedDocumentId,
+    doc.name,
+    logger
+  );
+
+  return {
+    id: clonedDocumentId,
+    name: doc.name,
+    contentType: doc.contentType,
+    prettyName: doc.prettyName,
+    path: clonedDocumentPath,
+    checksum: doc.checksum,
+    uploadDate: new Date(),
+  };
+};
+
+const addDocumentsToEServiceTemplateVersion = (
+  eserviceTemplate: EServiceTemplate,
+  version: EServiceTemplateVersion,
+  documents: Document[],
+  startingMetadataVersion: number,
+  correlationId: CorrelationId
+): {
+  events: Array<CreateEvent<EServiceTemplateEvent>>;
+  updatedEServiceTemplate: EServiceTemplate;
+  version: EServiceTemplateVersion;
+} =>
+  documents.reduce(
+    (acc, document, index) => {
+      const updatedVersion: EServiceTemplateVersion = {
+        ...acc.version,
+        docs: [...acc.version.docs, document],
+      };
+      const updatedEServiceTemplate = replaceEServiceTemplateVersion(
+        acc.updatedEServiceTemplate,
+        updatedVersion
+      );
+
+      return {
+        events: [
+          ...acc.events,
+          toCreateEventEServiceTemplateVersionDocumentAdded(
+            eserviceTemplate.id,
+            startingMetadataVersion + index + 1,
+            version.id,
+            document.id,
+            updatedEServiceTemplate,
+            correlationId
+          ),
+        ],
+        updatedEServiceTemplate,
+        version: updatedVersion,
+      };
+    },
+    {
+      events: new Array<CreateEvent<EServiceTemplateEvent>>(),
+      updatedEServiceTemplate: eserviceTemplate,
+      version,
+    }
+  );
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateServiceBuilder(
@@ -1596,13 +1669,39 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         );
 
+      /**
+       * Deprecated: documents are now cloned by
+       * createEServiceTemplateVersionFromLatest. This branch only serves a
+       * not-yet-updated BFF during the rolling deploy, and goes away together
+       * with the seed's `docs` field.
+       */
+      const {
+        events,
+        updatedEServiceTemplate: updatedEServiceTemplateWithDocs,
+      } = addDocumentsToEServiceTemplateVersion(
+        updatedEServiceTemplate,
+        newEServiceTemplateVersion,
+        (seed.docs ?? []).map((doc) => ({
+          id: unsafeBrandId<EServiceDocumentId>(doc.documentId),
+          name: doc.fileName,
+          contentType: doc.contentType,
+          prettyName: doc.prettyName,
+          path: doc.filePath,
+          checksum: doc.checksum,
+          uploadDate: new Date(),
+        })),
+        eserviceTemplate.metadata.version,
+        correlationId
+      );
+
       const createdEvents = await repository.createEvents([
         eserviceTemplateVersionCreationEvent,
+        ...events,
       ]);
 
       return {
         data: {
-          eserviceTemplate: updatedEServiceTemplate,
+          eserviceTemplate: updatedEServiceTemplateWithDocs,
           createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
         },
         metadata: {
@@ -1669,67 +1768,27 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         );
 
-      const { events, updatedEServiceTemplateWithDocs } =
-        await previousVersion.docs.reduce(
-          async (accPromise, doc, index) => {
-            const acc = await accPromise;
+      const clonedDocuments = await Promise.all(
+        previousVersion.docs.map((doc) =>
+          cloneDocument(doc, fileManager, logger)
+        )
+      );
 
-            const clonedDocumentId = generateId<EServiceDocumentId>();
-            const clonedDocumentPath = await fileManager.copy(
-              config.s3Bucket,
-              doc.path,
-              config.eserviceTemplateDocumentsPath,
-              clonedDocumentId,
-              doc.name,
-              logger
-            );
+      const {
+        events,
+        updatedEServiceTemplate: updatedEServiceTemplateWithDocs,
+      } = addDocumentsToEServiceTemplateVersion(
+        updatedEServiceTemplate,
+        newEServiceTemplateVersion,
+        clonedDocuments,
+        eserviceTemplateMetadataVersion,
+        correlationId
+      );
 
-            const newDocument: Document = {
-              id: clonedDocumentId,
-              name: doc.name,
-              contentType: doc.contentType,
-              prettyName: doc.prettyName,
-              path: clonedDocumentPath,
-              checksum: doc.checksum,
-              uploadDate: new Date(),
-            };
-
-            const updatedEServiceTemplateVersion: EServiceTemplateVersion = {
-              ...acc.version,
-              docs: [...acc.version.docs, newDocument],
-            };
-
-            const updatedEServiceTemplateWithDocs =
-              replaceEServiceTemplateVersion(
-                acc.updatedEServiceTemplateWithDocs,
-                updatedEServiceTemplateVersion
-              );
-            const metadataVersion = eserviceTemplateMetadataVersion + index + 1;
-
-            const documentEvent =
-              toCreateEventEServiceTemplateVersionDocumentAdded(
-                eserviceTemplateId,
-                metadataVersion,
-                newEServiceTemplateVersion.id,
-                newDocument.id,
-                updatedEServiceTemplateWithDocs,
-                correlationId
-              );
-
-            return {
-              events: [...acc.events, documentEvent],
-              updatedEServiceTemplateWithDocs,
-              version: updatedEServiceTemplateVersion,
-            };
-          },
-          Promise.resolve({
-            events: [eserviceTemplateVersionCreationEvent],
-            updatedEServiceTemplateWithDocs: updatedEServiceTemplate,
-            version: newEServiceTemplateVersion,
-          })
-        );
-
-      const createdEvents = await repository.createEvents(events);
+      const createdEvents = await repository.createEvents([
+        eserviceTemplateVersionCreationEvent,
+        ...events,
+      ]);
 
       return {
         data: {

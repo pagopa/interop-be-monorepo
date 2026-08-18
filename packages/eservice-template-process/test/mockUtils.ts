@@ -91,6 +91,14 @@ export const buildCreateVersionSeed = (
     declared: [],
     verified: [],
   },
+  docs: version.docs.map((d) => ({
+    ...d,
+    kind: "DOCUMENT",
+    serverUrls: [],
+    documentId: d.id,
+    filePath: d.path,
+    fileName: d.name,
+  })),
 });
 
 export const buildInterfaceSeed =

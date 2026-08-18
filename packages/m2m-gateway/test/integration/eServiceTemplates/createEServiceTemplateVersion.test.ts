@@ -96,6 +96,7 @@ describe("createEServiceTemplateVersion", () => {
           declared: [],
           verified: [],
         },
+        docs: [],
       },
     });
     expectApiClientGetToHaveBeenCalledWith({

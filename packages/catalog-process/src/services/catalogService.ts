@@ -31,6 +31,7 @@ import {
   agreementState,
   AttributeId,
   catalogEventToBinaryData,
+  CorrelationId,
   Delegation,
   delegationKind,
   delegationState,
@@ -949,6 +950,53 @@ async function cloneDocument(
   };
 }
 
+function addDocumentsToDescriptor(
+  eservice: EService,
+  descriptor: Descriptor,
+  documents: Document[],
+  startingVersion: number,
+  correlationId: CorrelationId
+): {
+  events: Array<CreateEvent<EServiceEvent>>;
+  updatedEService: EService;
+  descriptor: Descriptor;
+} {
+  return documents.reduce(
+    (acc, document, index) => {
+      const updatedDescriptor: Descriptor = {
+        ...acc.descriptor,
+        docs: [...acc.descriptor.docs, document],
+      };
+      const updatedEService = replaceDescriptor(
+        acc.updatedEService,
+        updatedDescriptor
+      );
+
+      return {
+        events: [
+          ...acc.events,
+          toCreateEventEServiceDocumentAdded(
+            startingVersion + index + 1,
+            {
+              descriptorId: descriptor.id,
+              documentId: document.id,
+              eservice: updatedEService,
+            },
+            correlationId
+          ),
+        ],
+        updatedEService,
+        descriptor: updatedDescriptor,
+      };
+    },
+    {
+      events: new Array<CreateEvent<EServiceEvent>>(),
+      updatedEService: eservice,
+      descriptor,
+    }
+  );
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
@@ -1661,13 +1709,36 @@ export function catalogServiceBuilder(
         correlationId
       );
 
+      /**
+       * Deprecated: documents are now cloned by createDescriptorFromLatest.
+       * This branch only serves a not-yet-updated BFF during the rolling
+       * deploy, and goes away together with the seed's `docs` field.
+       */
+      const { events, updatedEService: updatedEServiceWithDocs } =
+        addDocumentsToDescriptor(
+          updatedEService,
+          newDescriptor,
+          (eserviceDescriptorSeed.docs ?? []).map((document) => ({
+            id: unsafeBrandId(document.documentId),
+            name: document.fileName,
+            contentType: document.contentType,
+            prettyName: document.prettyName,
+            path: document.filePath,
+            checksum: document.checksum,
+            uploadDate: new Date(),
+          })),
+          eserviceVersion,
+          correlationId
+        );
+
       const createdEvents = await repository.createEvents([
         descriptorCreationEvent,
+        ...events,
       ]);
 
       return {
         data: {
-          eservice: updatedEService,
+          eservice: updatedEServiceWithDocs,
           createdDescriptorId: newDescriptor.id,
         },
         metadata: {
@@ -1748,51 +1819,25 @@ export function catalogServiceBuilder(
         ctx.correlationId
       );
 
-      const { events, updatedEServiceWithDocs } =
-        await previousDescriptor.docs.reduce(
-          async (accPromise, doc, index) => {
-            const acc = await accPromise;
+      const clonedDocuments = await Promise.all(
+        previousDescriptor.docs.map((doc) =>
+          cloneDocument(doc, fileManager, ctx.logger)
+        )
+      );
 
-            const newDocument = await cloneDocument(
-              doc,
-              fileManager,
-              ctx.logger
-            );
-
-            const updatedDescriptor: Descriptor = {
-              ...acc.descriptor,
-              docs: [...acc.descriptor.docs, newDocument],
-            };
-
-            const updatedEServiceWithDocs = replaceDescriptor(
-              acc.updatedEServiceWithDocs,
-              updatedDescriptor
-            );
-            const version = eserviceVersion + index + 1;
-            const documentEvent = toCreateEventEServiceDocumentAdded(
-              version,
-              {
-                descriptorId: newDescriptor.id,
-                documentId: newDocument.id,
-                eservice: updatedEServiceWithDocs,
-              },
-              ctx.correlationId
-            );
-
-            return {
-              events: [...acc.events, documentEvent],
-              updatedEServiceWithDocs,
-              descriptor: updatedDescriptor,
-            };
-          },
-          Promise.resolve({
-            events: [descriptorCreationEvent],
-            updatedEServiceWithDocs: updatedEService,
-            descriptor: newDescriptor,
-          })
+      const { events, updatedEService: updatedEServiceWithDocs } =
+        addDocumentsToDescriptor(
+          updatedEService,
+          newDescriptor,
+          clonedDocuments,
+          eserviceVersion,
+          ctx.correlationId
         );
 
-      const createdEvents = await repository.createEvents(events);
+      const createdEvents = await repository.createEvents([
+        descriptorCreationEvent,
+        ...events,
+      ]);
 
       return {
         data: {

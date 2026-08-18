@@ -180,6 +180,7 @@ describe("API POST /templates/:templateId/versions", () => {
     [{ ...versionSeed, agreementApprovalPolicy: null }, eserviceTemplate.id],
     [{ ...versionSeed, dailyCallsTotal: -1 }, eserviceTemplate.id],
     [{ ...versionSeed, attributes: undefined }, eserviceTemplate.id],
+    [{ ...versionSeed, docs: [{}] }, eserviceTemplate.id],
     [{}, "invalidId"],
   ])(
     "Should return 400 if passed invalid version params: %s (eserviceTemplateId: %s)",
