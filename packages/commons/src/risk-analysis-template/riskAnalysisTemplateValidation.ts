@@ -13,13 +13,13 @@ import {
   buildLabel,
   formRules,
 } from "../risk-analysis/rules/riskAnalysisFormRulesProvider.js";
+import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   RiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateAnswerToValidate,
   RiskAnalysisTemplateValidatedForm,
   RiskAnalysisTemplateValidatedSingleOrMultiAnswer,
 } from "./riskAnalysisFormTemplate.js";
-import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   invalidTemplateResult,
   malformedRiskAnalysisTemplateFieldValueOrSuggestionError,

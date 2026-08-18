@@ -792,7 +792,9 @@ describe("createPurpose", () => {
         })
       )
     ).rejects.toThrowError(
-      riskAnalysisValidationFailed([unexpectedFieldHyperlinkError(freeTextField)])
+      riskAnalysisValidationFailed([
+        unexpectedFieldHyperlinkError(freeTextField),
+      ])
     );
   });
 });

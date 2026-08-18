@@ -18,12 +18,11 @@ import {
   TenantId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateAnswerAnnotationId,
-  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  // hyperlinkDetectionError,
+  hyperlinkDetectionError,
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,
   riskAnalysisTemplateAnswerNotFound,

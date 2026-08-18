@@ -178,7 +178,7 @@ describe("declared attribute creation", () => {
       attributeRegistryService.createDeclaredAttribute(
         {
           name: mockAttribute.name,
-          description: "The company test-www.example is involved",
+          description: "The company example.com is involved",
         },
         getMockContext({ authData: getMockAuthData(mockTenant.id) })
       )

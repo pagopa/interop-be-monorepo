@@ -8,7 +8,9 @@ export function escapeRegExp(str: string): string {
  * Regular expression that matches an explicit hyperlink in free text:
  * - `https?:\/\/...`   — matches `http://...` or `https://...`
  * - `(?<![a-zA-Z0-9])www\.` — matches `www.` only when not preceded by an
- *   alphanumeric character (so e.g. `test-www.com` is NOT considered a link)
+ *   alphanumeric character. This avoids false positives when `www` is embedded
+ *   in a larger word (e.g. `foowww.com` is NOT matched), while still catching
+ *   `www.evil.com` and `foo-www.evil.com` (a `-` is not alphanumeric).
  *
  * The trailing token is bounded with `{1,N}` (instead of `+`) and the `g` flag
  * is omitted so that the pattern is ReDoS-safe and stateless on long inputs.

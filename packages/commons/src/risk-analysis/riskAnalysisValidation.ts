@@ -1,6 +1,7 @@
 import { tenantKind, TenantKind } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
 
+import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
@@ -10,7 +11,6 @@ import {
   ValidationRule,
   ValidationRuleDependency,
 } from "./models.js";
-import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   RiskAnalysisValidationIssue,
   dependencyNotFoundError,
