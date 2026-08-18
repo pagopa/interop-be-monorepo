@@ -8,7 +8,6 @@ import {
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockAuthData,
-  readEventByStreamIdAndVersion,
   getMockAttribute,
 } from "pagopa-interop-commons-test";
 import {
@@ -20,7 +19,6 @@ import {
   EServiceTemplate,
   Attribute,
   generateId,
-  EServiceTemplateVersionDocumentAddedV2,
   AttributeId,
   attributeKind,
 } from "pagopa-interop-models";
@@ -39,7 +37,6 @@ import {
   readLastEserviceTemplateEvent,
   addOneEServiceTemplate,
   addOneAttribute,
-  postgresDB,
 } from "../integrationUtils.js";
 import { buildCreateVersionSeed } from "../mockUtils.js";
 
@@ -52,7 +49,6 @@ describe("createEServiceTemplateVersion", async () => {
     vi.useRealTimers();
   });
   it("should write on event-store for the creation of a version (eservice already had one version)", async () => {
-    const mockDocument = getMockDocument();
     const existingVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       interface: getMockDocument(),
@@ -60,7 +56,7 @@ describe("createEServiceTemplateVersion", async () => {
     };
     const mockVersion: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
-      docs: [mockDocument],
+      docs: [],
     };
     const eserviceTemplate: EServiceTemplate = {
       ...getMockEServiceTemplate(),
@@ -97,13 +93,7 @@ describe("createEServiceTemplateVersion", async () => {
 
     const newVersionId =
       createVersionResponse.data.createdEServiceTemplateVersionId;
-    const versionCreationEvent = await readEventByStreamIdAndVersion(
-      eserviceTemplate.id,
-      1,
-      "eservice_template",
-      postgresDB
-    );
-    const documentAdditionEvent = await readLastEserviceTemplateEvent(
+    const versionCreationEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
     );
 
@@ -113,20 +103,10 @@ describe("createEServiceTemplateVersion", async () => {
       type: "EServiceTemplateVersionAdded",
       event_version: 2,
     });
-    expect(documentAdditionEvent).toMatchObject({
-      stream_id: eserviceTemplate.id,
-      version: "2",
-      type: "EServiceTemplateVersionDocumentAdded",
-      event_version: 2,
-    });
 
     const versionCreationPayload = decodeProtobufPayload({
       messageType: EServiceTemplateVersionAddedV2,
       payload: versionCreationEvent.data,
-    });
-    const documentAdditionPayload = decodeProtobufPayload({
-      messageType: EServiceTemplateVersionDocumentAddedV2,
-      payload: documentAdditionEvent.data,
     });
 
     const newVersion: EServiceTemplateVersion = {
@@ -148,32 +128,18 @@ describe("createEServiceTemplateVersion", async () => {
       ...eserviceTemplate,
       versions: [...eserviceTemplate.versions, newVersion],
     };
-    const expectedEServiceTemplateAfterDocumentAddition: EServiceTemplate = {
-      ...expectedEServiceTemplateAfterVersionCreation,
-      versions: expectedEServiceTemplateAfterVersionCreation.versions.map(
-        (d) =>
-          d.id === newVersion.id ? { ...newVersion, docs: [mockDocument] } : d
-      ),
-    };
 
     expect(createVersionResponse).toEqual({
       data: {
         createdEServiceTemplateVersionId: newVersionId,
-        eserviceTemplate: expectedEServiceTemplateAfterDocumentAddition,
+        eserviceTemplate: expectedEServiceTemplateAfterVersionCreation,
       },
-      metadata: { version: 2 },
+      metadata: { version: 1 },
     });
     expect(versionCreationPayload).toEqual({
       eserviceTemplateVersionId: newVersionId,
       eserviceTemplate: toEServiceTemplateV2(
         expectedEServiceTemplateAfterVersionCreation
-      ),
-    });
-    expect(documentAdditionPayload).toEqual({
-      documentId: mockDocument.id,
-      eserviceTemplateVersionId: newVersionId,
-      eserviceTemplate: toEServiceTemplateV2(
-        expectedEServiceTemplateAfterDocumentAddition
       ),
     });
   });

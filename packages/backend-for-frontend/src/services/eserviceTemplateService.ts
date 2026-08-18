@@ -38,11 +38,9 @@ import { config } from "../config/config.js";
 import {
   eserviceTemplateNotFound,
   eserviceTemplateVersionNotFound,
-  noVersionInEServiceTemplate,
   tenantNotFound,
 } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
-import { cloneEServiceDocument } from "../utilities/fileUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getAllBulkAttributes } from "./attributeService.js";
 
@@ -502,47 +500,9 @@ export function eserviceTemplateServiceBuilder(
     ): Promise<bffApi.CreatedResource> => {
       logger.info(`Creating new version for EService template ${templateId}`);
 
-      const eserviceTemplate =
-        await eserviceTemplateClient.getEServiceTemplateById({
-          params: {
-            templateId,
-          },
-          headers,
-        });
-
-      if (eserviceTemplate.versions.length === 0) {
-        throw noVersionInEServiceTemplate(eserviceTemplate.id);
-      }
-
-      const previousVersion = eserviceTemplate.versions.reduce(
-        (latestVersions, curr) =>
-          curr.version > latestVersions.version ? curr : latestVersions,
-        eserviceTemplate.versions[0]
-      );
-
-      const clonedDocumentsCalls = previousVersion.docs.map((doc) =>
-        cloneEServiceDocument({
-          doc,
-          documentsContainer: config.eserviceTemplateDocumentsContainer,
-          documentsPath: config.eserviceTemplateDocumentsPath,
-          fileManager,
-          logger,
-        })
-      );
-
-      const clonedDocuments = await Promise.all(clonedDocumentsCalls);
-
       const response =
-        await eserviceTemplateClient.createEServiceTemplateVersion(
-          {
-            description: previousVersion.description,
-            voucherLifespan: previousVersion.voucherLifespan,
-            dailyCallsPerConsumer: previousVersion.dailyCallsPerConsumer,
-            dailyCallsTotal: previousVersion.dailyCallsTotal,
-            agreementApprovalPolicy: previousVersion.agreementApprovalPolicy,
-            attributes: previousVersion.attributes,
-            docs: clonedDocuments,
-          },
+        await eserviceTemplateClient.createEServiceTemplateVersionFromLatest(
+          undefined,
           {
             headers,
             params: {

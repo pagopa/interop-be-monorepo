@@ -1,0 +1,24 @@
+meta {
+  name: Create Descriptor From Latest
+  type: http
+  seq: 41
+}
+
+post {
+  url: {{host-catalog}}/eservices/:eserviceId/descriptors/fromLatest
+  body: none
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
+
+vars:post-response {
+  descriptorId: res.body.createdDescriptorId
+}

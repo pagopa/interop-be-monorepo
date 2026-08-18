@@ -184,7 +184,6 @@ describe("API /eservices/{eServiceId}/descriptors authorization test", () => {
     [{ ...descriptorSeed, agreementApprovalPolicy: null }, eservice.id],
     [{ ...descriptorSeed, dailyCallsTotal: -1 }, eservice.id],
     [{ ...descriptorSeed, attributes: undefined }, eservice.id],
-    [{ ...descriptorSeed, docs: [{}] }, eservice.id],
     [
       {
         ...descriptorSeed,
