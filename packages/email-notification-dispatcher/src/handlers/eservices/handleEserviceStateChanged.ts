@@ -12,20 +12,19 @@ import {
   Tenant,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
-} from "../handlerCommons.js";
-import { HandlerCommonParams } from "../../models/handlerParams.js";
-import { config } from "../../config/config.js";
-import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveLatestDescriptor,
   retrieveTenant,
-} from "../../services/utils.js";
-import { descriptorNotFound } from "../../models/errors.js";
+  descriptorNotFound,
+} from "pagopa-interop-notification-commons";
+import { match, P } from "ts-pattern";
+
+import { config } from "../../config/config.js";
+import { HandlerCommonParams } from "../../models/handlerParams.js";
 
 /* These events have been grouped under
  * a single handler because of their shared
@@ -132,7 +131,7 @@ export async function handleEserviceStateChanged(
             entityId,
             ...(t.type === "Tenant" ? { recipientName: tenant.name } : {}),
             copy,
-            ctaLabel: `Visualizza e-service`,
+            ctaLabel: `Accedi a PDND`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),

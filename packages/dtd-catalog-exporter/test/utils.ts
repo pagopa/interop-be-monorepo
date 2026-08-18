@@ -1,20 +1,21 @@
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { afterEach, inject } from "vitest";
-import { EService, Tenant, Attribute } from "pagopa-interop-models";
 import { genericLogger } from "pagopa-interop-commons";
-import { z } from "zod";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import { EService, Tenant, Attribute } from "pagopa-interop-models";
+import {
+  attributeReadModelServiceBuilder,
+  tenantReadModelServiceBuilder,
+} from "pagopa-interop-readmodel";
 import {
   upsertAttribute,
   upsertEService,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
-import {
-  attributeReadModelServiceBuilder,
-  tenantReadModelServiceBuilder,
-} from "pagopa-interop-readmodel";
+import { afterEach, inject } from "vitest";
+import { z } from "zod";
+
+import { config } from "../src/config/config.js";
 import { PublicEService } from "../src/models/models.js";
 import { dtdCatalogExporterServiceBuilder } from "../src/services/dtdCatalogExporterService.js";
-import { config } from "../src/config/config.js";
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 const { cleanup, fileManager, readModelDB } = await setupTestContainersVitest(

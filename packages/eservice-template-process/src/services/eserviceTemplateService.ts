@@ -1,3 +1,4 @@
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -48,7 +49,13 @@ import {
   RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+
+import { config } from "../config/config.js";
+import {
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiEServiceModeToEServiceMode,
+  apiTechnologyToTechnology,
+} from "../model/domain/apiConverter.js";
 import {
   attributeNotFound,
   checksumDuplicate,
@@ -76,7 +83,9 @@ import {
   riskAnalysisNotFound,
   eserviceTemplateAsyncExchangeNotEnabled,
   asyncExchangeCallbackInterfaceAlreadyExists,
+  interfaceDocumentNotUpdatable,
   missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../model/domain/errors.js";
 import {
@@ -100,22 +109,15 @@ import {
   toCreateEventEServiceTemplateVersionPublished,
   toCreateEventEServiceTemplateVersionInterfaceAdded,
   toCreateEventEServiceTemplateVersionDocumentAdded,
-  toCreateEventEServiceTemplateVersionInterfaceUpdated,
   toCreateEventEServiceTemplateVersionDocumentUpdated,
   toCreateEventEServiceTemplateVersionDocumentDeleted,
   toCreateEventEServiceTemplateVersionInterfaceDeleted,
   toCreateEventEServiceTemplatePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded,
-  toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated,
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
-import {
-  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiEServiceModeToEServiceMode,
-  apiTechnologyToTechnology,
-} from "../model/domain/apiConverter.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertIsReceiveTemplate,
   assertIsDraftEServiceTemplate,
@@ -131,8 +133,9 @@ import {
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   versionStatesNotAllowingInterfaceOperations,
+  assertAsyncExchangeReceiveTemplateNotAllowed,
+  assertDiscreteConfigForCertifiedAttributesOnly,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,
@@ -307,10 +310,19 @@ async function parseAndCheckAttributesOfKind(
     .flat()
     .map(({ id }) => id);
 
-  const attributes = await readModelService.getAttributesByIds(
-    attributesSeedIds,
-    kind
-  );
+  const attributes =
+    kind === attributeKind.certified
+      ? [
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certified
+          )),
+          ...(await readModelService.getAttributesByIds(
+            attributesSeedIds,
+            attributeKind.certifiedDiscrete
+          )),
+        ]
+      : await readModelService.getAttributesByIds(attributesSeedIds, kind);
 
   const attributesIds = attributes.map((attr) => attr.id);
   attributesSeedIds.forEach((attributeId) => {
@@ -318,6 +330,19 @@ async function parseAndCheckAttributesOfKind(
       throw attributeNotFound(attributeId);
     }
   });
+
+  if (kind === attributeKind.certified) {
+    const hasCertifiedDiscreteConfig = parsedAttributesSeed
+      .flat()
+      .some((seedAttribute) => seedAttribute.discreteConfig !== undefined);
+    const hasCertifiedDiscreteAttribute = attributes.some(
+      (attribute) => attribute.kind === attributeKind.certifiedDiscrete
+    );
+
+    if (hasCertifiedDiscreteConfig || hasCertifiedDiscreteAttribute) {
+      assertFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete");
+    }
+  }
 
   return parsedAttributesSeed;
 }
@@ -549,6 +574,15 @@ export function eserviceTemplateServiceBuilder(
       ) {
         if (eserviceTemplateVersion.asyncExchangeProperties === undefined) {
           throw missingAsyncExchangeProperties(
+            eserviceTemplateId,
+            eserviceTemplateVersionId
+          );
+        }
+
+        if (
+          eserviceTemplateVersion.asyncExchangeCallbackInterface === undefined
+        ) {
+          throw missingAsyncExchangeCallbackInterface(
             eserviceTemplateId,
             eserviceTemplateVersionId
           );
@@ -1239,6 +1273,12 @@ export function eserviceTemplateServiceBuilder(
         );
       }
 
+      const parsedAttributes = await parseAndCheckAttributes(
+        seed,
+        readModelService
+      );
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+
       /**
        * In order for the e-service template version attributes to be updatable,
        * each attribute group contained in the seed must be a superset
@@ -1315,7 +1355,7 @@ export function eserviceTemplateServiceBuilder(
 
       const updatedEServiceTemplateVersion: EServiceTemplateVersion = {
         ...eserviceTemplateVersion,
-        attributes: await parseAndCheckAttributes(seed, readModelService),
+        attributes: parsedAttributes,
       };
 
       const updatedEServiceTemplate = replaceEServiceTemplateVersion(
@@ -1367,6 +1407,13 @@ export function eserviceTemplateServiceBuilder(
       await assertEServiceTemplateNameAvailable(seed.name, readModelService);
 
       assertConsistentDailyCalls(seed.version);
+
+      if (isFeatureFlagEnabled(config, "featureFlagAsyncExchange")) {
+        assertAsyncExchangeReceiveTemplateNotAllowed({
+          mode: apiEServiceModeToEServiceMode(seed.mode),
+          asyncExchange: seed.asyncExchange,
+        });
+      }
 
       const creationDate = new Date();
       const draftVersion: EServiceTemplateVersion = {
@@ -1493,6 +1540,7 @@ export function eserviceTemplateServiceBuilder(
         seed.attributes,
         readModelService
       );
+      assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
       assertConsistentDailyCalls({
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
@@ -1888,15 +1936,13 @@ export function eserviceTemplateServiceBuilder(
         documentId
       );
 
-      const isInterface = document.id === version?.interface?.id;
-      const isAsyncExchangeCallbackInterface =
-        document.id === version?.asyncExchangeCallbackInterface?.id;
-
+      // The interface and the async exchange callback interface cannot be
+      // updated: only regular documents are updatable through this operation.
       if (
-        (isInterface || isAsyncExchangeCallbackInterface) &&
-        versionStatesNotAllowingInterfaceOperations(version)
+        document.id === version.interface?.id ||
+        document.id === version.asyncExchangeCallbackInterface?.id
       ) {
-        throw notValidEServiceTemplateVersionState(version.id, version.state);
+        throw interfaceDocumentNotUpdatable(version.id, documentId);
       }
 
       if (
@@ -1925,45 +1971,22 @@ export function eserviceTemplateServiceBuilder(
             v.id === eserviceTemplateVersionId
               ? {
                   ...v,
-                  interface: isInterface ? updatedDocument : v.interface,
                   docs: v.docs.map((doc) =>
                     doc.id === documentId ? updatedDocument : doc
                   ),
-                  asyncExchangeCallbackInterface:
-                    isAsyncExchangeCallbackInterface
-                      ? updatedDocument
-                      : v.asyncExchangeCallbackInterface,
                 }
               : v
         ),
       };
 
-      const event = isInterface
-        ? toCreateEventEServiceTemplateVersionInterfaceUpdated(
-            eserviceTemplateId,
-            eserviceTemplate.metadata.version,
-            eserviceTemplateVersionId,
-            documentId,
-            newEserviceTemplate,
-            correlationId
-          )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated(
-              eserviceTemplateId,
-              eserviceTemplate.metadata.version,
-              eserviceTemplateVersionId,
-              documentId,
-              newEserviceTemplate,
-              correlationId
-            )
-          : toCreateEventEServiceTemplateVersionDocumentUpdated(
-              eserviceTemplateId,
-              eserviceTemplate.metadata.version,
-              eserviceTemplateVersionId,
-              documentId,
-              newEserviceTemplate,
-              correlationId
-            );
+      const event = toCreateEventEServiceTemplateVersionDocumentUpdated(
+        eserviceTemplateId,
+        eserviceTemplate.metadata.version,
+        eserviceTemplateVersionId,
+        documentId,
+        newEserviceTemplate,
+        correlationId
+      );
 
       await repository.createEvent(event);
       return updatedDocument;
@@ -2270,9 +2293,13 @@ async function updateDraftEServiceTemplate(
     await Promise.all(
       eserviceTemplate.data.versions.map(async (d) => {
         if (d.interface !== undefined) {
-          return await fileManager.delete(
+          await fileManager.delete(config.s3Bucket, d.interface.path, logger);
+        }
+
+        if (d.asyncExchangeCallbackInterface !== undefined) {
+          await fileManager.delete(
             config.s3Bucket,
-            d.interface.path,
+            d.asyncExchangeCallbackInterface.path,
             logger
           );
         }
@@ -2333,6 +2360,7 @@ async function updateDraftEServiceTemplate(
       ? eserviceTemplate.data.versions.map((d) => ({
           ...d,
           interface: undefined,
+          asyncExchangeCallbackInterface: undefined,
         }))
       : eserviceTemplate.data.versions,
     isSignalHubEnabled: updatedIsSignalHubEnabled,
@@ -2488,6 +2516,10 @@ async function updateDraftEServiceTemplateVersion(
         readModelService
       )
     : eserviceTemplateVersion.attributes;
+
+  if (attributes) {
+    assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+  }
 
   const asyncExchangeEnabled =
     isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&

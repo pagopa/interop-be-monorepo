@@ -1,16 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
-import {
-  attributeKind,
-  Descriptor,
-  DescriptorId,
-  descriptorState,
-  EService,
-  EServiceId,
-  generateId,
-  operationForbidden,
-} from "pagopa-interop-models";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockAttribute,
@@ -18,11 +8,24 @@ import {
   getMockEService,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import {
+  attributeKind,
+  Descriptor,
+  DescriptorId,
+  DescriptorState,
+  descriptorState,
+  EService,
+  EServiceId,
+  generateId,
+  operationForbidden,
+} from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   attributeDailyCallsNotAllowed,
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
@@ -34,7 +37,7 @@ import {
   templateInstanceNotAllowed,
   unchangedAttributes,
 } from "../../src/model/domain/errors.js";
-import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update authorization test", () => {
   const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
@@ -205,11 +208,15 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
       expectedStatus: 400,
     },
     {
-      error: notValidDescriptorState(generateId(), ""),
+      error: notValidDescriptorState(generateId(), "" as DescriptorState),
       expectedStatus: 400,
     },
     {
       error: attributeDailyCallsNotAllowed(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
     {

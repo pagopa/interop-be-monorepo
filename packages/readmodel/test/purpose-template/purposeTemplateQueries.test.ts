@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { eq } from "drizzle-orm";
+import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
 import {
   EServiceDescriptorPurposeTemplate,
   generateId,
@@ -6,9 +7,9 @@ import {
   TenantId,
   WithMetadata,
 } from "pagopa-interop-models";
-import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
-import { eq } from "drizzle-orm";
 import { purposeTemplateInReadmodelPurposeTemplate } from "pagopa-interop-readmodel-models";
+import { describe, it, expect } from "vitest";
+
 import {
   upsertPurposeTemplate,
   upsertPurposeTemplateEServiceDescriptor,

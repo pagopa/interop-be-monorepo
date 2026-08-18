@@ -5,6 +5,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { CatalogWriterService } from "./catalogWriterService.js";
 
 export async function handleMessageV2(
@@ -36,7 +37,6 @@ export async function handleMessageV2(
           "EServiceDescriptorSuspended",
           "EServiceDescriptorInterfaceAdded",
           "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceDescriptorDocumentDeleted",
@@ -66,10 +66,16 @@ export async function handleMessageV2(
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceArchivingCompleted",
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
+          "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       async (message) => {

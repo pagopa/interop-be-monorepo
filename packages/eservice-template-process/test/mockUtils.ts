@@ -1,3 +1,14 @@
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  riskAnalysisFormToRiskAnalysisFormToValidate,
+  userRole,
+} from "pagopa-interop-commons";
+import {
+  getMockContext,
+  getMockAuthData,
+  getMockContextM2M,
+  getMockContextM2MAdmin,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
   generateId,
@@ -5,17 +16,7 @@ import {
   TenantId,
   RiskAnalysis,
 } from "pagopa-interop-models";
-import {
-  riskAnalysisFormToRiskAnalysisFormToValidate,
-  userRole,
-} from "pagopa-interop-commons";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import {
-  getMockContext,
-  getMockAuthData,
-  getMockContextM2M,
-  getMockContextM2MAdmin,
-} from "pagopa-interop-commons-test";
+
 import {
   eServiceModeToApiEServiceMode,
   eserviceTemplateToApiEServiceTemplate,
@@ -154,6 +155,12 @@ export const getContextsAllowedToSeeDraftVersions = (creatorId: TenantId) => [
     authData: {
       ...getMockAuthData(creatorId),
       userRoles: [userRole.SUPPORT_ROLE],
+    },
+  }),
+  getMockContext({
+    authData: {
+      ...getMockAuthData(creatorId),
+      userRoles: [userRole.VIEWER_ROLE],
     },
   }),
   getMockContextM2M({

@@ -11,6 +11,7 @@ import {
   RiskAnalysis,
   riskAnalysisAnswerKind,
   type EServiceTemplateAttribute,
+  type EServiceTemplateAttributeCertifiedDiscrete,
 } from "pagopa-interop-models";
 import {
   EServiceTemplateItemsSQL,
@@ -129,7 +130,9 @@ const templateAttributeToTemplateAttributeSQL = ({
   eserviceTemplateId,
   metadataVersion,
 }: {
-  attribute: EServiceTemplateAttribute;
+  attribute:
+    | EServiceTemplateAttribute
+    | EServiceTemplateAttributeCertifiedDiscrete;
   eserviceTemplateVersionId: EServiceTemplateVersionId;
   groupId: number;
   kind: AttributeKind;
@@ -141,13 +144,24 @@ const templateAttributeToTemplateAttributeSQL = ({
   attributeId: attribute.id,
   versionId: eserviceTemplateVersionId,
   explicitAttributeVerification: attribute.explicitAttributeVerification,
-  kind,
+  kind:
+    kind === attributeKind.certified && "discreteConfig" in attribute
+      ? attributeKind.certifiedDiscrete
+      : kind,
   groupId,
+  threshold:
+    "discreteConfig" in attribute ? attribute.discreteConfig.threshold : null,
+  comparator:
+    "discreteConfig" in attribute ? attribute.discreteConfig.comparator : null,
 });
 
 const templateAttributesNestedArrayToTemplateAttributeSQLarray = (
   eserviceTemplateVersionId: EServiceTemplateVersionId,
-  attributes: EServiceTemplateAttribute[][],
+  attributes: Array<
+    Array<
+      EServiceTemplateAttribute | EServiceTemplateAttributeCertifiedDiscrete
+    >
+  >,
   kind: AttributeKind,
   eserviceTemplateId: EServiceTemplateId,
   metadataVersion: number

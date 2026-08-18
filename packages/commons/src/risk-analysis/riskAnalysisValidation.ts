@@ -1,5 +1,6 @@
 import { tenantKind, TenantKind } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
@@ -24,7 +25,6 @@ import {
   unexpectedFieldHyperlinkError,
   unexpectedFieldValueError,
 } from "./riskAnalysisValidationErrors.js";
-
 import {
   FormQuestionRules,
   RiskAnalysisFormRules,

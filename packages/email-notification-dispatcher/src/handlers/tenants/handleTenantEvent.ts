@@ -5,9 +5,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleTenantCertifiedAttributeAssigned } from "./handleTenantCertifiedAttributeAssigned.js";
 import { handleTenantCertifiedAttributeRevoked } from "./handleTenantCertifiedAttributeRevoked.js";
+import { handleTenantCertifiedDiscreteAttributeAssigned } from "./handleTenantCertifiedDiscreteAttributeAssigned.js";
+import { handleTenantCertifiedDiscreteAttributeRevoked } from "./handleTenantCertifiedDiscreteAttributeRevoked.js";
+import { handleTenantCertifiedDiscreteAttributeUpdated } from "./handleTenantCertifiedDiscreteAttributeUpdated.js";
 import { handleTenantVerifiedAttributeAssigned } from "./handleTenantVerifiedAttributeAssigned.js";
 import { handleTenantVerifiedAttributeRevoked } from "./handleTenantVerifiedAttributeRevoked.js";
 
@@ -39,9 +43,45 @@ export async function handleTenantEvent(
         })
     )
     .with(
+      { type: "TenantCertifiedDiscreteAttributeAssigned" },
+      ({ data: { tenant, attributeId } }) =>
+        handleTenantCertifiedDiscreteAttributeAssigned({
+          tenantV2Msg: tenant,
+          attributeId: unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       { type: "TenantCertifiedAttributeRevoked" },
       ({ data: { tenant, attributeId } }) =>
         handleTenantCertifiedAttributeRevoked({
+          tenantV2Msg: tenant,
+          attributeId: unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "TenantCertifiedDiscreteAttributeRevoked" },
+      ({ data: { tenant, attributeId } }) =>
+        handleTenantCertifiedDiscreteAttributeRevoked({
+          tenantV2Msg: tenant,
+          attributeId: unsafeBrandId<AttributeId>(attributeId),
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "TenantCertifiedDiscreteAttributeUpdated" },
+      ({ data: { tenant, attributeId } }) =>
+        handleTenantCertifiedDiscreteAttributeUpdated({
           tenantV2Msg: tenant,
           attributeId: unsafeBrandId<AttributeId>(attributeId),
           logger,
@@ -92,7 +132,9 @@ export async function handleTenantEvent(
           "TenantDelegatedProducerFeatureAdded",
           "TenantDelegatedProducerFeatureRemoved",
           "TenantDelegatedConsumerFeatureAdded",
-          "TenantDelegatedConsumerFeatureRemoved"
+          "TenantDelegatedConsumerFeatureRemoved",
+          "TenantRemoteIdAssigned",
+          "MaintenanceTenantRemoteIdDeleted"
         ),
       },
       () => {

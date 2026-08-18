@@ -1,5 +1,5 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { inject, afterEach, beforeEach, vi } from "vitest";
+import { notification } from "pagopa-interop-in-app-notification-db-models";
 import {
   IDS,
   NotificationId,
@@ -8,7 +8,7 @@ import {
   generateId,
   NotificationType,
 } from "pagopa-interop-models";
-import { notification } from "pagopa-interop-in-app-notification-db-models";
+import { inject, afterEach, beforeEach, vi } from "vitest";
 
 export const { cleanup, inAppNotificationDB } = await setupTestContainersVitest(
   undefined,

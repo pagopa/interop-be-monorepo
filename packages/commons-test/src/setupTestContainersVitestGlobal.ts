@@ -3,6 +3,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
+import type {} from "vitest";
+import type { TestProject } from "vitest/node";
+
 import { config as dotenv } from "dotenv-flow";
 import {
   AWSSesConfig,
@@ -17,11 +20,11 @@ import {
   InAppNotificationDBConfig,
   M2MEventSQLDbConfig,
   DynamoDBClientConfig,
+  ScheduledNotificationDBConfig,
   TenantKindHistoryDBConfig,
 } from "pagopa-interop-commons";
 import { StartedTestContainer } from "testcontainers";
-import type {} from "vitest";
-import type { TestProject } from "vitest/node";
+
 import {
   TEST_AWS_SES_PORT,
   TEST_DYNAMODB_PORT,
@@ -42,6 +45,8 @@ import {
   TEST_IN_APP_NOTIFICATION_DB_PORT,
   m2mEventDBContainer,
   TEST_M2M_EVENT_DB_PORT,
+  scheduledNotificationDBContainer,
+  TEST_SCHEDULED_NOTIFICATION_DB_PORT,
   tenantKindHistoryDBContainer,
   TEST_TENANT_KIND_HISTORY_DB_PORT,
 } from "./containerTestUtils.js";
@@ -66,6 +71,7 @@ declare module "vitest" {
     inAppNotificationDbConfig?: InAppNotificationDBConfig;
     m2mEventDbConfig?: M2MEventSQLDbConfig;
     dynamoDBClientConfig?: EnhancedDynamoDBClientConfig;
+    scheduledNotificationDbConfig?: ScheduledNotificationDBConfig;
     tenantKindHistoryDBConfig?: TenantKindHistoryDBConfig;
   }
 }
@@ -95,6 +101,9 @@ export function setupTestContainersVitestGlobal() {
   );
   const dynamoDBClientConfig = DynamoDBClientConfig.safeParse(process.env);
   const m2mEventDbConfig = M2MEventSQLDbConfig.safeParse(process.env);
+  const scheduledNotificationDbConfig = ScheduledNotificationDBConfig.safeParse(
+    process.env
+  );
   const tenantKindHistoryDBConfig = TenantKindHistoryDBConfig.safeParse(
     process.env
   );
@@ -112,6 +121,7 @@ export function setupTestContainersVitestGlobal() {
     let startedAWSSesContainer: StartedTestContainer | undefined;
     let startedInAppNotificationContainer: StartedTestContainer | undefined;
     let startedM2MEventSQLDbContainer: StartedTestContainer | undefined;
+    let startedScheduledNotificationContainer: StartedTestContainer | undefined;
     let startedTenantKindHistoryDbContainer: StartedTestContainer | undefined;
 
     // Setting up the EventStore PostgreSQL container if the config is provided
@@ -270,6 +280,20 @@ export function setupTestContainersVitestGlobal() {
       });
     }
 
+    if (scheduledNotificationDbConfig.success) {
+      startedScheduledNotificationContainer =
+        await scheduledNotificationDBContainer(
+          scheduledNotificationDbConfig.data
+        ).start();
+      provide("scheduledNotificationDbConfig", {
+        ...scheduledNotificationDbConfig.data,
+        scheduledNotificationDBPort:
+          startedScheduledNotificationContainer.getMappedPort(
+            TEST_SCHEDULED_NOTIFICATION_DB_PORT
+          ),
+      });
+    }
+
     if (tenantKindHistoryDBConfig.success) {
       startedTenantKindHistoryDbContainer = await tenantKindHistoryDBContainer(
         tenantKindHistoryDBConfig.data
@@ -294,6 +318,7 @@ export function setupTestContainersVitestGlobal() {
       await startedAWSSesContainer?.stop();
       await startedInAppNotificationContainer?.stop();
       await startedM2MEventSQLDbContainer?.stop();
+      await startedScheduledNotificationContainer?.stop();
       await startedTenantKindHistoryDbContainer?.stop();
     };
   };

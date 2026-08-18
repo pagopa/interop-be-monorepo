@@ -9,14 +9,13 @@ import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
   retrieveTenant,
-} from "../../services/utils.js";
-import {
-  AgreementHandlerParams,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveAgreementEservice,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+
 import { config } from "../../config/config.js";
+import { AgreementHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "agreementSuspendedUnsuspendedToConsumer";

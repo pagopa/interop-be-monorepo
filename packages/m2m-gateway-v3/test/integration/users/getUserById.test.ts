@@ -1,17 +1,18 @@
-import { describe, it, vi, beforeEach, expect } from "vitest";
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import {
   getMockTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
 import { TenantId, UserId, generateId } from "pagopa-interop-models";
+import { describe, it, vi, beforeEach, expect } from "vitest";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { userServiceBuilder } from "../../../src/services/userService.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
   mockInteropBeClients,
   expectApiClientGetToHaveBeenCalledWith,
 } from "../../integrationUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getUserById", () => {
   const tenantId = generateId<TenantId>();

@@ -1,12 +1,13 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
-import { generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import { bffApi } from "pagopa-interop-api-clients";
-import { api, services } from "../../vitest.api.setup.js";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { selfcareEntityNotFilled } from "../../../src/model/errors.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /selfcare/institutions", () => {
   const mockInstitutions: bffApi.SelfcareInstitution[] = [

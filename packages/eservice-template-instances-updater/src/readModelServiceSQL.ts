@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import { ascLower } from "pagopa-interop-commons";
 import { EService, EServiceTemplateId } from "pagopa-interop-models";
 import {
@@ -6,6 +7,7 @@ import {
 } from "pagopa-interop-readmodel";
 import {
   DrizzleReturnType,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorAttributeInReadmodelCatalog,
   eserviceDescriptorDocumentInReadmodelCatalog,
   eserviceDescriptorInReadmodelCatalog,
@@ -17,7 +19,6 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import { and, eq } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
@@ -37,6 +38,8 @@ export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
           riskAnalysisAnswer: eserviceRiskAnalysisAnswerInReadmodelCatalog,
           templateVersionRef:
             eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+          archivingSchedule:
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog,
           asyncExchangeProperties:
             eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
         })
@@ -109,6 +112,13 @@ export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {
               eserviceRiskAnalysisInReadmodelCatalog.eserviceId,
               eserviceRiskAnalysisAnswerInReadmodelCatalog.eserviceId
             )
+          )
+        )
+        .leftJoin(
+          eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
           )
         )
         .orderBy(ascLower(eserviceInReadmodelCatalog.name));

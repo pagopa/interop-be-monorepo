@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { ClientId, InteractionId, PurposeId } from "../brandedIds.js";
 import { InteractionState } from "../token-generation-readmodel/interactions-entry.js";
 

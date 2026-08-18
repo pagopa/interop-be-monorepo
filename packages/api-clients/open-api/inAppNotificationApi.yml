@@ -497,6 +497,7 @@ components:
         - clientAddedRemovedToProducer
         - purposeStatusChangedToProducer
         - templateStatusChangedToProducer
+        - eserviceStateChangedToProducer
         - agreementSuspendedUnsuspendedToConsumer
         - eserviceStateChangedToConsumer
         - agreementActivatedRejectedToConsumer
@@ -535,6 +536,9 @@ components:
               type: integer
               format: int32
             templateStatusChangedToProducer:
+              type: integer
+              format: int32
+            eserviceStateChangedToProducer:
               type: integer
               format: int32
             agreementSuspendedUnsuspendedToConsumer:

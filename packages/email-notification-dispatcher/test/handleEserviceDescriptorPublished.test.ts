@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockContext,
@@ -8,7 +9,6 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   Agreement,
   agreementState,
@@ -27,8 +27,12 @@ import {
   unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
+import {
+  descriptorNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { descriptorNotFound, tenantNotFound } from "../src/models/errors.js";
+
 import { handleEserviceDescriptorPublished } from "../src/handlers/eservices/handleEserviceDescriptorPublished.js";
 import {
   addOneAgreement,
@@ -414,7 +418,7 @@ describe("handleEserviceDescriptorPublished", async () => {
       expect(message.email.body).toContain(consumerTenants[0].name);
       expect(message.email.body).toContain(eservice.name);
       expect(message.email.body).toContain(descriptor.version);
-      expect(message.email.body).toContain(`Visualizza e-service`);
+      expect(message.email.body).toContain(`Accedi a PDND`);
     });
   });
 

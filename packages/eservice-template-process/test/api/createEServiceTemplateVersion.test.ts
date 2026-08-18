@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   Attribute,
   EServiceTemplate,
@@ -8,19 +15,12 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
-import { buildCreateVersionSeed } from "../mockUtils.js";
 import {
+  attributeDiscreteConfigNotAllowed,
   attributeDuplicatedInGroup,
   attributeNotFound,
   draftEServiceTemplateVersionAlreadyExists,
@@ -28,6 +28,8 @@ import {
   eserviceTemplateWithoutPublishedVersion,
   inconsistentDailyCalls,
 } from "../../src/model/domain/errors.js";
+import { buildCreateVersionSeed } from "../mockUtils.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /templates/:templateId/versions", () => {
   const mockVersion = getMockEServiceTemplateVersion();
@@ -148,6 +150,10 @@ describe("API POST /templates/:templateId/versions", () => {
     },
     {
       error: attributeDuplicatedInGroup(generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: attributeDiscreteConfigNotAllowed(generateId()),
       expectedStatus: 400,
     },
   ])(

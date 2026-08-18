@@ -1,5 +1,3 @@
-import path from "path";
-import { fileURLToPath } from "url";
 import Handlebars from "handlebars";
 import {
   FileManager,
@@ -15,7 +13,6 @@ import {
   incompatibleConfigError,
   unexpectedEmptyAnswerError,
 } from "pagopa-interop-commons";
-import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 import {
   Purpose,
   PurposeVersionDocument,
@@ -29,17 +26,20 @@ import {
   UserId,
   TenantId,
 } from "pagopa-interop-models";
+import path from "path";
 import { P, match } from "ts-pattern";
+import { fileURLToPath } from "url";
 
 import { DocumentsGeneratorConfig } from "../../config/config.js";
-import {
-  PurposeDocumentEServiceInfo,
-  RiskAnalysisDocumentPDFPayload,
-} from "../../model/purposeModels.js";
 import {
   missingRiskAnalysis,
   riskAnalysisConfigVersionNotFound,
 } from "../../model/errors.js";
+import {
+  PurposeDocumentEServiceInfo,
+  RiskAnalysisDocumentPDFPayload,
+} from "../../model/purposeModels.js";
+import { PDFGenerator } from "../../pdf-generator/pdfGenerator.js";
 
 const YES = "Sì";
 const NO = "No";
@@ -117,6 +117,7 @@ export const riskAnalysisDocumentBuilder = (
         eserviceInfo,
         userId,
         consumerId: purpose.consumerId,
+        reviewerId: purpose.reviewerWorkflow?.signedBy,
         isFreeOfCharge: purpose.isFreeOfCharge,
         freeOfChargeReason: purpose.freeOfChargeReason,
         language,
@@ -159,6 +160,7 @@ const getPdfPayload = ({
   eserviceInfo,
   userId,
   consumerId,
+  reviewerId,
   isFreeOfCharge,
   freeOfChargeReason,
   language,
@@ -170,6 +172,7 @@ const getPdfPayload = ({
   eserviceInfo: PurposeDocumentEServiceInfo;
   userId: UserId | undefined;
   consumerId: TenantId;
+  reviewerId: UserId | undefined;
   isFreeOfCharge: boolean;
   freeOfChargeReason?: string;
   language: Language;
@@ -210,6 +213,7 @@ const getPdfPayload = ({
     consumerDelegateName: eserviceInfo.consumerDelegateName,
     consumerDelegateIpaCode: eserviceInfo.consumerDelegateIpaCode,
     userId,
+    reviewerId,
     consumerId,
   };
 };

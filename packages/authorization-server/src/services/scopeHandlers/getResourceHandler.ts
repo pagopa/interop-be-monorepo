@@ -7,8 +7,15 @@ import {
   clientKindTokenGenStates,
   genericInternalError,
   interactionState,
+  isInteractionStateAllowedForScope,
   makeTokenGenerationStatesClientKidPurposePK,
 } from "pagopa-interop-models";
+
+import type {
+  AsyncGeneratedTokenData,
+  ScopeHandlerContext,
+} from "../asyncTokenService.js";
+
 import {
   asyncClientAssertionClaimsValidationFailed,
   asyncExchangeNotEnabled,
@@ -20,21 +27,16 @@ import {
   platformStateValidationFailed,
   resourceAvailableTimeExpired,
 } from "../../model/domain/errors.js";
+import { publishConsumerTokenAudit } from "../../utilities/audit.js";
 import {
-  logTokenGenerationInfo,
-  publishAudit,
-  retrieveAsyncCatalogEntry,
-  retrieveKey,
-} from "../../utilities/tokenServiceHelpers.js";
-import {
-  isInteractionStateAllowedForScope,
   readInteraction,
   updateInteractionState,
 } from "../../utilities/interactionsUtils.js";
-import type {
-  AsyncGeneratedTokenData,
-  ScopeHandlerContext,
-} from "../asyncTokenService.js";
+import {
+  logTokenGenerationInfo,
+  retrieveAsyncCatalogEntry,
+  retrieveKey,
+} from "../../utilities/tokenServiceHelpers.js";
 
 export const handleGetResource = async (
   ctx: ScopeHandlerContext
@@ -222,7 +224,7 @@ export const handleGetResource = async (
   });
 
   // 11. Publish audit (consumer-side)
-  await publishAudit({
+  await publishConsumerTokenAudit({
     producer,
     generatedToken: token,
     key,

@@ -23,7 +23,6 @@ import {
   PurposeEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -31,6 +30,8 @@ import {
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
 import { createClient } from "redis";
+import { P, match } from "ts-pattern";
+
 import { config } from "./config/config.js";
 import {
   NotificationEmailSenderService,
@@ -127,7 +128,6 @@ export async function handleCatalogMessage(
           "EServiceDescriptorDocumentUpdated",
           "EServiceDescriptorDocumentDeleted",
           "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceRiskAnalysisAdded",
           "EServiceRiskAnalysisUpdated",
@@ -157,10 +157,17 @@ export async function handleCatalogMessage(
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           // TODO: Handle async exchange callback interface events if notification is needed
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "EServiceInstanceLabelUpdated",
-          "MaintenanceEServicePersonalDataFlagReset"
+          // FIXME these events will be managed with "WORK ITEM 10"
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingScheduled",
+          "EServiceArchivingCanceled",
+          "EServiceArchivingCompleted",
+          "MaintenanceEServicePersonalDataFlagReset",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {
@@ -248,7 +255,13 @@ export async function handlePurposeMessage(
           "PurposeVersionArchivedByRevokedDelegation",
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
-          "MaintenancePurposeRiskAnalysisSetTenantKind"
+          "MaintenancePurposeRiskAnalysisSetTenantKind",
+          "PurposeRiskAnalysisWorkflowCreated",
+          "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSubmitted",
+          "PurposeRiskAnalysisSigned",
+          "PurposeRiskAnalysisRejected",
+          "PurposeRiskAnalysisFormEdited"
         ),
       },
       () => {

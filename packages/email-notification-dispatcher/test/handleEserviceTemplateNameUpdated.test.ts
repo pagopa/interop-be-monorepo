@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockDescriptorPublished,
@@ -7,7 +8,6 @@ import {
   getMockEServiceTemplate,
   getMockTenant,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -22,8 +22,9 @@ import {
   toEServiceTemplateV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import { match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleEServiceTemplateNameUpdated } from "../src/handlers/eserviceTemplates/handleEserviceTemplateNameUpdated.js";
 import {
   addOneEService,

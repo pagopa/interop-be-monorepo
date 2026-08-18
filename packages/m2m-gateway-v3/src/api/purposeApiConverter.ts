@@ -3,6 +3,7 @@ import {
   m2mGatewayApiV3,
   purposeApi,
 } from "pagopa-interop-api-clients";
+
 import {
   getPurposeCurrentVersion,
   sortPurposeVersionsByDate,
@@ -21,6 +22,7 @@ export function toGetPurposesApiQueryParams(
     states: params.states,
     excludeDraft: false,
     name: params.title,
+    signingStates: [],
   };
 }
 
@@ -39,6 +41,7 @@ export function toGetPurposesApiQueryParamsForClient(
     states: params.states,
     excludeDraft: false,
     name: "",
+    signingStates: [],
   };
 }
 

@@ -101,6 +101,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         riskAnalysisAnswersSQL: [],
         templateVersionRefsSQL: [],
         asyncExchangePropertiesSQL,
+        archivingSchedulesSQL: [],
       }).map((e) => e.data);
     },
 
@@ -120,6 +121,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         versionDocumentsSQL: [],
         versionStampsSQL: [],
         versionSignedDocumentsSQL: [],
+        reviewersSQL: [],
       }).map((p) => p.data);
     },
 

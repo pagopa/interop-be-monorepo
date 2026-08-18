@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockEServiceTemplate,
@@ -11,13 +12,8 @@ import {
   toEServiceTemplateV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+
 import { config } from "../../src/config/config.js";
-import {
-  readLastEserviceTemplateEvent,
-  addOneEServiceTemplate,
-  eserviceTemplateService,
-} from "../integrationUtils.js";
 import {
   apiEServiceModeToEServiceMode,
   apiTechnologyToTechnology,
@@ -26,6 +22,11 @@ import {
   eserviceTemplateDuplicate,
   eserviceTemplateNotFound,
 } from "../../src/model/domain/errors.js";
+import {
+  readLastEserviceTemplateEvent,
+  addOneEServiceTemplate,
+  eserviceTemplateService,
+} from "../integrationUtils.js";
 
 describe("update eserviceTemplate", () => {
   const mockEServiceTemplate = {

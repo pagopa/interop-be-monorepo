@@ -1,10 +1,16 @@
-import { NewNotification, EServiceEventEnvelope } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { NewNotification, EServiceEventEnvelope } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
+import { handleEserviceArchivingCanceledToConsumer } from "./handleEserviceArchivingCanceledToConsumer.js";
+import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchivingCanceledToProducer.js";
+import { handleEserviceArchivingToConsumer } from "./handleEserviceArchivingToConsumer.js";
+import { handleEserviceArchivingToProducer } from "./handleEserviceArchivingToProducer.js";
 import { handleEserviceNewVersionApprovedRejectedToDelegate } from "./handleEserviceNewVersionApprovedRejectedToDelegate.js";
 import { handleEserviceNewVersionSubmittedToDelegator } from "./handleEserviceNewVersionSubmittedToDelegator.js";
+import { handleEserviceStateChangedToConsumer } from "./handleEserviceStateChangedToConsumer.js";
+import { handleEserviceStateChangedToProducer } from "./handleEserviceStateChangedToProducer.js";
 
 export async function handleEServiceEvent(
   decodedMessage: EServiceEventEnvelope,
@@ -19,11 +25,24 @@ export async function handleEServiceEvent(
     .with(
       {
         type: P.union(
+          "EServiceDescriptorSuspended",
+          "EServiceDescriptorActivated"
+        ),
+      },
+      async (msg) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceStateChangedToProducer(msg, logger, readModelService),
+          handleEserviceStateChangedToConsumer(msg, logger, readModelService),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceNameUpdated",
           "EServiceDescriptionUpdated",
           "EServiceDescriptorPublished",
-          "EServiceDescriptorSuspended",
-          "EServiceDescriptorActivated",
           "EServiceDescriptorQuotasUpdated",
           "EServiceDescriptorAttributesUpdated",
           "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated",
@@ -66,8 +85,53 @@ export async function handleEServiceEvent(
     )
     .with(
       {
+        type: "EServiceDescriptorArchived",
+      },
+      (msg) => handleEserviceArchivingToProducer(msg, logger, readModelService)
+    )
+    .with(
+      {
         type: P.union(
-          "EServiceDescriptorArchived",
+          "EServiceDescriptorArchivingScheduled",
+          "EServiceArchivingScheduled",
+          "EServiceDescriptorArchivingCompleted",
+          "EServiceArchivingCompleted"
+        ),
+      },
+      async (msg) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingToProducer(msg, logger, readModelService),
+          handleEserviceArchivingToConsumer(msg, logger, readModelService),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      {
+        type: P.union(
+          "EServiceDescriptorArchivingCanceled",
+          "EServiceArchivingCanceled"
+        ),
+      },
+      async (msg) => {
+        const [prod, cons] = await Promise.all([
+          handleEserviceArchivingCanceledToProducer(
+            msg,
+            logger,
+            readModelService
+          ),
+          handleEserviceArchivingCanceledToConsumer(
+            msg,
+            logger,
+            readModelService
+          ),
+        ]);
+        return [...prod, ...cons];
+      }
+    )
+    .with(
+      {
+        type: P.union(
           "EServiceAdded",
           "EServiceCloned",
           "EServiceDeleted",
@@ -87,9 +151,7 @@ export async function handleEServiceEvent(
           "EServiceSignalHubEnabled",
           "EServiceSignalHubDisabled",
           "EServiceDescriptorInterfaceAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "EServicePersonalDataFlagUpdatedAfterPublication",
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
@@ -97,7 +159,8 @@ export async function handleEServiceEvent(
           "EServiceDescriptorDocumentDeletedByTemplateUpdate",
           "EServiceDescriptorDocumentDeleted",
           "EServiceInstanceLabelUpdated",
-          "MaintenanceEServicePersonalDataFlagReset"
+          "MaintenanceEServicePersonalDataFlagReset",
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {

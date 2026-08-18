@@ -45,6 +45,10 @@ const errorCodes = {
   missingAsyncExchangeProperties: "0035",
   asyncExchangeBulkNotAllowedForSoap: "0036",
   tenantKindNotFound: "0037",
+  asyncExchangeReceiveTemplateNotAllowed: "0038",
+  missingAsyncExchangeCallbackInterface: "0039",
+  attributeDiscreteConfigNotAllowed: "0040",
+  interfaceDocumentNotUpdatable: "0041",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -297,6 +301,17 @@ export function eserviceTemplateDocumentNotFound(
   });
 }
 
+export function interfaceDocumentNotUpdatable(
+  eserviceTemplateVersionId: EServiceTemplateVersionId,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} is the interface or the async exchange callback interface of version ${eserviceTemplateVersionId} and cannot be updated`,
+    code: "interfaceDocumentNotUpdatable",
+    title: "Interface document not updatable",
+  });
+}
+
 export function riskAnalysisNotFound(
   eserviceTemplateId: EServiceTemplateId,
   riskAnalysisId: string
@@ -398,6 +413,17 @@ export function missingAsyncExchangeProperties(
   });
 }
 
+export function missingAsyncExchangeCallbackInterface(
+  eserviceTemplateId: EServiceTemplateId,
+  eserviceTemplateVersionId: EServiceTemplateVersionId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService Template ${eserviceTemplateId} version ${eserviceTemplateVersionId} can't be published because asyncExchangeCallbackInterface must be set when async exchange is enabled`,
+    code: "missingAsyncExchangeCallbackInterface",
+    title: "Async exchange callback interface must be set before publication",
+  });
+}
+
 export function asyncExchangeBulkNotAllowedForSoap(
   eserviceTemplateId: EServiceTemplateId,
   eserviceTemplateVersionId: EServiceTemplateVersionId
@@ -406,5 +432,23 @@ export function asyncExchangeBulkNotAllowedForSoap(
     detail: `Async exchange bulk is not allowed for SOAP technology in version ${eserviceTemplateVersionId} of EService Template ${eserviceTemplateId}`,
     code: "asyncExchangeBulkNotAllowedForSoap",
     title: "Async exchange bulk not allowed for SOAP",
+  });
+}
+
+export function asyncExchangeReceiveTemplateNotAllowed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Async exchange cannot be enabled for EService templates in receive mode`,
+    code: "asyncExchangeReceiveTemplateNotAllowed",
+    title: "Async exchange receive template not allowed",
+  });
+}
+
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
   });
 }

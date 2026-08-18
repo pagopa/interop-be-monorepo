@@ -1,5 +1,18 @@
 import crypto from "crypto";
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import {
+  authorizationApi,
+  selfcareV2ClientApi,
+} from "pagopa-interop-api-clients";
+import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  getMockKey,
+  getMockProducerKeychain,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import { getMockClient } from "pagopa-interop-commons-test";
 import {
   Client,
   ClientKeyAddedV2,
@@ -17,20 +30,8 @@ import {
   toClientV2,
   hyperlinkDetectionError,
 } from "pagopa-interop-models";
-import { AuthData, calculateKid, createJWK } from "pagopa-interop-commons";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  getMockKey,
-  getMockProducerKeychain,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { getMockClient } from "pagopa-interop-commons-test";
-import {
-  authorizationApi,
-  selfcareV2ClientApi,
-} from "pagopa-interop-api-clients";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
 import {
   clientNotFound,
   keyAlreadyExists,

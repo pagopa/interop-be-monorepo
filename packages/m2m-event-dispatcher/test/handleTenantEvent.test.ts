@@ -1,14 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import { getMockTenant, toTenantV1 } from "pagopa-interop-commons-test";
 import {
   toTenantV2,
-  TenantEvent,
-  TenantEventV2,
   TenantEventEnvelopeV2,
   TenantEventEnvelopeV1,
   TenantEventV1,
+  TenantM2MEvent,
+  TenantM2MEventType,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleTenantEvent } from "../src/handlers/handleTenantEvent.js";
 import {
   getMockEventEnvelopeCommons,
@@ -25,10 +26,10 @@ describe("handleTenantEvent test", async () => {
     vi.clearAllMocks();
   });
 
-  it.each(TenantEventV2.options.map((o) => o.shape.type.value))(
-    "should write %s M2M event with the right visibility",
-    async (eventType: TenantEvent["type"]) => {
-      const message = {
+  it.each(TenantM2MEventType.options)(
+    "should write the %s M2M event",
+    async (eventType: TenantM2MEvent["eventType"]) => {
+      const message: TenantEventEnvelopeV2 = {
         ...getMockEventEnvelopeCommons(),
         stream_id: tenant.id,
         type: eventType,
@@ -54,19 +55,37 @@ describe("handleTenantEvent test", async () => {
         testM2mEventWriterService
       );
 
-      if (!expectedM2MEvent) {
-        expect(
-          testM2mEventWriterService.insertTenantM2MEvent
-        ).not.toHaveBeenCalled();
-      } else {
-        expect(
-          testM2mEventWriterService.insertTenantM2MEvent
-        ).toHaveBeenCalledTimes(1);
-        const actualM2MEvent = await retrieveLastTenantM2MEvent();
-        expect(actualM2MEvent).toEqual(expectedM2MEvent);
-      }
+      expect(
+        testM2mEventWriterService.insertTenantM2MEvent
+      ).toHaveBeenCalledTimes(1);
+      const actualM2MEvent = await retrieveLastTenantM2MEvent();
+      expect(actualM2MEvent).toEqual(expectedM2MEvent);
     }
   );
+
+  it("should ignore the MaintenanceTenantRemoteIdDeleted event", async () => {
+    const message: TenantEventEnvelopeV2 = {
+      ...getMockEventEnvelopeCommons(),
+      stream_id: tenant.id,
+      type: "MaintenanceTenantRemoteIdDeleted",
+      event_version: 2,
+      data: {
+        tenant: toTenantV2(tenant),
+      },
+    };
+    const eventTimestamp = new Date();
+
+    await handleTenantEvent(
+      message,
+      eventTimestamp,
+      genericLogger,
+      testM2mEventWriterService
+    );
+
+    expect(
+      testM2mEventWriterService.insertTenantM2MEvent
+    ).not.toHaveBeenCalled();
+  });
 
   it.each(TenantEventV1.options.map((o) => o.shape.type.value))(
     "should ignore tenant %s v1 event",

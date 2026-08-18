@@ -1,9 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { inject, afterEach, expect } from "vitest";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import { eq } from "drizzle-orm";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { EService, EServiceId } from "pagopa-interop-models";
+import { catalogReadModelServiceBuilder } from "pagopa-interop-readmodel";
 import {
   EServiceItemsSQL,
   DrizzleReturnType,
@@ -25,9 +24,13 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   EServiceDescriptorTemplateVersionRefSQL,
   eserviceDescriptorTemplateVersionRefInReadmodelCatalog,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
+  EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAsyncExchangePropertiesSQL,
   eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
+import { inject, afterEach, expect } from "vitest";
+
 import { catalogWriterServiceBuilder } from "../src/catalogWriterService.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(
@@ -78,6 +81,10 @@ export const checkCompleteEService = async (
     await retrieveEserviceRiskAnalysisAnswersSQLById(eservice.id, readModelDB);
   const templateVersionRefsSQL =
     await retrieveEServiceTemplateVersionRefsSQLById(eservice.id, readModelDB);
+  const archivingSchedulesSQL = await retrieveEServiceArchivingSchedulesSQLById(
+    eservice.id,
+    readModelDB
+  );
   const asyncExchangePropertiesSQL =
     await retrieveEserviceAsyncExchangePropertiesSQLById(
       eservice.id,
@@ -116,6 +123,7 @@ export const checkCompleteEService = async (
     riskAnalysesSQL,
     riskAnalysisAnswersSQL,
     templateVersionRefsSQL,
+    archivingSchedulesSQL,
     asyncExchangePropertiesSQL,
   };
 };
@@ -218,6 +226,20 @@ export const retrieveEServiceTemplateVersionRefsSQLById = async (
     .where(
       eq(
         eserviceDescriptorTemplateVersionRefInReadmodelCatalog.eserviceId,
+        eserviceId
+      )
+    );
+
+export const retrieveEServiceArchivingSchedulesSQLById = async (
+  eserviceId: EServiceId,
+  db: DrizzleReturnType
+): Promise<EServiceDescriptorArchivingScheduleSQL[]> =>
+  await db
+    .select()
+    .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+    .where(
+      eq(
+        eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
         eserviceId
       )
     );

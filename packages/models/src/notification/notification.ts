@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import {
   UserId,
   TenantId,
@@ -14,6 +15,7 @@ export const NotificationType = z.enum([
   "clientAddedRemovedToProducer", // 05: Associazione di un client da parte del fruitore
   "purposeStatusChangedToProducer", // 07: Variazione stato di una finalità
   "templateStatusChangedToProducer", // 09: Variazione stato template
+  "eserviceStateChangedToProducer", // 10: Processo di archiviazione e-service (lato Erogazione)
   "agreementSuspendedUnsuspendedToConsumer", // 13: Sospensione o riattivazione richiesta di fruizione
   "eserviceStateChangedToConsumer", // 11: Variazione di stato e-service
   "agreementActivatedRejectedToConsumer", // 12: Attivazione o rifiuto richiesta di fruizione

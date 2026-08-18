@@ -1,19 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockPurposeVersionDocument,
+} from "pagopa-interop-commons-test";
 import {
   PurposeId,
   PurposeVersionDocumentId,
   PurposeVersionId,
   generateId,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockPurposeVersionDocument,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { purposeApi } from "pagopa-interop-api-clients";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeVersionDocumentToApiPurposeVersionDocument } from "../../src/model/domain/apiConverter.js";
 import {
   tenantNotAllowed,
@@ -21,6 +21,7 @@ import {
   purposeVersionDocumentNotFound,
   purposeVersionNotFound,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{documentId} test", () => {
   const mockDocument = getMockPurposeVersionDocument();
@@ -51,6 +52,7 @@ describe("API GET /purposes/{purposeId}/versions/{versionId}/documents/{document
   const authorizedRoles: AuthRole[] = [
     authRole.ADMIN_ROLE,
     authRole.SUPPORT_ROLE,
+    authRole.VIEWER_ROLE,
   ];
 
   it.each(authorizedRoles)(

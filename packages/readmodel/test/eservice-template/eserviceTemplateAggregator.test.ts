@@ -1,6 +1,7 @@
 import {
   getMockDocument,
   getMockEServiceTemplateAttribute,
+  getMockEServiceTemplateAttributeCertifiedDiscrete,
   getMockEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockEServiceTemplateVersion,
@@ -12,12 +13,15 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { splitEServiceTemplateIntoObjectsSQL } from "../../src/eservice-template/splitters.js";
+
 import { aggregateEServiceTemplate } from "../../src/eservice-template/aggregators.js";
+import { splitEServiceTemplateIntoObjectsSQL } from "../../src/eservice-template/splitters.js";
 
 describe("E-service template aggregator", () => {
   it("should convert e-service template SQL items into an eservice template", () => {
     const certifiedAttribute = getMockEServiceTemplateAttribute();
+    const certifiedDiscreteAttribute =
+      getMockEServiceTemplateAttributeCertifiedDiscrete();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
 
@@ -29,7 +33,7 @@ describe("E-service template aggregator", () => {
     const version: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       attributes: {
-        certified: [[certifiedAttribute]],
+        certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
         declared: [],
         verified: [],
       },

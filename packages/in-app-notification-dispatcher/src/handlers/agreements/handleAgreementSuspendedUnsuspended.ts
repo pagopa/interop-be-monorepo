@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AgreementV2,
   fromAgreementV2,
@@ -6,15 +7,15 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
 import {
+  inAppTemplates,
   retrieveTenant,
   retrieveEservice,
   getNotificationRecipients,
-} from "../handlerCommons.js";
+} from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export type AgreementSuspendedUnsuspendedEventType =
   | "AgreementSuspendedByConsumer"

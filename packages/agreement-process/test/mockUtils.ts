@@ -1,6 +1,9 @@
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { randomInt } from "crypto";
+import { subDays } from "date-fns";
+import { agreementApi } from "pagopa-interop-api-clients";
+import { UIAuthData, formatDateyyyyMMddHHmmss } from "pagopa-interop-commons";
 import {
   randomArrayItem,
   getMockDelegation,
@@ -21,11 +24,9 @@ import {
   delegationKind,
   delegationState,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
-import { UIAuthData, formatDateyyyyMMddHHmmss } from "pagopa-interop-commons";
-import { subDays } from "date-fns";
 import { match } from "ts-pattern";
 import { z } from "zod";
+
 import { config } from "../src/config/config.js";
 
 export function getMockConsumerDocument(

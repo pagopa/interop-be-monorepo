@@ -1,12 +1,4 @@
 import {
-  EServiceEventEnvelopeV2,
-  EServiceV2,
-  EServiceDescriptorV2,
-  EServiceDocumentV2,
-  EServiceTemplateVersionRefV2,
-  TemplateInstanceInterfaceMetadataV2,
-} from "pagopa-interop-models";
-import {
   EServiceEvent as OutboundEServiceEvent,
   EServiceV2 as OutboundEServiceV2,
   EServiceDescriptorV2 as OutboundEServiceDescriptorV2,
@@ -14,8 +6,16 @@ import {
   EServiceTemplateVersionRefV2 as OutboundEServiceTemplateVersionRefV2,
   TemplateInstanceInterfaceMetadataV2 as OutboundTemplateInstanceInterfaceMetadataV2,
 } from "@pagopa/interop-outbound-models";
-import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+import {
+  EServiceEventEnvelopeV2,
+  EServiceV2,
+  EServiceDescriptorV2,
+  EServiceDocumentV2,
+  EServiceTemplateVersionRefV2,
+  TemplateInstanceInterfaceMetadataV2,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toOutboundEServiceDocumentV2(
   document: EServiceDocumentV2
@@ -67,6 +67,7 @@ function toOutboundDescriptorV2(
       toOutboundEServiceTemplateVersionRefV2(descriptor.templateVersionRef),
     asyncExchangeCallbackInterface: undefined,
     asyncExchangeProperties: undefined,
+    serverUrlsDescriptions: undefined,
   };
 }
 
@@ -104,6 +105,9 @@ export function toOutboundEventV2(
       { type: "EServicePersonalDataFlagUpdatedAfterPublication" },
       { type: "EServicePersonalDataFlagUpdatedByTemplateUpdate" },
       { type: "EServiceInstanceLabelUpdated" },
+      { type: "EServiceArchivingScheduled" },
+      { type: "EServiceArchivingCanceled" },
+      { type: "EServiceArchivingCompleted" },
       { type: "MaintenanceEServicePersonalDataFlagReset" },
       (msg) => ({
         event_version: msg.event_version,
@@ -159,6 +163,10 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorApprovedByDelegator" },
       { type: "EServiceDescriptorRejectedByDelegator" },
       { type: "EServiceDescriptorQuotasUpdatedByTemplateUpdate" },
+      { type: "EServiceDescriptorArchivingScheduled" },
+      { type: "EServiceDescriptorArchivingCanceled" },
+      { type: "EServiceDescriptorArchivingCompleted" },
+      { type: "MaintenanceEServiceDescriptorUnarchived" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -176,7 +184,6 @@ export function toOutboundEventV2(
     .with(
       { type: "EServiceDescriptorInterfaceAdded" },
       { type: "EServiceDescriptorDocumentAdded" },
-      { type: "EServiceDescriptorInterfaceUpdated" },
       { type: "EServiceDescriptorDocumentUpdated" },
       { type: "EServiceDescriptorInterfaceDeleted" },
       { type: "EServiceDescriptorDocumentDeleted" },
@@ -222,7 +229,6 @@ export function toOutboundEventV2(
       { type: "EServiceRiskAnalysisUpdated" },
       // TODO: Propagate async exchange callback interface events when @pagopa/interop-outbound-models is updated
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
       () => undefined

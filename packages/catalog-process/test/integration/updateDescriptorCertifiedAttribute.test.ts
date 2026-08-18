@@ -20,6 +20,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import {
   attributeNotFound,
   certifiedAttributeGroupNotFoundInSeed,
@@ -359,9 +360,7 @@ describe("update descriptor certified attribute", () => {
           { dailyCallsPerConsumer: 100 },
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
         )
-      ).rejects.toThrowError(
-        notValidDescriptorState(descriptor.id, state.toString())
-      );
+      ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
 

@@ -1,17 +1,18 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   fromPurposeV2,
   missingKafkaMessageDataError,
   PurposeV2,
   NewNotification,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   retrieveEservice,
   retrieveLatestDescriptor,
-} from "../handlerCommons.js";
-import { inAppTemplates } from "../../templates/inAppTemplates.js";
+  inAppTemplates,
+} from "pagopa-interop-notification-commons";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type PurposeOverQuotaToConsumerType =
   | "NewPurposeVersionWaitingForApproval"

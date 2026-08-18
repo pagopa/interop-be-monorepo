@@ -1,16 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   m2mGatewayApi,
   purposeApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
 import { getMockedApiPurpose } from "pagopa-interop-commons-test";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   purposeService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   getMockM2MAdminAppContext,
   testToM2mGatewayApiPurpose,
@@ -89,6 +90,7 @@ describe("getPurposes", () => {
         producersIds: [],
         clientId: undefined,
         states: [],
+        signingStates: [],
         excludeDraft: false,
         name: undefined,
       },

@@ -19,31 +19,13 @@ import {
   InteractionId,
   interactionState,
   InteractionState,
+  isInteractionStateAllowedForScope,
   makeGSIPKInteractionId,
   makeInteractionPK,
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-
-const interactionStateAllowedByScope: Record<
-  InteractionState,
-  InteractionState[]
-> = {
-  [interactionState.startInteraction]: [],
-  [interactionState.callbackInvocation]: [
-    interactionState.startInteraction,
-    interactionState.callbackInvocation,
-  ],
-  [interactionState.getResource]: [
-    interactionState.callbackInvocation,
-    interactionState.getResource,
-  ],
-  [interactionState.confirmation]: [
-    interactionState.getResource,
-    interactionState.confirmation,
-  ],
-};
 
 export const createInteraction = async ({
   dynamoDBClient,
@@ -224,11 +206,3 @@ export const updateInteractionState = async ({
 
   await dynamoDBClient.send(new UpdateItemCommand(input));
 };
-
-export const isInteractionStateAllowedForScope = ({
-  currentState,
-  scope,
-}: {
-  currentState: InteractionState;
-  scope: InteractionState;
-}): boolean => interactionStateAllowedByScope[scope].includes(currentState);

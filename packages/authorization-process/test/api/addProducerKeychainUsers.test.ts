@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockProducerKeychain,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   ProducerKeychain,
@@ -7,14 +12,9 @@ import {
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockProducerKeychain,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, authorizationService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import {
   tenantNotAllowedOnProducerKeychain,
   producerKeychainNotFound,
@@ -24,6 +24,7 @@ import {
   missingSelfcareId,
 } from "../../src/model/domain/errors.js";
 import { testToFullProducerKeychain } from "../apiUtils.js";
+import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /producerKeychains/{producerKeychainId}/users authorization test", () => {
   const users: UserId[] = [generateId()];
@@ -68,6 +69,22 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
     }
   );
 
+  it("Should return 404 when the requester tenant is not allowed on the producer keychain", async () => {
+    authorizationService.addProducerKeychainUsers = vi
+      .fn()
+      .mockRejectedValue(
+        tenantNotAllowedOnProducerKeychain(
+          generateId(),
+          mockProducerKeychain.data.id
+        )
+      );
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, mockProducerKeychain.data.id);
+
+    expect(res.status).toBe(404);
+  });
+
   it.each([
     {
       error: producerKeychainNotFound(mockProducerKeychain.data.id),
@@ -78,7 +95,7 @@ describe("API /producerKeychains/{producerKeychainId}/users authorization test",
         generateId(),
         mockProducerKeychain.data.id
       ),
-      expectedStatus: 403,
+      expectedStatus: 404,
     },
     {
       error: userWithoutSecurityPrivileges(generateId(), users[0]),

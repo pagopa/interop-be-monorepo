@@ -3,7 +3,6 @@
 import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { decodeKafkaMessage, logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   AgreementEventV2,
   AuthorizationEventV2,
@@ -13,16 +12,18 @@ import {
   PurposeEventV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { toCatalogItemEventNotification } from "./models/catalog/catalogItemEventNotificationConverter.js";
-import { buildCatalogMessage } from "./models/catalog/catalogItemEventNotificationMessage.js";
-import { initQueueManager } from "./queue-manager/queueManager.js";
-import { toPurposeEventNotification } from "./models/purpose/purposeEventNotificationConverter.js";
-import { buildPurposeMessage } from "./models/purpose/purposeEventNotificationMessage.js";
+import { match } from "ts-pattern";
+
+import { config } from "./config/config.js";
 import { toAgreementEventNotification } from "./models/agreement/agreementEventNotificationConverter.js";
 import { buildAgreementMessage } from "./models/agreement/agreementEventNotificationMessage.js";
 import { toAuthorizationEventNotification } from "./models/authorization/authorizationEventNotificationConverter.js";
 import { buildAuthorizationMessage } from "./models/authorization/authorizationEventNotificationMessage.js";
-import { config } from "./config/config.js";
+import { toCatalogItemEventNotification } from "./models/catalog/catalogItemEventNotificationConverter.js";
+import { buildCatalogMessage } from "./models/catalog/catalogItemEventNotificationMessage.js";
+import { toPurposeEventNotification } from "./models/purpose/purposeEventNotificationConverter.js";
+import { buildPurposeMessage } from "./models/purpose/purposeEventNotificationMessage.js";
+import { initQueueManager } from "./queue-manager/queueManager.js";
 
 const queueManager = initQueueManager({
   queueUrl: config.queueUrl,

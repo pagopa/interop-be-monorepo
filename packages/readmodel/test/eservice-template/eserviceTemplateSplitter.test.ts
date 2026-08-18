@@ -2,6 +2,7 @@
 import {
   getMockDocument,
   getMockEServiceTemplateAttribute,
+  getMockEServiceTemplateAttributeCertifiedDiscrete,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
   getMockValidEServiceTemplateRiskAnalysis,
@@ -13,7 +14,6 @@ import {
   EServiceTemplateVersion,
   tenantKind,
 } from "pagopa-interop-models";
-import { describe, expect, it } from "vitest";
 import {
   EServiceTemplateRiskAnalysisAnswerSQL,
   EServiceTemplateRiskAnalysisSQL,
@@ -24,12 +24,16 @@ import {
   EServiceTemplateVersionInterfaceSQL,
   EServiceTemplateVersionSQL,
 } from "pagopa-interop-readmodel-models";
+import { describe, expect, it } from "vitest";
+
 import { splitEServiceTemplateIntoObjectsSQL } from "../../src/eservice-template/splitters.js";
 import { generateEServiceTemplateRiskAnalysisAnswersSQL } from "./eserviceTemplateUtils.js";
 
 describe("E-service template splitter", () => {
   it("should convert a complete e-service template into e-service template SQL objects", () => {
     const certifiedAttribute = getMockEServiceTemplateAttribute();
+    const certifiedDiscreteAttribute =
+      getMockEServiceTemplateAttributeCertifiedDiscrete();
     const doc = getMockDocument();
     const interfaceDoc = getMockDocument();
     const riskAnalysisPA = getMockValidEServiceTemplateRiskAnalysis(
@@ -48,7 +52,7 @@ describe("E-service template splitter", () => {
     const version: EServiceTemplateVersion = {
       ...getMockEServiceTemplateVersion(),
       attributes: {
-        certified: [[certifiedAttribute]],
+        certified: [[certifiedAttribute, certifiedDiscreteAttribute]],
         declared: [],
         verified: [],
       },
@@ -153,7 +157,23 @@ describe("E-service template splitter", () => {
       groupId: 0,
       explicitAttributeVerification:
         certifiedAttribute.explicitAttributeVerification,
+      threshold: null,
+      comparator: null,
     };
+
+    const expectedCertifiedDiscreteAttributeSQL: EServiceTemplateVersionAttributeSQL =
+      {
+        metadataVersion: 1,
+        eserviceTemplateId: eserviceTemplate.id,
+        kind: attributeKind.certifiedDiscrete,
+        attributeId: certifiedDiscreteAttribute.id,
+        versionId: version.id,
+        groupId: 0,
+        explicitAttributeVerification:
+          certifiedDiscreteAttribute.explicitAttributeVerification,
+        threshold: certifiedDiscreteAttribute.discreteConfig.threshold,
+        comparator: certifiedDiscreteAttribute.discreteConfig.comparator,
+      };
 
     const expectedDocumentSQL: EServiceTemplateVersionDocumentSQL = {
       ...doc,
@@ -183,7 +203,13 @@ describe("E-service template splitter", () => {
       expectedRiskAnalysisAnswersSQL
     );
     expect(versionsSQL).toStrictEqual([expectedVersionSQL]);
-    expect(attributesSQL).toStrictEqual([expectedAttributeSQL]);
+    expect(attributesSQL).toStrictEqual(
+      expect.arrayContaining([
+        expectedAttributeSQL,
+        expectedCertifiedDiscreteAttributeSQL,
+      ])
+    );
+    expect(attributesSQL).toHaveLength(2);
     expect(interfacesSQL).toStrictEqual([expectedInterfaceDocSQL]);
     expect(documentsSQL).toStrictEqual(
       expect.arrayContaining([expectedDocumentSQL])

@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { bffApi } from "pagopa-interop-api-clients";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test/index.js";
 import { DescriptorId, EServiceId, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { generateToken } from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
-import { api, clients } from "../../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   getMockBffApiCreatedResource,
   getMockBffApiUpdateEServiceDescriptorSeed,
 } from "../../mockUtils.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API PUT /eservices/:eServiceId/descriptors/:descriptorId", () => {
   const mockUpdateEServiceDescriptorSeed =
@@ -70,6 +71,42 @@ describe("API PUT /eservices/:eServiceId/descriptors/:descriptorId", () => {
       body: {
         ...mockUpdateEServiceDescriptorSeed,
         attributes: "invalid",
+      },
+    },
+    {
+      body: {
+        ...mockUpdateEServiceDescriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 2_147_483_648,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+    },
+    {
+      body: {
+        ...mockUpdateEServiceDescriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 1_000_000,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 99_999,
+        },
+      },
+    },
+    {
+      body: {
+        ...mockUpdateEServiceDescriptorSeed,
+        asyncExchangeProperties: {
+          responseTime: 999_999,
+          resourceAvailableTime: 999_999,
+          confirmation: true,
+          bulk: true,
+          maxResultSet: 100_000,
+        },
       },
     },
   ])(

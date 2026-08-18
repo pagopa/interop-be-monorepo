@@ -1,0 +1,179 @@
+import { randomUUID } from "crypto";
+import { addMinutes } from "date-fns";
+import { and, eq, isNull, sql } from "drizzle-orm";
+import { Logger } from "pagopa-interop-commons";
+import { CorrelationId, DescriptorId, EServiceId } from "pagopa-interop-models";
+import {
+  NewScheduledNotificationRow,
+  SchedulableEventType,
+  ScheduledNotificationChannel,
+  ScheduledNotificationDrizzleReturnType,
+  formatEServiceEntityId,
+  formatEServiceIdDescriptorId,
+  scheduledNotification,
+  scheduledNotificationChannel,
+} from "pagopa-interop-scheduled-notification-db-models";
+
+import { computeSendAt } from "./sendAtCalculator.js";
+
+const SEND_AT_MARGIN_MINUTES = 5;
+
+type ScheduleRemindersParams = {
+  eserviceId: EServiceId;
+  descriptorId?: DescriptorId;
+  archivableOn: Date;
+  eventType: SchedulableEventType;
+  correlationId: CorrelationId;
+  reminderDays: number[];
+  sendAtHour: number;
+  tz: string;
+  now?: Date;
+};
+
+type DeletePendingByEserviceScopeParams = {
+  eserviceId: EServiceId;
+  eventType: SchedulableEventType;
+};
+
+type DeletePendingByDescriptorScopeParams = {
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  eventType: SchedulableEventType;
+};
+
+export const schedulerServiceBuilder = (
+  db: ScheduledNotificationDrizzleReturnType
+) => {
+  const buildRowsForChannels = ({
+    eserviceId,
+    descriptorId,
+    archivableOn,
+    eventType,
+    correlationId,
+    reminderDays,
+    sendAtHour,
+    tz,
+    now,
+  }: ScheduleRemindersParams): NewScheduledNotificationRow[] => {
+    const entityId = descriptorId
+      ? formatEServiceIdDescriptorId(eserviceId, descriptorId)
+      : formatEServiceEntityId(eserviceId);
+    const cutoff = addMinutes(now ?? new Date(), SEND_AT_MARGIN_MINUTES);
+    const channels: ScheduledNotificationChannel[] = [
+      scheduledNotificationChannel.inApp,
+      scheduledNotificationChannel.email,
+    ];
+
+    return reminderDays
+      .map((daysBeforeArchive) => ({
+        sendAt: computeSendAt({
+          archivableOn,
+          daysBeforeArchive,
+          sendAtHour,
+          tz,
+        }),
+        daysBeforeArchive,
+      }))
+      .filter(({ sendAt }) => sendAt > cutoff)
+      .flatMap(({ sendAt }) =>
+        channels.map((channel) => ({
+          id: randomUUID(),
+          channel,
+          eventType,
+          entityId,
+          correlationId,
+          sendAt,
+        }))
+      );
+  };
+
+  return {
+    async scheduleReminders(
+      params: ScheduleRemindersParams,
+      log: Logger
+    ): Promise<number> {
+      const rows = buildRowsForChannels(params);
+      if (rows.length === 0) {
+        log.info(
+          `No reminders to schedule for ${params.eventType} (${describeScope(params)}): all thresholds already past`
+        );
+        return 0;
+      }
+      const inserted = await db
+        .insert(scheduledNotification)
+        .values(rows)
+        .onConflictDoNothing({
+          target: [
+            scheduledNotification.channel,
+            scheduledNotification.eventType,
+            scheduledNotification.entityId,
+            scheduledNotification.sendAt,
+          ],
+        })
+        .returning({ id: scheduledNotification.id });
+      log.info(
+        `Scheduled ${inserted.length}/${rows.length} reminder rows for ${params.eventType} (${describeScope(params)})`
+      );
+      return inserted.length;
+    },
+
+    async deletePendingByEserviceScope({
+      eserviceId,
+      eventType,
+    }: DeletePendingByEserviceScopeParams): Promise<void> {
+      await db
+        .delete(scheduledNotification)
+        .where(
+          and(
+            eq(scheduledNotification.eventType, eventType),
+            eq(
+              scheduledNotification.entityId,
+              formatEServiceEntityId(eserviceId)
+            ),
+            isNull(scheduledNotification.sentAt),
+            isNull(scheduledNotification.skippedAt)
+          )
+        );
+    },
+
+    async deletePendingByDescriptorScope({
+      eserviceId,
+      descriptorId,
+      eventType,
+    }: DeletePendingByDescriptorScopeParams): Promise<void> {
+      await db
+        .delete(scheduledNotification)
+        .where(
+          and(
+            eq(scheduledNotification.eventType, eventType),
+            eq(
+              scheduledNotification.entityId,
+              formatEServiceIdDescriptorId(eserviceId, descriptorId)
+            ),
+            isNull(scheduledNotification.sentAt),
+            isNull(scheduledNotification.skippedAt)
+          )
+        );
+    },
+
+    async countPending(): Promise<number> {
+      const result = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(scheduledNotification)
+        .where(
+          and(
+            isNull(scheduledNotification.sentAt),
+            isNull(scheduledNotification.skippedAt)
+          )
+        );
+      return result[0]?.count ?? 0;
+    },
+  };
+};
+
+export type SchedulerService = ReturnType<typeof schedulerServiceBuilder>;
+
+const describeScope = (params: ScheduleRemindersParams): string =>
+  params.descriptorId
+    ? `eservice=${params.eserviceId}, descriptor=${params.descriptorId}`
+    : `eservice=${params.eserviceId}`;

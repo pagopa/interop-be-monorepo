@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { authorizationApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   authRole,
@@ -17,8 +18,7 @@ import {
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { AuthorizationService } from "../services/authorizationService.js";
+
 import {
   apiClientKindToClientKind,
   clientToApiClient,
@@ -30,6 +30,7 @@ import {
   producerKeychainToApiProducerKeychain,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { AuthorizationService } from "../services/authorizationService.js";
 import {
   addClientUserErrorMapper,
   deleteClientErrorMapper,
@@ -79,6 +80,8 @@ const authorizationRouter = (
     SUPPORT_ROLE,
     API_ROLE,
     INTERNAL_ROLE,
+    REVIEWER_ROLE,
+    VIEWER_ROLE,
   } = authRole;
 
   const authorizationClientRouter = ctx.router(authorizationApi.clientApi.api, {
@@ -684,6 +687,7 @@ const authorizationRouter = (
       try {
         validateAuthorization(ctx, [
           ADMIN_ROLE,
+          API_ROLE,
           SECURITY_ROLE,
           M2M_ROLE,
           SUPPORT_ROLE,
@@ -741,6 +745,8 @@ const authorizationRouter = (
           M2M_ROLE,
           SUPPORT_ROLE,
           M2M_ADMIN_ROLE,
+          REVIEWER_ROLE,
+          VIEWER_ROLE,
         ]);
 
         const producerKeychainEServiceFlags =

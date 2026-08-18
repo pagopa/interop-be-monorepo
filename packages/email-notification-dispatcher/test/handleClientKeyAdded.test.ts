@@ -1,11 +1,11 @@
 /* eslint-disable functional/immutable-data */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockClient,
   getMockContext,
   getMockKey,
   getMockTenant,
 } from "pagopa-interop-commons-test/index.js";
-import { authRole } from "pagopa-interop-commons";
 import {
   Client,
   ClientId,
@@ -20,10 +20,14 @@ import {
   unsafeBrandId,
   UserId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  clientKeyNotFound,
+  tenantNotFound,
+} from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleClientKeyAdded } from "../src/handlers/authorization/handleClientKeyAdded.js";
-import { clientKeyNotFound, tenantNotFound } from "../src/models/errors.js";
 import {
   addOneTenant,
   getMockUser,

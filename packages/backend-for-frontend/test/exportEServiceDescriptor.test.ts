@@ -1,11 +1,3 @@
-import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
-import {
-  DescriptorId,
-  EServiceId,
-  EServiceTemplateId,
-  generateId,
-  TenantId,
-} from "pagopa-interop-models";
 import {
   agreementApi,
   attributeRegistryApi,
@@ -14,20 +6,30 @@ import {
   eserviceTemplateApi,
   inAppNotificationApi,
 } from "pagopa-interop-api-clients";
-import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
 import { AuthData } from "pagopa-interop-commons";
+import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
+import {
+  DescriptorId,
+  EServiceId,
+  EServiceTemplateId,
+  generateId,
+  TenantId,
+} from "pagopa-interop-models";
+import { describe, expect, it, vi, afterEach, beforeEach } from "vitest";
+
 import type {
   AuthorizationProcessClient,
   DelegationProcessClient,
   TenantProcessClient,
 } from "../src/clients/clientsProvider.js";
-import { catalogServiceBuilder } from "../src/services/catalogService.js";
+
 import { config } from "../src/config/config.js";
 import {
   delegatedEserviceNotExportable,
   invalidEServiceRequester,
   templateInstanceNotAllowed,
 } from "../src/model/errors.js";
+import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import * as delegationService from "../src/services/delegationService.js";
 import { fileManager, getBffMockContext } from "./utils.js";
 

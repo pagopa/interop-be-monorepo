@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  AuthRole,
+  RiskAnalysisValidationIssue,
+  authRole,
+} from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockEServiceTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplateId,
   EServiceTemplateVersionId,
@@ -7,18 +16,9 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockEServiceTemplate,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import {
-  AuthRole,
-  RiskAnalysisValidationIssue,
-  authRole,
-} from "pagopa-interop-commons";
 import request from "supertest";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import {
   eserviceTemplateNotFound,
   missingPersonalDataFlag,
@@ -28,8 +28,10 @@ import {
   riskAnalysisValidationFailed,
   missingRiskAnalysis,
   missingAsyncExchangeProperties,
+  missingAsyncExchangeCallbackInterface,
   asyncExchangeBulkNotAllowedForSoap,
 } from "../../src/model/domain/errors.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("API POST /templates/:templateId/versions/:templateVersionId/publish", () => {
   const mockEserviceTemplate = getMockEServiceTemplate();
@@ -138,6 +140,13 @@ describe("API POST /templates/:templateId/versions/:templateVersionId/publish", 
     },
     {
       error: missingAsyncExchangeProperties(
+        mockEserviceTemplate.id,
+        mockEserviceTemplate.versions[0].id
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: missingAsyncExchangeCallbackInterface(
         mockEserviceTemplate.id,
         mockEserviceTemplate.versions[0].id
       ),

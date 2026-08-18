@@ -1,6 +1,7 @@
-import { z } from "zod";
 import { match } from "ts-pattern";
+import { z } from "zod";
 
+import { EventEnvelope } from "../events/events.js";
 import {
   EServiceTemplateVersionActivatedV2,
   EServiceTemplateAddedV2,
@@ -23,16 +24,13 @@ import {
   EServiceTemplateVersionDocumentUpdatedV2,
   EServiceTemplateVersionInterfaceAddedV2,
   EServiceTemplateVersionInterfaceDeletedV2,
-  EServiceTemplateVersionInterfaceUpdatedV2,
   EServiceTemplateVersionPublishedV2,
   EServiceTemplateVersionQuotasUpdatedV2,
   EServiceTemplatePersonalDataFlagUpdatedAfterPublicationV2,
   EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2,
-  EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2,
   EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeletedV2,
 } from "../gen/v2/eservice-template/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 
 export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
   z.object({
@@ -104,11 +102,6 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceTemplateVersionInterfaceUpdated"),
-    data: protobufDecoder(EServiceTemplateVersionInterfaceUpdatedV2),
-  }),
-  z.object({
-    event_version: z.literal(2),
     type: z.literal("EServiceTemplateVersionDocumentUpdated"),
     data: protobufDecoder(EServiceTemplateVersionDocumentUpdatedV2),
   }),
@@ -171,15 +164,6 @@ export const EServiceTemplateEventV2 = z.discriminatedUnion("type", [
     ),
     data: protobufDecoder(
       EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2
-    ),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal(
-      "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated"
-    ),
-    data: protobufDecoder(
-      EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2
     ),
   }),
   z.object({
@@ -264,9 +248,6 @@ export function eserviceTemplateEventToBinaryDataV2(
     .with({ type: "EServiceTemplateVersionInterfaceDeleted" }, ({ data }) =>
       EServiceTemplateVersionInterfaceDeletedV2.toBinary(data)
     )
-    .with({ type: "EServiceTemplateVersionInterfaceUpdated" }, ({ data }) =>
-      EServiceTemplateVersionInterfaceUpdatedV2.toBinary(data)
-    )
     .with({ type: "EServiceTemplateVersionPublished" }, ({ data }) =>
       EServiceTemplateVersionPublishedV2.toBinary(data)
     )
@@ -284,15 +265,6 @@ export function eserviceTemplateEventToBinaryDataV2(
       },
       ({ data }) =>
         EServiceTemplateVersionAsyncExchangeCallbackInterfaceAddedV2.toBinary(
-          data
-        )
-    )
-    .with(
-      {
-        type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated",
-      },
-      ({ data }) =>
-        EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdatedV2.toBinary(
           data
         )
     )

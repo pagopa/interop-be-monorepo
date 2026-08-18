@@ -1,5 +1,25 @@
 import { JsonWebKey } from "crypto";
 import {
+  authorizationApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
+import {
+  AppContext,
+  calculateKid,
+  createJWK,
+  DB,
+  eventRepository,
+  hasAtLeastOneUserRole,
+  InternalAuthData,
+  isUiAuthData,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+  userRole,
+  validateNoHyperlinksSafe,
+  WithLogger,
+} from "pagopa-interop-commons";
+import {
   authorizationEventToBinaryData,
   Client,
   ClientId,
@@ -25,27 +45,12 @@ import {
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  AppContext,
-  calculateKid,
-  createJWK,
-  DB,
-  eventRepository,
-  hasAtLeastOneUserRole,
-  InternalAuthData,
-  isUiAuthData,
-  M2MAdminAuthData,
-  M2MAuthData,
-  UIAuthData,
-  userRole,
-  validateNoHyperlinksSafe,
-  WithLogger,
-} from "pagopa-interop-commons";
-import {
-  authorizationApi,
-  SelfcareV2InstitutionClient,
-} from "pagopa-interop-api-clients";
 
+import {
+  ApiKeyUseToKeyUse,
+  clientJWKToApiClientJWK,
+  producerJWKToApiProducerJWK,
+} from "../model/domain/apiConverter.js";
 import {
   clientAdminAlreadyAssignedToUser,
   clientKeyNotFound,
@@ -96,15 +101,11 @@ import {
   toCreateEventProducerKeychainUserDeleted,
 } from "../model/domain/toEvent.js";
 import {
-  ApiKeyUseToKeyUse,
-  clientJWKToApiClientJWK,
-  producerJWKToApiProducerJWK,
-} from "../model/domain/apiConverter.js";
-import {
   GetClientsFilters,
   ProducerKeychainEServiceFlags,
   GetProducerKeychainsFilters,
 } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertClientKeysCountIsBelowThreshold,
   assertKeyDoesNotAlreadyExist,
@@ -122,7 +123,6 @@ import {
   assertTenantHasSelfcareId,
   assertMembersAreUnique,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveClient = async (
   clientId: ClientId,

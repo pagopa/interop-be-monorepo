@@ -1,9 +1,13 @@
-import { RiskAnalysisValidationIssue } from "pagopa-interop-commons";
+import {
+  RiskAnalysisValidationIssue,
+  dateAtRomeZone,
+} from "pagopa-interop-commons";
 import {
   ApiError,
   AttributeId,
   DelegationId,
   DescriptorId,
+  DescriptorState,
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
@@ -11,6 +15,7 @@ import {
   RiskAnalysisId,
   TenantId,
   TenantKind,
+  Technology,
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
@@ -72,6 +77,19 @@ const errorCodes = {
   missingAsyncExchangeCallbackInterface: "0056",
   templateVersionMissingAsyncExchangeProperties: "0057",
   riskAnalysisTenantKindMismatch: "0058",
+  eserviceInArchivingOrArchivedState: "0059",
+  descriptorArchivingNotCancelableByScope: "0060",
+  descriptorAlreadyArchived: "0061",
+  notValidEServiceState: "0062",
+  eserviceNotInArchiving: "0063",
+  eServiceAlreadyArchived: "0064",
+  attributeDiscreteConfigNotAllowed: "0065",
+  certifiedDiscreteAttributeConfigCannotBeChanged: "0066",
+  eserviceDescriptorWithActiveOrPendingDelegation: "0067",
+  eserviceArchivingWithActiveOrPendingDelegation: "0068",
+  eserviceTemplateInterfaceTechnologyMismatch: "0069",
+  gracePeriodDaysLowerThanDescriptor: "0070",
+  interfaceDocumentNotUpdatable: "0071",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -141,14 +159,35 @@ export function eServiceDocumentNotFound(
   });
 }
 
+export function interfaceDocumentNotUpdatable(
+  descriptorId: DescriptorId,
+  documentId: EServiceDocumentId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} is the interface or the async exchange callback interface of descriptor ${descriptorId} and cannot be updated`,
+    code: "interfaceDocumentNotUpdatable",
+    title: "Interface document not updatable",
+  });
+}
+
 export function notValidDescriptorState(
   descriptorId: DescriptorId,
-  descriptorStatus: string
+  descriptorStatus: DescriptorState
 ): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Descriptor ${descriptorId} is in an invalid state ${descriptorStatus} for this operation`,
     code: "notValidDescriptor",
     title: "Not valid descriptor",
+  });
+}
+
+export function notValidEServiceState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is in an invalid state for this operation`,
+    code: "notValidEServiceState",
+    title: "Not valid EService",
   });
 }
 
@@ -266,9 +305,7 @@ export function riskAnalysisValidationFailed(
   issues: RiskAnalysisValidationIssue[]
 ): ApiError<ErrorCodes> {
   return new ApiError({
-    detail: `Risk analysis validation failed. Reasons: [${issues
-      .map((i) => i.detail)
-      .join(", ")}]`,
+    detail: `Risk analysis validation failed. Reasons: [${issues.map((i) => i.detail).join(", ")}]`,
     code: "riskAnalysisValidationFailed",
     title: "Risk analysis validation failed",
   });
@@ -378,6 +415,29 @@ export function eserviceWithActiveOrPendingDelegation(
   });
 }
 
+export function eserviceArchivingWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceArchivingWithActiveOrPendingDelegation",
+    title: "E-service archiving with active or pending delegation",
+  });
+}
+
+export function eserviceDescriptorWithActiveOrPendingDelegation(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  delegationId: DelegationId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `E-service ${eserviceId} descriptor ${descriptorId} can't be archived with an active or pending delegation ${delegationId}`,
+    code: "eserviceDescriptorWithActiveOrPendingDelegation",
+    title: "E-service descriptor with active or pending delegation",
+  });
+}
+
 export function invalidDelegationFlags(
   isConsumerDelegable: boolean | undefined,
   isClientAccessDelegable: boolean | undefined
@@ -448,6 +508,18 @@ export function eserviceTemplateInterfaceNotFound(
     detail: `EService template interface for template ${eserviceTemplateId} with version ${eserviceTemplateVersionId} not found`,
     code: "eserviceTemplateInterfaceNotFound",
     title: "EService template interface document not found",
+  });
+}
+
+export function eserviceTemplateInterfaceTechnologyMismatch(
+  eserviceTemplateId: EServiceTemplateId,
+  templateTechnology: Technology,
+  interfaceTechnology: Technology
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService template ${eserviceTemplateId} has technology ${templateTechnology}, which is incompatible with interface technology ${interfaceTechnology}`,
+    code: "eserviceTemplateInterfaceTechnologyMismatch",
+    title: "EService template interface technology mismatch",
   });
 }
 
@@ -654,6 +726,26 @@ export function attributeDailyCallsNotAllowed(
   });
 }
 
+export function attributeDiscreteConfigNotAllowed(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete config is not allowed for non-certified attribute ${attributeId}`,
+    code: "attributeDiscreteConfigNotAllowed",
+    title: "Discrete config not allowed for non-certified attribute",
+  });
+}
+
+export function certifiedDiscreteAttributeConfigCannotBeChanged(
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The discrete configuration for the certified attribute ${attributeId} cannot be changed`,
+    code: "certifiedDiscreteAttributeConfigCannotBeChanged",
+    title: "Certified discrete attribute config cannot be changed",
+  });
+}
+
 export function certifiedAttributeGroupNotFoundInSeed(
   eserviceId: EServiceId,
   descriptorId: DescriptorId
@@ -662,5 +754,67 @@ export function certifiedAttributeGroupNotFoundInSeed(
     detail: `Descriptor ${descriptorId} for EService ${eserviceId} has a certified attribute group with no matching seed group`,
     code: "certifiedAttributeGroupNotFoundInSeed",
     title: "Certified attribute group not found in seed",
+  });
+}
+
+export function eserviceInArchivingOrArchivedState(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `You can't create a new version, because the EService ${eserviceId} is in archiving or archived state`,
+    code: "eserviceInArchivingOrArchivedState",
+    title: "EService in archiving or archived state",
+  });
+}
+
+export function descriptorArchivingNotCancelableByScope(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} archiving cannot be canceled because it was scheduled at eservice scope`,
+    code: "descriptorArchivingNotCancelableByScope",
+    title: "Descriptor archiving not cancelable by scope",
+  });
+}
+export function descriptorAlreadyArchived(
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Descriptor ${descriptorId} is already archived`,
+    code: "descriptorAlreadyArchived",
+    title: "Descriptor already archived",
+  });
+}
+
+export function eserviceNotInArchiving(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} does not have an ongoing global archiving orchestration`,
+    code: "eserviceNotInArchiving",
+    title: "EService not in archiving",
+  });
+}
+
+export function eServiceAlreadyArchived(
+  eserviceId: EServiceId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `EService ${eserviceId} is already archived`,
+    code: "eServiceAlreadyArchived",
+    title: "EService already archived",
+  });
+}
+
+export function gracePeriodDaysLowerThanDescriptor(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  requestedArchivableOn: Date,
+  expectedArchivableOn: Date
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Requested archiving date ${dateAtRomeZone(requestedArchivableOn)} for EService ${eserviceId} cannot be lower than expected archiving date ${dateAtRomeZone(expectedArchivableOn)} already scheduled for Descriptor ${descriptorId}`,
+    code: "gracePeriodDaysLowerThanDescriptor",
+    title: "Grace period days lower than descriptor",
   });
 }

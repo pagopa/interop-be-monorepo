@@ -51,23 +51,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       description: Creates the attribute passed as payload
       requestBody:
         required: true
@@ -76,17 +64,17 @@ paths:
             schema:
               $ref: "#/components/schemas/CertifiedAttributeSeed"
         description: Contains the attribute data to save.
-  "/declaredAttributes":
+  "/certifiedDiscreteAttributes":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
-      summary: Creates declared attribute
+      summary: Creates certified discrete attribute
       tags:
         - attribute
-      operationId: createDeclaredAttribute
+      operationId: createCertifiedDiscreteAttribute
       responses:
         "200":
-          description: Declared attribute created
+          description: Certified discrete attribute created
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"
@@ -112,6 +100,38 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/Problem"
+      description: Creates the certified discrete attribute passed as payload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertifiedAttributeSeed"
+        description: Contains the certified discrete attribute data to save.
+  "/declaredAttributes":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      summary: Creates declared attribute
+      tags:
+        - attribute
+      operationId: createDeclaredAttribute
+      responses:
+        "200":
+          description: Declared attribute created
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attribute"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
       description: Creates the attribute passed as payload
       requestBody:
         required: true
@@ -139,23 +159,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       description: Creates the attribute passed as payload
       requestBody:
         required: true
@@ -180,23 +188,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "409":
-          description: Conflict
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       description: Creates the attribute passed as payload
       requestBody:
         required: true
@@ -205,6 +201,35 @@ paths:
             schema:
               $ref: "#/components/schemas/InternalCertifiedAttributeSeed"
         description: Contains the attribute data to save.
+  "/internal/certifiedDiscreteAttributes":
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      summary: Creates certified discrete attribute for internal user
+      tags:
+        - attribute
+      operationId: createInternalCertifiedDiscreteAttribute
+      description: Creates the certified discrete attribute passed as payload
+      responses:
+        "200":
+          description: Certified discrete attribute created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Attribute"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InternalCertifiedDiscreteAttributeSeed"
+        description: Contains the certified discrete attribute data to save.
   "/attributes":
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -257,11 +282,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attributes"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   "/attributes/name/{name}":
     get:
       summary: Get Attribute by name
@@ -275,11 +296,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "404":
-          description: Attribute not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       operationId: getAttributeByName
       description: "returns the attribute in the registry corresponding to name, if any."
     parameters:
@@ -317,11 +334,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "404":
-          description: Attribute not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       operationId: getAttributeByOriginAndCode
       description: "returns the attribute in the registry corresponding to origin and code, if any."
   "/attributes/{attributeId}":
@@ -349,11 +362,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attribute"
         "404":
-          description: Attribute not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       operationId: getAttributeById
       description: "returns the attribute in the registry corresponding to attributeId, if any."
   "/bulk/attributes":
@@ -381,11 +390,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Attributes"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
       description: Returns the list of attributes indicated in the request
       parameters:
         - in: query
@@ -418,6 +423,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
   headers:
     MetadataVersionHeader:
       description: The version number of the resource in the read model
@@ -504,7 +534,7 @@ components:
           type: string
           description: identifies the unique code of this attribute on the origin registry
         kind:
-          # Kind of the attribute. It's one of CERTIFIED, VERIFIED, DECLARED.
+          # Kind of the attribute. It's one of CERTIFIED, CERTIFIED_DISCRETE, VERIFIED, DECLARED.
           $ref: "#/components/schemas/AttributeKind"
         description:
           type: string
@@ -526,6 +556,7 @@ components:
       type: string
       enum:
         - CERTIFIED
+        - CERTIFIED_DISCRETE
         - DECLARED
         - VERIFIED
     CertifiedAttributeSeed:
@@ -556,6 +587,35 @@ components:
       type: object
       additionalProperties: false
       description: Models the attribute registry entry as payload response
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        origin:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: "represents the origin of this attribute (e.g.: IPA, Normattiva, etc.)"
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: identifies the unique code of this attribute on the registry
+      required:
+        - description
+        - name
+        - origin
+        - code
+    InternalCertifiedDiscreteAttributeSeed:
+      title: InternalCertifiedDiscreteAttributeSeed
+      type: object
+      additionalProperties: false
+      description: Models the certified discrete attribute registry entry as payload for internal use
       properties:
         name:
           type: string

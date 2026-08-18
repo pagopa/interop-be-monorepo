@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockDelegation,
   getMockDescriptor,
@@ -20,8 +20,9 @@ import {
   EServiceEventEnvelopeV1,
   EServiceEventV1,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { P, match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleEServiceEvent } from "../src/handlers/handleEServiceEvent.js";
 import {
   addOneDelegationToReadModel,
@@ -115,10 +116,8 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorSubmittedByDelegate",
                   "EServiceDescriptorRejectedByDelegator",
                   "EServiceDescriptorInterfaceAdded",
-                  "EServiceDescriptorInterfaceUpdated",
                   "EServiceDescriptorInterfaceDeleted",
                   "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-                  "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
                   "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted"
                 ),
                 async () => [
@@ -147,7 +146,10 @@ describe("handleEServiceEvent test", async () => {
                   "EServicePersonalDataFlagUpdatedAfterPublication",
                   "EServicePersonalDataFlagUpdatedByTemplateUpdate",
                   "EServiceInstanceLabelUpdated",
-                  "MaintenanceEServicePersonalDataFlagReset"
+                  "MaintenanceEServicePersonalDataFlagReset",
+                  "EServiceArchivingScheduled",
+                  "EServiceArchivingCompleted",
+                  "EServiceArchivingCanceled"
                 ),
                 async () => [
                   {
@@ -172,6 +174,10 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorQuotasUpdated",
                   "EServiceDescriptorAgreementApprovalPolicyUpdated",
                   "EServiceDescriptorAttributesUpdated",
+                  "EServiceDescriptorArchivingScheduled",
+                  "EServiceDescriptorArchivingCompleted",
+                  "EServiceDescriptorArchivingCanceled",
+                  "MaintenanceEServiceDescriptorUnarchived",
                   "EServiceDescriptorAttributeDailyCallsPerConsumerUpdated"
                 ),
                 async () => [
