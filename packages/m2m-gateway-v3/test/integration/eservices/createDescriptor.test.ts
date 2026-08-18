@@ -103,6 +103,7 @@ describe("createDescriptor", () => {
           declared: [],
           verified: [],
         },
+        docs: [],
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
