@@ -364,9 +364,13 @@ export function invalidEntityNumber(
   });
 }
 
-export function invalidKidFormat(): ApiError<ErrorCodes> {
+export function invalidKidFormat(kid: string): ApiError<ErrorCodes> {
+  // The kid arrives from the client assertion header and failed validation,
+  // so it can hold any length and any character. Quote it and cut it to keep
+  // one readable log line.
+  const reportedKid = JSON.stringify(kid.slice(0, 64));
   return new ApiError({
-    detail: "Unexpected format for kid",
+    detail: `Unexpected format for kid ${reportedKid} - a kid must be the base64url SHA-256 thumbprint of the JWK`,
     code: "invalidKidFormat",
     title: "Invalid KID format",
   });

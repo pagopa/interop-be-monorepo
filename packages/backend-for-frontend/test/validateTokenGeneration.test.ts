@@ -151,7 +151,7 @@ describe("validateTokenGeneration", () => {
   describe("Failure cases", () => {
     it("should return invalidKidFormat in client assertion validation and skip public key retrieve", async () => {
       const invalidKidFormatError =
-        clientAssertionValidation.invalidKidFormat();
+        clientAssertionValidation.invalidKidFormat("not-a-valid-kid-format");
 
       vi.spyOn(
         clientAssertionValidation,

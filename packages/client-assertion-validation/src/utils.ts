@@ -192,7 +192,7 @@ export const validateKid = (kid?: string): ValidationResult<string> => {
   if (jwkThumbprintRegex.test(kid)) {
     return successfulValidation(kid);
   }
-  return failedValidation([invalidKidFormat()]);
+  return failedValidation([invalidKidFormat(kid)]);
 };
 
 export const validateAudience = (
