@@ -8485,6 +8485,13 @@ paths:
           schema:
             type: string
             format: uuid
+        - in: query
+          required: false
+          name: delegationId
+          description: The ID of the producer Delegation
+          schema:
+            type: string
+            format: uuid
       responses:
         "200":
           description: Verified Attribute revoked
@@ -13837,6 +13844,8 @@ components:
           format: uuid
         agreementId:
           $ref: "#/components/schemas/AgreementId"
+        delegationId:
+          $ref: "#/components/schemas/DelegationId"
         expirationDate:
           type: string
           format: date-time

@@ -8,7 +8,11 @@ import {
   validateAuthorization,
   authRole,
 } from "pagopa-interop-commons";
-import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+import {
+  DelegationId,
+  emptyErrorMapper,
+  unsafeBrandId,
+} from "pagopa-interop-models";
 
 import { makeApiProblem } from "../model/errors.js";
 import { TenantService } from "../services/tenantService.js";
@@ -292,6 +296,9 @@ const tenantRouter = (
               unsafeBrandId(req.params.tenantId),
               unsafeBrandId(req.params.attributeId),
               unsafeBrandId(req.query.agreementId),
+              req.query.delegationId
+                ? unsafeBrandId<DelegationId>(req.query.delegationId)
+                : undefined,
               ctx
             );
 
