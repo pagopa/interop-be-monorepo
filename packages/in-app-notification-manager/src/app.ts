@@ -9,6 +9,7 @@ import {
   errorsToApiProblemsMiddleware,
   healthRouter,
   loggerMiddleware,
+  problemContentTypeMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
@@ -23,6 +24,7 @@ export async function createApp(service: InAppNotificationService) {
   const router = notificationRouter(zodiosCtx, service);
 
   const app = zodiosCtx.app();
+  app.use(problemContentTypeMiddleware);
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16
