@@ -90,6 +90,7 @@ const errorCodes = {
   eserviceTemplateInterfaceTechnologyMismatch: "0069",
   gracePeriodDaysLowerThanDescriptor: "0070",
   interfaceDocumentNotUpdatable: "0071",
+  documentIdDuplicate: "0072",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -348,6 +349,17 @@ export function documentPrettyNameDuplicate(
     detail: `A document with prettyName ${prettyName} already exists in descriptor ${descriptorId}`,
     code: "documentPrettyNameDuplicate",
     title: "Duplicated prettyName",
+  });
+}
+
+export function documentIdDuplicate(
+  documentId: string,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A document with id ${documentId} already exists in descriptor ${descriptorId}`,
+    code: "documentIdDuplicate",
+    title: "Duplicated documentId",
   });
 }
 

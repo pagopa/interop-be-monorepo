@@ -377,6 +377,52 @@ describe("import eservice", () => {
     expect(events).toEqual([]);
   });
 
+  it("should throw documentIdDuplicate and commit no events if two documents share the same documentId", async () => {
+    await addOneTenant(producer);
+
+    await expect(
+      catalogService.importEService(
+        {
+          ...importSeed,
+          descriptor: {
+            ...importSeed.descriptor,
+            docs: [
+              documentSeed1,
+              { ...documentSeed2, documentId: documentSeed1.documentId },
+            ],
+          },
+        },
+        getMockContext({ authData: getMockAuthData(producer.id) })
+      )
+    ).rejects.toMatchObject({ code: "documentIdDuplicate" });
+
+    const events = await postgresDB.any("SELECT * FROM catalog.events");
+    expect(events).toEqual([]);
+  });
+
+  it("should throw documentIdDuplicate and commit no events if a document shares the documentId of the interface", async () => {
+    await addOneTenant(producer);
+
+    await expect(
+      catalogService.importEService(
+        {
+          ...importSeed,
+          descriptor: {
+            ...importSeed.descriptor,
+            docs: [
+              { ...documentSeed1, documentId: interfaceSeed.documentId },
+              documentSeed2,
+            ],
+          },
+        },
+        getMockContext({ authData: getMockAuthData(producer.id) })
+      )
+    ).rejects.toMatchObject({ code: "documentIdDuplicate" });
+
+    const events = await postgresDB.any("SELECT * FROM catalog.events");
+    expect(events).toEqual([]);
+  });
+
   it("should throw originNotCompliant if the requester externalId origin is not allowed", async () => {
     await expect(
       catalogService.importEService(

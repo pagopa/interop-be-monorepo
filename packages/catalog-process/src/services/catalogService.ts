@@ -94,6 +94,7 @@ import {
   attributeNotFound,
   audienceCannotBeEmpty,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
+  documentIdDuplicate,
   documentPrettyNameDuplicate,
   eServiceAlreadyUpgraded,
   eServiceDescriptorNotFound,
@@ -874,6 +875,14 @@ async function addDocumentsToImportedEservice(
       kind: "DOCUMENT" as const,
     })),
   ];
+
+  const documentIds = documentSeeds.map((seed) => seed.documentId);
+  const duplicateDocumentId = documentIds.find(
+    (documentId, index) => documentIds.indexOf(documentId) !== index
+  );
+  if (duplicateDocumentId !== undefined) {
+    throw documentIdDuplicate(duplicateDocumentId, descriptorId);
+  }
 
   const newEvents = [...events];
   let lastEservice = eservice;
