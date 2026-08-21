@@ -324,7 +324,7 @@ describe("create descriptor from latest", async () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     const eservice = getMockEService();
-    expect(
+    await expect(
       catalogService.createDescriptorFromLatest(
         eservice.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -339,7 +339,7 @@ describe("create descriptor from latest", async () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.createDescriptorFromLatest(
         eservice.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -356,7 +356,7 @@ describe("create descriptor from latest", async () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.createDescriptorFromLatest(
         eservice.id,
         getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -373,7 +373,7 @@ describe("create descriptor from latest", async () => {
       };
       await addOneEService(eservice);
 
-      expect(
+      await expect(
         catalogService.createDescriptorFromLatest(
           eservice.id,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -400,7 +400,7 @@ describe("create descriptor from latest", async () => {
       };
       await addOneEService(eservice);
 
-      expect(
+      await expect(
         catalogService.createDescriptorFromLatest(
           eservice.id,
           getMockContext({ authData: getMockAuthData(eservice.producerId) })
@@ -416,7 +416,7 @@ describe("create descriptor from latest", async () => {
     };
     await addOneEService(eservice);
 
-    expect(
+    await expect(
       catalogService.createDescriptorFromLatest(
         eservice.id,
         getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
