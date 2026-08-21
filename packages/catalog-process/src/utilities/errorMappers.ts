@@ -89,6 +89,7 @@ export const importEServiceErrorMapper = (
       "riskAnalysisDuplicated",
       "documentPrettyNameDuplicate",
       "checksumDuplicate",
+      "documentIdDuplicate",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

@@ -14,6 +14,7 @@ import { describe, it, expect, vi } from "vitest";
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
   checksumDuplicate,
+  documentIdDuplicate,
   documentPrettyNameDuplicate,
   eServiceNameDuplicateForProducer,
   eserviceNotInReceiveMode,
@@ -145,6 +146,10 @@ describe("API /import/eservices authorization test", () => {
     },
     {
       error: checksumDuplicate(mockEservice.id, mockDescriptor.id),
+      expectedStatus: 409,
+    },
+    {
+      error: documentIdDuplicate(generateId(), mockDescriptor.id),
       expectedStatus: 409,
     },
     {

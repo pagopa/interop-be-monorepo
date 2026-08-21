@@ -97,6 +97,7 @@ const errorCodes = {
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
   interfaceDocumentNotUpdatable: "0077",
   eserviceCloningWithActiveOrPendingDelegation: "0078",
+  documentIdDuplicate: "0079",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -355,6 +356,17 @@ export function documentPrettyNameDuplicate(
     detail: `A document with prettyName ${prettyName} already exists in descriptor ${descriptorId}`,
     code: "documentPrettyNameDuplicate",
     title: "Duplicated prettyName",
+  });
+}
+
+export function documentIdDuplicate(
+  documentId: string,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `A document with id ${documentId} already exists in descriptor ${descriptorId}`,
+    code: "documentIdDuplicate",
+    title: "Duplicated documentId",
   });
 }
 
