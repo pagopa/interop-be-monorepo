@@ -339,7 +339,7 @@ describe("createEServiceTemplateVersionFromLatest", async () => {
 
   it("should throw eserviceTemplateNotFound if the template doesn't exist", async () => {
     const eserviceTemplate = getMockEServiceTemplate();
-    expect(
+    await expect(
       eserviceTemplateService.createEServiceTemplateVersionFromLatest(
         eserviceTemplate.id,
         getMockContext({
@@ -361,7 +361,7 @@ describe("createEServiceTemplateVersionFromLatest", async () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    expect(
+    await expect(
       eserviceTemplateService.createEServiceTemplateVersionFromLatest(
         eserviceTemplate.id,
         getMockContext({
@@ -391,7 +391,7 @@ describe("createEServiceTemplateVersionFromLatest", async () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    expect(
+    await expect(
       eserviceTemplateService.createEServiceTemplateVersionFromLatest(
         eserviceTemplate.id,
         getMockContext({
@@ -416,7 +416,7 @@ describe("createEServiceTemplateVersionFromLatest", async () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    expect(
+    await expect(
       eserviceTemplateService.createEServiceTemplateVersionFromLatest(
         eserviceTemplate.id,
         getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
