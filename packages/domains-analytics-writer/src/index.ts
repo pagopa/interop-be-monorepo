@@ -114,6 +114,7 @@ await retryConnection(
       PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation,
       PurposeTemplateDbTable.purpose_template_risk_analysis_answer_annotation_document,
       PurposeTemplateDbTable.purpose_template_risk_analysis_form,
+      PurposeTemplateDbTable.purpose_template_eservice_template_version,
     ]);
     await setupDbService.setupPartialStagingTables([
       TenantDbPartialTable.tenant_self_care_id,
@@ -203,6 +204,7 @@ await runBatchConsumer(
     config.delegationTopic,
     config.authorizationTopic,
     config.eserviceTemplateTopic,
+    config.purposeTemplateTopic,
   ],
   processBatch,
   "domains-analytics-writer"
