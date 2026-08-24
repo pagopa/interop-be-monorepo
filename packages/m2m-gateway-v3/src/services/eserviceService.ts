@@ -895,7 +895,7 @@ export function eserviceServiceBuilder(
     async rejectDelegatedDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: m2mGatewayApiV3.RejectDelegatedArchivingSeed,
+      seed: m2mGatewayApiV3.RejectDelegatedDescriptorArchivingSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
       logger.info(
