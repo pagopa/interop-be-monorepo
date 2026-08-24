@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { EserviceItemsSchema } from "pagopa-interop-kpi-models";
 import {
   EServiceEventEnvelopeV2,
   fromEServiceV2,
@@ -10,10 +11,7 @@ import { match, P } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import {
-  EserviceItemsSchema,
-  EserviceDeletingSchema,
-} from "../../model/catalog/eservice.js";
+import { EserviceDeletingSchema } from "../../model/catalog/eservice.js";
 import { catalogServiceBuilder } from "../../service/catalogService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
@@ -52,7 +50,6 @@ export async function handleCatalogMessageV2(
             "EServiceDescriptorSuspended",
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorDocumentAdded",
-            "EServiceDescriptorInterfaceUpdated",
             "EServiceDescriptorDocumentUpdated",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",
@@ -77,7 +74,6 @@ export async function handleCatalogMessageV2(
             "EServiceRiskAnalysisDeleted",
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "EServiceDescriptorDocumentDeletedByTemplateUpdate",
             "EServiceDescriptorDocumentDeleted",
