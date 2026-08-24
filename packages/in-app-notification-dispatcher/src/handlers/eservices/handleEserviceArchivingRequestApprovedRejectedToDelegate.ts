@@ -82,7 +82,9 @@ export async function handleEserviceArchivingRequestApprovedRejectedToDelegate(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId)
         );
-        return getRequesterIdFromLatestArchivingRequest(descriptor.delegatedArchivingRequest);
+        return getRequesterIdFromLatestArchivingRequest(
+          descriptor.delegatedArchivingRequest
+        );
       }
     )
     .with(
@@ -94,14 +96,20 @@ export async function handleEserviceArchivingRequestApprovedRejectedToDelegate(
           eservice,
           unsafeBrandId<DescriptorId>(descriptorId)
         );
-        return getRequesterIdFromLatestArchivingRequest(descriptor.delegatedArchivingRequest);
+        return getRequesterIdFromLatestArchivingRequest(
+          descriptor.delegatedArchivingRequest
+        );
       }
     )
     .with({ type: "EServiceArchivingRequestApprovedByDelegator" }, () =>
-      getRequesterIdFromLatestArchivingRequest(eservice.delegatedArchivingRequest)
+      getRequesterIdFromLatestArchivingRequest(
+        eservice.delegatedArchivingRequest
+      )
     )
     .with({ type: "EServiceArchivingRequestRejectedByDelegator" }, () =>
-      getRequesterIdFromLatestArchivingRequest(eservice.delegatedArchivingRequest)
+      getRequesterIdFromLatestArchivingRequest(
+        eservice.delegatedArchivingRequest
+      )
     )
     .exhaustive();
 
