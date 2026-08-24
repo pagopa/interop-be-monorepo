@@ -996,6 +996,7 @@ export const cancelDelegatedEServiceArchivingErrorMapper = (
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
+      "noActiveDelegationFound",
       () => HTTP_STATUS_NOT_FOUND
     )
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -1003,7 +1004,6 @@ export const cancelDelegatedEServiceArchivingErrorMapper = (
       "noDelegationForArchivingRequest",
       "noDelegatedArchivingRequestFound",
       "delegatedArchivingRequestNotActive",
-      "noActiveDelegationFound",
       "delegatedArchiveRequestForIncorrectDelegateProducer",
       () => HTTP_STATUS_BAD_REQUEST
     )
