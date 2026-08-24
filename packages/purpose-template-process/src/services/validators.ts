@@ -259,6 +259,18 @@ export function validateRiskAnalysisAnswerAnnotationOrThrow(
   validateNoHyperlinksSafe(text, hyperlinkDetectionError(text));
 }
 
+export function validatePurposeTemplateFreeTextFields(fields: {
+  targetDescription?: string;
+  purposeTitle?: string;
+  purposeDescription?: string;
+  purposeFreeOfChargeReason?: string | null;
+}): void {
+  validateNoHyperlinksSafe(fields.targetDescription);
+  validateNoHyperlinksSafe(fields.purposeTitle);
+  validateNoHyperlinksSafe(fields.purposeDescription);
+  validateNoHyperlinksSafe(fields.purposeFreeOfChargeReason ?? undefined);
+}
+
 export function validateRiskAnalysisTemplateOrThrow({
   riskAnalysisFormTemplate,
   targetTenantKind,
