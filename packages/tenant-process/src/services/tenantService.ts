@@ -1798,7 +1798,7 @@ export function tenantServiceBuilder(
         return { version: event.newVersion };
       }
     },
-    async getCertifiedAttributes(
+    async getCertifiedAttributesByCertifier(
       {
         offset,
         limit,
@@ -1818,7 +1818,7 @@ export function tenantServiceBuilder(
 
       const certifierId = retrieveCertifierId(tenant.data);
 
-      return await readModelService.getCertifiedAttributes({
+      return await readModelService.getCertifiedAttributesByCertifier({
         certifierId,
         offset,
         limit,
