@@ -1,15 +1,12 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
   getMockContext,
-  getMockDelegation,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   archivingScope,
-  delegationKind,
-  delegationState,
   DescriptorId,
   descriptorState,
   EServiceArchivingRequestApprovedByDelegatorV2,
@@ -24,19 +21,14 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import {
-  activeProducerDelegationNotFound,
   inAppTemplates,
   getNotificationRecipients,
+  archivingRequesterIdNotFound,
 } from "pagopa-interop-notification-commons";
 import { describe, it, expect, beforeEach, Mock } from "vitest";
 
 import { handleEserviceArchivingRequestApprovedRejectedToDelegate } from "../src/handlers/eservices/handleEserviceArchivingRequestApprovedRejectedToDelegate.js";
-import {
-  addOneDelegation,
-  addOneEService,
-  addOneTenant,
-  readModelService,
-} from "./utils.js";
+import { addOneEService, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
   const delegatorTenant = getMockTenant();
@@ -54,21 +46,30 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
       scope: archivingScope.descriptor,
       gracePeriodDays: 60 as const,
     },
+    delegatedArchivingRequest: [
+      {
+        requestedAt: new Date("2026-05-01T00:00:00.000Z"),
+        acceptedAt: new Date("2026-05-10T00:00:00.000Z"),
+        requesterId: delegateTenant.id,
+        gracePeriodDays: 60 as const,
+      },
+    ],
   };
 
   const eservice = {
     ...getMockEService(generateId<EServiceId>(), delegatorTenant.id),
     name: "Test E-service",
     descriptors: [archivingDescriptor],
+    delegatedArchivingRequest: [
+      {
+        requestedAt: new Date("2026-05-01T00:00:00.000Z"),
+        acceptedAt: new Date("2026-05-10T00:00:00.000Z"),
+        requesterId: delegateTenant.id,
+        gracePeriodDays: 60 as const,
+        archivingReason: "No longer needed",
+      },
+    ],
   };
-
-  const delegation = getMockDelegation({
-    kind: delegationKind.delegatedProducer,
-    delegatorId: delegatorTenant.id,
-    delegateId: delegateTenant.id,
-    eserviceId: eservice.id,
-    state: delegationState.active,
-  });
 
   const { logger } = getMockContext({});
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
@@ -80,7 +81,6 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
     ]);
     await addOneTenant(delegatorTenant);
     await addOneTenant(delegateTenant);
-    await addOneDelegation(delegation);
     await addOneEService(eservice);
   });
 
@@ -109,20 +109,30 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
     );
   });
 
-  it("throws activeProducerDelegationNotFound when no active delegation exists (descriptor approved)", async () => {
+  it("throws archivingRequesterIdNotFound when requesterId is not available in the snapshot (descriptor approved)", async () => {
     const eserviceWithoutDelegation = {
       ...eservice,
       id: generateId<EServiceId>(),
-      descriptors: [{ ...archivingDescriptor, id: generateId<DescriptorId>() }],
+      descriptors: [
+        {
+          ...archivingDescriptor,
+          id: generateId<DescriptorId>(),
+          delegatedArchivingRequest: undefined,
+        },
+      ],
+      delegatedArchivingRequest: undefined,
     };
     await addOneEService(eserviceWithoutDelegation);
+
+    const descriptorIdWithoutDelegation =
+      eserviceWithoutDelegation.descriptors[0].id;
 
     const msg: EServiceEventV2 = {
       event_version: 2,
       type: "EServiceDescriptorArchivingRequestApprovedByDelegator",
       data: {
         eservice: toEServiceV2(eserviceWithoutDelegation),
-        descriptorId: archivingDescriptorId,
+        descriptorId: descriptorIdWithoutDelegation,
       } satisfies EServiceDescriptorArchivingRequestApprovedByDelegatorV2,
     };
 
@@ -133,7 +143,10 @@ describe("handleEserviceArchivingRequestApprovedRejectedToDelegate", () => {
         readModelService
       )
     ).rejects.toThrow(
-      activeProducerDelegationNotFound(eserviceWithoutDelegation.id)
+      archivingRequesterIdNotFound(
+        eserviceWithoutDelegation.id,
+        "EServiceDescriptorArchivingRequestApprovedByDelegator"
+      )
     );
   });
 

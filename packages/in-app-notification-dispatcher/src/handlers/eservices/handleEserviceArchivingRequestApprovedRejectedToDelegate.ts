@@ -4,12 +4,13 @@ import {
   EServiceIdDescriptorId,
   EServiceEventV2,
   NewNotification,
+  TenantId,
   fromEServiceV2,
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  activeProducerDelegationNotFound,
+  archivingRequesterIdNotFound,
   getNotificationRecipients,
   inAppTemplates,
   retrieveDescriptor,
@@ -31,6 +32,32 @@ type ArchivingRequestApprovedRejectedEvent = Extract<
   { type: ArchivingRequestApprovedRejectedEventType }
 >;
 
+function getRequesterIdFromLatestArchivingRequest(
+  requests:
+    | Array<{
+        requesterId: TenantId;
+        requestedAt: Date;
+        acceptedAt?: Date;
+        rejectedAt?: Date;
+      }>
+    | undefined
+): TenantId | undefined {
+  if (!requests || requests.length === 0) {
+    return undefined;
+  }
+
+  const latestRequest = requests.reduce((latest, current) => {
+    const latestDate =
+      latest.acceptedAt ?? latest.rejectedAt ?? latest.requestedAt;
+    const currentDate =
+      current.acceptedAt ?? current.rejectedAt ?? current.requestedAt;
+
+    return currentDate > latestDate ? current : latest;
+  });
+
+  return latestRequest.requesterId;
+}
+
 export async function handleEserviceArchivingRequestApprovedRejectedToDelegate(
   msg: ArchivingRequestApprovedRejectedEvent,
   logger: Logger,
@@ -45,17 +72,45 @@ export async function handleEserviceArchivingRequestApprovedRejectedToDelegate(
     `Sending in-app notification to delegate for ${msg.type} - eservice ${eservice.id}`
   );
 
-  const producerDelegation = await readModelService.getActiveProducerDelegation(
-    eservice.id,
-    eservice.producerId
-  );
+  const requesterId = match(msg)
+    .with(
+      {
+        type: "EServiceDescriptorArchivingRequestApprovedByDelegator",
+      },
+      ({ data: { descriptorId } }) => {
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
+        return getRequesterIdFromLatestArchivingRequest(descriptor.delegatedArchivingRequest);
+      }
+    )
+    .with(
+      {
+        type: "EServiceDescriptorArchivingRequestRejectedByDelegator",
+      },
+      ({ data: { descriptorId } }) => {
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
+        return getRequesterIdFromLatestArchivingRequest(descriptor.delegatedArchivingRequest);
+      }
+    )
+    .with({ type: "EServiceArchivingRequestApprovedByDelegator" }, () =>
+      getRequesterIdFromLatestArchivingRequest(eservice.delegatedArchivingRequest)
+    )
+    .with({ type: "EServiceArchivingRequestRejectedByDelegator" }, () =>
+      getRequesterIdFromLatestArchivingRequest(eservice.delegatedArchivingRequest)
+    )
+    .exhaustive();
 
-  if (!producerDelegation) {
-    throw activeProducerDelegationNotFound(eservice.id);
+  if (!requesterId) {
+    throw archivingRequesterIdNotFound(eservice.id, msg.type);
   }
 
   const usersWithNotifications = await getNotificationRecipients(
-    [producerDelegation.delegateId],
+    [requesterId],
     "eserviceArchivingApprovedRejectedToDelegate",
     readModelService,
     logger
