@@ -133,10 +133,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
       expectedStatus: 400,
     },
     {
-      error: delegatedArchivingRequestAlreadyInProgress(
-        mockEService.id,
-        descriptor.id
-      ),
+      error: delegatedArchivingRequestAlreadyInProgress(mockEService.id),
       expectedStatus: 409,
     },
   ])(
