@@ -36,7 +36,7 @@ describe("DELETE /eservices/:eserviceId/submitDelegatedArchiving router test", (
   it.each(authorizedRoles)(
     "Should return 200 and perform service calls for user with role %s",
     async (role) => {
-      mockEserviceService.submitDelegatedEServiceArchiving = vi
+      mockEserviceService.cancelDelegatedEServiceArchiving = vi
         .fn()
         .mockResolvedValue(mockM2MEService);
 
@@ -46,7 +46,7 @@ describe("DELETE /eservices/:eserviceId/submitDelegatedArchiving router test", (
       expect(res.status).toBe(200);
       expect(res.body).toEqual(mockM2MEService);
       expect(
-        mockEserviceService.submitDelegatedEServiceArchiving
+        mockEserviceService.cancelDelegatedEServiceArchiving
       ).toHaveBeenCalledWith(
         mockEService.id,
         expect.any(Object) // context
@@ -75,7 +75,7 @@ describe("DELETE /eservices/:eserviceId/submitDelegatedArchiving router test", (
       config.defaultPollingRetryDelay
     ),
   ])("Should return 500 in case of $code error", async (error) => {
-    mockEserviceService.submitDelegatedEServiceArchiving = vi
+    mockEserviceService.cancelDelegatedEServiceArchiving = vi
       .fn()
       .mockRejectedValue(error);
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
@@ -92,7 +92,7 @@ describe("DELETE /eservices/:eserviceId/submitDelegatedArchiving router test", (
   ])(
     "Should return 500 when API model parsing fails for response (resp #%#)",
     async (resp) => {
-      mockEserviceService.submitDelegatedEServiceArchiving = vi
+      mockEserviceService.cancelDelegatedEServiceArchiving = vi
         .fn()
         .mockResolvedValue(resp);
       const token = generateToken(authRole.M2M_ADMIN_ROLE);
