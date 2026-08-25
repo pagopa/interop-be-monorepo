@@ -1,15 +1,12 @@
 /* eslint-disable sonarjs/no-identical-functions */
 import {
   getMockContext,
-  getMockDelegation,
   getMockDescriptor,
   getMockEService,
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
   archivingScope,
-  delegationKind,
-  delegationState,
   DescriptorId,
   descriptorState,
   EServiceArchivingRequestedByDelegateV2,
@@ -22,19 +19,14 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import {
-  activeProducerDelegationNotFound,
+  archivingRequesterIdNotFound,
   inAppTemplates,
   getNotificationRecipients,
 } from "pagopa-interop-notification-commons";
 import { describe, it, expect, beforeEach, Mock } from "vitest";
 
 import { handleEserviceArchivingRequestedToDelegator } from "../src/handlers/eservices/handleEserviceArchivingRequestedToDelegator.js";
-import {
-  addOneDelegation,
-  addOneEService,
-  addOneTenant,
-  readModelService,
-} from "./utils.js";
+import { addOneEService, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleEserviceArchivingRequestedToDelegator", () => {
   const delegatorTenant = getMockTenant();
@@ -52,21 +44,29 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
       scope: archivingScope.descriptor,
       gracePeriodDays: 60 as const,
     },
+    delegatedArchivingRequest: [
+      {
+        requestedAt: new Date("2026-05-01T00:00:00.000Z"),
+        requesterId: delegateTenant.id,
+        gracePeriodDays: 60 as const,
+        archivingReason: "No longer needed",
+      },
+    ],
   };
 
   const eservice = {
     ...getMockEService(generateId<EServiceId>(), delegatorTenant.id),
     name: "Test E-service",
     descriptors: [archivingDescriptor],
+    delegatedArchivingRequest: [
+      {
+        requestedAt: new Date("2026-05-01T00:00:00.000Z"),
+        requesterId: delegateTenant.id,
+        gracePeriodDays: 60 as const,
+        archivingReason: "No longer needed",
+      },
+    ],
   };
-
-  const delegation = getMockDelegation({
-    kind: delegationKind.delegatedProducer,
-    delegatorId: delegatorTenant.id,
-    delegateId: delegateTenant.id,
-    eserviceId: eservice.id,
-    state: delegationState.active,
-  });
 
   const { logger } = getMockContext({});
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
@@ -78,7 +78,6 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
     ]);
     await addOneTenant(delegatorTenant);
     await addOneTenant(delegateTenant);
-    await addOneDelegation(delegation);
     await addOneEService(eservice);
   });
 
@@ -103,27 +102,40 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
     );
   });
 
-  it("throws activeProducerDelegationNotFound when no active delegation exists (descriptor event)", async () => {
-    const eserviceWithoutDelegation = {
+  it("throws archivingRequesterIdNotFound when requesterId is not available in the snapshot (descriptor event)", async () => {
+    const eserviceWithoutRequester = {
       ...eservice,
       id: generateId<EServiceId>(),
-      descriptors: [{ ...archivingDescriptor, id: generateId<DescriptorId>() }],
+      descriptors: [
+        {
+          ...archivingDescriptor,
+          id: generateId<DescriptorId>(),
+          delegatedArchivingRequest: undefined,
+        },
+      ],
+      delegatedArchivingRequest: undefined,
     };
-    await addOneEService(eserviceWithoutDelegation);
+    await addOneEService(eserviceWithoutRequester);
+
+    const descriptorIdWithoutRequester =
+      eserviceWithoutRequester.descriptors[0].id;
 
     const msg: EServiceEventV2 = {
       event_version: 2,
       type: "EServiceDescriptorArchivingRequestedByDelegate",
       data: {
-        eservice: toEServiceV2(eserviceWithoutDelegation),
-        descriptorId: archivingDescriptorId,
+        eservice: toEServiceV2(eserviceWithoutRequester),
+        descriptorId: descriptorIdWithoutRequester,
       } satisfies EServiceDescriptorArchivingRequestedByDelegateV2,
     };
 
     await expect(() =>
       handleEserviceArchivingRequestedToDelegator(msg, logger, readModelService)
     ).rejects.toThrow(
-      activeProducerDelegationNotFound(eserviceWithoutDelegation.id)
+      archivingRequesterIdNotFound(
+        eserviceWithoutRequester.id,
+        "EServiceDescriptorArchivingRequestedByDelegate"
+      )
     );
   });
 
@@ -198,26 +210,30 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
     );
   });
 
-  it("throws activeProducerDelegationNotFound when no active delegation exists (eservice event)", async () => {
-    const eserviceWithoutDelegation = {
+  it("throws archivingRequesterIdNotFound when requesterId is not available in the snapshot (eservice event)", async () => {
+    const eserviceWithoutRequester = {
       ...eservice,
       id: generateId<EServiceId>(),
       descriptors: [{ ...archivingDescriptor, id: generateId<DescriptorId>() }],
+      delegatedArchivingRequest: undefined,
     };
-    await addOneEService(eserviceWithoutDelegation);
+    await addOneEService(eserviceWithoutRequester);
 
     const msg: EServiceEventV2 = {
       event_version: 2,
       type: "EServiceArchivingRequestedByDelegate",
       data: {
-        eservice: toEServiceV2(eserviceWithoutDelegation),
+        eservice: toEServiceV2(eserviceWithoutRequester),
       } satisfies EServiceArchivingRequestedByDelegateV2,
     };
 
     await expect(() =>
       handleEserviceArchivingRequestedToDelegator(msg, logger, readModelService)
     ).rejects.toThrow(
-      activeProducerDelegationNotFound(eserviceWithoutDelegation.id)
+      archivingRequesterIdNotFound(
+        eserviceWithoutRequester.id,
+        "EServiceArchivingRequestedByDelegate"
+      )
     );
   });
 
