@@ -333,6 +333,7 @@ const eserviceRouter = (
 
         try {
           validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
           const descriptor =
             await eserviceService.approveDelegatedDescriptorArchiving(
               unsafeBrandId(req.params.eserviceId),
