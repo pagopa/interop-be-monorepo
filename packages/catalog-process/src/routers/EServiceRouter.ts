@@ -91,8 +91,6 @@ import {
   submitDelegatedArchivingErrorMapper,
   approveDelegatedEServiceArchivingErrorMapper,
   rejectDelegatedEServiceArchivingErrorMapper,
-  approveDelegatedArchivingErrorMapper,
-  rejectDelegatedArchivingErrorMapper,
   cancelDelegatedEServiceArchivingErrorMapper,
   approveDelegatedDescriptorArchivingErrorMapper,
   rejectDelegatedDescriptorArchivingErrorMapper,
