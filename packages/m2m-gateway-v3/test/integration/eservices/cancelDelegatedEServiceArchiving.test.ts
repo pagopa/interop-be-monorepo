@@ -69,7 +69,6 @@ describe("cancelDelegatedEServiceArchiving", () => {
           .cancelDelegatedEServiceArchiving,
       params: {
         eServiceId: mockApiEservice.id,
-        descriptorId: mockApiDescriptor.id,
       },
       body: undefined,
     });
