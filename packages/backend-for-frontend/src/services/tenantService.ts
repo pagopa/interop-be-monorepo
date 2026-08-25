@@ -229,7 +229,7 @@ export function tenantServiceBuilder(
         `Getting requester certified attributes with limit ${limit}, offset ${offset}`
       );
       const { results, totalCount } =
-        await tenantProcessClient.tenant.getCertifiedAttributes({
+        await tenantProcessClient.tenant.getCertifiedAttributesByCertifier({
           queries: {
             offset,
             limit,

@@ -533,8 +533,10 @@ paths:
     get:
       tags:
         - tenant
-      operationId: getCertifiedAttributes
-      description: Retrieve the certified attributes
+      operationId: getCertifiedAttributesByCertifier
+      description: >-
+        Retrieves the certified attributes assigned by the requester tenant
+        acting as certifier, paired with the tenants they are assigned to.
       responses:
         "200":
           description: Certified Attributes retrieved
