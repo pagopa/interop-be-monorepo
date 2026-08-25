@@ -91,6 +91,8 @@ import {
   submitDelegatedArchivingErrorMapper,
   approveDelegatedEServiceArchivingErrorMapper,
   rejectDelegatedEServiceArchivingErrorMapper,
+  approveDelegatedDescriptorArchivingErrorMapper,
+  rejectDelegatedDescriptorArchivingErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -518,6 +520,63 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             submitDelegatedArchivingErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+          const { data: updatedEService, metadata } =
+            await catalogService.approveDelegatedDescriptorArchiving(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            approveDelegatedDescriptorArchivingErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/rejectDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, M2M_ADMIN_ROLE]);
+          const { data: updatedEService, metadata } =
+            await catalogService.rejectDelegatedDescriptorArchiving(
+              unsafeBrandId(req.params.eServiceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(
+              catalogApi.EService.parse(eServiceToApiEService(updatedEService))
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            rejectDelegatedDescriptorArchivingErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
