@@ -49,6 +49,7 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
         requestedAt: new Date("2026-05-01T00:00:00.000Z"),
         requesterId: delegateTenant.id,
         gracePeriodDays: 60 as const,
+        archivingReason: "No longer needed",
       },
     ],
   };
@@ -62,6 +63,7 @@ describe("handleEserviceArchivingRequestedToDelegator", () => {
         requestedAt: new Date("2026-05-01T00:00:00.000Z"),
         requesterId: delegateTenant.id,
         gracePeriodDays: 60 as const,
+        archivingReason: "No longer needed",
       },
     ],
   };
