@@ -1008,6 +1008,25 @@ export function assertDelegatedEserviceHasActiveArchivingRequests(
   }
 }
 
+export function assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  const archivingRequests = descriptor.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eserviceId, descriptor.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasActiveArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestNotActive(eserviceId, descriptor.id);
+  }
+}
+
 export function assertDelegatedArchivingRequestDelegationIsStillValid(
   producerDelegation: Delegation | undefined,
   archivingRequest:

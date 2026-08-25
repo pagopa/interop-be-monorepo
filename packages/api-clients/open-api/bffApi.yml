@@ -2424,6 +2424,116 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/approveDelegatedArchiving:
+    parameters:
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Approve a delegated archiving request for a Descriptor
+      description: Allows the owner (delegator) to approve a delegate's descriptor archiving request
+      operationId: approveDelegatedDescriptorArchiving
+      responses:
+        "204":
+          description: Delegated archiving request approved
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /eservices/{eServiceId}/descriptors/{descriptorId}/rejectDelegatedArchiving:
+    parameters:
+      - name: eServiceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Reject a delegated archiving request for a Descriptor
+      description: Allows the owner (delegator) to reject a delegate's descriptor archiving request
+      operationId: rejectDelegatedDescriptorArchiving
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedDescriptorArchivingSeed"
+      responses:
+        "204":
+          description: Delegated archiving request rejected
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}/descriptors/{descriptorId}/update:
@@ -18471,6 +18581,16 @@ components:
       type: object
       additionalProperties: false
       description: Seed for an owner to reject a delegated archiving request
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 1
+      required:
+        - rejectionReason
+    RejectDelegatedDescriptorArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for an owner to reject a delegated descriptor archiving request
       properties:
         rejectionReason:
           type: string

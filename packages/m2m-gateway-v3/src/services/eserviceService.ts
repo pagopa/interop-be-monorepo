@@ -866,6 +866,61 @@ export function eserviceServiceBuilder(
       return toM2MGatewayApiEService(polledResource.data);
     },
 
+    async approveDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Approving delegated archiving request for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.approveDelegatedDescriptorArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      const descriptor = retrieveEServiceDescriptorById(
+        polledResource,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+
+    async rejectDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: m2mGatewayApiV3.RejectDelegatedDescriptorArchivingSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Rejecting delegated archiving request for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.rejectDelegatedDescriptorArchiving(
+          {
+            ...seed,
+          },
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      const descriptor = retrieveEServiceDescriptorById(
+        polledResource,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
+
     async updatePublishedEServiceDelegation(
       eserviceId: EServiceId,
       seed: m2mGatewayApiV3.EServiceDelegationUpdateSeed,
