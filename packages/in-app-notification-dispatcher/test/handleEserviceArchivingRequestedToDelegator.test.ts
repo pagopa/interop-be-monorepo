@@ -26,11 +26,7 @@ import {
 import { describe, it, expect, beforeEach, Mock } from "vitest";
 
 import { handleEserviceArchivingRequestedToDelegator } from "../src/handlers/eservices/handleEserviceArchivingRequestedToDelegator.js";
-import {
-  addOneEService,
-  addOneTenant,
-  readModelService,
-} from "./utils.js";
+import { addOneEService, addOneTenant, readModelService } from "./utils.js";
 
 describe("handleEserviceArchivingRequestedToDelegator", () => {
   const delegatorTenant = getMockTenant();
