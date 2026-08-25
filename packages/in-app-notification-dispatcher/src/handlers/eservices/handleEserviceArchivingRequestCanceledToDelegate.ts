@@ -5,11 +5,13 @@ import {
   NewNotification,
   fromEServiceV2,
   missingKafkaMessageDataError,
+  unsafeBrandId,
 } from "pagopa-interop-models";
 import {
   activeProducerDelegationNotFound,
   getNotificationRecipients,
   inAppTemplates,
+  retrieveDescriptor,
   retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
@@ -51,7 +53,7 @@ export async function handleEserviceArchivingRequestCanceledToDelegate(
 
   const usersWithNotifications = await getNotificationRecipients(
     [producerDelegation.delegateId],
-    "eserviceArchivingRequestedToDelegator",
+    "eserviceArchivingApprovedRejectedToDelegate",
     readModelService,
     logger
   );
@@ -71,9 +73,10 @@ export async function handleEserviceArchivingRequestCanceledToDelegate(
     .with(
       { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
       ({ data: { descriptorId } }) => {
-        const descriptor =
-          eservice.descriptors.find((d) => d.id === descriptorId) ??
-          retrieveLatestDescriptor(eservice);
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId(descriptorId)
+        );
         const body =
           inAppTemplates.eserviceDescriptorArchivingRequestCanceledToDelegate(
             delegator.name,
@@ -103,7 +106,7 @@ export async function handleEserviceArchivingRequestCanceledToDelegate(
     userId,
     tenantId,
     body,
-    notificationType: "eserviceArchivingRequestedToDelegator",
+    notificationType: "eserviceArchivingApprovedRejectedToDelegate",
     entityId,
   }));
 }

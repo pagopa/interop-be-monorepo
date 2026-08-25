@@ -19,7 +19,7 @@ import { config } from "../../config/config.js";
 import { EServiceHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
-  "eserviceArchivingRequestedToDelegator";
+  "eserviceArchivingApprovedRejectedToDelegate";
 
 export async function handleEServiceArchivingRequestCanceledByDelegateToDelegate(
   data: EServiceHandlerParams
