@@ -33,7 +33,7 @@ import { expect, describe, it, vi, beforeEach, afterEach } from "vitest";
 
 import {
   delegatedArchiveRequestForIncorrectDelegateProducer,
-  noDelegatedArchivingRequestFound,
+  delegatedArchivingRequestNotActive,
   noDelegationForArchivingRequest,
 } from "../../src/model/domain/errors.js";
 import {
@@ -44,7 +44,7 @@ import {
   readLastEserviceEvent,
 } from "../integrationUtils.js";
 
-describe("schedule archiving of an Descriptor with delegation", () => {
+describe("cancel archiving request of an E-service with delegation", () => {
   const mockEService = getMockEService();
   const mockDescriptor = {
     ...getMockDescriptor(),
@@ -274,7 +274,7 @@ describe("schedule archiving of an Descriptor with delegation", () => {
     }
   );
 
-  it("Should throw noDelegatedArchivingRequestFound if there is no active archiving request", async () => {
+  it("Should throw delegatedArchivingRequestNotActive if there is no active archiving request", async () => {
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.deprecated,
@@ -299,7 +299,7 @@ describe("schedule archiving of an Descriptor with delegation", () => {
     await addOneEService(eservice);
     await addOneDelegation(mockDelegation);
 
-    const expectedError = noDelegatedArchivingRequestFound(eservice.id);
+    const expectedError = delegatedArchivingRequestNotActive(eservice.id);
 
     await expect(
       catalogService.cancelDelegatedEServiceArchiving(

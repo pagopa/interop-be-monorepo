@@ -10,7 +10,7 @@ import {
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { toM2MGatewayApiEServiceDescriptor } from "../../../src/api/eserviceApiConverter.js";
+import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
@@ -59,8 +59,8 @@ describe("cancelDelegatedEServiceArchiving", () => {
       getMockM2MAdminAppContext()
     );
 
-    const expectedM2MEServiceDescriptor: m2mGatewayApiV3.EServiceDescriptor =
-      toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
+    const expectedM2MEServiceDescriptor: m2mGatewayApiV3.EService =
+      toM2MGatewayApiEService(mockApiEservice);
 
     expect(result).toStrictEqual(expectedM2MEServiceDescriptor);
     expectApiClientPostToHaveBeenCalledWith({

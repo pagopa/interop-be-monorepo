@@ -121,7 +121,7 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/submitDelegat
     },
     {
       error: noActiveDelegationFound(mockEService.id),
-      expectedStatus: 400,
+      expectedStatus: 404,
     },
     {
       error: noDelegatedArchivingRequestFound(mockEService.id, descriptor.id),
