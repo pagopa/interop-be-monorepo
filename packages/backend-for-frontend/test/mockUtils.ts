@@ -704,7 +704,7 @@ export const getMockBffApiEServiceTemplateSeed =
     version: generateMock(
       z
         .object({
-          description: z.string().min(10).max(250).optional(),
+          description: z.string().min(10).max(250),
           voucherLifespan: z.number().int().min(60).max(86400),
           dailyCallsPerConsumer: z
             .number()

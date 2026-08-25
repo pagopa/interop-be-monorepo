@@ -83,10 +83,6 @@ describe("API POST /templates", () => {
     { ...mockEserviceTemplateSeed, version: {} },
     {
       ...mockEserviceTemplateSeed,
-      version: { ...mockEserviceTemplateSeed.version, description: undefined },
-    },
-    {
-      ...mockEserviceTemplateSeed,
       version: { ...mockEserviceTemplateSeed.version, voucherLifespan: -1 },
     },
     {

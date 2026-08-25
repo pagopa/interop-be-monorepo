@@ -110,6 +110,18 @@ describe("API POST /eservices/templates", () => {
     {
       body: {
         ...mockEServiceTemplateSeed,
+        version: { voucherLifespan: 60, description: undefined },
+      },
+    },
+    {
+      body: {
+        ...mockEServiceTemplateSeed,
+        version: { voucherLifespan: 60, description: "a".repeat(9) },
+      },
+    },
+    {
+      body: {
+        ...mockEServiceTemplateSeed,
         extraField: 1,
       },
     },
