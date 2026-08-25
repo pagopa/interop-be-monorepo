@@ -9,12 +9,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import {
-  activeProducerDelegationNotFound,
+  archivingRequesterIdNotFound,
   getNotificationRecipients,
   inAppTemplates,
   retrieveDescriptor,
   retrieveLatestDescriptor,
   retrieveTenant,
+  getRequesterIdFromLatestArchivingRequest,
 } from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
 
@@ -43,13 +44,28 @@ export async function handleEserviceArchivingRequestedToDelegator(
     `Sending in-app notification to delegator for ${msg.type} - eservice ${eservice.id}`
   );
 
-  const producerDelegation = await readModelService.getActiveProducerDelegation(
-    eservice.id,
-    eservice.producerId
-  );
+  const requesterId = match(msg)
+    .with(
+      { type: "EServiceDescriptorArchivingRequestedByDelegate" },
+      ({ data: { descriptorId } }) => {
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
+        return getRequesterIdFromLatestArchivingRequest(
+          descriptor.delegatedArchivingRequest
+        );
+      }
+    )
+    .with({ type: "EServiceArchivingRequestedByDelegate" }, () =>
+      getRequesterIdFromLatestArchivingRequest(
+        eservice.delegatedArchivingRequest
+      )
+    )
+    .exhaustive();
 
-  if (!producerDelegation) {
-    throw activeProducerDelegationNotFound(eservice.id);
+  if (!requesterId) {
+    throw archivingRequesterIdNotFound(eservice.id, msg.type);
   }
 
   const usersWithNotifications = await getNotificationRecipients(
@@ -66,10 +82,7 @@ export async function handleEserviceArchivingRequestedToDelegator(
     return [];
   }
 
-  const delegate = await retrieveTenant(
-    producerDelegation.delegateId,
-    readModelService
-  );
+  const delegate = await retrieveTenant(requesterId, readModelService);
 
   const { body, entityId } = match(msg)
     .with(

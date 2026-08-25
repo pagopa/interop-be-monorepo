@@ -4,7 +4,6 @@ import {
   EServiceIdDescriptorId,
   EServiceEventV2,
   NewNotification,
-  TenantId,
   fromEServiceV2,
   missingKafkaMessageDataError,
   unsafeBrandId,
@@ -16,6 +15,7 @@ import {
   retrieveDescriptor,
   retrieveLatestDescriptor,
   retrieveTenant,
+  getRequesterIdFromLatestArchivingRequest,
 } from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
 
@@ -31,32 +31,6 @@ type ArchivingRequestApprovedRejectedEvent = Extract<
   EServiceEventV2,
   { type: ArchivingRequestApprovedRejectedEventType }
 >;
-
-function getRequesterIdFromLatestArchivingRequest(
-  requests:
-    | Array<{
-        requesterId: TenantId;
-        requestedAt: Date;
-        acceptedAt?: Date;
-        rejectedAt?: Date;
-      }>
-    | undefined
-): TenantId | undefined {
-  if (!requests || requests.length === 0) {
-    return undefined;
-  }
-
-  const latestRequest = requests.reduce((latest, current) => {
-    const latestDate =
-      latest.acceptedAt ?? latest.rejectedAt ?? latest.requestedAt;
-    const currentDate =
-      current.acceptedAt ?? current.rejectedAt ?? current.requestedAt;
-
-    return currentDate > latestDate ? current : latest;
-  });
-
-  return latestRequest.requesterId;
-}
 
 export async function handleEserviceArchivingRequestApprovedRejectedToDelegate(
   msg: ArchivingRequestApprovedRejectedEvent,
