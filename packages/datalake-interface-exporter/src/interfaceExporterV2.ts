@@ -1,7 +1,8 @@
+import { EachMessagePayload } from "kafkajs";
+import { FileManager, Logger } from "pagopa-interop-commons";
 import { EServiceEventEnvelopeV2, fromEServiceV2 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { FileManager, Logger } from "pagopa-interop-commons";
-import { EachMessagePayload } from "kafkajs";
+
 import { exportInterface } from "./interfaceExporter.js";
 
 export async function exportInterfaceV2(
@@ -51,7 +52,6 @@ export async function exportInterfaceV2(
           "EServiceDraftDescriptorDeleted",
           "EServiceDescriptorInterfaceAdded",
           "EServiceDescriptorDocumentAdded",
-          "EServiceDescriptorInterfaceUpdated",
           "EServiceDescriptorDocumentUpdated",
           "EServiceDescriptorInterfaceDeleted",
           "EServiceDescriptorDocumentDeleted",
@@ -89,7 +89,6 @@ export async function exportInterfaceV2(
           "EServiceArchivingCompleted",
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-          "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "MaintenanceEServiceDescriptorUnarchived"
         ),

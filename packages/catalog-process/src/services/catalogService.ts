@@ -68,8 +68,13 @@ import {
   archivingScope,
   ArchivingScope,
   AsyncExchangeProperties,
+  Technology,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
 import { config } from "../config/config.js";
 import {
   agreementApprovalPolicyToApiAgreementApprovalPolicy,
@@ -79,6 +84,10 @@ import {
   eServiceModeToApiEServiceMode,
   technologyToApiTechnology,
 } from "../model/domain/apiConverter.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../model/domain/constants.js";
 import {
   attributeNotFound,
   audienceCannotBeEmpty,
@@ -93,10 +102,12 @@ import {
   eServiceNotFound,
   eServiceRiskAnalysisNotFound,
   eserviceTemplateInterfaceNotFound,
+  eserviceTemplateInterfaceTechnologyMismatch,
   eServiceTemplateNotFound,
   eServiceTemplateWithoutPublishedVersion,
   inconsistentAttributesSeedGroupsCount,
   interfaceAlreadyExists,
+  interfaceDocumentNotUpdatable,
   notValidDescriptorState,
   originNotCompliant,
   riskAnalysisDuplicated,
@@ -147,7 +158,6 @@ import {
   toCreateEventEServiceDraftDescriptorUpdated,
   toCreateEventEServiceInterfaceAdded,
   toCreateEventEServiceInterfaceDeleted,
-  toCreateEventEServiceInterfaceUpdated,
   toCreateEventEServiceIsClientAccessDelegableDisabled,
   toCreateEventEServiceIsClientAccessDelegableEnabled,
   toCreateEventEServiceIsConsumerDelegableDisabled,
@@ -164,7 +174,6 @@ import {
   toCreateEventEServicePersonalDataFlagUpdatedAfterPublication,
   toCreateEventEServicePersonalDataFlagUpdatedByTemplateUpdate,
   toCreateEventEServiceAsyncExchangeCallbackInterfaceAdded,
-  toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated,
   toCreateEventEServiceAsyncExchangeCallbackInterfaceDeleted,
   toCreateEventEServiceInstanceLabelUpdated,
   toCreateEventEServiceDescriptorArchivingScheduled,
@@ -176,6 +185,7 @@ import {
   toCreateEventEServiceArchivingCompleted,
   toCreateEventMaintenanceEServiceDescriptorUnarchived,
 } from "../model/domain/toEvent.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestDescriptor,
   getPreviousDescriptorByStates,
@@ -190,6 +200,8 @@ import {
   assertIsDraftEservice,
   assertIsReceiveEservice,
   assertNoExistingProducerDelegationInActiveOrPendingState,
+  assertNoExistingProducerDelegationForDescriptorArchiving,
+  assertNoExistingProducerDelegationForEServiceArchiving,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -213,6 +225,7 @@ import {
   assertAsyncExchangeReadyForPublication,
   assertDailyCallsForCertifiedAttributesOnly,
   assertDiscreteConfigForCertifiedAttributesOnly,
+  assertCertifiedDiscreteConfigUnchanged,
   assertAttributeDailyCallsConsistentWithTotal,
   assertEserviceIsNotInArchivingOrArchivedState,
   assertDescriptorArchivable,
@@ -225,13 +238,8 @@ import {
   assertIsNotDraftEservice,
   assertEServiceIsInArchiving,
   assertEServiceIsNotAlreadyArchived,
+  assertEServiceGracePeriodIsNotLowerThanDescriptors,
 } from "./validators.js";
-import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { calculateArchivableOn } from "../utilities/dateCalculator.js";
-import {
-  DEFAULT_DAILY_CALLS_PER_CONSUMER,
-  DEFAULT_DAILY_CALLS_TOTAL,
-} from "../model/domain/constants.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -653,7 +661,6 @@ async function innerCreateEService(
     description: seed.description,
     technology: apiTechnologyToTechnology(seed.technology),
     mode: apiEServiceModeToEServiceMode(seed.mode),
-    attributes: undefined,
     descriptors: [],
     createdAt: creationDate,
     riskAnalysis: template?.riskAnalysis ?? [],
@@ -705,6 +712,7 @@ async function innerCreateEService(
         seed.descriptor.agreementApprovalPolicy
       ),
     serverUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -822,6 +830,9 @@ async function innerAddDocumentToEserviceEvent(
     interface: isInterface ? createdDocument : descriptor.interface,
     docs: isDocument ? [...descriptor.docs, createdDocument] : descriptor.docs,
     serverUrls: isInterface ? documentSeed.serverUrls : descriptor.serverUrls,
+    serverUrlsDescriptions: isInterface
+      ? (documentSeed.serverUrlsDescriptions ?? [])
+      : descriptor.serverUrlsDescriptions,
     templateVersionRef: evaluateTemplateVersionRef(descriptor, documentSeed),
     asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
       ? createdDocument
@@ -897,6 +908,7 @@ function createNextDescriptor(
     dailyCallsTotal: seed.dailyCallsTotal,
     agreementApprovalPolicy: seed.agreementApprovalPolicy,
     serverUrls: [],
+    serverUrlsDescriptions: [],
     publishedAt: undefined,
     suspendedAt: undefined,
     deprecatedAt: undefined,
@@ -1238,7 +1250,7 @@ export function catalogServiceBuilder(
 
     async scheduleEServiceArchiving(
       eserviceId: EServiceId,
-      body: catalogApi.EServiceArchivingReasonSeed,
+      body: catalogApi.EServiceArchivingSeed,
       {
         authData,
         correlationId,
@@ -1247,17 +1259,25 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       logger.info(`Archiving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
+      const requestDate = new Date();
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationForEServiceArchiving(
         eserviceId,
         readModelService
       );
 
       assertEServiceArchivable(eservice.data);
 
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        requestDate,
+        eservice.data,
+        body.gracePeriodDays
+      );
+
       const updatedEService = await processEserviceArchiving(
+        requestDate,
         eservice.data,
         body,
         fileManager,
@@ -1371,6 +1391,9 @@ export function catalogServiceBuilder(
                 interface:
                   d.interface?.id === documentId ? undefined : d.interface,
                 serverUrls: isInterface ? [] : d.serverUrls,
+                serverUrlsDescriptions: isInterface
+                  ? []
+                  : d.serverUrlsDescriptions,
                 docs: d.docs.filter((doc) => doc.id !== documentId),
                 asyncExchangeCallbackInterface:
                   d.asyncExchangeCallbackInterface?.id === documentId
@@ -1452,15 +1475,13 @@ export function catalogServiceBuilder(
 
       const document = retrieveDocument(eserviceId, descriptor, documentId);
 
-      const isInterface = document.id === descriptor?.interface?.id;
-      const isAsyncExchangeCallbackInterface =
-        document.id === descriptor?.asyncExchangeCallbackInterface?.id;
-
+      // The interface and the async exchange callback interface cannot be
+      // updated: only regular documents are updatable through this operation.
       if (
-        (isInterface || isAsyncExchangeCallbackInterface) &&
-        descriptorStatesNotAllowingInterfaceOperations(descriptor)
+        document.id === descriptor.interface?.id ||
+        document.id === descriptor.asyncExchangeCallbackInterface?.id
       ) {
-        throw notValidDescriptorState(descriptor.id, descriptor.state);
+        throw interfaceDocumentNotUpdatable(descriptor.id, documentId);
       }
 
       if (
@@ -1488,13 +1509,9 @@ export function catalogServiceBuilder(
           d.id === descriptorId
             ? {
                 ...d,
-                interface: isInterface ? updatedDocument : d.interface,
                 docs: d.docs.map((doc) =>
                   doc.id === documentId ? updatedDocument : doc
                 ),
-                asyncExchangeCallbackInterface: isAsyncExchangeCallbackInterface
-                  ? updatedDocument
-                  : d.asyncExchangeCallbackInterface,
               }
             : d
         ),
@@ -1506,26 +1523,12 @@ export function catalogServiceBuilder(
         eservice: newEservice,
       };
 
-      const event = isInterface
-        ? toCreateEventEServiceInterfaceUpdated(
-            eserviceId,
-            eservice.metadata.version,
-            eventPayload,
-            correlationId
-          )
-        : isAsyncExchangeCallbackInterface
-          ? toCreateEventEServiceAsyncExchangeCallbackInterfaceUpdated(
-              eserviceId,
-              eservice.metadata.version,
-              eventPayload,
-              correlationId
-            )
-          : toCreateEventEServiceDocumentUpdated(
-              eserviceId,
-              eservice.metadata.version,
-              eventPayload,
-              correlationId
-            );
+      const event = toCreateEventEServiceDocumentUpdated(
+        eserviceId,
+        eservice.metadata.version,
+        eventPayload,
+        correlationId
+      );
 
       await repository.createEvent(event);
       return updatedDocument;
@@ -2193,6 +2196,35 @@ export function catalogServiceBuilder(
             }
           : undefined;
 
+      const clonedAsyncExchangeCallbackInterfaceId =
+        generateId<EServiceDocumentId>();
+      const clonedAsyncExchangeCallbackInterfacePath =
+        descriptor.asyncExchangeCallbackInterface !== undefined
+          ? await fileManager.copy(
+              config.s3Bucket,
+              descriptor.asyncExchangeCallbackInterface.path,
+              config.eserviceDocumentsPath,
+              clonedAsyncExchangeCallbackInterfaceId,
+              descriptor.asyncExchangeCallbackInterface.name,
+              logger
+            )
+          : undefined;
+
+      const clonedAsyncExchangeCallbackInterfaceDocument: Document | undefined =
+        descriptor.asyncExchangeCallbackInterface !== undefined &&
+        clonedAsyncExchangeCallbackInterfacePath !== undefined
+          ? {
+              id: clonedAsyncExchangeCallbackInterfaceId,
+              name: descriptor.asyncExchangeCallbackInterface.name,
+              contentType:
+                descriptor.asyncExchangeCallbackInterface.contentType,
+              prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
+              path: clonedAsyncExchangeCallbackInterfacePath,
+              checksum: descriptor.asyncExchangeCallbackInterface.checksum,
+              uploadDate: new Date(),
+            }
+          : undefined;
+
       const clonedDocuments = await Promise.all(
         descriptor.docs.map(async (doc: Document) => {
           const clonedDocumentId = generateId<EServiceDocumentId>();
@@ -2223,7 +2255,6 @@ export function catalogServiceBuilder(
         name: clonedEServiceName,
         description: eservice.data.description,
         technology: eservice.data.technology,
-        attributes: eservice.data.attributes,
         createdAt: new Date(),
         riskAnalysis: eservice.data.riskAnalysis,
         mode: eservice.data.mode,
@@ -2233,6 +2264,8 @@ export function catalogServiceBuilder(
             id: generateId(),
             version: "1",
             interface: clonedInterfaceDocument,
+            asyncExchangeCallbackInterface:
+              clonedAsyncExchangeCallbackInterfaceDocument,
             docs: clonedDocuments,
             state: descriptorState.draft,
             createdAt: new Date(),
@@ -2409,6 +2442,7 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(updatedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(updatedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, updatedAttributes);
 
       const updatedDescriptor: Descriptor = {
         ...descriptor,
@@ -2446,6 +2480,7 @@ export function catalogServiceBuilder(
     async scheduleEServiceDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      body: catalogApi.GracePeriodDaysSeed,
       {
         authData,
         correlationId,
@@ -2456,8 +2491,9 @@ export function catalogServiceBuilder(
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
+      await assertNoExistingProducerDelegationForDescriptorArchiving(
         eserviceId,
+        descriptorId,
         readModelService
       );
 
@@ -2470,7 +2506,8 @@ export function catalogServiceBuilder(
 
       const updatedDescriptor = await processDescriptorArchiving(
         descriptor,
-        newState
+        newState,
+        body.gracePeriodDays
       );
 
       const updatedEService = replaceDescriptor(
@@ -3335,6 +3372,7 @@ export function catalogServiceBuilder(
 
       assertDailyCallsForCertifiedAttributesOnly(parsedAttributes);
       assertDiscreteConfigForCertifiedAttributesOnly(parsedAttributes);
+      assertCertifiedDiscreteConfigUnchanged(descriptor, parsedAttributes);
       assertAttributeDailyCallsConsistentWithTotal(
         parsedAttributes,
         descriptor.dailyCallsTotal
@@ -4103,6 +4141,7 @@ export function catalogServiceBuilder(
     async addEServiceTemplateInstanceInterface(
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
+      interfaceTechnology: Technology,
       eserviceInstanceInterfaceData:
         | catalogApi.TemplateInstanceInterfaceRESTSeed
         | catalogApi.TemplateInstanceInterfaceSOAPSeed,
@@ -4137,6 +4176,18 @@ export function catalogServiceBuilder(
         readModelService
       );
 
+      if (eserviceTemplate.technology !== interfaceTechnology) {
+        throw eserviceTemplateInterfaceTechnologyMismatch(
+          eserviceTemplate.id,
+          eserviceTemplate.technology,
+          interfaceTechnology
+        );
+      }
+
+      const contactDataRestApi = match(eserviceInstanceInterfaceData)
+        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
+        .otherwise(() => undefined);
+
       const eserviceTemplateVersion = eserviceTemplate.versions.find(
         (v) => v.id === eserviceTemplateVersionId
       );
@@ -4147,10 +4198,6 @@ export function catalogServiceBuilder(
           eserviceTemplateVersionId
         );
       }
-
-      const contactDataRestApi = match(eserviceInstanceInterfaceData)
-        .with({ contactEmail: P.string, contactName: P.string }, (data) => data)
-        .otherwise(() => undefined);
 
       const { eService: updatedEService, event: addDocumentEvent } =
         await createOpenApiInterfaceByTemplate(
@@ -4549,8 +4596,9 @@ export function catalogServiceBuilder(
 }
 
 async function processEserviceArchiving(
+  requestDate: Date,
   eservice: EService,
-  body: catalogApi.EServiceArchivingReasonSeed,
+  body: catalogApi.EServiceArchivingSeed,
   fileManager: FileManager,
   logger: Logger
 ): Promise<EService> {
@@ -4569,7 +4617,6 @@ async function processEserviceArchiving(
       )
     : eservice;
 
-  const requestDate = new Date();
   const descriptors = await Promise.all(
     eserviceAfterCleanup.descriptors.map((descriptor) =>
       match(descriptor.state)
@@ -4583,6 +4630,7 @@ async function processEserviceArchiving(
           processDescriptorArchiving(
             descriptor,
             descriptorState.archiving,
+            body.gracePeriodDays,
             archivingScope.eservice,
             requestDate
           )
@@ -4591,6 +4639,7 @@ async function processEserviceArchiving(
           processDescriptorArchiving(
             descriptor,
             descriptorState.archivingSuspended,
+            body.gracePeriodDays,
             archivingScope.eservice,
             requestDate
           )
@@ -4630,12 +4679,14 @@ async function deleteInactiveDescriptorLogic(
 async function processDescriptorArchiving(
   descriptor: Descriptor,
   newState: DescriptorState,
+  gracePeriodDays: GracePeriodDays,
   scope: ArchivingScope = archivingScope.descriptor,
   requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(requestDate, config.gracePeriodArchivingEService),
+    ...calculateArchivableOn(requestDate, gracePeriodDays),
     scope,
+    gracePeriodDays,
   };
 
   return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);
@@ -4645,7 +4696,7 @@ async function createOpenApiInterfaceByTemplate(
   eserviceWithMetadata: WithMetadata<EService>,
   descriptorId: DescriptorId,
   eserviceTemplateInterface: Document,
-  serverUrls: string[],
+  serverUrls: Array<{ url: string; description?: string }>,
   eserviceInstanceInterfaceRestData:
     | {
         contactEmail: string;
@@ -4694,7 +4745,7 @@ async function createOpenApiInterfaceByTemplate(
       filePath,
       prettyName,
       kind,
-      serverUrls,
+      extractedServerUrls,
       contentType,
       checksum
     ) =>
@@ -4709,7 +4760,10 @@ async function createOpenApiInterfaceByTemplate(
           fileName,
           contentType,
           checksum,
-          serverUrls,
+          serverUrls: extractedServerUrls,
+          serverUrlsDescriptions: extractedServerUrls.map(
+            (_, index) => serverUrls[index]?.description ?? ""
+          ),
           interfaceTemplateMetadata: eserviceInstanceInterfaceRestData,
         },
         ctx
@@ -5297,6 +5351,7 @@ async function updateDraftEService(
           interface: undefined,
           asyncExchangeCallbackInterface: undefined,
           serverUrls: [],
+          serverUrlsDescriptions: [],
         }))
       : eservice.data.descriptors,
     isSignalHubEnabled: updatedIsSignalHubEnabled,

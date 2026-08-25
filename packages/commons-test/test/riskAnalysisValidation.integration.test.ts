@@ -1,4 +1,3 @@
-import { describe, expect, it, vi } from "vitest";
 import {
   RiskAnalysisFormToValidate,
   RiskAnalysisValidatedForm,
@@ -13,6 +12,8 @@ import {
   incompatiblePersonalDataError,
 } from "pagopa-interop-commons";
 import { tenantKind } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import {
   expiredRiskAnalysis1_0_Private,
   expiredRiskAnalysis2_0_Pa,

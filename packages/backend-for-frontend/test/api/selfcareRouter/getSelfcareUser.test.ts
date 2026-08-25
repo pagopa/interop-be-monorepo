@@ -1,16 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, UserId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { bffApi, selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { api, services } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { generateId, UserId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { toApiSelfcareUser } from "../../../src/api/selfcareApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   selfcareEntityNotFilled,
   userNotFound,
 } from "../../../src/model/errors.js";
+import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /users/:userId", () => {
   const mockUserResource: selfcareV2ClientApi.UserResource = {

@@ -14,13 +14,19 @@ import {
   UserId,
   algorithm,
 } from "pagopa-interop-models";
+
+import { calculateDPoPThumbprint } from "../auth/jwk.js";
 import { systemRole } from "../auth/roles.js";
 import { AuthorizationServerTokenGenerationConfig } from "../config/authorizationServerTokenGenerationConfig.js";
+import { IntegrityRest02SignatureConfig } from "../config/integrityRest02Config.js";
 import { SessionTokenGenerationConfig } from "../config/sessionTokenGenerationConfig.js";
 import { TokenGenerationConfig } from "../config/tokenGenerationConfig.js";
-import { IntegrityRest02SignatureConfig } from "../config/integrityRest02Config.js";
 import { dateToSeconds } from "../utils/date.js";
-import { calculateDPoPThumbprint } from "../auth/jwk.js";
+import {
+  SerializedAuthTokenPayload,
+  toSerializedInteropJwtPayload,
+  toSerializedJwtUIPayload,
+} from "./jwtEncoder.js";
 import {
   InteropApiToken,
   InteropAsyncConsumerToken,
@@ -40,11 +46,6 @@ import {
   IntegrityRest02SignedHeaders,
 } from "./models.js";
 import { b64ByteUrlEncode, b64UrlEncode } from "./utils.js";
-import {
-  SerializedAuthTokenPayload,
-  toSerializedInteropJwtPayload,
-  toSerializedJwtUIPayload,
-} from "./jwtEncoder.js";
 
 const JWT_HEADER_ALG = algorithm.RS256;
 const JWT_HEADER_USE = "sig";

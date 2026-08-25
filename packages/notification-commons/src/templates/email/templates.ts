@@ -1,9 +1,10 @@
-import { fileURLToPath } from "url";
-import fs from "fs/promises";
 import fsSync from "fs";
-import path from "path";
-import { z } from "zod";
+import fs from "fs/promises";
 import { HtmlTemplateService } from "pagopa-interop-commons";
+import path from "path";
+import { fileURLToPath } from "url";
+import { z } from "zod";
+
 import { htmlTemplateNotFound } from "../../models/errors.js";
 
 export const eventMailTemplateType = {
@@ -16,6 +17,14 @@ export const eventMailTemplateType = {
   agreementUpgradedMailTemplate: "agreement-upgraded-mail",
   eserviceDescriptorSuspendedMailTemplate: "eservice-descriptor-suspended-mail",
   eserviceDescriptorActivatedMailTemplate: "eservice-descriptor-activated-mail",
+  eserviceArchivingDescriptorSuspendedToConsumerMailTemplate:
+    "eservice-archiving-descriptor-suspended-to-consumer-mail",
+  eserviceArchivingDescriptorActivatedToConsumerMailTemplate:
+    "eservice-archiving-descriptor-activated-to-consumer-mail",
+  eserviceArchivingDescriptorSuspendedToProducerMailTemplate:
+    "eservice-archiving-descriptor-suspended-to-producer-mail",
+  eserviceArchivingDescriptorActivatedToProducerMailTemplate:
+    "eservice-archiving-descriptor-activated-to-producer-mail",
   eserviceDescriptorPublishedMailTemplate: "eservice-descriptor-published-mail",
   producerKeychainEserviceAddedMailTemplate:
     "producer-keychain-eservice-added-mail",
@@ -120,14 +129,16 @@ export const eventMailTemplateType = {
     "eservice-archiving-completed-eservice-to-producer-mail",
   eserviceArchivingCompletedEserviceToConsumerMailTemplate:
     "eservice-archiving-completed-eservice-to-consumer-mail",
-  eserviceArchivingEarlyArchivedToProducerMailTemplate:
-    "eservice-archiving-early-archived-to-producer-mail",
-  eserviceArchivingEarlyArchivedToConsumerMailTemplate:
-    "eservice-archiving-early-archived-to-consumer-mail",
+  eserviceArchivingDescriptorArchivedToProducerMailTemplate:
+    "eservice-archiving-descriptor-archived-to-producer-mail",
   eserviceArchivingCanceledDescriptorToConsumerMailTemplate:
     "eservice-archiving-canceled-descriptor-to-consumer-mail",
   eserviceArchivingCanceledEserviceToConsumerMailTemplate:
     "eservice-archiving-canceled-eservice-to-consumer-mail",
+  eserviceArchivingCanceledDescriptorToProducerMailTemplate:
+    "eservice-archiving-canceled-descriptor-to-producer-mail",
+  eserviceArchivingCanceledEserviceToProducerMailTemplate:
+    "eservice-archiving-canceled-eservice-to-producer-mail",
   eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate:
     "eservice-state-changed-to-producer-scheduled-reminder-descriptor-mail",
   eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate:

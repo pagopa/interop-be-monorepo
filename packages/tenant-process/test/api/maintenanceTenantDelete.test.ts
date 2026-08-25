@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import request from "supertest";
-import { generateId, Tenant, TenantId } from "pagopa-interop-models";
-import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
 import { authRole } from "pagopa-interop-commons";
-import { api, tenantService } from "../vitest.api.setup.js";
+import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
+import { generateId, Tenant, TenantId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { tenantNotFound } from "../../src/model/domain/errors.js";
+import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API DELETE /maintenance/tenants/{tenantId} test", () => {
   const tenant: Tenant = getMockTenant();

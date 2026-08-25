@@ -23,6 +23,8 @@ import {
   WithMetadata,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { config } from "../../src/config/config.js";
 import {
   delegationAlreadyExists,
   delegatorAndDelegateSameIdError,
@@ -31,12 +33,10 @@ import {
   tenantNotAllowedToDelegation,
   tenantNotFound,
 } from "../../src/model/domain/errors.js";
-
 import {
   activeDelegationStates,
   inactiveDelegationStates,
 } from "../../src/services/validators.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneDelegation,
   addOneEservice,

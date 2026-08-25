@@ -1,4 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   fromPurposeV2,
   ItemState,
@@ -13,7 +14,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
+
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,

@@ -10,6 +10,7 @@ import {
   primaryKey,
   index,
 } from "drizzle-orm/pg-core";
+
 import {
   readmodelAgreement,
   readmodelAttribute,
@@ -442,6 +443,7 @@ export const eserviceDescriptorInReadmodelCatalog = readmodelCatalog.table(
       mode: "string",
     }).notNull(),
     serverUrls: varchar("server_urls").array().notNull(),
+    serverUrlsDescriptions: varchar("server_urls_descriptions").array(),
     publishedAt: timestamp("published_at", {
       withTimezone: true,
       mode: "string",
@@ -492,6 +494,7 @@ export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
         withTimezone: true,
         mode: "string",
       }).notNull(),
+      gracePeriodDays: integer("grace_period_days").notNull(),
     },
     (table) => [
       foreignKey({

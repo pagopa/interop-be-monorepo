@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockAttribute,
+  getMockEServiceTemplate,
+  getMockEServiceTemplateVersion,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   EServiceTemplate,
   EServiceTemplateId,
@@ -9,16 +16,10 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockAttribute,
-  getMockEServiceTemplate,
-  getMockEServiceTemplateVersion,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
-import { api, eserviceTemplateService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
 import {
   asyncExchangeBulkNotAllowedForSoap,
   attributeDiscreteConfigNotAllowed,
@@ -29,7 +30,7 @@ import {
   inconsistentDailyCalls,
   notValidEServiceTemplateVersionState,
 } from "../../src/model/domain/errors.js";
-import { eserviceTemplateToApiEServiceTemplate } from "../../src/model/domain/apiConverter.js";
+import { api, eserviceTemplateService } from "../vitest.api.setup.js";
 
 describe("PATCH /templates/:templateId/versions/:templateVersionId router test", () => {
   const templateVersion: EServiceTemplateVersion =

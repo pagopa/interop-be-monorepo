@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   Descriptor,
@@ -11,8 +12,6 @@ import {
   Tenant,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   getNotificationRecipients,
   inAppTemplates,
@@ -20,6 +19,8 @@ import {
   retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type CanceledArchivingEventType =
@@ -46,10 +47,9 @@ export async function handleEserviceArchivingCanceledToConsumer(
   );
 
   // archiving was canceled: agreements are not archived, only fetch active ones
-  const [producer, agreements] = await Promise.all([
-    retrieveTenant(eservice.producerId, readModelService),
-    readModelService.getAgreementsByEserviceId(eservice.id),
-  ]);
+  const agreements = await readModelService.getAgreementsByEserviceId(
+    eservice.id
+  );
   if (!agreements || agreements.length === 0) {
     return [];
   }
@@ -70,11 +70,7 @@ export async function handleEserviceArchivingCanceledToConsumer(
     return [];
   }
 
-  const { body, descriptor } = bodyAndDescriptorForConsumer(
-    msg,
-    eservice,
-    producer.name
-  );
+  const { body, descriptor } = bodyAndDescriptorForConsumer(msg, eservice);
   const entityId = EServiceIdDescriptorId.parse(
     `${eservice.id}/${descriptor.id}`
   );
@@ -90,8 +86,7 @@ export async function handleEserviceArchivingCanceledToConsumer(
 
 function bodyAndDescriptorForConsumer(
   msg: CanceledArchivingEvent,
-  eservice: EService,
-  producerName: string
+  eservice: EService
 ): { body: string; descriptor: Descriptor } {
   return match(msg)
     .with(
@@ -104,8 +99,7 @@ function bodyAndDescriptorForConsumer(
         return {
           body: inAppTemplates.eserviceArchivingCanceledDescriptorToConsumer(
             eservice.name,
-            descriptor.version,
-            producerName
+            descriptor.version
           ),
           descriptor,
         };
@@ -115,8 +109,7 @@ function bodyAndDescriptorForConsumer(
       const descriptor = retrieveLatestDescriptor(eservice);
       return {
         body: inAppTemplates.eserviceArchivingCanceledEserviceToConsumer(
-          eservice.name,
-          producerName
+          eservice.name
         ),
         descriptor,
       };

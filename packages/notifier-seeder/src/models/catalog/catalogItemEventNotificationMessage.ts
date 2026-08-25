@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { EServiceEventEnvelopeV2 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { QueueMessage } from "../../queue-manager/queueMessage.js";
 import { CatalogItemEventNotification } from "./catalogItemEventNotification.js";
 
@@ -69,8 +70,6 @@ const eventV2TypeMapper = (
       () => "catalog_item_document_added"
     )
     .with(
-      "EServiceDescriptorInterfaceUpdated",
-      "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
       "EServiceDescriptorDocumentUpdated",
       "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
       () => "catalog_item_document_updated"

@@ -1,17 +1,18 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { describe, expect, it } from "vitest";
+import { CreateEvent } from "pagopa-interop-commons";
 import {
   CorrelationId,
   DescriptorId,
   descriptorState,
   EService,
   EServiceEvent,
+  eventConflictError,
   generateId,
-  genericInternalError,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { CreateEvent } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import { getMockDescriptor, getMockEService } from "../src/testUtils.js";
 import { repository } from "./utils.js";
 
@@ -133,8 +134,21 @@ describe("EventRepository tests", async () => {
         descriptorCreationEvent2,
       ])
     ).rejects.toThrowError(
-      genericInternalError(
-        `Error creating multiple events: error: duplicate key value violates unique constraint "events_stream_id_version_key"`
+      eventConflictError(
+        correlationId,
+        descriptorCreationEvent2.streamId,
+        descriptorCreationEvent2.version
+      )
+    );
+
+    await repository.createEvent(descriptorCreationEvent1);
+    await expect(
+      repository.createEvent(descriptorCreationEvent2)
+    ).rejects.toThrowError(
+      eventConflictError(
+        correlationId,
+        descriptorCreationEvent2.streamId,
+        descriptorCreationEvent2.version
       )
     );
   });

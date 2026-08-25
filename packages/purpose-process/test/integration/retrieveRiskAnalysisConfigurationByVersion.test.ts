@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { getFormRulesByVersion } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockEService,
@@ -14,7 +15,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { getFormRulesByVersion } from "pagopa-interop-commons";
+
 import {
   riskAnalysisConfigVersionNotFound,
   eserviceNotFound,

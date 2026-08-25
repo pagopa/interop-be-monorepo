@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   Tenant,
   TenantId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
-import { importAttributes } from "../src/service/processor.js";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 
+import { ISTAT_ATTRIBUTE_SEED } from "../src/config/constants.js";
+import { importAttributes } from "../src/service/processor.js";
 import {
   addOneAttribute,
   addOneTenant,
@@ -21,7 +22,6 @@ import {
   persistentAttribute,
   readModelService,
 } from "./helpers.js";
-import { ISTAT_ATTRIBUTE_SEED } from "../src/config/constants.js";
 
 describe("ISTAT Certified Discrete Attributes Importer", () => {
   const tenantProcessMock = {
@@ -490,6 +490,84 @@ describe("ISTAT Certified Discrete Attributes Importer", () => {
         "Process complete. Processed: 2, Success: 1, Updated: 0, Skipped: 1, Revoked: 0, Error: 0"
       )
     );
+  });
+  it("should skip municipality and increment errors if 'Totale' in CSV is not a valid number", async () => {
+    const infoSpy = vi.spyOn(genericLogger, "info");
+    const warnSpy = vi.spyOn(genericLogger, "warn");
+
+    readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({
+      data: { id: generateId() },
+      metadata: { version: 1 },
+    });
+    readModelQueriesMock.getTenantsWithDiscreteAttribute.mockResolvedValue([
+      {
+        data: {
+          id: generateId(),
+          remoteIds: [{ origin: ISTAT_ATTRIBUTE_SEED.origin, value: "001002" }],
+        },
+        metadata: { version: 1 },
+      },
+    ]);
+    readModelQueriesMock.getAllIstatRemoteIds.mockResolvedValue([
+      "001001",
+      "001002",
+    ]);
+
+    tenantProcessMock.internalAssignCertifiedDiscreteAttribute.mockImplementation(
+      internalAssignCertifiedDiscreteAttributeMock
+    );
+
+    const csvContent = `"Popolazione residente per età e sesso"
+    "Codice comune";"Comune";"Età";"Totale maschi";"Totale femmine";"Totale"
+    "001001";"Trapani";999;50;50;100
+    "001002";"Roma";999;200;200;abcde`;
+
+    istatClientMock.downloadNationalDataset.mockResolvedValueOnce(csvContent);
+
+    await importAttributes(
+      istatClientMock as any,
+      readModelQueriesMock as any,
+      tenantProcessMock as any,
+      attributeProcessMock as any,
+      refreshableTokenMock,
+      { defaultPollingMaxRetries: 1, defaultPollingRetryDelay: 1 },
+      csvChunkSize,
+      genericLogger,
+      generateId()
+    );
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).toHaveBeenCalledWith(
+      ISTAT_ATTRIBUTE_SEED.origin,
+      "001001",
+      expect.anything(),
+      expect.anything(),
+      100,
+      expect.anything(),
+      expect.anything()
+    );
+
+    expect(
+      tenantProcessMock.internalAssignCertifiedDiscreteAttribute
+    ).not.toHaveBeenCalledWith(
+      expect.anything(),
+      "001002",
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything()
+    );
+    expect(
+      tenantProcessMock.internalRevokeCertifiedDiscreteAttribute
+    ).not.toHaveBeenCalled();
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.stringContaining("Value 'Totale' for municipality 001002")
+    );
+
+    expect(infoSpy).toHaveBeenCalledWith(expect.stringContaining("Error: 1"));
   });
   it("should revoke attribute for municipalities not in CSV", async () => {
     readModelQueriesMock.getAttributeByExternalId.mockResolvedValue({

@@ -1,12 +1,11 @@
 import { certifiedAttributesSatisfied } from "pagopa-interop-agreement-lifecycle";
-import { isFeatureFlagEnabled } from "pagopa-interop-commons";
 import {
   agreementApi,
   authorizationApi,
   catalogApi,
   tenantApi,
 } from "pagopa-interop-api-clients";
-import { config } from "../config/config.js";
+import { isFeatureFlagEnabled } from "pagopa-interop-commons";
 import {
   delegationKind,
   delegationState,
@@ -16,13 +15,15 @@ import {
   unauthorizedError,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { DelegationProcessClient } from "../clients/clientsProvider.js";
+
 import { descriptorAttributesFromApi } from "../api/catalogApiConverter.js";
 import {
   toDelegationKind,
   toDelegationState,
 } from "../api/delegationApiConverter.js";
 import { tenantAttributesFromApi } from "../api/tenantApiConverter.js";
+import { DelegationProcessClient } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   delegatedEserviceNotExportable,
   invalidEServiceRequester,

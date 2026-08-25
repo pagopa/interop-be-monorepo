@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { EServiceEventV2 } from "../eservice/eserviceEvents.js";
+
 import {
   DelegationId,
   DescriptorId,
@@ -7,6 +7,7 @@ import {
   EServiceM2MEventId,
   TenantId,
 } from "../brandedIds.js";
+import { EServiceEventV2 } from "../eservice/eserviceEvents.js";
 import {
   M2MEventVisibility,
   m2mEventVisibility,
@@ -63,13 +64,11 @@ export const EServiceM2MEventType = z.enum([
   "EServiceDescriptorDocumentDeletedByTemplateUpdate",
   "EServiceDescriptorDocumentUpdatedByTemplateUpdate",
   "EServiceDescriptorInterfaceAdded",
-  "EServiceDescriptorInterfaceUpdated",
   "EServiceDescriptorInterfaceDeleted",
   "EServiceDescriptorArchivingScheduled",
   "EServiceDescriptorArchivingCanceled",
   "EServiceDescriptorArchivingCompleted",
   "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-  "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
   "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
   "MaintenanceEServiceDescriptorUnarchived",
 ]);

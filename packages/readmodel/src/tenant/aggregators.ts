@@ -27,7 +27,6 @@ import {
   VerifiedTenantAttribute,
   WithMetadata,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   TenantCertifiedAttributeSQL,
   TenantCertifiedDiscreteAttributeSQL,
@@ -41,6 +40,8 @@ import {
   TenantVerifiedAttributeSQL,
   TenantVerifiedAttributeVerifierSQL,
 } from "pagopa-interop-readmodel-models";
+import { match } from "ts-pattern";
+
 import { makeUniqueKey, throwIfMultiple } from "../utils.js";
 
 export const aggregateTenant = ({

@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import request from "supertest";
+import { catalogApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockDescriptor,
+  getMockDocument,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import {
   Descriptor,
   DescriptorId,
@@ -11,15 +17,9 @@ import {
   generateId,
   operationForbidden,
 } from "pagopa-interop-models";
-import {
-  generateToken,
-  getMockDescriptor,
-  getMockDocument,
-  getMockEService,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { catalogApi } from "pagopa-interop-api-clients";
-import { api, catalogService } from "../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { documentToApiDocument } from "../../src/model/domain/apiConverter.js";
 import {
   documentPrettyNameDuplicate,
@@ -28,7 +28,9 @@ import {
   eServiceDocumentNotFound,
   templateInstanceNotAllowed,
   notValidDescriptorState,
+  interfaceDocumentNotUpdatable,
 } from "../../src/model/domain/errors.js";
+import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{documentId}/update authorization test", () => {
   const mockDocument = getMockDocument();
@@ -133,6 +135,10 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptor.state),
+      expectedStatus: 400,
+    },
+    {
+      error: interfaceDocumentNotUpdatable(descriptor.id, mockDocument.id),
       expectedStatus: 400,
     },
   ])(

@@ -1,4 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { agreementApi } from "pagopa-interop-api-clients";
+import {
+  getMockAgreement,
+  getMockAgreementAttribute,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   unsafeBrandId,
@@ -6,16 +11,12 @@ import {
   CompactTenant,
   tenantAttributeType,
 } from "pagopa-interop-models";
-import { agreementApi } from "pagopa-interop-api-clients";
 import { describe, it, expect } from "vitest";
+
 import {
   agreementToApiAgreement,
   fromApiCompactTenant,
 } from "../../src/model/domain/apiConverter.js";
-import {
-  getMockAgreement,
-  getMockAgreementAttribute,
-} from "pagopa-interop-commons-test";
 import {
   getMockApiTenantCertifiedAttribute,
   getMockApiTenantDeclaredAttribute,

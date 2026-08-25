@@ -1,3 +1,9 @@
+import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  getInteropHeaders,
+  Logger,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   DelegationEventEnvelopeV2,
@@ -7,12 +13,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  getInteropHeaders,
-  Logger,
-  RefreshableInteropToken,
-} from "pagopa-interop-commons";
-import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+
 import {
   processAgreement,
   processPurposes,

@@ -1,6 +1,9 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  purposeApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
 import {
   AppContext,
   AuthData,
@@ -60,8 +63,9 @@ import {
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 import { ClientId } from "pagopa-interop-models";
+import { P, match } from "ts-pattern";
+
 import { config } from "../config/config.js";
 import {
   agreementNotFound,
@@ -101,6 +105,8 @@ import {
   editNotAllowedForReviewMode,
   reviewerWorkflowNotEditable,
   reviewerWorkflowNotInSignedState,
+  reviewerWorkflowNotAllowedForDelegatedPurpose,
+  reviewerWorkflowNotAllowedForReceiveMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -151,6 +157,8 @@ import {
   assertRequesterCanActAsConsumer,
   assertRequesterCanActAsProducer,
   assertRequesterCanRetrievePurpose,
+  assertTenantHasSelfcareId,
+  assertUserSelfcareReviewerPrivileges,
   assertValidPurposeTenantKind,
   getOrganizationRole,
   isArchivable,
@@ -169,6 +177,7 @@ import {
   getUpdatedQuotas,
   assertRiskAnalysisTenantKindMatch,
   assertRequesterIsConsumer,
+  assertRiskAnalysisFormEditableInCurrentReviewMode,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -338,7 +347,8 @@ async function retrievePublishedPurposeTemplate(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function purposeServiceBuilder(
   dbInstance: DB,
-  readModelService: ReadModelServiceSQL
+  readModelService: ReadModelServiceSQL,
+  selfcareV2InstitutionClient: SelfcareV2InstitutionClient
 ) {
   const repository = eventRepository(dbInstance, purposeEventToBinaryData);
 
@@ -547,6 +557,21 @@ export function purposeServiceBuilder(
 
       assertRequesterIsConsumer(purpose.data, authData);
 
+      assertPurposeIsNotFromTemplate(purpose.data);
+
+      if (purpose.data.delegationId !== undefined) {
+        throw reviewerWorkflowNotAllowedForDelegatedPurpose(purposeId);
+      }
+
+      const eservice = await retrieveEService(
+        purpose.data.eserviceId,
+        readModelService
+      );
+
+      if (eservice.mode === eserviceMode.receive) {
+        throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
+      }
+
       if (purpose.data.reviewerWorkflow !== undefined) {
         throw reviewerWorkflowConflict(purposeId);
       }
@@ -557,6 +582,24 @@ export function purposeServiceBuilder(
       if (seed.reviewerIds.length > 1) {
         throw multipleReviewersNotAllowed(purposeId);
       }
+
+      const consumer = await retrieveTenant(
+        purpose.data.consumerId,
+        readModelService
+      );
+      assertTenantHasSelfcareId(consumer);
+
+      await Promise.all(
+        seed.reviewerIds.map((reviewerId) =>
+          assertUserSelfcareReviewerPrivileges({
+            selfcareId: consumer.selfcareId,
+            consumerId: purpose.data.consumerId,
+            selfcareV2InstitutionClient,
+            userIdToCheck: unsafeBrandId(reviewerId),
+            correlationId,
+          })
+        )
+      );
 
       const reviewerWorkflow: ReviewerWorkflow = {
         reviewMode: seed.reviewMode,
@@ -1421,6 +1464,12 @@ export function purposeServiceBuilder(
           createdAt: new Date(),
           state: purposeVersionState.waitingForApproval,
           dailyCalls: seed.dailyCalls,
+          stamps: {
+            creation: {
+              who: authData.userId,
+              when: new Date(),
+            },
+          },
         };
 
         const updatedPurpose = {
@@ -1598,6 +1647,7 @@ export function purposeServiceBuilder(
               return changePurposeVersionToWaitForApprovalFromDraftLogic(
                 purpose,
                 purposeVersion,
+                authData,
                 correlationId
               );
             }
@@ -2504,6 +2554,7 @@ const archiveActiveAndSuspendedPurposeVersions = (
 export type UpdatePurposeReturn = WithMetadata<{
   purpose: Purpose;
 }>;
+
 const performUpdatePurpose = async (
   purposeId: PurposeId,
   modeAndUpdateContent:
@@ -2576,6 +2627,21 @@ const performUpdatePurpose = async (
     purpose.data.consumerId,
     readModelService
   );
+
+  if (
+    mode === eserviceMode.deliver &&
+    isFeatureFlagEnabled(config, "featureFlagNewOperators") &&
+    purpose.data.reviewerWorkflow &&
+    (riskAnalysisForm || purpose.data.riskAnalysisForm)
+  ) {
+    // Validate form changes (add, update, or removal) during active reviewer workflow
+    assertRiskAnalysisFormEditableInCurrentReviewMode(
+      purposeId,
+      riskAnalysisForm,
+      purpose.data.riskAnalysisForm,
+      purpose.data.reviewerWorkflow
+    );
+  }
 
   const riskAnalysisFormToValidate: RiskAnalysisFormToValidate | undefined =
     riskAnalysisForm
@@ -2696,6 +2762,7 @@ const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
 function changePurposeVersionToWaitForApprovalFromDraftLogic(
   purpose: WithMetadata<Purpose>,
   purposeVersion: PurposeVersion,
+  authData: UIAuthData | M2MAdminAuthData,
   correlationId: CorrelationId
 ): {
   event: CreateEvent<PurposeEvent>;
@@ -2705,6 +2772,12 @@ function changePurposeVersionToWaitForApprovalFromDraftLogic(
     ...purposeVersion,
     state: purposeVersionState.waitingForApproval,
     updatedAt: new Date(),
+    stamps: {
+      creation: {
+        who: authData.userId,
+        when: new Date(),
+      },
+    },
   };
 
   const updatedPurpose: Purpose = replacePurposeVersion(

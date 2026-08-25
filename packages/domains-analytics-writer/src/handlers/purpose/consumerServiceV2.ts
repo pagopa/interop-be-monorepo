@@ -1,19 +1,18 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { PurposeItemsSchema } from "pagopa-interop-kpi-models";
 import {
   PurposeEventEnvelopeV2,
   fromPurposeV2,
   genericInternalError,
 } from "pagopa-interop-models";
-import { match, P } from "ts-pattern";
 import { splitPurposeIntoObjectsSQL } from "pagopa-interop-readmodel";
+import { match, P } from "ts-pattern";
 import { z } from "zod";
-import { purposeServiceBuilder } from "../../service/purposeService.js";
+
 import { DBContext } from "../../db/db.js";
-import {
-  PurposeDeletingSchema,
-  PurposeItemsSchema,
-} from "../../model/purpose/purpose.js";
+import { PurposeDeletingSchema } from "../../model/purpose/purpose.js";
+import { purposeServiceBuilder } from "../../service/purposeService.js";
 import { distinctByKeys } from "../../utils/sqlQueryHelper.js";
 
 export async function handlePurposeMessageV2(
@@ -77,6 +76,7 @@ export async function handlePurposeMessageV2(
               versionDocumentsSQL: splitResult.versionDocumentsSQL,
               versionStampsSQL: splitResult.versionStampsSQL,
               versionSignedDocumentsSQL: splitResult.versionSignedDocumentsSQL,
+              reviewersSQL: splitResult.reviewersSQL,
             } satisfies z.input<typeof PurposeItemsSchema>)
           );
         }

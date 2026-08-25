@@ -1,5 +1,7 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+
+import { EventEnvelope } from "../events/events.js";
 import {
   ClonedEServiceAddedV1,
   EServiceAddedV1,
@@ -16,8 +18,6 @@ import {
   EServiceWithDescriptorsDeletedV1,
   MovedAttributesFromEserviceToDescriptorsV1,
 } from "../gen/v1/eservice/events.js";
-import { protobufDecoder } from "../protobuf/protobuf.js";
-import { EventEnvelope } from "../events/events.js";
 import {
   DraftEServiceUpdatedV2,
   EServiceAddedV2,
@@ -32,7 +32,6 @@ import {
   EServiceDescriptorDocumentUpdatedV2,
   EServiceDescriptorInterfaceAddedV2,
   EServiceDescriptorInterfaceDeletedV2,
-  EServiceDescriptorInterfaceUpdatedV2,
   EServiceDescriptorPublishedV2,
   EServiceDescriptorSuspendedV2,
   EServiceDraftDescriptorDeletedV2,
@@ -65,7 +64,6 @@ import {
   EServicePersonalDataFlagUpdatedAfterPublicationV2,
   EServicePersonalDataFlagUpdatedByTemplateUpdateV2,
   EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
-  EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2,
   EServiceDescriptorAsyncExchangeCallbackInterfaceDeletedV2,
   EServiceInstanceLabelUpdatedV2,
   EServiceArchivingScheduledV2,
@@ -77,6 +75,7 @@ import {
   MaintenanceEServicePersonalDataFlagResetV2,
   MaintenanceEServiceDescriptorUnarchivedV2,
 } from "../gen/v2/eservice/events.js";
+import { protobufDecoder } from "../protobuf/protobuf.js";
 
 export function catalogEventToBinaryData(event: EServiceEvent): Uint8Array {
   return match(event)
@@ -180,9 +179,6 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceDescriptorDocumentAdded" }, ({ data }) =>
       EServiceDescriptorDocumentAddedV2.toBinary(data)
-    )
-    .with({ type: "EServiceDescriptorInterfaceUpdated" }, ({ data }) =>
-      EServiceDescriptorInterfaceUpdatedV2.toBinary(data)
     )
     .with({ type: "EServiceDescriptorDocumentUpdated" }, ({ data }) =>
       EServiceDescriptorDocumentUpdatedV2.toBinary(data)
@@ -288,11 +284,6 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
       ({ data }) =>
         EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2.toBinary(data)
-    )
-    .with(
-      { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated" },
-      ({ data }) =>
-        EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2.toBinary(data)
     )
     .with(
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
@@ -486,11 +477,6 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceDescriptorInterfaceUpdated"),
-    data: protobufDecoder(EServiceDescriptorInterfaceUpdatedV2),
-  }),
-  z.object({
-    event_version: z.literal(2),
     type: z.literal("EServiceDescriptorDocumentUpdated"),
     data: protobufDecoder(EServiceDescriptorDocumentUpdatedV2),
   }),
@@ -636,13 +622,6 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceAdded"),
     data: protobufDecoder(
       EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2
-    ),
-  }),
-  z.object({
-    event_version: z.literal(2),
-    type: z.literal("EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated"),
-    data: protobufDecoder(
-      EServiceDescriptorAsyncExchangeCallbackInterfaceUpdatedV2
     ),
   }),
   z.object({

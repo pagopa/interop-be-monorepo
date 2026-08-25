@@ -4,6 +4,10 @@
 import { KafkaMessage } from "kafkajs";
 import { FileManager, decodeKafkaMessage } from "pagopa-interop-commons";
 import {
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
+import {
   EServiceEventEnvelopeV2,
   EServiceEvent,
   AgreementEventEnvelopeV2,
@@ -20,10 +24,7 @@ import {
   PurposeTemplateEvent,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  SafeStorageService,
-  SignatureServiceBuilder,
-} from "pagopa-interop-commons";
+
 import { config } from "../config/config.js";
 import { getEventTimestamp } from "../utils/eventTimestamp.js";
 import { handleAgreementMessageV2 } from "./handleAgreementMessageV2.js";

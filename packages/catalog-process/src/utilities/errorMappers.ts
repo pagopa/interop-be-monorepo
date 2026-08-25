@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -180,7 +181,11 @@ export const documentUpdateErrorMapper = (
       "eServiceDocumentNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
-    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "notValidDescriptor",
+      "interfaceDocumentNotUpdatable",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
     .with("documentPrettyNameDuplicate", () => HTTP_STATUS_CONFLICT)
     .with("templateInstanceNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
@@ -279,6 +284,7 @@ export const updateDescriptorErrorMapper = (
       "attributeDailyCallsNotAllowed",
       "templateInstanceNotAllowed",
       "attributeDiscreteConfigNotAllowed",
+      "certifiedDiscreteAttributeConfigCannotBeChanged",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
@@ -511,6 +517,7 @@ export const updateDescriptorAttributesErrorMapper = (
       "notValidDescriptor",
       "attributeDailyCallsNotAllowed",
       "attributeDiscreteConfigNotAllowed",
+      "certifiedDiscreteAttributeConfigCannotBeChanged",
       "templateInstanceNotAllowed",
       "inconsistentDailyCalls",
       () => HTTP_STATUS_BAD_REQUEST
@@ -692,6 +699,7 @@ export const addEServiceTemplateInstanceInterfaceErrorMapper = (
       "eServiceTemplateWithoutPublishedVersion",
       "invalidEserviceInterfaceFileDetected",
       "interfaceAlreadyExists",
+      "eserviceTemplateInterfaceTechnologyMismatch",
       () => HTTP_STATUS_CONFLICT
     )
     .with(
@@ -785,7 +793,10 @@ export const updateEserviceDescriptorArchivingStatusErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eserviceWithActiveOrPendingDelegation", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eserviceDescriptorWithActiveOrPendingDelegation",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with(
       "eServiceNotFound",
       "eServiceDescriptorNotFound",
@@ -804,12 +815,16 @@ export const updateEServiceArchivingStatusErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)
-    .with("eserviceWithActiveOrPendingDelegation", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "eserviceArchivingWithActiveOrPendingDelegation",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .with(
       "eserviceWithoutValidDescriptors",
       "notValidEServiceState",
+      "gracePeriodDaysLowerThanDescriptor",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);

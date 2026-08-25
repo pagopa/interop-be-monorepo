@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, it, expect } from "vitest";
 import { getMockAttribute, getMockContext } from "pagopa-interop-commons-test";
 import { Attribute, attributeKind } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import { attributeNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,

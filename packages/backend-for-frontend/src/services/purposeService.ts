@@ -1,4 +1,12 @@
 import {
+  bffApi,
+  catalogApi,
+  purposeApi,
+  purposeTemplateApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
+import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
+import {
   WithLogger,
   FileManager,
   removeDuplicates,
@@ -17,18 +25,19 @@ import {
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
+import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import {
-  bffApi,
-  catalogApi,
-  purposeApi,
-  purposeTemplateApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
+  toBffApiPurposeVersion,
+  toBffApiRiskAnalysisForm,
+} from "../api/purposeApiConverter.js";
+import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 import {
   DelegationProcessClient,
   PagoPAInteropBeClients,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   agreementNotFound,
   eserviceDescriptorNotFound,
@@ -36,18 +45,12 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { BffAppContext, Headers } from "../utilities/context.js";
-import { config } from "../config/config.js";
-import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
-import {
-  toBffApiPurposeVersion,
-  toBffApiRiskAnalysisForm,
-} from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
+import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { isAgreementUpgradable } from "./validators.js";
 
 const enrichPurposeDelegation = async (
@@ -94,6 +97,39 @@ const enrichPurposeDelegation = async (
       kind: delegator.kind,
     },
   };
+};
+
+const enrichPurposeReviewerWorkflow = async (
+  reviewerWorkflow: purposeApi.ReviewerWorkflow | undefined,
+  authData: UIAuthData,
+  consumerId: string,
+  userRoles: string[],
+  selfcareV2UserClient: SelfcareV2UsersClient,
+  selfcareId: string,
+  correlationId: CorrelationId
+): Promise<bffApi.ReviewerWorkflow | undefined> => {
+  if (reviewerWorkflow === undefined) {
+    return undefined;
+  }
+  const isConsumer = authData.organizationId === consumerId;
+  const hasAdminOrViewerRole =
+    userRoles.includes(authRole.ADMIN_ROLE) ||
+    userRoles.includes(authRole.VIEWER_ROLE);
+
+  if (isConsumer && hasAdminOrViewerRole) {
+    const reviewers = await Promise.all(
+      reviewerWorkflow.reviewerIds.map((reviewerId) =>
+        getSelfcareCompactUserById(
+          selfcareV2UserClient,
+          reviewerId,
+          selfcareId,
+          correlationId
+        )
+      )
+    );
+    return { ...reviewerWorkflow, reviewers };
+  }
+  return reviewerWorkflow;
 };
 
 const getCurrentVersion = (
@@ -306,7 +342,15 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
-      reviewerWorkflow: purpose.reviewerWorkflow,
+      reviewerWorkflow: await enrichPurposeReviewerWorkflow(
+        purpose.reviewerWorkflow,
+        authData,
+        purpose.consumerId,
+        authData.userRoles,
+        selfcareV2UserClient,
+        authData.selfcareId,
+        correlationId
+      ),
     };
   };
 
