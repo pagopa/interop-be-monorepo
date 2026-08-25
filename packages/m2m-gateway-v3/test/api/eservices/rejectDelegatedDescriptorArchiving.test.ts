@@ -27,7 +27,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/rejectDelegatedA
   const mockM2MEServiceDescriptor: m2mGatewayApiV3.EServiceDescriptor =
     toM2MGatewayApiEServiceDescriptor(mockApiDescriptor);
 
-  const mockSeed: m2mGatewayApiV3.RejectDelegatedArchivingSeed = {
+  const mockSeed: m2mGatewayApiV3.RejectDelegatedDescriptorArchivingSeed = {
     rejectionReason: "Not needed",
   };
 
@@ -35,7 +35,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/rejectDelegatedA
     token: string,
     eserviceId: string = mockApiEservice.id,
     descriptorId: string = mockApiDescriptor.id,
-    body: m2mGatewayApiV3.RejectDelegatedArchivingSeed = mockSeed
+    body: m2mGatewayApiV3.RejectDelegatedDescriptorArchivingSeed = mockSeed
   ) =>
     request(api)
       .post(
@@ -98,7 +98,7 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/rejectDelegatedA
         token,
         mockApiEservice.id,
         mockApiDescriptor.id,
-        body as m2mGatewayApiV3.RejectDelegatedArchivingSeed
+        body as m2mGatewayApiV3.RejectDelegatedDescriptorArchivingSeed
       );
       expect(res.status).toBe(400);
     }
