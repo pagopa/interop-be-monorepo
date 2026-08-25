@@ -233,7 +233,7 @@ describe("handleEserviceArchivingRequestCanceledToDelegate", () => {
       expect(notifications[0]).toEqual({
         userId,
         tenantId: delegateTenant.id,
-        notificationType: "eserviceArchivingRequestedToDelegator",
+        notificationType: "eserviceArchivingApprovedRejectedToDelegate",
         entityId: `${eservice.id}/${descriptorId}`,
         body: inAppTemplates.eserviceDescriptorArchivingRequestCanceledToDelegate(
           delegatorTenant.name,
