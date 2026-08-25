@@ -19,10 +19,11 @@ import {
   getAuthDataFromToken,
   getUserInfoFromAuthData,
 } from "./authData.js";
+import {
+  JWKS_READ_ATTEMPTS,
+  JWKS_READ_RETRY_DELAY_MILLIS,
+} from "./constants.js";
 import { buildJwksClients } from "./jwk.js";
-
-const jwksReadAttempts = 2;
-const jwksReadRetryDelayMillis = 100;
 
 export const decodeJwtToken = (
   jwtToken: string,
@@ -129,8 +130,8 @@ export const verifyJwtToken = async (
                 }
               },
               {
-                retries: jwksReadAttempts,
-                delay: jwksReadRetryDelayMillis,
+                retries: JWKS_READ_ATTEMPTS,
+                delay: JWKS_READ_RETRY_DELAY_MILLIS,
               }
             );
             logger.info(
