@@ -26,7 +26,7 @@ describe("DELETE /eservices/:eserviceId/submitDelegatedArchiving router test", (
     eserviceId: string = mockEService.id
   ) =>
     request(api)
-      .post(`${appBasePath}/eservices/${eserviceId}/submitDelegatedArchiving`)
+      .delete(`${appBasePath}/eservices/${eserviceId}/submitDelegatedArchiving`)
       .set("Authorization", `DPoP ${token}`)
       .set("DPoP", (await getMockDPoPProof()).dpopProofJWS)
       .set("Content-Type", "application/json")
