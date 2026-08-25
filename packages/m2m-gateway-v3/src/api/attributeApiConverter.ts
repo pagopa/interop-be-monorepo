@@ -170,6 +170,16 @@ export function toGetCertifiedAttributesApiQueryParams(
   };
 }
 
+export function toGetCertifiedDiscreteAttributesApiQueryParams(
+  params: m2mGatewayApiV3.GetCertifiedDiscreteAttributesQueryParams
+): attributeRegistryApi.GetAttributesQueryParams {
+  return {
+    limit: params.limit,
+    offset: params.offset,
+    kinds: [attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE],
+  };
+}
+
 export function toGetDeclaredAttributesApiQueryParams(
   params: m2mGatewayApiV3.GetDeclaredAttributesQueryParams
 ): attributeRegistryApi.GetAttributesQueryParams {
