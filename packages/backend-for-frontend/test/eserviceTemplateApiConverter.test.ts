@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest";
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiEserviceTemplateVersion,
   getMockedApiEServiceTemplate,
   getMockedApiTenant,
 } from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+
 import { toBffCatalogEServiceTemplate } from "../src/api/eserviceTemplateApiConverter.js";
 
 describe("eserviceTemplateApiConverter", () => {
