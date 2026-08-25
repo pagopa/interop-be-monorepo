@@ -36,16 +36,28 @@ describe("createEServiceDescriptorCertifiedDiscreteAttributesGroup", () => {
   const attribute1: catalogApi.Attribute = {
     id: generateId(),
     explicitAttributeVerification: false,
+    discreteConfig: {
+      threshold: 1,
+      comparator: catalogApi.AttributeCertifiedDiscreteComparator.Values.EQ,
+    },
   };
 
   const attribute2: catalogApi.Attribute = {
     id: generateId(),
     explicitAttributeVerification: false,
+    discreteConfig: {
+      threshold: 2,
+      comparator: catalogApi.AttributeCertifiedDiscreteComparator.Values.GT,
+    },
   };
 
   const attribute3: catalogApi.Attribute = {
     id: generateId(),
     explicitAttributeVerification: false,
+    discreteConfig: {
+      threshold: 3,
+      comparator: catalogApi.AttributeCertifiedDiscreteComparator.Values.LTE,
+    },
   };
 
   const bulkAttribute1: attributeRegistryApi.Attribute = {
@@ -104,6 +116,9 @@ describe("createEServiceDescriptorCertifiedDiscreteAttributesGroup", () => {
         seed.attributeIds.map((id) => ({
           id,
           explicitAttributeVerification: false,
+          discreteConfig: [attribute1, attribute2, attribute3].find(
+            (a) => a.id === id
+          )?.discreteConfig,
         })),
       ],
       verified: [],
@@ -189,8 +204,6 @@ describe("createEServiceDescriptorCertifiedDiscreteAttributesGroup", () => {
         seed,
         getMockM2MAdminAppContext()
       );
-
-    console.log("result", result);
 
     expect(result).toStrictEqual(response);
     expectApiClientGetToHaveBeenCalledWith({

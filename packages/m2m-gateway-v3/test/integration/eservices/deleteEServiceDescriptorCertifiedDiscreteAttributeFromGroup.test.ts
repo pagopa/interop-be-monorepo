@@ -1,3 +1,4 @@
+import { attributeRegistryApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiEServiceAttribute,
@@ -29,15 +30,26 @@ import {
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
-  const mockAttribute = getMockedApiEServiceAttribute();
+  const getMockedApiCertifiedDiscreteAttribute = (): catalogApi.Attribute => ({
+    ...getMockedApiEServiceAttribute(),
+    discreteConfig: {
+      threshold: 1,
+      comparator: "GT",
+    },
+  });
+
+  const mockAttribute = getMockedApiCertifiedDiscreteAttribute();
   const mockCertifiedDiscreteAttributes = [
-    [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
-    [getMockedApiEServiceAttribute(), mockAttribute],
+    [
+      getMockedApiCertifiedDiscreteAttribute(),
+      getMockedApiCertifiedDiscreteAttribute(),
+    ],
+    [getMockedApiCertifiedDiscreteAttribute(), mockAttribute],
     [mockAttribute],
     [
-      getMockedApiEServiceAttribute(),
-      getMockedApiEServiceAttribute(),
-      getMockedApiEServiceAttribute(),
+      getMockedApiCertifiedDiscreteAttribute(),
+      getMockedApiCertifiedDiscreteAttribute(),
+      getMockedApiCertifiedDiscreteAttribute(),
     ],
   ];
   const mockDescriptor = getMockedApiEserviceDescriptor({
@@ -60,15 +72,41 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
   const mockPatchUpdateDescriptor = vi
     .fn()
     .mockResolvedValue(mockGetEServiceResponse);
+  const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
+    data: {
+      results: [mockAttribute.id].map((id) => ({
+        id,
+        code: `code-${id}`,
+        name: `name-${id}`,
+        creationTime: new Date().toISOString(),
+        description: `description-${id}`,
+        origin: "Origin",
+        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+      })),
+      totalCount: 1,
+    },
+    metadata: {},
+  });
 
   mockInteropBeClients.catalogProcessClient = {
     patchUpdateDraftDescriptor: mockPatchUpdateDescriptor,
     getEServiceById: mockGetEService,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
+  mockInteropBeClients.attributeProcessClient = {
+    getBulkedAttributes: mockGetBulkedAttributes,
+  } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
+
   beforeEach(() => {
-    mockPatchUpdateDescriptor.mockClear();
-    mockGetEService.mockClear();
+    mockPatchUpdateDescriptor.mockReset();
+    mockPatchUpdateDescriptor.mockResolvedValue(mockGetEServiceResponse);
+
+    mockGetEService.mockReset();
+    mockGetEService.mockImplementation(
+      mockPollingResponse(mockGetEServiceResponse, 2)
+    );
+
+    mockGetBulkedAttributes.mockClear();
   });
 
   it("Should succeed and perform API clients calls", async () => {
@@ -146,6 +184,8 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
   });
 
   it("Should throw missingMetadata in case the eservice returned by the update PATCH call has no metadata", async () => {
+    mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
+
     mockPatchUpdateDescriptor.mockResolvedValueOnce({
       ...mockGetEServiceResponse,
       metadata: undefined,
@@ -209,6 +249,8 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
   });
 
   it("Should throw eserviceDescriptorAttributeGroupNotFound in case of missing group for the specified group index", async () => {
+    mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
+
     await expect(
       eserviceService.deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup(
         unsafeBrandId(mockEService.id),
@@ -228,6 +270,8 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
   });
 
   it("Should throw eserviceDescriptorAttributeNotFound in case of attribute not found", async () => {
+    mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
+
     await expect(
       eserviceService.deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup(
         unsafeBrandId(mockEService.id),
@@ -242,6 +286,8 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
   });
 
   it("Should throw eserviceDescriptorNotFound in case of eservice descriptor not found", async () => {
+    mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
+
     const descriptorId = generateId();
     await expect(
       eserviceService.deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup(

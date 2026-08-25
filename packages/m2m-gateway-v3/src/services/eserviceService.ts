@@ -60,6 +60,33 @@ export function eserviceServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
+  type AttributeKind = keyof catalogApi.Attributes | "certified_discrete";
+
+  function mapAttributeKindToCatalogKind(
+    attributeKind: AttributeKind
+  ): keyof catalogApi.Attributes {
+    return attributeKind === "certified_discrete" ? "certified" : attributeKind;
+  }
+
+  function isDiscreteAttributeGroup(group: catalogApi.Attribute[]): boolean {
+    return group.every((attribute) => attribute.discreteConfig !== undefined);
+  }
+
+  function getIndexedKindAttributeGroups(
+    descriptor: catalogApi.EServiceDescriptor,
+    attributeKind: AttributeKind
+  ): Array<{ group: catalogApi.Attribute[]; index: number }> {
+    const catalogAttributeKind = mapAttributeKindToCatalogKind(attributeKind);
+
+    return descriptor.attributes[catalogAttributeKind]
+      .map((group, index) => ({ group, index }))
+      .filter(
+        ({ group }) =>
+          attributeKind !== "certified_discrete" ||
+          isDiscreteAttributeGroup(group)
+      );
+  }
+
   const retrieveEServiceById = async (
     headers: M2MGatewayAppContext["headers"],
     eserviceId: EServiceId
@@ -105,7 +132,7 @@ export function eserviceServiceBuilder(
   async function retrieveEServiceDescriptorAttributes(
     eservice: WithMaybeMetadata<catalogApi.EService>,
     descriptorId: DescriptorId,
-    attributeKind: keyof catalogApi.Attributes,
+    attributeKind: AttributeKind,
     { offset, limit }: { offset: number; limit: number },
     headers: M2MGatewayAppContext["headers"]
   ): Promise<
@@ -115,7 +142,8 @@ export function eserviceServiceBuilder(
     }>
   > {
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
-    const kindAttributeGroups = descriptor.attributes[attributeKind];
+    const catalogAttributeKind = mapAttributeKindToCatalogKind(attributeKind);
+    const kindAttributeGroups = descriptor.attributes[catalogAttributeKind];
     const allFlatKindAttributes: Array<{
       attributeId: string;
       groupIndex: number;
@@ -126,13 +154,8 @@ export function eserviceServiceBuilder(
       }))
     );
 
-    const paginatedFlatKindAttributes = allFlatKindAttributes.slice(
-      offset,
-      offset + limit
-    );
-
     const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
-      paginatedFlatKindAttributes.map((item) => item.attributeId);
+      allFlatKindAttributes.map((item) => item.attributeId);
 
     const attributeMap = await getResolvedAttributesMap(
       attributeIdsToResolve,
@@ -140,30 +163,45 @@ export function eserviceServiceBuilder(
       clients
     );
 
-    // Recombination: Map the paginated flat list with the resolved complete details
-    const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
+    const attributesToReturn = allFlatKindAttributes.flatMap((item) => {
       const attributeDetailed = attributeMap.get(item.attributeId);
 
       if (!attributeDetailed) {
         throw eserviceDescriptorAttributeNotFound(descriptorId);
       }
 
-      return {
-        attribute: attributeDetailed,
-        groupIndex: item.groupIndex,
-      };
+      const matchesExpectedKind =
+        (attributeKind === "certified" &&
+          attributeDetailed.kind ===
+            attributeRegistryApi.AttributeKind.Values.CERTIFIED) ||
+        (attributeKind === "certified_discrete" &&
+          attributeDetailed.kind ===
+            attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE) ||
+        (attributeKind !== "certified" &&
+          attributeKind !== "certified_discrete");
+
+      if (!matchesExpectedKind) {
+        return [];
+      }
+
+      return [
+        {
+          attribute: attributeDetailed,
+          groupIndex: item.groupIndex,
+        },
+      ];
     });
 
     return {
-      results: attributesToReturn,
-      totalCount: allFlatKindAttributes.length,
+      results: attributesToReturn.slice(offset, offset + limit),
+      totalCount: attributesToReturn.length,
     };
   }
   async function createEServiceDescriptorAttributesGroup(
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
     seed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed,
-    attributeKind: keyof catalogApi.Attributes,
+    attributeKind: AttributeKind,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<{
     groupIndex: number;
@@ -173,19 +211,40 @@ export function eserviceServiceBuilder(
 
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
 
-    const newGroupIndex = descriptor.attributes[attributeKind].length;
+    const catalogAttributeKind = mapAttributeKindToCatalogKind(attributeKind);
+    const newGroupIndex = descriptor.attributes[catalogAttributeKind].length;
+
+    const existingDiscreteConfigById =
+      attributeKind === "certified_discrete"
+        ? new Map(
+            descriptor.attributes.certified.flatMap((group) =>
+              group.flatMap((attribute) =>
+                attribute.discreteConfig !== undefined
+                  ? [[attribute.id, attribute.discreteConfig] as const]
+                  : []
+              )
+            )
+          )
+        : new Map<
+            string,
+            catalogApi.EServiceAttributeCertifiedDiscreteConfig
+          >();
 
     const newKindAttributeGroups = [
-      ...descriptor.attributes[attributeKind],
-      seed.attributeIds.map((id) => ({
-        id,
-        explicitAttributeVerification: false,
-      })),
+      ...descriptor.attributes[catalogAttributeKind],
+      seed.attributeIds.map((id) => {
+        const discreteConfig = existingDiscreteConfigById.get(id);
+        return {
+          id,
+          explicitAttributeVerification: false,
+          ...(discreteConfig !== undefined ? { discreteConfig } : {}),
+        };
+      }),
     ];
 
     const newAttributes = {
       ...descriptor.attributes,
-      [attributeKind]: newKindAttributeGroups,
+      [catalogAttributeKind]: newKindAttributeGroups,
     };
 
     const response =
@@ -211,6 +270,7 @@ export function eserviceServiceBuilder(
         if (!attributeDetailed) {
           throw eserviceDescriptorAttributeNotFound(descriptorId);
         }
+
         return attributeDetailed;
       });
 
@@ -225,24 +285,33 @@ export function eserviceServiceBuilder(
     descriptorId: DescriptorId,
     groupIndex: number,
     attributeId: AttributeId,
-    attributeKind: keyof catalogApi.Attributes,
+    attributeKind: AttributeKind,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<void> {
     const eservice = await retrieveEServiceById(headers, eserviceId);
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
 
-    const kindAttributeGroups = descriptor.attributes[attributeKind];
+    const catalogAttributeKind = mapAttributeKindToCatalogKind(attributeKind);
+    const kindAttributeGroups = descriptor.attributes[catalogAttributeKind];
 
-    const attributeGroup = kindAttributeGroups.at(groupIndex);
+    const indexedKindAttributeGroups = getIndexedKindAttributeGroups(
+      descriptor,
+      attributeKind
+    );
 
-    if (!attributeGroup) {
+    const indexedAttributeGroup = indexedKindAttributeGroups.at(groupIndex);
+
+    if (!indexedAttributeGroup) {
       throw eserviceDescriptorAttributeGroupNotFound(
-        attributeKind,
+        catalogAttributeKind,
         eserviceId,
         descriptorId,
         groupIndex
       );
     }
+
+    const { group: attributeGroup, index: actualGroupIndex } =
+      indexedAttributeGroup;
 
     if (!attributeGroup.find((a) => a.id === attributeId)) {
       throw eserviceDescriptorAttributeNotFound(descriptorId);
@@ -255,13 +324,13 @@ export function eserviceServiceBuilder(
     const updatedGroups =
       attributeGroupWithoutAttribute.length === 0
         ? [
-            ...kindAttributeGroups.slice(0, groupIndex),
-            ...kindAttributeGroups.slice(groupIndex + 1),
+            ...kindAttributeGroups.slice(0, actualGroupIndex),
+            ...kindAttributeGroups.slice(actualGroupIndex + 1),
           ]
         : [
-            ...kindAttributeGroups.slice(0, groupIndex),
+            ...kindAttributeGroups.slice(0, actualGroupIndex),
             attributeGroupWithoutAttribute,
-            ...kindAttributeGroups.slice(groupIndex + 1),
+            ...kindAttributeGroups.slice(actualGroupIndex + 1),
           ];
 
     const response =
@@ -269,7 +338,7 @@ export function eserviceServiceBuilder(
         {
           attributes: {
             ...descriptor.attributes,
-            [attributeKind]: updatedGroups,
+            [catalogAttributeKind]: updatedGroups,
           },
         },
         {
@@ -313,32 +382,48 @@ export function eserviceServiceBuilder(
     descriptorId: DescriptorId,
     groupIndex: number,
     seed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed,
-    attributeKind: keyof catalogApi.Attributes,
+    attributeKind: AttributeKind,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<void> {
     const eservice = await retrieveEServiceById(headers, eserviceId);
     const descriptor = retrieveEServiceDescriptorById(eservice, descriptorId);
-    const kindAttributeGroups = descriptor.attributes[attributeKind];
-    const attributeGroup = kindAttributeGroups.at(groupIndex);
-    if (!attributeGroup) {
+    const catalogAttributeKind = mapAttributeKindToCatalogKind(attributeKind);
+    const kindAttributeGroups = descriptor.attributes[catalogAttributeKind];
+    const indexedKindAttributeGroups = getIndexedKindAttributeGroups(
+      descriptor,
+      attributeKind
+    );
+    const indexedAttributeGroup = indexedKindAttributeGroups.at(groupIndex);
+    if (!indexedAttributeGroup) {
       throw eserviceDescriptorAttributeGroupNotFound(
-        attributeKind,
+        catalogAttributeKind,
         eserviceId,
         descriptorId,
         groupIndex
       );
     }
+    const { group: attributeGroup, index: actualGroupIndex } =
+      indexedAttributeGroup;
+
+    const groupDiscreteConfig =
+      attributeKind === "certified_discrete"
+        ? attributeGroup[0]?.discreteConfig
+        : undefined;
+
     const updatedAttributeGroup = [
       ...attributeGroup,
       ...seed.attributeIds.map((id) => ({
         id,
         explicitAttributeVerification: false,
+        ...(groupDiscreteConfig !== undefined
+          ? { discreteConfig: groupDiscreteConfig }
+          : {}),
       })),
     ];
     const updatedGroups = [
-      ...kindAttributeGroups.slice(0, groupIndex),
+      ...kindAttributeGroups.slice(0, actualGroupIndex),
       updatedAttributeGroup,
-      ...kindAttributeGroups.slice(groupIndex + 1),
+      ...kindAttributeGroups.slice(actualGroupIndex + 1),
     ];
     const configOptions = {
       params: { eServiceId: eserviceId, descriptorId },
@@ -346,7 +431,7 @@ export function eserviceServiceBuilder(
     };
     const updatedAttributes = {
       ...descriptor.attributes,
-      [attributeKind]: updatedGroups,
+      [catalogAttributeKind]: updatedGroups,
     };
 
     const response = await (descriptor.state ===
@@ -1417,7 +1502,7 @@ export function eserviceServiceBuilder(
       const eserviceAttributes = await retrieveEServiceDescriptorAttributes(
         await retrieveEServiceById(headers, eserviceId),
         descriptorId,
-        "certified",
+        "certified_discrete",
         { offset, limit },
         headers
       );
@@ -1539,7 +1624,7 @@ export function eserviceServiceBuilder(
         descriptorId,
         groupIndex,
         seed,
-        "certified",
+        "certified_discrete",
         headers
       );
     },
@@ -1626,7 +1711,7 @@ export function eserviceServiceBuilder(
           eserviceId,
           descriptorId,
           seed,
-          "certified",
+          "certified_discrete",
           ctx
         );
 
@@ -1778,7 +1863,7 @@ export function eserviceServiceBuilder(
         descriptorId,
         groupIndex,
         attributeId,
-        "certified",
+        "certified_discrete",
         ctx
       );
     },

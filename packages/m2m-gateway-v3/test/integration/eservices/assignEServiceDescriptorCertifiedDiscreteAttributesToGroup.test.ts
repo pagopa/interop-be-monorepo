@@ -1,4 +1,4 @@
-import { catalogApi } from "pagopa-interop-api-clients";
+import { attributeRegistryApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiEServiceAttribute,
@@ -28,13 +28,28 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
+const getMockedApiCertifiedDiscreteEServiceAttribute =
+  (): catalogApi.Attribute => ({
+    ...getMockedApiEServiceAttribute(),
+    discreteConfig: {
+      threshold: 1,
+      comparator: catalogApi.AttributeCertifiedDiscreteComparator.Values.EQ,
+    },
+  });
+
 describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
-  const mockNewAttribute1 = getMockedApiEServiceAttribute();
-  const mockNewAttribute2 = getMockedApiEServiceAttribute();
+  const mockNewAttribute1 = getMockedApiCertifiedDiscreteEServiceAttribute();
+  const mockNewAttribute2 = getMockedApiCertifiedDiscreteEServiceAttribute();
   const mockCertifiedDiscreteAttributes = [
-    [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
-    [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
-    [getMockedApiEServiceAttribute()],
+    [
+      getMockedApiCertifiedDiscreteEServiceAttribute(),
+      getMockedApiCertifiedDiscreteEServiceAttribute(),
+    ],
+    [
+      getMockedApiCertifiedDiscreteEServiceAttribute(),
+      getMockedApiCertifiedDiscreteEServiceAttribute(),
+    ],
+    [getMockedApiCertifiedDiscreteEServiceAttribute()],
   ];
   const mockDescriptor = getMockedApiEserviceDescriptor({
     state: catalogApi.EServiceDescriptorState.Values.DRAFT,
@@ -53,6 +68,21 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
   const mockGetEService = vi.fn();
   const mockPatchUpdateDescriptor = vi.fn();
   const mockUpdateDescriptorAttributes = vi.fn();
+  const mockGetBulkedAttributes = vi.fn().mockResolvedValue({
+    data: {
+      results: [mockNewAttribute1.id, mockNewAttribute2.id].map((id) => ({
+        id,
+        code: `code-${id}`,
+        name: `name-${id}`,
+        creationTime: new Date().toISOString(),
+        description: `description-${id}`,
+        origin: "Origin",
+        kind: attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE,
+      })),
+      totalCount: 2,
+    },
+    metadata: {},
+  });
 
   mockGetEService.mockResolvedValue(mockGetEServiceResponse);
   mockPatchUpdateDescriptor.mockResolvedValue(mockGetEServiceResponse);
@@ -64,10 +94,15 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
     getEServiceById: mockGetEService,
   } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
+  mockInteropBeClients.attributeProcessClient = {
+    getBulkedAttributes: mockGetBulkedAttributes,
+  } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
+
   beforeEach(() => {
     mockPatchUpdateDescriptor.mockClear();
     mockUpdateDescriptorAttributes.mockClear();
     mockGetEService.mockClear();
+    mockGetBulkedAttributes.mockClear();
   });
 
   it.each([0, 1, 2])(
@@ -106,6 +141,7 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
                   ...seed.attributeIds.map((id) => ({
                     id,
                     explicitAttributeVerification: false,
+                    discreteConfig: group[0]?.discreteConfig,
                   })),
                 ];
               }
