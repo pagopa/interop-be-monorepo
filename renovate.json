@@ -7,24 +7,16 @@
     ":dependencyDashboard"
   ],
   "prConcurrentLimit": 2,
-  "labels": [
-    "dependencies"
-  ],
-  "ignorePaths": [
-    "docker/docker-compose.yml"
-  ],
+  "labels": ["dependencies"],
+  "ignorePaths": ["docker/docker-compose.yml"],
   "packageRules": [
     {
       "groupName": "protobuf-ts monorepo",
-      "matchPackageNames": [
-        "/@protobuf-ts/"
-      ]
+      "matchPackageNames": ["/@protobuf-ts/"]
     },
     {
       "enabled": true,
-      "matchDepTypes": [
-        "devDependencies"
-      ]
+      "matchDepTypes": ["devDependencies"]
     }
   ],
   "major": {
@@ -33,7 +25,6 @@
   "minor": {
     "enabled": true
   },
-  "npmrc": "save-prefix=\nauto-install-peers=false\nstrict-peer-dependencies=false",
   "patch": {
     "enabled": true
   },
