@@ -85,21 +85,21 @@ export function toAttributeKey(key: {
 export const CERTIFIED_ATTRIBUTE_ALREADY_ASSIGNED_CODE = "005-0014";
 export const EVENT_CONFLICT_CODE = "005-10034";
 
-export type PhaseReport = {
+type PhaseReport = {
   succeeded: number;
   failed: number;
 };
 
-export type ImportReport = {
+type ImportReport = {
   upserts: PhaseReport;
   revocations: PhaseReport;
   warnings: number;
   skipped: number;
 };
 
-export type ImportPhase = "upserts" | "revocations";
+type ImportPhase = "upserts" | "revocations";
 
-export type ImportState = {
+type ImportState = {
   unsyncedTenants: Set<string>;
   report: ImportReport;
 };
