@@ -128,8 +128,14 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
   it.each([...gracePeriodDays])(
     "notifies producer + all consumers across all eservice-scope descriptors with copy that does NOT cite a specific version (gracePeriodDays: %d)",
     async (gracePeriodDaysValue: GracePeriodDays) => {
-      const descriptorA = makeDescriptor({ version: "1" }, gracePeriodDaysValue);
-      const descriptorB = makeDescriptor({ version: "2" }, gracePeriodDaysValue);
+      const descriptorA = makeDescriptor(
+        { version: "1" },
+        gracePeriodDaysValue
+      );
+      const descriptorB = makeDescriptor(
+        { version: "2" },
+        gracePeriodDaysValue
+      );
       const eservice = makeEservice({
         descriptors: [descriptorA, descriptorB],
       });
