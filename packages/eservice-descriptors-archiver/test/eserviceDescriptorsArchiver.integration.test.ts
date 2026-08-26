@@ -1,4 +1,5 @@
 /* eslint-disable functional/no-let */
+import { AxiosError } from "axios";
 import { RefreshableInteropToken, genericLogger } from "pagopa-interop-commons";
 import {
   getMockAgreement,
@@ -131,6 +132,71 @@ describe("EService Descriptors Archiver", async () => {
           headers: testHeaders,
         }
       );
+    });
+
+    it("should not reject when the Descriptor is already archived", async () => {
+      const producerId: TenantId = generateId();
+      const descriptor = {
+        ...getMockDescriptorPublished(),
+        state: descriptorState.deprecated,
+      };
+
+      const eservice = {
+        ...getMockEService(),
+        producerId,
+        descriptors: [descriptor],
+      };
+      const archivedAgreement = {
+        ...getMockAgreement(
+          eservice.id,
+          generateId<TenantId>(),
+          agreementState.archived
+        ),
+        descriptorId: descriptor.id,
+        producerId,
+      };
+
+      const otherAgreement1 = {
+        ...getMockAgreement(
+          eservice.id,
+          generateId<TenantId>(),
+          agreementState.archived
+        ),
+        descriptorId: descriptor.id,
+        producerId,
+      };
+
+      const otherAgreement2 = {
+        ...getMockAgreement(
+          eservice.id,
+          generateId<TenantId>(),
+          agreementState.archived
+        ),
+        descriptorId: descriptor.id,
+        producerId,
+      };
+
+      (catalogProcessClient.archiveDescriptor as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+        Object.assign(new AxiosError("already archived"), {
+          response: { status: 409 },
+        })
+      );
+
+      await addOneEService(eservice);
+      await addOneAgreement(archivedAgreement);
+      await addOneAgreement(otherAgreement1);
+      await addOneAgreement(otherAgreement2);
+
+      await expect(
+        archiveDescriptorForArchivedAgreement(
+          archivedAgreement,
+          mockRefreshableToken,
+          readModelService,
+          catalogProcessClient,
+          genericLogger,
+          testCorrelationId
+        )
+      ).resolves.toBeUndefined();
     });
 
     it.each([
