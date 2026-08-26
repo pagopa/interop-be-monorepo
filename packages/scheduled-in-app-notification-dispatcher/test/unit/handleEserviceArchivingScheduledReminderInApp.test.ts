@@ -128,8 +128,8 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
   it.each([...gracePeriodDays])(
     "notifies producer + all consumers across all eservice-scope descriptors with copy that does NOT cite a specific version (gracePeriodDays: %d)",
     async (gracePeriodDaysValue: GracePeriodDays) => {
-      const descriptorA = makeDescriptor({}, gracePeriodDaysValue);
-      const descriptorB = makeDescriptor({}, gracePeriodDaysValue);
+      const descriptorA = makeDescriptor({ version: "1" }, gracePeriodDaysValue);
+      const descriptorB = makeDescriptor({ version: "2" }, gracePeriodDaysValue);
       const eservice = makeEservice({
         descriptors: [descriptorA, descriptorB],
       });
@@ -192,7 +192,7 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
         (n) => n.notificationType === "eserviceStateChangedToProducer"
       );
       expect(producer?.userId).toBe(producerUserId);
-      expect(producer?.entityId).toBe(eservice.id);
+      expect(producer?.entityId).toBe(`${eservice.id}/${descriptorB.id}`);
       expect(producer?.body).toContain("sarà archiviato");
       expect(producer?.body).not.toMatch(/versione\s+\d/);
     }
