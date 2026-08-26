@@ -1,14 +1,8 @@
 import { Logger } from "pagopa-interop-commons";
-import {
-  EService,
-  EServiceIdDescriptorId,
-  NewNotification,
-  TenantId,
-} from "pagopa-interop-models";
+import { EService, EServiceId, NewNotification } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
   inAppTemplates,
-  retrieveLatestDescriptor,
 } from "pagopa-interop-notification-commons";
 import {
   ScheduledNotificationRow,
@@ -52,34 +46,21 @@ export async function handleEserviceArchivingScheduledReminderInApp(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );
 
-  const latestDescriptor = retrieveLatestDescriptor(eservice);
-  const entityId = EServiceIdDescriptorId.parse(
-    `${eservice.id}/${latestDescriptor.id}`
-  );
-
   const producerNotifications = await buildProducerNotifications({
     eservice,
     archivableOn,
-    entityId,
+    entityId: eserviceId,
     readModelService,
     log,
   });
 
-  const consumerNotifications = await buildConsumerNotifications({
-    eservice,
-    archivableOn,
-    entityId,
-    readModelService,
-    log,
-  });
-
-  return [...producerNotifications, ...consumerNotifications];
+  return producerNotifications;
 }
 
 type BuilderParams = {
   eservice: EService;
   archivableOn: Date;
-  entityId: EServiceIdDescriptorId;
+  entityId: EServiceId;
   readModelService: ReadModelServiceSQL;
   log: Logger;
 };
@@ -105,42 +86,6 @@ async function buildProducerNotifications({
       archivableOn
     ),
     notificationType: "eserviceStateChangedToProducer",
-    entityId,
-  }));
-}
-
-async function buildConsumerNotifications({
-  eservice,
-  archivableOn,
-  entityId,
-  readModelService,
-  log,
-}: BuilderParams): Promise<NewNotification[]> {
-  const agreements = await readModelService.getAgreementsByEserviceId(
-    eservice.id,
-    { includeArchived: false }
-  );
-  const consumerIds = Array.from(
-    new Set(agreements.map((a) => a.consumerId))
-  ) as TenantId[];
-  if (consumerIds.length === 0) {
-    return [];
-  }
-
-  const recipients = await getNotificationRecipients(
-    consumerIds,
-    "eserviceStateChangedToConsumer",
-    readModelService,
-    log
-  );
-  return recipients.map(({ userId, tenantId }) => ({
-    userId,
-    tenantId,
-    body: inAppTemplates.eserviceArchivingScheduledReminderToConsumer(
-      eservice.name,
-      archivableOn
-    ),
-    notificationType: "eserviceStateChangedToConsumer",
     entityId,
   }));
 }
