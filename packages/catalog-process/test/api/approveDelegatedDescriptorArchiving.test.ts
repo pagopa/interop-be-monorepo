@@ -125,14 +125,14 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/approveDelega
     },
     {
       error: noActiveDelegationFound(mockEService.id),
-      expectedStatus: 409,
+      expectedStatus: 404,
     },
     {
       error: delegatedArchiveRequestForIncorrectDelegateProducer(
         mockEService.id,
         descriptor.id
       ),
-      expectedStatus: 409,
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",

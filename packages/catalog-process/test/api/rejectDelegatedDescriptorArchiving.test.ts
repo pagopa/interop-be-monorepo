@@ -24,6 +24,7 @@ import {
 } from "../../src/model/domain/apiConverter.js";
 import {
   delegatedArchiveRequestForIncorrectDelegateProducer,
+  delegatedArchivingRequestNotActive,
   eServiceDescriptorNotFound,
   eServiceNotFound,
   noActiveDelegationFound,
@@ -97,13 +98,6 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/rejectDelegat
     }
   );
 
-  it("Should return 200 when rejectionReason is omitted", async () => {
-    const token = generateToken(authRole.ADMIN_ROLE);
-    const res = await makeRequest(token, mockEService.id, descriptor.id, {});
-
-    expect(res.status).toBe(200);
-  });
-
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
@@ -136,15 +130,19 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/rejectDelegat
       expectedStatus: 400,
     },
     {
-      error: noActiveDelegationFound(mockEService.id),
+      error: delegatedArchivingRequestNotActive(mockEService.id, descriptor.id),
       expectedStatus: 409,
+    },
+    {
+      error: noActiveDelegationFound(mockEService.id),
+      expectedStatus: 404,
     },
     {
       error: delegatedArchiveRequestForIncorrectDelegateProducer(
         mockEService.id,
         descriptor.id
       ),
-      expectedStatus: 409,
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",
@@ -166,18 +164,31 @@ describe("API /eservices/${eServiceId}/descriptors/${descriptorId}/rejectDelegat
   );
 
   it.each([
-    {},
-    { eServiceId: "invalidId", descriptorId: descriptor.id },
-    { eServiceId: mockEService.id, descriptorId: "invalidId" },
+    {
+      eServiceId: "invalidId",
+      descriptorId: descriptor.id,
+      body: rejectSeed,
+    },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: "invalidId",
+      body: rejectSeed,
+    },
+    { eServiceId: mockEService.id, descriptorId: descriptor.id, body: {} },
+    {
+      eServiceId: mockEService.id,
+      descriptorId: descriptor.id,
+      body: { rejectionReason: "" },
+    },
   ])(
     "Should return 400 if passed invalid params: %s",
-    async ({ eServiceId, descriptorId }) => {
+    async ({ eServiceId, descriptorId, body }) => {
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
         descriptorId as DescriptorId,
-        rejectSeed
+        body as catalogApi.RejectDelegatedDescriptorArchivingSeed
       );
 
       expect(res.status).toBe(400);

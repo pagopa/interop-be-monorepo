@@ -18443,6 +18443,8 @@ components:
         - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
+        - eserviceArchivingRequestedToDelegator
+        - eserviceArchivingApprovedRejectedToDelegate
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -18487,6 +18489,10 @@ components:
         purposeQuotaAdjustmentRequestToProducer:
           type: boolean
         purposeOverQuotaStateToConsumer:
+          type: boolean
+        eserviceArchivingRequestedToDelegator:
+          type: boolean
+        eserviceArchivingApprovedRejectedToDelegate:
           type: boolean
     TenantNotificationConfig:
       type: object
