@@ -13,6 +13,7 @@ import {
   UIAuthData,
   getRulesetExpiration,
   authRole,
+  getAllFromPaginated,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -387,66 +388,78 @@ export function purposeServiceBuilder(
       headers,
     });
 
-    const eservices = await Promise.all(
-      removeDuplicates(purposes.results.map((p) => p.eserviceId)).map(
-        (eServiceId) =>
-          catalogProcessClient.getEServiceById({
-            params: {
-              eServiceId,
-            },
-            headers,
-          })
+    const eserviceIds = removeDuplicates(
+      purposes.results.map((p) => p.eserviceId)
+    );
+    const purposeTemplateIds = removeDuplicates(
+      purposes.results.flatMap((p) =>
+        p.purposeTemplateId ? [p.purposeTemplateId] : []
       )
     );
+
     const notificationPromise = filterUnreadNotifications(
       inAppNotificationManagerClient,
       purposes.results.map((a) => a.id),
       ctx
     );
 
-    const getTenant = async (id: string): Promise<tenantApi.Tenant> =>
-      tenantProcessClient.tenant.getTenant({
-        params: {
-          id,
-        },
-        headers,
-      });
-    const consumers = await Promise.all(
-      removeDuplicates(purposes.results.map((p) => p.consumerId)).map(getTenant)
-    );
-    const producers = await Promise.all(
-      removeDuplicates(eservices.map((e) => e.producerId)).map(getTenant)
-    );
+    const [eservices, purposeTemplates, notifications] = await Promise.all([
+      eserviceIds.length > 0
+        ? getAllFromPaginated((offset, limit) =>
+            catalogProcessClient.getEServices({
+              queries: { eservicesIds: eserviceIds, offset, limit },
+              headers,
+            })
+          )
+        : [],
+      purposeTemplateIds.length > 0
+        ? getAllFromPaginated((offset, limit) =>
+            purposeTemplateProcessClient.getPurposeTemplates({
+              queries: {
+                purposeTemplateIds,
+                excludeExpiredRiskAnalysis: false,
+                offset,
+                limit,
+              },
+              headers,
+            })
+          )
+        : [],
+      notificationPromise,
+    ]);
 
-    const notifications = await notificationPromise;
-    const purposeTemplatesById = new Map<
-      string,
-      purposeTemplateApi.PurposeTemplate
-    >();
+    const tenantIds = removeDuplicates([
+      ...purposes.results.map((p) => p.consumerId),
+      ...eservices.map((e) => e.producerId),
+    ]);
+    const tenants =
+      tenantIds.length > 0
+        ? await getAllFromPaginated((offset, limit) =>
+            tenantProcessClient.tenant.getTenants({
+              queries: { tenantIds, offset, limit },
+              headers,
+            })
+          )
+        : [];
+
+    const purposeTemplatesById = new Map(
+      purposeTemplates.map((purposeTemplate) => [
+        purposeTemplate.id,
+        purposeTemplate,
+      ])
+    );
     const results = await Promise.all(
       purposes.results.map(async (p) => {
-        const purposeTemplateId = p.purposeTemplateId;
-        const purposeTemplate = purposeTemplateId
-          ? purposeTemplatesById.get(purposeTemplateId) ||
-            (await purposeTemplateProcessClient
-              .getPurposeTemplate({
-                params: {
-                  id: purposeTemplateId,
-                },
-                headers,
-              })
-              .then((pt) => {
-                purposeTemplatesById.set(purposeTemplateId, pt);
-                return pt;
-              }))
+        const purposeTemplate = p.purposeTemplateId
+          ? purposeTemplatesById.get(p.purposeTemplateId)
           : undefined;
 
         return await enhancePurpose(
           authData,
           p,
           eservices,
-          producers,
-          consumers,
+          tenants,
+          tenants,
           purposeTemplate,
           true, // NOTE: if we need the rulesetExpiration when retrieving the purposes list, we have to fetch it here
           headers,
