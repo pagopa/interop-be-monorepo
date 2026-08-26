@@ -21,6 +21,13 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
+import {
+  eServiceNotFound,
+  eServiceNotAnInstance,
+  eserviceWithoutValidDescriptors,
+  eServiceNameDuplicateForProducer,
+} from "../../src/model/domain/errors.js";
 import {
   addOneEService,
   addOneEServiceTemplate,
@@ -28,12 +35,6 @@ import {
   catalogService,
   readLastEserviceEvent,
 } from "../integrationUtils.js";
-import {
-  eServiceNotFound,
-  eServiceNotAnInstance,
-  eserviceWithoutValidDescriptors,
-  eServiceNameDuplicateForProducer,
-} from "../../src/model/domain/errors.js";
 
 describe("update E-service instanceLabel after publication", async () => {
   it.each<{

@@ -19,6 +19,7 @@ import {
   emptyErrorMapper,
   technology,
 } from "pagopa-interop-models";
+
 import {
   agreementStateToApiAgreementState,
   apiAgreementStateToAgreementState,
@@ -31,6 +32,7 @@ import {
   eServiceToApiEService,
 } from "../model/domain/apiConverter.js";
 import { makeApiProblem } from "../model/domain/errors.js";
+import { CatalogService } from "../services/catalogService.js";
 import {
   activateDescriptorErrorMapper,
   addEServiceTemplateInstanceInterfaceErrorMapper,
@@ -87,7 +89,6 @@ import {
   archiveEServiceErrorMapper,
   unarchiveDescriptorErrorMapper,
 } from "../utilities/errorMappers.js";
-import { CatalogService } from "../services/catalogService.js";
 
 const eservicesRouter = (
   ctx: ZodiosContext,
@@ -960,6 +961,7 @@ const eservicesRouter = (
             await catalogService.scheduleEServiceDescriptorArchiving(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
+              req.body,
               ctx
             );
 

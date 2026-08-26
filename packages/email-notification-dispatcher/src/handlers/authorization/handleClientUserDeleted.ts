@@ -6,7 +6,6 @@ import {
   fromClientV2,
   clientKind,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   eventMailTemplateType,
   retrieveHTMLTemplate,
@@ -14,9 +13,10 @@ import {
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { ClientUserHandlerParams } from "../../models/handlerParams.js";
+import { match } from "ts-pattern";
 
 import { config } from "../../config/config.js";
+import { ClientUserHandlerParams } from "../../models/handlerParams.js";
 
 export async function handleClientUserDeleted(
   data: ClientUserHandlerParams

@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { TenantId, TenantM2MEventId } from "../brandedIds.js";
 import { TenantEvent } from "../tenant/tenantEvents.js";
 

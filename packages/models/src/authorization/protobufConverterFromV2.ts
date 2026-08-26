@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { UserId, unsafeBrandId, EServiceId } from "../brandedIds.js";
 import { ClientKindV2, ClientV2 } from "../gen/v2/authorization/client.js";
-import { ProducerKeychainV2 } from "../gen/v2/authorization/producer-keychain.js";
 import { KeyUseV2, KeyV2 } from "../gen/v2/authorization/key.js";
+import { ProducerKeychainV2 } from "../gen/v2/authorization/producer-keychain.js";
 import { bigIntToDate } from "../utils.js";
 import { Client, ClientKind, clientKind } from "./client.js";
 import { Key, KeyUse, keyUse } from "./key.js";

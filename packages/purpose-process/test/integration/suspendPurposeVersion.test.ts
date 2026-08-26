@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it, vi } from "vitest";
 import {
   getMockPurposeVersion,
   getMockPurpose,
@@ -35,6 +34,8 @@ import {
   agreementState,
   DelegationId,
 } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import {
   purposeNotFound,
   purposeVersionNotFound,

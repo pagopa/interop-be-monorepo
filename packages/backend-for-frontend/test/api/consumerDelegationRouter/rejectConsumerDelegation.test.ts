@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { DelegationId, generateId } from "pagopa-interop-models";
-import { generateToken } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
-import { api, clients } from "../../vitest.api.setup.js";
+import { authRole } from "pagopa-interop-commons";
+import { generateToken } from "pagopa-interop-commons-test";
+import { DelegationId, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { getMockBffApiRejectDelegationPayload } from "../../mockUtils.js";
+import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /consumers/delegations/:delegationId/reject", () => {
   const mockRejectDelegationPayload = getMockBffApiRejectDelegationPayload();

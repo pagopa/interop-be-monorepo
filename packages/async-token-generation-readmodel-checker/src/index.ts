@@ -2,6 +2,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { logger } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
+
 import { config } from "./configs/config.js";
 import { asyncTokenGenerationReadModelServiceBuilder } from "./services/asyncTokenGenerationReadModelService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";

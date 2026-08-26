@@ -9,11 +9,12 @@ import {
   TenantNotificationConfig,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it } from "vitest";
+
+import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneTenantNotificationConfig,
   notificationConfigService,
 } from "../integrationUtils.js";
-import { tenantNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 
 describe("getTenantNotificationConfig", () => {
   const tenantId: TenantId = generateId();

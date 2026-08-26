@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, FileManagerError } from "pagopa-interop-commons";
+import { dateAtRomeZone, timeAtRomeZone } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -28,7 +29,8 @@ import {
   EServiceTemplate,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
-import { dateAtRomeZone, timeAtRomeZone } from "pagopa-interop-commons";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNameDuplicateForProducer,
   eServiceNotFound,
@@ -36,7 +38,6 @@ import {
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneDelegation,
   addOneEService,

@@ -1,4 +1,12 @@
 import { inArray, or, and, eq, SQL, asc } from "drizzle-orm";
+import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
+import {
+  ilikeEscaped,
+  escapeSqlLike,
+  createListResult,
+  ascLower,
+  withTotalCount,
+} from "pagopa-interop-commons";
 import {
   Agreement,
   AttributeId,
@@ -46,15 +54,8 @@ import {
   EServiceDescriptorSQL,
   agreementSignedContractInReadmodelAgreement,
 } from "pagopa-interop-readmodel-models";
-import {
-  ilikeEscaped,
-  escapeSqlLike,
-  createListResult,
-  ascLower,
-  withTotalCount,
-} from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
-import { alias, PgColumn, PgSelect } from "drizzle-orm/pg-core";
+
 import { CompactEService } from "../model/domain/models.js";
 import {
   AgreementQueryFilters,

@@ -5,12 +5,13 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleTenantCertifiedAttributeAssigned } from "./handleTenantCertifiedAttributeAssigned.js";
 import { handleTenantCertifiedAttributeRevoked } from "./handleTenantCertifiedAttributeRevoked.js";
+import { handleTenantCertifiedAttributeUpdated } from "./handleTenantCertifiedAttributeUpdated.js";
 import { handleTenantVerifiedAttributeAssigned } from "./handleTenantVerifiedAttributeAssigned.js";
 import { handleTenantVerifiedAttributeRevoked } from "./handleTenantVerifiedAttributeRevoked.js";
-import { handleTenantCertifiedAttributeUpdated } from "./handleTenantCertifiedAttributeUpdated.js";
 
 export async function handleTenantEvent(
   params: HandlerParams<typeof TenantEvent>

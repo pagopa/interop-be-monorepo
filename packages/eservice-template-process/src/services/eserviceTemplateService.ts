@@ -1,3 +1,4 @@
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
   DB,
@@ -47,7 +48,13 @@ import {
   RiskAnalysis,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+
+import { config } from "../config/config.js";
+import {
+  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
+  apiEServiceModeToEServiceMode,
+  apiTechnologyToTechnology,
+} from "../model/domain/apiConverter.js";
 import {
   attributeNotFound,
   checksumDuplicate,
@@ -109,13 +116,8 @@ import {
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated,
   toCreateEventEServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted,
 } from "../model/domain/toEvent.js";
-import { config } from "../config/config.js";
-import {
-  apiAgreementApprovalPolicyToAgreementApprovalPolicy,
-  apiEServiceModeToEServiceMode,
-  apiTechnologyToTechnology,
-} from "../model/domain/apiConverter.js";
 import { GetEServiceTemplatesFilters } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertIsReceiveTemplate,
   assertIsDraftEServiceTemplate,
@@ -134,7 +136,6 @@ import {
   assertAsyncExchangeReceiveTemplateNotAllowed,
   assertDiscreteConfigForCertifiedAttributesOnly,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveEServiceTemplate = async (
   eserviceTemplateId: EServiceTemplateId,

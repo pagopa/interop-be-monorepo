@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { IMain, ITask } from "pg-promise";
-import { DBConnection } from "../../db/db.js";
-import {
-  buildColumnSet,
-  generateMergeDeleteQuery,
-  generateMergeQuery,
-  generateStagingDeleteQuery,
-} from "../../utils/sqlQueryHelper.js";
+
 import { config } from "../../config/config.js";
+import { DBConnection } from "../../db/db.js";
 import {
   DeletingDbTable,
   PurposeTemplateDbTable,
@@ -17,6 +12,12 @@ import {
   PurposeTemplateEServiceDescriptorDeletingSchema,
   PurposeTemplateEServiceDescriptorSchema,
 } from "../../model/purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import {
+  buildColumnSet,
+  generateMergeDeleteQuery,
+  generateMergeQuery,
+  generateStagingDeleteQuery,
+} from "../../utils/sqlQueryHelper.js";
 
 export function purposeTemplateEServiceDescriptorRepository(
   conn: DBConnection

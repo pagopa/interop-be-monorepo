@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi } from "vitest";
-import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, mockEventService } from "../../vitest.api.setup.js";
 

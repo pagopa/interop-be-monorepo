@@ -2,7 +2,6 @@
 /* eslint-disable sonarjs/no-identical-functions */
 /* eslint-disable functional/no-let */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   readLastEventByStreamId,
   decodeProtobufPayload,
@@ -40,6 +39,8 @@ import {
   DelegationId,
   UserId,
 } from "pagopa-interop-models";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
 import {
   agreementNotFound,
   eserviceNotFound,

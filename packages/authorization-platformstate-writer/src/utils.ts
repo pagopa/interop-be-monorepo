@@ -13,6 +13,7 @@ import {
   UpdateItemInput,
 } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   ClientId,
   clientKind,
@@ -51,8 +52,8 @@ import {
   makePlatformStatesAgreementPK,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
 import { z } from "zod";
+
 import { config } from "./config/config.js";
 
 const runPaginatedQueryDeleteClientEntryFromTokenGenStatesByPrefixV1 = async (

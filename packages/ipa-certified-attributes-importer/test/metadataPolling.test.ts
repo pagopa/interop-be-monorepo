@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { InteropHeaders, Logger } from "pagopa-interop-commons";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 const internalUpsertTenantMock = vi.fn();
 const internalRevokeCertifiedAttributeMock = vi.fn();

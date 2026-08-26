@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/immutable-data */
-import { describe, it, expect, beforeEach } from "vitest";
+import {
+  getMockAgreement,
+  getMockAgreementDocument,
+  toAgreementV1,
+  toAgreementDocumentV1,
+} from "pagopa-interop-commons-test";
 import {
   AgreementAddedV1,
   AgreementDeletedV1,
@@ -17,12 +22,8 @@ import {
   AgreementDocumentId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import {
-  getMockAgreement,
-  getMockAgreementDocument,
-  toAgreementV1,
-  toAgreementDocumentV1,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, beforeEach } from "vitest";
+
 import { handleAgreementMessageV1 } from "../src/handlers/agreement/consumerServiceV1.js";
 import { handleAgreementMessageV2 } from "../src/handlers/agreement/consumerServiceV2.js";
 import { AgreementDbTable } from "../src/model/db/index.js";

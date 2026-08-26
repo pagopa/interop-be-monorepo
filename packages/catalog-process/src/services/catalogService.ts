@@ -69,8 +69,12 @@ import {
   ArchivingScope,
   AsyncExchangeProperties,
   Technology,
+  GracePeriodDays,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
 import { config } from "../config/config.js";
 import {
   agreementApprovalPolicyToApiAgreementApprovalPolicy,
@@ -80,6 +84,10 @@ import {
   eServiceModeToApiEServiceMode,
   technologyToApiTechnology,
 } from "../model/domain/apiConverter.js";
+import {
+  DEFAULT_DAILY_CALLS_PER_CONSUMER,
+  DEFAULT_DAILY_CALLS_TOTAL,
+} from "../model/domain/constants.js";
 import {
   attributeNotFound,
   audienceCannotBeEmpty,
@@ -178,6 +186,7 @@ import {
   toCreateEventEServiceArchivingCompleted,
   toCreateEventMaintenanceEServiceDescriptorUnarchived,
 } from "../model/domain/toEvent.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestDescriptor,
   getPreviousDescriptorByStates,
@@ -230,13 +239,8 @@ import {
   assertIsNotDraftEservice,
   assertEServiceIsInArchiving,
   assertEServiceIsNotAlreadyArchived,
+  assertEServiceGracePeriodIsNotLowerThanDescriptors,
 } from "./validators.js";
-import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
-import { calculateArchivableOn } from "../utilities/dateCalculator.js";
-import {
-  DEFAULT_DAILY_CALLS_PER_CONSUMER,
-  DEFAULT_DAILY_CALLS_TOTAL,
-} from "../model/domain/constants.js";
 
 const retrieveEService = async (
   eserviceId: EServiceId,
@@ -920,6 +924,29 @@ function createNextDescriptor(
   };
 }
 
+async function cloneDocumentWithNewId(
+  document: Document,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<Document> {
+  const clonedDocumentId = generateId<EServiceDocumentId>();
+  const clonedDocumentPath = await fileManager.copy(
+    config.s3Bucket,
+    document.path,
+    config.eserviceDocumentsPath,
+    clonedDocumentId,
+    document.name,
+    logger
+  );
+
+  return {
+    ...document,
+    id: clonedDocumentId,
+    path: clonedDocumentPath,
+    uploadDate: new Date(),
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
@@ -1247,7 +1274,7 @@ export function catalogServiceBuilder(
 
     async scheduleEServiceArchiving(
       eserviceId: EServiceId,
-      body: catalogApi.EServiceArchivingReasonSeed,
+      body: catalogApi.EServiceArchivingSeed,
       {
         authData,
         correlationId,
@@ -1256,6 +1283,7 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       logger.info(`Archiving EService ${eserviceId}`);
       const eservice = await retrieveEService(eserviceId, readModelService);
+      const requestDate = new Date();
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
 
@@ -1266,7 +1294,14 @@ export function catalogServiceBuilder(
 
       assertEServiceArchivable(eservice.data);
 
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        requestDate,
+        eservice.data,
+        body.gracePeriodDays
+      );
+
       const updatedEService = await processEserviceArchiving(
+        requestDate,
         eservice.data,
         body,
         fileManager,
@@ -2179,83 +2214,27 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      const clonedInterfaceId = generateId<EServiceDocumentId>();
-      const clonedInterfacePath =
-        descriptor.interface !== undefined
-          ? await fileManager.copy(
-              config.s3Bucket,
-              descriptor.interface.path,
-              config.eserviceDocumentsPath,
-              clonedInterfaceId,
-              descriptor.interface.name,
+      const clonedInterfaceDocument = descriptor.interface
+        ? await cloneDocumentWithNewId(
+            descriptor.interface,
+            fileManager,
+            logger
+          )
+        : undefined;
+
+      const clonedAsyncExchangeCallbackInterfaceDocument =
+        descriptor.asyncExchangeCallbackInterface
+          ? await cloneDocumentWithNewId(
+              descriptor.asyncExchangeCallbackInterface,
+              fileManager,
               logger
             )
-          : undefined;
-
-      const clonedInterfaceDocument: Document | undefined =
-        descriptor.interface !== undefined && clonedInterfacePath !== undefined
-          ? {
-              id: clonedInterfaceId,
-              name: descriptor.interface.name,
-              contentType: descriptor.interface.contentType,
-              prettyName: descriptor.interface.prettyName,
-              path: clonedInterfacePath,
-              checksum: descriptor.interface.checksum,
-              uploadDate: new Date(),
-            }
-          : undefined;
-
-      const clonedAsyncExchangeCallbackInterfaceId =
-        generateId<EServiceDocumentId>();
-      const clonedAsyncExchangeCallbackInterfacePath =
-        descriptor.asyncExchangeCallbackInterface !== undefined
-          ? await fileManager.copy(
-              config.s3Bucket,
-              descriptor.asyncExchangeCallbackInterface.path,
-              config.eserviceDocumentsPath,
-              clonedAsyncExchangeCallbackInterfaceId,
-              descriptor.asyncExchangeCallbackInterface.name,
-              logger
-            )
-          : undefined;
-
-      const clonedAsyncExchangeCallbackInterfaceDocument: Document | undefined =
-        descriptor.asyncExchangeCallbackInterface !== undefined &&
-        clonedAsyncExchangeCallbackInterfacePath !== undefined
-          ? {
-              id: clonedAsyncExchangeCallbackInterfaceId,
-              name: descriptor.asyncExchangeCallbackInterface.name,
-              contentType:
-                descriptor.asyncExchangeCallbackInterface.contentType,
-              prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
-              path: clonedAsyncExchangeCallbackInterfacePath,
-              checksum: descriptor.asyncExchangeCallbackInterface.checksum,
-              uploadDate: new Date(),
-            }
           : undefined;
 
       const clonedDocuments = await Promise.all(
-        descriptor.docs.map(async (doc: Document) => {
-          const clonedDocumentId = generateId<EServiceDocumentId>();
-          const clonedDocumentPath = await fileManager.copy(
-            config.s3Bucket,
-            doc.path,
-            config.eserviceDocumentsPath,
-            clonedDocumentId,
-            doc.name,
-            logger
-          );
-          const clonedDocument: Document = {
-            id: clonedDocumentId,
-            name: doc.name,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: clonedDocumentPath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-          return clonedDocument;
-        })
+        descriptor.docs.map((doc) =>
+          cloneDocumentWithNewId(doc, fileManager, logger)
+        )
       );
 
       const clonedEservice: EService = {
@@ -2489,6 +2468,7 @@ export function catalogServiceBuilder(
     async scheduleEServiceDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
+      body: catalogApi.GracePeriodDaysSeed,
       {
         authData,
         correlationId,
@@ -2514,7 +2494,8 @@ export function catalogServiceBuilder(
 
       const updatedDescriptor = await processDescriptorArchiving(
         descriptor,
-        newState
+        newState,
+        body.gracePeriodDays
       );
 
       const updatedEService = replaceDescriptor(
@@ -3889,44 +3870,44 @@ export function catalogServiceBuilder(
       }
 
       const docs = await Promise.all(
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        lastVersion.docs.map(async (doc) => {
-          const clonedDocumentId = generateId<EServiceDocumentId>();
-          const clonedDocumentPath = await fileManager.copy(
-            config.s3Bucket,
-            doc.path,
-            config.eserviceDocumentsPath,
-            clonedDocumentId,
-            doc.name,
-            logger
-          );
-          const clonedDocument: Document = {
-            id: clonedDocumentId,
-            name: doc.name,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: clonedDocumentPath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-
-          return clonedDocument;
-        })
+        lastVersion.docs.map((doc) =>
+          cloneDocumentWithNewId(doc, fileManager, logger)
+        )
       );
 
-      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
-        description: lastVersion.description,
-        voucherLifespan: lastVersion.voucherLifespan,
-        audience: [],
-        dailyCallsPerConsumer:
-          lastVersion.dailyCallsPerConsumer ?? DEFAULT_DAILY_CALLS_PER_CONSUMER,
-        dailyCallsTotal:
-          lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
-        agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
-        attributes: lastVersion.attributes,
-        docs,
-        templateVersionId: lastVersion.id,
-      });
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
+      const clonedAsyncExchangeCallbackInterface =
+        asyncExchangeEnabled && lastVersion.asyncExchangeCallbackInterface
+          ? await cloneDocumentWithNewId(
+              lastVersion.asyncExchangeCallbackInterface,
+              fileManager,
+              logger
+            )
+          : undefined;
+
+      const newDescriptor: Descriptor = {
+        ...createNextDescriptor(eservice.data, {
+          description: lastVersion.description,
+          voucherLifespan: lastVersion.voucherLifespan,
+          audience: [],
+          dailyCallsPerConsumer:
+            lastVersion.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
+          agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
+          attributes: lastVersion.attributes,
+          docs,
+          templateVersionId: lastVersion.id,
+          asyncExchangeProperties: asyncExchangeEnabled
+            ? lastVersion.asyncExchangeProperties
+            : undefined,
+        }),
+        asyncExchangeCallbackInterface: clonedAsyncExchangeCallbackInterface,
+      };
 
       const upgradedEService: EService = {
         ...eservice.data,
@@ -4271,21 +4252,55 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(eserviceInstanceDescriptorSeed);
 
-      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
-        description: templateVersion.description,
-        voucherLifespan: templateVersion.voucherLifespan,
-        audience: eserviceInstanceDescriptorSeed.audience,
-        dailyCallsPerConsumer:
-          eserviceInstanceDescriptorSeed.dailyCallsPerConsumer,
-        dailyCallsTotal: eserviceInstanceDescriptorSeed.dailyCallsTotal,
-        agreementApprovalPolicy:
-          agreementApprovalPolicySeed ??
-          templateVersion.agreementApprovalPolicy ??
-          agreementApprovalPolicy.automatic,
-        docs: [],
-        attributes: templateVersion.attributes,
-        templateVersionId: templateVersion.id,
-      });
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
+      const asyncExchangeProperties =
+        asyncExchangeEnabled && templateVersion.asyncExchangeProperties
+          ? {
+              ...templateVersion.asyncExchangeProperties,
+              responseTime:
+                latestDescriptor.asyncExchangeProperties?.responseTime ??
+                templateVersion.asyncExchangeProperties.responseTime,
+              resourceAvailableTime:
+                latestDescriptor.asyncExchangeProperties
+                  ?.resourceAvailableTime ??
+                templateVersion.asyncExchangeProperties.resourceAvailableTime,
+              maxResultSet:
+                latestDescriptor.asyncExchangeProperties?.maxResultSet ??
+                templateVersion.asyncExchangeProperties.maxResultSet,
+            }
+          : undefined;
+
+      const clonedAsyncExchangeCallbackInterface =
+        asyncExchangeEnabled && templateVersion.asyncExchangeCallbackInterface
+          ? await cloneDocumentWithNewId(
+              templateVersion.asyncExchangeCallbackInterface,
+              fileManager,
+              ctx.logger
+            )
+          : undefined;
+
+      const newDescriptor: Descriptor = {
+        ...createNextDescriptor(eservice.data, {
+          description: templateVersion.description,
+          voucherLifespan: templateVersion.voucherLifespan,
+          audience: eserviceInstanceDescriptorSeed.audience,
+          dailyCallsPerConsumer:
+            eserviceInstanceDescriptorSeed.dailyCallsPerConsumer,
+          dailyCallsTotal: eserviceInstanceDescriptorSeed.dailyCallsTotal,
+          agreementApprovalPolicy:
+            agreementApprovalPolicySeed ??
+            templateVersion.agreementApprovalPolicy ??
+            agreementApprovalPolicy.automatic,
+          docs: [],
+          attributes: templateVersion.attributes,
+          templateVersionId: templateVersion.id,
+          asyncExchangeProperties,
+        }),
+        asyncExchangeCallbackInterface: clonedAsyncExchangeCallbackInterface,
+      };
 
       const eserviceVersion = eservice.metadata.version;
 
@@ -4603,8 +4618,9 @@ export function catalogServiceBuilder(
 }
 
 async function processEserviceArchiving(
+  requestDate: Date,
   eservice: EService,
-  body: catalogApi.EServiceArchivingReasonSeed,
+  body: catalogApi.EServiceArchivingSeed,
   fileManager: FileManager,
   logger: Logger
 ): Promise<EService> {
@@ -4623,7 +4639,6 @@ async function processEserviceArchiving(
       )
     : eservice;
 
-  const requestDate = new Date();
   const descriptors = await Promise.all(
     eserviceAfterCleanup.descriptors.map((descriptor) =>
       match(descriptor.state)
@@ -4637,6 +4652,7 @@ async function processEserviceArchiving(
           processDescriptorArchiving(
             descriptor,
             descriptorState.archiving,
+            body.gracePeriodDays,
             archivingScope.eservice,
             requestDate
           )
@@ -4645,6 +4661,7 @@ async function processEserviceArchiving(
           processDescriptorArchiving(
             descriptor,
             descriptorState.archivingSuspended,
+            body.gracePeriodDays,
             archivingScope.eservice,
             requestDate
           )
@@ -4684,15 +4701,14 @@ async function deleteInactiveDescriptorLogic(
 async function processDescriptorArchiving(
   descriptor: Descriptor,
   newState: DescriptorState,
+  gracePeriodDays: GracePeriodDays,
   scope: ArchivingScope = archivingScope.descriptor,
   requestDate: Date = new Date()
 ): Promise<Descriptor> {
   const archivingSchedule = {
-    ...calculateArchivableOn(
-      requestDate,
-      config.gracePeriodArchivingEServiceDays
-    ),
+    ...calculateArchivableOn(requestDate, gracePeriodDays),
     scope,
+    gracePeriodDays,
   };
 
   return updateDescriptorState({ ...descriptor, archivingSchedule }, newState);

@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { format } from "date-fns";
 import {
   getMockValidRiskAnalysis,
   toEServiceV1,
@@ -55,7 +55,8 @@ import {
   technology,
   toEServiceV2,
 } from "pagopa-interop-models";
-import { format } from "date-fns";
+import { describe, expect, it } from "vitest";
+
 import { handleMessageV1 } from "../src/consumerServiceV1.js";
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import { catalogReadModelService, catalogWriterService } from "./utils.js";

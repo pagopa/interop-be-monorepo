@@ -824,6 +824,7 @@ CREATE TABLE IF NOT EXISTS domains.eservice_descriptor_archiving_schedule (
   scope VARCHAR(2048) NOT NULL,
   archivable_on TIMESTAMP WITH TIME ZONE NOT NULL,
   started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+  grace_period_days INTEGER,
   deleted BOOLEAN,
   PRIMARY KEY (eservice_id, descriptor_id)
 );

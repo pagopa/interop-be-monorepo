@@ -1,7 +1,14 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { genericInternalError } from "pagopa-interop-models";
 import { ITask, IMain } from "pg-promise";
+
+import { config } from "../../config/config.js";
 import { DBConnection } from "../../db/db.js";
+import {
+  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
+  EserviceDescriptorInterfaceSchema,
+} from "../../model/catalog/eserviceDescriptorInterface.js";
+import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
 import {
   buildColumnSet,
   generateStagingDeleteQuery,
@@ -10,12 +17,6 @@ import {
   generateMergeDeleteQuery,
   generateMergeQuery,
 } from "../../utils/sqlQueryHelper.js";
-import { config } from "../../config/config.js";
-import {
-  EserviceDescriptorDocumentOrInterfaceDeletingSchema,
-  EserviceDescriptorInterfaceSchema,
-} from "../../model/catalog/eserviceDescriptorInterface.js";
-import { CatalogDbTable, DeletingDbTable } from "../../model/db/index.js";
 
 export function eserviceDescriptorInterfaceRepository(conn: DBConnection) {
   const schemaName = config.dbSchemaName;

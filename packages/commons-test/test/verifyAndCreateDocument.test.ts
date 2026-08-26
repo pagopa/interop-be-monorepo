@@ -3,7 +3,6 @@ import {
   interpolateTemplateApiSpec,
   verifyAndCreateDocument,
 } from "pagopa-interop-commons";
-import { describe, expect, it, vi } from "vitest";
 import {
   contentTooLargeError,
   generateId,
@@ -11,6 +10,8 @@ import {
   invalidFileUploadError,
   technology,
 } from "pagopa-interop-models";
+import { describe, expect, it, vi } from "vitest";
+
 import {
   getMockedPdfBuffer,
   getMockEService,

@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import { ascLower } from "pagopa-interop-commons";
 import { EService, EServiceTemplateId } from "pagopa-interop-models";
 import {
@@ -18,7 +19,6 @@ import {
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
-import { and, eq } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(readmodelDB: DrizzleReturnType) {

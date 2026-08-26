@@ -1,15 +1,9 @@
 import crypto from "crypto";
-import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
+import {
+  getMockKey,
+  getMockProducerKeychain,
+} from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelopeV2,
   EServiceId,
@@ -26,9 +20,16 @@ import {
   toProducerKeychainV2,
 } from "pagopa-interop-models";
 import {
-  getMockKey,
-  getMockProducerKeychain,
-} from "pagopa-interop-commons-test";
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   buildProducerKeychainPlatformStatesTable,

@@ -13,6 +13,7 @@ import {
   ScheduledNotificationRow,
   parseEServiceEntityId,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 export async function handleEserviceArchivingScheduledReminderInApp(
@@ -50,10 +51,12 @@ export async function handleEserviceArchivingScheduledReminderInApp(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );
 
+  const entityId = eservice.id;
+
   const producerNotifications = await buildProducerNotifications({
     eservice,
     archivableOn,
-    entityId: eserviceId,
+    entityId,
     readModelService,
     log,
   });
@@ -61,7 +64,7 @@ export async function handleEserviceArchivingScheduledReminderInApp(
   const consumerNotifications = await buildConsumerNotifications({
     eservice,
     archivableOn,
-    entityId: eserviceId,
+    entityId,
     readModelService,
     log,
   });

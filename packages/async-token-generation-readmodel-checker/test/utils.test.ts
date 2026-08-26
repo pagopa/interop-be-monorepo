@@ -54,6 +54,7 @@ import {
   it,
   vi,
 } from "vitest";
+
 import { compareInteractions } from "../src/utils/interactions.js";
 import { compareAsyncPlatformStates } from "../src/utils/platformStates.js";
 import { compareAsyncTokenGenerationStates } from "../src/utils/tokenGenerationStates.js";

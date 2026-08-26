@@ -24,11 +24,7 @@ import {
   targetTenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import {
-  addOnePurposeTemplate,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
+
 import {
   annotationDocumentLimitExceeded,
   conflictDocumentPrettyNameDuplicate,
@@ -40,6 +36,11 @@ import {
   riskAnalysisTemplateAnswerNotFound,
 } from "../../src/model/domain/errors.js";
 import { ANNOTATION_DOCUMENTS_LIMIT } from "../../src/services/validators.js";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const mockValidRiskAnalysisTemplateForm =

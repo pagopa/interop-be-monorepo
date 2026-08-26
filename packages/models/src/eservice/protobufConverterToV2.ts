@@ -1,4 +1,5 @@
 import { P, match } from "ts-pattern";
+
 import {
   AgreementApprovalPolicyV2,
   AttributeCertifiedDiscreteComparatorV2,
@@ -13,11 +14,13 @@ import {
   EServiceRiskAnalysisFormV2,
   EServiceTechnologyV2,
   EServiceV2,
+  GracePeriodDaysV2,
 } from "../gen/v2/eservice/eservice.js";
 import {
   RiskAnalysis,
   RiskAnalysisForm,
 } from "../risk-analysis/riskAnalysis.js";
+import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 import { dateToBigInt } from "../utils.js";
 import {
   AgreementApprovalPolicy,
@@ -40,8 +43,8 @@ import {
   eserviceMode,
   technology,
   type EServiceAttributeCertifiedDiscreteConfig,
+  type GracePeriodDays,
 } from "./eservice.js";
-import { toTenantKindV2 } from "../tenant/protobufConverterToV2.js";
 
 const toAgreementApprovalPolicyV2 = (
   input: AgreementApprovalPolicy | undefined
@@ -176,6 +179,16 @@ export const toEServiceDescriptorArchivingScopeV2 = (
     .with(archivingScope.descriptor, () => ArchivingScopeV2.DESCRIPTOR)
     .exhaustive();
 
+export const toGracePeriodDaysV2 = (
+  input: GracePeriodDays
+): GracePeriodDaysV2 =>
+  match(input)
+    .with(30, () => GracePeriodDaysV2.GRACE_PERIOD_30_DAYS)
+    .with(60, () => GracePeriodDaysV2.GRACE_PERIOD_60_DAYS)
+    .with(90, () => GracePeriodDaysV2.GRACE_PERIOD_90_DAYS)
+    .with(120, () => GracePeriodDaysV2.GRACE_PERIOD_120_DAYS)
+    .exhaustive();
+
 export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
   ...input,
   version: BigInt(input.version),
@@ -204,6 +217,9 @@ export const toDescriptorV2 = (input: Descriptor): EServiceDescriptorV2 => ({
         startedAt: dateToBigInt(input.archivingSchedule.startedAt),
         scope: toEServiceDescriptorArchivingScopeV2(
           input.archivingSchedule.scope
+        ),
+        gracePeriodDays: toGracePeriodDaysV2(
+          input.archivingSchedule.gracePeriodDays
         ),
       }
     : undefined,

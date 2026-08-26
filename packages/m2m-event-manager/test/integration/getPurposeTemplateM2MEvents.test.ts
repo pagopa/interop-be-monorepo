@@ -1,18 +1,19 @@
-import { beforeEach, describe, expect, it } from "vitest";
 import { getMockContextM2M } from "pagopa-interop-commons-test";
+import { purposeTemplateInM2MEvent } from "pagopa-interop-m2m-event-db-models";
 import {
   PurposeTemplateM2MEventType,
   TenantId,
   generateId,
   m2mEventVisibility,
 } from "pagopa-interop-models";
-import { purposeTemplateInM2MEvent } from "pagopa-interop-m2m-event-db-models";
-import { getMockedPurposeTemplateM2MEvent } from "../mockUtils.js";
+import { beforeEach, describe, expect, it } from "vitest";
+
 import {
   m2mEventService,
   writePurposeTemplateM2MEvent,
   m2mEventDB,
 } from "../integrationUtils.js";
+import { getMockedPurposeTemplateM2MEvent } from "../mockUtils.js";
 
 describe("getPurposeTemplateM2MEvents", () => {
   const mockCreatorId: TenantId = generateId();
