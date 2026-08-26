@@ -99,9 +99,12 @@ describe("createEServiceDescriptorCertifiedDiscreteAttributesGroup", () => {
     },
   };
 
-  const seed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed = {
-    attributeIds: [attribute1.id, attribute2.id, attribute3.id],
-  };
+  const seed: m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroupSeed =
+    {
+      attributes: [attribute1, attribute2, attribute3].map(
+        ({ id, discreteConfig }) => ({ id, discreteConfig: discreteConfig! })
+      ),
+    };
 
   const eservice: catalogApi.EService = {
     ...getMockedApiEservice(),
@@ -113,12 +116,10 @@ describe("createEServiceDescriptorCertifiedDiscreteAttributesGroup", () => {
     attributes: {
       certified: [
         [attribute1, attribute2, attribute3],
-        seed.attributeIds.map((id) => ({
+        seed.attributes.map(({ id, discreteConfig }) => ({
           id,
           explicitAttributeVerification: false,
-          discreteConfig: [attribute1, attribute2, attribute3].find(
-            (a) => a.id === id
-          )?.discreteConfig,
+          discreteConfig,
         })),
       ],
       verified: [],

@@ -4811,7 +4811,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
+              $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroupSeed"
       responses:
         "200":
           description: E-Service Descriptor Certified Discrete Attribute assigned to the
@@ -5368,7 +5368,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceDescriptorAttributesGroupSeed"
+              $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroupSeed"
       responses:
         "201":
           description: Certified Discrete Attributes Group created
@@ -12051,6 +12051,50 @@ components:
             format: uuid
       required:
         - attributeIds
+    EServiceDescriptorCertifiedDiscreteAttributesGroupSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+                format: uuid
+              discreteConfig:
+                $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfigSeed"
+            required:
+              - id
+              - discreteConfig
+      required:
+        - attributes
+    AttributeCertifiedDiscreteComparator:
+      type: string
+      enum:
+        - GT
+        - LT
+        - EQ
+        - GTE
+        - LTE
+        - NE
+    EServiceAttributeCertifiedDiscreteConfigSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        threshold:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        comparator:
+          $ref: "#/components/schemas/AttributeCertifiedDiscreteComparator"
+      required:
+        - threshold
+        - comparator
     EServiceDescriptorAttributeSeed:
       type: object
       additionalProperties: false

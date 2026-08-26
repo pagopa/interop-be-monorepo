@@ -38,6 +38,19 @@ const getMockedApiCertifiedDiscreteEServiceAttribute =
   });
 
 describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
+  const buildSeed = (attributeIds: string[]) => ({
+    attributes: attributeIds.map((id, index) => ({
+      id,
+      discreteConfig: {
+        threshold: index + 1,
+        comparator:
+          index === 0
+            ? catalogApi.AttributeCertifiedDiscreteComparator.Values.EQ
+            : catalogApi.AttributeCertifiedDiscreteComparator.Values.GT,
+      },
+    })),
+  });
+
   const mockNewAttribute1 = getMockedApiCertifiedDiscreteEServiceAttribute();
   const mockNewAttribute2 = getMockedApiCertifiedDiscreteEServiceAttribute();
   const mockCertifiedDiscreteAttributes = [
@@ -113,9 +126,7 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
         mockPollingResponse(mockGetEServiceResponse, 2)
       );
 
-      const seed = {
-        attributeIds: [mockNewAttribute1.id, mockNewAttribute2.id],
-      };
+      const seed = buildSeed([mockNewAttribute1.id, mockNewAttribute2.id]);
 
       await eserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(
         unsafeBrandId(mockEService.id),
@@ -138,10 +149,10 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
               if (index === groupIndex) {
                 return [
                   ...group,
-                  ...seed.attributeIds.map((id) => ({
+                  ...seed.attributes.map(({ id, discreteConfig }) => ({
                     id,
                     explicitAttributeVerification: false,
-                    discreteConfig: group[0]?.discreteConfig,
+                    discreteConfig,
                   })),
                 ];
               }
@@ -169,9 +180,7 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
       metadata: undefined,
     });
 
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
+    const seed = buildSeed([mockNewAttribute1.id]);
 
     await expect(
       eserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(
@@ -191,9 +200,7 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
       metadata: undefined,
     });
 
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
+    const seed = buildSeed([mockNewAttribute1.id]);
 
     await expect(
       eserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(
@@ -215,9 +222,7 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
       )
     );
 
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
+    const seed = buildSeed([mockNewAttribute1.id]);
 
     await expect(
       eserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(
@@ -241,9 +246,7 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
   it("Should throw eserviceDescriptorAttributeGroupNotFound in case of missing group for the specified group index", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
 
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
+    const seed = buildSeed([mockNewAttribute1.id]);
 
     await expect(
       eserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(
@@ -267,9 +270,7 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
 
     const descriptorId = generateId();
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
+    const seed = buildSeed([mockNewAttribute1.id]);
 
     await expect(
       eserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(

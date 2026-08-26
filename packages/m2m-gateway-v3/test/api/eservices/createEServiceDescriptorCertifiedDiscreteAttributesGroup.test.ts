@@ -23,9 +23,12 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/certifiedDiscret
   const mockEService: catalogApi.EService = getMockedApiEservice();
   const mockDescriptor = mockEService.descriptors[0]!;
 
-  const mockAttributeSeed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed =
+  const mockAttributeSeed: m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroupSeed =
     {
-      attributeIds: [generateId(), generateId(), generateId()],
+      attributes: [generateId(), generateId(), generateId()].map((id) => ({
+        id,
+        discreteConfig: { threshold: 1, comparator: "EQ" },
+      })),
     };
 
   const mockAttribute1 = getMockedApiAttribute({
@@ -61,7 +64,9 @@ describe("POST /eservices/:eserviceId/descriptors/:descriptorId/certifiedDiscret
     token: string,
     eserviceId: string,
     descriptorId: string,
-    body: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed
+    body:
+      | m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed
+      | m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroupSeed
   ) =>
     request(api)
       .post(

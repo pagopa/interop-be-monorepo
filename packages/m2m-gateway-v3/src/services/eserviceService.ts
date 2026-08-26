@@ -41,6 +41,7 @@ import {
   eserviceDescriptorInterfaceNotFound,
   eserviceDescriptorNotFound,
   eserviceRiskAnalysisNotFound,
+  missingDiscreteConfig,
 } from "../model/errors.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { DownloadedDocument, downloadDocument } from "../utils/fileDownload.js";
@@ -61,6 +62,27 @@ export function eserviceServiceBuilder(
   fileManager: FileManager
 ) {
   type AttributeKind = keyof catalogApi.Attributes | "certified_discrete";
+  type AttributesGroupSeed =
+    | m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed
+    | m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroupSeed;
+
+  function getAttributeIds(seed: AttributesGroupSeed): string[] {
+    return "attributes" in seed
+      ? seed.attributes.map((attribute) => attribute.id)
+      : seed.attributeIds;
+  }
+
+  function getDiscreteConfig(
+    seed: AttributesGroupSeed,
+    attributeId: string
+  ): catalogApi.EServiceAttributeCertifiedDiscreteConfig | undefined {
+    if (!("attributes" in seed)) {
+      return undefined;
+    }
+
+    return seed.attributes.find((attribute) => attribute.id === attributeId)
+      ?.discreteConfig;
+  }
 
   function mapAttributeKindToCatalogKind(
     attributeKind: AttributeKind
@@ -200,7 +222,7 @@ export function eserviceServiceBuilder(
   async function createEServiceDescriptorAttributesGroup(
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
-    seed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed,
+    seed: AttributesGroupSeed,
     attributeKind: AttributeKind,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<{
@@ -232,8 +254,14 @@ export function eserviceServiceBuilder(
 
     const newKindAttributeGroups = [
       ...descriptor.attributes[catalogAttributeKind],
-      seed.attributeIds.map((id) => {
-        const discreteConfig = existingDiscreteConfigById.get(id);
+      getAttributeIds(seed).map((id) => {
+        const discreteConfig =
+          getDiscreteConfig(seed, id) ?? existingDiscreteConfigById.get(id);
+
+        if (attributeKind === "certified_discrete" && !discreteConfig) {
+          throw missingDiscreteConfig(id);
+        }
+
         return {
           id,
           explicitAttributeVerification: false,
@@ -258,13 +286,13 @@ export function eserviceServiceBuilder(
 
     await pollEService(response, headers);
     const attributeMap = await getResolvedAttributesMap(
-      seed.attributeIds,
+      getAttributeIds(seed),
       headers,
       clients
     );
 
     const newlyCreatedGroupAttributes: attributeRegistryApi.Attribute[] =
-      seed.attributeIds.map((attributeId) => {
+      getAttributeIds(seed).map((attributeId) => {
         const attributeDetailed = attributeMap.get(attributeId);
 
         if (!attributeDetailed) {
@@ -381,7 +409,7 @@ export function eserviceServiceBuilder(
     eserviceId: EServiceId,
     descriptorId: DescriptorId,
     groupIndex: number,
-    seed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed,
+    seed: AttributesGroupSeed,
     attributeKind: AttributeKind,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<void> {
@@ -405,20 +433,24 @@ export function eserviceServiceBuilder(
     const { group: attributeGroup, index: actualGroupIndex } =
       indexedAttributeGroup;
 
-    const groupDiscreteConfig =
-      attributeKind === "certified_discrete"
-        ? attributeGroup[0]?.discreteConfig
-        : undefined;
-
     const updatedAttributeGroup = [
       ...attributeGroup,
-      ...seed.attributeIds.map((id) => ({
-        id,
-        explicitAttributeVerification: false,
-        ...(groupDiscreteConfig !== undefined
-          ? { discreteConfig: groupDiscreteConfig }
-          : {}),
-      })),
+      ...getAttributeIds(seed).map((id) => {
+        const discreteConfig =
+          attributeKind === "certified_discrete"
+            ? getDiscreteConfig(seed, id)
+            : undefined;
+
+        if (attributeKind === "certified_discrete" && !discreteConfig) {
+          throw missingDiscreteConfig(id);
+        }
+
+        return {
+          id,
+          explicitAttributeVerification: false,
+          ...(discreteConfig !== undefined ? { discreteConfig } : {}),
+        };
+      }),
     ];
     const updatedGroups = [
       ...kindAttributeGroups.slice(0, actualGroupIndex),
@@ -1613,7 +1645,7 @@ export function eserviceServiceBuilder(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
       groupIndex: number,
-      seed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed,
+      seed: AttributesGroupSeed,
       { headers, logger }: WithLogger<M2MGatewayAppContext>
     ): Promise<void> {
       logger.info(
@@ -1699,7 +1731,7 @@ export function eserviceServiceBuilder(
     async createEServiceDescriptorCertifiedDiscreteAttributesGroup(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
-      seed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed,
+      seed: AttributesGroupSeed,
       ctx: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroup> {
       ctx.logger.info(

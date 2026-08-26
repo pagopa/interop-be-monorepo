@@ -26,9 +26,12 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedDiscr
   const mockEService: catalogApi.EService = getMockedApiEservice();
   const mockDescriptor = mockEService.descriptors[0]!;
 
-  const mockAttributeSeed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed =
+  const mockAttributeSeed: m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroupSeed =
     {
-      attributeIds: [generateId(), generateId(), generateId()],
+      attributes: [generateId(), generateId(), generateId()].map((id) => ({
+        id,
+        discreteConfig: { threshold: 1, comparator: "EQ" },
+      })),
     };
 
   const mockAttribute1 = getMockedApiAttribute({
@@ -65,7 +68,9 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedDiscr
     eserviceId: string,
     descriptorId: string,
     groupIndex: number,
-    body: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed
+    body:
+      | m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed
+      | m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroupSeed
   ) =>
     request(api)
       .post(
@@ -90,10 +95,6 @@ describe("POST /eservices/{eServiceId}/descriptors/{descriptorId}/certifiedDiscr
         0,
         mockAttributeSeed
       );
-
-      console.log("Response body:", res.body); // Log the response body for debugging
-      console.log("Response status:", res.status); // Log the response status for debugging
-      console.log("Response headers:", res.headers); // Log the response headers for debugging
 
       expect(res.status).toBe(200);
       expect(res.body).toEqual({});
