@@ -176,7 +176,9 @@ describe("EService Descriptors Archiver", async () => {
         producerId,
       };
 
-      (catalogProcessClient.archiveDescriptor as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
+      (
+        catalogProcessClient.archiveDescriptor as ReturnType<typeof vi.fn>
+      ).mockRejectedValueOnce(
         Object.assign(new AxiosError("already archived"), {
           response: { status: 409 },
         })
