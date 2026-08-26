@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { createHash } from "crypto";
 import {
   attributeRegistryApi,
@@ -6,27 +7,28 @@ import {
   ZodiosClientWithMetadata,
 } from "pagopa-interop-api-clients";
 import {
+  delay,
   InteropHeaders,
+  isFeatureFlagEnabled,
   Logger,
   waitForReadModelMetadataVersion,
-  delay,
-  isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import {
-  attributeKind,
-  Tenant,
   Attribute,
-  tenantAttributeType,
+  attributeKind,
+  ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   PUBLIC_SERVICES_MANAGERS,
-  ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
+  Tenant,
+  tenantAttributeType,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+import { z } from "zod";
 
 import { IPACertifiedAttributesImporterConfig } from "../config/config.js";
 import {
-  RegistryData,
   InternalCertifiedAttribute,
+  RegistryData,
   shouldKindBeIncluded,
 } from "./openDataService.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -66,18 +68,182 @@ export type TenantSeed = {
   istatCode?: string;
 };
 
-function toTenantKey(key: {
+export function toTenantKey(key: {
   origin: string | undefined;
   value: string | undefined;
 }): string {
   return JSON.stringify({ origin: key.origin, value: key.value });
 }
 
-function toAttributeKey(key: {
+export function toAttributeKey(key: {
   origin: string | undefined;
   code: string | undefined;
 }): string {
   return JSON.stringify({ origin: key.origin, code: key.code });
+}
+
+export const CERTIFIED_ATTRIBUTE_ALREADY_ASSIGNED_CODE = "005-0014";
+export const EVENT_CONFLICT_CODE = "005-10034";
+
+export type PhaseReport = {
+  succeeded: number;
+  failed: number;
+};
+
+export type ImportReport = {
+  upserts: PhaseReport;
+  revocations: PhaseReport;
+  warnings: number;
+  skipped: number;
+};
+
+export type ImportPhase = "upserts" | "revocations";
+
+export type ImportState = {
+  unsyncedTenants: Set<string>;
+  report: ImportReport;
+};
+
+export function createImportState(): ImportState {
+  return {
+    unsyncedTenants: new Set<string>(),
+    report: {
+      upserts: { succeeded: 0, failed: 0 },
+      revocations: { succeeded: 0, failed: 0 },
+      warnings: 0,
+      skipped: 0,
+    },
+  };
+}
+
+export function formatRunSummary(report: ImportReport): string {
+  return `Run summary: upserts ${report.upserts.succeeded} succeeded, ${report.upserts.failed} failed; revocations ${report.revocations.succeeded} succeeded, ${report.revocations.failed} failed; ${report.warnings} warnings, ${report.skipped} skipped`;
+}
+
+export function hasFailedOperations(report: ImportReport): boolean {
+  return (
+    report.upserts.failed > 0 ||
+    report.revocations.failed > 0 ||
+    report.skipped > 0
+  );
+}
+
+const ProblemResponse = z.object({
+  detail: z.string().optional(),
+  errors: z
+    .array(z.object({ code: z.string(), detail: z.string().optional() }))
+    .optional(),
+});
+
+type HttpErrorDetails = {
+  status: number | undefined;
+  code: string | undefined;
+  detail: string | undefined;
+};
+
+function extractHttpErrorDetails(error: unknown): HttpErrorDetails {
+  if (!isAxiosError(error) || !error.response) {
+    return { status: undefined, code: undefined, detail: undefined };
+  }
+
+  const problem = ProblemResponse.safeParse(error.response.data);
+
+  return {
+    status: error.response.status,
+    code: problem.success ? problem.data.errors?.[0]?.code : undefined,
+    detail: problem.success ? problem.data.detail : undefined,
+  };
+}
+
+function isWriteOutcomeUncertain(details: HttpErrorDetails): boolean {
+  return details.code !== CERTIFIED_ATTRIBUTE_ALREADY_ASSIGNED_CODE;
+}
+
+function isPollingTimeout(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    error.code === "pollingMaxRetriesExceeded"
+  );
+}
+
+type TenantCommandResult = { metadata?: { version: number } | undefined };
+type TenantCommand = () => Promise<TenantCommandResult>;
+
+async function runTenantOperation(params: {
+  tenantKey: string;
+  phase: ImportPhase;
+  description: string;
+  startMessage: string;
+  command: TenantCommand;
+  pollReadModel: (version: number) => Promise<void>;
+  loggerInstance: Logger;
+  state: ImportState;
+}): Promise<void> {
+  const {
+    tenantKey,
+    phase,
+    description,
+    startMessage,
+    command,
+    pollReadModel,
+    loggerInstance,
+    state,
+  } = params;
+
+  if (state.unsyncedTenants.has(tenantKey)) {
+    loggerInstance.warn(
+      `Skipping ${description}: a previous operation left the tenant out of sync`
+    );
+    state.report.skipped += 1;
+    return;
+  }
+
+  loggerInstance.info(startMessage);
+
+  let response: TenantCommandResult;
+  try {
+    response = await command();
+  } catch (error: unknown) {
+    const details = extractHttpErrorDetails(error);
+    loggerInstance.error(
+      `Failed ${description}. Status: ${details.status ?? "unknown"}, code: ${
+        details.code ?? "unknown"
+      }, detail: ${details.detail ?? "unknown"}`
+    );
+    state.report[phase].failed += 1;
+
+    if (isWriteOutcomeUncertain(details)) {
+      state.unsyncedTenants.add(tenantKey);
+    }
+    return;
+  }
+
+  state.report[phase].succeeded += 1;
+
+  const metadata = response.metadata;
+  if (!metadata) {
+    loggerInstance.warn(
+      `Missing metadata version after ${description}. Marking the tenant as out of sync`
+    );
+    state.report.warnings += 1;
+    state.unsyncedTenants.add(tenantKey);
+    return;
+  }
+
+  try {
+    await pollReadModel(metadata.version);
+  } catch (error: unknown) {
+    if (!isPollingTimeout(error)) {
+      throw error;
+    }
+
+    loggerInstance.warn(
+      `Read model did not reach version ${metadata.version} after ${description}. Marking the tenant as out of sync`
+    );
+    state.report.warnings += 1;
+    state.unsyncedTenants.add(tenantKey);
+  }
 }
 
 async function checkAttributesPresence(
@@ -228,8 +394,15 @@ export async function createNewAttributes(
   headers: InteropHeaders,
   loggerInstance: Logger,
   attributeRegistryUrl: string,
-  attributeCreationWaitTime: number
+  attributeCreationWaitTime: number,
+  maxRetries: number,
+  state: ImportState
 ): Promise<void> {
+  if (newAttributes.length === 0) {
+    loggerInstance.info("No new attributes to create");
+    return;
+  }
+
   const client =
     attributeRegistryApi.createAttributeApiClient(attributeRegistryUrl);
 
@@ -243,10 +416,19 @@ export async function createNewAttributes(
   }
 
   // wait until every event reaches the read model store
-  do {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
     loggerInstance.info("Waiting for attributes to be created");
     await delay(attributeCreationWaitTime);
-  } while (!(await checkAttributesPresence(readModelService, newAttributes)));
+
+    if (await checkAttributesPresence(readModelService, newAttributes)) {
+      return;
+    }
+  }
+
+  loggerInstance.warn(
+    `New attributes are not present in the read model after ${maxRetries} attempts. Continuing with the import`
+  );
+  state.report.warnings += 1;
 }
 
 export function getNewAttributes(
@@ -372,39 +554,35 @@ export async function assignNewAttributes(
   readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger,
-  pollingConfig: PollingConfig
+  pollingConfig: PollingConfig,
+  state: ImportState
 ): Promise<void> {
   for (const attributeToAssign of attributesToAssign) {
-    loggerInstance.info(
-      `Updating tenant ${
-        attributeToAssign.externalId.value
-      }. Adding attributes [${attributeToAssign.certifiedAttributes
-        .map((a) => a.code)
-        .join(", ")}]`
-    );
-    const response = await tenantClient.internalUpsertTenant(
-      attributeToAssign,
-      {
-        headers,
-      }
-    );
+    const attributeCodes = attributeToAssign.certifiedAttributes
+      .map((a) => a.code)
+      .join(", ");
 
-    const metadata = response.metadata;
-    if (!metadata) {
-      loggerInstance.warn(
-        `Missing metadata version for tenant ${attributeToAssign.externalId.value}. Skipping polling.`
-      );
-      continue;
-    }
-
-    await waitForReadModelMetadataVersion(
-      () =>
-        readModelServiceSQL.getTenantByExternalIdWithMetadata(
-          attributeToAssign.externalId
+    await runTenantOperation({
+      tenantKey: toTenantKey(attributeToAssign.externalId),
+      phase: "upserts",
+      description: `upsert of tenant ${attributeToAssign.externalId.value} with attributes [${attributeCodes}]`,
+      startMessage: `Updating tenant ${attributeToAssign.externalId.value}. Adding attributes [${attributeCodes}]`,
+      command: () =>
+        tenantClient.internalUpsertTenant(attributeToAssign, {
+          headers,
+        }),
+      pollReadModel: (version) =>
+        waitForReadModelMetadataVersion(
+          () =>
+            readModelServiceSQL.getTenantByExternalIdWithMetadata(
+              attributeToAssign.externalId
+            ),
+          version,
+          pollingConfig
         ),
-      metadata.version,
-      pollingConfig
-    );
+      loggerInstance,
+      state,
+    });
   }
 }
 
@@ -501,41 +679,37 @@ export async function revokeAttributes(
   readModelServiceSQL: ReadModelServiceSQL,
   headers: InteropHeaders,
   loggerInstance: Logger,
-  pollingConfig: PollingConfig
+  pollingConfig: PollingConfig,
+  state: ImportState
 ): Promise<void> {
   for (const a of attributesToRevoke) {
-    loggerInstance.info(
-      `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`
-    );
-    const response = await tenantClient.internalRevokeCertifiedAttribute(
-      undefined,
-      {
-        params: {
-          tOrigin: a.tOrigin,
-          tExternalId: a.tExternalId,
-          aOrigin: a.aOrigin,
-          aExternalId: a.aCode,
-        },
-        headers,
-      }
-    );
-
-    const metadata = response.metadata;
-    if (!metadata) {
-      loggerInstance.warn(
-        `Missing metadata version for tenant ${a.tExternalId}. Skipping polling.`
-      );
-      continue;
-    }
-
-    await waitForReadModelMetadataVersion(
-      () =>
-        readModelServiceSQL.getTenantByExternalIdWithMetadata({
-          origin: a.tOrigin,
-          value: a.tExternalId,
+    await runTenantOperation({
+      tenantKey: toTenantKey({ origin: a.tOrigin, value: a.tExternalId }),
+      phase: "revocations",
+      description: `revoke of attribute ${a.aCode} from tenant ${a.tExternalId}`,
+      startMessage: `Updating tenant ${a.tExternalId}. Revoking attribute ${a.aCode}`,
+      command: () =>
+        tenantClient.internalRevokeCertifiedAttribute(undefined, {
+          params: {
+            tOrigin: a.tOrigin,
+            tExternalId: a.tExternalId,
+            aOrigin: a.aOrigin,
+            aExternalId: a.aCode,
+          },
+          headers,
         }),
-      metadata.version,
-      pollingConfig
-    );
+      pollReadModel: (version) =>
+        waitForReadModelMetadataVersion(
+          () =>
+            readModelServiceSQL.getTenantByExternalIdWithMetadata({
+              origin: a.tOrigin,
+              value: a.tExternalId,
+            }),
+          version,
+          pollingConfig
+        ),
+      loggerInstance,
+      state,
+    });
   }
 }

@@ -1,4 +1,5 @@
 import { InteropHeaders, Logger } from "pagopa-interop-commons";
+import { pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 const internalUpsertTenantMock = vi.fn();
@@ -28,7 +29,7 @@ vi.mock("pagopa-interop-commons", async () => {
   };
 });
 
-const { assignNewAttributes, revokeAttributes } =
+const { assignNewAttributes, createImportState, revokeAttributes } =
   await import("../src/services/ipaCertifiedAttributesImporterService.js");
 
 describe("IPA metadata polling", () => {
@@ -76,7 +77,8 @@ describe("IPA metadata polling", () => {
       readModelServiceSQL as never,
       headers,
       logger,
-      pollingConfig
+      pollingConfig,
+      createImportState()
     );
 
     expect(internalUpsertTenantMock).toHaveBeenCalledTimes(1);
@@ -99,38 +101,41 @@ describe("IPA metadata polling", () => {
       readModelServiceSQL as never,
       headers,
       logger,
-      pollingConfig
+      pollingConfig,
+      createImportState()
     );
 
     expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(0);
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
-  it("should fail assign when polling reaches max retries", async () => {
+  it("should not fail assign when polling reaches max retries", async () => {
     internalUpsertTenantMock.mockResolvedValue({ metadata: { version: 5 } });
 
-    const pollingError = new Error("pollingMaxRetriesExceeded");
+    const pollingError = pollingMaxRetriesExceeded(1, 1);
     waitForReadModelMetadataVersionMock.mockRejectedValueOnce(pollingError);
 
-    await expect(
-      assignNewAttributes(
-        [
-          {
-            externalId: { origin: "IPA", value: "123" },
-            name: "tenant",
-            certifiedAttributes: [{ origin: "IPA", code: "A1" }],
-          },
-        ],
-        tenantProcessClient as never,
-        readModelServiceSQL as never,
-        headers,
-        logger,
-        pollingConfig
-      )
-    ).rejects.toThrowError(pollingError);
+    const state = createImportState();
+
+    await assignNewAttributes(
+      [
+        {
+          externalId: { origin: "IPA", value: "123" },
+          name: "tenant",
+          certifiedAttributes: [{ origin: "IPA", code: "A1" }],
+        },
+      ],
+      tenantProcessClient as never,
+      readModelServiceSQL as never,
+      headers,
+      logger,
+      pollingConfig,
+      state
+    );
 
     expect(internalUpsertTenantMock).toHaveBeenCalledTimes(1);
     expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
+    expect(state.report.warnings).toBe(1);
   });
 
   it("should poll read model after revoke when metadata version is returned", async () => {
@@ -151,7 +156,8 @@ describe("IPA metadata polling", () => {
       readModelServiceSQL as never,
       headers,
       logger,
-      pollingConfig
+      pollingConfig,
+      createImportState()
     );
 
     expect(internalRevokeCertifiedAttributeMock).toHaveBeenCalledTimes(1);
@@ -177,40 +183,43 @@ describe("IPA metadata polling", () => {
       readModelServiceSQL as never,
       headers,
       logger,
-      pollingConfig
+      pollingConfig,
+      createImportState()
     );
 
     expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(0);
     expect(logger.warn).toHaveBeenCalledTimes(1);
   });
 
-  it("should fail revoke when polling reaches max retries", async () => {
+  it("should not fail revoke when polling reaches max retries", async () => {
     internalRevokeCertifiedAttributeMock.mockResolvedValue({
       metadata: { version: 5 },
     });
 
-    const pollingError = new Error("pollingMaxRetriesExceeded");
+    const pollingError = pollingMaxRetriesExceeded(1, 1);
     waitForReadModelMetadataVersionMock.mockRejectedValueOnce(pollingError);
 
-    await expect(
-      revokeAttributes(
-        [
-          {
-            tOrigin: "IPA",
-            tExternalId: "123",
-            aOrigin: "IPA",
-            aCode: "A1",
-          },
-        ],
-        tenantProcessClient as never,
-        readModelServiceSQL as never,
-        headers,
-        logger,
-        pollingConfig
-      )
-    ).rejects.toThrowError(pollingError);
+    const state = createImportState();
+
+    await revokeAttributes(
+      [
+        {
+          tOrigin: "IPA",
+          tExternalId: "123",
+          aOrigin: "IPA",
+          aCode: "A1",
+        },
+      ],
+      tenantProcessClient as never,
+      readModelServiceSQL as never,
+      headers,
+      logger,
+      pollingConfig,
+      state
+    );
 
     expect(internalRevokeCertifiedAttributeMock).toHaveBeenCalledTimes(1);
     expect(waitForReadModelMetadataVersionMock).toHaveBeenCalledTimes(1);
+    expect(state.report.warnings).toBe(1);
   });
 });

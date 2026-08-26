@@ -1,8 +1,8 @@
 import {
-  InteropTokenGenerator,
-  RefreshableInteropToken,
   getInteropHeaders,
+  InteropTokenGenerator,
   logger,
+  RefreshableInteropToken,
 } from "pagopa-interop-commons";
 import { CorrelationId, generateId } from "pagopa-interop-models";
 import {
@@ -14,12 +14,15 @@ import {
 import { parseIPACertifiedAttributesImporterConfig } from "./config/config.js";
 import {
   assignNewAttributes,
-  createTenantProcessClient,
+  createImportState,
   createNewAttributes,
+  createTenantProcessClient,
+  formatRunSummary,
   getAttributesToAssign,
   getAttributesToRevoke,
   getNewAttributes,
   getTenantUpsertData,
+  hasFailedOperations,
   revokeAttributes,
 } from "./services/ipaCertifiedAttributesImporterService.js";
 import { getRegistryData } from "./services/openDataService.js";
@@ -36,6 +39,8 @@ const loggerInstance = logger({
 loggerInstance.info("Starting ipa-certified-attributes-importer");
 
 const { db: readModelDB, cleanup } = makeDrizzleConnectionWithCleanup(config);
+
+const state = createImportState();
 
 try {
   const tenantReadModelServiceSQL = tenantReadModelServiceBuilder(readModelDB);
@@ -91,7 +96,9 @@ try {
     headers,
     loggerInstance,
     config.attributeRegistryUrl,
-    config.attributeCreationWaitTime
+    config.attributeCreationWaitTime,
+    config.defaultPollingMaxRetries,
+    state
   );
 
   loggerInstance.info("Assigning new attributes");
@@ -113,7 +120,8 @@ try {
     {
       defaultPollingMaxRetries: config.defaultPollingMaxRetries,
       defaultPollingRetryDelay: config.defaultPollingRetryDelay,
-    }
+    },
+    state
   );
 
   loggerInstance.info("Revoking attributes");
@@ -133,12 +141,20 @@ try {
     {
       defaultPollingMaxRetries: config.defaultPollingMaxRetries,
       defaultPollingRetryDelay: config.defaultPollingRetryDelay,
-    }
+    },
+    state
   );
 
   loggerInstance.info("IPA certified attributes import completed");
 } catch (error) {
   loggerInstance.error(error);
+  process.exitCode = 1;
 } finally {
+  loggerInstance.info(formatRunSummary(state.report));
+
+  if (hasFailedOperations(state.report)) {
+    process.exitCode = 1;
+  }
+
   await cleanup();
 }

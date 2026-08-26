@@ -4,12 +4,16 @@ import { match, P } from "ts-pattern";
 
 import type { OpenDataConfig } from "../config/openDataConfig.js";
 
-import { ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY } from "./ipaCertifiedAttributesImporterService.js";
+import {
+  ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
+  toAttributeKey,
+  toTenantKey,
+} from "./ipaCertifiedAttributesImporterService.js";
 import {
   Category,
-  Institution,
   getAllCategories,
   getAllInstitutions,
+  Institution,
 } from "./openDataExtractor.js";
 
 /**
@@ -52,10 +56,8 @@ export type RegistryData = {
 };
 
 async function loadOpenData(openDataConfig: OpenDataConfig): Promise<OpenData> {
-  const institutions = await getAllInstitutions(
-    "Agency",
-    new Map(),
-    openDataConfig
+  const institutions = dedupeInstitutions(
+    await getAllInstitutions("Agency", new Map(), openDataConfig)
   );
 
   const institutionsDetails = new Map(
@@ -137,18 +139,52 @@ async function loadCertifiedAttributes(
   return [...attributeSeedsCategories, ...attributeSeedsInstitutions];
 }
 
+export function dedupeInstitutions(institutions: Institution[]): Institution[] {
+  const seen = new Set<string>();
+
+  return institutions.filter((i) => {
+    const key = toTenantKey({ origin: i.origin, value: i.originId });
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
+
+export function dedupeCertifiedAttributes(
+  attributes: InternalCertifiedAttribute[]
+): InternalCertifiedAttribute[] {
+  const seen = new Set<string>();
+
+  return attributes.filter((a) => {
+    const key = toAttributeKey({ origin: a.origin, code: a.code });
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+}
+
 export async function getRegistryData(
   openDataConfig: OpenDataConfig
 ): Promise<RegistryData> {
   const openData = await loadOpenData(openDataConfig);
 
-  const allInstitutions = [
+  const allInstitutions = dedupeInstitutions([
     ...openData.institutions,
     ...openData.aoo,
     ...openData.uo,
-  ];
+  ]);
 
-  const attributes = await loadCertifiedAttributes(openData);
+  const attributes = dedupeCertifiedAttributes(
+    await loadCertifiedAttributes(openData)
+  );
 
   return {
     institutions: allInstitutions,
