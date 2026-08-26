@@ -1,7 +1,10 @@
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+import {
+  catalogApi,
+  eserviceTemplateApi,
+  m2mGatewayApiV3,
+} from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
-  getMockedApiEServiceAttribute,
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
 } from "pagopa-interop-commons-test";
@@ -28,13 +31,29 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
+const getMockedApiCertifiedDiscreteEServiceAttribute =
+  (): eserviceTemplateApi.Attribute => ({
+    id: generateId(),
+    explicitAttributeVerification: false,
+    discreteConfig: {
+      threshold: 1,
+      comparator: catalogApi.AttributeCertifiedDiscreteComparator.Values.EQ,
+    },
+  });
+
 describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () => {
-  const mockNewAttribute1 = getMockedApiEServiceAttribute();
-  const mockNewAttribute2 = getMockedApiEServiceAttribute();
+  const mockNewAttribute1 = getMockedApiCertifiedDiscreteEServiceAttribute();
+  const mockNewAttribute2 = getMockedApiCertifiedDiscreteEServiceAttribute();
   const mockCertifiedDiscreteAttributes = [
-    [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
-    [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
-    [getMockedApiEServiceAttribute()],
+    [
+      getMockedApiCertifiedDiscreteEServiceAttribute(),
+      getMockedApiCertifiedDiscreteEServiceAttribute(),
+    ],
+    [
+      getMockedApiCertifiedDiscreteEServiceAttribute(),
+      getMockedApiCertifiedDiscreteEServiceAttribute(),
+    ],
+    [getMockedApiCertifiedDiscreteEServiceAttribute()],
   ];
   const mockVersion = getMockedApiEserviceTemplateVersion({
     state: eserviceTemplateApi.EServiceTemplateVersionState.Values.DRAFT,
@@ -85,9 +104,15 @@ describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () =
         mockPollingResponse(mockGetEServiceTemplateResponse, 2)
       );
 
-      const seed = {
-        attributeIds: [mockNewAttribute1.id, mockNewAttribute2.id],
-      };
+      const seed: m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed =
+        {
+          attributes: [mockNewAttribute1, mockNewAttribute2].map(
+            ({ id, discreteConfig }) => ({
+              id,
+              discreteConfig: discreteConfig!,
+            })
+          ),
+        };
 
       await eserviceTemplateService.assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup(
         unsafeBrandId(mockEServiceTemplate.id),
@@ -111,9 +136,10 @@ describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () =
               if (index === groupIndex) {
                 return [
                   ...group,
-                  ...seed.attributeIds.map((id) => ({
+                  ...seed.attributes.map(({ id, discreteConfig }) => ({
                     id,
                     explicitAttributeVerification: false,
+                    discreteConfig,
                   })),
                 ];
               }
@@ -146,9 +172,13 @@ describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () =
       metadata: undefined,
     });
 
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
+    const seed: m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed =
+      {
+        attributes: [mockNewAttribute1].map(({ id, discreteConfig }) => ({
+          id,
+          discreteConfig: discreteConfig!,
+        })),
+      };
 
     await expect(
       eserviceTemplateService.assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup(
@@ -170,9 +200,13 @@ describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () =
       metadata: undefined,
     });
 
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
+    const seed: m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed =
+      {
+        attributes: [mockNewAttribute1].map(({ id, discreteConfig }) => ({
+          id,
+          discreteConfig: discreteConfig!,
+        })),
+      };
 
     await expect(
       eserviceTemplateService.assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup(
@@ -196,9 +230,13 @@ describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () =
       )
     );
 
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
+    const seed: m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed =
+      {
+        attributes: [mockNewAttribute1].map(({ id, discreteConfig }) => ({
+          id,
+          discreteConfig: discreteConfig!,
+        })),
+      };
 
     await expect(
       eserviceTemplateService.assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup(
@@ -224,9 +262,13 @@ describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () =
       mockGetEServiceTemplateResponse
     );
 
-    const seed = {
-      attributeIds: [mockNewAttribute1.id],
-    };
+    const seed: m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed =
+      {
+        attributes: [mockNewAttribute1].map(({ id, discreteConfig }) => ({
+          id,
+          discreteConfig: discreteConfig!,
+        })),
+      };
 
     await expect(
       eserviceTemplateService.assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup(

@@ -24,9 +24,12 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedDiscr
     getMockedApiEServiceTemplate();
   const mockVersion = mockTemplate.versions[0]!;
 
-  const mockAttributeSeed: m2mGatewayApiV3.EServiceDescriptorAttributesGroupSeed =
+  const mockAttributeSeed: m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed =
     {
-      attributeIds: [generateId(), generateId(), generateId()],
+      attributes: [generateId(), generateId(), generateId()].map((id) => ({
+        id,
+        discreteConfig: { threshold: 1, comparator: "EQ" },
+      })),
     };
 
   const mockAttribute1 = getMockedApiAttribute({
@@ -62,7 +65,9 @@ describe("POST /eserviceTemplates/:templateId/versions/:versionId/certifiedDiscr
     token: string,
     templateId: string,
     versionId: string,
-    body: m2mGatewayApiV3.EServiceTemplateVersionAttributesGroupSeed
+    body:
+      | m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed
+      | m2mGatewayApiV3.EServiceTemplateVersionAttributesGroupSeed
   ) =>
     request(api)
       .post(

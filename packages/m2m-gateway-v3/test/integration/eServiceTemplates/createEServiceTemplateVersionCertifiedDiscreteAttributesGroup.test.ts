@@ -37,16 +37,28 @@ describe("createEServiceTemplateVersionCertifiedDiscreteAttributesGroup", () => 
   const attribute1: catalogApi.Attribute = {
     id: generateId(),
     explicitAttributeVerification: false,
+    discreteConfig: {
+      threshold: 1,
+      comparator: catalogApi.AttributeCertifiedDiscreteComparator.Values.EQ,
+    },
   };
 
   const attribute2: catalogApi.Attribute = {
     id: generateId(),
     explicitAttributeVerification: false,
+    discreteConfig: {
+      threshold: 2,
+      comparator: catalogApi.AttributeCertifiedDiscreteComparator.Values.GT,
+    },
   };
 
   const attribute3: catalogApi.Attribute = {
     id: generateId(),
     explicitAttributeVerification: false,
+    discreteConfig: {
+      threshold: 3,
+      comparator: catalogApi.AttributeCertifiedDiscreteComparator.Values.LTE,
+    },
   };
 
   const bulkAttribute1: attributeRegistryApi.Attribute = {
@@ -88,9 +100,12 @@ describe("createEServiceTemplateVersionCertifiedDiscreteAttributesGroup", () => 
     },
   };
 
-  const seed: m2mGatewayApiV3.EServiceTemplateVersionAttributesGroupSeed = {
-    attributeIds: [attribute1.id, attribute2.id, attribute3.id],
-  };
+  const seed: m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed =
+    {
+      attributes: [attribute1, attribute2, attribute3].map(
+        ({ id, discreteConfig }) => ({ id, discreteConfig: discreteConfig! })
+      ),
+    };
 
   const eserviceTemplate: eserviceTemplateApi.EServiceTemplate = {
     ...getMockedApiEServiceTemplate(),
@@ -102,9 +117,10 @@ describe("createEServiceTemplateVersionCertifiedDiscreteAttributesGroup", () => 
     attributes: {
       certified: [
         [attribute1, attribute2, attribute3],
-        seed.attributeIds.map((id) => ({
+        seed.attributes.map(({ id, discreteConfig }) => ({
           id,
           explicitAttributeVerification: false,
+          discreteConfig,
         })),
       ],
       verified: [],

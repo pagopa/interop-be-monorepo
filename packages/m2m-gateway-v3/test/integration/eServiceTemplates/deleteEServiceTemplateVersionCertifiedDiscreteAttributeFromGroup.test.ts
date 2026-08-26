@@ -1,3 +1,4 @@
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiEServiceAttribute,
@@ -29,15 +30,27 @@ import {
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () => {
-  const mockAttribute = getMockedApiEServiceAttribute();
+  const getMockedApiCertifiedDiscreteAttribute =
+    (): eserviceTemplateApi.Attribute => ({
+      ...getMockedApiEServiceAttribute(),
+      discreteConfig: {
+        threshold: 1,
+        comparator: "GT",
+      },
+    });
+
+  const mockAttribute = getMockedApiCertifiedDiscreteAttribute();
   const mockCertifiedDiscreteAttributes = [
-    [getMockedApiEServiceAttribute(), getMockedApiEServiceAttribute()],
-    [getMockedApiEServiceAttribute(), mockAttribute],
+    [
+      getMockedApiCertifiedDiscreteAttribute(),
+      getMockedApiCertifiedDiscreteAttribute(),
+    ],
+    [getMockedApiCertifiedDiscreteAttribute(), mockAttribute],
     [mockAttribute],
     [
-      getMockedApiEServiceAttribute(),
-      getMockedApiEServiceAttribute(),
-      getMockedApiEServiceAttribute(),
+      getMockedApiCertifiedDiscreteAttribute(),
+      getMockedApiCertifiedDiscreteAttribute(),
+      getMockedApiCertifiedDiscreteAttribute(),
     ],
   ];
   const mockVersion = getMockedApiEserviceTemplateVersion({

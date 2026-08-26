@@ -6965,7 +6965,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
+              $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed"
       responses:
         "200":
           description: E-Service Descriptor Certified Discrete Attribute assigned to the Attribute
@@ -7493,7 +7493,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/EServiceTemplateVersionAttributesGroupSeed"
+              $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed"
       responses:
         "201":
           description: Certified Discrete Attributes Group created for E-Service Template Version
@@ -12293,6 +12293,27 @@ components:
       required:
         - attributeIds
     EServiceDescriptorCertifiedDiscreteAttributesGroupSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+                format: uuid
+              discreteConfig:
+                $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfigSeed"
+            required:
+              - id
+              - discreteConfig
+      required:
+        - attributes
+    EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed:
       type: object
       additionalProperties: false
       properties:
