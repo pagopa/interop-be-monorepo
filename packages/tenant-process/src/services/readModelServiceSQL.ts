@@ -75,6 +75,7 @@ export function readModelServiceBuilderSQL(
     async getTenants({
       name,
       features,
+      tenantIds: filterTenantIds = [],
       externalIdOrigin,
       externalIdValue,
       offset,
@@ -102,6 +103,9 @@ export function readModelServiceBuilderSQL(
             and(
               features.length > 0
                 ? inArray(tenantFeatureInReadmodelTenant.kind, features)
+                : undefined,
+              filterTenantIds.length > 0
+                ? inArray(tenantInReadmodelTenant.id, filterTenantIds)
                 : undefined,
               name
                 ? ilikeEscaped(

@@ -107,19 +107,17 @@ const enhanceCatalogEservices = async (
     ctx
   );
 
-  const cachedTenants = new Map(
-    await Promise.all(
-      Array.from(tenantsIds).map(
-        async (tenantId): Promise<[TenantId, tenantApi.Tenant]> => [
-          tenantId,
-          await tenantProcessClient.tenant.getTenant({
-            headers: ctx.headers,
-            params: { id: tenantId },
-          }),
-        ]
-      )
-    )
+  const tenants = await getAllFromPaginated((offset, limit) =>
+    tenantProcessClient.tenant.getTenants({
+      headers: ctx.headers,
+      queries: {
+        tenantIds: Array.from(tenantsIds),
+        offset,
+        limit,
+      },
+    })
   );
+  const cachedTenants = new Map(tenants.map((tenant) => [tenant.id, tenant]));
 
   const getCachedTenant = (tenantId: TenantId): tenantApi.Tenant => {
     const tenant = cachedTenants.get(tenantId);
