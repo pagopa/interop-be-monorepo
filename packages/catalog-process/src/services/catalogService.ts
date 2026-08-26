@@ -1264,6 +1264,9 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Archiving EService ${eserviceId}`);
+
+      validateNoHyperlinksSafe(body.archivingReason);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
       const requestDate = new Date();
 

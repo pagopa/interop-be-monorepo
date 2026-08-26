@@ -814,6 +814,8 @@ export function purposeServiceBuilder(
     ): Promise<WithMetadata<Purpose>> {
       logger.info(`Rejecting risk analysis for Purpose ${purposeId}`);
 
+      validateNoHyperlinksSafe(rejectionReason);
+
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -953,6 +955,8 @@ export function purposeServiceBuilder(
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
+
+      validateNoHyperlinksSafe(rejectionReason);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
