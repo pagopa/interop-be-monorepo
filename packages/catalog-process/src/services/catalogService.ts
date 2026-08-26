@@ -188,6 +188,7 @@ import {
   toCreateEventEServiceArchivingRequestedByDelegate,
   toCreateEventEServiceDescriptorArchivingRequestedByDelegate,
   toCreateEventEServiceArchivingRequestApprovedByDelegator,
+  toCreateEventEServiceArchivingRequestCanceledByRevokedDelegation,
   toCreateEventEServiceArchivingRequestRejectedByDelegator,
   toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator,
   toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
@@ -2564,7 +2565,7 @@ export function catalogServiceBuilder(
       };
 
       await repository.createEvent(
-        toCreateEventEServiceArchivingRequestRejectedByDelegator(
+        toCreateEventEServiceArchivingRequestCanceledByRevokedDelegation(
           eservice.metadata.version,
           updatedEService,
           correlationId

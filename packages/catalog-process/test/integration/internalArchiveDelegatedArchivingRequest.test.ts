@@ -13,7 +13,7 @@ import {
   Descriptor,
   descriptorState,
   EService,
-  EServiceArchivingRequestRejectedByDelegatorV2,
+  EServiceArchivingRequestCanceledByRevokedDelegationV2,
   EServiceDescriptorArchivingRequestRejectedByDelegatorV2,
   toEServiceV2,
 } from "pagopa-interop-models";
@@ -129,12 +129,12 @@ describe("internal archive delegated archiving request", () => {
     expect(writtenEvent).toMatchObject({
       stream_id: eservice.id,
       version: "1",
-      type: "EServiceArchivingRequestRejectedByDelegator",
+      type: "EServiceArchivingRequestCanceledByRevokedDelegation",
       event_version: 2,
     });
 
     const writtenPayload = decodeProtobufPayload({
-      messageType: EServiceArchivingRequestRejectedByDelegatorV2,
+      messageType: EServiceArchivingRequestCanceledByRevokedDelegationV2,
       payload: writtenEvent.data,
     });
 
