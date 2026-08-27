@@ -3,7 +3,10 @@
 import {
   authorizationApi,
   bffApi,
+  catalogApi,
+  purposeApi,
   SelfcareV2UsersClient,
+  tenantApi,
 } from "pagopa-interop-api-clients";
 import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
@@ -15,7 +18,12 @@ import {
 } from "../api/authorizationApiConverter.js";
 import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { clientNotFound } from "../model/errors.js";
+import {
+  clientNotFound,
+  eServiceNotFound,
+  purposeNotFound,
+  tenantNotFound,
+} from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
@@ -393,11 +401,7 @@ async function enhanceClient(
   client: authorizationApi.FullClient,
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.Client> {
-  const [consumer, admin, ...purposes] = await Promise.all([
-    apiClients.tenantProcessClient.tenant.getTenant({
-      params: { id: client.consumerId },
-      headers: ctx.headers,
-    }),
+  const [admin, retrievedPurposes] = await Promise.all([
     client.adminId
       ? getSelfcareCompactUserById(
           apiClients.selfcareV2UserClient,
@@ -406,8 +410,53 @@ async function enhanceClient(
           ctx.correlationId
         )
       : Promise.resolve(undefined),
-    ...client.purposes.map((p) => enhancePurpose(apiClients, p, ctx)),
+    getAllFromPaginated((offset, limit) =>
+      apiClients.purposeProcessClient.getPurposes({
+        headers: ctx.headers,
+        queries: { clientId: client.id, offset, limit },
+      })
+    ),
   ]);
+  const eserviceIds = Array.from(
+    new Set(retrievedPurposes.map((purpose) => purpose.eserviceId))
+  );
+  const eservices =
+    eserviceIds.length === 0
+      ? []
+      : await getAllFromPaginated((offset, limit) =>
+          apiClients.catalogProcessClient.getEServices({
+            headers: ctx.headers,
+            queries: { eservicesIds: eserviceIds, offset, limit },
+          })
+        );
+  const tenantIds = Array.from(
+    new Set([
+      client.consumerId,
+      ...eservices.map((eservice) => eservice.producerId),
+    ])
+  );
+  const tenants = await getAllFromPaginated((offset, limit) =>
+    apiClients.tenantProcessClient.tenant.getTenants({
+      headers: ctx.headers,
+      queries: { tenantIds, offset, limit },
+    })
+  );
+
+  const purposeById = new Map(
+    retrievedPurposes.map((purpose) => [purpose.id, purpose])
+  );
+  const eserviceById = new Map(
+    eservices.map((eservice) => [eservice.id, eservice])
+  );
+  const tenantById = new Map(tenants.map((tenant) => [tenant.id, tenant]));
+  const consumer = tenantById.get(client.consumerId);
+  if (!consumer) {
+    throw tenantNotFound(client.consumerId);
+  }
+
+  const purposes = client.purposes.map((purposeId) =>
+    enhancePurpose(purposeId, purposeById, eserviceById, tenantById)
+  );
 
   return {
     id: client.id,
@@ -424,29 +473,24 @@ async function enhanceClient(
   };
 }
 
-async function enhancePurpose(
-  {
-    catalogProcessClient,
-    tenantProcessClient,
-    purposeProcessClient,
-  }: PagoPAInteropBeClients,
+function enhancePurpose(
   clientPurposeId: string,
-  { headers }: WithLogger<BffAppContext>
-): Promise<bffApi.ClientPurpose> {
-  const purpose = await purposeProcessClient.getPurpose({
-    params: { id: clientPurposeId },
-    headers,
-  });
-
-  const eservice = await catalogProcessClient.getEServiceById({
-    params: { eServiceId: purpose.eserviceId },
-    headers,
-  });
-
-  const producer = await tenantProcessClient.tenant.getTenant({
-    params: { id: eservice.producerId },
-    headers,
-  });
+  purposeById: Map<string, purposeApi.Purpose>,
+  eserviceById: Map<string, catalogApi.EService>,
+  tenantById: Map<string, tenantApi.Tenant>
+): bffApi.ClientPurpose {
+  const purpose = purposeById.get(clientPurposeId);
+  if (!purpose) {
+    throw purposeNotFound(clientPurposeId);
+  }
+  const eservice = eserviceById.get(purpose.eserviceId);
+  if (!eservice) {
+    throw eServiceNotFound(purpose.eserviceId);
+  }
+  const producer = tenantById.get(eservice.producerId);
+  if (!producer) {
+    throw tenantNotFound(eservice.producerId);
+  }
 
   return {
     purposeId: purpose.id,
