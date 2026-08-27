@@ -72,7 +72,7 @@ export function toBffCatalogEServiceTemplate(
   return {
     id: eserviceTemplate.id,
     name: eserviceTemplate.name,
-    description: eserviceTemplate.intendedTarget,
+    description: eserviceTemplate.description,
     creator: toBffCatalogTenant(creator),
     publishedVersion: toBffCompactEServiceTemplateVersion(publishedVersion),
   };
