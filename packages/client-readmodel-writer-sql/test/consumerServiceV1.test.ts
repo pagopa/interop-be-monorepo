@@ -2,6 +2,8 @@
 import crypto from "crypto";
 import { describe } from "node:test";
 import {
+  dirtifyEncodedPem,
+  generateKeySet,
   getMockClient,
   getMockKey,
 } from "pagopa-interop-commons-test/index.js";
@@ -347,6 +349,54 @@ describe("Events V1", async () => {
             value: {
               ...toKeyV1(addedKey),
             },
+          },
+        ],
+      };
+
+      const message: AuthorizationEventEnvelopeV1 = {
+        ...mockMessage,
+        stream_id: updatedClient.id,
+        version: 2,
+        type: "KeysAdded",
+        data: payload,
+      };
+
+      await handleMessageV1(message, clientWriterService);
+
+      const retrievedClient = await clientReadModelService.getClientById(
+        updatedClient.id
+      );
+
+      expect(retrievedClient).toStrictEqual({
+        data: updatedClient,
+        metadata: { version: 2 },
+      });
+    });
+
+    it("KeysAdded - key stored before the upload sanitization", async () => {
+      const mockClient: Client = {
+        ...getMockClient(),
+        keys: [],
+      };
+      await clientWriterService.upsertClient(mockClient, 1);
+
+      const keyId = generateId();
+      const addedKey: Key = {
+        ...getMockKey(),
+        kid: keyId,
+        encodedPem: dirtifyEncodedPem(generateKeySet().publicKeyEncodedPem),
+      };
+
+      const updatedClient: Client = {
+        ...mockClient,
+        keys: [addedKey],
+      };
+      const payload: KeysAddedV1 = {
+        clientId: updatedClient.id,
+        keys: [
+          {
+            keyId,
+            value: toKeyV1(addedKey),
           },
         ],
       };
