@@ -6,7 +6,7 @@ import {
 } from "pagopa-interop-commons";
 import { inject } from "vitest";
 
-export const kafkaBrokers = inject("kafkaBrokers");
+const kafkaBrokers = inject("kafkaBrokers");
 
 // Plain client for test-side production and assertions.
 // It is independent from the module under test.
