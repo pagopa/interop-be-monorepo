@@ -1,5 +1,9 @@
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { retry, WithLogger } from "pagopa-interop-commons";
+import {
+  retry,
+  WithLogger,
+  CORRELATION_ID_HEADER,
+} from "pagopa-interop-commons";
 import {
   EServiceId,
   ProducerKeychainId,
@@ -308,7 +312,7 @@ export function producerKeychainServiceBuilder(
             clients,
             id,
             tenant.selfcareId,
-            ctx.headers["X-Correlation-Id"]
+            ctx.headers[CORRELATION_ID_HEADER]
           )
         )
       );

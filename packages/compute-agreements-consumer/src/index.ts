@@ -7,6 +7,7 @@ import {
   isFeatureFlagEnabled,
   logger,
   RefreshableInteropToken,
+  CORRELATION_ID_HEADER,
 } from "pagopa-interop-commons";
 import {
   CorrelationId,
@@ -78,7 +79,7 @@ async function processMessage({
             },
             {
               headers: {
-                "X-Correlation-Id": correlationId,
+                [CORRELATION_ID_HEADER]: correlationId,
                 Authorization: `Bearer ${token}`,
               },
             }
@@ -114,7 +115,7 @@ async function processMessage({
             },
             {
               headers: {
-                "X-Correlation-Id": correlationId,
+                [CORRELATION_ID_HEADER]: correlationId,
                 Authorization: `Bearer ${token}`,
               },
             }

@@ -6,7 +6,7 @@ import {
   selfcareV2ClientApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import { WithLogger, CORRELATION_ID_HEADER } from "pagopa-interop-commons";
 import { CorrelationId, TenantId } from "pagopa-interop-models";
 
 import {
@@ -34,7 +34,7 @@ export async function getSelfcareCompactUserById(
     const user = await selfcareClient.getUserInfoUsingGET({
       params: { id: userId },
       queries: { institutionId: selfcareId },
-      headers: { "X-Correlation-Id": correlationId },
+      headers: { [CORRELATION_ID_HEADER]: correlationId },
     });
 
     return toBffApiCompactUser(user, userId);
@@ -94,7 +94,7 @@ export function selfcareServiceBuilder({
             userId: userIdQuery,
           },
           headers: {
-            "X-Correlation-Id": correlationId,
+            [CORRELATION_ID_HEADER]: correlationId,
           },
         });
 
@@ -118,7 +118,7 @@ export function selfcareServiceBuilder({
           params: { institutionId },
           queries: { userId },
           headers: {
-            "X-Correlation-Id": correlationId,
+            [CORRELATION_ID_HEADER]: correlationId,
           },
         });
 
@@ -139,7 +139,7 @@ export function selfcareServiceBuilder({
           products: config.selfcareProductName,
         },
         headers: {
-          "X-Correlation-Id": correlationId,
+          [CORRELATION_ID_HEADER]: correlationId,
         },
       });
 
@@ -175,7 +175,7 @@ export function selfcareServiceBuilder({
             productRoles: roles.join(","),
           },
           headers: {
-            "X-Correlation-Id": correlationId,
+            [CORRELATION_ID_HEADER]: correlationId,
           },
         });
 

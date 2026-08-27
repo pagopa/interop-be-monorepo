@@ -1,5 +1,9 @@
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { M2MAdminAuthData, WithLogger } from "pagopa-interop-commons";
+import {
+  M2MAdminAuthData,
+  WithLogger,
+  CORRELATION_ID_HEADER,
+} from "pagopa-interop-commons";
 import { TenantId, UserId } from "pagopa-interop-models";
 
 import { toM2MGatewayApiUser } from "../api/usersApiConverter.js";
@@ -26,7 +30,7 @@ export async function getSelfcareUserById(
     params: { id: userId },
     queries: { institutionId: selfcareId },
     headers: {
-      "X-Correlation-Id": correlationId,
+      [CORRELATION_ID_HEADER]: correlationId,
     },
   });
 
