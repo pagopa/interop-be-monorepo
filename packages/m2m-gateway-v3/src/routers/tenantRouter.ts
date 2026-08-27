@@ -291,7 +291,7 @@ const tenantRouter = (
         }
       }
     )
-    .put(
+    .patch(
       "/tenants/:tenantId/certifiedDiscreteAttributes/:attributeId",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);

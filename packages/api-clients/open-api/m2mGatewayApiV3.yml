@@ -8469,7 +8469,7 @@ paths:
         required: true
         schema:
           $ref: "#/components/schemas/AttributeId"
-    put:
+    patch:
       tags:
         - tenants
       summary: Replace the Certified Discrete Attribute from a Tenant

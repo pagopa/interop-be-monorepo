@@ -20,7 +20,7 @@ import { config } from "../../../src/config/config.js";
 import { missingMetadata } from "../../../src/model/errors.js";
 import { api, mockTenantService } from "../../vitest.api.setup.js";
 
-describe("PUT /tenants/:tenantId/certifiedDiscreteAttributes/:attributeId router test", () => {
+describe("PATCH /tenants/:tenantId/certifiedDiscreteAttributes/:attributeId router test", () => {
   const mockApiResponse = getMockedApiCertifiedDiscreteTenantAttribute();
   const mockTenantId = generateId<TenantId>();
   const mockAttributeId = generateId<AttributeId>();
@@ -43,7 +43,7 @@ describe("PUT /tenants/:tenantId/certifiedDiscreteAttributes/:attributeId router
     body: m2mGatewayApiV3.UpdateTenantCertifiedDiscreteAttributeSeed = mockUpdateSeed
   ) =>
     request(api)
-      .put(
+      .patch(
         `${appBasePath}/tenants/${tenantId}/certifiedDiscreteAttributes/${attributeId}`
       )
       .set("Authorization", `DPoP ${token}`)
