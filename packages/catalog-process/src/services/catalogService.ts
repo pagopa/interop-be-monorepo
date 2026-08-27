@@ -2689,6 +2689,8 @@ export function catalogServiceBuilder(
     > {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
+      validateNoHyperlinksSafe(eserviceRiskAnalysisSeed.name);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertEServiceNotTemplateInstance(
@@ -2773,6 +2775,8 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
+
+      validateNoHyperlinksSafe(eserviceRiskAnalysisSeed.name);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 

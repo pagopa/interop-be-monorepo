@@ -632,6 +632,8 @@ export function agreementServiceBuilder(
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Submitting agreement ${agreementId}`);
 
+      validateNoHyperlinksSafe(payload.consumerNotes);
+
       const agreement = await retrieveAgreement(agreementId, readModelService);
 
       assertSubmittableState(agreement.data.state, agreement.data.id);

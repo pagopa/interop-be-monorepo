@@ -44,6 +44,7 @@ import {
   descriptorState,
   fromAgreementV2,
   generateId,
+  hyperlinkDetectionError,
   tenantMailKind,
   toAgreementStateV2,
 } from "pagopa-interop-models";
@@ -2502,5 +2503,16 @@ describe("submit agreement", () => {
         );
       }
     );
+  });
+
+  it("should throw hyperlinkDetectionError when consumerNotes contains a hyperlink", async () => {
+    const consumerNotes = "see https://evil.example.com";
+    await expect(
+      agreementService.submitAgreement(
+        generateId<AgreementId>(),
+        { consumerNotes },
+        getMockContext({ authData: getMockAuthData() })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(consumerNotes));
   });
 });

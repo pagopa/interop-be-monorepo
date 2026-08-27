@@ -1831,6 +1831,7 @@ export function purposeServiceBuilder(
 
       validateNoHyperlinksSafe(purposeSeed.title);
       validateNoHyperlinksSafe(purposeSeed.description);
+      validateNoHyperlinksSafe(purposeSeed.freeOfChargeReason ?? undefined);
 
       const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
       const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
@@ -1926,6 +1927,7 @@ export function purposeServiceBuilder(
 
       validateNoHyperlinksSafe(seed.title);
       validateNoHyperlinksSafe(seed.description);
+      validateNoHyperlinksSafe(seed.freeOfChargeReason ?? undefined);
 
       const riskAnalysisId: RiskAnalysisId = unsafeBrandId(seed.riskAnalysisId);
       const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
@@ -2624,6 +2626,7 @@ const performUpdatePurpose = async (
 
   validateNoHyperlinksSafe(title);
   validateNoHyperlinksSafe(description);
+  validateNoHyperlinksSafe(freeOfChargeReason ?? undefined);
 
   const { mode } = modeAndUpdateContent;
 

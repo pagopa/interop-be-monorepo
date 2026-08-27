@@ -751,6 +751,14 @@ describe("createPurpose", () => {
       override: { description: "see www.evil.example.com" },
       text: "see www.evil.example.com",
     },
+    {
+      label: "freeOfChargeReason",
+      override: {
+        isFreeOfCharge: true,
+        freeOfChargeReason: "see https://evil.example.com",
+      },
+      text: "see https://evil.example.com",
+    },
   ])(
     "should throw hyperlinkDetectionError when purpose $label contains a hyperlink",
     async ({ override, text }) => {

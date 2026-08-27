@@ -14,6 +14,7 @@ import {
   M2MAuthData,
   isUiAuthData,
   M2MAdminAuthData,
+  validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -1979,6 +1980,8 @@ export function tenantServiceBuilder(
       { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
+
+      validateNoHyperlinksSafe(mailSeed.description);
 
       await assertRequesterAllowed(tenantId, authData);
 
