@@ -6,6 +6,8 @@ import {
   EachMessagePayload,
   Kafka,
   KafkaConfig,
+  KafkaJSNonRetriableError,
+  KafkaJSProtocolError,
   KafkaMessage,
   OauthbearerProviderResponse,
   Producer,
@@ -407,35 +409,79 @@ export const runConsumer = async (
   }
 };
 
+// The kafkajs runner recovers from these commit errors with a group
+// rejoin (see isRebalancing and the UNKNOWN_MEMBER_ID branch in the
+// kafkajs runner). They must keep their kafkajs type: a wrapped error
+// takes the generic retry path and crashes the process on every
+// routine rebalance, such as a rolling deploy or a scale event.
+const rebalanceErrorTypes = new Set([
+  "REBALANCE_IN_PROGRESS",
+  "NOT_COORDINATOR_FOR_GROUP",
+  "ILLEGAL_GENERATION",
+  "UNKNOWN_MEMBER_ID",
+]);
+const isRebalanceError = (e: unknown): boolean =>
+  e instanceof KafkaJSProtocolError && rebalanceErrorTypes.has(e.type);
+
+export const makeBatchConsumerRunConfig = (
+  consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>,
+  serviceName?: string
+): ConsumerRunConfig => ({
+  // Auto commit tolerates commit failures and continues to consume.
+  // A crash then replays every batch since the last successful commit.
+  // The explicit commit below makes a persistent commit failure stop
+  // the consumer, so a replay contains at most one batch per partition.
+  autoCommit: false,
+  eachBatchAutoResolve: false,
+  eachBatch: async (payload: EachBatchPayload): Promise<void> => {
+    try {
+      await consumerHandlerBatch(payload);
+    } catch (e) {
+      throw kafkaMessageProcessError(
+        payload.batch.topic,
+        payload.batch.partition,
+        {
+          offset: payload.batch.lastOffset().toString(),
+          serviceName,
+        },
+        e
+      );
+    }
+
+    payload.resolveOffset(payload.batch.lastOffset());
+    try {
+      await payload.commitOffsetsIfNecessary(payload.uncommittedOffsets());
+    } catch (e) {
+      if (isRebalanceError(e)) {
+        throw e;
+      }
+      // The local fetch position is already past this batch. A
+      // retriable error would let kafkajs fetch and process further
+      // batches with zero committed offsets, and a later crash would
+      // replay all of them. A non-retriable error stops the consumer
+      // before the next batch.
+      throw new KafkaJSNonRetriableError(
+        `Offset commit failed: ${
+          e instanceof Error ? `${e.name}: ${e.message}` : e
+        }`
+      );
+    }
+  },
+});
+
 export const runBatchConsumer = async (
   baseConsumerConfig: KafkaConsumerConfig,
   batchConsumerConfig: KafkaBatchConsumerConfig,
   topics: string[],
   consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>,
   serviceName?: string
-): Promise<void> => {
+): Promise<Consumer> => {
   try {
-    const consumerRunConfig = (): ConsumerRunConfig => ({
-      eachBatch: async (payload: EachBatchPayload): Promise<void> => {
-        try {
-          await consumerHandlerBatch(payload);
-        } catch (e) {
-          throw kafkaMessageProcessError(
-            payload.batch.topic,
-            payload.batch.partition,
-            {
-              offset: payload.batch.lastOffset().toString(),
-              serviceName,
-            },
-            e
-          );
-        }
-      },
-    });
-    await initCustomConsumer({
+    return await initCustomConsumer({
       config: baseConsumerConfig,
       topics,
-      consumerRunConfig,
+      consumerRunConfig: () =>
+        makeBatchConsumerRunConfig(consumerHandlerBatch, serviceName),
       batchConsumerConfig,
     });
   } catch (e) {
@@ -443,6 +489,7 @@ export const runBatchConsumer = async (
       `Generic error occurs during consumer initialization: ${e}`
     );
     processExit();
+    return undefined as never;
   }
 };
 
