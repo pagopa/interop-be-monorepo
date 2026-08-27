@@ -66,6 +66,7 @@ export * from "./purposeTemplate/purposeTemplateRiskAnalysisForm.js";
 export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswer.js";
 export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotation.js";
 export * from "./purposeTemplate/purposeTemplateRiskAnalysisAnswerAnnotationDocument.js";
+export * from "./purposeTemplate/purposeTemplateEserviceTemplateVersion.js";
 
 // Tenant models
 export * from "./tenant/tenant.js";
