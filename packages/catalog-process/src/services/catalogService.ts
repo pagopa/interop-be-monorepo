@@ -2273,6 +2273,7 @@ export function catalogServiceBuilder(
             suspendedAt: undefined,
             deprecatedAt: undefined,
             archivedAt: undefined,
+            archivingSchedule: undefined,
           },
         ],
         personalData: eservice.data.personalData,
