@@ -767,6 +767,41 @@ describe("validation test", async () => {
       expect(errors).toHaveLength(1);
       expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
     });
+
+    it("InvalidKidFormat when the kid is a number", async () => {
+      // The protected header is untrusted JSON, so a caller can send a kid
+      // of any JSON type despite the TypeScript annotation.
+      const invalidKid = 123;
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: invalidKid },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
+      expect(errors![0].detail).toContain("123");
+    });
+
+    it("InvalidKidFormat when the kid is an object", async () => {
+      const invalidKid = { url: "https://example.com/keys" };
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: invalidKid },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
+    });
   });
 
   describe("validateKid", async () => {
@@ -788,6 +823,19 @@ describe("validation test", async () => {
       const { errors } = validateKid(longKid);
       expect(errors).toHaveLength(1);
       expect(errors![0].detail).not.toContain(longKid);
+      expect(errors![0].detail.length).toBeLessThan(200);
+    });
+
+    it("should reject a kid that is not a string", async () => {
+      const { errors } = validateKid(123);
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat(123));
+    });
+
+    it("should cut a very long non-string kid in the error detail", async () => {
+      const longKid = { padding: "a".repeat(500) };
+      const { errors } = validateKid(longKid);
+      expect(errors).toHaveLength(1);
       expect(errors![0].detail.length).toBeLessThan(200);
     });
   });

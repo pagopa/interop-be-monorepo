@@ -183,13 +183,14 @@ export const validateEntityNumber = (
   return successfulValidation(entityNumber);
 };
 
-export const validateKid = (kid?: string): ValidationResult<string> => {
+export const validateKid = (kid?: unknown): ValidationResult<string> => {
   if (!kid) {
     return failedValidation([kidNotFound()]);
   }
 
+  // The decoded header is untrusted JSON, so the kid can hold any JSON type.
   const jwkThumbprintRegex = new RegExp("^[a-zA-Z0-9_-]{43}$");
-  if (jwkThumbprintRegex.test(kid)) {
+  if (typeof kid === "string" && jwkThumbprintRegex.test(kid)) {
     return successfulValidation(kid);
   }
   return failedValidation([invalidKidFormat(kid)]);
