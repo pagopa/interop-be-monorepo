@@ -82,6 +82,7 @@ async function handleEServiceEventV2(
             "EServiceArchivingRequestRejectedByDelegator",
             "EServiceArchivingRequestApprovedByDelegator",
             "EServiceArchivingRequestCanceledByDelegate",
+            "EServiceArchivingRequestCanceledByRevokedDelegation",
             "MaintenanceEServicePersonalDataFlagReset"
           ),
         },

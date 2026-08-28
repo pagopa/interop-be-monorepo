@@ -97,7 +97,8 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceArchivingRequestedByDelegate",
                   "EServiceArchivingRequestRejectedByDelegator",
                   "EServiceArchivingRequestApprovedByDelegator",
-                  "EServiceArchivingRequestCanceledByDelegate"
+                  "EServiceArchivingRequestCanceledByDelegate",
+                  "EServiceArchivingRequestCanceledByRevokedDelegation"
                 ),
                 async () => [
                   {
