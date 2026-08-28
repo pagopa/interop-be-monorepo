@@ -34,6 +34,7 @@ import {
   Problem,
   RiskAnalysisId,
   TenantId,
+  genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 
@@ -955,6 +956,22 @@ export function catalogServiceBuilder(
       });
 
       const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
+
+      const eserviceTemplate = eservice.templateId
+        ? await eserviceTemplateProcessClient.getEServiceTemplateById({
+            headers,
+            params: {
+              templateId: eservice.templateId,
+            },
+          })
+        : undefined;
+
+      if (eserviceTemplate && !descriptor.templateVersionRef) {
+        throw genericInternalError(
+          `Missing templateVersionRef for descriptor ${descriptorId} of EService ${eserviceId} instantiated from template ${eserviceTemplate.id}`
+        );
+      }
+
       const attributeIds = getAttributeIds(descriptor);
       const [attributes, producerKeychainFlags] = await Promise.all([
         getAllBulkAttributes(attributeProcessClient, headers, attributeIds),
@@ -1048,6 +1065,14 @@ export function catalogServiceBuilder(
           hasProducerKeychainKeys
         ),
         archivingSchedule: descriptor.archivingSchedule,
+        templateRef:
+          eserviceTemplate && descriptor.templateVersionRef
+            ? {
+                templateId: eserviceTemplate.id,
+                templateName: eserviceTemplate.name,
+                templateVersionId: descriptor.templateVersionRef.id,
+              }
+            : undefined,
       };
     },
     getEServiceConsumers: async (
