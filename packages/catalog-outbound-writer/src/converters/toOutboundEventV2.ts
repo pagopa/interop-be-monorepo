@@ -240,6 +240,8 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded" },
       { type: "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted" },
       { type: "MaintenanceEServiceRiskAnalysisSetTenantKind" },
+      // TODO: Propagate this event when @pagopa/interop-outbound-models is updated
+      { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
       () => undefined
     )
     .with(

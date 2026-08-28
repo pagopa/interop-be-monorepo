@@ -87,7 +87,8 @@ export const handleCatalogMessageV2 = async (
             "EServiceArchivingRequestedByDelegate",
             "EServiceArchivingRequestRejectedByDelegator",
             "EServiceArchivingRequestApprovedByDelegator",
-            "EServiceArchivingRequestCanceledByDelegate"
+            "EServiceArchivingRequestCanceledByDelegate",
+            "EServiceArchivingRequestCanceledByRevokedDelegation"
           ),
         },
         (event) => {

@@ -95,6 +95,7 @@ export async function exportInterfaceV2(
           "EServiceArchivingRequestRejectedByDelegator",
           "EServiceArchivingRequestApprovedByDelegator",
           "EServiceArchivingRequestCanceledByDelegate",
+          "EServiceArchivingRequestCanceledByRevokedDelegation",
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",

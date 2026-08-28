@@ -32,6 +32,7 @@ const eventV2TypeMapper = (
       "EServiceArchivingRequestRejectedByDelegator",
       "EServiceArchivingRequestApprovedByDelegator",
       "EServiceArchivingRequestCanceledByDelegate",
+      "EServiceArchivingRequestCanceledByRevokedDelegation",
       "MaintenanceEServicePersonalDataFlagReset",
       () => "catalog_item_updated"
     )

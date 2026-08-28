@@ -170,6 +170,7 @@ export async function handleCatalogMessage(
           "EServiceArchivingRequestRejectedByDelegator",
           "EServiceArchivingRequestApprovedByDelegator",
           "EServiceArchivingRequestCanceledByDelegate",
+          "EServiceArchivingRequestCanceledByRevokedDelegation",
           "EServiceDescriptorArchivingRequestedByDelegate",
           "EServiceDescriptorArchivingRequestRejectedByDelegator",
           "EServiceDescriptorArchivingRequestApprovedByDelegator",

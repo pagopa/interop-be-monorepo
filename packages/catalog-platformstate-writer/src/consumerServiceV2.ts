@@ -418,6 +418,7 @@ export async function handleMessageV2(
           "EServiceArchivingRequestRejectedByDelegator",
           "EServiceArchivingRequestApprovedByDelegator",
           "EServiceArchivingRequestCanceledByDelegate",
+          "EServiceArchivingRequestCanceledByRevokedDelegation",
           "EServiceDescriptorArchivingScheduled",
           "EServiceDescriptorArchivingCanceled",
           "EServiceDescriptorArchivingRequestedByDelegate",

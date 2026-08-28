@@ -80,6 +80,7 @@ export async function handleMessageV2(
           "EServiceArchivingRequestRejectedByDelegator",
           "EServiceArchivingRequestApprovedByDelegator",
           "EServiceArchivingRequestCanceledByDelegate",
+          "EServiceArchivingRequestCanceledByRevokedDelegation",
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
