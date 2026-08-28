@@ -31,10 +31,10 @@ import {
   EServiceDocumentId,
   EServiceId,
   EServiceTemplateId,
+  genericInternalError,
   Problem,
   RiskAnalysisId,
   TenantId,
-  genericInternalError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 
