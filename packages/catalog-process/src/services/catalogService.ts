@@ -25,6 +25,7 @@ import {
   isFeatureFlagEnabled,
   RiskAnalysisFormToValidate,
   MaintenanceAuthData,
+  explicitPropertiesChecker,
 } from "pagopa-interop-commons";
 import {
   agreementApprovalPolicy,
@@ -2249,6 +2250,34 @@ export function catalogServiceBuilder(
         })
       );
 
+      const completeDescriptor = explicitPropertiesChecker<Descriptor>({
+        id: generateId(),
+        version: "1",
+        interface: clonedInterfaceDocument,
+        asyncExchangeCallbackInterface:
+          clonedAsyncExchangeCallbackInterfaceDocument,
+        docs: clonedDocuments,
+        state: descriptorState.draft,
+        createdAt: new Date(),
+        publishedAt: undefined, // Obbligatorio specificarlo!
+        suspendedAt: undefined,
+        deprecatedAt: undefined,
+        archivedAt: undefined,
+        archivingSchedule: undefined,
+        attributes: descriptor.attributes,
+        dailyCallsPerConsumer: descriptor.dailyCallsPerConsumer,
+        audience: descriptor.audience,
+        voucherLifespan: descriptor.voucherLifespan,
+        dailyCallsTotal: descriptor.dailyCallsTotal,
+        serverUrls: descriptor.serverUrls,
+        description: descriptor.description,
+        serverUrlsDescriptions: descriptor.serverUrlsDescriptions,
+        agreementApprovalPolicy: descriptor.agreementApprovalPolicy,
+        asyncExchangeProperties: descriptor.asyncExchangeProperties,
+        rejectionReasons: descriptor.rejectionReasons,
+        templateVersionRef: descriptor.templateVersionRef,
+      });
+
       const clonedEservice: EService = {
         id: generateId(),
         producerId: eservice.data.producerId,
@@ -2258,23 +2287,7 @@ export function catalogServiceBuilder(
         createdAt: new Date(),
         riskAnalysis: eservice.data.riskAnalysis,
         mode: eservice.data.mode,
-        descriptors: [
-          {
-            ...descriptor,
-            id: generateId(),
-            version: "1",
-            interface: clonedInterfaceDocument,
-            asyncExchangeCallbackInterface:
-              clonedAsyncExchangeCallbackInterfaceDocument,
-            docs: clonedDocuments,
-            state: descriptorState.draft,
-            createdAt: new Date(),
-            publishedAt: undefined,
-            suspendedAt: undefined,
-            deprecatedAt: undefined,
-            archivedAt: undefined,
-          },
-        ],
+        descriptors: [completeDescriptor],
         personalData: eservice.data.personalData,
         asyncExchange: eservice.data.asyncExchange,
       };
