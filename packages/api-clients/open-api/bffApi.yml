@@ -14148,8 +14148,6 @@ components:
           format: date-time
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
-        delegatedArchivingRequest:
-          $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
         asyncExchangeCallbackInterface:
@@ -14286,8 +14284,6 @@ components:
           type: boolean
         archivingReason:
           type: string
-        delegatedArchivingRequest:
-          $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
         asyncExchange:
           type: boolean
     ProducerEServiceDetails:
@@ -14331,30 +14327,6 @@ components:
         latestActiveDescriptorId:
           type: string
           format: uuid
-    DelegatedDescriptorArchivingRequest:
-      type: object
-      additionalProperties: false
-      required:
-        - requestedAt
-        - requesterId
-        - gracePeriodDays
-      properties:
-        requestedAt:
-          type: string
-          format: date-time
-        acceptedAt:
-          type: string
-          format: date-time
-        rejectedAt:
-          type: string
-          format: date-time
-        rejectionReason:
-          type: string
-        requesterId:
-          type: string
-          format: uuid
-        gracePeriodDays:
-          $ref: "#/components/schemas/GracePeriodDays"
     DelegatedEServiceArchivingRequest:
       type: object
       additionalProperties: false
@@ -14362,7 +14334,6 @@ components:
         - requestedAt
         - requesterId
         - gracePeriodDays
-        - archivingReason
       properties:
         requestedAt:
           type: string
@@ -14382,6 +14353,9 @@ components:
           $ref: "#/components/schemas/GracePeriodDays"
         archivingReason:
           type: string
+        descriptorId:
+          type: string
+          format: uuid
     ArchivingSchedule:
       type: object
       additionalProperties: false
@@ -14579,8 +14553,6 @@ components:
           $ref: "#/components/schemas/DelegationWithCompactTenants"
         archivingSchedule:
           $ref: "#/components/schemas/ArchivingSchedule"
-        delegatedArchivingRequest:
-          $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
     ProducerDescriptorEService:
       type: object
       additionalProperties: false
@@ -15043,8 +15015,6 @@ components:
         archivableOn:
           type: string
           format: date-time
-        delegatedArchivingRequest:
-          $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
     TemplateInstanceInterfaceServerUrlSeed:
       type: object
       additionalProperties: false
