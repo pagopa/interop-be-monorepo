@@ -172,7 +172,7 @@ servers:
 
     const invalidFileUpload: m2mGatewayApi.FileUploadMultipart = {
       file: new File(
-        [Buffer.from("openapi: 3.0.0\n")],
+        [Buffer.from("openapi: [3.0.0")],
         mockAddDocumentResponse.data.name,
         {
           type: mockAddDocumentResponse.data.contentType,
