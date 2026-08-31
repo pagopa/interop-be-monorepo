@@ -195,7 +195,7 @@ describe("handleEserviceArchivingScheduledReminderInApp", () => {
         (n) => n.notificationType === "eserviceStateChangedToProducer"
       );
       expect(producer?.userId).toBe(producerUserId);
-      expect(producer?.entityId).toBe(`${eservice.id}/${descriptorB.id}`);
+      expect(producer?.entityId).toBe(`${eservice.id}`);
       expect(producer?.body).toContain("sarà archiviato");
       expect(producer?.body).not.toMatch(/versione\s+\d/);
     }
