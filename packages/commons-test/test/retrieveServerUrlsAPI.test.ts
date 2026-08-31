@@ -1,7 +1,7 @@
 import { retrieveServerUrlsAPI } from "pagopa-interop-commons";
 import {
   generateId,
-  interfaceExtractingSoapFiledError,
+  interfaceExtractingSoapFieldError,
   invalidInterfaceFileDetected,
   invalidServerUrl,
   openapiVersionNotRecognized,
@@ -190,7 +190,7 @@ describe("retrieveServerUrlsAPI", () => {
         id: generateId(),
         isEserviceTemplate: false,
       })
-    ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:address"));
+    ).rejects.toThrow(interfaceExtractingSoapFieldError("soap:address"));
   });
   it("should throw an error if there are no operations in WSDL", async () => {
     const soapDoc = {
@@ -212,7 +212,7 @@ describe("retrieveServerUrlsAPI", () => {
         id: generateId(),
         isEserviceTemplate: false,
       })
-    ).rejects.toThrow(interfaceExtractingSoapFiledError("soap:operation"));
+    ).rejects.toThrow(interfaceExtractingSoapFieldError("soap:operation"));
   });
   it("should throw error for unsupported OpenAPI version", async () => {
     const invalidDoc = {
@@ -233,6 +233,40 @@ describe("retrieveServerUrlsAPI", () => {
     ).rejects.toThrow(openapiVersionNotRecognized("1.0"));
   });
 
+  it("should throw invalidServerUrl for OpenAPI 3.x without servers", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noServersDoc = {
+      name: "test.json",
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          openapi: "3.0.0",
+          info: { title: "No servers", version: "1.0.0" },
+        })
+      ),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noServersDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidServerUrl(resource));
+  });
+
+  it("should throw invalidServerUrl for OpenAPI 2.0 without host", async () => {
+    const resource = { id: generateId(), isEserviceTemplate: false };
+    const noHostDoc = {
+      name: "test.json",
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          openapi: "2.0",
+          paths: [{}],
+        })
+      ),
+    } as unknown as File;
+
+    await expect(
+      retrieveServerUrlsAPI(noHostDoc, "INTERFACE", "Rest", resource)
+    ).rejects.toThrow(invalidServerUrl(resource));
+  });
+
   it("should throw error for invalid JSON in REST interface", async () => {
     const resource = { id: generateId(), isEserviceTemplate: false };
     const invalidDoc = {
@@ -244,7 +278,7 @@ describe("retrieveServerUrlsAPI", () => {
       retrieveServerUrlsAPI(invalidDoc, "INTERFACE", "Rest", resource)
     ).rejects.toThrow(invalidInterfaceFileDetected(resource));
   });
-  it("should throw invalidInterfaceFileDetected for OpenAPI 3.x REST interface without servers", async () => {
+  it("should throw invalidServerUrl for OpenAPI 3.x YAML REST interface without servers", async () => {
     const resource = { id: generateId(), isEserviceTemplate: false };
     const noServersDoc = {
       name: "test.yaml",
@@ -253,9 +287,9 @@ describe("retrieveServerUrlsAPI", () => {
 
     await expect(
       retrieveServerUrlsAPI(noServersDoc, "INTERFACE", "Rest", resource)
-    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+    ).rejects.toThrow(invalidServerUrl(resource));
   });
-  it("should throw invalidInterfaceFileDetected for OpenAPI 2.0 REST interface without host", async () => {
+  it("should throw invalidServerUrl for OpenAPI 2.0 REST interface without host and paths", async () => {
     const resource = { id: generateId(), isEserviceTemplate: false };
     const noHostDoc = {
       name: "test.json",
@@ -264,7 +298,7 @@ describe("retrieveServerUrlsAPI", () => {
 
     await expect(
       retrieveServerUrlsAPI(noHostDoc, "INTERFACE", "Rest", resource)
-    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+    ).rejects.toThrow(invalidServerUrl(resource));
   });
   it("should return an empty array for DOCUMENT kind", async () => {
     const documentDoc = {
