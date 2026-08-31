@@ -5,12 +5,15 @@ import {
   NewNotification,
   fromEServiceV2,
   missingKafkaMessageDataError,
+  unsafeBrandId,
+  DescriptorId,
 } from "pagopa-interop-models";
 import {
   activeProducerDelegationNotFound,
   getNotificationRecipients,
   inAppTemplates,
   retrieveLatestDescriptor,
+  retrieveDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
 import { match } from "ts-pattern";
@@ -75,9 +78,11 @@ export async function handleEserviceArchivingRequestCanceledToProducer(
     .with(
       { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
       ({ data: { descriptorId } }) => {
-        const descriptor =
-          eservice.descriptors.find((d) => d.id === descriptorId) ??
-          retrieveLatestDescriptor(eservice);
+        const descriptor = retrieveDescriptor(
+          eservice,
+          unsafeBrandId<DescriptorId>(descriptorId)
+        );
+
         const body =
           inAppTemplates.eserviceDescriptorArchivingRequestCanceledToProducer(
             delegate.name,
