@@ -94,8 +94,8 @@ export const processPurposes = async ({
 const hasPendingArchivingRequest = (
   archivingRequests:
     | Array<
-      DelegatedEServiceArchivingRequest | DelegatedDescriptorArchivingRequest
-    >
+        DelegatedEServiceArchivingRequest | DelegatedDescriptorArchivingRequest
+      >
     | undefined
 ): boolean =>
   archivingRequests?.some(
