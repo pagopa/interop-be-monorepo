@@ -3,6 +3,7 @@ import { catalogApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken, getMockEService } from "pagopa-interop-commons-test";
 import {
+  DescriptorId,
   EService,
   EServiceId,
   generateId,
@@ -11,7 +12,10 @@ import {
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
-import { eServiceNotFound } from "../../src/model/domain/errors.js";
+import {
+  eServiceDescriptorNotFound,
+  eServiceNotFound,
+} from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /internal/eservices/{eServiceId}/delegatedArchivingRequests/archive authorization test", () => {
@@ -22,7 +26,6 @@ describe("API /internal/eservices/{eServiceId}/delegatedArchivingRequests/archiv
 
   const mockSeed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = {
     reason: "Request closed automatically by system",
-    triggerEvent: "ProducerDelegationRevoked",
   };
 
   catalogService.internalArchiveDelegatedArchivingRequest = vi
@@ -65,7 +68,14 @@ describe("API /internal/eservices/{eServiceId}/delegatedArchivingRequests/archiv
     },
     {
       error: eServiceNotFound(mockEService.id),
-      expectedStatus: 500,
+      expectedStatus: 404,
+    },
+    {
+      error: eServiceDescriptorNotFound(
+        mockEService.id,
+        generateId<DescriptorId>()
+      ),
+      expectedStatus: 404,
     },
   ])(
     "Should return $expectedStatus for $error.code",
@@ -82,8 +92,8 @@ describe("API /internal/eservices/{eServiceId}/delegatedArchivingRequests/archiv
 
   it.each([
     [{}, mockEService.id],
-    [{ reason: "r" }, mockEService.id],
-    [{ triggerEvent: "t" }, mockEService.id],
+    [{ reason: "" }, mockEService.id],
+    [{ ...mockSeed, descriptorId: "not-a-uuid" }, mockEService.id],
     [mockSeed, "invalidId"],
   ])(
     "Should return 400 if passed invalid params: %s",

@@ -36,7 +36,6 @@ describe("internal archive delegated archiving request", () => {
 
   const mockSeed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = {
     reason: "Request closed automatically by system",
-    triggerEvent: "ProducerDelegationRevoked",
   };
 
   beforeAll(() => {

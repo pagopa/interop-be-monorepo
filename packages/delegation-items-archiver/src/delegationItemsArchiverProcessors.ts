@@ -137,9 +137,7 @@ export const processEServiceArchivingRequests = async ({
     await catalogProcessClient.internalArchiveDelegatedArchivingRequest(
       {
         descriptorId,
-        delegationId: delegation.id,
         reason: `Producer delegation ${delegation.id} has been revoked`,
-        triggerEvent: "ProducerDelegationRevoked",
       },
       {
         params: { eServiceId: eservice.id },

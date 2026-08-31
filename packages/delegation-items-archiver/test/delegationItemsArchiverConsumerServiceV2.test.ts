@@ -597,9 +597,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       ).toHaveBeenCalledWith(
         {
           descriptorId: descriptorWithPendingRequest.id,
-          delegationId: delegation.id,
           reason: `Producer delegation ${delegation.id} has been revoked`,
-          triggerEvent: "ProducerDelegationRevoked",
         },
         {
           params: { eServiceId: delegation.eserviceId },
@@ -611,9 +609,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       ).toHaveBeenCalledWith(
         {
           descriptorId: undefined,
-          delegationId: delegation.id,
           reason: `Producer delegation ${delegation.id} has been revoked`,
-          triggerEvent: "ProducerDelegationRevoked",
         },
         {
           params: { eServiceId: delegation.eserviceId },
