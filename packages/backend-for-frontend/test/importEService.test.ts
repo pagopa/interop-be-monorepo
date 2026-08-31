@@ -35,6 +35,7 @@ import type {
 } from "../src/clients/clientsProvider.js";
 
 import { config } from "../src/config/config.js";
+import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../src/config/constants.js";
 import { invalidZipStructure } from "../src/model/errors.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { fileManager, getBffMockContext } from "./utils.js";
@@ -246,8 +247,7 @@ describe("importEService", () => {
     });
 
     it("should import async exchange configuration and callback interface", async () => {
-      const callbackPath =
-        "asyncExchangeCallbackInterface/callback-interface.yaml";
+      const callbackPath = `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/callback-interface.yaml`;
       const asyncExchangeProperties = {
         responseTime: 60,
         resourceAvailableTime: 120,
@@ -268,6 +268,10 @@ describe("importEService", () => {
         },
       };
       const asyncZip = new AdmZip();
+      asyncZip.addFile(
+        `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/`,
+        Buffer.alloc(0)
+      );
       asyncZip.addFile(
         jsonFilename,
         Buffer.from(JSON.stringify(asyncConfiguration))

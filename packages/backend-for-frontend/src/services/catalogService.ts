@@ -54,6 +54,7 @@ import {
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
+import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../config/constants.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -1665,6 +1666,7 @@ export function catalogServiceBuilder(
       const allowedFiles = [
         "configuration.json",
         "documents/",
+        `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/`,
         importedEservice.descriptor.interface?.path,
         importedEservice.descriptor.asyncExchangeCallbackInterface?.path,
         ...importedEservice.descriptor.docs.map((doc) => doc.path),
