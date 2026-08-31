@@ -33,6 +33,8 @@ type FileData = {
   file: Uint8Array;
 };
 
+const asyncExchangeCallbackInterfaceFolder = "asyncExchangeCallbackInterface";
+
 function getUniqueNameByDocumentId(
   fileDocumentRegistry: FileDocumentsRegistry,
   documentId: string
@@ -84,6 +86,7 @@ function buildJsonConfig(
     description: eservice.description,
     technology: eservice.technology,
     mode: eservice.mode,
+    asyncExchange: eservice.asyncExchange,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
@@ -92,6 +95,12 @@ function buildJsonConfig(
         prettyName: descriptor.interface.prettyName,
         path: descriptor.interface.name,
       },
+      asyncExchangeCallbackInterface:
+        descriptor.asyncExchangeCallbackInterface && {
+          prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
+          path: `${asyncExchangeCallbackInterfaceFolder}/${descriptor.asyncExchangeCallbackInterface.name}`,
+        },
+      asyncExchangeProperties: descriptor.asyncExchangeProperties,
       docs: descriptor.docs.map((doc) => {
         const uniqueName = getUniqueNameByDocumentId(
           fileDocumentRegistry,
@@ -185,6 +194,20 @@ export async function createDescriptorDocumentZipFile(
     `${zipFolderName}/${interfaceDocument.name}`,
     Buffer.from(interfaceFileContent.file)
   );
+
+  const asyncExchangeCallbackInterface =
+    descriptor.asyncExchangeCallbackInterface;
+  if (asyncExchangeCallbackInterface) {
+    const callbackInterfaceFile = await fileManager.get(
+      s3BucketName,
+      asyncExchangeCallbackInterface.path,
+      logger
+    );
+    zip.addFile(
+      `${zipFolderName}/${asyncExchangeCallbackInterfaceFolder}/${asyncExchangeCallbackInterface.name}`,
+      Buffer.from(callbackInterfaceFile)
+    );
+  }
 
   // Add descriptor's document files to the zip
   const documentFilesContent: FileData[] = await Promise.all(

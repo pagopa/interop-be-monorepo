@@ -82,6 +82,7 @@ describe("importEService", () => {
   const mockCatalogProcessClient = {
     createEService: vi.fn().mockResolvedValue(baseEService),
     getEServiceById: vi.fn().mockResolvedValue(baseEService),
+    updateDraftDescriptor: vi.fn().mockResolvedValue({ id: generateId() }),
     createEServiceDocument: vi.fn().mockResolvedValue(getMockDocument()),
     createRiskAnalysis: vi.fn().mockResolvedValue(undefined),
     deleteEService: vi.fn().mockResolvedValue(undefined),
@@ -241,6 +242,79 @@ describe("importEService", () => {
         id: baseEService.id,
         descriptorId: baseEService.descriptors[0].id,
       });
+      fs.unlinkSync(zipPath);
+    });
+
+    it("should import async exchange configuration and callback interface", async () => {
+      const callbackPath =
+        "asyncExchangeCallbackInterface/callback-interface.yaml";
+      const asyncExchangeProperties = {
+        responseTime: 60,
+        resourceAvailableTime: 120,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 100,
+      };
+      const asyncConfiguration = {
+        ...configuration,
+        asyncExchange: true,
+        descriptor: {
+          ...configuration.descriptor,
+          asyncExchangeProperties,
+          asyncExchangeCallbackInterface: {
+            prettyName: "Callback interface",
+            path: callbackPath,
+          },
+        },
+      };
+      const asyncZip = new AdmZip();
+      asyncZip.addFile(
+        jsonFilename,
+        Buffer.from(JSON.stringify(asyncConfiguration))
+      );
+      asyncZip.addFile(
+        callbackPath,
+        Buffer.from(
+          "openapi: 3.0.0\nservers:\n  - url: http://example.com/callback"
+        )
+      );
+      const zipPath = path.join(__dirname, "test_async.zip");
+      asyncZip.writeZip(zipPath);
+
+      await fileManager.storeBytes(
+        {
+          bucket: config.importEserviceContainer,
+          path: `${config.importEservicePath}`,
+          resourceId: `${tenantId}`,
+          name: `${fileResource.filename}`,
+          content: fs.readFileSync(zipPath),
+        },
+        genericLogger
+      );
+
+      await catalogService.importEService(fileResource, bffMockContext);
+
+      expect(mockCatalogProcessClient.createEService).toHaveBeenCalledWith(
+        expect.objectContaining({
+          asyncExchange: true,
+        }),
+        expect.anything()
+      );
+      expect(
+        mockCatalogProcessClient.updateDraftDescriptor
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({ asyncExchangeProperties }),
+        expect.anything()
+      );
+      expect(
+        mockCatalogProcessClient.createEServiceDocument
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+          prettyName: "Callback interface",
+        }),
+        expect.anything()
+      );
       fs.unlinkSync(zipPath);
     });
   });
