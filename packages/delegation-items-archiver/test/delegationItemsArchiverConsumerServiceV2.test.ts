@@ -1,10 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/no-let */
-import { agreementApi, purposeApi } from "pagopa-interop-api-clients";
+import {
+  agreementApi,
+  catalogApi,
+  purposeApi,
+} from "pagopa-interop-api-clients";
 import { genericLogger, RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   getMockAgreement,
   getMockDelegation,
+  getMockDescriptor,
+  getMockEService,
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
@@ -16,6 +22,8 @@ import {
   DelegationEventEnvelopeV2,
   delegationKind,
   delegationState,
+  Descriptor,
+  descriptorState,
   generateId,
   Purpose,
   purposeVersionState,
@@ -24,7 +32,12 @@ import {
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { handleMessageV2 } from "../src/delegationItemsArchiverConsumerServiceV2.js";
-import { addOneAgreement, addOnePurpose, readModelService } from "./utils.js";
+import {
+  addOneAgreement,
+  addOneEService,
+  addOnePurpose,
+  readModelService,
+} from "./utils.js";
 
 const agreementProcessClient = {
   internalDeleteAgreementAfterDelegationRevocation: vi.fn(),
@@ -34,6 +47,9 @@ const purposeProcessClient = {
   internalDeletePurposeAfterDelegationRevocation: vi.fn(),
   internalArchivePurposeVersionAfterDelegationRevocation: vi.fn(),
 } as unknown as purposeApi.PurposeProcessClient;
+const catalogProcessClient = {
+  internalArchiveDelegatedArchivingRequest: vi.fn(),
+} as unknown as catalogApi.CatalogProcessClient;
 
 describe("delegationItemsArchiverConsumerServiceV2", () => {
   describe("ConsumerDelegationRevoked", () => {
@@ -130,6 +146,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           readModelService,
           agreementProcessClient,
           purposeProcessClient,
+          catalogProcessClient,
         });
 
         expect(
@@ -201,6 +218,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           readModelService,
           agreementProcessClient,
           purposeProcessClient,
+          catalogProcessClient,
         });
 
         expect(
@@ -258,6 +276,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           readModelService,
           agreementProcessClient,
           purposeProcessClient,
+          catalogProcessClient,
         });
 
         expect(
@@ -307,6 +326,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           readModelService,
           agreementProcessClient,
           purposeProcessClient,
+          catalogProcessClient,
         });
 
         expect(
@@ -420,6 +440,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         readModelService,
         agreementProcessClient,
         purposeProcessClient,
+        catalogProcessClient,
       });
 
       expect(
@@ -481,6 +502,153 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         params: { agreementId: agreement2.id, delegationId: delegation.id },
         headers: testHeaders,
       });
+    });
+  });
+
+  describe("ProducerDelegationRevoked", () => {
+    const correlationId: CorrelationId = generateId();
+    const testToken = "mockToken";
+    const testHeaders = {
+      "X-Correlation-Id": correlationId,
+      Authorization: `Bearer ${testToken}`,
+    };
+
+    let mockRefreshableToken: RefreshableInteropToken;
+
+    const delegation = getMockDelegation({
+      state: delegationState.revoked,
+      kind: delegationKind.delegatedProducer,
+    });
+
+    const decodedKafkaMessage: DelegationEventEnvelopeV2 = {
+      sequence_num: 1,
+      stream_id: delegation.id,
+      version: 2,
+      type: "ProducerDelegationRevoked",
+      event_version: 2,
+      data: { delegation: toDelegationV2(delegation) },
+      log_date: new Date(),
+      correlation_id: correlationId,
+    };
+
+    const pendingRequest = {
+      requestedAt: new Date(),
+      requesterId: delegation.delegateId,
+      gracePeriodDays: 60 as const,
+    };
+
+    beforeAll(() => {
+      mockRefreshableToken = {
+        get: () => Promise.resolve({ serialized: testToken }),
+      } as unknown as RefreshableInteropToken;
+    });
+
+    afterEach(() => {
+      vi.clearAllMocks();
+    });
+
+    const handleMessage = async () =>
+      await handleMessageV2({
+        decodedMessage: decodedKafkaMessage,
+        refreshableToken: mockRefreshableToken,
+        partition: Math.random(),
+        offset: "10",
+        correlationId,
+        logger: genericLogger,
+        readModelService,
+        agreementProcessClient,
+        purposeProcessClient,
+        catalogProcessClient,
+      });
+
+    it("should close the pending archiving request of the e-service and of every descriptor that has one", async () => {
+      const descriptorWithPendingRequest: Descriptor = {
+        ...getMockDescriptor(descriptorState.published),
+        delegatedArchivingRequest: [pendingRequest],
+      };
+      const descriptorWithRejectedRequest: Descriptor = {
+        ...getMockDescriptor(descriptorState.published),
+        delegatedArchivingRequest: [
+          { ...pendingRequest, rejectedAt: new Date(), rejectionReason: "no" },
+        ],
+      };
+      const descriptorWithoutRequests = getMockDescriptor(
+        descriptorState.published
+      );
+
+      await addOneEService({
+        ...getMockEService(delegation.eserviceId, delegation.delegatorId, [
+          descriptorWithPendingRequest,
+          descriptorWithRejectedRequest,
+          descriptorWithoutRequests,
+        ]),
+        delegatedArchivingRequest: [
+          { ...pendingRequest, archivingReason: "Requested by delegate" },
+        ],
+      });
+
+      await handleMessage();
+
+      expect(
+        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+      ).toHaveBeenCalledTimes(2);
+      expect(
+        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+      ).toHaveBeenCalledWith(
+        {
+          descriptorId: descriptorWithPendingRequest.id,
+          delegationId: delegation.id,
+          reason: `Producer delegation ${delegation.id} has been revoked`,
+          triggerEvent: "ProducerDelegationRevoked",
+        },
+        {
+          params: { eServiceId: delegation.eserviceId },
+          headers: testHeaders,
+        }
+      );
+      expect(
+        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+      ).toHaveBeenCalledWith(
+        {
+          descriptorId: undefined,
+          delegationId: delegation.id,
+          reason: `Producer delegation ${delegation.id} has been revoked`,
+          triggerEvent: "ProducerDelegationRevoked",
+        },
+        {
+          params: { eServiceId: delegation.eserviceId },
+          headers: testHeaders,
+        }
+      );
+    });
+
+    it("should not call catalog-process when no archiving request is pending", async () => {
+      await addOneEService({
+        ...getMockEService(delegation.eserviceId, delegation.delegatorId, [
+          getMockDescriptor(descriptorState.published),
+        ]),
+        delegatedArchivingRequest: [
+          {
+            ...pendingRequest,
+            acceptedAt: new Date(),
+            archivingReason: "Requested by delegate",
+          },
+        ],
+      });
+
+      await handleMessage();
+
+      expect(
+        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+      ).not.toHaveBeenCalled();
+    });
+
+    it("should not call catalog-process when the e-service is not in the read model", async () => {
+      await handleMessage();
+
+      expect(
+        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+      ).not.toHaveBeenCalled();
     });
   });
 });
