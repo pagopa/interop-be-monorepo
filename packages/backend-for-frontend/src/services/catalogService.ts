@@ -545,9 +545,6 @@ export function catalogServiceBuilder(
               }
             : undefined,
         archivingSchedule: descriptor.archivingSchedule,
-        delegatedArchivingRequest: getLastArchivingRequest(
-          descriptor.delegatedArchivingRequest
-        ),
       };
     },
     getProducerEServiceDetails: async (
@@ -589,7 +586,8 @@ export function catalogServiceBuilder(
         personalData: eservice.personalData,
         asyncExchange: eservice.asyncExchange,
         delegatedArchivingRequest: getLastArchivingRequest(
-          eservice.delegatedArchivingRequest
+          eservice,
+          eservice.descriptors
         ),
         latestActiveDescriptorId: getLatestActiveDescriptor(eservice)?.id,
       };
@@ -1049,9 +1047,6 @@ export function catalogServiceBuilder(
           hasProducerKeychainKeys
         ),
         archivingSchedule: descriptor.archivingSchedule,
-        delegatedArchivingRequest: getLastArchivingRequest(
-          descriptor.delegatedArchivingRequest
-        ),
         templateRef:
           eserviceTemplate && descriptor.templateVersionRef
             ? {
