@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-models";
 import path from "path";
 
+import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../config/constants.js";
 import { missingInterface } from "../model/errors.js";
 import { ConfigurationEservice } from "../model/types.js";
 import { retrieveEserviceDescriptor } from "../services/catalogService.js";
@@ -32,8 +33,6 @@ type FileData = {
   id: string;
   file: Uint8Array;
 };
-
-const asyncExchangeCallbackInterfaceFolder = "asyncExchangeCallbackInterface";
 
 function getUniqueNameByDocumentId(
   fileDocumentRegistry: FileDocumentsRegistry,
@@ -98,7 +97,7 @@ function buildJsonConfig(
       asyncExchangeCallbackInterface:
         descriptor.asyncExchangeCallbackInterface && {
           prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
-          path: `${asyncExchangeCallbackInterfaceFolder}/${descriptor.asyncExchangeCallbackInterface.name}`,
+          path: `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/${descriptor.asyncExchangeCallbackInterface.name}`,
         },
       asyncExchangeProperties: descriptor.asyncExchangeProperties,
       docs: descriptor.docs.map((doc) => {
@@ -204,7 +203,7 @@ export async function createDescriptorDocumentZipFile(
       logger
     );
     zip.addFile(
-      `${zipFolderName}/${asyncExchangeCallbackInterfaceFolder}/${asyncExchangeCallbackInterface.name}`,
+      `${zipFolderName}/${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/${asyncExchangeCallbackInterface.name}`,
       Buffer.from(callbackInterfaceFile)
     );
   }
