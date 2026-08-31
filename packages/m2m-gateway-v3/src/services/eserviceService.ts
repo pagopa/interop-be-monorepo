@@ -327,7 +327,9 @@ export function eserviceServiceBuilder(
       attributeKind
     );
 
-    const indexedAttributeGroup = indexedKindAttributeGroups.at(groupIndex);
+    const indexedAttributeGroup = indexedKindAttributeGroups.find(
+      ({ index }) => index === groupIndex
+    );
 
     if (!indexedAttributeGroup) {
       throw eserviceDescriptorAttributeGroupNotFound(
@@ -421,7 +423,9 @@ export function eserviceServiceBuilder(
       descriptor,
       attributeKind
     );
-    const indexedAttributeGroup = indexedKindAttributeGroups.at(groupIndex);
+    const indexedAttributeGroup = indexedKindAttributeGroups.find(
+      ({ index }) => index === groupIndex
+    );
     if (!indexedAttributeGroup) {
       throw eserviceDescriptorAttributeGroupNotFound(
         catalogAttributeKind,

@@ -173,6 +173,68 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
     }
   );
 
+  it("Should assign attributes to the certified discrete group at its catalog index", async () => {
+    const mixedCertifiedAttributes = [
+      [getMockedApiEServiceAttribute()],
+      [getMockedApiEServiceAttribute()],
+      [getMockedApiCertifiedDiscreteEServiceAttribute()],
+    ];
+    const mixedDescriptor = getMockedApiEserviceDescriptor({
+      state: catalogApi.EServiceDescriptorState.Values.DRAFT,
+      attributes: {
+        certified: mixedCertifiedAttributes,
+        declared: [],
+        verified: [],
+      },
+    });
+    const mixedEService = getMockedApiEservice({
+      descriptors: [mixedDescriptor],
+    });
+    const mixedEServiceResponse = getMockWithMetadata(mixedEService);
+    const seed = buildSeed([mockNewAttribute1.id]);
+
+    mockPatchUpdateDescriptor.mockResolvedValueOnce(mixedEServiceResponse);
+    mockGetEService.mockResolvedValueOnce(mixedEServiceResponse);
+    mockGetEService.mockImplementation(
+      mockPollingResponse(mixedEServiceResponse, 2)
+    );
+
+    await eserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(
+      unsafeBrandId(mixedEService.id),
+      unsafeBrandId(mixedDescriptor.id),
+      2,
+      seed,
+      getMockM2MAdminAppContext()
+    );
+
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost:
+        mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
+      params: {
+        eServiceId: mixedEService.id,
+        descriptorId: mixedDescriptor.id,
+      },
+      body: {
+        attributes: {
+          certified: mixedCertifiedAttributes.map((group, index) =>
+            index === 2
+              ? [
+                  ...group,
+                  {
+                    id: mockNewAttribute1.id,
+                    explicitAttributeVerification: false,
+                    discreteConfig: seed.attributes[0]!.discreteConfig,
+                  },
+                ]
+              : group
+          ),
+          declared: [],
+          verified: [],
+        },
+      },
+    });
+  });
+
   it("Should throw missingMetadata in case the eservice returned by the update PATCH call has no metadata", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
     mockPatchUpdateDescriptor.mockResolvedValueOnce({
