@@ -1,4 +1,5 @@
 /* eslint-disable max-params */
+import { isAxiosError } from "axios";
 import {
   createZodiosClientEnhancedWithMetadata,
   tenantApi,
@@ -54,9 +55,12 @@ export class TenantProcessService {
       return response.metadata;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      logger.error(
-        `Error on internalAssignDiscreteCertifiedAttribute. Reason: ${message}`
-      );
+      const logMessage = `Error on internalAssignDiscreteCertifiedAttribute. Reason: ${message}`;
+      if (isAxiosError(err) && err.response?.status === 409) {
+        logger.warn(logMessage);
+      } else {
+        logger.error(logMessage);
+      }
       throw err;
     }
   }
