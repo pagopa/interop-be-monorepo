@@ -57,6 +57,7 @@ import {
   attributeRevocationNotAllowed,
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
+  certifiedDiscreteAttributeRevoked,
   certifierWithExistingAttributes,
   mailAlreadyExists,
   mailNotFound,
@@ -1164,11 +1165,7 @@ export function tenantServiceBuilder(
       }
 
       if (certifiedTenantAttribute.revocationTimestamp) {
-        throw attributeAlreadyRevoked(
-          tenantId,
-          authData.organizationId,
-          attributeId
-        );
+        throw certifiedDiscreteAttributeRevoked(tenantId, attributeId);
       }
 
       const previousValue = certifiedTenantAttribute.discreteValue;
@@ -1181,8 +1178,7 @@ export function tenantServiceBuilder(
       }
 
       const updatedAttributes = targetTenant.data.attributes.map((a) =>
-        a.id === attributeId &&
-        a.type === tenantAttributeType.CERTIFIED_DISCRETE
+        isCertifiedDiscreteTenantAttribute(a, attributeId)
           ? { ...a, discreteValue: newValue }
           : a
       );
