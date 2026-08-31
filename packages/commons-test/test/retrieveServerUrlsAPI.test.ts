@@ -278,7 +278,7 @@ describe("retrieveServerUrlsAPI", () => {
       retrieveServerUrlsAPI(invalidDoc, "INTERFACE", "Rest", resource)
     ).rejects.toThrow(invalidInterfaceFileDetected(resource));
   });
-  it("should throw invalidInterfaceFileDetected for OpenAPI 3.x REST interface without servers", async () => {
+  it("should throw invalidServerUrl for OpenAPI 3.x YAML REST interface without servers", async () => {
     const resource = { id: generateId(), isEserviceTemplate: false };
     const noServersDoc = {
       name: "test.yaml",
@@ -287,9 +287,9 @@ describe("retrieveServerUrlsAPI", () => {
 
     await expect(
       retrieveServerUrlsAPI(noServersDoc, "INTERFACE", "Rest", resource)
-    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+    ).rejects.toThrow(invalidServerUrl(resource));
   });
-  it("should throw invalidInterfaceFileDetected for OpenAPI 2.0 REST interface without host", async () => {
+  it("should throw invalidServerUrl for OpenAPI 2.0 REST interface without host and paths", async () => {
     const resource = { id: generateId(), isEserviceTemplate: false };
     const noHostDoc = {
       name: "test.json",
@@ -298,7 +298,7 @@ describe("retrieveServerUrlsAPI", () => {
 
     await expect(
       retrieveServerUrlsAPI(noHostDoc, "INTERFACE", "Rest", resource)
-    ).rejects.toThrow(invalidInterfaceFileDetected(resource));
+    ).rejects.toThrow(invalidServerUrl(resource));
   });
   it("should return an empty array for DOCUMENT kind", async () => {
     const documentDoc = {
