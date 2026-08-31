@@ -2190,6 +2190,11 @@ export function purposeServiceBuilder(
         readModelService
       );
 
+      validateNoHyperlinksSafe(purposeTemplate.purposeDescription);
+      validateNoHyperlinksSafe(
+        purposeTemplate.purposeFreeOfChargeReason ?? undefined
+      );
+
       assertValidPurposeTenantKind(
         tenantKind,
         purposeTemplate.targetTenantKind
