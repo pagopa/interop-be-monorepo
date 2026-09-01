@@ -2438,6 +2438,8 @@ export function catalogServiceBuilder(
             suspendedAt: undefined,
             deprecatedAt: undefined,
             archivedAt: undefined,
+            rejectionReasons: undefined,
+            delegatedArchivingRequest: undefined,
           },
         ],
         personalData: eservice.data.personalData,
