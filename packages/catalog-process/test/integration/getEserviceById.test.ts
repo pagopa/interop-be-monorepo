@@ -202,7 +202,8 @@ describe("get eservice by id", () => {
     }
   );
 
-  describe("should filter out the %s descriptors", () => {
+
+  describe("should filter out delegatedArchivingRequest for third-party requesters", () => {
     it.each(getContextsAllowedToSeeInactiveDescriptors(generateId()))(
       "if the eservice has both of that state and not (requester is not the producer, user roles: $authData.userRoles, system role: $authData.systemRole)",
       async (context) => {
@@ -252,6 +253,66 @@ describe("get eservice by id", () => {
         expect(result.data.delegatedArchivingRequest).toBeUndefined();
       }
     );
+  });
+
+  describe("should keep delegatedArchivingRequest", () => {
+    const delegateId: TenantId = generateId();
+    const producerId: TenantId = generateId();
+    it.each([
+      { role: "delegate", tenantId: delegateId },
+      { role: "producer", tenantId: producerId },
+    ])("if the requester is $role", async ({ tenantId }) => {
+      const descriptor: Descriptor = {
+        ...getMockDescriptor(),
+        version: "1",
+        state: descriptorState.published,
+        interface: mockDocument,
+        publishedAt: new Date(),
+        delegatedArchivingRequest: [
+          {
+            requestedAt: new Date(),
+            gracePeriodDays: 30,
+            requesterId: delegateId,
+          },
+        ],
+      };
+      const eservice: EService = {
+        ...mockEService,
+        producerId,
+        descriptors: [descriptor],
+        delegatedArchivingRequest: [
+          {
+            requestedAt: new Date(),
+            gracePeriodDays: 30,
+            requesterId: delegateId,
+            archivingReason: "Some reason",
+          },
+        ],
+      };
+      const delegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegateId,
+        eserviceId: eservice.id,
+        state: delegationState.active,
+      });
+      await addOneDelegation(delegation);
+      await addOneEService(eservice);
+      const authData: AuthData = {
+        ...getMockAuthData(tenantId),
+        userRoles: [userRole.ADMIN_ROLE],
+      };
+      const result = await catalogService.getEServiceById(
+        eservice.id,
+        getMockContext({ authData })
+      );
+      expect(result.data.descriptors.length).toBe(1);
+      expect(result.data.descriptors[0].delegatedArchivingRequest).toEqual(
+        descriptor.delegatedArchivingRequest
+      );
+      expect(result.data.delegatedArchivingRequest).toEqual(
+        eservice.delegatedArchivingRequest
+      );
+    });
   });
 
   describe.each([descriptorState.draft, descriptorState.waitingForApproval])(
