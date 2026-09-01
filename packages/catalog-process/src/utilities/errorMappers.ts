@@ -980,3 +980,23 @@ export const approveDelegatedDescriptorArchivingErrorMapper = (
     )
     .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const cancelDelegatedEServiceArchivingErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      "noActiveDelegationFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "noDelegationForArchivingRequest",
+      "noDelegatedArchivingRequestFound",
+      "delegatedArchivingRequestNotActive",
+      "delegatedArchiveRequestForIncorrectDelegateProducer",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
