@@ -843,6 +843,25 @@ export function eserviceServiceBuilder(
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
     },
+    async cancelDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EService> {
+      logger.info(
+        `Cancelling delegated archiving for eservice with id ${eserviceId}`
+      );
+
+      const response =
+        await clients.catalogProcessClient.cancelDelegatedEServiceArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      return toM2MGatewayApiEService(polledResource.data);
+    },
     async rejectDelegatedEServiceArchiving(
       eserviceId: EServiceId,
       seed: m2mGatewayApiV3.RejectDelegatedEServiceArchivingSeed,
@@ -865,7 +884,31 @@ export function eserviceServiceBuilder(
       const polledResource = await pollEService(response, headers);
       return toM2MGatewayApiEService(polledResource.data);
     },
+    async cancelDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceDescriptor> {
+      logger.info(
+        `Cancelling delegated archiving for descriptor with id ${descriptorId} for eservice with id ${eserviceId}`
+      );
 
+      const response =
+        await clients.catalogProcessClient.cancelDelegatedDescriptorArchiving(
+          undefined,
+          {
+            params: { eServiceId: eserviceId, descriptorId },
+            headers,
+          }
+        );
+      const polledResource = await pollEService(response, headers);
+      const descriptor = retrieveEServiceDescriptorById(
+        polledResource,
+        unsafeBrandId(descriptorId)
+      );
+
+      return toM2MGatewayApiEServiceDescriptor(descriptor);
+    },
     async approveDelegatedDescriptorArchiving(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
