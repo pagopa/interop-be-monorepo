@@ -561,6 +561,32 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Cancel a delegated archiving request for an E-Service
+      operationId: cancelDelegatedEServiceArchiving
+      description: Allows a delegate to cancel the archiving request of the specified E-Service.
+      responses:
+        "200":
+          description: Delegated archiving request canceled.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -595,6 +621,32 @@ paths:
       responses:
         "200":
           description: Delegated archiving request submitted.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Cancel a delegated archiving request for a descriptor
+      operationId: cancelDelegatedDescriptorArchiving
+      description: Allows a delegate to cancel the archiving request of the specified Descriptor.
+      responses:
+        "200":
+          description: Delegated archiving request canceled.
           headers:
             X-Metadata-Version:
               $ref: "#/components/headers/MetadataVersionHeader"

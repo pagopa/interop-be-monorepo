@@ -23,6 +23,12 @@ function isActiveArchivingRequest<T extends ArchivingRequest>(
   );
 }
 
+function isNotActiveArchivingRequest<T extends ArchivingRequest>(
+  archivingRequest: T
+): boolean {
+  return !isActiveArchivingRequest(archivingRequest);
+}
+
 export function appendArchivingRequest<T extends ArchivingRequest>(
   previousArchivingRequests: T[] | undefined,
   newArchivingRequest: T
@@ -99,4 +105,19 @@ export function updateLatestActiveArchivingRequest<T extends ArchivingRequest>(
   );
 
   return updatedRequests;
+}
+
+export function removeActiveArchivingRequest<T extends ArchivingRequest>(
+  archivingRequests: T[] | undefined
+): T[] | undefined {
+  if (!archivingRequests) {
+    return undefined;
+  }
+  const filteredRequests = archivingRequests.filter(
+    isNotActiveArchivingRequest
+  );
+  if (filteredRequests.length === 0) {
+    return undefined;
+  }
+  return filteredRequests;
 }

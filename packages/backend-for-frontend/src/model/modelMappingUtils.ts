@@ -52,9 +52,29 @@ export function getValidDescriptor(
   );
 }
 
-export function getLastArchivingRequest<
-  T extends { requestedAt: string; acceptedAt?: string },
->(archivingRequests: T[] | undefined): T | undefined {
+export function getLastArchivingRequest(
+  eservice: catalogApi.EService,
+  descriptors: catalogApi.EServiceDescriptor[]
+): bffApi.DelegatedEServiceArchivingRequest | undefined {
+  const descriptorRequests: bffApi.DelegatedEServiceArchivingRequest[] =
+    descriptors
+      .map((d) =>
+        d.delegatedArchivingRequest
+          ? d.delegatedArchivingRequest.map((req) => ({
+              ...req,
+              descriptorId: d.id,
+            }))
+          : []
+      )
+      .flat();
+
+  const archivingRequests = descriptorRequests.concat(
+    (eservice.delegatedArchivingRequest ?? []).map((req) => ({
+      ...req,
+      descriptorId: undefined,
+    }))
+  );
+
   return archivingRequests
     ?.filter((request) => request.acceptedAt === undefined)
     .sort(
