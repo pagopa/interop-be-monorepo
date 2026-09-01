@@ -837,6 +837,7 @@ export function catalogServiceBuilder(
       consumersIds: string[],
       delegated: boolean | undefined,
       personalData: bffApi.PersonalDataFilter | undefined,
+      states: bffApi.EServiceDescriptorState[] | undefined,
       offset: number,
       limit: number,
       ctx: WithLogger<BffAppContext>
@@ -857,6 +858,7 @@ export function catalogServiceBuilder(
           consumersIds,
           delegated,
           personalData,
+          states,
           offset,
           limit,
         },

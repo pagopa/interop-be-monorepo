@@ -68,6 +68,7 @@ const catalogRouter = (
           req.query.consumersIds,
           req.query.delegated,
           req.query.personalData,
+          req.query.states,
           req.query.offset,
           req.query.limit,
           ctx
