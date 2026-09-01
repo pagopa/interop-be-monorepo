@@ -218,7 +218,8 @@ export async function handleEServiceEvent(
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
           "MaintenanceEServiceDescriptorUnarchived",
-          "EServiceArchivingRequestCanceledByRevokedDelegation"
+          "EServiceArchivingRequestCanceledByRevokedDelegation",
+          "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation"
         ),
       },
       () => {

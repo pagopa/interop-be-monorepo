@@ -98,6 +98,7 @@ export async function handleCatalogMessageV2(
             "EServiceArchivingRequestApprovedByDelegator",
             "EServiceArchivingRequestCanceledByDelegate",
             "EServiceArchivingRequestCanceledByRevokedDelegation",
+            "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
             "MaintenanceEServicePersonalDataFlagReset",
             "MaintenanceEServiceDescriptorUnarchived"
           ),

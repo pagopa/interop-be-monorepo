@@ -425,6 +425,7 @@ export async function handleMessageV2(
           "EServiceDescriptorArchivingRequestRejectedByDelegator",
           "EServiceDescriptorArchivingRequestApprovedByDelegator",
           "EServiceDescriptorArchivingRequestCanceledByDelegate",
+          "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
           "MaintenanceEServicePersonalDataFlagReset"
         ),
       },
