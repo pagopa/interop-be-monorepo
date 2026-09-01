@@ -25,6 +25,7 @@ import {
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  explicitPropertiesChecker,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -2006,12 +2007,19 @@ export function purposeServiceBuilder(
 
       const versionToClone = getVersionToClone(purposeToClone.data);
 
-      const newPurposeVersion: PurposeVersion = {
+      const newPurposeVersion = explicitPropertiesChecker<PurposeVersion>({
         id: generateId(),
         createdAt: new Date(),
         state: purposeVersionState.draft,
         dailyCalls: versionToClone.dailyCalls,
-      };
+        updatedAt: undefined,
+        rejectionReason: undefined,
+        suspendedAt: undefined,
+        riskAnalysis: undefined,
+        stamps: undefined,
+        signedContract: undefined,
+        firstActivationAt: undefined,
+      });
 
       const riskAnalysisFormToClone = purposeToClone.data.riskAnalysisForm;
 
@@ -2057,7 +2065,7 @@ export function purposeServiceBuilder(
         title: clonedPurposeTitle,
       });
 
-      const clonedPurpose: Purpose = {
+      const clonedPurpose = explicitPropertiesChecker<Purpose>({
         title: clonedPurposeTitle,
         id: generateId(),
         createdAt: currentDate,
@@ -2069,7 +2077,12 @@ export function purposeServiceBuilder(
         freeOfChargeReason: purposeToClone.data.freeOfChargeReason,
         riskAnalysisForm: clonedRiskAnalysisForm,
         delegationId: purposeToClone.data.delegationId,
-      };
+        updatedAt: undefined,
+        suspendedByConsumer: undefined,
+        suspendedByProducer: undefined,
+        purposeTemplateId: undefined,
+        reviewerWorkflow: undefined,
+      });
 
       const event = toCreateEventPurposeCloned({
         purpose: clonedPurpose,
