@@ -2472,8 +2472,11 @@ export function catalogServiceBuilder(
 
       assertDescriptorIsNotAlreadyArchived(descriptor);
 
+      const descriptorAfterCleanup =
+        deletePendingDescriptorArchivingRequests(descriptor);
+
       const updatedDescriptor = updateDescriptorState(
-        descriptor,
+        descriptorAfterCleanup,
         descriptorState.archived
       );
 
@@ -5472,14 +5475,20 @@ async function applyVisibilityToEService(
   }
 
   /* If the conditions above are not met:
-    - we filter out the draft descriptors.
+    - we filter out the draft descriptors and remove all delegated archiving requests.
     - we throw a not found error if there are no active descriptors
   */
   const hasActiveDescriptors = eservice.descriptors.some(isActiveDescriptor);
   if (hasActiveDescriptors) {
     return {
       ...eservice,
-      descriptors: eservice.descriptors.filter(isActiveDescriptor),
+      descriptors: eservice.descriptors
+        .filter(isActiveDescriptor)
+        .map((descriptor) => ({
+          ...descriptor,
+          delegatedArchivingRequest: undefined,
+        })),
+      delegatedArchivingRequest: undefined,
     };
   }
 
@@ -5569,6 +5578,20 @@ const processDescriptorPublication = async (
       : archiveDescriptorLogic(eservice.id, currentActiveDescriptor, logger)
   );
 };
+
+function deletePendingDescriptorArchivingRequests(
+  descriptor: Descriptor
+): Descriptor {
+  const filtered = descriptor.delegatedArchivingRequest?.filter(
+    (request) => request.acceptedAt || request.rejectedAt
+  );
+
+  return {
+    ...descriptor,
+    delegatedArchivingRequest:
+      filtered && filtered.length > 0 ? filtered : undefined,
+  };
+}
 
 /**
  * Retains the existing `dailyCallsPerConsumer` value on certified attributes.
