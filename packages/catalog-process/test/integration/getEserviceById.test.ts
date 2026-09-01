@@ -202,7 +202,6 @@ describe("get eservice by id", () => {
     }
   );
 
-
   describe("should filter out delegatedArchivingRequest for third-party requesters", () => {
     it.each(getContextsAllowedToSeeInactiveDescriptors(generateId()))(
       "if the eservice has both of that state and not (requester is not the producer, user roles: $authData.userRoles, system role: $authData.systemRole)",
