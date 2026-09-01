@@ -10,6 +10,8 @@ import { handleEserviceArchivingCanceledToProducer } from "./handleEserviceArchi
 import { handleEserviceArchivingCompletedToConsumer } from "./handleEserviceArchivingCompletedToConsumer.js";
 import { handleEserviceArchivingCompletedToProducer } from "./handleEserviceArchivingCompletedToProducer.js";
 import { handleEserviceArchivingRequestApprovedByDelegator } from "./handleEserviceArchivingRequestApprovedByDelegator.js";
+import { handleEServiceArchivingRequestCanceledByDelegateToDelegate } from "./handleEserviceArchivingRequestCanceledByDelegateToDelegate.js";
+import { handleEServiceArchivingRequestCanceledByDelegateToProducer } from "./handleEserviceArchivingRequestCanceledByDelegateToProducer.js";
 import { handleEserviceArchivingRequestedByDelegate } from "./handleEserviceArchivingRequestedByDelegate.js";
 import { handleEserviceArchivingRequestRejectedByDelegator } from "./handleEserviceArchivingRequestRejectedByDelegator.js";
 import { handleEserviceArchivingScheduledToConsumer } from "./handleEserviceArchivingScheduledToConsumer.js";
@@ -23,6 +25,8 @@ import { handleEserviceDescriptorArchivingCanceledToProducer } from "./handleEse
 import { handleEserviceDescriptorArchivingCompletedToConsumer } from "./handleEserviceDescriptorArchivingCompletedToConsumer.js";
 import { handleEserviceDescriptorArchivingCompletedToProducer } from "./handleEserviceDescriptorArchivingCompletedToProducer.js";
 import { handleEserviceDescriptorArchivingRequestApprovedByDelegator } from "./handleEserviceDescriptorArchivingRequestApprovedByDelegator.js";
+import { handleEServiceDescriptorArchivingRequestCanceledByDelegateToDelegate } from "./handleEserviceDescriptorArchivingRequestCanceledByDelegateToDelegate.js";
+import { handleEServiceDescriptorArchivingRequestCanceledByDelegateToProducer } from "./handleEserviceDescriptorArchivingRequestCanceledByDelegateToProducer.js";
 import { handleEserviceDescriptorArchivingRequestedByDelegate } from "./handleEserviceDescriptorArchivingRequestedByDelegate.js";
 import { handleEserviceDescriptorArchivingRequestRejectedByDelegator } from "./handleEserviceDescriptorArchivingRequestRejectedByDelegator.js";
 import { handleEserviceDescriptorArchivingScheduledToConsumer } from "./handleEserviceDescriptorArchivingScheduledToConsumer.js";
@@ -385,6 +389,52 @@ export async function handleEServiceEvent(
         })
     )
     .with(
+      { type: "EServiceArchivingRequestCanceledByDelegate" },
+      async ({ data: { eservice } }) => {
+        const [prod, delegate] = await Promise.all([
+          handleEServiceArchivingRequestCanceledByDelegateToProducer({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEServiceArchivingRequestCanceledByDelegateToDelegate({
+            eserviceV2Msg: eservice,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...delegate];
+      }
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
+      async ({ data: { eservice, descriptorId } }) => {
+        const [prod, delegate] = await Promise.all([
+          handleEServiceDescriptorArchivingRequestCanceledByDelegateToProducer({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+          handleEServiceDescriptorArchivingRequestCanceledByDelegateToDelegate({
+            eserviceV2Msg: eservice,
+            descriptorId,
+            logger,
+            readModelService,
+            templateService,
+            correlationId,
+          }),
+        ]);
+        return [...prod, ...delegate];
+      }
+    )
+    .with(
       {
         type: P.union(
           "EServiceAdded",
@@ -419,9 +469,7 @@ export async function handleEServiceEvent(
           "EServicePersonalDataFlagUpdatedByTemplateUpdate",
           "EServiceInstanceLabelUpdated",
           "MaintenanceEServicePersonalDataFlagReset",
-          "MaintenanceEServiceDescriptorUnarchived",
-          "EServiceArchivingRequestCanceledByDelegate",
-          "EServiceDescriptorArchivingRequestCanceledByDelegate"
+          "MaintenanceEServiceDescriptorUnarchived"
         ),
       },
       () => {

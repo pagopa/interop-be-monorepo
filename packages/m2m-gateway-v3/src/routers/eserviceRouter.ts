@@ -246,6 +246,30 @@ const eserviceRouter = (
         }
       }
     )
+    .delete(
+      "/eservices/:eserviceId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const eservice =
+            await eserviceService.cancelDelegatedEServiceArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              ctx
+            );
+          return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting delegated archiving for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedArchiving",
       async (req, res) => {
@@ -270,6 +294,33 @@ const eserviceRouter = (
             emptyErrorMapper,
             ctx,
             `Error submitting delegated archiving for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const descriptor =
+            await eserviceService.cancelDelegatedDescriptorArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.EServiceDescriptor.parse(descriptor));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting delegated archiving for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

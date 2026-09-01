@@ -191,11 +191,14 @@ import {
   toCreateEventEServiceArchivingRequestRejectedByDelegator,
   toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator,
   toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
+  toCreateEventEServiceArchivingRequestCanceledByDelegate,
+  toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate,
 } from "../model/domain/toEvent.js";
 import {
   appendArchivingRequest,
   getLatestActiveArchivingRequest,
   getLatestArchivingRequest,
+  removeActiveArchivingRequest,
   updateLatestActiveArchivingRequest,
 } from "../utilities/archivingRequests.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
@@ -2435,10 +2438,13 @@ export function catalogServiceBuilder(
             suspendedAt: undefined,
             deprecatedAt: undefined,
             archivedAt: undefined,
+            rejectionReasons: undefined,
+            delegatedArchivingRequest: undefined,
           },
         ],
         personalData: eservice.data.personalData,
         asyncExchange: eservice.data.asyncExchange,
+        delegatedArchivingRequest: undefined,
       };
       const event = toCreateEventClonedEServiceAdded(
         descriptorId,
@@ -2466,8 +2472,11 @@ export function catalogServiceBuilder(
 
       assertDescriptorIsNotAlreadyArchived(descriptor);
 
+      const descriptorAfterCleanup =
+        deletePendingDescriptorArchivingRequests(descriptor);
+
       const updatedDescriptor = updateDescriptorState(
-        descriptor,
+        descriptorAfterCleanup,
         descriptorState.archived
       );
 
@@ -3594,6 +3603,132 @@ export function catalogServiceBuilder(
 
       const event = await repository.createEvent(
         toCreateEventEServiceDescriptorArchivingRequestedByDelegate(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async cancelDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Cancelling delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+      const activeArchivingRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        activeArchivingRequest,
+        eserviceId
+      );
+      const updatedRequests = removeActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestCanceledByDelegate(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async cancelDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Cancelling delegated archiving request for Descriptor ${descriptorId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      const activeArchivingRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        activeArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      const updatedRequests = removeActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest
+      );
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate(
           eservice.metadata.version,
           descriptorId,
           updatedEService,
@@ -5262,14 +5397,20 @@ async function applyVisibilityToEService(
   }
 
   /* If the conditions above are not met:
-    - we filter out the draft descriptors.
+    - we filter out the draft descriptors and remove all delegated archiving requests.
     - we throw a not found error if there are no active descriptors
   */
   const hasActiveDescriptors = eservice.descriptors.some(isActiveDescriptor);
   if (hasActiveDescriptors) {
     return {
       ...eservice,
-      descriptors: eservice.descriptors.filter(isActiveDescriptor),
+      descriptors: eservice.descriptors
+        .filter(isActiveDescriptor)
+        .map((descriptor) => ({
+          ...descriptor,
+          delegatedArchivingRequest: undefined,
+        })),
+      delegatedArchivingRequest: undefined,
     };
   }
 
@@ -5359,6 +5500,20 @@ const processDescriptorPublication = async (
       : archiveDescriptorLogic(eservice.id, currentActiveDescriptor, logger)
   );
 };
+
+function deletePendingDescriptorArchivingRequests(
+  descriptor: Descriptor
+): Descriptor {
+  const filtered = descriptor.delegatedArchivingRequest?.filter(
+    (request) => request.acceptedAt || request.rejectedAt
+  );
+
+  return {
+    ...descriptor,
+    delegatedArchivingRequest:
+      filtered && filtered.length > 0 ? filtered : undefined,
+  };
+}
 
 /**
  * Retains the existing `dailyCallsPerConsumer` value on certified attributes.
