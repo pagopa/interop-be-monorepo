@@ -90,7 +90,7 @@ try {
     readModelServiceSQL,
     headers,
     loggerInstance,
-    config.attributeRegistryUrl,
+    config.attributeRegistryProcessUrl,
     config.attributeCreationWaitTime
   );
 

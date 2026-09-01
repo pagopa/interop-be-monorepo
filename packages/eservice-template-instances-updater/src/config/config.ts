@@ -1,5 +1,5 @@
 import {
-  APIEndpoint,
+  CatalogProcessServerConfig,
   KafkaConsumerConfig,
   EServiceTemplateTopicConfig,
   TokenGenerationConfig,
@@ -9,23 +9,20 @@ import {
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
-const CatalogProcessServerConfig = z
+const EServiceDocumentsConfig = z
   .object({
-    CATALOG_PROCESS_URL: APIEndpoint,
     ESERVICE_DOCUMENTS_CONTAINER: z.string(),
     ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
-    catalogProcessUrl: c.CATALOG_PROCESS_URL,
     eserviceDocumentsContainer: c.ESERVICE_DOCUMENTS_CONTAINER,
     eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
 
-type CatalogProcessServerConfig = z.infer<typeof CatalogProcessServerConfig>;
-
 const EServiceTemplateUpdaterConfig = CatalogProcessServerConfig.and(
-  EServiceTemplateTopicConfig
+  EServiceDocumentsConfig
 )
+  .and(EServiceTemplateTopicConfig)
   .and(FileManagerConfig)
   .and(LoggerConfig)
   .and(TokenGenerationConfig)

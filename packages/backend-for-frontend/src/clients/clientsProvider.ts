@@ -65,20 +65,24 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       config.catalogProcessUrl
     ),
     attributeProcessClient: attributeRegistryApi.createAttributeApiClient(
-      config.attributeRegistryUrl
+      config.attributeRegistryProcessUrl
     ),
-    purposeProcessClient: purposeApi.createPurposeApiClient(config.purposeUrl),
+    purposeProcessClient: purposeApi.createPurposeApiClient(
+      config.purposeProcessUrl
+    ),
     purposeTemplateProcessClient:
       purposeTemplateApi.createPurposeTemplateApiClient(
-        config.purposeTemplateUrl
+        config.purposeTemplateProcessUrl
       ),
     authorizationClient: {
-      client: authorizationApi.createClientApiClient(config.authorizationUrl),
+      client: authorizationApi.createClientApiClient(
+        config.authorizationProcessUrl
+      ),
       producerKeychain: authorizationApi.createProducerKeychainApiClient(
-        config.authorizationUrl
+        config.authorizationProcessUrl
       ),
       token: authorizationApi.createTokenGenerationApiClient(
-        config.authorizationUrl
+        config.authorizationProcessUrl
       ),
     },
     selfcareV2InstitutionClient: selfcareV2InstitutionClientBuilder(config),

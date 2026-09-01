@@ -16,80 +16,61 @@ import {
   SelfCareClientConfig,
   SessionTokenGenerationConfig,
   TokenGenerationConfig,
+  TenantProcessServerConfig,
+  AgreementProcessServerConfig,
+  CatalogProcessServerConfig,
+  AttributeRegistryProcessServerConfig,
+  PurposeProcessServerConfig,
+  PurposeTemplateProcessServerConfig,
+  AuthorizationProcessServerConfig,
+  DelegationProcessServerConfig,
+  EServiceTemplateProcessServerConfig,
+  NotificationConfigProcessServerConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
 
 import { TokenGenerationValidationConfig } from "./tokenGenerationValidationConfig.js";
 
-const TenantProcessServerConfig = z
+const ConsumerDocumentsConfig = z
   .object({
-    TENANT_PROCESS_URL: APIEndpoint,
-  })
-  .transform((c) => ({
-    tenantProcessUrl: c.TENANT_PROCESS_URL,
-  }));
-type TenantProcessServerConfig = z.infer<typeof TenantProcessServerConfig>;
-
-const AgreementProcessServerConfig = z
-  .object({
-    AGREEMENT_PROCESS_URL: APIEndpoint,
     CONSUMER_DOCUMENTS_PATH: z.string(),
     CONSUMER_DOCUMENTS_CONTAINER: z.string(),
     CONSUMER_SIGNED_DOCUMENTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
-    agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
     consumerDocumentsPath: c.CONSUMER_DOCUMENTS_PATH,
     consumerDocumentsContainer: c.CONSUMER_DOCUMENTS_CONTAINER,
     consumerSignedDocumentsContainer: c.CONSUMER_SIGNED_DOCUMENTS_CONTAINER,
   }));
-type AgreementProcessServerConfig = z.infer<
-  typeof AgreementProcessServerConfig
->;
+type ConsumerDocumentsConfig = z.infer<typeof ConsumerDocumentsConfig>;
 
-const CatalogProcessServerConfig = z
+const EServiceDocumentsConfig = z
   .object({
-    CATALOG_PROCESS_URL: APIEndpoint,
     ESERVICE_DOCUMENTS_CONTAINER: z.string(),
     ESERVICE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
-    catalogProcessUrl: c.CATALOG_PROCESS_URL,
     eserviceDocumentsContainer: c.ESERVICE_DOCUMENTS_CONTAINER,
     eserviceDocumentsPath: c.ESERVICE_DOCUMENTS_PATH,
   }));
-type CatalogProcessServerConfig = z.infer<typeof CatalogProcessServerConfig>;
+type EServiceDocumentsConfig = z.infer<typeof EServiceDocumentsConfig>;
 
-const AttributeRegistryProcessServerConfig = z
+const RiskAnalysisDocumentsConfig = z
   .object({
-    ATTRIBUTE_REGISTRY_PROCESS_URL: APIEndpoint,
-  })
-  .transform((c) => ({
-    attributeRegistryUrl: c.ATTRIBUTE_REGISTRY_PROCESS_URL,
-  }));
-type AttributeRegistryProcessServerConfig = z.infer<
-  typeof AttributeRegistryProcessServerConfig
->;
-
-const PurposeProcessServerConfig = z
-  .object({
-    PURPOSE_PROCESS_URL: APIEndpoint,
     RISK_ANALYSIS_DOCUMENTS_CONTAINER: z.string(),
     RISK_ANALYSIS_SIGNED_DOCUMENTS_CONTAINER: z.string(),
     RISK_ANALYSIS_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
-    purposeUrl: c.PURPOSE_PROCESS_URL,
     riskAnalysisDocumentsContainer: c.RISK_ANALYSIS_DOCUMENTS_CONTAINER,
     riskAnalysisDocumentsPath: c.RISK_ANALYSIS_DOCUMENTS_PATH,
     riskAnalysisSignedDocumentsContainer:
       c.RISK_ANALYSIS_SIGNED_DOCUMENTS_CONTAINER,
   }));
-type PurposeProcessServerConfig = z.infer<typeof PurposeProcessServerConfig>;
+type RiskAnalysisDocumentsConfig = z.infer<typeof RiskAnalysisDocumentsConfig>;
 
-const PurposeTemplateProcessServerConfig = z
+const PurposeTemplateDocumentsConfig = z
   .object({
-    PURPOSE_TEMPLATE_PROCESS_URL: APIEndpoint,
     PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
     PURPOSE_TEMPLATE_DOCUMENTS_PATH: z.string(),
     RISK_ANALYSIS_TEMPLATE_DOCUMENTS_CONTAINER: z.string(),
@@ -97,7 +78,6 @@ const PurposeTemplateProcessServerConfig = z
     RISK_ANALYSIS_TEMPLATE_DOCUMENTS_PATH: z.string(),
   })
   .transform((c) => ({
-    purposeTemplateUrl: c.PURPOSE_TEMPLATE_PROCESS_URL,
     purposeTemplateDocumentsContainer: c.PURPOSE_TEMPLATE_DOCUMENTS_CONTAINER,
     purposeTemplateDocumentsPath: c.PURPOSE_TEMPLATE_DOCUMENTS_PATH,
     riskAnalysisTemplateDocumentsContainer:
@@ -106,13 +86,12 @@ const PurposeTemplateProcessServerConfig = z
     riskAnalysisTemplateSignedDocumentsContainer:
       c.RISK_ANALYSIS_TEMPLATE_SIGNED_DOCUMENTS_CONTAINER,
   }));
-type PurposeTemplateProcessServerConfig = z.infer<
-  typeof PurposeTemplateProcessServerConfig
+type PurposeTemplateDocumentsConfig = z.infer<
+  typeof PurposeTemplateDocumentsConfig
 >;
 
-const AuthorizationProcessServerConfig = z
+const SupportConfig = z
   .object({
-    AUTHORIZATION_PROCESS_URL: APIEndpoint,
     TENANT_ALLOWED_ORIGINS: z.string(),
     SAML_AUDIENCE: z.string(),
     PAGOPA_TENANT_ID: z.string(),
@@ -123,7 +102,6 @@ const AuthorizationProcessServerConfig = z
     SAML_PUBLIC_KEY: z.string(),
   })
   .transform((c) => ({
-    authorizationUrl: c.AUTHORIZATION_PROCESS_URL,
     tenantAllowedOrigins: c.TENANT_ALLOWED_ORIGINS.split(","),
     samlAudience: c.SAML_AUDIENCE,
     pagoPaTenantId: c.PAGOPA_TENANT_ID,
@@ -133,35 +111,18 @@ const AuthorizationProcessServerConfig = z
     supportJwtDuration: c.SUPPORT_TOKEN_DURATION_SECONDS,
     samlPublicKey: c.SAML_PUBLIC_KEY,
   }));
-type AuthorizationProcessServerConfig = z.infer<
-  typeof AuthorizationProcessServerConfig
->;
+type SupportConfig = z.infer<typeof SupportConfig>;
 
-const DelegationProcessServerConfig = z
+const DelegationContractsConfig = z
   .object({
-    DELEGATION_PROCESS_URL: APIEndpoint,
     DELEGATION_CONTRACTS_CONTAINER: z.string(),
     DELEGATION_SIGNED_CONTRACTS_CONTAINER: z.string(),
   })
   .transform((c) => ({
-    delegationProcessUrl: c.DELEGATION_PROCESS_URL,
     delegationContractsContainer: c.DELEGATION_CONTRACTS_CONTAINER,
     delegationSignedContractsContainer: c.DELEGATION_SIGNED_CONTRACTS_CONTAINER,
   }));
-type DelegationProcessServerConfig = z.infer<
-  typeof DelegationProcessServerConfig
->;
-
-const EServiceTemplateProcessServerConfig = z
-  .object({
-    ESERVICE_TEMPLATE_PROCESS_URL: APIEndpoint,
-  })
-  .transform((c) => ({
-    eserviceTemplateProcessUrl: c.ESERVICE_TEMPLATE_PROCESS_URL,
-  }));
-type EServiceTemplateProcessServerConfig = z.infer<
-  typeof EServiceTemplateProcessServerConfig
->;
+type DelegationContractsConfig = z.infer<typeof DelegationContractsConfig>;
 
 const EServiceTemplateS3Config = z
   .object({
@@ -273,17 +234,6 @@ const SelfcareProcessConfig = z
   }));
 type SelfcareProcessConfig = z.infer<typeof SelfcareProcessConfig>;
 
-const NotificationConfigProcessServerConfig = z
-  .object({
-    NOTIFICATION_CONFIG_PROCESS_URL: APIEndpoint,
-  })
-  .transform((c) => ({
-    notificationConfigProcessUrl: c.NOTIFICATION_CONFIG_PROCESS_URL,
-  }));
-type NotificationConfigProcessServerConfig = z.infer<
-  typeof NotificationConfigProcessServerConfig
->;
-
 const InAppNotificationManagerServerConfig = z
   .object({
     IN_APP_NOTIFICATION_MANAGER_URL: APIEndpoint,
@@ -315,14 +265,20 @@ type SwaggerConfig = z.infer<typeof SwaggerConfig>;
 
 const BffProcessConfig = CommonHTTPServiceConfig.and(TenantProcessServerConfig)
   .and(AgreementProcessServerConfig)
+  .and(ConsumerDocumentsConfig)
   .and(CatalogProcessServerConfig)
+  .and(EServiceDocumentsConfig)
   .and(AttributeRegistryProcessServerConfig)
   .and(SelfCareClientConfig)
   .and(PurposeProcessServerConfig)
+  .and(RiskAnalysisDocumentsConfig)
   .and(PurposeTemplateProcessServerConfig)
+  .and(PurposeTemplateDocumentsConfig)
   .and(RedisRateLimiterConfig)
   .and(AuthorizationProcessServerConfig)
+  .and(SupportConfig)
   .and(DelegationProcessServerConfig)
+  .and(DelegationContractsConfig)
   .and(EServiceTemplateProcessServerConfig)
   .and(TokenGenerationConfig)
   .and(SessionTokenGenerationConfig)
