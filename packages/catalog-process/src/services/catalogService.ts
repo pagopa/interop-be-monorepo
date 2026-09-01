@@ -5394,14 +5394,20 @@ async function applyVisibilityToEService(
   }
 
   /* If the conditions above are not met:
-    - we filter out the draft descriptors.
+    - we filter out the draft descriptors and remove all delegated archiving requests.
     - we throw a not found error if there are no active descriptors
   */
   const hasActiveDescriptors = eservice.descriptors.some(isActiveDescriptor);
   if (hasActiveDescriptors) {
     return {
       ...eservice,
-      descriptors: eservice.descriptors.filter(isActiveDescriptor),
+      descriptors: eservice.descriptors
+        .filter(isActiveDescriptor)
+        .map((descriptor) => ({
+          ...descriptor,
+          delegatedArchivingRequest: undefined,
+        })),
+      delegatedArchivingRequest: undefined,
     };
   }
 
