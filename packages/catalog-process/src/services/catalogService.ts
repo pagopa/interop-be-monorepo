@@ -2444,6 +2444,7 @@ export function catalogServiceBuilder(
         ],
         personalData: eservice.data.personalData,
         asyncExchange: eservice.data.asyncExchange,
+        delegatedArchivingRequest: undefined,
       };
       const event = toCreateEventClonedEServiceAdded(
         descriptorId,
