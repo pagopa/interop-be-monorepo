@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   FileManager,
+  getAllFromPaginated,
   verifyAndCreateDocument,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -770,10 +771,19 @@ async function getTenantsFromEServiceTemplates(
     new Set(eserviceTemplates.map((t) => t.creatorId))
   );
 
-  const tenants = await Promise.all(
-    creatorsIds.map(async (id) =>
-      tenantClient.tenant.getTenant({ headers, params: { id } })
-    )
+  if (creatorsIds.length === 0) {
+    return new Map();
+  }
+
+  const tenants = await getAllFromPaginated((offset, limit) =>
+    tenantClient.tenant.getTenants({
+      headers,
+      queries: {
+        tenantIds: creatorsIds,
+        offset,
+        limit,
+      },
+    })
   );
 
   return new Map(tenants.map((t) => [t.id, t]));
