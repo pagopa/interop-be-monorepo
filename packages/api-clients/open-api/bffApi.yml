@@ -2367,6 +2367,41 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Cancel a delegated archiving request for an E-Service
+      operationId: cancelDelegatedEServiceArchiving
+      description: Allows a delegate to cancel a previously submitted archiving request for the specified E-Service.
+      responses:
+        "204":
+          description: Delegated archiving request canceled.
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /eservices/{eServiceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
     parameters:
       - name: eServiceId
@@ -2400,6 +2435,41 @@ paths:
       responses:
         "204":
           description: Delegated archiving request submitted.
+          headers:
+            "X-Rate-Limit-Limit":
+              schema:
+                type: integer
+                format: int32
+              description: Max allowed requests within time interval
+            "X-Rate-Limit-Remaining":
+              schema:
+                type: integer
+                format: int32
+              description: Remaining requests within time interval
+            "X-Rate-Limit-Interval":
+              schema:
+                type: integer
+                format: int32
+              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - eservices
+      summary: Cancel a delegated archiving request for an E-Service
+      operationId: cancelDelegatedDescriptorArchiving
+      description: Allows a delegate to cancel a previously submitted archiving request for the specified Descriptor.
+      responses:
+        "204":
+          description: Delegated archiving request canceled.
           headers:
             "X-Rate-Limit-Limit":
               schema:
