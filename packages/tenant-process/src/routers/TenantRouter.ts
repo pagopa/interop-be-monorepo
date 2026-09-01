@@ -1071,6 +1071,40 @@ const tenantsRouter = (
         }
       }
     )
+    .put(
+      "/tenants/:tenantId/attributes/certifiedDiscrete/:attributeId",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+
+          const { tenantId, attributeId } = req.params;
+          const { data: tenant, metadata } =
+            await tenantService.updateCertifiedDiscreteAttributeById(
+              {
+                tenantId: unsafeBrandId(tenantId),
+                attributeId: unsafeBrandId(attributeId),
+                tenantAttributeSeed: req.body,
+              },
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+
+          return res
+            .status(200)
+            .send(tenantApi.Tenant.parse(toApiTenant(tenant)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            revokeCertifiedAttributeErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .delete(
       "/tenants/:tenantId/attributes/certifiedDiscrete/:attributeId",
       async (req, res) => {
