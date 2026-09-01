@@ -16,6 +16,7 @@ import {
   EServiceId,
   delegationState,
   delegationKind,
+  TenantId,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 
@@ -200,6 +201,58 @@ describe("get eservice by id", () => {
       );
     }
   );
+
+  describe("should filter out the %s descriptors", () => {
+    it.each(getContextsAllowedToSeeInactiveDescriptors(generateId()))(
+      "if the eservice has both of that state and not (requester is not the producer, user roles: $authData.userRoles, system role: $authData.systemRole)",
+      async (context) => {
+        const delegateId: TenantId = generateId();
+        const descriptor: Descriptor = {
+          ...getMockDescriptor(),
+          version: "1",
+          state: descriptorState.published,
+          interface: mockDocument,
+          publishedAt: new Date(),
+          delegatedArchivingRequest: [
+            {
+              requestedAt: new Date(),
+              gracePeriodDays: 30,
+              requesterId: delegateId,
+            },
+          ],
+        };
+        const eservice: EService = {
+          ...mockEService,
+          descriptors: [descriptor],
+          delegatedArchivingRequest: [
+            {
+              requestedAt: new Date(),
+              gracePeriodDays: 30,
+              requesterId: delegateId,
+              archivingReason: "Some reason",
+            },
+          ],
+        };
+        const delegation = getMockDelegation({
+          kind: delegationKind.delegatedProducer,
+          delegateId,
+          eserviceId: eservice.id,
+          state: delegationState.active,
+        });
+        await addOneDelegation(delegation);
+        await addOneEService(eservice);
+        const result = await catalogService.getEServiceById(
+          eservice.id,
+          context
+        );
+        expect(result.data.descriptors.length).toBe(1);
+        expect(
+          result.data.descriptors[0].delegatedArchivingRequest
+        ).toBeUndefined();
+        expect(result.data.delegatedArchivingRequest).toBeUndefined();
+      }
+    );
+  });
 
   describe.each([descriptorState.draft, descriptorState.waitingForApproval])(
     "should filter out the %s descriptors",
