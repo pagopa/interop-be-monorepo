@@ -5495,14 +5495,15 @@ const processDescriptorPublication = async (
 function deletePendingDescriptorArchivingRequests(
   descriptor: Descriptor
 ): Descriptor {
-  const descriptorAfterRequestDeletion: Descriptor = {
-    ...descriptor,
-    delegatedArchivingRequest: descriptor.delegatedArchivingRequest?.filter(
-      (request) => request.acceptedAt || request.rejectedAt
-    ),
-  };
+  const filtered = descriptor.delegatedArchivingRequest?.filter(
+    (request) => request.acceptedAt || request.rejectedAt
+  );
 
-  return descriptorAfterRequestDeletion;
+  return {
+    ...descriptor,
+    delegatedArchivingRequest:
+      filtered && filtered.length > 0 ? filtered : undefined,
+  };
 }
 
 /**
