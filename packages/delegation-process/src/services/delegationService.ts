@@ -56,6 +56,7 @@ import {
   assertDelegatorIsNotDelegate,
   assertDelegatorIsProducer,
   assertEserviceIsConsumerDelegable,
+  assertEserviceIsNotArchived,
   assertIsDelegate,
   assertIsDelegator,
   assertIsState,
@@ -144,6 +145,8 @@ export function delegationServiceBuilder(
       retrieveTenantById(readModelService, delegateId),
       retrieveEserviceById(readModelService, eserviceId),
     ]);
+
+    assertEserviceIsNotArchived(eservice);
 
     assertTenantAllowedToReceiveDelegation(delegate, kind);
     assertDelegatorAndDelegateAllowedForDelegation(delegator, delegate);
