@@ -142,6 +142,7 @@ async function handleEServiceEventV2(
             "EServiceDescriptorArchivingRequestRejectedByDelegator",
             "EServiceDescriptorArchivingRequestApprovedByDelegator",
             "EServiceDescriptorArchivingRequestCanceledByDelegate",
+            "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "MaintenanceEServiceDescriptorUnarchived"

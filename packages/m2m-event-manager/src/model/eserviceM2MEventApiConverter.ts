@@ -196,6 +196,11 @@ function toApiEServiceM2MEventType(
       () => "ESERVICE_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION"
     )
     .with(
+      "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
+      () =>
+        "ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION"
+    )
+    .with(
       "MaintenanceEServicePersonalDataFlagReset",
       () => "MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET"
     )

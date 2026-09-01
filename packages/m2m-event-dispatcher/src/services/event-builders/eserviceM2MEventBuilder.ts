@@ -112,6 +112,7 @@ function getEServiceM2MEventVisibility(
         "EServiceDescriptorArchivingRequestRejectedByDelegator",
         "EServiceDescriptorArchivingRequestApprovedByDelegator",
         "EServiceDescriptorArchivingRequestCanceledByDelegate",
+        "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
         "EServiceArchivingRequestedByDelegate",
         "EServiceArchivingRequestRejectedByDelegator",
         "EServiceArchivingRequestApprovedByDelegator",
