@@ -145,9 +145,6 @@ export async function toBffCatalogDescriptorEService(
     isClientAccessDelegable: eservice.isClientAccessDelegable,
     personalData: eservice.personalData,
     archivingReason: eservice.archivingReason,
-    delegatedArchivingRequest: getLastArchivingRequest(
-      eservice.delegatedArchivingRequest
-    ),
     asyncExchange: eservice.asyncExchange,
     hasProducerKeychain,
     hasProducerKeychainKeys,
@@ -330,7 +327,8 @@ export async function enhanceEServiceToBffCatalogApiProducerDescriptorEService(
     instanceLabel: eservice.instanceLabel,
     asyncExchange: eservice.asyncExchange,
     delegatedArchivingRequest: getLastArchivingRequest(
-      eservice.delegatedArchivingRequest
+      eservice,
+      eservice.descriptors
     ),
   };
 }
@@ -448,9 +446,6 @@ export function toCompactDescriptor(
     version: descriptor.version,
     templateVersionId: descriptor.templateVersionRef?.id,
     archivableOn: descriptor.archivingSchedule?.archivableOn,
-    delegatedArchivingRequest: getLastArchivingRequest(
-      descriptor.delegatedArchivingRequest
-    ),
   };
 }
 

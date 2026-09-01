@@ -545,9 +545,6 @@ export function catalogServiceBuilder(
               }
             : undefined,
         archivingSchedule: descriptor.archivingSchedule,
-        delegatedArchivingRequest: getLastArchivingRequest(
-          descriptor.delegatedArchivingRequest
-        ),
       };
     },
     getProducerEServiceDetails: async (
@@ -589,7 +586,8 @@ export function catalogServiceBuilder(
         personalData: eservice.personalData,
         asyncExchange: eservice.asyncExchange,
         delegatedArchivingRequest: getLastArchivingRequest(
-          eservice.delegatedArchivingRequest
+          eservice,
+          eservice.descriptors
         ),
         latestActiveDescriptorId: getLatestActiveDescriptor(eservice)?.id,
       };
@@ -1049,9 +1047,6 @@ export function catalogServiceBuilder(
           hasProducerKeychainKeys
         ),
         archivingSchedule: descriptor.archivingSchedule,
-        delegatedArchivingRequest: getLastArchivingRequest(
-          descriptor.delegatedArchivingRequest
-        ),
         templateRef:
           eserviceTemplate && descriptor.templateVersionRef
             ? {
@@ -1514,6 +1509,20 @@ export function catalogServiceBuilder(
         },
       });
     },
+    cancelDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Canceling delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.cancelDelegatedEServiceArchiving(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
     submitDelegatedDescriptorArchiving: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1524,6 +1533,22 @@ export function catalogServiceBuilder(
         `Submitting delegated archiving for descriptor ${descriptorId} of EService ${eServiceId}`
       );
       await catalogProcessClient.submitDelegatedDescriptorArchiving(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    cancelDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Canceling delegated archiving request for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.cancelDelegatedDescriptorArchiving(undefined, {
         headers,
         params: {
           eServiceId,

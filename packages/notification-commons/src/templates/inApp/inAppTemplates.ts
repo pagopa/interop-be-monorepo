@@ -254,6 +254,28 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente delegante ${delegatorName} ha rifiutato la tua richiesta di archiviazione dell'e-service ${eserviceName}.`,
+  eserviceArchivingRequestCanceledToDelegate: (
+    delegatorName: string,
+    eserviceName: string
+  ): string =>
+    `È stata annullata la richiesta di archiviazione per l'e-service ${eserviceName} inviata all'ente delegante ${delegatorName}.`,
+  eserviceArchivingRequestCanceledToProducer: (
+    delegatorName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente delegato ${delegatorName} ha annullato la richiesta di archiviazione per l'e-service ${eserviceName}.`,
+  eserviceDescriptorArchivingRequestCanceledToDelegate: (
+    delegatorName: string,
+    eserviceName: string,
+    descriptorVersion: string
+  ): string =>
+    `È stata annullata la richiesta di archiviazione per la versione ${descriptorVersion} dell'e-service ${eserviceName} inviata all'ente delegante ${delegatorName}.`,
+  eserviceDescriptorArchivingRequestCanceledToProducer: (
+    delegatorName: string,
+    eserviceName: string,
+    descriptorVersion: string
+  ): string =>
+    `L'ente delegato ${delegatorName} ha annullato la richiesta di archiviazione per la versione ${descriptorVersion} dell'e-service ${eserviceName}.`,
   eserviceNewVersionSubmittedToDelegator: (
     delegateName: string,
     eserviceName: string
