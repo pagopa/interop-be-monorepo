@@ -211,6 +211,22 @@ export const createDescriptorErrorMapper = (
     .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const createDescriptorFromLatestErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("eServiceNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "draftDescriptorAlreadyExists",
+      "templateInstanceNotAllowed",
+      "asyncExchangeBulkNotAllowedForSoap",
+      "eserviceInArchivingOrArchivedState",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with("eserviceWithoutValidDescriptors", () => HTTP_STATUS_CONFLICT)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const deleteDraftDescriptorErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

@@ -40,6 +40,7 @@ import {
   archiveDescriptorErrorMapper,
   cloneEServiceByDescriptorErrorMapper,
   createDescriptorErrorMapper,
+  createDescriptorFromLatestErrorMapper,
   createEServiceErrorMapper,
   createEServiceInstanceFromTemplateErrorMapper,
   createRiskAnalysisErrorMapper,
@@ -612,6 +613,37 @@ const eservicesRouter = (
         const errorRes = makeApiProblem(
           error,
           createDescriptorErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/eservices/:eServiceId/descriptors/fromLatest", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const {
+          data: { eservice, createdDescriptorId },
+          metadata,
+        } = await catalogService.createDescriptorFromLatest(
+          unsafeBrandId(req.params.eServiceId),
+          ctx
+        );
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res.status(200).send(
+          catalogApi.CreatedEServiceDescriptor.parse({
+            eservice: eServiceToApiEService(eservice),
+            createdDescriptorId,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createDescriptorFromLatestErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);

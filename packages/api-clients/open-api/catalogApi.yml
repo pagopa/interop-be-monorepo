@@ -661,6 +661,43 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
+  /eservices/{eServiceId}/descriptors/fromLatest:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Adds a descriptor cloning the latest one of the specified e-service
+      operationId: createDescriptorFromLatest
+      description: Adds a descriptor to the specified e-service, deriving its content and documents from the latest existing descriptor
+      parameters:
+        - name: eServiceId
+          in: path
+          description: The E-Service id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: EService Descriptor created.
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreatedEServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /templates/eservices/{eServiceId}/descriptors:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -2887,7 +2924,6 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
         - attributes
-        - docs
       type: object
       additionalProperties: false
       properties:
@@ -2923,6 +2959,10 @@ components:
         attributes:
           $ref: "#/components/schemas/AttributesSeed"
         docs:
+          # Deprecated: kept only so a not-yet-updated BFF can still create a
+          # descriptor with pre-cloned documents during the rolling deploy.
+          # Remove once no caller sends it: cloning now lives in createDescriptorFromLatest.
+          deprecated: true
           type: array
           items:
             $ref: "#/components/schemas/CreateEServiceDescriptorDocumentSeed"

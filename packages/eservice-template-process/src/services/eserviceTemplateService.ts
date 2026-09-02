@@ -1,6 +1,7 @@
 import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   AppContext,
+  CreateEvent,
   DB,
   FileManager,
   RiskAnalysisValidatedForm,
@@ -43,6 +44,7 @@ import {
   TenantId,
   Tenant,
   EServiceTemplateEvent,
+  CorrelationId,
   CompactOrganization,
   technology,
   RiskAnalysis,
@@ -406,6 +408,115 @@ const retrieveTenant = async (
   }
   return tenant;
 };
+
+const getLatestVersion = (
+  eserviceTemplate: EServiceTemplate
+): EServiceTemplateVersion =>
+  eserviceTemplate.versions.reduce(
+    (latestVersion, curr) =>
+      curr.version > latestVersion.version ? curr : latestVersion,
+    eserviceTemplate.versions[0]
+  );
+
+const createNextEServiceTemplateVersion = (
+  eserviceTemplate: EServiceTemplate,
+  seed: Pick<
+    EServiceTemplateVersion,
+    | "description"
+    | "voucherLifespan"
+    | "dailyCallsPerConsumer"
+    | "dailyCallsTotal"
+    | "agreementApprovalPolicy"
+    | "attributes"
+  >
+): EServiceTemplateVersion => ({
+  id: generateId(),
+  description: seed.description,
+  version: getLatestVersion(eserviceTemplate).version + 1,
+  interface: undefined,
+  docs: [],
+  state: eserviceTemplateVersionState.draft,
+  voucherLifespan: seed.voucherLifespan,
+  dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+  dailyCallsTotal: seed.dailyCallsTotal,
+  agreementApprovalPolicy: seed.agreementApprovalPolicy,
+  publishedAt: undefined,
+  suspendedAt: undefined,
+  deprecatedAt: undefined,
+  createdAt: new Date(),
+  attributes: seed.attributes,
+});
+
+const cloneDocument = async (
+  doc: Document,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<Document> => {
+  const clonedDocumentId = generateId<EServiceDocumentId>();
+  const clonedDocumentPath = await fileManager.copy(
+    config.s3Bucket,
+    doc.path,
+    config.eserviceTemplateDocumentsPath,
+    clonedDocumentId,
+    doc.name,
+    logger
+  );
+
+  return {
+    id: clonedDocumentId,
+    name: doc.name,
+    contentType: doc.contentType,
+    prettyName: doc.prettyName,
+    path: clonedDocumentPath,
+    checksum: doc.checksum,
+    uploadDate: new Date(),
+  };
+};
+
+const addDocumentsToEServiceTemplateVersion = (
+  eserviceTemplate: EServiceTemplate,
+  version: EServiceTemplateVersion,
+  documents: Document[],
+  startingMetadataVersion: number,
+  correlationId: CorrelationId
+): {
+  events: Array<CreateEvent<EServiceTemplateEvent>>;
+  updatedEServiceTemplate: EServiceTemplate;
+  version: EServiceTemplateVersion;
+} =>
+  documents.reduce(
+    (acc, document, index) => {
+      const updatedVersion: EServiceTemplateVersion = {
+        ...acc.version,
+        docs: [...acc.version.docs, document],
+      };
+      const updatedEServiceTemplate = replaceEServiceTemplateVersion(
+        acc.updatedEServiceTemplate,
+        updatedVersion
+      );
+
+      return {
+        events: [
+          ...acc.events,
+          toCreateEventEServiceTemplateVersionDocumentAdded(
+            eserviceTemplate.id,
+            startingMetadataVersion + index + 1,
+            version.id,
+            document.id,
+            updatedEServiceTemplate,
+            correlationId
+          ),
+        ],
+        updatedEServiceTemplate,
+        version: updatedVersion,
+      };
+    },
+    {
+      events: new Array<CreateEvent<EServiceTemplateEvent>>(),
+      updatedEServiceTemplate: eserviceTemplate,
+      version,
+    }
+  );
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function eserviceTemplateServiceBuilder(
@@ -1527,36 +1638,19 @@ export function eserviceTemplateServiceBuilder(
         dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
         dailyCallsTotal: seed.dailyCallsTotal,
       });
-      const eserviceTemplateMetadataVersion = eserviceTemplate.metadata.version;
-
-      const nextTemplateVersion =
-        eserviceTemplate.data.versions.reduce(
-          (latestVersions, curr) =>
-            curr.version > latestVersions.version ? curr : latestVersions,
-          eserviceTemplate.data.versions[0]
-        ).version + 1;
-
-      const newEServiceTemplateVersion: EServiceTemplateVersion = {
-        id: generateId(),
-        description: seed.description,
-        version: nextTemplateVersion,
-        interface: undefined,
-        docs: [],
-        state: eserviceTemplateVersionState.draft,
-        voucherLifespan: seed.voucherLifespan,
-        dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
-        dailyCallsTotal: seed.dailyCallsTotal,
-        agreementApprovalPolicy: seed.agreementApprovalPolicy
-          ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
-              seed.agreementApprovalPolicy
-            )
-          : undefined,
-        publishedAt: undefined,
-        suspendedAt: undefined,
-        deprecatedAt: undefined,
-        createdAt: new Date(),
-        attributes: parsedAttributes,
-      };
+      const newEServiceTemplateVersion: EServiceTemplateVersion =
+        createNextEServiceTemplateVersion(eserviceTemplate.data, {
+          description: seed.description,
+          voucherLifespan: seed.voucherLifespan,
+          dailyCallsPerConsumer: seed.dailyCallsPerConsumer,
+          dailyCallsTotal: seed.dailyCallsTotal,
+          agreementApprovalPolicy: seed.agreementApprovalPolicy
+            ? apiAgreementApprovalPolicyToAgreementApprovalPolicy(
+                seed.agreementApprovalPolicy
+              )
+            : undefined,
+          attributes: parsedAttributes,
+        });
 
       const updatedEServiceTemplate: EServiceTemplate = {
         ...eserviceTemplate.data,
@@ -1575,56 +1669,126 @@ export function eserviceTemplateServiceBuilder(
           correlationId
         );
 
-      const { events, updatedEServiceTemplateWithDocs } = seed.docs.reduce(
-        (acc, doc, index) => {
-          const newDocument: Document = {
-            id: unsafeBrandId(doc.documentId),
-            name: doc.fileName,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: doc.filePath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-
-          const currentEserviceTemplateVersion =
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            acc.updatedEServiceTemplateWithDocs.versions.find(
-              (v) => v.id === newEServiceTemplateVersion.id
-            )!;
-
-          const updatedEServiceTemplateWithDocs =
-            replaceEServiceTemplateVersion(
-              acc.updatedEServiceTemplateWithDocs,
-              {
-                ...currentEserviceTemplateVersion,
-                docs: [...currentEserviceTemplateVersion.docs, newDocument],
-              }
-            );
-          const metadataVersion = eserviceTemplateMetadataVersion + index + 1;
-
-          const documentEvent =
-            toCreateEventEServiceTemplateVersionDocumentAdded(
-              eserviceTemplateId,
-              metadataVersion,
-              newEServiceTemplateVersion.id,
-              newDocument.id,
-              updatedEServiceTemplateWithDocs,
-              correlationId
-            );
-
-          return {
-            events: [...acc.events, documentEvent],
-            updatedEServiceTemplateWithDocs,
-          };
-        },
-        {
-          events: [eserviceTemplateVersionCreationEvent],
-          updatedEServiceTemplateWithDocs: updatedEServiceTemplate,
-        }
+      /**
+       * Deprecated: documents are now cloned by
+       * createEServiceTemplateVersionFromLatest. This branch only serves a
+       * not-yet-updated BFF during the rolling deploy, and goes away together
+       * with the seed's `docs` field.
+       */
+      const {
+        events,
+        updatedEServiceTemplate: updatedEServiceTemplateWithDocs,
+      } = addDocumentsToEServiceTemplateVersion(
+        updatedEServiceTemplate,
+        newEServiceTemplateVersion,
+        (seed.docs ?? []).map((doc) => ({
+          id: unsafeBrandId<EServiceDocumentId>(doc.documentId),
+          name: doc.fileName,
+          contentType: doc.contentType,
+          prettyName: doc.prettyName,
+          path: doc.filePath,
+          checksum: doc.checksum,
+          uploadDate: new Date(),
+        })),
+        eserviceTemplate.metadata.version,
+        correlationId
       );
 
-      const createdEvents = await repository.createEvents(events);
+      const createdEvents = await repository.createEvents([
+        eserviceTemplateVersionCreationEvent,
+        ...events,
+      ]);
+
+      return {
+        data: {
+          eserviceTemplate: updatedEServiceTemplateWithDocs,
+          createdEServiceTemplateVersionId: newEServiceTemplateVersion.id,
+        },
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(updatedEServiceTemplate.id) ??
+            0,
+        },
+      };
+    },
+    async createEServiceTemplateVersionFromLatest(
+      eserviceTemplateId: EServiceTemplateId,
+      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+    ): Promise<
+      WithMetadata<{
+        eserviceTemplate: EServiceTemplate;
+        createdEServiceTemplateVersionId: EServiceTemplateVersionId;
+      }>
+    > {
+      logger.info(
+        `Creating version from the latest one for EService template ${eserviceTemplateId}`
+      );
+
+      const eserviceTemplate = await retrieveEServiceTemplate(
+        eserviceTemplateId,
+        readModelService
+      );
+
+      assertRequesterEServiceTemplateCreator(
+        eserviceTemplate.data.creatorId,
+        authData
+      );
+      assertPublishedEServiceTemplate(eserviceTemplate.data);
+
+      assertNoDraftEServiceTemplateVersions(eserviceTemplate.data);
+
+      const eserviceTemplateMetadataVersion = eserviceTemplate.metadata.version;
+
+      const previousVersion = getLatestVersion(eserviceTemplate.data);
+
+      const newEServiceTemplateVersion: EServiceTemplateVersion =
+        createNextEServiceTemplateVersion(eserviceTemplate.data, {
+          description: previousVersion.description,
+          voucherLifespan: previousVersion.voucherLifespan,
+          dailyCallsPerConsumer: previousVersion.dailyCallsPerConsumer,
+          dailyCallsTotal: previousVersion.dailyCallsTotal,
+          agreementApprovalPolicy: previousVersion.agreementApprovalPolicy,
+          attributes: previousVersion.attributes,
+        });
+
+      const updatedEServiceTemplate: EServiceTemplate = {
+        ...eserviceTemplate.data,
+        versions: [
+          ...eserviceTemplate.data.versions,
+          newEServiceTemplateVersion,
+        ],
+      };
+
+      const eserviceTemplateVersionCreationEvent =
+        toCreateEventEServiceTemplateVersionAdded(
+          eserviceTemplateId,
+          eserviceTemplateMetadataVersion,
+          newEServiceTemplateVersion.id,
+          updatedEServiceTemplate,
+          correlationId
+        );
+
+      const clonedDocuments = await Promise.all(
+        previousVersion.docs.map((doc) =>
+          cloneDocument(doc, fileManager, logger)
+        )
+      );
+
+      const {
+        events,
+        updatedEServiceTemplate: updatedEServiceTemplateWithDocs,
+      } = addDocumentsToEServiceTemplateVersion(
+        updatedEServiceTemplate,
+        newEServiceTemplateVersion,
+        clonedDocuments,
+        eserviceTemplateMetadataVersion,
+        correlationId
+      );
+
+      const createdEvents = await repository.createEvents([
+        eserviceTemplateVersionCreationEvent,
+        ...events,
+      ]);
 
       return {
         data: {

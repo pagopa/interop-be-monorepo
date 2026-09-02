@@ -69,10 +69,7 @@ import {
 } from "../model/modelMappingUtils.js";
 import { ConfigurationEservice } from "../model/types.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
-import {
-  cloneEServiceDocument,
-  createDescriptorDocumentZipFile,
-} from "../utilities/fileUtils.js";
+import { createDescriptorDocumentZipFile } from "../utilities/fileUtils.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getLatestAgreementsOnDescriptor } from "./agreementService.js";
 import { getAllBulkAttributes } from "./attributeService.js";
@@ -1214,20 +1211,23 @@ export function catalogServiceBuilder(
         throw noDescriptorInEservice(eServiceId);
       }
 
-      const retrieveLatestDescriptor = (
-        descriptors: catalogApi.EServiceDescriptor[]
-      ): catalogApi.EServiceDescriptor =>
-        descriptors.reduce(
-          (latestDescriptor, curr) =>
-            parseInt(curr.version, 10) > parseInt(latestDescriptor.version, 10)
-              ? curr
-              : latestDescriptor,
-          descriptors[0]
+      if (eService.templateId) {
+        const retrieveLatestDescriptor = (
+          descriptors: catalogApi.EServiceDescriptor[]
+        ): catalogApi.EServiceDescriptor =>
+          descriptors.reduce(
+            (latestDescriptor, curr) =>
+              parseInt(curr.version, 10) >
+              parseInt(latestDescriptor.version, 10)
+                ? curr
+                : latestDescriptor,
+            descriptors[0]
+          );
+
+        const previousDescriptor = retrieveLatestDescriptor(
+          eService.descriptors
         );
 
-      const previousDescriptor = retrieveLatestDescriptor(eService.descriptors);
-
-      if (eService.templateId) {
         const { id } =
           await catalogProcessClient.createTemplateInstanceDescriptor(
             {
@@ -1247,30 +1247,8 @@ export function catalogServiceBuilder(
         return { id };
       }
 
-      const clonedDocumentsCalls = previousDescriptor.docs.map((doc) =>
-        cloneEServiceDocument({
-          doc,
-          documentsContainer: config.eserviceDocumentsContainer,
-          documentsPath: config.eserviceDocumentsPath,
-          fileManager,
-          logger,
-        })
-      );
-
-      const clonedDocuments = await Promise.all(clonedDocumentsCalls);
-
-      const response = await catalogProcessClient.createDescriptor(
-        {
-          description: previousDescriptor.description,
-          audience: [],
-          voucherLifespan: previousDescriptor.voucherLifespan,
-          dailyCallsPerConsumer: previousDescriptor.dailyCallsPerConsumer,
-          dailyCallsTotal: previousDescriptor.dailyCallsTotal,
-          agreementApprovalPolicy: previousDescriptor.agreementApprovalPolicy,
-          attributes: previousDescriptor.attributes,
-          docs: clonedDocuments,
-          asyncExchangeProperties: previousDescriptor.asyncExchangeProperties,
-        },
+      const response = await catalogProcessClient.createDescriptorFromLatest(
+        undefined,
         {
           headers,
           params: {

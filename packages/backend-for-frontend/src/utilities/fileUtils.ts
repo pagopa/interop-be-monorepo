@@ -2,14 +2,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 import AdmZip from "adm-zip";
-import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
+import { catalogApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
-import {
-  DescriptorId,
-  EServiceDocumentId,
-  generateId,
-  genericError,
-} from "pagopa-interop-models";
+import { DescriptorId, genericError } from "pagopa-interop-models";
 import path from "path";
 
 import { missingInterface } from "../model/errors.js";
@@ -209,59 +204,4 @@ export async function createDescriptorDocumentZipFile(
   );
 
   return zip.toBuffer();
-}
-
-export async function cloneEServiceDocument(params: {
-  doc: eserviceTemplateApi.EServiceDoc;
-  documentsContainer: string;
-  documentsPath: string;
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed>;
-
-export async function cloneEServiceDocument(params: {
-  doc: catalogApi.EServiceDoc;
-  documentsContainer: string;
-  documentsPath: string;
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<catalogApi.CreateEServiceDescriptorDocumentSeed>;
-
-export async function cloneEServiceDocument({
-  doc,
-  documentsContainer,
-  documentsPath,
-  fileManager,
-  logger,
-}: {
-  doc: eserviceTemplateApi.EServiceDoc | catalogApi.EServiceDoc;
-  documentsContainer: string;
-  documentsPath: string;
-  fileManager: FileManager;
-  logger: Logger;
-}): Promise<
-  | eserviceTemplateApi.CreateEServiceTemplateVersionDocumentSeed
-  | catalogApi.CreateEServiceDescriptorDocumentSeed
-> {
-  const clonedDocumentId: EServiceDocumentId = generateId();
-
-  const clonedPath = await fileManager.copy(
-    documentsContainer,
-    doc.path,
-    documentsPath,
-    clonedDocumentId,
-    doc.name,
-    logger
-  );
-
-  return {
-    documentId: clonedDocumentId,
-    kind: "DOCUMENT",
-    contentType: doc.contentType,
-    prettyName: doc.prettyName,
-    fileName: doc.name,
-    filePath: clonedPath,
-    checksum: doc.checksum,
-    serverUrls: [],
-  };
 }
