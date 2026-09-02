@@ -31,6 +31,7 @@ import {
   agreementState,
   AttributeId,
   catalogEventToBinaryData,
+  CorrelationId,
   Delegation,
   delegationKind,
   delegationState,
@@ -60,6 +61,7 @@ import {
   RiskAnalysisId,
   Tenant,
   TenantId,
+  TenantKind,
   unsafeBrandId,
   tenantKind,
   WithMetadata,
@@ -92,6 +94,7 @@ import {
   attributeNotFound,
   audienceCannotBeEmpty,
   descriptorAttributeGroupSupersetMissingInAttributesSeed,
+  documentIdDuplicate,
   documentPrettyNameDuplicate,
   eServiceAlreadyUpgraded,
   eServiceDescriptorNotFound,
@@ -202,6 +205,7 @@ import {
   assertNoExistingProducerDelegationInActiveOrPendingState,
   assertNoExistingProducerDelegationForDescriptorArchiving,
   assertNoExistingProducerDelegationForEServiceArchiving,
+  assertEServiceNameAvailable,
   assertEServiceNameAvailableForProducer,
   assertRequesterIsDelegateProducerOrProducer,
   assertRequesterIsProducer,
@@ -216,7 +220,6 @@ import {
   assertDescriptorUpdatableAfterPublish,
   assertEServiceUpdatableAfterPublish,
   hasRoleToAccessInactiveDescriptors,
-  assertEServiceNameNotConflictingWithTemplate,
   assertUpdatedNameDiffersFromCurrent,
   assertUpdatedDescriptionDiffersFromCurrent,
   descriptorStatesNotAllowingInterfaceOperations,
@@ -636,6 +639,8 @@ async function innerCreateEService(
 ): Promise<{
   eService: EService;
   events: Array<CreateEvent<EServiceEvent>>;
+  // stream version of the last event returned, for callers that append to it
+  version: number;
 }> {
   const origin = await retrieveOriginFromAuthData(
     authData,
@@ -742,10 +747,160 @@ async function innerCreateEService(
     correlationId
   );
 
+  const events = [eserviceCreationEvent, descriptorCreationEvent];
+
   return {
     eService: eserviceWithDescriptor,
-    events: [eserviceCreationEvent, descriptorCreationEvent],
+    events,
+    // the events above are the whole stream so far, starting at version 0
+    version: events.length - 1,
   };
+}
+
+function innerAddRiskAnalysisToEserviceEvent(
+  eservice: EService,
+  version: number,
+  riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed,
+  tenantKind: TenantKind,
+  correlationId: CorrelationId
+): {
+  eservice: EService;
+  createdRiskAnalysisId: RiskAnalysisId;
+  event: CreateEvent<EServiceEvent>;
+} {
+  const isDuplicateRiskAnalysis = eservice.riskAnalysis.some(
+    (ra: RiskAnalysis) =>
+      ra.name.toLowerCase() === riskAnalysisSeed.name.toLowerCase()
+  );
+
+  if (isDuplicateRiskAnalysis) {
+    throw riskAnalysisDuplicated(riskAnalysisSeed.name, eservice.id);
+  }
+
+  const formToValidate: RiskAnalysisFormToValidate = {
+    ...riskAnalysisSeed.riskAnalysisForm,
+    tenantKind,
+  };
+
+  const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
+    formToValidate,
+    tenantKind,
+    new Date(), // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
+    eservice.personalData
+  );
+
+  const newRiskAnalysis: RiskAnalysis =
+    riskAnalysisValidatedFormToNewRiskAnalysis(
+      validatedRiskAnalysisForm,
+      riskAnalysisSeed.name
+    );
+
+  const newEservice: EService = {
+    ...eservice,
+    riskAnalysis: [...eservice.riskAnalysis, newRiskAnalysis],
+  };
+
+  return {
+    eservice: newEservice,
+    createdRiskAnalysisId: newRiskAnalysis.id,
+    event: toCreateEventEServiceRiskAnalysisAdded(
+      newEservice.id,
+      version,
+      newRiskAnalysis.id,
+      newEservice,
+      correlationId
+    ),
+  };
+}
+
+async function addRiskAnalysesToImportedEservice(
+  eservice: EService,
+  events: Array<CreateEvent<EServiceEvent>>,
+  version: number,
+  riskAnalysisSeeds: catalogApi.EServiceRiskAnalysisSeed[],
+  readModelService: ReadModelServiceSQL,
+  ctx: WithLogger<AppContext<UIAuthData>>
+): Promise<{
+  eservice: EService;
+  events: Array<CreateEvent<EServiceEvent>>;
+  version: number;
+}> {
+  if (riskAnalysisSeeds.length === 0) {
+    return { eservice, events, version };
+  }
+
+  assertIsReceiveEservice(eservice);
+
+  const tenant = await retrieveTenant(eservice.producerId, readModelService);
+  assertTenantKindExists(tenant);
+
+  const newEvents = [...events];
+  let lastEservice = eservice;
+  let lastVersion = version;
+  for (const riskAnalysisSeed of riskAnalysisSeeds) {
+    const { eservice: updatedEservice, event } =
+      innerAddRiskAnalysisToEserviceEvent(
+        lastEservice,
+        lastVersion,
+        riskAnalysisSeed,
+        tenant.kind,
+        ctx.correlationId
+      );
+    newEvents.push(event);
+    lastEservice = updatedEservice;
+    lastVersion += 1;
+  }
+
+  return { eservice: lastEservice, events: newEvents, version: lastVersion };
+}
+
+async function addDocumentsToImportedEservice(
+  eservice: EService,
+  events: Array<CreateEvent<EServiceEvent>>,
+  version: number,
+  descriptorId: DescriptorId,
+  descriptorSeed: catalogApi.EServiceImportDescriptorSeed,
+  ctx: WithLogger<AppContext<UIAuthData>>
+): Promise<{
+  eservice: EService;
+  events: Array<CreateEvent<EServiceEvent>>;
+  version: number;
+}> {
+  const documentSeeds: catalogApi.CreateEServiceDescriptorDocumentSeed[] = [
+    ...(descriptorSeed.interface
+      ? [{ ...descriptorSeed.interface, kind: "INTERFACE" as const }]
+      : []),
+    ...descriptorSeed.docs.map((doc) => ({
+      ...doc,
+      kind: "DOCUMENT" as const,
+    })),
+  ];
+
+  const documentIds = documentSeeds.map((seed) => seed.documentId);
+  const duplicateDocumentId = documentIds.find(
+    (documentId, index) => documentIds.indexOf(documentId) !== index
+  );
+  if (duplicateDocumentId !== undefined) {
+    throw documentIdDuplicate(duplicateDocumentId, descriptorId);
+  }
+
+  const newEvents = [...events];
+  let lastEservice = eservice;
+  let lastVersion = version;
+  for (const documentSeed of documentSeeds) {
+    const { eService: updatedEservice, event } =
+      await innerAddDocumentToEserviceEvent(
+        { data: lastEservice, metadata: { version: lastVersion } },
+        descriptorId,
+        documentSeed,
+        ctx
+      );
+    newEvents.push(event);
+    lastEservice = updatedEservice;
+    lastVersion += 1;
+  }
+
+  return { eservice: lastEservice, events: newEvents, version: lastVersion };
 }
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
@@ -1072,13 +1227,9 @@ export function catalogServiceBuilder(
     ): Promise<WithMetadata<EService>> {
       ctx.logger.info(`Creating EService with name ${seed.name}`);
 
-      await assertEServiceNameAvailableForProducer(
+      await assertEServiceNameAvailable(
         seed.name,
         ctx.authData.organizationId,
-        readModelService
-      );
-      await assertEServiceNameNotConflictingWithTemplate(
-        seed.name,
         readModelService
       );
 
@@ -1094,6 +1245,82 @@ export function catalogServiceBuilder(
         data: eService,
         metadata: {
           version: createdEvents.latestNewVersions.get(eService.id) ?? 0,
+        },
+      };
+    },
+
+    async importEService(
+      seed: catalogApi.EServiceImportSeed,
+      ctx: WithLogger<AppContext<UIAuthData>>
+    ): Promise<
+      WithMetadata<{ eservice: EService; createdDescriptorId: DescriptorId }>
+    > {
+      ctx.logger.info(`Importing EService with name ${seed.name}`);
+
+      await assertEServiceNameAvailable(
+        seed.name,
+        ctx.authData.organizationId,
+        readModelService
+      );
+
+      const eserviceSeed: catalogApi.EServiceSeed = {
+        name: seed.name,
+        description: seed.description,
+        technology: seed.technology,
+        mode: seed.mode,
+        descriptor: {
+          description: seed.descriptor.description,
+          audience: seed.descriptor.audience,
+          voucherLifespan: seed.descriptor.voucherLifespan,
+          dailyCallsPerConsumer: seed.descriptor.dailyCallsPerConsumer,
+          dailyCallsTotal: seed.descriptor.dailyCallsTotal,
+          agreementApprovalPolicy: seed.descriptor.agreementApprovalPolicy,
+        },
+        isSignalHubEnabled: seed.isSignalHubEnabled,
+        isConsumerDelegable: seed.isConsumerDelegable,
+        isClientAccessDelegable: seed.isClientAccessDelegable,
+      };
+
+      const {
+        eService: createdEservice,
+        events: creationEvents,
+        version: creationVersion,
+      } = await innerCreateEService(
+        { seed: eserviceSeed, template: undefined },
+        readModelService,
+        ctx
+      );
+
+      const createdDescriptor = createdEservice.descriptors[0];
+
+      const withRiskAnalyses = await addRiskAnalysesToImportedEservice(
+        createdEservice,
+        creationEvents,
+        creationVersion,
+        seed.riskAnalysis,
+        readModelService,
+        ctx
+      );
+
+      const withDocuments = await addDocumentsToImportedEservice(
+        withRiskAnalyses.eservice,
+        withRiskAnalyses.events,
+        withRiskAnalyses.version,
+        createdDescriptor.id,
+        seed.descriptor,
+        ctx
+      );
+
+      const createdEvents = await repository.createEvents(withDocuments.events);
+
+      return {
+        data: {
+          eservice: withDocuments.eservice,
+          createdDescriptorId: createdDescriptor.id,
+        },
+        metadata: {
+          version:
+            createdEvents.latestNewVersions.get(withDocuments.eservice.id) ?? 0,
         },
       };
     },
@@ -2157,14 +2384,9 @@ export function catalogServiceBuilder(
           ? `${eservice.data.name}${suffix}`
           : `${eservice.data.name.slice(0, prefixLengthAllowance)}${dots}${suffix}`;
 
-      await assertEServiceNameAvailableForProducer(
+      await assertEServiceNameAvailable(
         clonedEServiceName,
         eservice.data.producerId,
-        readModelService
-      );
-
-      await assertEServiceNameNotConflictingWithTemplate(
-        clonedEServiceName,
         readModelService
       );
 
@@ -2689,46 +2911,15 @@ export function catalogServiceBuilder(
       );
       assertTenantKindExists(tenant);
 
-      const isDuplicateRiskAnalysis = eservice.data.riskAnalysis.some(
-        (ra: RiskAnalysis) =>
-          ra.name.toLowerCase() === eserviceRiskAnalysisSeed.name.toLowerCase()
-      );
-
-      if (isDuplicateRiskAnalysis) {
-        throw riskAnalysisDuplicated(
-          eserviceRiskAnalysisSeed.name,
-          eservice.data.id
-        );
-      }
-
-      const formToValidate: RiskAnalysisFormToValidate = {
-        ...eserviceRiskAnalysisSeed.riskAnalysisForm,
-        tenantKind: tenant.kind,
-      };
-
-      const validatedRiskAnalysisForm = validateRiskAnalysisSchemaOrThrow(
-        formToValidate,
-        tenant.kind,
-        new Date(), // drawback: the date of the risk analysis is set below in the function riskAnalysisValidatedFormToNewRiskAnalysis
-        eservice.data.personalData
-      );
-
-      const newRiskAnalysis: RiskAnalysis =
-        riskAnalysisValidatedFormToNewRiskAnalysis(
-          validatedRiskAnalysisForm,
-          eserviceRiskAnalysisSeed.name
-        );
-
-      const newEservice: EService = {
-        ...eservice.data,
-        riskAnalysis: [...eservice.data.riskAnalysis, newRiskAnalysis],
-      };
-
-      const event = toCreateEventEServiceRiskAnalysisAdded(
-        eservice.data.id,
+      const {
+        eservice: newEservice,
+        createdRiskAnalysisId,
+        event,
+      } = innerAddRiskAnalysisToEserviceEvent(
+        eservice.data,
         eservice.metadata.version,
-        newRiskAnalysis.id,
-        newEservice,
+        eserviceRiskAnalysisSeed,
+        tenant.kind,
         correlationId
       );
 
@@ -2737,7 +2928,7 @@ export function catalogServiceBuilder(
       return {
         data: {
           eservice: newEservice,
-          createdRiskAnalysisId: newRiskAnalysis.id,
+          createdRiskAnalysisId,
         },
         metadata: { version: createdEvent.newVersion },
       };
@@ -3093,14 +3284,9 @@ export function catalogServiceBuilder(
       assertEServiceUpdatableAfterPublish(eservice.data);
 
       if (name !== eservice.data.name) {
-        await assertEServiceNameAvailableForProducer(
+        await assertEServiceNameAvailable(
           name,
           eservice.data.producerId,
-          readModelService
-        );
-
-        await assertEServiceNameNotConflictingWithTemplate(
-          name,
           readModelService
         );
       }
@@ -5244,12 +5430,11 @@ async function updateDraftEService(
   } = typeAndSeed.seed;
 
   if (name && name !== eservice.data.name) {
-    await assertEServiceNameAvailableForProducer(
+    await assertEServiceNameAvailable(
       name,
       eservice.data.producerId,
       readModelService
     );
-    await assertEServiceNameNotConflictingWithTemplate(name, readModelService);
   }
 
   const updatedTechnology = technology

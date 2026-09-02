@@ -3760,10 +3760,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CreatedEServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
         "409":
           $ref: "#/components/responses/Conflict"
+        "413":
+          $ref: "#/components/responses/ContentTooLarge"
   /templates/eservices/{eServiceId}/upgrade:
     post:
       security:
@@ -13238,6 +13242,19 @@ components:
           $ref: "#/components/headers/RateLimitIntervalHeader"
     Conflict:
       description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+      headers:
+        "X-Rate-Limit-Limit":
+          $ref: "#/components/headers/RateLimitLimitHeader"
+        "X-Rate-Limit-Remaining":
+          $ref: "#/components/headers/RateLimitRemainingHeader"
+        "X-Rate-Limit-Interval":
+          $ref: "#/components/headers/RateLimitIntervalHeader"
+    ContentTooLarge:
+      description: Content Too Large
       content:
         application/problem+json:
           schema:

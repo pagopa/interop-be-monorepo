@@ -53,6 +53,7 @@ import {
   documentGetErrorMapper,
   documentUpdateErrorMapper,
   getEServiceErrorMapper,
+  importEServiceErrorMapper,
   publishDescriptorErrorMapper,
   rejectDelegatedEServiceDescriptorErrorMapper,
   suspendDescriptorErrorMapper,
@@ -199,6 +200,30 @@ const eservicesRouter = (
           .send(catalogApi.EService.parse(eServiceToApiEService(eService)));
       } catch (error) {
         const errorRes = makeApiProblem(error, createEServiceErrorMapper, ctx);
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/import/eservices", async (req, res) => {
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const {
+          data: { eservice, createdDescriptorId },
+          metadata,
+        } = await catalogService.importEService(req.body, ctx);
+
+        setMetadataVersionHeader(res, metadata);
+
+        return res.status(200).send(
+          catalogApi.CreatedEServiceDescriptor.parse({
+            eservice: eServiceToApiEService(eservice),
+            createdDescriptorId,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(error, importEServiceErrorMapper, ctx);
         return res.status(errorRes.status).send(errorRes);
       }
     })

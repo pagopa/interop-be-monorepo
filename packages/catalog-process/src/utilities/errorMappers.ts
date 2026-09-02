@@ -67,6 +67,33 @@ export const createEServiceInstanceFromTemplateErrorMapper = (
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const importEServiceErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("originNotCompliant", () => HTTP_STATUS_FORBIDDEN)
+    .with(
+      "invalidDelegationFlags",
+      "inconsistentDailyCalls",
+      "eserviceNotInReceiveMode",
+      "riskAnalysisValidationFailed",
+      // 500 in the sibling creation mappers, but here the caller has already
+      // uploaded the documents and deletes them only on a 4xx: a 500 leaks them
+      "tenantNotFound",
+      "tenantKindNotFound",
+      () => HTTP_STATUS_BAD_REQUEST
+    )
+    .with(
+      "eServiceNameDuplicateForProducer",
+      "eserviceTemplateNameConflict",
+      "riskAnalysisDuplicated",
+      "documentPrettyNameDuplicate",
+      "checksumDuplicate",
+      "documentIdDuplicate",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const updateEServiceErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>

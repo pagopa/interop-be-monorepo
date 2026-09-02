@@ -489,7 +489,7 @@ export async function assertEServiceNameAvailableForProducer(
   }
 }
 
-export async function assertEServiceNameNotConflictingWithTemplate(
+async function assertEServiceNameNotConflictingWithTemplate(
   name: string,
   readModelService: ReadModelServiceSQL
 ): Promise<void> {
@@ -500,6 +500,21 @@ export async function assertEServiceNameNotConflictingWithTemplate(
   if (eserviceTemplateWithSameNameExists) {
     throw eserviceTemplateNameConflict(name);
   }
+}
+
+// template instances deliberately run only the producer check: their derived
+// name always collides with the template they are instantiated from
+export async function assertEServiceNameAvailable(
+  name: string,
+  producerId: TenantId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  await assertEServiceNameAvailableForProducer(
+    name,
+    producerId,
+    readModelService
+  );
+  await assertEServiceNameNotConflictingWithTemplate(name, readModelService);
 }
 
 export function assertEServiceNotTemplateInstance(

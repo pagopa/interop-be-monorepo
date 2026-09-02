@@ -952,6 +952,10 @@ const catalogRouter = (
     .post("/import/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
+        // catalog-process enforces the same roles, but only after the BFF has
+        // already uploaded the archive documents to S3: reject before uploading
+        validateAuthorization(ctx, [authRole.ADMIN_ROLE, authRole.API_ROLE]);
+
         const createdEServiceDescriptor = await catalogService.importEService(
           req.body,
           ctx

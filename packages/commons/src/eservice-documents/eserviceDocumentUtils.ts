@@ -8,10 +8,11 @@ import {
   CommonErrorCodes,
   contentTooLargeError,
   EService,
-  EServiceId,
   genericError,
   interfaceExtractingInfoError,
   invalidContentTypeDetected,
+  invalidImportedInterfaceFileDetected,
+  invalidImportedServerUrl,
   invalidInterfaceData,
   invalidInterfaceFileDetected,
   invalidFileUploadError,
@@ -472,9 +473,18 @@ export async function verifyAndCreateDocument<T>(
   }
 }
 
-export const verifyAndCreateImportedDocument = async <T>(
+export type EserviceImportUploadedDocument = {
+  documentId: string;
+  fileName: string;
+  filePath: string;
+  prettyName: string;
+  serverUrls: string[];
+  contentType: string;
+  checksum: string;
+};
+
+export const verifyAndUploadImportedDocument = async (
   fileManager: FileManager,
-  eserviceId: EServiceId,
   technology: Technology,
   entriesMap: Map<string, AdmZip.IZipEntry>,
   doc: {
@@ -482,22 +492,12 @@ export const verifyAndCreateImportedDocument = async <T>(
     path: string;
   },
   kind: "INTERFACE" | "DOCUMENT",
-  createDocumentHandler: (
-    documentId: string,
-    fileName: string,
-    filePath: string,
-    prettyName: string,
-    kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
-    serverUrls: string[],
-    contentType: string,
-    checksum: string
-  ) => Promise<T>,
   eserviceDocumentsContainer: string,
   eserviceDocumentsPath: string,
   fileSizeLimits: FileSizeLimits,
   logger: Logger
 ): // eslint-disable-next-line max-params
-Promise<void> => {
+Promise<EserviceImportUploadedDocument> => {
   const entry = entriesMap.get(doc.path);
   if (!entry) {
     throw genericError("Invalid file");
@@ -511,18 +511,48 @@ Promise<void> => {
 
   const documentId = randomUUID();
 
-  await verifyAndCreateDocument(
-    fileManager,
-    { id: eserviceId, isEserviceTemplate: false },
-    technology,
-    kind,
-    file,
-    documentId,
-    eserviceDocumentsContainer,
-    eserviceDocumentsPath,
-    doc.prettyName,
-    createDocumentHandler,
-    fileSizeLimits,
-    logger
-  );
+  try {
+    return await verifyAndCreateDocument(
+      fileManager,
+      { id: documentId, isEserviceTemplate: false },
+      technology,
+      kind,
+      file,
+      documentId,
+      eserviceDocumentsContainer,
+      eserviceDocumentsPath,
+      doc.prettyName,
+      async (
+        documentId,
+        fileName,
+        filePath,
+        prettyName,
+        _kind,
+        serverUrls,
+        contentType,
+        checksum
+      ) => ({
+        documentId,
+        fileName,
+        filePath,
+        prettyName,
+        serverUrls,
+        contentType,
+        checksum,
+      }),
+      fileSizeLimits,
+      logger
+    );
+  } catch (error) {
+    // the eservice does not exist yet: rethrow errors that would reference it
+    // as their import variants
+    throw match(error)
+      .with({ code: "invalidEserviceInterfaceFileDetected" }, () =>
+        invalidImportedInterfaceFileDetected(doc.path)
+      )
+      .with({ code: "invalidServerUrl" }, () =>
+        invalidImportedServerUrl(doc.path)
+      )
+      .otherwise(() => error);
+  }
 };
