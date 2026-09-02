@@ -350,7 +350,6 @@ describe("assignRiskAnalysisReviewer", () => {
         sentToReviewerAt: undefined,
       })),
       signingState: RiskAnalysisSigningState.Values.Draft,
-      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
