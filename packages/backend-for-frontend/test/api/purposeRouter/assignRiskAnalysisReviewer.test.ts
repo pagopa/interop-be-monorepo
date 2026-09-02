@@ -42,8 +42,18 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
   it.each([
     { purposeId: "invalid" as PurposeId },
     { body: {} },
-    { body: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] } },
-    { body: { reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS", reviewerIds: [] } },
+    {
+      body: {
+        reviewMode: "INVALID_MODE",
+        reviewerIds: [generateId()],
+      },
+    },
+    {
+      body: {
+        reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+        reviewerIds: [],
+      },
+    },
     {
       body: {
         reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",

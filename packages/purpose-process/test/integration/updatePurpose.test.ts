@@ -1356,7 +1356,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     async (signingState) => {
       const storedRiskAnalysis = getMockValidRiskAnalysis(tenantType);
       const reviewerWorkflow: ReviewerWorkflow = {
-        reviewerIds: [generateId()],
+        reviewers: [{ id: generateId() }],
         signingState,
       };
       const purposeWithWorkflow: Purpose = {
@@ -1408,7 +1408,7 @@ describe("updatePurpose and updateReversePurpose", () => {
 
       const storedRiskAnalysis = getMockValidRiskAnalysis(tenantType);
       const reviewerWorkflow: ReviewerWorkflow = {
-        reviewerIds: [generateId()],
+        reviewers: [{ id: generateId() }],
         signingState,
       };
       const purposeWithWorkflow: Purpose = {
@@ -1450,7 +1450,7 @@ describe("updatePurpose and updateReversePurpose", () => {
 
     const existingForm = getMockValidRiskAnalysisForm(tenantType);
     const reviewerWorkflow: ReviewerWorkflow = {
-      reviewerIds: [generateId()],
+      reviewers: [{ id: generateId() }],
       signingState: riskAnalysisSigningState.assigned,
     };
     const purposeWithWorkflow: Purpose = {
@@ -1488,7 +1488,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     "should throw riskAnalysisFormCannotBeUpdated when a reviewer workflow is active (state: %s) and trying to add an initial risk analysis form",
     async (signingState) => {
       const reviewerWorkflow: ReviewerWorkflow = {
-        reviewerIds: [generateId()],
+        reviewers: [{ id: generateId() }],
         signingState,
       };
       const purposeWithWorkflowNoForm: Purpose = {
@@ -1536,7 +1536,7 @@ describe("updatePurpose and updateReversePurpose", () => {
 
       const existingForm = getMockValidRiskAnalysisForm(tenantType);
       const reviewerWorkflow: ReviewerWorkflow = {
-        reviewerIds: [generateId()],
+        reviewers: [{ id: generateId() }],
         signingState,
       };
       const purposeWithFormAndWorkflow: Purpose = {
@@ -1581,7 +1581,7 @@ describe("updatePurpose and updateReversePurpose", () => {
 
       const existingForm = getMockValidRiskAnalysisForm(tenantType);
       const reviewerWorkflow: ReviewerWorkflow = {
-        reviewerIds: [generateId()],
+        reviewers: [{ id: generateId() }],
         signingState,
       };
       const purposeWithFormAndWorkflow: Purpose = {

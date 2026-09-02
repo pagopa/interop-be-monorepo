@@ -73,17 +73,16 @@ export const splitPurposeIntoObjectsSQL = (
     reviewerWorkflowSigningState: reviewerWorkflow?.signingState ?? null,
     reviewerWorkflowSignedBy: reviewerWorkflow?.signedBy ?? null,
     reviewerWorkflowRejectionReason: reviewerWorkflow?.rejectionReason ?? null,
-    reviewerWorkflowSentToReviewerAt: dateToString(
-      reviewerWorkflow?.sentToReviewerAt
-    ),
+    reviewerWorkflowSentToReviewerAt: null,
   };
 
   const reviewersSQL: RiskAnalysisReviewerSQL[] = (
-    reviewerWorkflow?.reviewerIds ?? []
-  ).map((reviewerId) => ({
+    reviewerWorkflow?.reviewers ?? []
+  ).map((reviewer) => ({
     purposeId: id,
     metadataVersion: version,
-    reviewerId,
+    reviewerId: reviewer.id,
+    sentToReviewerAt: dateToString(reviewer.sentToReviewerAt),
   }));
 
   const splitPurposeRiskAnalysisSQL = splitRiskAnalysisFormIntoObjectsSQL(

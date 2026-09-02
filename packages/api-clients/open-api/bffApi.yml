@@ -32301,20 +32301,24 @@ components:
         - SUBMITTED
         - SIGNED
         - REJECTED
+    Reviewer:
+      description: A designated reviewer enriched with its user details
+      allOf:
+        - $ref: "#/components/schemas/CompactUser"
+        - type: object
+          properties:
+            sentToReviewerAt:
+              type: string
+              format: date-time
     ReviewerWorkflow:
       type: object
       additionalProperties: false
       description: Reviewer workflow state for a purpose risk analysis
       properties:
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
         reviewers:
           type: array
           items:
-            $ref: "#/components/schemas/CompactUser"
+            $ref: "#/components/schemas/Reviewer"
         signingState:
           $ref: "#/components/schemas/RiskAnalysisSigningState"
         signedBy:
@@ -32322,11 +32326,7 @@ components:
           format: uuid
         rejectionReason:
           type: string
-        sentToReviewerAt:
-          type: string
-          format: date-time
       required:
-        - reviewerIds
         - signingState
     RiskAnalysisAssignmentSeed:
       type: object

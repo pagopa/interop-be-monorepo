@@ -16,6 +16,7 @@ import {
   PurposeTemplateId,
   UserId,
   riskAnalysisSigningState,
+  RiskAnalysisReviewer,
 } from "pagopa-interop-models";
 import { aggregatePurpose } from "pagopa-interop-readmodel";
 import { describe, it, expect } from "vitest";
@@ -65,6 +66,11 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
 
+      const reviewers: RiskAnalysisReviewer[] = [
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      ];
+
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [purposeVersion1, purposeVersion2, purposeVersion3],
@@ -77,11 +83,10 @@ describe("Purpose queries", () => {
         purposeTemplateId: generateId<PurposeTemplateId>(),
         reviewMode: "AdminWritesReviewerSigns",
         reviewerWorkflow: {
-          reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+          reviewers,
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",
-          sentToReviewerAt: new Date(),
         },
       };
 
@@ -202,6 +207,11 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
 
+      const reviewers: RiskAnalysisReviewer[] = [
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      ];
+
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [purposeVersion1, purposeVersion2, purposeVersion3],
@@ -214,11 +224,10 @@ describe("Purpose queries", () => {
         purposeTemplateId: generateId<PurposeTemplateId>(),
         reviewMode: "AdminWritesReviewerSigns",
         reviewerWorkflow: {
-          reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+          reviewers,
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",
-          sentToReviewerAt: new Date(),
         },
       };
 

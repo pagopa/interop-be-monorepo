@@ -9,6 +9,7 @@ import {
   PurposeVersionStampV2,
   PurposeVersionV2,
   ReviewerWorkflowV2,
+  RiskAnalysisReviewerV2,
   RiskAnalysisReviewModeV2,
   RiskAnalysisSigningStateV2,
 } from "../gen/v2/purpose/purpose.js";
@@ -26,6 +27,7 @@ import {
   PurposeVersionState,
   purposeVersionState,
   ReviewerWorkflow,
+  RiskAnalysisReviewer,
   RiskAnalysisReviewMode,
   riskAnalysisReviewMode,
   RiskAnalysisSigningState,
@@ -144,10 +146,18 @@ export const toRiskAnalysisSigningStateV2 = (
     )
     .exhaustive();
 
+export const toRiskAnalysisReviewerV2 = (
+  input: RiskAnalysisReviewer
+): RiskAnalysisReviewerV2 => ({
+  id: input.id,
+  sentToReviewerAt: dateToBigInt(input.sentToReviewerAt),
+});
+
 export const toReviewerWorkflowV2 = (
   input: ReviewerWorkflow
 ): ReviewerWorkflowV2 => ({
-  reviewerIds: input.reviewerIds,
+  reviewerIds: [],
+  reviewers: input.reviewers.map(toRiskAnalysisReviewerV2),
   signingState: toRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy,
   rejectionReason: input.rejectionReason,

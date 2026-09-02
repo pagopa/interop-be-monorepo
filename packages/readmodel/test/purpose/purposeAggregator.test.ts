@@ -12,6 +12,7 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   RiskAnalysisId,
+  RiskAnalysisReviewer,
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
   tenantKind,
@@ -39,6 +40,11 @@ describe("Purpose aggregator", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
+    const reviewers: RiskAnalysisReviewer[] = [
+      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+    ];
+
     const purpose: WithMetadata<Purpose> = {
       data: {
         ...getMockPurpose(),
@@ -52,11 +58,10 @@ describe("Purpose aggregator", () => {
         purposeTemplateId: generateId<PurposeTemplateId>(),
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+          reviewers,
           signingState: riskAnalysisSigningState.signed,
           signedBy: generateId<UserId>(),
           rejectionReason: "Reviewer workflow rejection reason",
-          sentToReviewerAt: new Date(),
         },
       },
       metadata: { version: 1 },

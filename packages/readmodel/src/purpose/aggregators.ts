@@ -18,6 +18,7 @@ import {
   RiskAnalysisId,
   RiskAnalysisMultiAnswer,
   RiskAnalysisMultiAnswerId,
+  RiskAnalysisReviewer,
   RiskAnalysisSingleAnswer,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisReviewMode,
@@ -239,6 +240,19 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
   const reviewMode =
     purposeSQL.reviewMode ?? purposeSQL.reviewerWorkflowReviewMode;
 
+  const reviewers: RiskAnalysisReviewer[] = reviewersSQL.map((reviewerSQL) => {
+    const sentToReviewerAt =
+      reviewerSQL.sentToReviewerAt ??
+      purposeSQL.reviewerWorkflowSentToReviewerAt;
+
+    return {
+      id: unsafeBrandId<UserId>(reviewerSQL.reviewerId),
+      ...(sentToReviewerAt
+        ? { sentToReviewerAt: stringToDate(sentToReviewerAt) }
+        : {}),
+    };
+  });
+
   const purpose: Purpose = {
     id: unsafeBrandId(purposeSQL.id),
     title: purposeSQL.title,
@@ -288,9 +302,7 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
             signingState: RiskAnalysisSigningState.parse(
               purposeSQL.reviewerWorkflowSigningState
             ),
-            reviewerIds: reviewersSQL.map((r) =>
-              unsafeBrandId<UserId>(r.reviewerId)
-            ),
+            reviewers,
             ...(purposeSQL.reviewerWorkflowSignedBy
               ? {
                   signedBy: unsafeBrandId<UserId>(
@@ -301,13 +313,6 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
             ...(purposeSQL.reviewerWorkflowRejectionReason
               ? {
                   rejectionReason: purposeSQL.reviewerWorkflowRejectionReason,
-                }
-              : {}),
-            ...(purposeSQL.reviewerWorkflowSentToReviewerAt
-              ? {
-                  sentToReviewerAt: stringToDate(
-                    purposeSQL.reviewerWorkflowSentToReviewerAt
-                  ),
                 }
               : {}),
           } satisfies ReviewerWorkflow,

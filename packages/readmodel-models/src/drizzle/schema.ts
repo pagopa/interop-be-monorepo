@@ -900,7 +900,7 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
     isFreeOfCharge: boolean("is_free_of_charge").notNull(),
     freeOfChargeReason: varchar("free_of_charge_reason"),
     purposeTemplateId: uuid("purpose_template_id"),
-    reviewMode: varchar("review_mode"),
+    reviewMode: varchar("risk_analysis_review_mode"),
     reviewerWorkflowReviewMode: varchar("reviewer_workflow_review_mode"),
     reviewerWorkflowSigningState: varchar("reviewer_workflow_signing_state"),
     reviewerWorkflowSignedBy: uuid("reviewer_workflow_signed_by"),
@@ -926,6 +926,10 @@ export const riskAnalysisReviewerInReadmodelPurpose = readmodelPurpose.table(
     purposeId: uuid("purpose_id").notNull(),
     metadataVersion: integer("metadata_version").notNull(),
     reviewerId: uuid("reviewer_id").notNull(),
+    sentToReviewerAt: timestamp("sent_to_reviewer_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
   },
   (table) => [
     foreignKey({

@@ -335,9 +335,11 @@ export const apiSigningStateToSigningState = (
 const reviewerWorkflowToApiReviewerWorkflow = (
   workflow: ReviewerWorkflow
 ): purposeApi.ReviewerWorkflow => ({
-  reviewerIds: workflow.reviewerIds,
+  reviewers: workflow.reviewers.map((reviewer) => ({
+    id: reviewer.id,
+    sentToReviewerAt: reviewer.sentToReviewerAt?.toJSON(),
+  })),
   signingState: signingStateToApiSigningState(workflow.signingState),
   signedBy: workflow.signedBy,
   rejectionReason: workflow.rejectionReason,
-  sentToReviewerAt: workflow.sentToReviewerAt?.toJSON(),
 });

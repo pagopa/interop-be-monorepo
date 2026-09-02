@@ -32,6 +32,9 @@ import {
   tenantKind,
   TenantId,
   UserId,
+  fromReviewerWorkflowV2,
+  ReviewerWorkflowV2,
+  RiskAnalysisSigningStateV2,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { describe, expect, it, vi } from "vitest";
@@ -78,8 +81,8 @@ function mockSelfcareV2ClientCall(
 
 /**
  * Reviewer sets shared by the transition tests: the request keeps one reviewer,
- * drops another and adds a new one, so that the `newReviewers` / `oldReviewers`
- * carried by the events can be told apart from the plain reviewer lists.
+ * drops another and adds a new one, so that the notification lists carried by
+ * the events can be told apart from the plain reviewer lists.
  */
 const keptReviewerId = generateId<UserId>();
 const removedReviewerId = generateId<UserId>();
@@ -101,18 +104,29 @@ const reviewersFor = (reviewMode: RiskAnalysisReviewMode): UserId[] =>
  */
 function previousReviewerWorkflow(
   previousReviewMode: RiskAnalysisReviewMode | undefined,
-  previousReviewers: UserId[]
+  previousReviewers: UserId[],
+  signingState: RiskAnalysisSigningState = RiskAnalysisSigningState.Values
+    .Draft,
+  notifiedReviewerIds: UserId[] = []
 ): ReviewerWorkflow | undefined {
   return match(previousReviewMode)
     .returnType<ReviewerWorkflow | undefined>()
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
-      reviewerIds: previousReviewers,
+      reviewers: previousReviewers.map((id) => ({
+        id,
+        sentToReviewerAt: previousSentToReviewerAt,
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
       sentToReviewerAt: previousSentToReviewerAt,
     }))
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () => ({
-      reviewerIds: previousReviewers,
-      signingState: RiskAnalysisSigningState.Values.Draft,
+      reviewers: previousReviewers.map((id) => ({
+        id,
+        sentToReviewerAt: notifiedReviewerIds.includes(id)
+          ? previousSentToReviewerAt
+          : undefined,
+      })),
+      signingState,
       sentToReviewerAt: undefined,
     }))
     .with(
@@ -127,10 +141,14 @@ async function addPurposeInReviewMode({
   previousReviewMode,
   previousReviewers,
   riskAnalysisForm,
+  signingState,
+  notifiedReviewerIds,
 }: {
   previousReviewMode: RiskAnalysisReviewMode | undefined;
   previousReviewers: UserId[];
   riskAnalysisForm?: PurposeRiskAnalysisForm;
+  signingState?: RiskAnalysisSigningState;
+  notifiedReviewerIds?: UserId[];
 }): Promise<Purpose> {
   const mockEService = getMockEService();
   const mockTenant = getMockTenant();
@@ -143,7 +161,9 @@ async function addPurposeInReviewMode({
     reviewMode: previousReviewMode,
     reviewerWorkflow: previousReviewerWorkflow(
       previousReviewMode,
-      previousReviewers
+      previousReviewers,
+      signingState,
+      notifiedReviewerIds
     ),
   };
 
@@ -157,6 +177,26 @@ async function addPurposeInReviewMode({
 }
 
 describe("assignRiskAnalysisReviewer", () => {
+  it("should read reviewers from legacy protobuf workflow fields", () => {
+    const legacySentToReviewerAt = new Date("2020-01-01T00:00:00.000Z");
+    const reviewerIds = [generateId<UserId>(), generateId<UserId>()];
+    const legacyWorkflow = ReviewerWorkflowV2.create({
+      reviewerIds,
+      reviewers: [],
+      signingState: RiskAnalysisSigningStateV2.RISK_ANALYSIS_ASSIGNED,
+      sentToReviewerAt: BigInt(legacySentToReviewerAt.getTime()),
+    });
+
+    expect(fromReviewerWorkflowV2(legacyWorkflow)).toEqual({
+      reviewers: reviewerIds.map((id) => ({
+        id,
+        sentToReviewerAt: legacySentToReviewerAt,
+      })),
+      signingState: RiskAnalysisSigningState.Values.Assigned,
+      sentToReviewerAt: legacySentToReviewerAt,
+    });
+  });
+
   it("should write on event-store for ReviewerWritesReviewerSigns mode (PurposeRiskAnalysisAssigned)", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
@@ -219,9 +259,12 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
+      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
@@ -233,8 +276,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
-      newReviewers: reviewerIds,
-      oldReviewers: [],
+      newReviewersToNotify: reviewerIds,
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
@@ -302,7 +345,10 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: undefined,
+      })),
       signingState: RiskAnalysisSigningState.Values.Draft,
       sentToReviewerAt: undefined,
     };
@@ -316,8 +362,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
-      newReviewers: reviewerIds,
-      oldReviewers: [],
+      newReviewersToNotify: [],
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
@@ -391,9 +437,12 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
+      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
@@ -405,8 +454,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
-      newReviewers: reviewerIds,
-      oldReviewers: [],
+      newReviewersToNotify: reviewerIds,
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
@@ -516,6 +565,70 @@ describe("assignRiskAnalysisReviewer", () => {
     }
   );
 
+  it.each([
+    {
+      signingState: RiskAnalysisSigningState.Values.Submitted,
+      shouldStampAddedReviewer: true,
+    },
+    {
+      signingState: RiskAnalysisSigningState.Values.Rejected,
+      shouldStampAddedReviewer: false,
+    },
+  ])(
+    "should preserve the mode 2 workflow in $signingState when reviewers change",
+    async ({ signingState, shouldStampAddedReviewer }) => {
+      vi.useFakeTimers();
+      const now = new Date();
+      vi.setSystemTime(now);
+
+      const mockPurpose = await addPurposeInReviewMode({
+        previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        previousReviewers: previousReviewerIds,
+        signingState,
+        notifiedReviewerIds: [keptReviewerId, removedReviewerId],
+      });
+
+      const { data: updatedPurpose } =
+        await purposeService.assignRiskAnalysisReviewer(
+          mockPurpose.id,
+          {
+            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            reviewerIds: requestedReviewerIds,
+          },
+          getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        );
+
+      expect(updatedPurpose.reviewerWorkflow).toEqual({
+        reviewers: [
+          {
+            id: keptReviewerId,
+            sentToReviewerAt: previousSentToReviewerAt,
+          },
+          {
+            id: addedReviewerId,
+            sentToReviewerAt: shouldStampAddedReviewer ? now : undefined,
+          },
+        ],
+        signingState,
+        sentToReviewerAt: undefined,
+      } satisfies ReviewerWorkflow);
+
+      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+      const writtenPayload = decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisWorkflowCreatedV2,
+        payload: writtenEvent.data,
+      });
+
+      expect(writtenPayload).toEqual({
+        purpose: toPurposeV2(updatedPurpose),
+        newReviewersToNotify: shouldStampAddedReviewer ? [addedReviewerId] : [],
+        oldReviewersToNotify: [removedReviewerId],
+      });
+
+      vi.useRealTimers();
+    }
+  );
+
   it("should reset the risk analysis form when the workflow is removed from ReviewerWritesReviewerSigns", async () => {
     const mockPurpose = await addPurposeInReviewMode({
       previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
@@ -551,8 +664,8 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     expect(writtenPayload.purpose?.riskAnalysisForm).toBeUndefined();
-    expect(writtenPayload.oldReviewers).toEqual(
-      mockPurpose.reviewerWorkflow?.reviewerIds
+    expect(writtenPayload.oldReviewersToNotify).toEqual(
+      mockPurpose.reviewerWorkflow?.reviewers.map((reviewer) => reviewer.id)
     );
   });
 
@@ -561,39 +674,46 @@ describe("assignRiskAnalysisReviewer", () => {
       description: "never assigned -> AdminWritesReviewerSigns",
       previousReviewMode: undefined,
       previousReviewers: [],
-      expectedNewReviewers: requestedReviewerIds,
-      expectedOldReviewers: [],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
     },
     {
       description: "AdminWritesAdminSigns -> AdminWritesReviewerSigns",
       previousReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
       previousReviewers: [],
-      expectedNewReviewers: requestedReviewerIds,
-      expectedOldReviewers: [],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
     },
     {
       description: "AdminWritesReviewerSigns -> AdminWritesReviewerSigns",
       previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       previousReviewers: previousReviewerIds,
-      expectedNewReviewers: [addedReviewerId],
-      expectedOldReviewers: [removedReviewerId],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+    },
+    {
+      description:
+        "AdminWritesReviewerSigns -> AdminWritesReviewerSigns, removed reviewer never notified",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      notifiedReviewerIds: [keptReviewerId],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
     },
     {
       description: "ReviewerWritesReviewerSigns -> AdminWritesReviewerSigns",
       previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       previousReviewers: previousReviewerIds,
-      // The writing duty moves back to the admin, so every reviewer changes
-      // duty, even the ones that were already assigned.
-      expectedNewReviewers: requestedReviewerIds,
-      expectedOldReviewers: previousReviewerIds,
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: previousReviewerIds,
     },
   ])(
-    "should emit PurposeRiskAnalysisWorkflowCreated with the reviewers that changed duty ($description)",
+    "should emit PurposeRiskAnalysisWorkflowCreated with the reviewers to notify ($description)",
     async ({
       previousReviewMode,
       previousReviewers,
-      expectedNewReviewers,
-      expectedOldReviewers,
+      expectedNewReviewersToNotify,
+      expectedOldReviewersToNotify,
     }) => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
@@ -617,7 +737,10 @@ describe("assignRiskAnalysisReviewer", () => {
         riskAnalysisReviewMode.adminWritesReviewerSigns
       );
       expect(updatedPurpose.reviewerWorkflow).toEqual({
-        reviewerIds: requestedReviewerIds,
+        reviewers: requestedReviewerIds.map((id) => ({
+          id,
+          sentToReviewerAt: undefined,
+        })),
         signingState: RiskAnalysisSigningState.Values.Draft,
         sentToReviewerAt: undefined,
       } satisfies ReviewerWorkflow);
@@ -638,8 +761,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
       expect(writtenPayload).toEqual({
         purpose: toPurposeV2(updatedPurpose),
-        newReviewers: expectedNewReviewers,
-        oldReviewers: expectedOldReviewers,
+        newReviewersToNotify: expectedNewReviewersToNotify,
+        oldReviewersToNotify: expectedOldReviewersToNotify,
       });
 
       vi.useRealTimers();
@@ -651,38 +774,49 @@ describe("assignRiskAnalysisReviewer", () => {
       description: "never assigned -> ReviewerWritesReviewerSigns",
       previousReviewMode: undefined,
       previousReviewers: [],
-      expectedNewReviewers: requestedReviewerIds,
-      expectedOldReviewers: [],
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [],
     },
     {
       description: "AdminWritesAdminSigns -> ReviewerWritesReviewerSigns",
       previousReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
       previousReviewers: [],
-      expectedNewReviewers: requestedReviewerIds,
-      expectedOldReviewers: [],
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [],
     },
     {
-      description: "AdminWritesReviewerSigns -> ReviewerWritesReviewerSigns",
+      description:
+        "AdminWritesReviewerSigns -> ReviewerWritesReviewerSigns, removed reviewer never notified",
       previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       previousReviewers: previousReviewerIds,
-      // The reviewers become the writers, so all of them gain a new duty.
-      expectedNewReviewers: requestedReviewerIds,
-      expectedOldReviewers: [removedReviewerId],
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [],
+    },
+    {
+      description:
+        "AdminWritesReviewerSigns -> ReviewerWritesReviewerSigns, removed reviewer already notified",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      notifiedReviewerIds: [removedReviewerId],
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [removedReviewerId],
     },
     {
       description: "ReviewerWritesReviewerSigns -> ReviewerWritesReviewerSigns",
       previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       previousReviewers: previousReviewerIds,
-      expectedNewReviewers: [addedReviewerId],
-      expectedOldReviewers: [removedReviewerId],
+      expectedNewReviewersToNotify: [addedReviewerId],
+      expectedOldReviewersToNotify: [removedReviewerId],
     },
   ])(
-    "should emit PurposeRiskAnalysisAssigned with the reviewers that changed duty ($description)",
+    "should emit PurposeRiskAnalysisAssigned with the reviewers to notify ($description)",
     async ({
       previousReviewMode,
       previousReviewers,
-      expectedNewReviewers,
-      expectedOldReviewers,
+      notifiedReviewerIds,
+      expectedNewReviewersToNotify,
+      expectedOldReviewersToNotify,
     }) => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
@@ -690,6 +824,7 @@ describe("assignRiskAnalysisReviewer", () => {
       const mockPurpose = await addPurposeInReviewMode({
         previousReviewMode,
         previousReviewers,
+        notifiedReviewerIds,
       });
 
       const { data: updatedPurpose } =
@@ -706,9 +841,17 @@ describe("assignRiskAnalysisReviewer", () => {
         riskAnalysisReviewMode.reviewerWritesReviewerSigns
       );
       expect(updatedPurpose.reviewerWorkflow).toEqual({
-        reviewerIds: requestedReviewerIds,
+        reviewers: requestedReviewerIds.map((id) => ({
+          id,
+          sentToReviewerAt:
+            previousReviewMode ===
+              riskAnalysisReviewMode.reviewerWritesReviewerSigns &&
+            previousReviewers.includes(id)
+              ? previousSentToReviewerAt
+              : new Date(),
+        })),
         signingState: RiskAnalysisSigningState.Values.Assigned,
-        sentToReviewerAt: new Date(),
+        sentToReviewerAt: undefined,
       } satisfies ReviewerWorkflow);
 
       const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -727,8 +870,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
       expect(writtenPayload).toEqual({
         purpose: toPurposeV2(updatedPurpose),
-        newReviewers: expectedNewReviewers,
-        oldReviewers: expectedOldReviewers,
+        newReviewersToNotify: expectedNewReviewersToNotify,
+        oldReviewersToNotify: expectedOldReviewersToNotify,
       });
 
       vi.useRealTimers();
@@ -737,22 +880,46 @@ describe("assignRiskAnalysisReviewer", () => {
 
   it.each([
     {
-      description: "AdminWritesReviewerSigns -> AdminWritesAdminSigns",
+      description:
+        "AdminWritesReviewerSigns -> AdminWritesAdminSigns, never notified",
       previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      notifiedReviewerIds: [],
+      expectedOldReviewersToNotify: [],
+    },
+    {
+      description:
+        "AdminWritesReviewerSigns -> AdminWritesAdminSigns, already notified",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      notifiedReviewerIds: previousReviewerIds,
+      expectedOldReviewersToNotify: previousReviewerIds,
+    },
+    {
+      description:
+        "AdminWritesReviewerSigns -> AdminWritesAdminSigns, partially notified",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      notifiedReviewerIds: [keptReviewerId],
+      expectedOldReviewersToNotify: [keptReviewerId],
     },
     {
       description: "ReviewerWritesReviewerSigns -> AdminWritesAdminSigns",
       previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      notifiedReviewerIds: previousReviewerIds,
+      expectedOldReviewersToNotify: previousReviewerIds,
     },
   ])(
-    "should emit PurposeRiskAnalysisSelfAssigned listing every previous reviewer ($description)",
-    async ({ previousReviewMode }) => {
+    "should emit PurposeRiskAnalysisSelfAssigned with reviewers to notify ($description)",
+    async ({
+      previousReviewMode,
+      notifiedReviewerIds,
+      expectedOldReviewersToNotify,
+    }) => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date());
 
       const mockPurpose = await addPurposeInReviewMode({
         previousReviewMode,
         previousReviewers: previousReviewerIds,
+        notifiedReviewerIds,
       });
 
       const { data: updatedPurpose } =
@@ -786,7 +953,7 @@ describe("assignRiskAnalysisReviewer", () => {
 
       expect(writtenPayload).toEqual({
         purpose: toPurposeV2(updatedPurpose),
-        oldReviewers: previousReviewerIds,
+        oldReviewersToNotify: expectedOldReviewersToNotify,
       });
 
       vi.useRealTimers();
@@ -834,38 +1001,63 @@ describe("assignRiskAnalysisReviewer", () => {
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(updatedPurpose),
-      oldReviewers: [],
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
   });
 
-  it("should not write any event when AdminWritesAdminSigns is requested again", async () => {
-    const mockPurpose = await addPurposeInReviewMode({
-      previousReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+  it.each([
+    {
+      reviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
       previousReviewers: [],
-    });
+      requestedReviewers: [],
+    },
+    {
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: requestedReviewerIds,
+      requestedReviewers: [...requestedReviewerIds].reverse(),
+    },
+    {
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      previousReviewers: requestedReviewerIds,
+      requestedReviewers: [...requestedReviewerIds].reverse(),
+    },
+  ])(
+    "should not write any event when the same assignment is requested again ($reviewMode)",
+    async ({ reviewMode, previousReviewers, requestedReviewers }) => {
+      const mockPurpose = await addPurposeInReviewMode({
+        previousReviewMode: reviewMode,
+        previousReviewers,
+      });
 
-    const result = await purposeService.assignRiskAnalysisReviewer(
-      mockPurpose.id,
-      {
-        reviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-        reviewerIds: [],
-      },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-    );
+      const result = await purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode,
+          reviewerIds: requestedReviewers,
+        },
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      );
 
-    expect(result.data).toEqual(mockPurpose);
-    expect(result.metadata.version).toBe(0);
+      expect(result.data.reviewMode).toBe(reviewMode);
+      expect(
+        result.data.reviewerWorkflow?.reviewers.map(
+          (reviewer) => reviewer.id
+        ) ?? []
+      ).toEqual(previousReviewers);
+      expect(result.data.updatedAt).toBe(mockPurpose.updatedAt);
+      expect(result.metadata.version).toBe(0);
 
-    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
 
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockPurpose.id,
-      version: "0",
-      type: "PurposeAdded",
-    });
-  });
+      expect(writtenEvent).toMatchObject({
+        stream_id: mockPurpose.id,
+        version: "0",
+        type: "PurposeAdded",
+      });
+    }
+  );
 
   it("should not check the reviewers in selfcare for AdminWritesAdminSigns", async () => {
     const mockEService = getMockEService();
@@ -1122,11 +1314,12 @@ describe("assignRiskAnalysisReviewer", () => {
   });
 
   it("should throw reviewerWorkflowConflict if the risk analysis has already been signed", async () => {
+    const reviewerId = generateId<UserId>();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewerIds: [generateId<UserId>()],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
         signingState: RiskAnalysisSigningState.Values.Signed,
         signedBy: generateId<UserId>(),
       },
