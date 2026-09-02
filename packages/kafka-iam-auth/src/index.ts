@@ -6,7 +6,6 @@ import {
   EachMessagePayload,
   Kafka,
   KafkaConfig,
-  KafkaMessage,
   OauthbearerProviderResponse,
   Producer,
   ProducerRecord,
@@ -23,6 +22,13 @@ import {
 } from "pagopa-interop-commons";
 import { kafkaMessageProcessError } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
+import { extractBasicMessageInfo } from "./confluent/utils/utils.js";
+import {
+  initProducerConfluent,
+  runBatchConsumerConfluent,
+  runConsumerConfluent,
+} from "./confluentAdapters.js";
 
 const errorTypes = ["unhandledRejection", "uncaughtException"];
 const signalTraps = ["SIGTERM", "SIGINT", "SIGUSR2"];
@@ -309,13 +315,20 @@ const initCustomConsumer = async ({
 // if scaling up/down is required, ensure proper handling of transactional IDs
 export const initProducer = async (
   config: KafkaProducerConfig,
-  topic: string,
-  transactionalId?: string
-): Promise<
-  Producer & {
-    send: (record: Omit<ProducerRecord, "topic">) => Promise<RecordMetadata[]>;
-  }
-> => {
+  topic: string
+): Promise<{
+  send: (record: Omit<ProducerRecord, "topic">) => Promise<RecordMetadata[]>;
+  disconnect: () => Promise<void>;
+  transaction: () => Promise<{
+    send(record: ProducerRecord): Promise<RecordMetadata[]>;
+    commit(): Promise<void>;
+    abort(): Promise<void>;
+    isActive(): boolean;
+  }>;
+}> => {
+  if (config.featureFlagConfluentKafka)
+    return initProducerConfluent(config, topic);
+
   try {
     const kafka = initKafka({
       kafkaBrokers: config.producerKafkaBrokers,
@@ -326,11 +339,13 @@ export const initProducer = async (
         config.producerKafkaReauthenticationThreshold,
       awsRegion: config.awsRegion,
       kafkaBrokerConnectionString: config.producerKafkaBrokerConnectionString,
+      mskAuth: config.mskAuth,
+      featureFlagConfluentKafka: config.featureFlagConfluentKafka,
     });
 
     const producer = kafka.producer({
       allowAutoTopicCreation: false,
-      transactionalId: transactionalId ? transactionalId : undefined,
+      transactionalId: config.producerKafkaTransactionalId,
       retry: {
         initialRetryTime: 100,
         maxRetryTime: 3000,
@@ -377,6 +392,9 @@ export const runConsumer = async (
   consumerHandler: (messagePayload: EachMessagePayload) => Promise<void>,
   serviceName?: string
 ): Promise<void> => {
+  if (config.featureFlagConfluentKafka)
+    return runConsumerConfluent(config, topics, consumerHandler, serviceName);
+
   try {
     const consumerRunConfig = (consumer: Consumer): ConsumerRunConfig => ({
       autoCommit: false,
@@ -414,6 +432,15 @@ export const runBatchConsumer = async (
   consumerHandlerBatch: (messagePayload: EachBatchPayload) => Promise<void>,
   serviceName?: string
 ): Promise<void> => {
+  if (baseConsumerConfig.featureFlagConfluentKafka)
+    return runBatchConsumerConfluent(
+      baseConsumerConfig,
+      batchConsumerConfig,
+      topics,
+      consumerHandlerBatch,
+      serviceName
+    );
+
   try {
     const consumerRunConfig = (): ConsumerRunConfig => ({
       eachBatch: async (payload: EachBatchPayload): Promise<void> => {
@@ -474,32 +501,3 @@ export const validateTopicMetadata = async (
     return false;
   }
 };
-
-export function extractBasicMessageInfo(message: KafkaMessage): {
-  offset: string;
-  streamId?: string;
-  eventType?: string;
-  eventVersion?: number;
-  streamVersion?: number;
-  correlationId?: string;
-} {
-  try {
-    if (!message.value) {
-      return { offset: message.offset };
-    }
-
-    const rawMessage = JSON.parse(message.value.toString());
-    const dataSource =
-      rawMessage.value?.after || rawMessage.after || rawMessage;
-    return {
-      offset: message.offset,
-      streamId: dataSource.stream_id || dataSource.streamId || dataSource.id,
-      eventType: dataSource.type,
-      eventVersion: dataSource.event_version,
-      streamVersion: dataSource.version,
-      correlationId: dataSource.correlation_id,
-    };
-  } catch {
-    return { offset: message.offset };
-  }
-}
