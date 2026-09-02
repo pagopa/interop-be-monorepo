@@ -53,7 +53,7 @@ async function getManyFromDb<T extends DomainDbTable>(
   db: DBContext,
   tableName: T
   // where: Partial<z.infer<DomainDbTableSchemas[T]>>
-): Promise<Array<z.infer<DomainDbTableSchemas[T]>>> {
+): Promise<z.infer<DomainDbTableSchemas[T]>[]> {
   const rows = await db.conn.any(
     `SELECT * FROM ${config.dbSchemaName}.${tableName} WHERE NOT COALESCE(deleted, false)`
   );
@@ -64,13 +64,13 @@ async function getManyFromDb<T extends DomainDbTable>(
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderKPI(dbContext: DBContext) {
   return {
-    async getAllAttributes(): Promise<Array<WithMetadata<Attribute>>> {
+    async getAllAttributes(): Promise<WithMetadata<Attribute>[]> {
       const res = await getManyFromDb(dbContext, AttributeDbTable.attribute);
 
       return aggregateAttributeArray(res);
     },
 
-    async getAllEServices(): Promise<Array<WithMetadata<EService>>> {
+    async getAllEServices(): Promise<WithMetadata<EService>[]> {
       const eservicesSQL = await getManyFromDb(
         dbContext,
         CatalogDbTable.eservice
@@ -140,9 +140,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       });
     },
 
-    async getAllEServiceTemplates(): Promise<
-      Array<WithMetadata<EServiceTemplate>>
-    > {
+    async getAllEServiceTemplates(): Promise<WithMetadata<EServiceTemplate>[]> {
       const eserviceTemplatesSQL = await getManyFromDb(
         dbContext,
         EserviceTemplateDbTable.eservice_template
@@ -190,7 +188,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       });
     },
 
-    async getAllTenants(): Promise<Array<WithMetadata<Tenant>>> {
+    async getAllTenants(): Promise<WithMetadata<Tenant>[]> {
       const tenantsSQL = await getManyFromDb(dbContext, TenantDbTable.tenant);
       const mailsSQL = await getManyFromDb(
         dbContext,
@@ -242,7 +240,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       });
     },
 
-    async getAllPurposes(): Promise<Array<WithMetadata<Purpose>>> {
+    async getAllPurposes(): Promise<WithMetadata<Purpose>[]> {
       const purposesSQL = await getManyFromDb(
         dbContext,
         PurposeDbTable.purpose
@@ -292,7 +290,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       });
     },
 
-    async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {
+    async getAllAgreements(): Promise<WithMetadata<Agreement>[]> {
       const agreementsSQL = await getManyFromDb(
         dbContext,
         AgreementDbTable.agreement
@@ -328,7 +326,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       });
     },
 
-    async getAllClients(): Promise<Array<WithMetadata<Client>>> {
+    async getAllClients(): Promise<WithMetadata<Client>[]> {
       const clientsSQL = await getManyFromDb(dbContext, ClientDbTable.client);
       const usersSQL = await getManyFromDb(
         dbContext,
@@ -348,9 +346,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       });
     },
 
-    async getAllProducerKeychains(): Promise<
-      Array<WithMetadata<ProducerKeychain>>
-    > {
+    async getAllProducerKeychains(): Promise<WithMetadata<ProducerKeychain>[]> {
       const producerKeychainsSQL = await getManyFromDb(
         dbContext,
         ProducerKeychainDbTable.producer_keychain
@@ -376,7 +372,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       });
     },
 
-    async getAllDelegations(): Promise<Array<WithMetadata<Delegation>>> {
+    async getAllDelegations(): Promise<WithMetadata<Delegation>[]> {
       const delegationsSQL = await getManyFromDb(
         dbContext,
         DelegationDbTable.delegation
@@ -403,9 +399,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
       });
     },
 
-    async getAllPurposeTemplates(): Promise<
-      Array<WithMetadata<PurposeTemplate>>
-    > {
+    async getAllPurposeTemplates(): Promise<WithMetadata<PurposeTemplate>[]> {
       const purposeTemplatesSQL = await getManyFromDb(
         dbContext,
         PurposeTemplateDbTable.purpose_template

@@ -29,10 +29,10 @@ export type AsyncValidationContext = {
   platformValidationJwt?: ClientAssertion;
   clientKind?: authorizationApi.ClientKind;
   eservice?: bffApi.TokenGenerationValidationEService;
-  platformStateErrors?: Array<ApiError<string>>;
+  platformStateErrors?: ApiError<string>[];
 };
 
 export type RetrievedInteractionValidationResult = {
   interaction?: Interaction;
-  errors?: Array<ApiError<string>>;
+  errors?: ApiError<string>[];
 };

@@ -147,10 +147,10 @@ export function riskAnalysisFormTemplateToApiRiskAnalysisFormTemplate(
 
 const multiAnswersToApiMultiAnswers = (
   multiAnswers: RiskAnalysisTemplateMultiAnswer[]
-): Array<{
+): {
   responseKey: string;
   responseValue: purposeTemplateApi.RiskAnalysisTemplateAnswer;
-}> =>
+}[] =>
   multiAnswers.map((answer: RiskAnalysisTemplateMultiAnswer) => ({
     responseKey: answer.key,
     responseValue: {
@@ -167,10 +167,10 @@ const multiAnswersToApiMultiAnswers = (
 
 const singleAnswersToApiSingleAnswers = (
   singleAnswers: RiskAnalysisTemplateSingleAnswer[]
-): Array<{
+): {
   responseKey: string;
   responseValue: purposeTemplateApi.RiskAnalysisTemplateAnswer;
-}> =>
+}[] =>
   singleAnswers.map((answer: RiskAnalysisTemplateSingleAnswer) => ({
     responseKey: answer.key,
     responseValue: {

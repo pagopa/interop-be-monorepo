@@ -110,7 +110,7 @@ export function readModelServiceBuilderSQL({
       notificationName: NotificationType,
       notificationChannel: "inApp" | "email"
     ): Promise<
-      Array<{ userId: UserId; tenantId: TenantId; userRoles: UserRole[] }>
+      { userId: UserId; tenantId: TenantId; userRoles: UserRole[] }[]
     > {
       return notificationConfigReadModelServiceSQL.getTenantUsersWithNotificationEnabled(
         tenantIds,

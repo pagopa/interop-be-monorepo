@@ -119,7 +119,7 @@ import {
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
   return {
-    async getAllAttributes(): Promise<Array<WithMetadata<Attribute>>> {
+    async getAllAttributes(): Promise<WithMetadata<Attribute>[]> {
       const res = await readModelDB
         .select()
         .from(attributeInReadmodelAttribute);
@@ -127,7 +127,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       return aggregateAttributeArray(res);
     },
 
-    async getAllEServices(): Promise<Array<WithMetadata<EService>>> {
+    async getAllEServices(): Promise<WithMetadata<EService>[]> {
       const queryResult = await readModelDB
         .select({
           eservice: eserviceInReadmodelCatalog,
@@ -230,9 +230,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       return aggregateEserviceArray(toEServiceAggregatorArray(queryResult));
     },
 
-    async getAllEServiceTemplates(): Promise<
-      Array<WithMetadata<EServiceTemplate>>
-    > {
+    async getAllEServiceTemplates(): Promise<WithMetadata<EServiceTemplate>[]> {
       const queryResult = await readModelDB
         .select({
           eserviceTemplate: eserviceTemplateInReadmodelEserviceTemplate,
@@ -311,7 +309,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       );
     },
 
-    async getAllTenants(): Promise<Array<WithMetadata<Tenant>>> {
+    async getAllTenants(): Promise<WithMetadata<Tenant>[]> {
       const [
         tenantsSQL,
         mailsSQL,
@@ -350,7 +348,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       });
     },
 
-    async getAllPurposes(): Promise<Array<WithMetadata<Purpose>>> {
+    async getAllPurposes(): Promise<WithMetadata<Purpose>[]> {
       const queryResult = await readModelDB
         .select({
           purpose: purposeInReadmodelPurpose,
@@ -425,7 +423,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       return aggregatePurposeArray(toPurposeAggregatorArray(queryResult));
     },
 
-    async getAllAgreements(): Promise<Array<WithMetadata<Agreement>>> {
+    async getAllAgreements(): Promise<WithMetadata<Agreement>[]> {
       const queryResult = await readModelDB
         .select({
           agreement: agreementInReadmodelAgreement,
@@ -480,7 +478,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       return aggregateAgreementArray(toAgreementAggregatorArray(queryResult));
     },
 
-    async getAllClients(): Promise<Array<WithMetadata<Client>>> {
+    async getAllClients(): Promise<WithMetadata<Client>[]> {
       const queryResult = await readModelDB
         .select({
           client: clientInReadmodelClient,
@@ -511,7 +509,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       return aggregateClientArray(toClientAggregatorArray(queryResult));
     },
 
-    async getAllClientJWKKeys(): Promise<Array<WithMetadata<ClientJWKKey>>> {
+    async getAllClientJWKKeys(): Promise<WithMetadata<ClientJWKKey>[]> {
       const queryResult = await readModelDB
         .select()
         .from(clientJwkKeyInReadmodelClientJwkKey);
@@ -519,9 +517,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       return aggregateClientJWKKeyArray(queryResult);
     },
 
-    async getAllProducerKeychains(): Promise<
-      Array<WithMetadata<ProducerKeychain>>
-    > {
+    async getAllProducerKeychains(): Promise<WithMetadata<ProducerKeychain>[]> {
       /*
         producer_keychain -> 1 producer_keychain_user
                           -> 2 producer_keychain_eservice
@@ -566,9 +562,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       );
     },
 
-    async getAllProducerJWKKeys(): Promise<
-      Array<WithMetadata<ProducerJWKKey>>
-    > {
+    async getAllProducerJWKKeys(): Promise<WithMetadata<ProducerJWKKey>[]> {
       const queryResult = await readModelDB
         .select()
         .from(producerJwkKeyInReadmodelProducerJwkKey);
@@ -576,7 +570,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
       return aggregateProducerJWKKeyArray(queryResult);
     },
 
-    async getAllDelegations(): Promise<Array<WithMetadata<Delegation>>> {
+    async getAllDelegations(): Promise<WithMetadata<Delegation>[]> {
       const queryResult = await readModelDB
         .select({
           delegation: delegationInReadmodelDelegation,
@@ -616,9 +610,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         toDelegationAggregatorArray(queryResult)
       );
     },
-    async getAllPurposeTemplates(): Promise<
-      Array<WithMetadata<PurposeTemplate>>
-    > {
+    async getAllPurposeTemplates(): Promise<WithMetadata<PurposeTemplate>[]> {
       const queryResult = await readModelDB
         .select({
           purposeTemplate: purposeTemplateInReadmodelPurposeTemplate,

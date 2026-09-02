@@ -744,19 +744,20 @@ export function agreementServiceBuilder(
         ...updateSeed,
       };
 
-      const archiveEvents: Array<CreateEvent<AgreementEvent>> =
-        isActiveOrSuspended(submittedAgreement.state)
-          ? agreements.map((a) =>
-              createAgreementArchivedByUpgradeEvent(
-                a,
-                authData,
-                activeDelegations,
-                correlationId
-              )
+      const archiveEvents: CreateEvent<AgreementEvent>[] = isActiveOrSuspended(
+        submittedAgreement.state
+      )
+        ? agreements.map((a) =>
+            createAgreementArchivedByUpgradeEvent(
+              a,
+              authData,
+              activeDelegations,
+              correlationId
             )
-          : [];
+          )
+        : [];
 
-      const submissionEvents: Array<CreateEvent<AgreementEvent>> =
+      const submissionEvents: CreateEvent<AgreementEvent>[] =
         submittedAgreement.state === agreementState.active
           ? [
               toCreateEventAgreementActivated(

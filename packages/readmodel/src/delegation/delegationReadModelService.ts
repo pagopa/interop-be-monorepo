@@ -85,7 +85,7 @@ export function delegationReadModelServiceBuilder(db: DrizzleReturnType) {
     },
     async getDelegationsByFilter(
       filter: SQL | undefined
-    ): Promise<Array<WithMetadata<Delegation>>> {
+    ): Promise<WithMetadata<Delegation>[]> {
       if (filter === undefined) {
         throw genericInternalError("Filter cannot be undefined");
       }

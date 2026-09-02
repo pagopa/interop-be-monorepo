@@ -56,7 +56,7 @@ async function getCachedDescriptorIds(
   }
 
   const uncachedIds = eserviceIds.filter((id) => !descriptorIdCache.has(id));
-  const cachedEntries: Array<[EServiceId, DescriptorId]> = eserviceIds
+  const cachedEntries: [EServiceId, DescriptorId][] = eserviceIds
     .filter((id) => descriptorIdCache.has(id))
     .map((id) => [id, descriptorIdCache.get(id) as DescriptorId]);
 
@@ -94,7 +94,7 @@ type EntityWithEService = {
 async function enrichWithProducerNames<T extends EntityWithProducer>(
   items: T[],
   readModelService: ReadModelService
-): Promise<Array<T & { entityProducerName: string }>> {
+): Promise<(T & { entityProducerName: string })[]> {
   if (items.length === 0) {
     return [];
   }
@@ -115,7 +115,7 @@ async function enrichWithProducerNames<T extends EntityWithProducer>(
 async function enrichWithEServiceNames<T extends EntityWithEService>(
   items: T[],
   readModelService: ReadModelService
-): Promise<Array<T & { eserviceName: string }>> {
+): Promise<(T & { eserviceName: string })[]> {
   if (items.length === 0) {
     return [];
   }

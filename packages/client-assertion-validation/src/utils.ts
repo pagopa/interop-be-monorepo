@@ -289,9 +289,11 @@ export const successfulValidation = <T>(
 
 export const failedValidation = (
   // errors: [[error1, error2, undefined], error3, undefined]
-  errors: Array<
-    Array<ApiError<ErrorCodes> | undefined> | ApiError<ErrorCodes> | undefined
-  >
+  errors: (
+    | (ApiError<ErrorCodes> | undefined)[]
+    | ApiError<ErrorCodes>
+    | undefined
+  )[]
 ): FailedValidation<ErrorCodes> => {
   const nestedArrayWithoutUndefined = errors.filter((a) => a !== undefined);
   const flattenedArray = nestedArrayWithoutUndefined.flat(1);
@@ -300,6 +302,6 @@ export const failedValidation = (
   );
   return {
     data: undefined,
-    errors: flattenedArrayWithoutUndefined as Array<ApiError<ErrorCodes>>,
+    errors: flattenedArrayWithoutUndefined as ApiError<ErrorCodes>[],
   };
 };

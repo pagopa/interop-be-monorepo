@@ -202,12 +202,10 @@ describe("Purpose splitter", () => {
 
     const expectedPurposeVersionStampsSQL: PurposeVersionStampSQL[] = [];
 
-    for (const [key, stamp] of Object.entries(purposeVersionStamps) as Array<
-      [
-        keyof PurposeVersionStamps,
-        PurposeVersionStamps[keyof PurposeVersionStamps],
-      ]
-    >) {
+    for (const [key, stamp] of Object.entries(purposeVersionStamps) as [
+      keyof PurposeVersionStamps,
+      PurposeVersionStamps[keyof PurposeVersionStamps],
+    ][]) {
       if (stamp) {
         expectedPurposeVersionStampsSQL.push({
           purposeId: purpose.id,

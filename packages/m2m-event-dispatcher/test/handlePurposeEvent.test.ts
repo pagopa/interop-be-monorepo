@@ -96,12 +96,12 @@ describe("handlePurposeEvent test", async () => {
 
             const testCasesData = match(eventType)
               .returnType<
-                Array<{
+                {
                   versions: PurposeVersion[];
                   expectedVisibility: PurposeM2MEvent["visibility"];
                   affectedVersion?: number;
                   eventNotHandled?: boolean;
-                }>
+                }[]
               >()
               .with(
                 P.union(

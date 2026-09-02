@@ -2309,7 +2309,7 @@ export function tenantServiceBuilder(
         existingAttributes.reduce(
           (
             acc: {
-              events: Array<CreateEvent<TenantEvent>>;
+              events: CreateEvent<TenantEvent>[];
               tenantWithNewAttributes: Tenant;
             },
             attribute: Attribute,
@@ -2380,7 +2380,7 @@ export function tenantServiceBuilder(
             };
           },
           {
-            events: [] as Array<CreateEvent<TenantEvent>>,
+            events: [] as CreateEvent<TenantEvent>[],
             tenantWithRemoteIds: tenantWithNewAttributes,
           }
         );
@@ -2468,7 +2468,7 @@ export function tenantServiceBuilder(
       const { events, tenantWithNewAttributes } = existingAttributes.reduce(
         (
           accumulator: {
-            events: Array<CreateEvent<TenantEvent>>;
+            events: CreateEvent<TenantEvent>[];
             tenantWithNewAttributes: Tenant;
           },
           attribute: Attribute,

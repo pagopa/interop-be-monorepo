@@ -187,10 +187,10 @@ const toBffApiVerifiedTenantAttribute = (
 };
 
 export function toBffApiCertifiedTenantAttributes(
-  certifiedAttributes: Array<
+  certifiedAttributes: (
     | tenantApi.CertifiedTenantAttribute
     | tenantApi.CertifiedDiscreteTenantAttribute
-  >,
+  )[],
   registryAttributesMap: RegistryAttributesMap
 ): bffApi.CertifiedAttributesResponse["attributes"] {
   return certifiedAttributes

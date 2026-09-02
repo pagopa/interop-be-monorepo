@@ -239,7 +239,7 @@ describe("handleAgreementSuspendedUnsuspended", () => {
         eventType
       );
 
-      const expectedUsers: Array<{ userId: string; tenantId: string }> =
+      const expectedUsers: { userId: string; tenantId: string }[] =
         expectedAudience === "producer"
           ? producerUsers
           : expectedAudience === "consumer"

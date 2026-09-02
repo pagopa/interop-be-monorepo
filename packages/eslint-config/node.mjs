@@ -44,7 +44,7 @@ export default [
     rules: {
       "@typescript-eslint/switch-exhaustiveness-check": "error",
       "@typescript-eslint/consistent-type-definitions": "off",
-      "@typescript-eslint/array-type": "off",
+      "@typescript-eslint/array-type": "error",
       "@typescript-eslint/consistent-generic-constructors": "off",
       "@typescript-eslint/no-inferrable-types": "off",
       "@typescript-eslint/no-unused-vars": [

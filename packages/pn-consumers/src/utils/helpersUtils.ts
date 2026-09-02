@@ -72,9 +72,7 @@ export function toCsvDataRow(purpose: Purpose, logger: Logger): PNDataCSVRow {
  * @param data - The array of objects to convert to CSV
  * @returns The CSV string
  */
-export function toCSV(
-  data: Array<Record<string, string | number | Date>>
-): string {
+export function toCSV(data: Record<string, string | number | Date>[]): string {
   if (data.length === 0) {
     return "";
   }

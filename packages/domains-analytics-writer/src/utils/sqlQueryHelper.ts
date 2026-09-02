@@ -48,7 +48,7 @@ export function generateMergeQuery<T extends z.ZodRawShape>(
   tableSchema: z.ZodObject<T>,
   schemaName: string,
   tableName: DomainDbTable,
-  keysOn: Array<keyof T>,
+  keysOn: (keyof T)[],
   stagingPartialTableName?: PartialDbTable
 ): string {
   const quoteColumn = (c: string) => `"${c}"`;
@@ -162,7 +162,7 @@ export function generateMergeDeleteQuery<
  * @param deletingStagingTableName - The name of the staging table containing `id` and `deleted` columns.
  */
 export async function mergeDeletingCascadeById<
-  TargetTable extends ReadonlyArray<DomainDbTable>,
+  TargetTable extends readonly DomainDbTable[],
   StagingTable extends DeletingDbTable,
   DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>,
 >(
@@ -207,7 +207,7 @@ export const buildColumnSet = <T extends z.ZodRawShape>(
   schema: z.ZodObject<T>
 ): ColumnSet<z.infer<typeof schema>> => {
   const snakeCaseMapper = getColumnNameMapper(tableName);
-  const keys = Object.keys(schema.shape) as Array<keyof z.infer<typeof schema>>;
+  const keys = Object.keys(schema.shape) as (keyof z.infer<typeof schema>)[];
 
   const columns = keys.map((prop) => ({
     name: snakeCaseMapper(String(prop)),
@@ -302,7 +302,7 @@ export function generateStagingDeleteQuery<
  * @param stagingTableName - The name of the staging table containing columns used for deleting condition.
  */
 export async function cleaningTargetTables<
-  TargetTable extends ReadonlyArray<DomainDbTable>,
+  TargetTable extends readonly DomainDbTable[],
   StagingTable extends DomainDbTable | DeletingDbTable,
   DeleteKey extends keyof z.infer<DomainDbTableSchemas[TargetTable[number]]>,
 >(
@@ -342,10 +342,10 @@ export async function cleaningTargetTables<
  * @returns A new array containing only distinct items based on the provided keys.
  */
 export const distinctByKeys = <T extends z.ZodRawShape>(
-  items: Array<z.infer<z.ZodObject<T>>>,
+  items: z.infer<z.ZodObject<T>>[],
   schema: z.ZodObject<T>,
-  keys: Array<keyof z.infer<z.ZodObject<T>>>
-): Array<z.infer<z.ZodObject<T>>> => {
+  keys: (keyof z.infer<z.ZodObject<T>>)[]
+): z.infer<z.ZodObject<T>>[] => {
   const parsedItems = items.map((item) => schema.parse(item));
   const uniqueKeySet = new Set<string>();
   const deduplicatedItems: typeof parsedItems = [];
