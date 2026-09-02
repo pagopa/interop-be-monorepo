@@ -1759,6 +1759,7 @@ components:
             type: string
             format: uuid
           minItems: 1
+          uniqueItems: true
       required:
         - reviewMode
     RiskAnalysisRejectionSeed:

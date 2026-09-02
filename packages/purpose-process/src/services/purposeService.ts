@@ -2771,52 +2771,138 @@ type RiskAnalysisReviewAssignment = {
   reviewerIds: string[];
 };
 
-type RiskAnalysisReviewerTransition = {
+type RiskAnalysisAssignmentOutcome = {
   reviewerWorkflow: ReviewerWorkflow | undefined;
-  riskAnalysisForm: PurposeRiskAnalysisForm | undefined;
-  toEvent: (updatedPurpose: Purpose) => CreateEvent<PurposeEventV2> | undefined;
+  newReviewersToNotify: UserId[];
+  oldReviewersToNotify: UserId[];
+};
+
+type RiskAnalysisAssignmentContext = {
+  purpose: WithMetadata<Purpose>;
+  previousReviewMode: RiskAnalysisReviewMode | undefined;
+  previousReviewers: RiskAnalysisReviewer[];
+  requestedReviewers: UserId[];
+  addedReviewers: UserId[];
+  alreadyNotifiedReviewerIds: UserId[];
+  removedReviewersToNotify: UserId[];
+  now: Date;
 };
 
 /**
- * The three functions below build the reviewers of a workflow, each stamping
- * `sentToReviewerAt` on a different portion of them: the stamp records when a
- * reviewer was asked to act on the risk analysis, so it is set exactly when
- * that reviewer gets notified.
- *
- * Here none of them is stamped: in AdminWritesReviewerSigns there is nothing
- * to sign until the admin submits, so the stamp is set for everybody only at
- * submit time.
+ * Reviewers already in the workflow keep their stamp; joining reviewers get
+ * the supplied stamp when they acquire an action to perform.
  */
-const stampNone = (reviewerIds: UserId[]): RiskAnalysisReviewer[] =>
-  reviewerIds.map((id) => ({ id, sentToReviewerAt: undefined }));
-
-/** Everybody gains the writing duty, so everybody is stamped. */
-const stampAll = (
-  reviewerIds: UserId[],
-  sentAt: Date
-): RiskAnalysisReviewer[] =>
-  reviewerIds.map((id) => ({ id, sentToReviewerAt: sentAt }));
-
-/**
- * Only the reviewers joining the workflow are stamped: for the ones already
- * in it nothing changed, so they keep the stamp of when they joined.
- */
-const stampOnlyNew = (
+const preserveExistingReviewerStamps = (
   reviewerIds: UserId[],
   previousReviewers: RiskAnalysisReviewer[],
-  sentAt: Date
-): RiskAnalysisReviewer[] =>
-  reviewerIds.map((id) => {
-    const previousReviewer = previousReviewers.find(
-      (reviewer) => reviewer.id === id
-    );
+  sentAt: Date | undefined
+): RiskAnalysisReviewer[] => {
+  const previousReviewerById = new Map(
+    previousReviewers.map((reviewer) => [reviewer.id, reviewer])
+  );
+
+  return reviewerIds.map((id) => {
+    const previousReviewer = previousReviewerById.get(id);
+
     return {
       id,
-      sentToReviewerAt: previousReviewer
-        ? previousReviewer.sentToReviewerAt
-        : sentAt,
+      sentToReviewerAt:
+        previousReviewer !== undefined
+          ? previousReviewer.sentToReviewerAt
+          : sentAt,
     };
   });
+};
+
+const transitionToAdminWritesAdminSigns = ({
+  alreadyNotifiedReviewerIds,
+}: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome => ({
+  reviewerWorkflow: undefined,
+  newReviewersToNotify: [],
+  oldReviewersToNotify: alreadyNotifiedReviewerIds,
+});
+
+const transitionToAdminWritesReviewerSigns = ({
+  purpose,
+  previousReviewMode,
+  previousReviewers,
+  requestedReviewers,
+  addedReviewers,
+  alreadyNotifiedReviewerIds,
+  removedReviewersToNotify,
+  now,
+}: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
+  match(previousReviewMode)
+    .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () => {
+      const previousWorkflow = purpose.data.reviewerWorkflow;
+      if (previousWorkflow === undefined) {
+        throw reviewerWorkflowNotFound(purpose.data.id);
+      }
+
+      const shouldNotifyAddedReviewers =
+        previousWorkflow.signingState === riskAnalysisSigningState.submitted;
+
+      return {
+        reviewerWorkflow: {
+          ...previousWorkflow,
+          reviewers: preserveExistingReviewerStamps(
+            requestedReviewers,
+            previousReviewers,
+            shouldNotifyAddedReviewers ? now : undefined
+          ),
+          sentToReviewerAt: undefined,
+        },
+        newReviewersToNotify: shouldNotifyAddedReviewers ? addedReviewers : [],
+        oldReviewersToNotify: removedReviewersToNotify,
+      };
+    })
+    .otherwise(() => ({
+      reviewerWorkflow: {
+        reviewers: requestedReviewers.map((id) => ({
+          id,
+          sentToReviewerAt: undefined,
+        })),
+        signingState: riskAnalysisSigningState.draft,
+        sentToReviewerAt: undefined,
+      },
+      newReviewersToNotify: [],
+      oldReviewersToNotify: alreadyNotifiedReviewerIds,
+    }));
+
+const transitionToReviewerWritesReviewerSigns = ({
+  previousReviewMode,
+  previousReviewers,
+  requestedReviewers,
+  addedReviewers,
+  removedReviewersToNotify,
+  now,
+}: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
+  match(previousReviewMode)
+    .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
+      reviewerWorkflow: {
+        reviewers: preserveExistingReviewerStamps(
+          requestedReviewers,
+          previousReviewers,
+          now
+        ),
+        signingState: riskAnalysisSigningState.assigned,
+        sentToReviewerAt: undefined,
+      },
+      newReviewersToNotify: addedReviewers,
+      oldReviewersToNotify: removedReviewersToNotify,
+    }))
+    .otherwise(() => ({
+      reviewerWorkflow: {
+        reviewers: requestedReviewers.map((id) => ({
+          id,
+          sentToReviewerAt: now,
+        })),
+        signingState: riskAnalysisSigningState.assigned,
+        sentToReviewerAt: undefined,
+      },
+      newReviewersToNotify: requestedReviewers,
+      oldReviewersToNotify: removedReviewersToNotify,
+    }));
 
 /**
  * Applies the requested reviewer assignment to the purpose, one branch per
@@ -2824,13 +2910,9 @@ const stampOnlyNew = (
  * AdminWritesAdminSigns has no reviewer workflow and an undefined previous
  * mode is a purpose that was never assigned.
  *
- * Each branch declares the whole outcome of its transition:
- * - the resulting reviewer workflow, if any;
- * - the risk analysis form, which is discarded whenever the compilation duty
- *   moves between the admin and the reviewer, since the new writer must not
- *   inherit the draft written by the other party;
- * - the event to emit, whose reviewer arrays drive the notifications by
- *   listing who gained (`newReviewers`) or lost (`oldReviewers`) a duty.
+ * Each branch declares the resulting reviewer workflow and who must be
+ * notified. The risk analysis form and event are derived once from that
+ * outcome after selecting the transition.
  */
 function assignRiskAnalysisReviewerLogic(
   purpose: WithMetadata<Purpose>,
@@ -2846,211 +2928,100 @@ function assignRiskAnalysisReviewerLogic(
   const requestedReviewers = (review?.reviewerIds ?? []).map((id) =>
     unsafeBrandId<UserId>(id)
   );
+
+  const assignmentIsUnchanged =
+    previousReviewMode === review.reviewMode &&
+    previousReviewerIds.length === requestedReviewers.length &&
+    previousReviewerIds.every((id) => requestedReviewers.includes(id));
+
+  if (assignmentIsUnchanged) {
+    return { event: undefined, updatedPurpose: purpose.data };
+  }
+
   const addedReviewers = requestedReviewers.filter(
     (id) => !previousReviewerIds.includes(id)
   );
   const removedReviewers = previousReviewerIds.filter(
     (id) => !requestedReviewers.includes(id)
   );
+  const alreadyNotifiedReviewerIds = previousReviewers
+    .filter((reviewer) => reviewer.sentToReviewerAt !== undefined)
+    .map((reviewer) => reviewer.id);
+  const removedReviewersToNotify = alreadyNotifiedReviewerIds.filter((id) =>
+    removedReviewers.includes(id)
+  );
 
   const now = new Date();
 
-  const eventPayload = (
-    updatedPurpose: Purpose
-  ): { purpose: Purpose; version: number; correlationId: CorrelationId } => ({
+  const transitionContext: RiskAnalysisAssignmentContext = {
+    purpose,
+    previousReviewMode,
+    previousReviewers,
+    requestedReviewers,
+    addedReviewers,
+    alreadyNotifiedReviewerIds,
+    removedReviewersToNotify,
+    now,
+  };
+
+  const outcome = match(review.reviewMode)
+    .returnType<RiskAnalysisAssignmentOutcome>()
+    .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
+      transitionToAdminWritesAdminSigns(transitionContext)
+    )
+    .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
+      transitionToAdminWritesReviewerSigns(transitionContext)
+    )
+    .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
+      transitionToReviewerWritesReviewerSigns(transitionContext)
+    )
+    .exhaustive();
+
+  const reviewerWritingDutyChanges =
+    (previousReviewMode ===
+      riskAnalysisReviewMode.reviewerWritesReviewerSigns) !==
+    (review.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns);
+
+  const updatedPurpose: Purpose = {
+    ...purpose.data,
+    riskAnalysisForm: reviewerWritingDutyChanges
+      ? undefined
+      : purpose.data.riskAnalysisForm,
+    reviewMode: review.reviewMode,
+    reviewerWorkflow: outcome.reviewerWorkflow,
+    updatedAt: now,
+  };
+
+  const eventPayload = {
     purpose: updatedPurpose,
     version: purpose.metadata.version,
     correlationId,
-  });
+  };
 
-  const transition = match<
-    [RiskAnalysisReviewMode | undefined, RiskAnalysisReviewMode],
-    RiskAnalysisReviewerTransition
-  >([previousReviewMode, review.reviewMode])
-    /**
-     * never assigned -> AdminWritesAdminSigns: nothing changes but the review
-     * mode, which still has to be persisted.
-     */
-    .with([undefined, riskAnalysisReviewMode.adminWritesAdminSigns], () => ({
-      reviewerWorkflow: undefined,
-      riskAnalysisForm: purpose.data.riskAnalysisForm,
-      toEvent: (updatedPurpose) =>
-        toCreateEventPurposeRiskAnalysisSelfAssigned({
-          ...eventPayload(updatedPurpose),
-          oldReviewers: [],
-        }),
-    }))
-    /**
-     * AdminWritesAdminSigns -> AdminWritesAdminSigns: nothing changes.
-     */
-    .with(
-      [
-        riskAnalysisReviewMode.adminWritesAdminSigns,
-        riskAnalysisReviewMode.adminWritesAdminSigns,
-      ],
-      () => ({
-        reviewerWorkflow: undefined,
-        riskAnalysisForm: purpose.data.riskAnalysisForm,
-        toEvent: () => undefined,
+  const event = match(review.reviewMode)
+    .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
+      toCreateEventPurposeRiskAnalysisSelfAssigned({
+        ...eventPayload,
+        oldReviewersToNotify: outcome.oldReviewersToNotify,
       })
     )
-    /**
-     * AdminWritesReviewerSigns -> AdminWritesAdminSigns: the admin takes the
-     * signature back and was already the writer, so his form survives.
-     */
-    .with(
-      [
-        riskAnalysisReviewMode.adminWritesReviewerSigns,
-        riskAnalysisReviewMode.adminWritesAdminSigns,
-      ],
-      () => ({
-        reviewerWorkflow: undefined,
-        riskAnalysisForm: purpose.data.riskAnalysisForm,
-        toEvent: (updatedPurpose) =>
-          toCreateEventPurposeRiskAnalysisSelfAssigned({
-            ...eventPayload(updatedPurpose),
-            oldReviewers: previousReviewerIds,
-          }),
+    .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
+      toCreateEventPurposeRiskAnalysisWorkflowCreated({
+        ...eventPayload,
+        newReviewersToNotify: outcome.newReviewersToNotify,
+        oldReviewersToNotify: outcome.oldReviewersToNotify,
       })
     )
-    /**
-     * ReviewerWritesReviewerSigns -> AdminWritesAdminSigns: the admin becomes
-     * the writer, so the reviewer's form is discarded.
-     */
-    .with(
-      [
-        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        riskAnalysisReviewMode.adminWritesAdminSigns,
-      ],
-      () => ({
-        reviewerWorkflow: undefined,
-        riskAnalysisForm: undefined,
-        toEvent: (updatedPurpose) =>
-          toCreateEventPurposeRiskAnalysisSelfAssigned({
-            ...eventPayload(updatedPurpose),
-            oldReviewers: previousReviewerIds,
-          }),
-      })
-    )
-    /**
-     * never assigned | AdminWritesAdminSigns | AdminWritesReviewerSigns ->
-     * AdminWritesReviewerSigns: the admin keeps the writing duty, so his form
-     * survives and the reviewers are involved only at submit time.
-     */
-    .with(
-      [
-        P.union(
-          undefined,
-          riskAnalysisReviewMode.adminWritesAdminSigns,
-          riskAnalysisReviewMode.adminWritesReviewerSigns
-        ),
-        riskAnalysisReviewMode.adminWritesReviewerSigns,
-      ],
-      () => ({
-        reviewerWorkflow: {
-          reviewers: stampNone(requestedReviewers),
-          signingState: riskAnalysisSigningState.draft,
-          sentToReviewerAt: undefined,
-        },
-        riskAnalysisForm: purpose.data.riskAnalysisForm,
-        toEvent: (updatedPurpose) =>
-          toCreateEventPurposeRiskAnalysisWorkflowCreated({
-            ...eventPayload(updatedPurpose),
-            newReviewers: addedReviewers,
-            oldReviewers: removedReviewers,
-          }),
-      })
-    )
-    /**
-     * ReviewerWritesReviewerSigns -> AdminWritesReviewerSigns: the writing
-     * duty moves back to the admin, so the reviewer's form is discarded and
-     * every reviewer changes duty, even the confirmed ones.
-     */
-    .with(
-      [
-        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        riskAnalysisReviewMode.adminWritesReviewerSigns,
-      ],
-      () => ({
-        reviewerWorkflow: {
-          reviewers: stampNone(requestedReviewers),
-          signingState: riskAnalysisSigningState.draft,
-          sentToReviewerAt: undefined,
-        },
-        riskAnalysisForm: undefined,
-        toEvent: (updatedPurpose) =>
-          toCreateEventPurposeRiskAnalysisWorkflowCreated({
-            ...eventPayload(updatedPurpose),
-            newReviewers: requestedReviewers,
-            oldReviewers: previousReviewerIds,
-          }),
-      })
-    )
-    /**
-     * never assigned | AdminWritesAdminSigns | AdminWritesReviewerSigns ->
-     * ReviewerWritesReviewerSigns: the reviewer becomes the writer, so the
-     * admin's form is discarded and the reviewers are involved right away.
-     */
-    .with(
-      [
-        P.union(
-          undefined,
-          riskAnalysisReviewMode.adminWritesAdminSigns,
-          riskAnalysisReviewMode.adminWritesReviewerSigns
-        ),
-        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      ],
-      () => ({
-        reviewerWorkflow: {
-          reviewers: stampAll(requestedReviewers, now),
-          signingState: riskAnalysisSigningState.assigned,
-          sentToReviewerAt: undefined,
-        },
-        riskAnalysisForm: undefined,
-        toEvent: (updatedPurpose) =>
-          toCreateEventPurposeRiskAnalysisAssigned({
-            ...eventPayload(updatedPurpose),
-            newReviewers: requestedReviewers,
-            oldReviewers: removedReviewers,
-          }),
-      })
-    )
-    /**
-     * ReviewerWritesReviewerSigns -> ReviewerWritesReviewerSigns: only the
-     * reviewer set changes, the writer is still a reviewer so the form in
-     * progress survives.
-     */
-    .with(
-      [
-        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      ],
-      () => ({
-        reviewerWorkflow: {
-          reviewers: stampOnlyNew(requestedReviewers, previousReviewers, now),
-          signingState: riskAnalysisSigningState.assigned,
-          sentToReviewerAt: undefined,
-        },
-        riskAnalysisForm: purpose.data.riskAnalysisForm,
-        toEvent: (updatedPurpose) =>
-          toCreateEventPurposeRiskAnalysisAssigned({
-            ...eventPayload(updatedPurpose),
-            newReviewers: addedReviewers,
-            oldReviewers: removedReviewers,
-          }),
+    .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
+      toCreateEventPurposeRiskAnalysisAssigned({
+        ...eventPayload,
+        newReviewersToNotify: outcome.newReviewersToNotify,
+        oldReviewersToNotify: outcome.oldReviewersToNotify,
       })
     )
     .exhaustive();
 
-  const updatedPurpose: Purpose = {
-    ...purpose.data,
-    riskAnalysisForm: transition.riskAnalysisForm,
-    reviewMode: review.reviewMode,
-    reviewerWorkflow: transition.reviewerWorkflow,
-    updatedAt: now,
-  };
-
-  return { event: transition.toEvent(updatedPurpose), updatedPurpose };
+  return { event, updatedPurpose };
 }
 
 function changePurposeVersionToWaitForApprovalFromDraftLogic(
