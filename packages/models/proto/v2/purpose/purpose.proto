@@ -22,6 +22,7 @@ message PurposeV2 {
   optional string delegationId = 15;
   optional string purposeTemplateId = 16;
   optional ReviewerWorkflowV2 reviewerWorkflow = 17;
+  optional RiskAnalysisReviewModeV2 reviewMode = 18;
 }
 
 message PurposeVersionV2 {
@@ -74,6 +75,7 @@ message PurposeVersionSignedDocumentV2 {
 enum RiskAnalysisReviewModeV2 {
   REVIEWER_WRITES_REVIEWER_SIGNS = 0;
   ADMIN_WRITES_REVIEWER_SIGNS = 1;
+  ADMIN_WRITES_ADMIN_SIGNS = 2;
 }
 
 enum RiskAnalysisSigningStateV2 {
@@ -84,11 +86,18 @@ enum RiskAnalysisSigningStateV2 {
   RISK_ANALYSIS_REJECTED = 4;
 }
 
+message RiskAnalysisReviewerV2 {
+  string id = 1;
+  optional int64 sentToReviewerAt = 2;
+}
+
 message ReviewerWorkflowV2 {
-  RiskAnalysisReviewModeV2 reviewMode = 1;
-  repeated string reviewerIds = 2;
+  reserved 1;
+  // Superseded by reviewers
+  repeated string reviewerIds = 2 [deprecated = true];
   RiskAnalysisSigningStateV2 signingState = 3;
   optional string signedBy = 4;
   optional string rejectionReason = 5;
   optional int64 sentToReviewerAt = 6;
+  repeated RiskAnalysisReviewerV2 reviewers = 7;
 }

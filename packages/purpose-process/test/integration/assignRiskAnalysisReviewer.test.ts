@@ -129,10 +129,11 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
     };
 
     const expectedPurpose: Purpose = {
@@ -210,10 +211,11 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: undefined,
+      })),
       signingState: RiskAnalysisSigningState.Values.Draft,
-      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
@@ -297,10 +299,11 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
     };
 
     const expectedPurpose: Purpose = {
@@ -358,10 +361,8 @@ describe("assignRiskAnalysisReviewer", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: mockEService.id,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [unsafeBrandId(generateId())],
+        reviewers: [{ id: unsafeBrandId(generateId()) }],
         signingState: RiskAnalysisSigningState.Values.Draft,
-        sentToReviewerAt: undefined,
       },
     };
 

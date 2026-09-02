@@ -54,6 +54,7 @@ function toOutboundPurposeV2(
     versions: purpose.versions.map(toOutboundPurposeVersionV2),
     riskAnalysisForm: undefined,
     purposeTemplateId: purpose.purposeTemplateId,
+    reviewMode: undefined, // TODO
     reviewerWorkflow: undefined, // TODO
   };
 }
@@ -113,6 +114,7 @@ export function toOutboundEventV2(
       { type: "MaintenancePurposeRiskAnalysisSetTenantKind" },
       { type: "PurposeRiskAnalysisWorkflowCreated" },
       { type: "PurposeRiskAnalysisAssigned" },
+      { type: "PurposeRiskAnalysisSelfAssigned" },
       { type: "PurposeRiskAnalysisSubmitted" },
       { type: "PurposeRiskAnalysisSigned" },
       { type: "PurposeRiskAnalysisRejected" },

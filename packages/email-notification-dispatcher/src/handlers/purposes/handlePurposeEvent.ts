@@ -179,6 +179,7 @@ export async function handlePurposeEvent(
           "MaintenancePurposeRiskAnalysisSetTenantKind",
           "PurposeRiskAnalysisWorkflowCreated",
           "PurposeRiskAnalysisAssigned",
+          "PurposeRiskAnalysisSelfAssigned",
           "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
