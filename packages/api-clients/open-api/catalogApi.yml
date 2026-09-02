@@ -1367,6 +1367,40 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
+  /internal/eservices/{eServiceId}/delegatedArchivingRequests/archive:
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Archive a delegated archiving request for the selected E-Service.
+      operationId: internalArchiveDelegatedArchivingRequest
+      description: Archives (closes) an active delegated archiving request for the specified E-Service or one of its descriptors.
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+        - name: eServiceId
+          in: path
+          description: the eservice id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: Payload
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InternalArchiveDelegatedArchivingRequestSeed"
+      responses:
+        "204":
+          description: Delegated archiving request archived
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   /internal/eservices/{eServiceId}/archive:
     post:
       security:
@@ -4179,6 +4213,20 @@ components:
             - MANUAL
       required:
         - kind
+    InternalArchiveDelegatedArchivingRequestSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for archiving a delegated archiving request
+      properties:
+        descriptorId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 250
+      required:
+        - reason
     GracePeriodDays:
       description: Number of days for the archiving grace period
       type: integer
