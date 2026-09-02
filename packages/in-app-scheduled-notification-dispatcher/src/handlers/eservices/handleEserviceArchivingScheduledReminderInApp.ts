@@ -46,10 +46,12 @@ export async function handleEserviceArchivingScheduledReminderInApp(
     Math.min(...archivableOns.map((d) => d.getTime()))
   );
 
+  const entityId = eservice.id;
+
   const producerNotifications = await buildProducerNotifications({
     eservice,
     archivableOn,
-    entityId: eserviceId,
+    entityId,
     readModelService,
     log,
   });
