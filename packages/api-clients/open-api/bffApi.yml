@@ -16528,6 +16528,11 @@ components:
           type: string
         kind:
           $ref: "#/components/schemas/AttributeKind"
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - tenantId
         - tenantName
