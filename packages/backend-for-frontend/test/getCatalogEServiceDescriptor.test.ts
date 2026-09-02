@@ -403,6 +403,15 @@ describe("getCatalogEServiceDescriptor", () => {
 
   it("should convert the async exchange callback interface to the BFF document shape", async () => {
     const asyncExchangeCallbackInterface = getMockCatalogApiEServiceDoc();
+    const delegatedDescriptorArchivingRequest: catalogApi.DelegatedDescriptorArchivingRequest[] =
+      [
+        {
+          requestedAt: "2026-08-04T10:00:00.000Z",
+          requesterId: generateId<TenantId>(),
+          gracePeriodDays: 30,
+          rejectionReason: "Missing prerequisite",
+        },
+      ];
     vi.spyOn(mockCatalogProcessClient, "getEServiceById").mockResolvedValueOnce(
       {
         ...eService,
@@ -410,6 +419,7 @@ describe("getCatalogEServiceDescriptor", () => {
           {
             ...eServiceDescriptor,
             asyncExchangeCallbackInterface,
+            delegatedArchivingRequest: delegatedDescriptorArchivingRequest,
           },
         ],
       }

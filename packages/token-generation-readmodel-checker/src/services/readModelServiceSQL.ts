@@ -45,6 +45,7 @@ export function readModelServiceBuilderSQL(readModelDB: DrizzleReturnType) {
         templateVersionRefsSQL: [],
         asyncExchangePropertiesSQL,
         archivingSchedulesSQL: [],
+        archivingRequestsSQL: [],
       }).map((e) => e.data);
     },
 
