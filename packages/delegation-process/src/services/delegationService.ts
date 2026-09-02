@@ -7,6 +7,7 @@ import {
   M2MAdminAuthData,
   M2MAuthData,
   UIAuthData,
+  validateNoHyperlinksSafe,
   WithLogger,
 } from "pagopa-interop-commons";
 import {
@@ -285,6 +286,8 @@ export function delegationServiceBuilder(
     logger.info(
       `Rejecting delegation ${delegationId} by delegate ${authData.organizationId}`
     );
+
+    validateNoHyperlinksSafe(rejectionReason);
 
     const { data: delegation, metadata } = await retrieveDelegationById(
       {

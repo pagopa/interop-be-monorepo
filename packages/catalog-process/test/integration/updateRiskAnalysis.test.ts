@@ -35,6 +35,7 @@ import {
   delegationState,
   delegationKind,
   EServiceTemplateId,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 
@@ -629,5 +630,47 @@ describe("update risk analysis", () => {
         getMockContext({ authData: getMockAuthData(producer.id) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
+  });
+  it("should throw hyperlinkDetectionError when the risk analysis name contains a hyperlink", async () => {
+    const producerTenantKind: TenantKind = randomArrayItem(
+      Object.values(tenantKind)
+    );
+    const producer: Tenant = {
+      ...getMockTenant(),
+      kind: producerTenantKind,
+    };
+
+    const riskAnalysis = getMockValidRiskAnalysis(producerTenantKind);
+
+    const eservice: EService = {
+      ...mockEService,
+      producerId: producer.id,
+      mode: eserviceMode.receive,
+      descriptors: [
+        {
+          ...mockDescriptor,
+          state: descriptorState.draft,
+        },
+      ],
+      riskAnalysis: [riskAnalysis],
+    };
+
+    await addOneTenant(producer);
+    await addOneEService(eservice);
+
+    const riskAnalysisName = "see https://evil.example.com";
+    const riskAnalysisSeed: catalogApi.EServiceRiskAnalysisSeed = {
+      ...buildRiskAnalysisSeed(riskAnalysis),
+      name: riskAnalysisName,
+    };
+
+    await expect(
+      catalogService.updateRiskAnalysis(
+        eservice.id,
+        riskAnalysis.id,
+        riskAnalysisSeed,
+        getMockContext({ authData: getMockAuthData(producer.id) })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(riskAnalysisName));
   });
 });
