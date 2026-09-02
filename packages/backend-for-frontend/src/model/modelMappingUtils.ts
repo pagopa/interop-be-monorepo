@@ -52,6 +52,38 @@ export function getValidDescriptor(
   );
 }
 
+export function getLastArchivingRequest(
+  eservice: catalogApi.EService,
+  descriptors: catalogApi.EServiceDescriptor[]
+): bffApi.DelegatedEServiceArchivingRequest | undefined {
+  const descriptorRequests: bffApi.DelegatedEServiceArchivingRequest[] =
+    descriptors
+      .map((d) =>
+        d.delegatedArchivingRequest
+          ? d.delegatedArchivingRequest.map((req) => ({
+              ...req,
+              descriptorId: d.id,
+            }))
+          : []
+      )
+      .flat();
+
+  const archivingRequests = descriptorRequests.concat(
+    (eservice.delegatedArchivingRequest ?? []).map((req) => ({
+      ...req,
+      descriptorId: undefined,
+    }))
+  );
+
+  return archivingRequests
+    ?.filter((request) => request.acceptedAt === undefined)
+    .sort(
+      (a, b) =>
+        new Date(a.requestedAt).getTime() - new Date(b.requestedAt).getTime()
+    )
+    .at(-1);
+}
+
 export function getLatestTenantContactEmail(
   tenant: tenantApi.Tenant
 ): bffApi.Mail | undefined {
@@ -110,6 +142,8 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
     purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
+    eserviceArchivingRequestedToDelegator: "/erogazione/e-service",
+    eserviceArchivingApprovedRejectedToDelegate: "/erogazione/e-service",
   } as const;
 
 export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
@@ -148,6 +182,8 @@ export const notificationTypeToCategory: Record<NotificationType, Category> = {
   producerKeychainKeyAddedDeletedToClientUsers: "AttributesAndKeys",
   purposeQuotaAdjustmentRequestToProducer: "Providers",
   purposeOverQuotaStateToConsumer: "Subscribers",
+  eserviceArchivingRequestedToDelegator: "Delegations",
+  eserviceArchivingApprovedRejectedToDelegate: "Delegations",
 };
 
 export const categoryToNotificationTypes: Record<Category, NotificationType[]> =
