@@ -94,6 +94,7 @@ import {
   cancelDelegatedEServiceArchivingErrorMapper,
   approveDelegatedDescriptorArchivingErrorMapper,
   rejectDelegatedDescriptorArchivingErrorMapper,
+  internalArchiveDelegatedArchivingRequestErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const eservicesRouter = (
@@ -1099,6 +1100,30 @@ const eservicesRouter = (
           const errorRes = makeApiProblem(
             error,
             archiveDescriptorErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/internal/eservices/:eServiceId/delegatedArchivingRequests/archive",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          await catalogService.internalArchiveDelegatedArchivingRequest(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            internalArchiveDelegatedArchivingRequestErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

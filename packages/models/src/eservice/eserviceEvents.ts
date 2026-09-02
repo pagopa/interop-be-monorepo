@@ -76,6 +76,8 @@ import {
   MaintenanceEServiceDescriptorUnarchivedV2,
   EServiceArchivingRequestApprovedByDelegatorV2,
   EServiceArchivingRequestCanceledByDelegateV2,
+  EServiceArchivingRequestCanceledByRevokedDelegationV2,
+  EServiceDescriptorArchivingRequestCanceledByRevokedDelegationV2,
   EServiceArchivingRequestedByDelegateV2,
   EServiceArchivingRequestRejectedByDelegatorV2,
   EServiceDescriptorArchivingRequestApprovedByDelegatorV2,
@@ -335,6 +337,18 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     )
     .with({ type: "EServiceArchivingRequestCanceledByDelegate" }, ({ data }) =>
       EServiceArchivingRequestCanceledByDelegateV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
+      ({ data }) =>
+        EServiceArchivingRequestCanceledByRevokedDelegationV2.toBinary(data)
+    )
+    .with(
+      { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
+      ({ data }) =>
+        EServiceDescriptorArchivingRequestCanceledByRevokedDelegationV2.toBinary(
+          data
+        )
     )
     .with({ type: "EServiceArchivingRequestedByDelegate" }, ({ data }) =>
       EServiceArchivingRequestedByDelegateV2.toBinary(data)
@@ -742,6 +756,22 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     event_version: z.literal(2),
     type: z.literal("EServiceArchivingRequestCanceledByDelegate"),
     data: protobufDecoder(EServiceArchivingRequestCanceledByDelegateV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceArchivingRequestCanceledByRevokedDelegation"),
+    data: protobufDecoder(
+      EServiceArchivingRequestCanceledByRevokedDelegationV2
+    ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal(
+      "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation"
+    ),
+    data: protobufDecoder(
+      EServiceDescriptorArchivingRequestCanceledByRevokedDelegationV2
+    ),
   }),
   z.object({
     event_version: z.literal(2),

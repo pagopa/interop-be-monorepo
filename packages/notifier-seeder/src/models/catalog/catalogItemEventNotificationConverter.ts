@@ -150,6 +150,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceArchivingRequestRejectedByDelegator" },
       { type: "EServiceArchivingRequestApprovedByDelegator" },
       { type: "EServiceArchivingRequestCanceledByDelegate" },
+      { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
       { type: "MaintenanceEServicePersonalDataFlagReset" },
       (e): CatalogItemNotification => ({
         catalogItem: getCatalogItem(e),
@@ -185,6 +186,7 @@ export const toCatalogItemEventNotification = (
       { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
       { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
       { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
+      { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
       { type: "MaintenanceEServiceDescriptorUnarchived" },
       (e): CatalogDescriptorNotification => {
         const catalogItem = getCatalogItem(e);

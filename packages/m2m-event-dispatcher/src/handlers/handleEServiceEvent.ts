@@ -82,6 +82,7 @@ async function handleEServiceEventV2(
             "EServiceArchivingRequestRejectedByDelegator",
             "EServiceArchivingRequestApprovedByDelegator",
             "EServiceArchivingRequestCanceledByDelegate",
+            "EServiceArchivingRequestCanceledByRevokedDelegation",
             "MaintenanceEServicePersonalDataFlagReset"
           ),
         },
@@ -141,6 +142,7 @@ async function handleEServiceEventV2(
             "EServiceDescriptorArchivingRequestRejectedByDelegator",
             "EServiceDescriptorArchivingRequestApprovedByDelegator",
             "EServiceDescriptorArchivingRequestCanceledByDelegate",
+            "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "MaintenanceEServiceDescriptorUnarchived"
