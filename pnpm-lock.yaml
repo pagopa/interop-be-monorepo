@@ -349,8 +349,8 @@ importers:
   packages/agreement-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23-manual-archiving-delegation.3
-        version: 1.8.23-manual-archiving-delegation.3
+        specifier: 1.8.23
+        version: 1.8.23
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -1431,8 +1431,8 @@ importers:
   packages/catalog-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23-manual-archiving-delegation.3
-        version: 1.8.23-manual-archiving-delegation.3
+        specifier: 1.8.23
+        version: 1.8.23
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -2345,8 +2345,8 @@ importers:
   packages/delegation-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23-manual-archiving-delegation.3
-        version: 1.8.23-manual-archiving-delegation.3
+        specifier: 1.8.23
+        version: 1.8.23
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -3221,8 +3221,8 @@ importers:
   packages/eservice-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23-manual-archiving-delegation.3
-        version: 1.8.23-manual-archiving-delegation.3
+        specifier: 1.8.23
+        version: 1.8.23
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5319,8 +5319,8 @@ importers:
   packages/purpose-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23-manual-archiving-delegation.3
-        version: 1.8.23-manual-archiving-delegation.3
+        specifier: 1.8.23
+        version: 1.8.23
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -5560,8 +5560,8 @@ importers:
   packages/purpose-template-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23-manual-archiving-delegation.3
-        version: 1.8.23-manual-archiving-delegation.3
+        specifier: 1.8.23
+        version: 1.8.23
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -6261,8 +6261,8 @@ importers:
   packages/tenant-outbound-writer:
     dependencies:
       '@pagopa/interop-outbound-models':
-        specifier: 1.8.23-manual-archiving-delegation.3
-        version: 1.8.23-manual-archiving-delegation.3
+        specifier: 1.8.23
+        version: 1.8.23
       dotenv-flow:
         specifier: 'catalog:'
         version: 4.1.0
@@ -7924,8 +7924,8 @@ packages:
     peerDependencies:
       eslint: ^9.39.2
 
-  '@pagopa/interop-outbound-models@1.8.23-manual-archiving-delegation.3':
-    resolution: {integrity: sha512-qiLap4sx6IEKXWBHF1PgRZ2AAgD5WR+9aAnUiWzXnpPcTdJttgtVH9/SIAzgjBqCdOCNIb59jP3uYLv8xi6ugA==}
+  '@pagopa/interop-outbound-models@1.8.23':
+    resolution: {integrity: sha512-PkU54huG3giPE/x+4JtrAMNxEFzX0CUD5V24uRiuzuTA3S5KLBsGd/nWqE0AG4NpTOiTwkQkB7toMZTzKnplCg==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -14442,7 +14442,7 @@ snapshots:
       - supports-color
       - vitest
 
-  '@pagopa/interop-outbound-models@1.8.23-manual-archiving-delegation.3':
+  '@pagopa/interop-outbound-models@1.8.23':
     dependencies:
       '@protobuf-ts/runtime': 2.9.4
       ts-pattern: 5.2.0
