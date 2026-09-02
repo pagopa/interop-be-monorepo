@@ -5,6 +5,7 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
+  getMockedApiEServiceAttribute,
   getMockedApiEServiceTemplate,
   getMockedApiEserviceTemplateVersion,
 } from "pagopa-interop-commons-test";
@@ -45,6 +46,7 @@ describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () =
   const mockNewAttribute1 = getMockedApiCertifiedDiscreteEServiceAttribute();
   const mockNewAttribute2 = getMockedApiCertifiedDiscreteEServiceAttribute();
   const mockCertifiedDiscreteAttributes = [
+    [getMockedApiEServiceAttribute()],
     [
       getMockedApiCertifiedDiscreteEServiceAttribute(),
       getMockedApiCertifiedDiscreteEServiceAttribute(),
@@ -94,8 +96,8 @@ describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () =
     mockGetEServiceTemplate.mockClear();
   });
 
-  it.each([0, 1, 2])(
-    "Should succeed and perform API clients calls",
+  it.each([1, 2, 3])(
+    "Should assign to the certified-discrete group using its original index %s",
     async (groupIndex) => {
       mockGetEServiceTemplate.mockResolvedValueOnce(
         mockGetEServiceTemplateResponse

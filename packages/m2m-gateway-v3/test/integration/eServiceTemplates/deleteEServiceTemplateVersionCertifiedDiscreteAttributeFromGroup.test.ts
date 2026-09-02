@@ -41,6 +41,7 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
 
   const mockAttribute = getMockedApiCertifiedDiscreteAttribute();
   const mockCertifiedDiscreteAttributes = [
+    [getMockedApiEServiceAttribute()],
     [
       getMockedApiCertifiedDiscreteAttribute(),
       getMockedApiCertifiedDiscreteAttribute(),
@@ -90,7 +91,7 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
       mockGetEServiceTemplateResponse
     );
 
-    const groupIndex = 1;
+    const groupIndex = 2;
 
     await eserviceTemplateService.deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
       unsafeBrandId(mockEServiceTemplate.id),
@@ -137,7 +138,7 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
       mockGetEServiceTemplateResponse
     );
 
-    const groupIndex = 2;
+    const groupIndex = 3;
 
     await eserviceTemplateService.deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
       unsafeBrandId(mockEServiceTemplate.id),
@@ -177,7 +178,7 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
       eserviceTemplateService.deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
         unsafeBrandId(mockEServiceTemplate.id),
         unsafeBrandId(mockVersion.id),
-        1,
+        2,
         unsafeBrandId(mockAttribute.id),
         getMockM2MAdminAppContext()
       )
@@ -197,7 +198,7 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
       eserviceTemplateService.deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
         unsafeBrandId(mockEServiceTemplate.id),
         unsafeBrandId(mockVersion.id),
-        1,
+        2,
         unsafeBrandId(mockAttribute.id),
         getMockM2MAdminAppContext()
       )
@@ -219,7 +220,7 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
       eserviceTemplateService.deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
         unsafeBrandId(mockEServiceTemplate.id),
         unsafeBrandId(mockVersion.id),
-        1,
+        2,
         unsafeBrandId(mockAttribute.id),
         getMockM2MAdminAppContext()
       )
@@ -258,7 +259,7 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
       eserviceTemplateService.deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
         unsafeBrandId(mockEServiceTemplate.id),
         unsafeBrandId(mockVersion.id),
-        1,
+        2,
         unsafeBrandId(generateId()),
         getMockM2MAdminAppContext()
       )
@@ -273,7 +274,7 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
       eserviceTemplateService.deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
         unsafeBrandId(mockEServiceTemplate.id),
         unsafeBrandId(versionId),
-        1,
+        2,
         unsafeBrandId(mockAttribute.id),
         getMockM2MAdminAppContext()
       )

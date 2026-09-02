@@ -381,7 +381,9 @@ export function eserviceTemplateServiceBuilder(
       attributeKind
     );
 
-    const indexedAttributeGroup = indexedKindAttributeGroups.at(groupIndex);
+    const indexedAttributeGroup = indexedKindAttributeGroups.find(
+      ({ index }) => index === groupIndex
+    );
 
     if (!indexedAttributeGroup) {
       throw eserviceTemplateVersionAttributeGroupNotFound(
@@ -449,7 +451,9 @@ export function eserviceTemplateServiceBuilder(
       version,
       attributeKind
     );
-    const indexedAttributeGroup = indexedKindAttributeGroups.at(groupIndex);
+    const indexedAttributeGroup = indexedKindAttributeGroups.find(
+      ({ index }) => index === groupIndex
+    );
     if (!indexedAttributeGroup) {
       throw eserviceTemplateVersionAttributeGroupNotFound(
         templateAttributeKind,
