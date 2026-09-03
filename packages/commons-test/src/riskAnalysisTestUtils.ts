@@ -112,14 +112,47 @@ export const validRiskAnalysis3_1_Pa_no_personal_data: RiskAnalysisFormToValidat
   };
 
 export const validRiskAnalysis3_2_Pa: RiskAnalysisFormToValidate = {
-  ...validRiskAnalysis3_1_Pa,
   version: "3.2",
+  tenantKind: tenantKind.PA,
+  answers: {
+    purpose: ["INSTITUTIONAL"],
+    institutionalPurpose: ["MyPurpose"],
+    usesPersonalData: ["YES"],
+    personalDataTypes: ["OTHER"],
+    otherPersonalDataTypes: ["MyDataTypes"],
+    legalBasis: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+    legalObligationReference: ["YES"],
+    legalBasisPublicInterest: ["RULE_OF_LAW"],
+    ruleOfLawText: ["TheLaw"],
+    knowsDataQuantity: ["NO"],
+    dataQuantity: [],
+    dataDownload: ["YES"],
+    deliveryMethod: ["CLEARTEXT"],
+    policyProvided: ["NO"],
+    confirmPricipleIntegrityAndDiscretion: ["true"],
+    reasonPolicyNotProvided: ["Because"],
+    doneDpia: ["NO"],
+    dataRetentionPeriod: ["10"],
+    purposePursuit: ["MERE_CORRECTNESS"],
+    checkedExistenceMereCorrectnessInteropCatalogue: ["true"],
+    isRequestOnBehalfOfThirdParties: ["YES"],
+    thirdPartiesRequestDataUsage: ["PA_ONLY"],
+    declarationConfirmGDPR: ["true"],
+  },
 };
 
 export const validRiskAnalysis3_2_Pa_no_personal_data: RiskAnalysisFormToValidate =
   {
-    ...validRiskAnalysis3_1_Pa_no_personal_data,
     version: "3.2",
+    tenantKind: tenantKind.PA,
+    answers: {
+      purpose: ["INSTITUTIONAL"],
+      institutionalPurpose: ["MyPurpose"],
+      usesPersonalData: ["NO"],
+      usesThirdPartyPersonalData: ["NO"],
+      isRequestOnBehalfOfThirdParties: ["YES"],
+      thirdPartiesRequestDataUsage: ["PA_ONLY"],
+    },
   };
 
 export const validatedRiskAnalysis2_0_Pa_Expired: RiskAnalysisValidatedForm = {
@@ -234,14 +267,52 @@ export const validatedRiskAnalysis3_1_Pa_no_personal_data: RiskAnalysisValidated
   };
 
 export const validatedRiskAnalysis3_2_Pa: RiskAnalysisValidatedForm = {
-  ...validatedRiskAnalysis3_1_Pa,
   version: validRiskAnalysis3_2_Pa.version,
+  tenantKind: tenantKind.PA,
+  singleAnswers: [
+    { key: "purpose", value: "INSTITUTIONAL" },
+    { key: "institutionalPurpose", value: "MyPurpose" },
+    { key: "usesPersonalData", value: "YES" },
+    { key: "otherPersonalDataTypes", value: "MyDataTypes" },
+    { key: "legalObligationReference", value: "YES" },
+    { key: "legalBasisPublicInterest", value: "RULE_OF_LAW" },
+    { key: "ruleOfLawText", value: "TheLaw" },
+    { key: "knowsDataQuantity", value: "NO" },
+    { key: "dataDownload", value: "YES" },
+    { key: "deliveryMethod", value: "CLEARTEXT" },
+    { key: "policyProvided", value: "NO" },
+    { key: "confirmPricipleIntegrityAndDiscretion", value: "true" },
+    { key: "reasonPolicyNotProvided", value: "Because" },
+    { key: "doneDpia", value: "NO" },
+    { key: "dataRetentionPeriod", value: "10" },
+    { key: "purposePursuit", value: "MERE_CORRECTNESS" },
+    {
+      key: "checkedExistenceMereCorrectnessInteropCatalogue",
+      value: "true",
+    },
+    { key: "isRequestOnBehalfOfThirdParties", value: "YES" },
+    { key: "thirdPartiesRequestDataUsage", value: "PA_ONLY" },
+    { key: "declarationConfirmGDPR", value: "true" },
+  ],
+  multiAnswers: [
+    { key: "personalDataTypes", values: ["OTHER"] },
+    { key: "legalBasis", values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"] },
+  ],
 };
 
 export const validatedRiskAnalysis3_2_Pa_no_personal_data: RiskAnalysisValidatedForm =
   {
-    ...validatedRiskAnalysis3_1_Pa_no_personal_data,
     version: validRiskAnalysis3_2_Pa.version,
+    tenantKind: tenantKind.PA,
+    singleAnswers: [
+      { key: "purpose", value: "INSTITUTIONAL" },
+      { key: "institutionalPurpose", value: "MyPurpose" },
+      { key: "usesPersonalData", value: "NO" },
+      { key: "usesThirdPartyPersonalData", value: "NO" },
+      { key: "isRequestOnBehalfOfThirdParties", value: "YES" },
+      { key: "thirdPartiesRequestDataUsage", value: "PA_ONLY" },
+    ],
+    multiAnswers: [],
   };
 
 export const expiredRiskAnalysis1_0_Private: RiskAnalysisFormToValidate = {
@@ -365,13 +436,63 @@ export const validatedRiskAnalysis2_0_Private: RiskAnalysisValidatedForm = {
 };
 
 export const validRiskAnalysis2_1_Private: RiskAnalysisFormToValidate = {
-  ...validRiskAnalysis2_0_Private,
   version: "2.1",
+  tenantKind: tenantKind.PRIVATE,
+  answers: {
+    purpose: ["INSTITUTIONAL"],
+    institutionalPurpose: ["MyPurpose"],
+    usesPersonalData: ["YES"],
+    personalDataTypes: ["OTHER"],
+    otherPersonalDataTypes: ["MyDataTypes"],
+    legalBasis: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"],
+    legalObligationReference: ["YES"],
+    legalBasisPublicInterest: ["RULE_OF_LAW"],
+    ruleOfLawText: ["TheLaw"],
+    knowsDataQuantity: ["NO"],
+    dataQuantity: [],
+    dataDownload: ["YES"],
+    deliveryMethod: ["CLEARTEXT"],
+    policyProvided: ["NO"],
+    confirmPricipleIntegrityAndDiscretion: ["true"],
+    reasonPolicyNotProvided: ["Because"],
+    doneDpia: ["NO"],
+    dataRetentionPeriod: ["10"],
+    purposePursuit: ["MERE_CORRECTNESS"],
+    checkedExistenceMereCorrectnessInteropCatalogue: ["true"],
+    declarationConfirmGDPR: ["true"],
+  },
 };
 
 export const validatedRiskAnalysis2_1_Private: RiskAnalysisValidatedForm = {
-  ...validatedRiskAnalysis2_0_Private,
   version: validRiskAnalysis2_1_Private.version,
+  tenantKind: tenantKind.PRIVATE,
+  singleAnswers: [
+    { key: "purpose", value: "INSTITUTIONAL" },
+    { key: "institutionalPurpose", value: "MyPurpose" },
+    { key: "usesPersonalData", value: "YES" },
+    { key: "otherPersonalDataTypes", value: "MyDataTypes" },
+    { key: "legalObligationReference", value: "YES" },
+    { key: "legalBasisPublicInterest", value: "RULE_OF_LAW" },
+    { key: "ruleOfLawText", value: "TheLaw" },
+    { key: "knowsDataQuantity", value: "NO" },
+    { key: "dataDownload", value: "YES" },
+    { key: "deliveryMethod", value: "CLEARTEXT" },
+    { key: "policyProvided", value: "NO" },
+    { key: "confirmPricipleIntegrityAndDiscretion", value: "true" },
+    { key: "reasonPolicyNotProvided", value: "Because" },
+    { key: "doneDpia", value: "NO" },
+    { key: "dataRetentionPeriod", value: "10" },
+    { key: "purposePursuit", value: "MERE_CORRECTNESS" },
+    {
+      key: "checkedExistenceMereCorrectnessInteropCatalogue",
+      value: "true",
+    },
+    { key: "declarationConfirmGDPR", value: "true" },
+  ],
+  multiAnswers: [
+    { key: "personalDataTypes", values: ["OTHER"] },
+    { key: "legalBasis", values: ["LEGAL_OBLIGATION", "PUBLIC_INTEREST"] },
+  ],
 };
 
 export const validSchemaOnlyRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
@@ -396,8 +517,13 @@ export const validSchemaOnlyRiskAnalysis2_0_Private: RiskAnalysisFormToValidate 
 
 export const validSchemaOnlyRiskAnalysis2_1_Private: RiskAnalysisFormToValidate =
   {
-    ...validSchemaOnlyRiskAnalysis2_0_Private,
     version: "2.1",
+    tenantKind: tenantKind.PRIVATE,
+    answers: {
+      purpose: ["INSTITUTIONAL"],
+      usesPersonalData: [],
+      usesThirdPartyPersonalData: [],
+    },
   };
 
 export const getMockValidRiskAnalysis = (
