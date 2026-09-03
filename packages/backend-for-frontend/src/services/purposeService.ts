@@ -24,6 +24,7 @@ import {
   PurposeVersionId,
   RiskAnalysisId,
   WithMetadata,
+  genericError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 
@@ -959,7 +960,7 @@ export function purposeServiceBuilder(
         });
 
       if (purposeWithMetadata.metadata === undefined) {
-        throw new Error(`Missing metadata for purpose ${id}`);
+        throw genericError(`Missing metadata for purpose ${id}`);
       }
 
       const purpose = purposeWithMetadata.data;
