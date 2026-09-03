@@ -29,7 +29,6 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "catalog:",
-    "@aws-sdk/client-s3": "catalog:",
     "@aws-sdk/client-sqs": "catalog:",
     "date-fns": "catalog:",
     "pagopa-interop-api-clients": "workspace:*",
