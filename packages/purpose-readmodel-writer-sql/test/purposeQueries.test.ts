@@ -15,6 +15,7 @@ import {
   tenantKind,
   PurposeTemplateId,
   UserId,
+  riskAnalysisReviewMode,
   riskAnalysisSigningState,
   RiskAnalysisReviewer,
 } from "pagopa-interop-models";
@@ -81,7 +82,7 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
-        reviewMode: "AdminWritesReviewerSigns",
+        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers,
           signingState: riskAnalysisSigningState.submitted,
@@ -222,7 +223,7 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
-        reviewMode: "AdminWritesReviewerSigns",
+        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers,
           signingState: riskAnalysisSigningState.submitted,
