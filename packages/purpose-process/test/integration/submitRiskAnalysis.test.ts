@@ -21,6 +21,7 @@ import {
   ReviewerWorkflow,
   unsafeBrandId,
   TenantId,
+  UserId,
   tenantKind,
   Tenant,
   EService,
@@ -118,14 +119,22 @@ describe("submitRiskAnalysis", () => {
 
   it("should write PurposeRiskAnalysisSubmitted on event-store for a purpose in Rejected state", async () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date());
+    const now = new Date();
+    vi.setSystemTime(now);
 
     const workflow: ReviewerWorkflow = {
       reviewers: [
-        { id: unsafeBrandId(generateId()), sentToReviewerAt: new Date() },
+        {
+          id: unsafeBrandId(generateId()),
+          sentToReviewerAt: new Date("2020-01-01T00:00:00.000Z"),
+        },
+        {
+          id: unsafeBrandId(generateId()),
+          sentToReviewerAt: new Date("2021-01-01T00:00:00.000Z"),
+        },
       ],
       signingState: riskAnalysisSigningState.rejected,
-      rejectedBy: unsafeBrandId(generateId()),
+      rejectedBy: generateId<UserId>(),
       rejectionReason: "some reason",
     };
 
@@ -145,6 +154,13 @@ describe("submitRiskAnalysis", () => {
       mockPurpose.id,
       { riskAnalysisForm: validFormSeed },
       getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+    );
+
+    expect(updatedPurpose.reviewerWorkflow?.reviewers).toEqual(
+      workflow.reviewers.map((reviewer) => ({
+        ...reviewer,
+        sentToReviewerAt: now,
+      }))
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);

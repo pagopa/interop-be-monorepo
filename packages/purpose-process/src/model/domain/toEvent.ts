@@ -497,14 +497,14 @@ export const toCreateEventRiskAnalysisSignedDocumentGenerated = ({
 
 export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
   purpose,
-  newReviewers,
-  oldReviewers,
+  newReviewersToNotify,
+  oldReviewersToNotify,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  newReviewers: UserId[];
-  oldReviewers: UserId[];
+  newReviewersToNotify: UserId[];
+  oldReviewersToNotify: UserId[];
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -513,21 +513,25 @@ export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
   event: {
     type: "PurposeRiskAnalysisWorkflowCreated",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose), newReviewers, oldReviewers },
+    data: {
+      purpose: toPurposeV2(purpose),
+      newReviewersToNotify,
+      oldReviewersToNotify,
+    },
   },
   correlationId,
 });
 
 export const toCreateEventPurposeRiskAnalysisAssigned = ({
   purpose,
-  newReviewers,
-  oldReviewers,
+  newReviewersToNotify,
+  oldReviewersToNotify,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  newReviewers: UserId[];
-  oldReviewers: UserId[];
+  newReviewersToNotify: UserId[];
+  oldReviewersToNotify: UserId[];
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -536,19 +540,23 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
   event: {
     type: "PurposeRiskAnalysisAssigned",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose), newReviewers, oldReviewers },
+    data: {
+      purpose: toPurposeV2(purpose),
+      newReviewersToNotify,
+      oldReviewersToNotify,
+    },
   },
   correlationId,
 });
 
 export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
   purpose,
-  oldReviewers,
+  oldReviewersToNotify,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  oldReviewers: UserId[];
+  oldReviewersToNotify: UserId[];
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -557,7 +565,7 @@ export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
   event: {
     type: "PurposeRiskAnalysisSelfAssigned",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose), oldReviewers },
+    data: { purpose: toPurposeV2(purpose), oldReviewersToNotify },
   },
   correlationId,
 });

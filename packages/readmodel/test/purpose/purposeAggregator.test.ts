@@ -12,7 +12,6 @@ import {
   PurposeTemplateId,
   PurposeVersion,
   RiskAnalysisId,
-  RiskAnalysisReviewer,
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
   tenantKind,
@@ -40,7 +39,7 @@ describe("Purpose aggregator", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
-    const reviewers: RiskAnalysisReviewer[] = [
+    const reviewers = [
       { id: generateId<UserId>(), sentToReviewerAt: new Date() },
       { id: generateId<UserId>(), sentToReviewerAt: new Date() },
     ];
