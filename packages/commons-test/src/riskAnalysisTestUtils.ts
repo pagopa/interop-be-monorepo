@@ -111,6 +111,17 @@ export const validRiskAnalysis3_1_Pa_no_personal_data: RiskAnalysisFormToValidat
     },
   };
 
+export const validRiskAnalysis3_2_Pa: RiskAnalysisFormToValidate = {
+  ...validRiskAnalysis3_1_Pa,
+  version: "3.2",
+};
+
+export const validRiskAnalysis3_2_Pa_no_personal_data: RiskAnalysisFormToValidate =
+  {
+    ...validRiskAnalysis3_1_Pa_no_personal_data,
+    version: "3.2",
+  };
+
 export const validatedRiskAnalysis2_0_Pa_Expired: RiskAnalysisValidatedForm = {
   version: "2.0",
   tenantKind: tenantKind.PA,
@@ -220,6 +231,17 @@ export const validatedRiskAnalysis3_1_Pa_no_personal_data: RiskAnalysisValidated
       { key: "thirdPartiesRequestDataUsage", value: "PA_ONLY" },
     ],
     multiAnswers: [],
+  };
+
+export const validatedRiskAnalysis3_2_Pa: RiskAnalysisValidatedForm = {
+  ...validatedRiskAnalysis3_1_Pa,
+  version: validRiskAnalysis3_2_Pa.version,
+};
+
+export const validatedRiskAnalysis3_2_Pa_no_personal_data: RiskAnalysisValidatedForm =
+  {
+    ...validatedRiskAnalysis3_1_Pa_no_personal_data,
+    version: validRiskAnalysis3_2_Pa.version,
   };
 
 export const expiredRiskAnalysis1_0_Private: RiskAnalysisFormToValidate = {
@@ -342,6 +364,16 @@ export const validatedRiskAnalysis2_0_Private: RiskAnalysisValidatedForm = {
   ],
 };
 
+export const validRiskAnalysis2_1_Private: RiskAnalysisFormToValidate = {
+  ...validRiskAnalysis2_0_Private,
+  version: "2.1",
+};
+
+export const validatedRiskAnalysis2_1_Private: RiskAnalysisValidatedForm = {
+  ...validatedRiskAnalysis2_0_Private,
+  version: validRiskAnalysis2_1_Private.version,
+};
+
 export const validSchemaOnlyRiskAnalysis3_0_Pa: RiskAnalysisFormToValidate = {
   version: "3.0",
   tenantKind: tenantKind.PA,
@@ -362,19 +394,25 @@ export const validSchemaOnlyRiskAnalysis2_0_Private: RiskAnalysisFormToValidate 
     },
   };
 
+export const validSchemaOnlyRiskAnalysis2_1_Private: RiskAnalysisFormToValidate =
+  {
+    ...validSchemaOnlyRiskAnalysis2_0_Private,
+    version: "2.1",
+  };
+
 export const getMockValidRiskAnalysis = (
   producerTenantKind: TenantKind
 ): RiskAnalysis =>
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
-        validatedRiskAnalysis3_1_Pa,
+        validatedRiskAnalysis3_2_Pa,
         generateMock(z.string())
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysis(
-        { ...validatedRiskAnalysis2_0_Private, tenantKind: producerTenantKind },
+        { ...validatedRiskAnalysis2_1_Private, tenantKind: producerTenantKind },
         generateMock(z.string())
       )
     )
@@ -435,12 +473,12 @@ export const getMockValidRiskAnalysisForm = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysis3_1_Pa
+        validatedRiskAnalysis3_2_Pa
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormToNewRiskAnalysisForm(
-        validatedRiskAnalysis2_0_Private
+        validatedRiskAnalysis2_1_Private
       )
     )
     .exhaustive();
