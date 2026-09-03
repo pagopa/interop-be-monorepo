@@ -439,16 +439,21 @@ const validatePersonalDataFlag = ({
       formRules.PRIVATE_1_0,
       () => []
     )
-    .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () =>
-      match(personalDataInEService)
-        .with(P.boolean, () => {
-          if (personalDataInEService !== personalDataInRiskAnalysis) {
-            return [incompatiblePersonalDataError()];
-          }
-          return [];
-        })
-        .with(undefined, () => [])
-        .exhaustive()
+    .with(
+      formRules.PA_3_1,
+      formRules.PA_3_2,
+      formRules.PRIVATE_2_0,
+      formRules.PRIVATE_2_1,
+      () =>
+        match(personalDataInEService)
+          .with(P.boolean, () => {
+            if (personalDataInEService !== personalDataInRiskAnalysis) {
+              return [incompatiblePersonalDataError()];
+            }
+            return [];
+          })
+          .with(undefined, () => [])
+          .exhaustive()
     )
     .exhaustive();
 };
