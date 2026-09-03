@@ -16,7 +16,7 @@ const errorCodes = {
   tenantNotFoundBySelfcareId: "0006",
   selfcareIdConflict: "0007",
   verifiedAttributeNotFoundInTenant: "0008",
-  expirationDateCannotBeInThePast: "009",
+  expirationDateCannotBeInThePast: "0009",
   tenantNotFoundInVerifiers: "0010",
   expirationDateNotFoundInVerifier: "0011",
   tenantIsNotACertifier: "0012",
