@@ -2,10 +2,7 @@
 /* eslint-disable functional/no-let */
 import {
   fileManagerCopyError,
-  fileManagerDeleteError,
   fileManagerGetError,
-  fileManagerListFilesError,
-  fileManagerStoreBytesError,
   genericLogger,
   streamToString,
 } from "pagopa-interop-commons";
@@ -45,11 +42,7 @@ describe("FileManager tests", async () => {
           genericLogger
         )
       ).rejects.toThrowError(
-        fileManagerStoreBytesError(
-          "test/test/test",
-          "invalid bucket",
-          new Error("The specified bucket is not valid.")
-        )
+        "Error storing file test/test/test in bucket invalid bucket:"
       );
     });
   });
@@ -94,11 +87,7 @@ describe("FileManager tests", async () => {
       await expect(
         fileManager.get("invalid bucket", "test", genericLogger)
       ).rejects.toThrowError(
-        fileManagerGetError(
-          "invalid bucket",
-          "test",
-          new Error("The specified bucket is not valid.")
-        )
+        "Error getting file test in bucket invalid bucket:"
       );
     });
   });
@@ -140,12 +129,7 @@ describe("FileManager tests", async () => {
     it("should fail if the bucket does not exist", async () => {
       await expect(
         fileManager.listFiles("invalid bucket", genericLogger)
-      ).rejects.toThrowError(
-        fileManagerListFilesError(
-          "invalid bucket",
-          new Error("The specified bucket is not valid.")
-        )
-      );
+      ).rejects.toThrowError("Error listing files in bucket invalid bucket:");
     });
   });
 
@@ -179,11 +163,7 @@ describe("FileManager tests", async () => {
       await expect(
         fileManager.delete("invalid bucket", "test/test/test", genericLogger)
       ).rejects.toThrowError(
-        fileManagerDeleteError(
-          "test/test/test",
-          "invalid bucket",
-          new Error("The specified bucket is not valid.")
-        )
+        "Error deleting file test/test/test from bucket invalid bucket:"
       );
     });
   });
@@ -256,12 +236,7 @@ describe("FileManager tests", async () => {
           genericLogger
         )
       ).rejects.toThrowError(
-        fileManagerCopyError(
-          "test/test/test",
-          "test/test/testCopy",
-          "invalid bucket",
-          new Error("The specified bucket is not valid.")
-        )
+        "Error copying file test/test/test to test/test/testCopy in bucket invalid bucket:"
       );
     });
 
