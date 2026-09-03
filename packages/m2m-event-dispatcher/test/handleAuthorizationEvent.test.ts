@@ -596,6 +596,8 @@ function buildTestCaseData(
           resourceVersion: 1,
           kid: key.kid,
           clientId: client.id,
+          consumerId: client.consumerId,
+          visibility: m2mEventVisibility.owner,
         },
         type: "key",
       }))
@@ -622,6 +624,8 @@ function buildTestCaseData(
             resourceVersion: 1,
             kid: producerKey.kid,
             producerKeychainId: producerKeychain.id,
+            producerId: producerKeychain.producerId,
+            visibility: m2mEventVisibility.owner,
           },
           type: "producerKey",
         })

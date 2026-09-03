@@ -9,7 +9,10 @@ import { generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
-import { jwkNotFound } from "../../src/model/domain/errors.js";
+import {
+  jwkNotFound,
+  tenantNotAllowedOnClient,
+} from "../../src/model/domain/errors.js";
 import { api, authorizationService } from "../vitest.api.setup.js";
 
 describe("API /keys/{keyId} authorization test", () => {
@@ -62,6 +65,17 @@ describe("API /keys/{keyId} authorization test", () => {
     authorizationService.getJWKByKid = vi
       .fn()
       .mockRejectedValue(jwkNotFound(mockKey.kid));
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockKey.kid);
+    expect(res.status).toBe(404);
+  });
+
+  it("Should return 404 for tenantNotAllowedOnClient", async () => {
+    authorizationService.getJWKByKid = vi
+      .fn()
+      .mockRejectedValue(
+        tenantNotAllowedOnClient(generateId(), mockKey.clientId)
+      );
     const token = generateToken(authRole.M2M_ADMIN_ROLE);
     const res = await makeRequest(token, mockKey.kid);
     expect(res.status).toBe(404);
