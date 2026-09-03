@@ -211,6 +211,22 @@ describe("database test", async () => {
             !initialInAppConfig.purposeQuotaAdjustmentRequestToProducer,
           purposeOverQuotaStateToConsumer:
             !initialInAppConfig.purposeOverQuotaStateToConsumer,
+          purposeRiskAnalysisAssignedForSigningToReviewer:
+            !initialInAppConfig.purposeRiskAnalysisAssignedForSigningToReviewer,
+          purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+            !initialInAppConfig.purposeRiskAnalysisAssignedForWritingAndSigningToReviewer,
+          purposePublishedWithRiskAnalysisToReviewer:
+            !initialInAppConfig.purposePublishedWithRiskAnalysisToReviewer,
+          draftPurposeDeletedWithRiskAnalysisToReviewer:
+            !initialInAppConfig.draftPurposeDeletedWithRiskAnalysisToReviewer,
+          purposeRiskAnalysisAssignmentRemovedToReviewer:
+            !initialInAppConfig.purposeRiskAnalysisAssignmentRemovedToReviewer,
+          purposeRiskAnalysisSignedToReviewer:
+            !initialInAppConfig.purposeRiskAnalysisSignedToReviewer,
+          purposeRiskAnalysisSignedToAdmin:
+            !initialInAppConfig.purposeRiskAnalysisSignedToAdmin,
+          purposeRiskAnalysisRejectedToAdmin:
+            !initialInAppConfig.purposeRiskAnalysisRejectedToAdmin,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer:
