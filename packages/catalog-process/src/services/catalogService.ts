@@ -13,6 +13,7 @@ import {
   riskAnalysisValidatedFormToNewRiskAnalysis,
   riskAnalysisValidatedFormToNewRiskAnalysisForm,
   UIAuthData,
+  validateNoHyperlinksSafe,
   verifyAndCreateDocument,
   WithLogger,
   dateAtRomeZone,
@@ -126,6 +127,7 @@ import {
   eServiceAsyncExchangeNotEnabled,
   templateVersionMissingAsyncExchangeProperties,
   certifiedAttributeGroupNotFoundInSeed,
+  noDelegationForArchivingRequest,
 } from "../model/domain/errors.js";
 import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
 import {
@@ -184,7 +186,25 @@ import {
   toCreateEventEServiceArchivingCanceled,
   toCreateEventEServiceArchivingCompleted,
   toCreateEventMaintenanceEServiceDescriptorUnarchived,
+  toCreateEventEServiceArchivingRequestedByDelegate,
+  toCreateEventEServiceDescriptorArchivingRequestedByDelegate,
+  toCreateEventEServiceArchivingRequestApprovedByDelegator,
+  toCreateEventEServiceArchivingRequestCanceledByRevokedDelegation,
+  toCreateEventEServiceDescriptorArchivingRequestCanceledByRevokedDelegation,
+  toCreateEventEServiceArchivingRequestRejectedByDelegator,
+  toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator,
+  toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
+  toCreateEventEServiceArchivingRequestCanceledByDelegate,
+  toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate,
 } from "../model/domain/toEvent.js";
+import {
+  appendArchivingRequest,
+  getLatestActiveArchivingRequest,
+  getLatestArchivingRequest,
+  hasActiveArchivingRequest,
+  removeActiveArchivingRequest,
+  updateLatestActiveArchivingRequest,
+} from "../utilities/archivingRequests.js";
 import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestDescriptor,
@@ -239,6 +259,13 @@ import {
   assertEServiceIsInArchiving,
   assertEServiceIsNotAlreadyArchived,
   assertEServiceGracePeriodIsNotLowerThanDescriptors,
+  assertRequesterIsDelegateForArchiving,
+  assertDelegatedEserviceHasNoActiveArchivingRequests,
+  assertDelegatedEserviceHasAtLeastOneArchivingRequests,
+  assertDelegatedEserviceHasActiveArchivingRequests,
+  assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
+  assertDelegatedDescriptorHasActiveArchivingRequests,
+  assertDelegatedArchivingRequestDelegationIsStillValid,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -637,6 +664,9 @@ async function innerCreateEService(
   eService: EService;
   events: Array<CreateEvent<EServiceEvent>>;
 }> {
+  validateNoHyperlinksSafe(seed.name);
+  validateNoHyperlinksSafe(seed.description);
+
   const origin = await retrieveOriginFromAuthData(
     authData,
     readModelService,
@@ -923,6 +953,29 @@ function createNextDescriptor(
   };
 }
 
+async function cloneDocumentWithNewId(
+  document: Document,
+  fileManager: FileManager,
+  logger: Logger
+): Promise<Document> {
+  const clonedDocumentId = generateId<EServiceDocumentId>();
+  const clonedDocumentPath = await fileManager.copy(
+    config.s3Bucket,
+    document.path,
+    config.eserviceDocumentsPath,
+    clonedDocumentId,
+    document.name,
+    logger
+  );
+
+  return {
+    ...document,
+    id: clonedDocumentId,
+    path: clonedDocumentPath,
+    uploadDate: new Date(),
+  };
+}
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function catalogServiceBuilder(
   dbInstance: DB,
@@ -1137,6 +1190,8 @@ export function catalogServiceBuilder(
     ): Promise<EService> {
       logger.info(`Updating EService ${eserviceId} template instance`);
 
+      validateNoHyperlinksSafe(eserviceSeed.instanceLabel);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
       await assertRequesterIsDelegateProducerOrProducer(
         eservice.data.producerId,
@@ -1258,6 +1313,9 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Archiving EService ${eserviceId}`);
+
+      validateNoHyperlinksSafe(body.archivingReason);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
       const requestDate = new Date();
 
@@ -1296,6 +1354,148 @@ export function catalogServiceBuilder(
         metadata: { version: createdEvent.newVersion },
       };
     },
+    async approveDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+      assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+      assertEServiceArchivable(eservice.data);
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId
+      );
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        latestActiveRequest.requestedAt,
+        eservice.data,
+        latestActiveRequest.gracePeriodDays
+      );
+
+      const now = new Date();
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          acceptedAt: now,
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const lastRequest = getLatestArchivingRequest(
+        updatedRequests,
+        eserviceId
+      );
+
+      const archivableEservice = await processEserviceArchiving(
+        now,
+        updatedEService,
+        {
+          gracePeriodDays: lastRequest.gracePeriodDays,
+          archivingReason: lastRequest.archivingReason,
+        },
+        fileManager,
+        logger
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestApprovedByDelegator(
+          eservice.metadata.version,
+          archivableEservice,
+          correlationId
+        )
+      );
+      return {
+        data: archivableEservice,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async rejectDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      body: catalogApi.RejectDelegatedEServiceArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Rejecting delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+      assertDelegatedEserviceHasAtLeastOneArchivingRequests(eservice.data);
+
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId
+      );
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason: body.rejectionReason,
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestRejectedByDelegator(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
     async uploadDocument(
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1309,6 +1509,9 @@ export function catalogServiceBuilder(
           document.filePath
         } for EService ${eserviceId} and Descriptor ${descriptorId}`
       );
+
+      validateNoHyperlinksSafe(document.fileName);
+      validateNoHyperlinksSafe(document.prettyName);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -1453,6 +1656,10 @@ export function catalogServiceBuilder(
         `Updating Document ${documentId} of Descriptor ${descriptorId} for EService ${eserviceId}`
       );
 
+      validateNoHyperlinksSafe(
+        apiEServiceDescriptorDocumentUpdateSeed.prettyName
+      );
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertEServiceNotTemplateInstance(
@@ -1549,6 +1756,12 @@ export function catalogServiceBuilder(
       }>
     > {
       logger.info(`Creating Descriptor for EService ${eserviceId}`);
+
+      validateNoHyperlinksSafe(eserviceDescriptorSeed.description);
+      eserviceDescriptorSeed.docs.forEach((doc) => {
+        validateNoHyperlinksSafe(doc.fileName);
+        validateNoHyperlinksSafe(doc.prettyName);
+      });
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2170,83 +2383,27 @@ export function catalogServiceBuilder(
 
       const descriptor = retrieveDescriptor(descriptorId, eservice);
 
-      const clonedInterfaceId = generateId<EServiceDocumentId>();
-      const clonedInterfacePath =
-        descriptor.interface !== undefined
-          ? await fileManager.copy(
-              config.s3Bucket,
-              descriptor.interface.path,
-              config.eserviceDocumentsPath,
-              clonedInterfaceId,
-              descriptor.interface.name,
+      const clonedInterfaceDocument = descriptor.interface
+        ? await cloneDocumentWithNewId(
+            descriptor.interface,
+            fileManager,
+            logger
+          )
+        : undefined;
+
+      const clonedAsyncExchangeCallbackInterfaceDocument =
+        descriptor.asyncExchangeCallbackInterface
+          ? await cloneDocumentWithNewId(
+              descriptor.asyncExchangeCallbackInterface,
+              fileManager,
               logger
             )
-          : undefined;
-
-      const clonedInterfaceDocument: Document | undefined =
-        descriptor.interface !== undefined && clonedInterfacePath !== undefined
-          ? {
-              id: clonedInterfaceId,
-              name: descriptor.interface.name,
-              contentType: descriptor.interface.contentType,
-              prettyName: descriptor.interface.prettyName,
-              path: clonedInterfacePath,
-              checksum: descriptor.interface.checksum,
-              uploadDate: new Date(),
-            }
-          : undefined;
-
-      const clonedAsyncExchangeCallbackInterfaceId =
-        generateId<EServiceDocumentId>();
-      const clonedAsyncExchangeCallbackInterfacePath =
-        descriptor.asyncExchangeCallbackInterface !== undefined
-          ? await fileManager.copy(
-              config.s3Bucket,
-              descriptor.asyncExchangeCallbackInterface.path,
-              config.eserviceDocumentsPath,
-              clonedAsyncExchangeCallbackInterfaceId,
-              descriptor.asyncExchangeCallbackInterface.name,
-              logger
-            )
-          : undefined;
-
-      const clonedAsyncExchangeCallbackInterfaceDocument: Document | undefined =
-        descriptor.asyncExchangeCallbackInterface !== undefined &&
-        clonedAsyncExchangeCallbackInterfacePath !== undefined
-          ? {
-              id: clonedAsyncExchangeCallbackInterfaceId,
-              name: descriptor.asyncExchangeCallbackInterface.name,
-              contentType:
-                descriptor.asyncExchangeCallbackInterface.contentType,
-              prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
-              path: clonedAsyncExchangeCallbackInterfacePath,
-              checksum: descriptor.asyncExchangeCallbackInterface.checksum,
-              uploadDate: new Date(),
-            }
           : undefined;
 
       const clonedDocuments = await Promise.all(
-        descriptor.docs.map(async (doc: Document) => {
-          const clonedDocumentId = generateId<EServiceDocumentId>();
-          const clonedDocumentPath = await fileManager.copy(
-            config.s3Bucket,
-            doc.path,
-            config.eserviceDocumentsPath,
-            clonedDocumentId,
-            doc.name,
-            logger
-          );
-          const clonedDocument: Document = {
-            id: clonedDocumentId,
-            name: doc.name,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: clonedDocumentPath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-          return clonedDocument;
-        })
+        descriptor.docs.map((doc) =>
+          cloneDocumentWithNewId(doc, fileManager, logger)
+        )
       );
 
       const clonedEservice: EService = {
@@ -2273,10 +2430,13 @@ export function catalogServiceBuilder(
             suspendedAt: undefined,
             deprecatedAt: undefined,
             archivedAt: undefined,
+            rejectionReasons: undefined,
+            delegatedArchivingRequest: undefined,
           },
         ],
         personalData: eservice.data.personalData,
         asyncExchange: eservice.data.asyncExchange,
+        delegatedArchivingRequest: undefined,
       };
       const event = toCreateEventClonedEServiceAdded(
         descriptorId,
@@ -2304,8 +2464,11 @@ export function catalogServiceBuilder(
 
       assertDescriptorIsNotAlreadyArchived(descriptor);
 
+      const descriptorAfterCleanup =
+        deletePendingDescriptorArchivingRequests(descriptor);
+
       const updatedDescriptor = updateDescriptorState(
-        descriptor,
+        descriptorAfterCleanup,
         descriptorState.archived
       );
 
@@ -2329,6 +2492,84 @@ export function catalogServiceBuilder(
             );
 
       await repository.createEvent(event);
+    },
+    async internalArchiveDelegatedArchivingRequest(
+      eserviceId: EServiceId,
+      seed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal archiving delegated archiving request for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const rejectionReason = seed.reason;
+
+      if (seed.descriptorId) {
+        const descriptorId = unsafeBrandId<DescriptorId>(seed.descriptorId);
+        const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+        if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+          logger.info(
+            `No active delegated descriptor archiving request found for descriptor ${descriptorId} of EService ${eserviceId}`
+          );
+          return;
+        }
+
+        const updatedRequests = updateLatestActiveArchivingRequest(
+          descriptor.delegatedArchivingRequest ?? [],
+          {
+            rejectedAt: new Date(),
+            rejectionReason,
+          },
+          eserviceId,
+          descriptorId
+        );
+
+        const updatedEService = replaceDescriptor(eservice.data, {
+          ...descriptor,
+          delegatedArchivingRequest: updatedRequests,
+        });
+
+        await repository.createEvent(
+          toCreateEventEServiceDescriptorArchivingRequestCanceledByRevokedDelegation(
+            eservice.metadata.version,
+            descriptorId,
+            updatedEService,
+            correlationId
+          )
+        );
+        return;
+      }
+
+      if (!hasActiveArchivingRequest(eservice.data.delegatedArchivingRequest)) {
+        logger.info(
+          `No active delegated eService archiving request found for EService ${eserviceId}`
+        );
+        return;
+      }
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason,
+        },
+        eserviceId
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      await repository.createEvent(
+        toCreateEventEServiceArchivingRequestCanceledByRevokedDelegation(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
     },
     async archiveEService(
       eserviceId: EServiceId,
@@ -2667,6 +2908,8 @@ export function catalogServiceBuilder(
     > {
       logger.info(`Creating Risk Analysis for EService ${eserviceId}`);
 
+      validateNoHyperlinksSafe(eserviceRiskAnalysisSeed.name);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertEServiceNotTemplateInstance(
@@ -2751,6 +2994,8 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating Risk Analysis ${riskAnalysisId} for EService ${eserviceId}`
       );
+
+      validateNoHyperlinksSafe(eserviceRiskAnalysisSeed.name);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -2938,6 +3183,9 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Updating EService ${eserviceId} description`);
+
+      validateNoHyperlinksSafe(description);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertEServiceNotTemplateInstance(
@@ -3075,6 +3323,8 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Updating name of EService ${eserviceId}`);
+
+      validateNoHyperlinksSafe(name);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -3276,6 +3526,9 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<EService>> {
       logger.info(`Rejecting EService ${eserviceId} version ${descriptorId}`);
+
+      validateNoHyperlinksSafe(body.rejectionReason);
+
       const eservice = await retrieveEService(eserviceId, readModelService);
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
@@ -3311,6 +3564,424 @@ export function catalogServiceBuilder(
         toCreateEventEServiceDescriptorRejectedByDelegator(
           eservice.metadata.version,
           descriptor.id,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    // Delegated archiving requests
+    async submitDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      seed: catalogApi.EServiceArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Submitting delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      assertEServiceArchivable(eservice.data);
+      assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
+      assertEServiceGracePeriodIsNotLowerThanDescriptors(
+        new Date(),
+        eservice.data,
+        seed.gracePeriodDays
+      );
+
+      const updatedRequests = appendArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        {
+          requestedAt: new Date(),
+          requesterId: authData.organizationId,
+          gracePeriodDays: seed.gracePeriodDays,
+          archivingReason: seed.archivingReason,
+        }
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestedByDelegate(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async submitDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.GracePeriodDaysSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Submitting delegated archiving request for Descriptor ${descriptorId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorArchivable(descriptor, eservice.data);
+      assertDelegatedEserviceHasNoActiveArchivingRequests(eservice.data);
+
+      const updatedRequests = appendArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        {
+          requestedAt: new Date(),
+          requesterId: authData.organizationId,
+          gracePeriodDays: seed.gracePeriodDays,
+        }
+      );
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestedByDelegate(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async cancelDelegatedEServiceArchiving(
+      eserviceId: EServiceId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Cancelling delegated archiving request for EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      assertDelegatedEserviceHasActiveArchivingRequests(eservice.data);
+      const activeArchivingRequest = getLatestActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest,
+        eserviceId
+      );
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        activeArchivingRequest,
+        eserviceId
+      );
+      const updatedRequests = removeActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest
+      );
+
+      const updatedEService: EService = {
+        ...eservice.data,
+        delegatedArchivingRequest: updatedRequests,
+      };
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceArchivingRequestCanceledByDelegate(
+          eservice.metadata.version,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async cancelDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Cancelling delegated archiving request for Descriptor ${descriptorId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      if (!producerDelegation) {
+        throw noDelegationForArchivingRequest(eserviceId);
+      }
+
+      assertRequesterIsDelegateForArchiving(producerDelegation, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      const activeArchivingRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        activeArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      const updatedRequests = removeActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest
+      );
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async rejectDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: catalogApi.RejectDelegatedDescriptorArchivingSeed,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Rejecting delegated archiving request for Descriptor ${descriptorId} of EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      assertDelegatedDescriptorHasActiveArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest ?? [],
+        {
+          rejectedAt: new Date(),
+          rejectionReason: body.rejectionReason,
+        },
+        eserviceId,
+        descriptorId
+      );
+
+      const updatedEService = replaceDescriptor(eservice.data, {
+        ...descriptor,
+        delegatedArchivingRequest: updatedRequests,
+      });
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestRejectedByDelegator(
+          eservice.metadata.version,
+          descriptorId,
+          updatedEService,
+          correlationId
+        )
+      );
+      return {
+        data: updatedEService,
+        metadata: {
+          version: event.newVersion,
+        },
+      };
+    },
+    async approveDelegatedDescriptorArchiving(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<EService>> {
+      logger.info(
+        `Approving delegated archiving request for Descriptor ${descriptorId} of EService ${eserviceId}`
+      );
+      const eservice = await retrieveEService(eserviceId, readModelService);
+
+      assertRequesterIsProducer(eservice.data.producerId, authData);
+
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+      assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      assertDelegatedDescriptorHasActiveArchivingRequests(
+        descriptor,
+        eserviceId
+      );
+
+      const producerDelegation = await retrieveActiveProducerDelegation(
+        eservice.data,
+        readModelService
+      );
+
+      const latestActiveRequest = getLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDelegatedArchivingRequestDelegationIsStillValid(
+        producerDelegation,
+        latestActiveRequest,
+        eserviceId,
+        descriptorId
+      );
+
+      assertDescriptorArchivable(descriptor, eservice.data);
+
+      const updatedRequests = updateLatestActiveArchivingRequest(
+        descriptor.delegatedArchivingRequest ?? [],
+        {
+          acceptedAt: new Date(),
+        },
+        eserviceId,
+        descriptorId
+      );
+
+      const acceptedRequest = getLatestArchivingRequest(
+        updatedRequests,
+        eserviceId,
+        descriptorId
+      );
+
+      const newState =
+        descriptor.state === descriptorState.suspended
+          ? descriptorState.archivingSuspended
+          : descriptorState.archiving;
+
+      const archivedDescriptor = await processDescriptorArchiving(
+        { ...descriptor, delegatedArchivingRequest: updatedRequests },
+        newState,
+        acceptedRequest.gracePeriodDays
+      );
+
+      const updatedEService = replaceDescriptor(
+        eservice.data,
+        archivedDescriptor
+      );
+
+      const event = await repository.createEvent(
+        toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator(
+          eservice.metadata.version,
+          descriptorId,
           updatedEService,
           correlationId
         )
@@ -3882,44 +4553,44 @@ export function catalogServiceBuilder(
       }
 
       const docs = await Promise.all(
-        // eslint-disable-next-line sonarjs/no-identical-functions
-        lastVersion.docs.map(async (doc) => {
-          const clonedDocumentId = generateId<EServiceDocumentId>();
-          const clonedDocumentPath = await fileManager.copy(
-            config.s3Bucket,
-            doc.path,
-            config.eserviceDocumentsPath,
-            clonedDocumentId,
-            doc.name,
-            logger
-          );
-          const clonedDocument: Document = {
-            id: clonedDocumentId,
-            name: doc.name,
-            contentType: doc.contentType,
-            prettyName: doc.prettyName,
-            path: clonedDocumentPath,
-            checksum: doc.checksum,
-            uploadDate: new Date(),
-          };
-
-          return clonedDocument;
-        })
+        lastVersion.docs.map((doc) =>
+          cloneDocumentWithNewId(doc, fileManager, logger)
+        )
       );
 
-      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
-        description: lastVersion.description,
-        voucherLifespan: lastVersion.voucherLifespan,
-        audience: [],
-        dailyCallsPerConsumer:
-          lastVersion.dailyCallsPerConsumer ?? DEFAULT_DAILY_CALLS_PER_CONSUMER,
-        dailyCallsTotal:
-          lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
-        agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
-        attributes: lastVersion.attributes,
-        docs,
-        templateVersionId: lastVersion.id,
-      });
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
+      const clonedAsyncExchangeCallbackInterface =
+        asyncExchangeEnabled && lastVersion.asyncExchangeCallbackInterface
+          ? await cloneDocumentWithNewId(
+              lastVersion.asyncExchangeCallbackInterface,
+              fileManager,
+              logger
+            )
+          : undefined;
+
+      const newDescriptor: Descriptor = {
+        ...createNextDescriptor(eservice.data, {
+          description: lastVersion.description,
+          voucherLifespan: lastVersion.voucherLifespan,
+          audience: [],
+          dailyCallsPerConsumer:
+            lastVersion.dailyCallsPerConsumer ??
+            DEFAULT_DAILY_CALLS_PER_CONSUMER,
+          dailyCallsTotal:
+            lastVersion.dailyCallsTotal ?? DEFAULT_DAILY_CALLS_TOTAL,
+          agreementApprovalPolicy: lastVersion.agreementApprovalPolicy,
+          attributes: lastVersion.attributes,
+          docs,
+          templateVersionId: lastVersion.id,
+          asyncExchangeProperties: asyncExchangeEnabled
+            ? lastVersion.asyncExchangeProperties
+            : undefined,
+        }),
+        asyncExchangeCallbackInterface: clonedAsyncExchangeCallbackInterface,
+      };
 
       const upgradedEService: EService = {
         ...eservice.data,
@@ -4264,21 +4935,55 @@ export function catalogServiceBuilder(
 
       assertConsistentDailyCalls(eserviceInstanceDescriptorSeed);
 
-      const newDescriptor: Descriptor = createNextDescriptor(eservice.data, {
-        description: templateVersion.description,
-        voucherLifespan: templateVersion.voucherLifespan,
-        audience: eserviceInstanceDescriptorSeed.audience,
-        dailyCallsPerConsumer:
-          eserviceInstanceDescriptorSeed.dailyCallsPerConsumer,
-        dailyCallsTotal: eserviceInstanceDescriptorSeed.dailyCallsTotal,
-        agreementApprovalPolicy:
-          agreementApprovalPolicySeed ??
-          templateVersion.agreementApprovalPolicy ??
-          agreementApprovalPolicy.automatic,
-        docs: [],
-        attributes: templateVersion.attributes,
-        templateVersionId: templateVersion.id,
-      });
+      const asyncExchangeEnabled =
+        isFeatureFlagEnabled(config, "featureFlagAsyncExchange") &&
+        eservice.data.asyncExchange === true;
+
+      const asyncExchangeProperties =
+        asyncExchangeEnabled && templateVersion.asyncExchangeProperties
+          ? {
+              ...templateVersion.asyncExchangeProperties,
+              responseTime:
+                latestDescriptor.asyncExchangeProperties?.responseTime ??
+                templateVersion.asyncExchangeProperties.responseTime,
+              resourceAvailableTime:
+                latestDescriptor.asyncExchangeProperties
+                  ?.resourceAvailableTime ??
+                templateVersion.asyncExchangeProperties.resourceAvailableTime,
+              maxResultSet:
+                latestDescriptor.asyncExchangeProperties?.maxResultSet ??
+                templateVersion.asyncExchangeProperties.maxResultSet,
+            }
+          : undefined;
+
+      const clonedAsyncExchangeCallbackInterface =
+        asyncExchangeEnabled && templateVersion.asyncExchangeCallbackInterface
+          ? await cloneDocumentWithNewId(
+              templateVersion.asyncExchangeCallbackInterface,
+              fileManager,
+              ctx.logger
+            )
+          : undefined;
+
+      const newDescriptor: Descriptor = {
+        ...createNextDescriptor(eservice.data, {
+          description: templateVersion.description,
+          voucherLifespan: templateVersion.voucherLifespan,
+          audience: eserviceInstanceDescriptorSeed.audience,
+          dailyCallsPerConsumer:
+            eserviceInstanceDescriptorSeed.dailyCallsPerConsumer,
+          dailyCallsTotal: eserviceInstanceDescriptorSeed.dailyCallsTotal,
+          agreementApprovalPolicy:
+            agreementApprovalPolicySeed ??
+            templateVersion.agreementApprovalPolicy ??
+            agreementApprovalPolicy.automatic,
+          docs: [],
+          attributes: templateVersion.attributes,
+          templateVersionId: templateVersion.id,
+          asyncExchangeProperties,
+        }),
+        asyncExchangeCallbackInterface: clonedAsyncExchangeCallbackInterface,
+      };
 
       const eserviceVersion = eservice.metadata.version;
 
@@ -4401,6 +5106,8 @@ export function catalogServiceBuilder(
       logger.info(
         `Updating instance label for E-Service ${eserviceId} to ${instanceLabel}`
       );
+
+      validateNoHyperlinksSafe(instanceLabel);
 
       const eservice = await retrieveEService(eserviceId, readModelService);
 
@@ -4808,14 +5515,20 @@ async function applyVisibilityToEService(
   }
 
   /* If the conditions above are not met:
-    - we filter out the draft descriptors.
+    - we filter out the draft descriptors and remove all delegated archiving requests.
     - we throw a not found error if there are no active descriptors
   */
   const hasActiveDescriptors = eservice.descriptors.some(isActiveDescriptor);
   if (hasActiveDescriptors) {
     return {
       ...eservice,
-      descriptors: eservice.descriptors.filter(isActiveDescriptor),
+      descriptors: eservice.descriptors
+        .filter(isActiveDescriptor)
+        .map((descriptor) => ({
+          ...descriptor,
+          delegatedArchivingRequest: undefined,
+        })),
+      delegatedArchivingRequest: undefined,
     };
   }
 
@@ -4905,6 +5618,20 @@ const processDescriptorPublication = async (
       : archiveDescriptorLogic(eservice.id, currentActiveDescriptor, logger)
   );
 };
+
+function deletePendingDescriptorArchivingRequests(
+  descriptor: Descriptor
+): Descriptor {
+  const filtered = descriptor.delegatedArchivingRequest?.filter(
+    (request) => request.acceptedAt || request.rejectedAt
+  );
+
+  return {
+    ...descriptor,
+    delegatedArchivingRequest:
+      filtered && filtered.length > 0 ? filtered : undefined,
+  };
+}
 
 /**
  * Retains the existing `dailyCallsPerConsumer` value on certified attributes.
@@ -5243,6 +5970,9 @@ async function updateDraftEService(
     isClientAccessDelegable,
   } = typeAndSeed.seed;
 
+  validateNoHyperlinksSafe(name);
+  validateNoHyperlinksSafe(description);
+
   if (name && name !== eservice.data.name) {
     await assertEServiceNameAvailableForProducer(
       name,
@@ -5425,6 +6155,8 @@ async function updateDraftDescriptor(
   } = seed;
   void (rest satisfies Record<string, never>);
   // ^ To make sure we extract all the updated fields
+
+  validateNoHyperlinksSafe(description);
 
   const updatedDailyCallsPerConsuemer =
     dailyCallsPerConsumer ?? descriptor.dailyCallsPerConsumer;

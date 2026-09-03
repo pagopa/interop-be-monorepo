@@ -211,6 +211,10 @@ describe("database test", async () => {
             !initialInAppConfig.purposeQuotaAdjustmentRequestToProducer,
           purposeOverQuotaStateToConsumer:
             !initialInAppConfig.purposeOverQuotaStateToConsumer,
+          eserviceArchivingRequestedToDelegator:
+            !initialInAppConfig.eserviceArchivingRequestedToDelegator,
+          eserviceArchivingApprovedRejectedToDelegate:
+            !initialInAppConfig.eserviceArchivingApprovedRejectedToDelegate,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer:
@@ -261,6 +265,10 @@ describe("database test", async () => {
             !initialEmailConfig.purposeQuotaAdjustmentRequestToProducer,
           purposeOverQuotaStateToConsumer:
             !initialEmailConfig.purposeOverQuotaStateToConsumer,
+          eserviceArchivingRequestedToDelegator:
+            !initialEmailConfig.eserviceArchivingRequestedToDelegator,
+          eserviceArchivingApprovedRejectedToDelegate:
+            !initialEmailConfig.eserviceArchivingApprovedRejectedToDelegate,
         },
       };
 
