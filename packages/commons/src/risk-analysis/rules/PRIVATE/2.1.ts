@@ -1,8 +1,7 @@
 import { RiskAnalysisFormRules } from "../riskAnalysisFormRules.js";
 
-export const pa31: RiskAnalysisFormRules = {
-  version: "3.1",
-  expiration: new Date("2026-10-31T23:59:59"),
+export const private21: RiskAnalysisFormRules = {
+  version: "2.1",
   questions: [
     {
       id: "purpose",
@@ -268,8 +267,8 @@ export const pa31: RiskAnalysisFormRules = {
       type: "checkbox",
       dataType: "multi",
       label: {
-        it: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-service",
-        en: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-service",
+        it: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-Service",
+        en: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-Service",
       },
       options: [
         {
@@ -307,6 +306,13 @@ export const pa31: RiskAnalysisFormRules = {
           },
           value: "PUBLIC_INTEREST",
         },
+        {
+          label: {
+            it: "Perseguimento del legittimo interesse del titolare del trattamento o di terzi, a condizione che non prevalgano gli interessi o i diritti e le libertà fondamentali dell'interessato che richiedono la protezione dei dati personali, in particolare se l'interessato è un minore (NB: ai sensi dell’art. 6 lettera f) primo comma, questa opzione non può essere selezionata in caso di trattamento di dati effettuato dalle autorità pubbliche nell’esecuzione dei propri compiti)",
+            en: "Perseguimento del legittimo interesse del titolare del trattamento o di terzi, a condizione che non prevalgano gli interessi o i diritti e le libertà fondamentali dell'interessato che richiedono la protezione dei dati personali, in particolare se l'interessato è un minore (NB: ai sensi dell’art. 6 lettera f) primo comma, questa opzione non può essere selezionata in caso di trattamento di dati effettuato dalle autorità pubbliche nell’esecuzione dei propri compiti)",
+          },
+          value: "LEGITIMATE_INTEREST",
+        },
       ],
       defaultValue: [],
       required: true,
@@ -342,6 +348,34 @@ export const pa31: RiskAnalysisFormRules = {
         {
           id: "legalBasis",
           value: "LEGAL_OBLIGATION",
+        },
+      ],
+    },
+    {
+      id: "legitimateInterestReference",
+      type: "text",
+      dataType: "freeText",
+      label: {
+        it: "Inserire I) l’interesse legittimo perseguito II) l’analisi sulla non prevalenza degli interessi, diritti e libertà degli Interessati che richiedono la protezione dei dati personali, in particolare se l’interessato è un minore",
+        en: "Inserire I) l’interesse legittimo perseguito II) l’analisi sulla non prevalenza degli interessi, diritti e libertà degli Interessati che richiedono la protezione dei dati personali, in particolare se l’interessato è un minore",
+      },
+      infoLabel: {
+        it: "",
+        en: "",
+      },
+      validation: {
+        maxLength: 2000,
+      },
+      defaultValue: [],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
+          id: "legalBasis",
+          value: "LEGITIMATE_INTEREST",
         },
       ],
     },
@@ -490,8 +524,8 @@ export const pa31: RiskAnalysisFormRules = {
       type: "radio",
       dataType: "single",
       label: {
-        it: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-service",
-        en: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-service",
+        it: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-Service",
+        en: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-Service",
       },
       options: [
         {
@@ -527,8 +561,8 @@ export const pa31: RiskAnalysisFormRules = {
         en: "Fascia di riferimento",
       },
       infoLabel: {
-        it: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-service",
-        en: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-service",
+        it: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-Service",
+        en: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-Service",
       },
       options: [
         {
@@ -816,6 +850,38 @@ export const pa31: RiskAnalysisFormRules = {
       ],
     },
     {
+      id: "dataProtectionMeasuresParticular",
+      type: "text",
+      dataType: "freeText",
+      label: {
+        it: "Indicare le misure tecniche e organizzative adottate necessarie a garantire un’adeguata sicurezza dei dati personali ai sensi degli articoli 25 e 32 del GDPR",
+        en: "Indicare le misure tecniche e organizzative adottate necessarie a garantire un’adeguata sicurezza dei dati personali ai sensi degli articoli 25 e 32 del GDPR",
+      },
+      infoLabel: {
+        it: "",
+        en: "",
+      },
+      validation: {
+        maxLength: 2000,
+      },
+      defaultValue: [],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
+          id: "personalDataTypes",
+          value: "GDPR_ART_9",
+        },
+        {
+          id: "confirmPricipleIntegrityAndDiscretion",
+          value: "true",
+        },
+      ],
+    },
+    {
       id: "doneDpia",
       type: "radio",
       dataType: "single",
@@ -1060,73 +1126,12 @@ export const pa31: RiskAnalysisFormRules = {
       ],
     },
     {
-      id: "isRequestOnBehalfOfThirdParties",
-      type: "radio",
-      dataType: "single",
-      label: {
-        it: "Indicare se si intende fruire dell’E-service, anche o esclusivamente, per accedere a dati su richiesta/per conto di terzi soggetti",
-        en: "Indicare se si intende fruire dell’E-service, anche o esclusivamente, per accedere a dati su richiesta/per conto di terzi soggetti",
-      },
-      options: [
-        {
-          label: {
-            it: "Sì",
-            en: "Sì",
-          },
-          value: "YES",
-        },
-        {
-          label: {
-            it: "No",
-            en: "No",
-          },
-          value: "NO",
-        },
-      ],
-      defaultValue: ["NO"],
-      required: true,
-      dependencies: [],
-    },
-    {
-      id: "thirdPartiesRequestDataUsage",
-      type: "radio",
-      dataType: "single",
-      label: {
-        it: "Indicare se si intende fruire dell’e-service per accedere a dati",
-        en: "Indicare se si intende fruire dell’e-service per accedere a dati",
-      },
-      options: [
-        {
-          label: {
-            it: "Esclusivamente per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
-            en: "Esclusivamente per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
-          },
-          value: "PA_ONLY",
-        },
-        {
-          label: {
-            it: "Anche per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
-            en: "Anche per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
-          },
-          value: "PA_ALSO",
-        },
-      ],
-      defaultValue: [],
-      required: true,
-      dependencies: [
-        {
-          id: "isRequestOnBehalfOfThirdParties",
-          value: "YES",
-        },
-      ],
-    },
-    {
       id: "declarationConfirmGDPR",
       type: "switch",
       dataType: "single",
       label: {
-        it: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
-        en: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
+        it: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e ​​dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
+        en: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e ​​dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
       },
       options: [
         {

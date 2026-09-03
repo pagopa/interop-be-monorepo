@@ -1,8 +1,7 @@
 import { RiskAnalysisFormRules } from "../riskAnalysisFormRules.js";
 
-export const pa31: RiskAnalysisFormRules = {
-  version: "3.1",
-  expiration: new Date("2026-10-31T23:59:59"),
+export const pa32: RiskAnalysisFormRules = {
+  version: "3.2",
   questions: [
     {
       id: "purpose",
@@ -780,38 +779,6 @@ export const pa31: RiskAnalysisFormRules = {
         {
           id: "usesPersonalData",
           value: "YES",
-        },
-      ],
-    },
-    {
-      id: "dataProtectionMeasures",
-      type: "text",
-      dataType: "freeText",
-      label: {
-        it: "Indicare le misure tecniche e organizzative adottate necessarie a garantire un’adeguata sicurezza dei dati personali ai sensi degli articoli 25 e 32 del GDPR",
-        en: "Indicare le misure tecniche e organizzative adottate necessarie a garantire un’adeguata sicurezza dei dati personali ai sensi degli articoli 25 e 32 del GDPR",
-      },
-      infoLabel: {
-        it: "",
-        en: "",
-      },
-      validation: {
-        maxLength: 2000,
-      },
-      defaultValue: [],
-      required: true,
-      dependencies: [
-        {
-          id: "usesPersonalData",
-          value: "YES",
-        },
-        {
-          id: "personalDataTypes",
-          value: "GDPR_ART_10",
-        },
-        {
-          id: "confirmPricipleIntegrityAndDiscretion",
-          value: "true",
         },
       ],
     },

@@ -2,6 +2,7 @@ import { RiskAnalysisFormRules } from "../riskAnalysisFormRules.js";
 
 export const private2: RiskAnalysisFormRules = {
   version: "2.0",
+  expiration: new Date("2026-10-31T23:59:59"),
   questions: [
     {
       id: "purpose",
