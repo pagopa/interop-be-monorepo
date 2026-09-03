@@ -21,6 +21,7 @@ import {
   ReviewerWorkflow,
   unsafeBrandId,
   TenantId,
+  UserId,
   tenantKind,
   Tenant,
   EService,
@@ -133,7 +134,7 @@ describe("submitRiskAnalysis", () => {
         },
       ],
       signingState: riskAnalysisSigningState.rejected,
-      rejectedBy: unsafeBrandId(generateId()),
+      rejectedBy: generateId<UserId>(),
       rejectionReason: "some reason",
     };
 
