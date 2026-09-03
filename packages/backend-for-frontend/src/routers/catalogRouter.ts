@@ -33,6 +33,7 @@ import {
   importEServiceErrorMapper,
   getEServiceTemplateInstancesErrorMapper,
 } from "../utilities/errorMappers.js";
+import { buildAttachmentContentDisposition } from "../utilities/fileUtils.js";
 
 const catalogRouter = (
   ctx: ZodiosContext,
@@ -714,13 +715,21 @@ const catalogRouter = (
       async (req, res) => {
         const ctx = fromBffAppContext(req.ctx, req.headers);
         try {
-          const { contentType, document } =
+          const { contentType, document, filename, isInterface } =
             await catalogService.getEServiceDocumentById(
               unsafeBrandId(req.params.eServiceId),
               unsafeBrandId(req.params.descriptorId),
               unsafeBrandId(req.params.documentId),
               ctx
             );
+
+          if (isInterface && typeof filename == "string") {
+            res.header(
+              constants.HTTP2_HEADER_CONTENT_DISPOSITION,
+              buildAttachmentContentDisposition(filename)
+            );
+          }
+
           return res
             .header(constants.HTTP2_HEADER_CONTENT_TYPE, contentType)
             .status(200)
