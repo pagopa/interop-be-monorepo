@@ -92,14 +92,14 @@ export function validateRiskAnalysis(
     >(
       (validatedForm, answer) =>
         match(answer)
-          .with({ type: "single" }, (a) => ({
-            ...validatedForm,
-            singleAnswers: [...validatedForm.singleAnswers, a.answer],
-          }))
-          .with({ type: "multi" }, (a) => ({
-            ...validatedForm,
-            multiAnswers: [...validatedForm.multiAnswers, a.answer],
-          }))
+          .with({ type: "single" }, (a) => {
+            validatedForm.singleAnswers.push(a.answer);
+            return validatedForm;
+          })
+          .with({ type: "multi" }, (a) => {
+            validatedForm.multiAnswers.push(a.answer);
+            return validatedForm;
+          })
           .exhaustive(),
       {
         singleAnswers: [],
