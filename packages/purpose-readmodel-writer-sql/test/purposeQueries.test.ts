@@ -15,8 +15,8 @@ import {
   tenantKind,
   PurposeTemplateId,
   UserId,
+  riskAnalysisReviewMode,
   riskAnalysisSigningState,
-  RiskAnalysisReviewer,
 } from "pagopa-interop-models";
 import { aggregatePurpose } from "pagopa-interop-readmodel";
 import { describe, it, expect } from "vitest";
@@ -66,7 +66,7 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
 
-      const reviewers: RiskAnalysisReviewer[] = [
+      const reviewers = [
         { id: generateId<UserId>(), sentToReviewerAt: new Date() },
         { id: generateId<UserId>(), sentToReviewerAt: new Date() },
       ];
@@ -81,7 +81,7 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
-        reviewMode: "AdminWritesReviewerSigns",
+        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers,
           signingState: riskAnalysisSigningState.submitted,
@@ -207,7 +207,7 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
 
-      const reviewers: RiskAnalysisReviewer[] = [
+      const reviewers = [
         { id: generateId<UserId>(), sentToReviewerAt: new Date() },
         { id: generateId<UserId>(), sentToReviewerAt: new Date() },
       ];
@@ -222,7 +222,7 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
-        reviewMode: "AdminWritesReviewerSigns",
+        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers,
           signingState: riskAnalysisSigningState.submitted,
