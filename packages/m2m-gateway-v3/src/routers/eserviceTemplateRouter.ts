@@ -23,6 +23,7 @@ import {
   createEServiceTemplateVersionAttributeGroupsErrorMapper,
   deleteEServiceTemplateVersionAttributeFromGroupErrorMapper,
   assignEServiceTemplateVersionAttributesErrorMapper,
+  downloadEServiceTemplateVersionInterfaceErrorMapper,
 } from "../utils/errorMappers.js";
 import { sendDownloadedDocumentAsFormData } from "../utils/fileDownload.js";
 
@@ -600,6 +601,36 @@ const eserviceTemplateRouter = (
             emptyErrorMapper,
             ctx,
             `Error retrieving document with id ${req.params.documentId} for eservice template ${req.params.templateId} version with id ${req.params.versionId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
+      "/eserviceTemplates/:templateId/versions/:versionId/interface",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const file =
+            await eserviceTemplateService.downloadEServiceTemplateVersionInterface(
+              unsafeBrandId(req.params.templateId),
+              unsafeBrandId(req.params.versionId),
+              ctx
+            );
+
+          return sendDownloadedDocumentAsFormData(
+            file,
+            res,
+            ctx.authData.clientId,
+            kmsClient
+          );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            downloadEServiceTemplateVersionInterfaceErrorMapper,
+            ctx,
+            `Error retrieving interface for eservice template ${req.params.templateId} version with id ${req.params.versionId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
