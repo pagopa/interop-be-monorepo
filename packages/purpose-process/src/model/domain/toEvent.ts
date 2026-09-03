@@ -7,6 +7,7 @@ import {
   PurposeId,
   PurposeVersionId,
   toPurposeV2,
+  UserId,
 } from "pagopa-interop-models";
 
 export const toCreateEventWaitingForApprovalPurposeVersionDeleted = ({
@@ -496,10 +497,14 @@ export const toCreateEventRiskAnalysisSignedDocumentGenerated = ({
 
 export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
   purpose,
+  newReviewersToNotify,
+  oldReviewersToNotify,
   version,
   correlationId,
 }: {
   purpose: Purpose;
+  newReviewersToNotify: UserId[];
+  oldReviewersToNotify: UserId[];
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -508,17 +513,25 @@ export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
   event: {
     type: "PurposeRiskAnalysisWorkflowCreated",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose) },
+    data: {
+      purpose: toPurposeV2(purpose),
+      newReviewersToNotify,
+      oldReviewersToNotify,
+    },
   },
   correlationId,
 });
 
 export const toCreateEventPurposeRiskAnalysisAssigned = ({
   purpose,
+  newReviewersToNotify,
+  oldReviewersToNotify,
   version,
   correlationId,
 }: {
   purpose: Purpose;
+  newReviewersToNotify: UserId[];
+  oldReviewersToNotify: UserId[];
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -527,7 +540,11 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
   event: {
     type: "PurposeRiskAnalysisAssigned",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose) },
+    data: {
+      purpose: toPurposeV2(purpose),
+      newReviewersToNotify,
+      oldReviewersToNotify,
+    },
   },
   correlationId,
 });

@@ -1702,6 +1702,7 @@ components:
       type: string
       description: Risk analysis review mode
       enum:
+        - ADMIN_WRITES_ADMIN_SIGNS
         - REVIEWER_WRITES_REVIEWER_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
     RiskAnalysisSigningState:
@@ -1713,18 +1714,28 @@ components:
         - SUBMITTED
         - SIGNED
         - REJECTED
+    RiskAnalysisReviewer:
+      type: object
+      additionalProperties: false
+      description: A reviewer designated for a purpose risk analysis
+      properties:
+        id:
+          type: string
+          format: uuid
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - id
     ReviewerWorkflow:
       type: object
       additionalProperties: false
       description: Reviewer workflow state for a purpose risk analysis
       properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
+        reviewers:
           type: array
           items:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/RiskAnalysisReviewer"
         signingState:
           $ref: "#/components/schemas/RiskAnalysisSigningState"
         signedBy:
@@ -1732,12 +1743,8 @@ components:
           format: uuid
         rejectionReason:
           type: string
-        sentToReviewerAt:
-          type: string
-          format: date-time
       required:
-        - reviewMode
-        - reviewerIds
+        - reviewers
         - signingState
     RiskAnalysisAssignmentSeed:
       type: object
@@ -1752,9 +1759,9 @@ components:
             type: string
             format: uuid
           minItems: 1
+          uniqueItems: true
       required:
         - reviewMode
-        - reviewerIds
     RiskAnalysisRejectionSeed:
       type: object
       additionalProperties: false
@@ -1944,6 +1951,8 @@ components:
         purposeTemplateId:
           type: string
           format: uuid
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
         reviewerWorkflow:
           $ref: "#/components/schemas/ReviewerWorkflow"
       required:

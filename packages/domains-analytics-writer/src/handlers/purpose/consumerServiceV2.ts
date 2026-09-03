@@ -52,6 +52,7 @@ export async function handlePurposeMessageV2(
             "RiskAnalysisSignedDocumentGenerated",
             "PurposeRiskAnalysisWorkflowCreated",
             "PurposeRiskAnalysisAssigned",
+            "PurposeRiskAnalysisSelfAssigned",
             "PurposeRiskAnalysisSubmitted",
             "PurposeRiskAnalysisSigned",
             "PurposeRiskAnalysisRejected",

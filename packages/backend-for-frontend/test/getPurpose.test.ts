@@ -28,6 +28,7 @@ describe("getPurpose — reviewer enrichment", () => {
   const consumerId = generateId<TenantId>();
   const producerId = generateId<TenantId>();
   const reviewerId = generateId<UserId>();
+  const sentToReviewerAt = new Date().toISOString();
   const consumerSelfcareId = generateId();
 
   const descriptor = getMockedApiEserviceDescriptor({
@@ -97,10 +98,10 @@ describe("getPurpose — reviewer enrichment", () => {
     isFreeOfCharge: false,
     createdAt: new Date().toISOString(),
     versions: [],
+    reviewMode:
+      purposeApi.RiskAnalysisReviewMode.Values.REVIEWER_WRITES_REVIEWER_SIGNS,
     reviewerWorkflow: {
-      reviewMode:
-        purposeApi.RiskAnalysisReviewMode.Values.REVIEWER_WRITES_REVIEWER_SIGNS,
-      reviewerIds: [reviewerId],
+      reviewers: [{ id: reviewerId, sentToReviewerAt }],
       signingState: purposeApi.RiskAnalysisSigningState.Values.ASSIGNED,
     },
   };
@@ -168,7 +169,12 @@ describe("getPurpose — reviewer enrichment", () => {
     const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
     expect(result.reviewerWorkflow?.reviewers).toEqual([
-      { userId: reviewerId, name: "Name", familyName: "Surname" },
+      {
+        userId: reviewerId,
+        name: "Name",
+        familyName: "Surname",
+        sentToReviewerAt,
+      },
     ]);
     expect(mockGetUserInfoUsingGET).toHaveBeenCalledOnce();
     expect(mockGetUserInfoUsingGET).toHaveBeenCalledWith(
@@ -212,10 +218,13 @@ describe("getPurpose — reviewer enrichment", () => {
     }
   );
 
-  it("should return empty reviewers array when reviewerIds is empty (consumer)", async () => {
+  it("should return empty reviewers array when there are no reviewers (consumer)", async () => {
     mockGetPurpose.mockResolvedValue({
       ...basePurpose,
-      reviewerWorkflow: { ...basePurpose.reviewerWorkflow!, reviewerIds: [] },
+      reviewerWorkflow: {
+        ...basePurpose.reviewerWorkflow!,
+        reviewers: [],
+      },
     });
 
     const authData: UIAuthData = {
