@@ -34,6 +34,14 @@ export const NotificationType = z.enum([
   "producerKeychainKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client (ProducerKeychain)
   "purposeQuotaAdjustmentRequestToProducer", // 06: Richiesta adeguamento piano di carico finalità
   "purposeOverQuotaStateToConsumer", // 14: Superamento soglia piano di carico finalità
+  "purposeRiskAnalysisAssignedForSigningToReviewer", // PIN-10856
+  "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer", // PIN-10857
+  "purposePublishedWithRiskAnalysisToReviewer", // PIN-10858
+  "draftPurposeDeletedWithRiskAnalysisToReviewer", // PIN-10859
+  "purposeRiskAnalysisAssignmentRemovedToReviewer", // PIN-10860
+  "purposeRiskAnalysisSignedToReviewer", // PIN-10861
+  "purposeRiskAnalysisSignedToAdmin", // PIN-10862
+  "purposeRiskAnalysisRejectedToAdmin", // PIN-10863
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 

@@ -59,6 +59,10 @@ describe("getUserNotificationConfig", () => {
       notificationAdmittedRoles[notificationType][authRole.API_ROLE] ||
       notificationAdmittedRoles[notificationType][authRole.SECURITY_ROLE]
   );
+  const configWithAllAllowedForReviewer = makeNotificationConfig(
+    (notificationType) =>
+      notificationAdmittedRoles[notificationType][authRole.REVIEWER_ROLE]
+  );
 
   const userNotificationConfigForRoleOverrideTests: UserNotificationConfig = {
     ...getMockUserNotificationConfig(),
@@ -84,7 +88,21 @@ describe("getUserNotificationConfig", () => {
         authData: getMockAuthData(tenantId, userId, [authRole.ADMIN_ROLE]),
       })
     );
-    expect(result).toEqual(userNotificationConfig);
+    const overrideForAdmin = makeNotificationConfig(
+      (notificationType) =>
+        userNotificationConfig.inAppConfig[notificationType] &&
+        notificationAdmittedRoles[notificationType][authRole.ADMIN_ROLE]
+    );
+    const overrideEmailForAdmin = makeNotificationConfig(
+      (notificationType) =>
+        userNotificationConfig.emailConfig[notificationType] &&
+        notificationAdmittedRoles[notificationType][authRole.ADMIN_ROLE]
+    );
+    expect(result).toEqual({
+      ...userNotificationConfig,
+      inAppConfig: overrideForAdmin,
+      emailConfig: overrideEmailForAdmin,
+    });
   });
 
   it("should override not allowed notification types if the user has the 'api' role", async () => {
@@ -150,6 +168,37 @@ describe("getUserNotificationConfig", () => {
       emailConfig: configWithAllNotificationTypesDisabled,
     };
     expect(result).toEqual(expected);
+  });
+
+  it("should expose reviewer notification types only to reviewers", async () => {
+    const result = await notificationConfigService.getUserNotificationConfig(
+      getMockContext({
+        authData: getMockAuthData(tenantId, userIdForRoleOverrideTests, [
+          authRole.REVIEWER_ROLE,
+        ]),
+      })
+    );
+    expect(result.inAppConfig).toEqual(configWithAllAllowedForReviewer);
+    expect(result.emailConfig).toEqual(configWithAllAllowedForReviewer);
+    expect(
+      result.inAppConfig.purposeRiskAnalysisAssignedForSigningToReviewer
+    ).toBe(true);
+    expect(
+      result.inAppConfig
+        .purposeRiskAnalysisAssignedForWritingAndSigningToReviewer
+    ).toBe(true);
+    expect(result.inAppConfig.purposePublishedWithRiskAnalysisToReviewer).toBe(
+      true
+    );
+    expect(
+      result.inAppConfig.draftPurposeDeletedWithRiskAnalysisToReviewer
+    ).toBe(true);
+    expect(
+      result.inAppConfig.purposeRiskAnalysisAssignmentRemovedToReviewer
+    ).toBe(true);
+    expect(result.inAppConfig.purposeRiskAnalysisSignedToReviewer).toBe(true);
+    expect(result.inAppConfig.purposeRiskAnalysisSignedToAdmin).toBe(false);
+    expect(result.inAppConfig.purposeRiskAnalysisRejectedToAdmin).toBe(false);
   });
 
   it.each<[string, TenantId, UserId]>([

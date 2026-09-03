@@ -498,6 +498,14 @@ components:
         - producerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
+        - purposeRiskAnalysisAssignedForSigningToReviewer
+        - purposeRiskAnalysisAssignedForWritingAndSigningToReviewer
+        - purposePublishedWithRiskAnalysisToReviewer
+        - draftPurposeDeletedWithRiskAnalysisToReviewer
+        - purposeRiskAnalysisAssignmentRemovedToReviewer
+        - purposeRiskAnalysisSignedToReviewer
+        - purposeRiskAnalysisSignedToAdmin
+        - purposeRiskAnalysisRejectedToAdmin
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -546,6 +554,22 @@ components:
         purposeQuotaAdjustmentRequestToProducer:
           type: boolean
         purposeOverQuotaStateToConsumer:
+          type: boolean
+        purposeRiskAnalysisAssignedForSigningToReviewer:
+          type: boolean
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+          type: boolean
+        purposePublishedWithRiskAnalysisToReviewer:
+          type: boolean
+        draftPurposeDeletedWithRiskAnalysisToReviewer:
+          type: boolean
+        purposeRiskAnalysisAssignmentRemovedToReviewer:
+          type: boolean
+        purposeRiskAnalysisSignedToReviewer:
+          type: boolean
+        purposeRiskAnalysisSignedToAdmin:
+          type: boolean
+        purposeRiskAnalysisRejectedToAdmin:
           type: boolean
     TenantNotificationConfigSeed:
       type: object
