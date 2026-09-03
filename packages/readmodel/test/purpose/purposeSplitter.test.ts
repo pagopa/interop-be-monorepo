@@ -24,7 +24,6 @@ import {
   riskAnalysisSigningState,
   RiskAnalysisId,
   ReviewerWorkflow,
-  RiskAnalysisReviewer,
   tenantKind,
   UserId,
 } from "pagopa-interop-models";
@@ -52,8 +51,7 @@ describe("Purpose splitter", () => {
     const firstActivationAt = new Date();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
-    const reviewMode = riskAnalysisReviewMode.adminWritesReviewerSigns;
-    const reviewers: RiskAnalysisReviewer[] = [
+    const reviewers = [
       { id: generateId<UserId>(), sentToReviewerAt: new Date() },
       { id: generateId<UserId>(), sentToReviewerAt: new Date() },
     ];
@@ -97,7 +95,7 @@ describe("Purpose splitter", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
       purposeTemplateId: generateId<PurposeTemplateId>(),
-      reviewMode,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow,
     };
     const {
@@ -126,12 +124,11 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: purpose.purposeTemplateId!,
-      reviewMode,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
-      // the send date is stored per reviewer, the legacy column is left behind
       reviewerWorkflowSentToReviewerAt: null,
     };
 

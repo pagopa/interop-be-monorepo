@@ -377,6 +377,8 @@ export const assignRiskAnalysisReviewerErrorMapper = (
       "purposeNotInDraftState",
       "reviewerWorkflowNotAllowedForDelegatedPurpose",
       "reviewerWorkflowNotAllowedForReceiveMode",
+      "missingReviewers",
+      "reviewersNotAllowedForReviewMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
