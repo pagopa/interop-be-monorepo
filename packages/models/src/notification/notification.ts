@@ -34,14 +34,14 @@ export const NotificationType = z.enum([
   "producerKeychainKeyAddedDeletedToClientUsers", // 25: Variazioni sullo stato delle chiavi collegate ad un client (ProducerKeychain)
   "purposeQuotaAdjustmentRequestToProducer", // 06: Richiesta adeguamento piano di carico finalità
   "purposeOverQuotaStateToConsumer", // 14: Superamento soglia piano di carico finalità
-  "purposeRiskAnalysisAssignedForSigningToReviewer", // PIN-10856
-  "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer", // PIN-10857
-  "purposePublishedWithRiskAnalysisToReviewer", // PIN-10858
-  "draftPurposeDeletedWithRiskAnalysisToReviewer", // PIN-10859
-  "purposeRiskAnalysisAssignmentRemovedToReviewer", // PIN-10860
-  "purposeRiskAnalysisSignedToReviewer", // PIN-10861
-  "purposeRiskAnalysisSignedToAdmin", // PIN-10862
-  "purposeRiskAnalysisRejectedToAdmin", // PIN-10863
+  "purposeRiskAnalysisAssignedForSigningToReviewer", // Assegnazione analisi del rischio da approvare a valutatore
+  "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer", // Assegnazione analisi del rischio da compilare e approvare a valutatore
+  "purposePublishedWithRiskAnalysisToReviewer", // Finalità pubblicata con analisi del rischio assegnata al valutatore
+  "draftPurposeDeletedWithRiskAnalysisToReviewer", // Bozza di finalità eliminata con analisi del rischio assegnata a valutatore
+  "purposeRiskAnalysisAssignmentRemovedToReviewer", // Assegnazione analisi del rischio rimossa
+  "purposeRiskAnalysisSignedToReviewer", // Assegnazione analisi del rischio approvata da un altro valutatore
+  "purposeRiskAnalysisSignedToAdmin", // Approvazione analisi del rischio
+  "purposeRiskAnalysisRejectedToAdmin", // Rifiuto analisi del rischio
 ]);
 export type NotificationType = z.infer<typeof NotificationType>;
 
