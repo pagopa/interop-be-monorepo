@@ -9,13 +9,20 @@ interface HtmlJsonNode {
   attr?: Record<string, string | string[]>;
 }
 
+const oneTrustMobileMenuClasses = new Set([
+  "otnotice-menu-mobile",
+  "otnotice-menu-mobile-container",
+]);
+
 export function parseAndSanitizeHtml(html: string): HtmlJsonNode {
   const document = parseDocument(html);
-  const children = document.childNodes.map(convertNode);
+  const children = document.childNodes
+    .map(convertNode)
+    .filter((node): node is HtmlJsonNode => node !== undefined);
   return { node: "root", child: children };
 }
 
-function convertNode(domNode: ChildNode): HtmlJsonNode {
+function convertNode(domNode: ChildNode): HtmlJsonNode | undefined {
   if (domNode instanceof Text) {
     return { node: "text", text: domNode.data };
   }
@@ -31,13 +38,19 @@ function convertNode(domNode: ChildNode): HtmlJsonNode {
   return { node: "text", text: "" };
 }
 
-function convertElement(el: Element): HtmlJsonNode {
+function convertElement(el: Element): HtmlJsonNode | undefined {
+  if (isOneTrustMobileMenu(el)) {
+    return undefined;
+  }
+
   if (el.name === "script") {
     return { node: "element", tag: el.name, child: [] };
   }
 
   const attr = sanitizeAttributes(el.attribs);
-  const children = el.childNodes.map(convertNode);
+  const children = el.childNodes
+    .map(convertNode)
+    .filter((node): node is HtmlJsonNode => node !== undefined);
 
   return {
     node: "element",
@@ -45,6 +58,17 @@ function convertElement(el: Element): HtmlJsonNode {
     ...(attr !== undefined ? { attr } : {}),
     ...(children.length > 0 ? { child: children } : {}),
   };
+}
+
+function isOneTrustMobileMenu(el: Element): boolean {
+  const classAttribute = el.attribs.class;
+  if (classAttribute === undefined) {
+    return false;
+  }
+
+  return classAttribute
+    .split(/\s+/)
+    .some((className) => oneTrustMobileMenuClasses.has(className));
 }
 
 function isAllowedAttribute(key: string, value: string): boolean {
