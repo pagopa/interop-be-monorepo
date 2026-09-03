@@ -18640,8 +18640,16 @@ components:
         - clientKeyAndProducerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
+        - purposeRiskAnalysisAssignedForSigningToReviewer
+        - purposeRiskAnalysisAssignedForWritingAndSigningToReviewer
+        - purposePublishedWithRiskAnalysisToReviewer
         - eserviceArchivingRequestedToDelegator
         - eserviceArchivingApprovedRejectedToDelegate
+        - draftPurposeDeletedWithRiskAnalysisToReviewer
+        - purposeRiskAnalysisAssignmentRemovedToReviewer
+        - purposeRiskAnalysisSignedToReviewer
+        - purposeRiskAnalysisSignedToAdmin
+        - purposeRiskAnalysisRejectedToAdmin
       properties:
         agreementSuspendedUnsuspendedToProducer:
           type: boolean
@@ -18687,9 +18695,25 @@ components:
           type: boolean
         purposeOverQuotaStateToConsumer:
           type: boolean
+        purposeRiskAnalysisAssignedForSigningToReviewer:
+          type: boolean
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+          type: boolean
+        purposePublishedWithRiskAnalysisToReviewer:
+          type: boolean
         eserviceArchivingRequestedToDelegator:
           type: boolean
         eserviceArchivingApprovedRejectedToDelegate:
+          type: boolean
+        draftPurposeDeletedWithRiskAnalysisToReviewer:
+          type: boolean
+        purposeRiskAnalysisAssignmentRemovedToReviewer:
+          type: boolean
+        purposeRiskAnalysisSignedToReviewer:
+          type: boolean
+        purposeRiskAnalysisSignedToAdmin:
+          type: boolean
+        purposeRiskAnalysisRejectedToAdmin:
           type: boolean
     TenantNotificationConfig:
       type: object
