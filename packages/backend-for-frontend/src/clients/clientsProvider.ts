@@ -39,6 +39,7 @@ export type PagoPAInteropBeClients = {
   catalogProcessClient: catalogApi.CatalogProcessClient;
   agreementProcessClient: agreementApi.AgreementProcessClient;
   purposeProcessClient: purposeApi.PurposeProcessClient;
+  purposeProcessClientWithMetadata: purposeApi.PurposeProcessClientWithMetadata;
   purposeTemplateProcessClient: purposeTemplateApi.PurposeTemplateProcessClient;
   authorizationClient: AuthorizationProcessClient;
   selfcareV2InstitutionClient: SelfcareV2InstitutionClient;
@@ -68,6 +69,8 @@ export function getInteropBeClients(): PagoPAInteropBeClients {
       config.attributeRegistryUrl
     ),
     purposeProcessClient: purposeApi.createPurposeApiClient(config.purposeUrl),
+    purposeProcessClientWithMetadata:
+      purposeApi.createPurposeApiClientWithMetadata(config.purposeUrl),
     purposeTemplateProcessClient:
       purposeTemplateApi.createPurposeTemplateApiClient(
         config.purposeTemplateUrl
