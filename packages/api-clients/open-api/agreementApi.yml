@@ -402,7 +402,7 @@ paths:
       summary: Agreement Creation
       operationId: createAgreement
       responses:
-        "200":
+        "201":
           description: Agreement created.
           headers:
             X-Metadata-Version:

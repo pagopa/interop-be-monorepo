@@ -61,11 +61,11 @@ describe("API /producerKeychains/{producerKeychainId}/keys authorization test", 
   ];
 
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 201 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockProducerKeychain.data.id);
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(apiKey);
     }
   );
