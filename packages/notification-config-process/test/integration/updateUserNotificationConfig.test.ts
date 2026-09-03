@@ -112,8 +112,24 @@ describe("updateUserNotificationConfig", () => {
             .purposeQuotaAdjustmentRequestToProducer,
         purposeOverQuotaStateToConsumer:
           !userNotificationConfig.inAppConfig.purposeOverQuotaStateToConsumer,
+        purposeRiskAnalysisAssignedForSigningToReviewer: false,
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: false,
+        purposePublishedWithRiskAnalysisToReviewer: false,
+        draftPurposeDeletedWithRiskAnalysisToReviewer: false,
+        purposeRiskAnalysisAssignmentRemovedToReviewer: false,
+        purposeRiskAnalysisSignedToReviewer: false,
+        purposeRiskAnalysisSignedToAdmin: false,
+        purposeRiskAnalysisRejectedToAdmin: false,
       },
-      emailConfig: getMockNotificationConfig(),
+      emailConfig: {
+        ...getMockNotificationConfig(),
+        purposeRiskAnalysisAssignedForSigningToReviewer: false,
+        purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: false,
+        purposePublishedWithRiskAnalysisToReviewer: false,
+        draftPurposeDeletedWithRiskAnalysisToReviewer: false,
+        purposeRiskAnalysisAssignmentRemovedToReviewer: false,
+        purposeRiskAnalysisSignedToReviewer: false,
+      },
     };
 
   beforeAll(async () => {

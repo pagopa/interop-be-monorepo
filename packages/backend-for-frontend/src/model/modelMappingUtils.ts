@@ -110,6 +110,15 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
     purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
+    purposeRiskAnalysisAssignedForSigningToReviewer: "/fruizione/finalita",
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+      "/fruizione/finalita",
+    purposePublishedWithRiskAnalysisToReviewer: "/fruizione/finalita",
+    draftPurposeDeletedWithRiskAnalysisToReviewer: "/fruizione/finalita",
+    purposeRiskAnalysisAssignmentRemovedToReviewer: "/fruizione/finalita",
+    purposeRiskAnalysisSignedToReviewer: "/fruizione/finalita",
+    purposeRiskAnalysisSignedToAdmin: "/fruizione/finalita",
+    purposeRiskAnalysisRejectedToAdmin: "/fruizione/finalita",
   } as const;
 
 export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
@@ -148,6 +157,14 @@ export const notificationTypeToCategory: Record<NotificationType, Category> = {
   producerKeychainKeyAddedDeletedToClientUsers: "AttributesAndKeys",
   purposeQuotaAdjustmentRequestToProducer: "Providers",
   purposeOverQuotaStateToConsumer: "Subscribers",
+  purposeRiskAnalysisAssignedForSigningToReviewer: "Subscribers",
+  purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: "Subscribers",
+  purposePublishedWithRiskAnalysisToReviewer: "Subscribers",
+  draftPurposeDeletedWithRiskAnalysisToReviewer: "Subscribers",
+  purposeRiskAnalysisAssignmentRemovedToReviewer: "Subscribers",
+  purposeRiskAnalysisSignedToReviewer: "Subscribers",
+  purposeRiskAnalysisSignedToAdmin: "Subscribers",
+  purposeRiskAnalysisRejectedToAdmin: "Subscribers",
 };
 
 export const categoryToNotificationTypes: Record<Category, NotificationType[]> =
