@@ -549,6 +549,27 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
   correlationId,
 });
 
+export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
+  purpose,
+  oldReviewersToNotify,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  oldReviewersToNotify: UserId[];
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisSelfAssigned",
+    event_version: 2,
+    data: { purpose: toPurposeV2(purpose), oldReviewersToNotify },
+  },
+  correlationId,
+});
+
 export const toCreateEventPurposeRiskAnalysisSubmitted = ({
   purpose,
   version,

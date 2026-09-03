@@ -22,8 +22,11 @@ import {
   reviewerWorkflowConflict,
   userWithoutReviewerPrivileges,
   purposeFromTemplateCannotBeModified,
+  purposeNotInDraftState,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
+  missingReviewers,
+  reviewersNotAllowedForReviewMode,
 } from "../../src/model/domain/errors.js";
 import { api, purposeService } from "../vitest.api.setup.js";
 
@@ -96,11 +99,23 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
       expectedStatus: 400,
     },
     {
+      error: purposeNotInDraftState(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
       error: reviewerWorkflowNotAllowedForDelegatedPurpose(mockPurpose.id),
       expectedStatus: 400,
     },
     {
       error: reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: missingReviewers(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: reviewersNotAllowedForReviewMode(mockPurpose.id),
       expectedStatus: 400,
     },
   ])(
@@ -118,8 +133,15 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
   it.each([
     { purposeId: "invalid" as PurposeId },
     { body: {} },
-    { body: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] } },
-    { body: { reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS", reviewerIds: [] } },
+    {
+      body: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] },
+    },
+    {
+      body: {
+        reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+        reviewerIds: [],
+      },
+    },
     {
       body: {
         reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",

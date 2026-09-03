@@ -36,6 +36,7 @@ import {
   ListResult,
   Purpose,
   PurposeEvent,
+  PurposeEventV2,
   PurposeId,
   PurposeRiskAnalysisForm,
   PurposeTemplate,
@@ -49,8 +50,8 @@ import {
   RiskAnalysis,
   RiskAnalysisId,
   RiskAnalysisReviewMode,
-  RiskAnalysisSigningState,
   ReviewerWorkflow,
+  RiskAnalysisReviewer,
   Tenant,
   TenantId,
   TenantKind,
@@ -94,7 +95,6 @@ import {
   tenantNotFound,
   unableToDetermineTenantKind,
   unchangedDailyCalls,
-  reviewerWorkflowConflict,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
@@ -107,6 +107,9 @@ import {
   reviewerWorkflowNotInSignedState,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
+  reviewerWorkflowConflict,
+  missingReviewers,
+  reviewersNotAllowedForReviewMode,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -134,6 +137,7 @@ import {
   toCreateEventRiskAnalysisSignedDocumentGenerated,
   toCreateEventPurposeRiskAnalysisWorkflowCreated,
   toCreateEventPurposeRiskAnalysisAssigned,
+  toCreateEventPurposeRiskAnalysisSelfAssigned,
   toCreateEventPurposeRiskAnalysisSubmitted,
   toCreateEventPurposeRiskAnalysisSigned,
   toCreateEventPurposeRiskAnalysisRejected,
@@ -543,10 +547,7 @@ export function purposeServiceBuilder(
     },
     async assignRiskAnalysisReviewer(
       purposeId: PurposeId,
-      seed: {
-        reviewMode: RiskAnalysisReviewMode;
-        reviewerIds: string[];
-      },
+      seed: RiskAnalysisReviewAssignment,
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<WithMetadata<Purpose>> {
       logger.info(`Assigning risk analysis reviewer to Purpose ${purposeId}`);
@@ -558,6 +559,15 @@ export function purposeServiceBuilder(
       assertRequesterIsConsumer(purpose.data, authData);
 
       assertPurposeIsNotFromTemplate(purpose.data);
+
+      assertPurposeIsDraft(purpose.data);
+
+      if (
+        purpose.data.reviewerWorkflow?.signingState ===
+        riskAnalysisSigningState.signed
+      ) {
+        throw reviewerWorkflowConflict(purposeId);
+      }
 
       if (purpose.data.delegationId !== undefined) {
         throw reviewerWorkflowNotAllowedForDelegatedPurpose(purposeId);
@@ -572,72 +582,49 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
       }
 
-      if (purpose.data.reviewerWorkflow !== undefined) {
-        throw reviewerWorkflowConflict(purposeId);
+      if (seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns) {
+        if (seed.reviewerIds.length > 0) {
+          throw reviewersNotAllowedForReviewMode(purposeId);
+        }
+      } else {
+        if (seed.reviewerIds.length === 0) {
+          throw missingReviewers(purposeId);
+        }
+
+        const consumer = await retrieveTenant(
+          purpose.data.consumerId,
+          readModelService
+        );
+        assertTenantHasSelfcareId(consumer);
+
+        await Promise.all(
+          seed.reviewerIds.map((reviewerId) =>
+            assertUserSelfcareReviewerPrivileges({
+              selfcareId: consumer.selfcareId,
+              consumerId: purpose.data.consumerId,
+              selfcareV2InstitutionClient,
+              userIdToCheck: unsafeBrandId(reviewerId),
+              correlationId,
+            })
+          )
+        );
       }
 
-      const isReviewerWrites =
-        seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
-
-      const consumer = await retrieveTenant(
-        purpose.data.consumerId,
-        readModelService
-      );
-      assertTenantHasSelfcareId(consumer);
-
-      await Promise.all(
-        seed.reviewerIds.map((reviewerId) =>
-          assertUserSelfcareReviewerPrivileges({
-            selfcareId: consumer.selfcareId,
-            consumerId: purpose.data.consumerId,
-            selfcareV2InstitutionClient,
-            userIdToCheck: unsafeBrandId(reviewerId),
-            correlationId,
-          })
-        )
+      const { event, updatedPurpose } = assignRiskAnalysisReviewerLogic(
+        purpose,
+        seed,
+        correlationId
       );
 
-      const reviewerWorkflow: ReviewerWorkflow = {
-        reviewers: seed.reviewerIds.map((id) => ({
-          id: unsafeBrandId(id),
-          sentToReviewerAt: isReviewerWrites ? new Date() : undefined,
-        })),
-        signingState: isReviewerWrites
-          ? RiskAnalysisSigningState.Values.Assigned
-          : RiskAnalysisSigningState.Values.Draft,
-        sentToReviewerAt: undefined,
-      };
+      if (event === undefined) {
+        return purpose;
+      }
 
-      const updatedPurpose: Purpose = {
-        ...purpose.data,
-        reviewMode: seed.reviewMode,
-        reviewerWorkflow,
-        updatedAt: new Date(),
-      };
-
-      const event = await repository.createEvent(
-        isReviewerWrites
-          ? toCreateEventPurposeRiskAnalysisAssigned({
-              purpose: updatedPurpose,
-              newReviewersToNotify: seed.reviewerIds.map((id) =>
-                unsafeBrandId<UserId>(id)
-              ),
-              oldReviewersToNotify: [],
-              version: purpose.metadata.version,
-              correlationId,
-            })
-          : toCreateEventPurposeRiskAnalysisWorkflowCreated({
-              purpose: updatedPurpose,
-              newReviewersToNotify: [],
-              oldReviewersToNotify: [],
-              version: purpose.metadata.version,
-              correlationId,
-            })
-      );
+      const createdEvent = await repository.createEvent(event);
 
       return {
         data: updatedPurpose,
-        metadata: { version: event.newVersion },
+        metadata: { version: createdEvent.newVersion },
       };
     },
     async submitRiskAnalysis(
@@ -712,6 +699,7 @@ export function purposeServiceBuilder(
           })),
           signingState: riskAnalysisSigningState.submitted,
           rejectionReason: undefined,
+          sentToReviewerAt: undefined,
         },
         updatedAt: now,
       };
@@ -747,22 +735,22 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotFound(purposeId);
       }
 
-      const isReviewerWritesSignable = match({
-        reviewMode: purpose.data.reviewMode,
-        signingState: workflow.signingState,
-      })
+      const isReviewerWritesSignable = match([
+        purpose.data.reviewMode,
+        workflow.signingState,
+      ])
         .with(
-          {
-            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-            signingState: riskAnalysisSigningState.submitted,
-          },
+          [
+            riskAnalysisReviewMode.adminWritesReviewerSigns,
+            riskAnalysisSigningState.submitted,
+          ],
           () => false
         )
         .with(
-          {
-            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-            signingState: riskAnalysisSigningState.assigned,
-          },
+          [
+            riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            riskAnalysisSigningState.assigned,
+          ],
           () => true
         )
         .otherwise(() => {
@@ -2777,6 +2765,264 @@ const getVersionToClone = (purposeToClone: Purpose): PurposeVersion => {
 
   return sortedVersions[0];
 };
+
+type RiskAnalysisReviewAssignment = {
+  reviewMode: RiskAnalysisReviewMode;
+  reviewerIds: string[];
+};
+
+type RiskAnalysisAssignmentOutcome = {
+  reviewerWorkflow: ReviewerWorkflow | undefined;
+  newReviewersToNotify: UserId[];
+  oldReviewersToNotify: UserId[];
+};
+
+type RiskAnalysisAssignmentContext = {
+  purpose: WithMetadata<Purpose>;
+  previousReviewMode: RiskAnalysisReviewMode | undefined;
+  previousReviewers: RiskAnalysisReviewer[];
+  requestedReviewers: UserId[];
+  addedReviewers: UserId[];
+  alreadyNotifiedReviewerIds: UserId[];
+  removedReviewersToNotify: UserId[];
+  now: Date;
+};
+
+/**
+ * Reviewers already in the workflow keep their stamp; joining reviewers get
+ * the supplied stamp when they acquire an action to perform.
+ */
+const preserveExistingReviewerStamps = (
+  reviewerIds: UserId[],
+  previousReviewers: RiskAnalysisReviewer[],
+  sentAt: Date | undefined
+): RiskAnalysisReviewer[] => {
+  const previousReviewerById = new Map(
+    previousReviewers.map((reviewer) => [reviewer.id, reviewer])
+  );
+
+  return reviewerIds.map((id) => {
+    const previousReviewer = previousReviewerById.get(id);
+
+    return {
+      id,
+      sentToReviewerAt:
+        previousReviewer !== undefined
+          ? previousReviewer.sentToReviewerAt
+          : sentAt,
+    };
+  });
+};
+
+const transitionToAdminWritesAdminSigns = ({
+  alreadyNotifiedReviewerIds,
+}: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome => ({
+  reviewerWorkflow: undefined,
+  newReviewersToNotify: [],
+  oldReviewersToNotify: alreadyNotifiedReviewerIds,
+});
+
+const transitionToAdminWritesReviewerSigns = ({
+  purpose,
+  previousReviewMode,
+  previousReviewers,
+  requestedReviewers,
+  addedReviewers,
+  alreadyNotifiedReviewerIds,
+  removedReviewersToNotify,
+  now,
+}: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
+  match(previousReviewMode)
+    .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () => {
+      const previousWorkflow = purpose.data.reviewerWorkflow;
+      if (previousWorkflow === undefined) {
+        throw reviewerWorkflowNotFound(purpose.data.id);
+      }
+
+      const shouldNotifyAddedReviewers =
+        previousWorkflow.signingState === riskAnalysisSigningState.submitted;
+
+      return {
+        reviewerWorkflow: {
+          ...previousWorkflow,
+          reviewers: preserveExistingReviewerStamps(
+            requestedReviewers,
+            previousReviewers,
+            shouldNotifyAddedReviewers ? now : undefined
+          ),
+          sentToReviewerAt: undefined,
+        },
+        newReviewersToNotify: shouldNotifyAddedReviewers ? addedReviewers : [],
+        oldReviewersToNotify: removedReviewersToNotify,
+      };
+    })
+    .otherwise(() => ({
+      reviewerWorkflow: {
+        reviewers: requestedReviewers.map((id) => ({
+          id,
+          sentToReviewerAt: undefined,
+        })),
+        signingState: riskAnalysisSigningState.draft,
+        sentToReviewerAt: undefined,
+      },
+      newReviewersToNotify: [],
+      oldReviewersToNotify: alreadyNotifiedReviewerIds,
+    }));
+
+const transitionToReviewerWritesReviewerSigns = ({
+  previousReviewMode,
+  previousReviewers,
+  requestedReviewers,
+  addedReviewers,
+  removedReviewersToNotify,
+  now,
+}: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
+  match(previousReviewMode)
+    .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
+      reviewerWorkflow: {
+        reviewers: preserveExistingReviewerStamps(
+          requestedReviewers,
+          previousReviewers,
+          now
+        ),
+        signingState: riskAnalysisSigningState.assigned,
+        sentToReviewerAt: undefined,
+      },
+      newReviewersToNotify: addedReviewers,
+      oldReviewersToNotify: removedReviewersToNotify,
+    }))
+    .otherwise(() => ({
+      reviewerWorkflow: {
+        reviewers: requestedReviewers.map((id) => ({
+          id,
+          sentToReviewerAt: now,
+        })),
+        signingState: riskAnalysisSigningState.assigned,
+        sentToReviewerAt: undefined,
+      },
+      newReviewersToNotify: requestedReviewers,
+      oldReviewersToNotify: removedReviewersToNotify,
+    }));
+
+/**
+ * Applies the requested reviewer assignment to the purpose, one branch per
+ * transition between the previous and the requested review mode, where
+ * AdminWritesAdminSigns has no reviewer workflow and an undefined previous
+ * mode is a purpose that was never assigned.
+ *
+ * Each branch declares the resulting reviewer workflow and who must be
+ * notified. The risk analysis form and event are derived once from that
+ * outcome after selecting the transition.
+ */
+function assignRiskAnalysisReviewerLogic(
+  purpose: WithMetadata<Purpose>,
+  review: RiskAnalysisReviewAssignment,
+  correlationId: CorrelationId
+): {
+  event: CreateEvent<PurposeEventV2> | undefined;
+  updatedPurpose: Purpose;
+} {
+  const previousReviewMode = purpose.data.reviewMode;
+  const previousReviewers = purpose.data.reviewerWorkflow?.reviewers ?? [];
+  const previousReviewerIds = previousReviewers.map((reviewer) => reviewer.id);
+  const requestedReviewers = (review?.reviewerIds ?? []).map((id) =>
+    unsafeBrandId<UserId>(id)
+  );
+
+  const assignmentIsUnchanged =
+    previousReviewMode === review.reviewMode &&
+    previousReviewerIds.length === requestedReviewers.length &&
+    previousReviewerIds.every((id) => requestedReviewers.includes(id));
+
+  if (assignmentIsUnchanged) {
+    return { event: undefined, updatedPurpose: purpose.data };
+  }
+
+  const addedReviewers = requestedReviewers.filter(
+    (id) => !previousReviewerIds.includes(id)
+  );
+  const removedReviewers = previousReviewerIds.filter(
+    (id) => !requestedReviewers.includes(id)
+  );
+  const alreadyNotifiedReviewerIds = previousReviewers
+    .filter((reviewer) => reviewer.sentToReviewerAt !== undefined)
+    .map((reviewer) => reviewer.id);
+  const removedReviewersToNotify = alreadyNotifiedReviewerIds.filter((id) =>
+    removedReviewers.includes(id)
+  );
+
+  const now = new Date();
+
+  const transitionContext: RiskAnalysisAssignmentContext = {
+    purpose,
+    previousReviewMode,
+    previousReviewers,
+    requestedReviewers,
+    addedReviewers,
+    alreadyNotifiedReviewerIds,
+    removedReviewersToNotify,
+    now,
+  };
+
+  const outcome = match(review.reviewMode)
+    .returnType<RiskAnalysisAssignmentOutcome>()
+    .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
+      transitionToAdminWritesAdminSigns(transitionContext)
+    )
+    .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
+      transitionToAdminWritesReviewerSigns(transitionContext)
+    )
+    .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
+      transitionToReviewerWritesReviewerSigns(transitionContext)
+    )
+    .exhaustive();
+
+  const reviewerWritingDutyChanges =
+    (previousReviewMode ===
+      riskAnalysisReviewMode.reviewerWritesReviewerSigns) !==
+    (review.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns);
+
+  const updatedPurpose: Purpose = {
+    ...purpose.data,
+    riskAnalysisForm: reviewerWritingDutyChanges
+      ? undefined
+      : purpose.data.riskAnalysisForm,
+    reviewMode: review.reviewMode,
+    reviewerWorkflow: outcome.reviewerWorkflow,
+    updatedAt: now,
+  };
+
+  const eventPayload = {
+    purpose: updatedPurpose,
+    version: purpose.metadata.version,
+    correlationId,
+  };
+
+  const event = match(review.reviewMode)
+    .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
+      toCreateEventPurposeRiskAnalysisSelfAssigned({
+        ...eventPayload,
+        oldReviewersToNotify: outcome.oldReviewersToNotify,
+      })
+    )
+    .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
+      toCreateEventPurposeRiskAnalysisWorkflowCreated({
+        ...eventPayload,
+        newReviewersToNotify: outcome.newReviewersToNotify,
+        oldReviewersToNotify: outcome.oldReviewersToNotify,
+      })
+    )
+    .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
+      toCreateEventPurposeRiskAnalysisAssigned({
+        ...eventPayload,
+        newReviewersToNotify: outcome.newReviewersToNotify,
+        oldReviewersToNotify: outcome.oldReviewersToNotify,
+      })
+    )
+    .exhaustive();
+
+  return { event, updatedPurpose };
+}
 
 function changePurposeVersionToWaitForApprovalFromDraftLogic(
   purpose: WithMetadata<Purpose>,

@@ -39,6 +39,11 @@ describe("Purpose aggregator", () => {
       riskAnalysisId: generateId<RiskAnalysisId>(),
     };
 
+    const reviewers = [
+      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+    ];
+
     const purpose: WithMetadata<Purpose> = {
       data: {
         ...getMockPurpose(),
@@ -52,10 +57,7 @@ describe("Purpose aggregator", () => {
         purposeTemplateId: generateId<PurposeTemplateId>(),
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewers: [
-            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-          ],
+          reviewers,
           signingState: riskAnalysisSigningState.signed,
           signedBy: generateId<UserId>(),
           rejectionReason: "Reviewer workflow rejection reason",

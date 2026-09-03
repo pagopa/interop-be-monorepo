@@ -51,11 +51,13 @@ describe("Purpose splitter", () => {
     const firstActivationAt = new Date();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
+    const reviewers = [
+      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+    ];
+
     const reviewerWorkflow: ReviewerWorkflow = {
-      reviewers: [
-        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-      ],
+      reviewers,
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
       rejectionReason: "Reviewer workflow rejection reason",
@@ -122,7 +124,7 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: purpose.purposeTemplateId!,
-      reviewMode: purpose.reviewMode!,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
