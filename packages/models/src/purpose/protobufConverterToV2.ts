@@ -160,6 +160,7 @@ export const toReviewerWorkflowV2 = (
   reviewers: input.reviewers.map(toRiskAnalysisReviewerV2),
   signingState: toRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy,
+  signedAt: dateToBigInt(input.signedAt),
   rejectedBy: input.rejectedBy,
   rejectionReason: input.rejectionReason,
   sentToReviewerAt: dateToBigInt(input.sentToReviewerAt),
