@@ -138,12 +138,15 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
+      newReviewersToNotify: reviewerIds,
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
@@ -220,12 +223,15 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
+      newReviewersToNotify: [],
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
@@ -308,12 +314,15 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
+      newReviewersToNotify: reviewerIds,
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
