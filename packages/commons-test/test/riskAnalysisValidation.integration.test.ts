@@ -446,7 +446,7 @@ describe("Risk Analysis Validation", () => {
 
   it("should succeeed schema only even on missing expected answers", () => {
     const riskAnalysis: RiskAnalysisFormToValidate = {
-      version: "3.1",
+      version: "3.2",
       tenantKind: tenantKind.PA,
       answers: {
         purpose: ["INSTITUTIONAL"],
