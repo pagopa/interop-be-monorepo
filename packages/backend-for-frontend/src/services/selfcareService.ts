@@ -24,6 +24,11 @@ import { assertRequesterCanRetrieveUsers } from "./validators.js";
 const isAxiosNotFoundError = (error: unknown): boolean =>
   isAxiosError(error) && error.response?.status === 404;
 
+const isAxiosServerError = (error: unknown): boolean =>
+  isAxiosError(error) &&
+  error.response?.status !== undefined &&
+  error.response.status >= 500;
+
 export async function getSelfcareCompactUserById(
   selfcareClient: SelfcareV2UsersClient,
   userId: string,
@@ -113,16 +118,27 @@ export function selfcareServiceBuilder({
       logger.info(
         `Retrieving Products for Institution ${institutionId} and User ${userId}`
       );
-      const products =
-        await selfcareV2InstitutionClient.getInstitutionProductsUsingGET({
-          params: { institutionId },
-          queries: { userId },
-          headers: {
-            "X-Correlation-Id": correlationId,
-          },
-        });
+      try {
+        const products =
+          await selfcareV2InstitutionClient.getInstitutionProductsUsingGET({
+            params: { institutionId },
+            queries: { userId },
+            headers: {
+              "X-Correlation-Id": correlationId,
+            },
+          });
 
-      return products.map(toApiSelfcareProduct);
+        return products.map(toApiSelfcareProduct);
+      } catch (error: unknown) {
+        if (isAxiosServerError(error)) {
+          logger.warn(
+            `Selfcare returned a server error while retrieving products for Institution ${institutionId} and User ${userId}; returning an empty product list`
+          );
+          return [];
+        }
+
+        throw error;
+      }
     },
 
     async getSelfcareInstitutions({
