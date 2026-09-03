@@ -277,6 +277,22 @@ describe("database test", async () => {
             !initialEmailConfig.purposeQuotaAdjustmentRequestToProducer,
           purposeOverQuotaStateToConsumer:
             !initialEmailConfig.purposeOverQuotaStateToConsumer,
+          purposeRiskAnalysisAssignedForSigningToReviewer:
+            !initialEmailConfig.purposeRiskAnalysisAssignedForSigningToReviewer,
+          purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+            !initialEmailConfig.purposeRiskAnalysisAssignedForWritingAndSigningToReviewer,
+          purposePublishedWithRiskAnalysisToReviewer:
+            !initialEmailConfig.purposePublishedWithRiskAnalysisToReviewer,
+          draftPurposeDeletedWithRiskAnalysisToReviewer:
+            !initialEmailConfig.draftPurposeDeletedWithRiskAnalysisToReviewer,
+          purposeRiskAnalysisAssignmentRemovedToReviewer:
+            !initialEmailConfig.purposeRiskAnalysisAssignmentRemovedToReviewer,
+          purposeRiskAnalysisSignedToReviewer:
+            !initialEmailConfig.purposeRiskAnalysisSignedToReviewer,
+          purposeRiskAnalysisSignedToAdmin:
+            !initialEmailConfig.purposeRiskAnalysisSignedToAdmin,
+          purposeRiskAnalysisRejectedToAdmin:
+            !initialEmailConfig.purposeRiskAnalysisRejectedToAdmin,
         },
       };
 
