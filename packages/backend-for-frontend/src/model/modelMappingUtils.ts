@@ -74,13 +74,18 @@ export function getLastArchivingRequest(
     }))
   );
 
-  return archivingRequests
-    ?.filter((request) => request.acceptedAt === undefined)
-    .sort(
+  const lastRequest = archivingRequests
+    ?.sort(
       (a, b) =>
         new Date(a.requestedAt).getTime() - new Date(b.requestedAt).getTime()
     )
     .at(-1);
+
+  if (!lastRequest || lastRequest.acceptedAt) {
+    return undefined;
+  }
+
+  return lastRequest;
 }
 
 export function getLatestTenantContactEmail(
