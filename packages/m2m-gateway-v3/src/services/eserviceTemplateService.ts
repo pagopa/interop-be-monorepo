@@ -93,7 +93,7 @@ export function eserviceTemplateServiceBuilder(
   function isDiscreteAttributeGroup(
     group: eserviceTemplateApi.Attribute[]
   ): boolean {
-    return group.every((attribute) => attribute.discreteConfig !== undefined);
+    return group.some((attribute) => attribute.discreteConfig !== undefined);
   }
 
   function getIndexedKindAttributeGroups(

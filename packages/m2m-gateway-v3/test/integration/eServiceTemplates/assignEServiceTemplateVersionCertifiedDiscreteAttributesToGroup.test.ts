@@ -48,7 +48,7 @@ describe("assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup", () =
   const mockCertifiedDiscreteAttributes = [
     [getMockedApiEServiceAttribute()],
     [
-      getMockedApiCertifiedDiscreteEServiceAttribute(),
+      getMockedApiEServiceAttribute(),
       getMockedApiCertifiedDiscreteEServiceAttribute(),
     ],
     [
