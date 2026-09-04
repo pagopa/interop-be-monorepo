@@ -32,6 +32,7 @@ import {
   delegationKind,
   delegationState,
   generateId,
+  hyperlinkDetectionError,
   toAgreementV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
@@ -494,5 +495,22 @@ describe("reject agreement", () => {
         getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantIsNotTheProducer(authData.organizationId));
+  });
+
+  it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
+    const agreement = {
+      ...getMockAgreement(),
+      state: randomArrayItem(agreementRejectableStates),
+    };
+    await addOneAgreement(agreement);
+    const authData = getMockAuthData(agreement.producerId);
+    const rejectionReason = "see https://evil.example.com";
+    await expect(
+      agreementService.rejectAgreement(
+        agreement.id,
+        rejectionReason,
+        getMockContext({ authData })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(rejectionReason));
   });
 });

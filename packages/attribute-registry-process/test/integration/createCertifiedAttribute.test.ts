@@ -14,6 +14,7 @@ import {
   Attribute,
   attributeKind,
   toAttributeV1,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
 
@@ -224,5 +225,28 @@ describe("certified attribute creation", () => {
         getMockContext({ authData: getMockAuthData(mockTenant.id) })
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
+  });
+  it("should throw hyperlinkDetectionError if the code contains a hyperlink", async () => {
+    const tenant: Tenant = {
+      ...mockTenant,
+      features: [
+        {
+          type: "PersistentCertifier",
+          certifierId: randomUUID(),
+        },
+      ],
+    };
+    await addOneTenant(tenant);
+    const codeWithHyperlink = "ABC-https://evil.example.com";
+    await expect(
+      attributeRegistryService.createCertifiedAttribute(
+        {
+          name: mockAttribute.name,
+          code: codeWithHyperlink,
+          description: mockAttribute.description,
+        },
+        getMockContext({ authData: getMockAuthData(tenant.id) })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(codeWithHyperlink));
   });
 });
