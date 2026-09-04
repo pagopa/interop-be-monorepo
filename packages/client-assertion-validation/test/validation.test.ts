@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { fail } from "assert";
 import * as jsonwebtoken from "jsonwebtoken";
-import { dateToSeconds, genericLogger } from "pagopa-interop-commons";
+import {
+  calculateKid,
+  createJWK,
+  dateToSeconds,
+  genericLogger,
+} from "pagopa-interop-commons";
 import {
   generateKeySet,
   getMockClientAssertion,
@@ -61,7 +66,11 @@ import {
   invalidEntityNumberClaimFormat,
 } from "../src/errors.js";
 import { ClientAssertionValidationRequest } from "../src/types.js";
-import { validateAudience, validatePlatformState } from "../src/utils.js";
+import {
+  validateAudience,
+  validateKid,
+  validatePlatformState,
+} from "../src/utils.js";
 import {
   validateClientKindAndPlatformState,
   validateRequestParameters,
@@ -74,6 +83,10 @@ import {
   getMockAccessTokenRequest,
   value64chars,
 } from "./utils.js";
+
+// A real SHA-256 thumbprint that starts with a dash: "-" belongs to the
+// base64url alphabet, so the format rule must accept this value.
+const dashLeadingThumbprint = "-jxMDApBd4jRqS2reSCT_WFknFezHr6EnPNpXbNsLBk";
 
 describe("validation test", async () => {
   describe("validateRequestParameters", async () => {
@@ -659,8 +672,9 @@ describe("validation test", async () => {
     });
 
     it("InvalidKidFormat", async () => {
+      const invalidKid = "not a valid kid";
       const { jws } = await getMockClientAssertion({
-        customHeader: { kid: "not a valid kid" },
+        customHeader: { kid: invalidKid },
       });
       const { errors } = verifyClientAssertion(
         jws,
@@ -670,12 +684,13 @@ describe("validation test", async () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidKidFormat());
+      expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
     });
 
     it("InvalidKidFormat when kid is not a JWK thumbprint", async () => {
+      const invalidKid = "not-a-valid-kid-format";
       const { jws } = await getMockClientAssertion({
-        customHeader: { kid: "not-a-valid-kid-format" },
+        customHeader: { kid: invalidKid },
       });
       const { errors } = verifyClientAssertion(
         jws,
@@ -685,7 +700,143 @@ describe("validation test", async () => {
       );
       expect(errors).toBeDefined();
       expect(errors).toHaveLength(1);
-      expect(errors![0]).toEqual(invalidKidFormat());
+      expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
+    });
+
+    it("InvalidKidFormat when the kid is a JWK thumbprint with an extra leading character", async () => {
+      const invalidKid = "-f9lp2Z7yV6UWp55ZNg-Rv98s0hyDngwmmPGG_axON_c";
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: invalidKid },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
+      expect(errors![0].detail).toContain(invalidKid);
+    });
+
+    it("InvalidKidFormat when the kid is one character shorter than a JWK thumbprint", async () => {
+      const invalidKid = "f9lp2Z7yV6UWp55ZNg-Rv98s0hyDngwmmPGG_axON_";
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: invalidKid },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
+    });
+
+    it("should accept a JWK thumbprint that starts with a dash", async () => {
+      // "-" and "_" are part of the base64url alphabet, so a valid thumbprint
+      // can start with either of them.
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: dashLeadingThumbprint },
+      });
+      const { data, errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeUndefined();
+      expect(data?.header.kid).toEqual(dashLeadingThumbprint);
+    });
+
+    it("InvalidKidFormat when the kid contains the primary key separator", async () => {
+      const invalidKid = "f9lp2Z7yV6UWp55ZNg-Rv98s0hyDngwmmPGG#axON_c";
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: invalidKid },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
+    });
+
+    it("InvalidKidFormat when the kid is a number", async () => {
+      // The protected header is untrusted JSON, so a caller can send a kid
+      // of any JSON type despite the TypeScript annotation.
+      const invalidKid = 123;
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: invalidKid },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
+      expect(errors![0].detail).toContain("123");
+    });
+
+    it("InvalidKidFormat when the kid is an object", async () => {
+      const invalidKid = { url: "https://example.com/keys" };
+      const { jws } = await getMockClientAssertion({
+        customHeader: { kid: invalidKid },
+      });
+      const { errors } = verifyClientAssertion(
+        jws,
+        undefined,
+        expectedAudiences,
+        genericLogger
+      );
+      expect(errors).toBeDefined();
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat(invalidKid));
+    });
+  });
+
+  describe("validateKid", async () => {
+    it("should accept the kid that the platform computes for a client key", async () => {
+      // The format rule and calculateKid must not drift apart. A key created by
+      // the platform must always pass the rule.
+      const { publicKeyEncodedPem } = await getMockClientAssertion();
+      const platformKid = calculateKid(
+        createJWK({ pemKeyBase64: publicKeyEncodedPem })
+      );
+
+      const { data, errors } = validateKid(platformKid);
+      expect(errors).toBeUndefined();
+      expect(data).toEqual(platformKid);
+    });
+
+    it("should cut a very long kid in the error detail", async () => {
+      const longKid = "a".repeat(500);
+      const { errors } = validateKid(longKid);
+      expect(errors).toHaveLength(1);
+      expect(errors![0].detail).not.toContain(longKid);
+      expect(errors![0].detail.length).toBeLessThan(200);
+    });
+
+    it("should reject a kid that is not a string", async () => {
+      const { errors } = validateKid(123);
+      expect(errors).toHaveLength(1);
+      expect(errors![0]).toEqual(invalidKidFormat(123));
+    });
+
+    it("should cut a very long non-string kid in the error detail", async () => {
+      const longKid = { padding: "a".repeat(500) };
+      const { errors } = validateKid(longKid);
+      expect(errors).toHaveLength(1);
+      expect(errors![0].detail.length).toBeLessThan(200);
     });
   });
 
