@@ -41,7 +41,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     getPurposeTemplateEServiceTemplates?: ReturnType<typeof vi.fn>;
     getEServices?: ReturnType<typeof vi.fn>;
     getEServiceTemplates?: ReturnType<typeof vi.fn>;
-    getTenant?: ReturnType<typeof vi.fn>;
+    getTenants?: ReturnType<typeof vi.fn>;
   }) => {
     const purposeTemplateClient = {
       getPurposeTemplateEServices:
@@ -65,7 +65,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
 
     const tenantProcessClient = {
       tenant: {
-        getTenant: overrides.getTenant ?? vi.fn(),
+        getTenants: overrides.getTenants ?? vi.fn(),
       },
     } as unknown as TenantProcessClient;
 
@@ -85,7 +85,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
         getEServices: catalogProcessClient.getEServices,
         getEServiceTemplates:
           eserviceTemplateProcessClient.getEServiceTemplates,
-        getTenant: tenantProcessClient.tenant.getTenant,
+        getTenants: tenantProcessClient.tenant.getTenants,
       },
     };
   };
@@ -138,17 +138,14 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       getEServiceTemplates: vi
         .fn()
         .mockResolvedValue({ results: [templateMid.eserviceTemplate] }),
-      getTenant: vi
-        .fn()
-        .mockImplementation(({ params: { id } }) =>
-          Promise.resolve(
-            [
-              concreteOldest.tenant,
-              concreteNewest.tenant,
-              templateMid.tenant,
-            ].find((t) => t.id === id)
-          )
-        ),
+      getTenants: vi.fn().mockResolvedValue({
+        results: [
+          concreteOldest.tenant,
+          concreteNewest.tenant,
+          templateMid.tenant,
+        ],
+        totalCount: 3,
+      }),
     });
 
     const result = await service.getPurposeTemplateLinkableResources({
@@ -169,6 +166,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     expect(result.results[2].createdAt).toBe(concreteOldest.link.createdAt);
     expect(mocks.getEServices).toHaveBeenCalledTimes(1);
     expect(mocks.getEServiceTemplates).toHaveBeenCalledTimes(1);
+    expect(mocks.getTenants).toHaveBeenCalledTimes(1);
   });
 
   it("performs multi round-trip until each upstream is exhausted", async () => {
@@ -197,11 +195,10 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       getEServices: vi
         .fn()
         .mockResolvedValue({ results: allConcrete.map((f) => f.eservice) }),
-      getTenant: vi
-        .fn()
-        .mockImplementation(({ params: { id } }) =>
-          Promise.resolve(allConcrete.find((f) => f.tenant.id === id)?.tenant)
-        ),
+      getTenants: vi.fn().mockResolvedValue({
+        results: allConcrete.map((f) => f.tenant),
+        totalCount: allConcrete.length,
+      }),
     });
 
     const result = await service.getPurposeTemplateLinkableResources({
@@ -255,11 +252,10 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       getEServiceTemplates: vi.fn().mockResolvedValue({
         results: allTemplates.map((f) => f.eserviceTemplate),
       }),
-      getTenant: vi
-        .fn()
-        .mockImplementation(({ params: { id } }) =>
-          Promise.resolve(allTemplates.find((f) => f.tenant.id === id)?.tenant)
-        ),
+      getTenants: vi.fn().mockResolvedValue({
+        results: allTemplates.map((f) => f.tenant),
+        totalCount: allTemplates.length,
+      }),
     });
 
     const result = await service.getPurposeTemplateLinkableResources({
@@ -313,7 +309,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     });
     expect(mocks.getEServices).toHaveBeenCalledTimes(0);
     expect(mocks.getEServiceTemplates).toHaveBeenCalledTimes(0);
-    expect(mocks.getTenant).toHaveBeenCalledTimes(0);
+    expect(mocks.getTenants).toHaveBeenCalledTimes(0);
   });
 
   it("applies offset/limit on the merged list", async () => {
@@ -329,11 +325,10 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       getEServices: vi
         .fn()
         .mockResolvedValue({ results: fixtures.map((f) => f.eservice) }),
-      getTenant: vi
-        .fn()
-        .mockImplementation(({ params: { id } }) =>
-          Promise.resolve(fixtures.find((f) => f.tenant.id === id)?.tenant)
-        ),
+      getTenants: vi.fn().mockResolvedValue({
+        results: fixtures.map((f) => f.tenant),
+        totalCount: fixtures.length,
+      }),
     });
 
     const result = await service.getPurposeTemplateLinkableResources({
@@ -392,7 +387,10 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     concrete.eservice.producerId = sharedTenantId;
     template.eserviceTemplate.creatorId = sharedTenantId;
 
-    const getTenant = vi.fn().mockResolvedValue(sharedTenant);
+    const getTenants = vi.fn().mockResolvedValue({
+      results: [sharedTenant],
+      totalCount: 1,
+    });
 
     const { service } = buildService({
       getPurposeTemplateEServices: vi.fn().mockResolvedValue({
@@ -407,7 +405,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       getEServiceTemplates: vi
         .fn()
         .mockResolvedValue({ results: [template.eserviceTemplate] }),
-      getTenant,
+      getTenants,
     });
 
     await service.getPurposeTemplateLinkableResources({
@@ -418,10 +416,15 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       ctx,
     });
 
-    expect(getTenant).toHaveBeenCalledTimes(1);
-    expect(getTenant).toHaveBeenCalledWith(
-      expect.objectContaining({ params: { id: sharedTenantId } })
-    );
+    expect(getTenants).toHaveBeenCalledTimes(1);
+    expect(getTenants).toHaveBeenCalledWith({
+      headers: ctx.headers,
+      queries: {
+        tenantIds: [sharedTenantId],
+        offset: 0,
+        limit: 50,
+      },
+    });
   });
 
   it("short-circuits enrichment calls when there are no links", async () => {
@@ -441,7 +444,7 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
     });
     expect(mocks.getEServices).toHaveBeenCalledTimes(0);
     expect(mocks.getEServiceTemplates).toHaveBeenCalledTimes(0);
-    expect(mocks.getTenant).toHaveBeenCalledTimes(0);
+    expect(mocks.getTenants).toHaveBeenCalledTimes(0);
   });
 
   it("throws eServiceNotFound when the eservice is missing from the batch", async () => {
@@ -482,7 +485,10 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       getEServices: vi
         .fn()
         .mockResolvedValue({ results: [eserviceWithoutDescriptor] }),
-      getTenant: vi.fn().mockResolvedValue(concrete.tenant),
+      getTenants: vi.fn().mockResolvedValue({
+        results: [concrete.tenant],
+        totalCount: 1,
+      }),
     });
 
     await expect(
@@ -538,7 +544,10 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
       getEServiceTemplates: vi
         .fn()
         .mockResolvedValue({ results: [templateWithoutVersion] }),
-      getTenant: vi.fn().mockResolvedValue(template.tenant),
+      getTenants: vi.fn().mockResolvedValue({
+        results: [template.tenant],
+        totalCount: 1,
+      }),
     });
 
     await expect(
@@ -569,7 +578,10 @@ describe("getPurposeTemplateLinkableResources (service)", () => {
         totalCount: 1,
       }),
       getEServices: vi.fn().mockResolvedValue({ results: [concrete.eservice] }),
-      getTenant: vi.fn().mockResolvedValue(decoyTenant),
+      getTenants: vi.fn().mockResolvedValue({
+        results: [decoyTenant],
+        totalCount: 1,
+      }),
     });
 
     await expect(

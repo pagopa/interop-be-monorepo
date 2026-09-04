@@ -201,11 +201,19 @@ export function purposeTemplateServiceBuilder(
         ...eserviceTemplates.map((t) => t.creatorId),
       ])
     );
-    const tenants = await Promise.all(
-      tenantIds.map((id) =>
-        tenantProcessClient.tenant.getTenant({ headers, params: { id } })
-      )
-    );
+    const tenants =
+      tenantIds.length === 0
+        ? []
+        : (
+            await tenantProcessClient.tenant.getTenants({
+              headers,
+              queries: {
+                tenantIds,
+                offset: 0,
+                limit: FETCH_ALL_PAGE,
+              },
+            })
+          ).results;
     const tenantById = new Map(tenants.map((t) => [t.id, t]));
 
     return page.map((entry) =>
