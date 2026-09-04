@@ -50,7 +50,8 @@ async function enhanceDelegation<
     producer: tenantApi.Tenant
   ) => T,
   cachedTenants: Map<string, tenantApi.Tenant> = new Map(),
-  notifications: string[] | undefined
+  notifications: string[] | undefined,
+  cachedEServices?: Map<string, catalogApi.EService>
 ): Promise<T> {
   const delegator = await getTenantById(
     tenantClient,
@@ -77,6 +78,10 @@ async function enhanceDelegation<
      */
     .with(bffApi.DelegationKind.Values.DELEGATED_PRODUCER, async () => {
       const eservice: catalogApi.EService | undefined = await (async () => {
+        if (cachedEServices) {
+          return cachedEServices.get(delegation.eserviceId);
+        }
+
         try {
           return await catalogClient.getEServiceById({
             params: { eServiceId: delegation.eserviceId },
@@ -99,12 +104,12 @@ async function enhanceDelegation<
       );
     })
     .with(bffApi.DelegationKind.Values.DELEGATED_CONSUMER, async () => {
-      const eservice: catalogApi.EService = await catalogClient.getEServiceById(
-        {
+      const eservice: catalogApi.EService =
+        cachedEServices?.get(delegation.eserviceId) ??
+        (await catalogClient.getEServiceById({
           params: { eServiceId: delegation.eserviceId },
           headers,
-        }
-      );
+        }));
 
       const producer = await getTenantById(
         tenantClient,
@@ -166,6 +171,63 @@ export async function getTenantsFromDelegation(
     acc.set(tenant.id, tenant);
     return acc;
   }, new Map<string, tenantApi.Tenant>());
+}
+
+async function getTenantsFromDelegationsInBulk(
+  tenantClient: TenantProcessClient,
+  delegations: delegationApi.Delegation[],
+  additionalTenantIds: string[],
+  headers: BffAppContext["headers"]
+): Promise<Map<string, tenantApi.Tenant>> {
+  const tenantIds = delegations.reduce((acc, delegation) => {
+    acc.add(delegation.delegateId);
+    acc.add(delegation.delegatorId);
+    return acc;
+  }, new Set(additionalTenantIds));
+
+  if (tenantIds.size === 0) {
+    return new Map();
+  }
+
+  const tenants = await getAllFromPaginated((offset, limit) =>
+    tenantClient.tenant.getTenants({
+      queries: {
+        tenantIds: Array.from(tenantIds),
+        offset,
+        limit,
+      },
+      headers,
+    })
+  );
+
+  return new Map(tenants.map((tenant) => [tenant.id, tenant]));
+}
+
+async function getEServicesFromDelegations(
+  catalogClient: catalogApi.CatalogProcessClient,
+  delegations: delegationApi.Delegation[],
+  headers: BffAppContext["headers"]
+): Promise<Map<string, catalogApi.EService>> {
+  const eserviceIds = Array.from(
+    new Set(delegations.map((delegation) => delegation.eserviceId))
+  );
+
+  if (eserviceIds.length === 0) {
+    return new Map();
+  }
+
+  const eservices = await getAllFromPaginated((offset, limit) =>
+    catalogClient.getEServices({
+      queries: {
+        eservicesIds: eserviceIds,
+        offset,
+        limit,
+      },
+      headers,
+    })
+  );
+
+  return new Map(eservices.map((eservice) => [eservice.id, eservice]));
 }
 
 export async function getTenantById(
@@ -273,9 +335,18 @@ export function delegationServiceBuilder(
         ctx
       );
 
-      const involvedTenants = await getTenantsFromDelegation(
+      const involvedEServices = await getEServicesFromDelegations(
+        catalogClient,
+        delegations.results,
+        headers
+      );
+
+      const involvedTenants = await getTenantsFromDelegationsInBulk(
         tenantClient,
         delegations.results,
+        Array.from(involvedEServices.values()).map(
+          (eservice) => eservice.producerId
+        ),
         headers
       );
 
@@ -290,7 +361,8 @@ export function delegationServiceBuilder(
             headers,
             toBffDelegationApiCompactDelegation,
             involvedTenants,
-            notifications
+            notifications,
+            involvedEServices
           )
         )
       );
