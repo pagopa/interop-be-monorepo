@@ -113,6 +113,8 @@ export const eventMailTemplateType = {
   purposeQuotaOverthresholdMailTemplate: "purpose-quota-overthreshold-mail",
   purposeQuotaAdjustmentResponseMailTemplate:
     "purpose-quota-adjustment-response-mail",
+  purposePublishedWithRiskAnalysisToReviewerMailTemplate:
+    "purpose-published-with-risk-analysis-to-reviewer-mail",
   eserviceArchivingStartedDescriptorToProducerMailTemplate:
     "eservice-archiving-started-descriptor-to-producer-mail",
   eserviceArchivingStartedDescriptorToConsumerMailTemplate:
