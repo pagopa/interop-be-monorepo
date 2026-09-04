@@ -169,8 +169,7 @@ export function purposeServiceBuilder(
     authData: UIAuthData,
     purpose: purposeApi.Purpose,
     eservices: catalogApi.EService[],
-    producers: tenantApi.Tenant[],
-    consumers: tenantApi.Tenant[],
+    tenants: tenantApi.Tenant[],
     purposeTemplate: purposeTemplateApi.PurposeTemplate | undefined,
     skipRulesetRetrieval: boolean,
     headers: Headers,
@@ -183,12 +182,14 @@ export function purposeServiceBuilder(
       throw eServiceNotFound(unsafeBrandId(purpose.eserviceId));
     }
 
-    const producer = producers.find((p) => p.id === eservice.producerId);
+    const producer = tenants.find(
+      (tenant) => tenant.id === eservice.producerId
+    );
     if (!producer) {
       throw tenantNotFound(unsafeBrandId(eservice.producerId));
     }
 
-    const consumer = consumers.find((c) => c.id === purpose.consumerId);
+    const consumer = tenants.find((tenant) => tenant.id === purpose.consumerId);
     if (!consumer) {
       throw tenantNotFound(unsafeBrandId(purpose.consumerId));
     }
@@ -458,7 +459,6 @@ export function purposeServiceBuilder(
           authData,
           p,
           eservices,
-          tenants,
           tenants,
           purposeTemplate,
           true, // NOTE: if we need the rulesetExpiration when retrieving the purposes list, we have to fetch it here
@@ -996,8 +996,7 @@ export function purposeServiceBuilder(
         authData,
         purpose,
         [eservice],
-        [producer],
-        [consumer],
+        [producer, consumer],
         purposeTemplate,
         false,
         headers,
