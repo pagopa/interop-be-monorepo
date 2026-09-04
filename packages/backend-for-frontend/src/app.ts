@@ -17,6 +17,7 @@ import {
   FileManager,
   fromFilesToBodyMiddleware,
   multerMiddleware,
+  problemContentTypeMiddleware,
   errorsToApiProblemsMiddleware,
   healthRouter,
 } from "pagopa-interop-commons";
@@ -234,6 +235,7 @@ export async function createApp(
   rateLimiterMiddleware: RateLimiterMiddleware
 ) {
   const app = zodiosCtx.app();
+  app.use(problemContentTypeMiddleware);
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
   // See https://cheatsheetseries.owasp.org/cheatsheets/HTTP_Headers_Cheat_Sheet.html#recommendation_16

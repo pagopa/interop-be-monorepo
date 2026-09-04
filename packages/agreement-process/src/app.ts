@@ -10,6 +10,7 @@ import {
   errorsToApiProblemsMiddleware,
   healthRouter,
   loggerMiddleware,
+  problemContentTypeMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
@@ -27,6 +28,7 @@ export async function createApp(service: AgreementService) {
   const app = zodiosCtx.app(undefined, {
     enableJsonBodyParser: false,
   }) as unknown as express.Express;
+  app.use(problemContentTypeMiddleware);
   app.use(express.json({ limit: config.jsonBodyLimit }));
 
   // Disable the "X-Powered-By: Express" HTTP header for security reasons.
