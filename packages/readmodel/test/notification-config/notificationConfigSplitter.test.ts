@@ -111,6 +111,8 @@ describe("Notification config splitters", () => {
             "producerKeychainKeyAddedDeletedToClientUsers",
             "purposeQuotaAdjustmentRequestToProducer",
             "purposeOverQuotaStateToConsumer",
+            "eserviceArchivingRequestedToDelegator",
+            "eserviceArchivingApprovedRejectedToDelegate",
           ] as const
         )
           .filter(
@@ -149,6 +151,8 @@ describe("Notification config splitters", () => {
             "producerKeychainKeyAddedDeletedToClientUsers",
             "purposeQuotaAdjustmentRequestToProducer",
             "purposeOverQuotaStateToConsumer",
+            "eserviceArchivingRequestedToDelegator",
+            "eserviceArchivingApprovedRejectedToDelegate",
           ] as const
         )
           .filter(

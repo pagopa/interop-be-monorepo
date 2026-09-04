@@ -28,6 +28,7 @@ import {
   notAllowedPrivateKeyException,
   notAnRSAKey,
   toClientV2,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
 
@@ -495,5 +496,21 @@ describe("createKey", () => {
         getMockContext({ authData: mockAuthData })
       )
     ).rejects.toThrowError(invalidKeyLength(1024, 2048));
+  });
+  it("should throw hyperlinkDetectionError when the key name contains a hyperlink", async () => {
+    const nameWithHyperlink = "key https://evil.example.com";
+    const seedWithHyperlink: authorizationApi.KeySeed = {
+      ...keySeed,
+      name: nameWithHyperlink,
+    };
+    await expect(
+      authorizationService.createKey(
+        {
+          clientId: mockClient.id,
+          keySeed: seedWithHyperlink,
+        },
+        getMockContext({ authData: mockAuthData })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(nameWithHyperlink));
   });
 });
