@@ -14288,8 +14288,6 @@ components:
         - dailyCallsPerConsumer
         - dailyCallsTotal
         - agreementApprovalPolicy
-        - isSubscribed
-        - isMine
       properties:
         id:
           type: string
@@ -14378,7 +14376,6 @@ components:
           $ref: "#/components/schemas/ClientKind"
       required:
         - id
-        - organization
         - consumer
         - name
         - purposes
@@ -16341,7 +16338,6 @@ components:
           description: "base64 encoded key"
       required:
         - key
-        - purposeId
     ClientSeed:
       description: Client creation request body
       type: object
@@ -18104,7 +18100,6 @@ components:
         - version
         - docs
         - state
-        - creationDate
         - voucherLifespan
         - attributes
         - eserviceTemplate
