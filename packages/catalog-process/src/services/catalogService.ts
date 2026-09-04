@@ -2503,7 +2503,6 @@ export function catalogServiceBuilder(
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);
-      const rejectionReason = seed.reason;
 
       if (seed.descriptorId) {
         const descriptorId = unsafeBrandId<DescriptorId>(seed.descriptorId);
@@ -2516,14 +2515,8 @@ export function catalogServiceBuilder(
           return;
         }
 
-        const updatedRequests = updateLatestActiveArchivingRequest(
-          descriptor.delegatedArchivingRequest ?? [],
-          {
-            rejectedAt: new Date(),
-            rejectionReason,
-          },
-          eserviceId,
-          descriptorId
+        const updatedRequests = removeActiveArchivingRequest(
+          descriptor.delegatedArchivingRequest
         );
 
         const updatedEService = replaceDescriptor(eservice.data, {
@@ -2549,13 +2542,8 @@ export function catalogServiceBuilder(
         return;
       }
 
-      const updatedRequests = updateLatestActiveArchivingRequest(
-        eservice.data.delegatedArchivingRequest ?? [],
-        {
-          rejectedAt: new Date(),
-          rejectionReason,
-        },
-        eserviceId
+      const updatedRequests = removeActiveArchivingRequest(
+        eservice.data.delegatedArchivingRequest
       );
 
       const updatedEService: EService = {

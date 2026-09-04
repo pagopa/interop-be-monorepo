@@ -4221,12 +4221,6 @@ components:
         descriptorId:
           type: string
           format: uuid
-        reason:
-          type: string
-          minLength: 1
-          maxLength: 250
-      required:
-        - reason
     GracePeriodDays:
       description: Number of days for the archiving grace period
       type: integer

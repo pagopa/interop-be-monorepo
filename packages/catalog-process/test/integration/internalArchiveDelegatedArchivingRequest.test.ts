@@ -34,9 +34,7 @@ describe("internal archive delegated archiving request", () => {
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
 
-  const mockSeed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = {
-    reason: "Request closed automatically by system",
-  };
+  const mockSeed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = {};
 
   beforeAll(() => {
     vi.useFakeTimers();
@@ -84,17 +82,12 @@ describe("internal archive delegated archiving request", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedRejectedRequest: DelegatedDescriptorArchivingRequest = {
-      ...pendingRequest,
-      rejectedAt: new Date(),
-      rejectionReason: mockSeed.reason,
-    };
     const expectedEservice = {
       ...eservice,
       descriptors: [
         {
           ...descriptor,
-          delegatedArchivingRequest: [expectedRejectedRequest],
+          delegatedArchivingRequest: [],
         },
       ],
     };
@@ -138,14 +131,9 @@ describe("internal archive delegated archiving request", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedRejectedRequest: DelegatedEServiceArchivingRequest = {
-      ...pendingRequest,
-      rejectedAt: new Date(),
-      rejectionReason: mockSeed.reason,
-    };
     const expectedEservice = {
       ...eservice,
-      delegatedArchivingRequest: [expectedRejectedRequest],
+      delegatedArchivingRequest: undefined,
     };
 
     expect(writtenPayload).toEqual({

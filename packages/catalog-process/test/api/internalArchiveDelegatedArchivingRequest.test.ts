@@ -24,9 +24,7 @@ describe("API /internal/eservices/{eServiceId}/delegatedArchivingRequests/archiv
     descriptors: [],
   };
 
-  const mockSeed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = {
-    reason: "Request closed automatically by system",
-  };
+  const mockSeed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = {};
 
   catalogService.internalArchiveDelegatedArchivingRequest = vi
     .fn()
@@ -91,8 +89,6 @@ describe("API /internal/eservices/{eServiceId}/delegatedArchivingRequests/archiv
   );
 
   it.each([
-    [{}, mockEService.id],
-    [{ reason: "" }, mockEService.id],
     [{ ...mockSeed, descriptorId: "not-a-uuid" }, mockEService.id],
     [mockSeed, "invalidId"],
   ])(
