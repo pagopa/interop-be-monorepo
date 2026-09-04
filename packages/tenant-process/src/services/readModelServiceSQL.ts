@@ -75,7 +75,7 @@ export function readModelServiceBuilderSQL(
     async getTenants({
       name,
       features,
-      tenantIds: filterTenantIds = [],
+      tenantIds = [],
       externalIdOrigin,
       externalIdValue,
       offset,
@@ -104,8 +104,8 @@ export function readModelServiceBuilderSQL(
               features.length > 0
                 ? inArray(tenantFeatureInReadmodelTenant.kind, features)
                 : undefined,
-              filterTenantIds.length > 0
-                ? inArray(tenantInReadmodelTenant.id, filterTenantIds)
+              tenantIds.length > 0
+                ? inArray(tenantInReadmodelTenant.id, tenantIds)
                 : undefined,
               name
                 ? ilikeEscaped(
@@ -126,9 +126,9 @@ export function readModelServiceBuilderSQL(
           .limit(limit)
           .offset(offset);
 
-        const tenantIds = queryResult.map((item) => item.tenantId);
+        const resultTenantIds = queryResult.map((item) => item.tenantId);
         const tenants = await tenantReadModelService.getTenantsByIds(
-          tenantIds,
+          resultTenantIds,
           tx
         );
         return createListResult(
