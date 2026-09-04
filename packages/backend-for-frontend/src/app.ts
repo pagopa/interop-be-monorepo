@@ -42,7 +42,6 @@ import producerKeychainRouter from "./routers/producerKeychainRouter.js";
 import purposeRouter from "./routers/purposeRouter.js";
 import purposeTemplateRouter from "./routers/purposeTemplateRouter.js";
 import selfcareRouter from "./routers/selfcareRouter.js";
-import supportRouter from "./routers/supportRouter.js";
 import swaggerRouter from "./routers/swaggerRouter.js";
 import tenantRouter from "./routers/tenantRouter.js";
 import toolRouter from "./routers/toolRouter.js";
@@ -282,7 +281,6 @@ export async function createApp(
     purposeRouter(zodiosCtx, services.purposeService),
     purposeTemplateRouter(zodiosCtx, services.purposeTemplateService),
     selfcareRouter(zodiosCtx, services.selfcareService),
-    supportRouter(zodiosCtx, services.authorizationServiceForSupport),
     tenantRouter(zodiosCtx, services.tenantService),
     toolRouter(zodiosCtx, services.toolsService)
   );
