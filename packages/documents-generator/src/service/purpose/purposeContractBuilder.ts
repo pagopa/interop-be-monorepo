@@ -92,10 +92,10 @@ export const riskAnalysisDocumentBuilder = (
       const documentCreatedAt = messageTimestamp;
       const riskAnalysisVersion = purpose.riskAnalysisForm.version;
 
-      // Handle any non-PA tenant kinds that were previously PA and have access to PA risk analysis versions (3.0, 3.1)
+      // Handle any non-PA tenant kinds that were previously PA and have access to PA risk analysis versions (3.0, 3.1, 3.2)
       const usePAFallback =
         tenantKind !== TenantKind.Enum.PA &&
-        ["3.0", "3.1"].includes(riskAnalysisVersion);
+        ["3.0", "3.1", "3.2"].includes(riskAnalysisVersion);
 
       const riskAnalysisFormConfig =
         getFormRulesByVersion(tenantKind, riskAnalysisVersion) ??
