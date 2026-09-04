@@ -8,6 +8,7 @@ import { HandlerParams } from "../../models/handlerParams.js";
 import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
 import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
+import { handlePurposePublishedWithRiskAnalysisToReviewer } from "./handlePurposePublishedWithRiskAnalysisToReviewer.js";
 import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
 import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
 import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
@@ -158,7 +159,25 @@ export async function handlePurposeEvent(
           templateService,
           correlationId,
         })),
+        ...(await handlePurposePublishedWithRiskAnalysisToReviewer({
+          purposeV2Msg: purpose,
+          eventType: "PurposeWaitingForApproval",
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
       ]
+    )
+    .with({ type: "PurposeActivated" }, ({ data: { purpose }, type }) =>
+      handlePurposePublishedWithRiskAnalysisToReviewer({
+        purposeV2Msg: purpose,
+        eventType: type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
     .with(
       {
@@ -167,7 +186,6 @@ export async function handlePurposeEvent(
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
-          "PurposeActivated",
           "PurposeVersionOverQuotaUnsuspended",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
