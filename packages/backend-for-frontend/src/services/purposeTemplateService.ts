@@ -10,6 +10,7 @@ import {
 } from "pagopa-interop-api-clients";
 import {
   FileManager,
+  getAllFromPaginated,
   validateAndStorePDFDocument,
   WithLogger,
 } from "pagopa-interop-commons";
@@ -72,11 +73,19 @@ export function purposeTemplateServiceBuilder(
       new Set(purposeTemplates.map((t) => t.creatorId))
     );
 
-    const tenants = await Promise.all(
-      creatorIds.map(async (id) =>
-        tenantClient.tenant.getTenant({ headers, params: { id } })
-      )
-    );
+    const tenants =
+      creatorIds.length === 0
+        ? []
+        : await getAllFromPaginated((offset, limit) =>
+            tenantClient.tenant.getTenants({
+              headers,
+              queries: {
+                tenantIds: creatorIds,
+                offset,
+                limit,
+              },
+            })
+          );
 
     return new Map(tenants.map((t) => [t.id, t]));
   }
