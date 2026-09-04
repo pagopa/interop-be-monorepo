@@ -5,6 +5,7 @@ import { P, match } from "ts-pattern";
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
 import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToConsumer.js";
+import { handlePurposePublishedWithRiskAnalysisToReviewer } from "./handlePurposePublishedWithRiskAnalysisToReviewer.js";
 import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
 import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
@@ -128,7 +129,23 @@ export async function handlePurposeEvent(
           readModelService,
           type
         )),
+        ...(type === "PurposeWaitingForApproval"
+          ? await handlePurposePublishedWithRiskAnalysisToReviewer(
+              purpose,
+              logger,
+              readModelService,
+              type
+            )
+          : []),
       ]
+    )
+    .with({ type: "PurposeActivated" }, ({ data: { purpose }, type }) =>
+      handlePurposePublishedWithRiskAnalysisToReviewer(
+        purpose,
+        logger,
+        readModelService,
+        type
+      )
     )
     .with(
       {
@@ -137,7 +154,6 @@ export async function handlePurposeEvent(
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
-          "PurposeActivated",
           "PurposeVersionOverQuotaUnsuspended",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
