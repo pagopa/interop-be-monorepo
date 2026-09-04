@@ -39,12 +39,13 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
   });
 
   const mockAttribute = getMockedApiCertifiedDiscreteAttribute();
+  const mockCertifiedAttribute = getMockedApiEServiceAttribute();
   const mockCertifiedDiscreteAttributes = [
     [
       getMockedApiCertifiedDiscreteAttribute(),
       getMockedApiCertifiedDiscreteAttribute(),
     ],
-    [getMockedApiCertifiedDiscreteAttribute(), mockAttribute],
+    [mockCertifiedAttribute, mockAttribute],
     [mockAttribute],
     [
       getMockedApiCertifiedDiscreteAttribute(),
@@ -186,11 +187,12 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
   it("Should delete the certified discrete group at its catalog index", async () => {
     const regularGroup = [getMockedApiEServiceAttribute()];
     const anotherRegularGroup = [getMockedApiEServiceAttribute()];
+    const mixedGroupCertifiedAttribute = getMockedApiEServiceAttribute();
     const discreteAttribute = getMockedApiCertifiedDiscreteAttribute();
     const mixedCertifiedAttributes = [
       regularGroup,
       anotherRegularGroup,
-      [discreteAttribute],
+      [mixedGroupCertifiedAttribute, discreteAttribute],
     ];
     const mixedDescriptor = getMockedApiEserviceDescriptor({
       attributes: {
@@ -227,7 +229,11 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
       },
       body: {
         attributes: {
-          certified: [regularGroup, anotherRegularGroup],
+          certified: [
+            regularGroup,
+            anotherRegularGroup,
+            [mixedGroupCertifiedAttribute],
+          ],
           declared: [],
           verified: [],
         },

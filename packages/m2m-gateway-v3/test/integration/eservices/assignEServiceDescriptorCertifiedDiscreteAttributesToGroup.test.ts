@@ -176,8 +176,10 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
   it("Should assign attributes to the certified discrete group at its catalog index", async () => {
     const mixedCertifiedAttributes = [
       [getMockedApiEServiceAttribute()],
-      [getMockedApiEServiceAttribute()],
-      [getMockedApiCertifiedDiscreteEServiceAttribute()],
+      [
+        getMockedApiEServiceAttribute(),
+        getMockedApiCertifiedDiscreteEServiceAttribute(),
+      ],
     ];
     const mixedDescriptor = getMockedApiEserviceDescriptor({
       state: catalogApi.EServiceDescriptorState.Values.DRAFT,
@@ -202,7 +204,7 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
     await eserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(
       unsafeBrandId(mixedEService.id),
       unsafeBrandId(mixedDescriptor.id),
-      2,
+      1,
       seed,
       getMockM2MAdminAppContext()
     );
@@ -217,7 +219,7 @@ describe("assignEServiceDescriptorCertifiedDiscreteAttributesToGroup", () => {
       body: {
         attributes: {
           certified: mixedCertifiedAttributes.map((group, index) =>
-            index === 2
+            index === 1
               ? [
                   ...group,
                   {
