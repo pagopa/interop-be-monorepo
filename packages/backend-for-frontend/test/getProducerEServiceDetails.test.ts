@@ -170,7 +170,7 @@ describe("getProducerEServiceDetails", () => {
   });
 
   it("should return the last pending or rejected archiving request, excluding the accepted ones", async () => {
-    const rejectedRequest: catalogApi.DelegatedEServiceArchivingRequest = {
+    const rejectedRequest: catalogApi.DelegatedArchivingRequest = {
       requestedAt: "2026-08-04T10:00:00.000Z",
       rejectedAt: "2026-08-05T10:00:00.000Z",
       rejectionReason: "Missing prerequisite",
@@ -178,7 +178,7 @@ describe("getProducerEServiceDetails", () => {
       gracePeriodDays: 60,
       archivingReason: "Requested by delegate",
     };
-    const acceptedRequest: catalogApi.DelegatedEServiceArchivingRequest = {
+    const acceptedRequest: catalogApi.DelegatedArchivingRequest = {
       requestedAt: "2026-08-06T10:00:00.000Z",
       acceptedAt: "2026-08-07T10:00:00.000Z",
       requesterId: generateId<TenantId>(),

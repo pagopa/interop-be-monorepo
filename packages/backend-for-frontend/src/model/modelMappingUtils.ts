@@ -55,18 +55,17 @@ export function getValidDescriptor(
 export function getLastArchivingRequest(
   eservice: catalogApi.EService,
   descriptors: catalogApi.EServiceDescriptor[]
-): bffApi.DelegatedEServiceArchivingRequest | undefined {
-  const descriptorRequests: bffApi.DelegatedEServiceArchivingRequest[] =
-    descriptors
-      .map((d) =>
-        d.delegatedArchivingRequest
-          ? d.delegatedArchivingRequest.map((req) => ({
-              ...req,
-              descriptorId: d.id,
-            }))
-          : []
-      )
-      .flat();
+): bffApi.DelegatedArchivingRequest | undefined {
+  const descriptorRequests: bffApi.DelegatedArchivingRequest[] = descriptors
+    .map((d) =>
+      d.delegatedArchivingRequest
+        ? d.delegatedArchivingRequest.map((req) => ({
+            ...req,
+            descriptorId: d.id,
+          }))
+        : []
+    )
+    .flat();
 
   const archivingRequests = descriptorRequests.concat(
     (eservice.delegatedArchivingRequest ?? []).map((req) => ({
