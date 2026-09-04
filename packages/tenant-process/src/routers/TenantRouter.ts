@@ -51,6 +51,7 @@ import {
   internalAddCertifiedDiscreteAttributeErrorMapper,
   internalRevokeCertifiedDiscreteAttributeErrorMapper,
   internalUpdateCertifiedDiscreteAttributeErrorMapper,
+  updateCertifiedDiscreteAttributeErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const tenantsRouter = (
@@ -1077,7 +1078,7 @@ const tenantsRouter = (
         const ctx = fromAppContext(req.ctx);
 
         try {
-          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ROLE, M2M_ADMIN_ROLE]);
+          validateAuthorization(ctx, [ADMIN_ROLE, M2M_ADMIN_ROLE]);
 
           const { tenantId, attributeId } = req.params;
           const { data: tenant, metadata } =
@@ -1098,7 +1099,7 @@ const tenantsRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            revokeCertifiedAttributeErrorMapper,
+            updateCertifiedDiscreteAttributeErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);
