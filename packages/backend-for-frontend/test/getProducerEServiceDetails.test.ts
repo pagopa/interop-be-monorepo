@@ -169,7 +169,7 @@ describe("getProducerEServiceDetails", () => {
     expect(result.latestActiveDescriptorId).toBeUndefined();
   });
 
-  it("should return the last pending or rejected archiving request, excluding the accepted ones", async () => {
+  it("should return the undefined delegated archiving request if the last request has been accepted", async () => {
     const rejectedRequest: catalogApi.DelegatedEServiceArchivingRequest = {
       requestedAt: "2026-08-04T10:00:00.000Z",
       rejectedAt: "2026-08-05T10:00:00.000Z",
@@ -195,7 +195,7 @@ describe("getProducerEServiceDetails", () => {
       bffMockContext
     );
 
-    expect(result.delegatedArchivingRequest).toEqual(rejectedRequest);
+    expect(result.delegatedArchivingRequest).toEqual(undefined);
   });
 
   it("should return undefined when every archiving request has been accepted", async () => {
