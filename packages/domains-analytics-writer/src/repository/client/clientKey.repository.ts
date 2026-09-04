@@ -39,7 +39,7 @@ export function clientKeyRepository(conn: DBConnection) {
   const tableName = ClientDbTable.client_key;
   const keyRelationshipTableName =
     ClientDbTablePartialTable.key_relationship_migrated;
-  const stagingTableName = `${tableName}_${config.mergeTableSuffix}`;
+  const stagingTableName = `${keyRelationshipTableName}_${config.mergeTableSuffix}`;
 
   return {
     ...base,
@@ -59,7 +59,7 @@ export function clientKeyRepository(conn: DBConnection) {
         await t.none(
           generateStagingDeleteQuery(
             tableName,
-            ["clientId", "kid", "userId"],
+            ["clientId", "kid"],
             keyRelationshipTableName
           )
         );
@@ -76,12 +76,23 @@ export function clientKeyRepository(conn: DBConnection) {
           ClientKeyUserMigrationSchema,
           schemaName,
           tableName,
-          ["clientId", "kid", "userId"]
+          ["clientId", "kid"],
+          keyRelationshipTableName
         );
         await t.none(mergeQuery);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
+        );
+      }
+    },
+
+    async cleanKeyUserMigration(): Promise<void> {
+      try {
+        await conn.none(`TRUNCATE TABLE ${stagingTableName};`);
+      } catch (error: unknown) {
+        throw genericInternalError(
+          `Error cleaning staging table ${stagingTableName}: ${error}`
         );
       }
     },

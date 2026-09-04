@@ -1,8 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import camelcaseKeys from "camelcase-keys";
+import crypto from "crypto";
 import { genericLogger } from "pagopa-interop-commons";
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
+import {
+  getMockKey,
+  setupTestContainersVitest,
+} from "pagopa-interop-commons-test";
+import { Key, UserId } from "pagopa-interop-models";
 import { inject } from "vitest";
 import { z } from "zod";
 
@@ -300,3 +305,14 @@ export async function getManyFromDb<T extends DomainDbTable>(
 
   return rows.map((row) => camelcaseKeys(row));
 }
+
+export const getMockRsaKey = (userId: UserId): Key => {
+  const publicKey = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+  }).publicKey;
+  const encodedPem = Buffer.from(
+    publicKey.export({ type: "pkcs1", format: "pem" })
+  ).toString("base64url");
+
+  return { ...getMockKey(), encodedPem, userId };
+};
