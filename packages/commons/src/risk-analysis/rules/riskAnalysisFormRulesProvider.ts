@@ -10,8 +10,10 @@ import { pa1 } from "./PA/1.0.js";
 import { pa2 } from "./PA/2.0.js";
 import { pa3 } from "./PA/3.0.js";
 import { pa31 } from "./PA/3.1.js";
+import { pa32 } from "./PA/3.2.js";
 import { private1 } from "./PRIVATE/1.0.js";
 import { private2 } from "./PRIVATE/2.0.js";
+import { private21 } from "./PRIVATE/2.1.js";
 import { RiskAnalysisFormRules } from "./riskAnalysisFormRules.js";
 
 export const formRules = {
@@ -19,8 +21,10 @@ export const formRules = {
   PA_2_0: "PA-2.0",
   PA_3_0: "PA-3.0",
   PA_3_1: "PA-3.1",
+  PA_3_2: "PA-3.2",
   PRIVATE_1_0: "PRIVATE-1.0",
   PRIVATE_2_0: "PRIVATE-2.0",
+  PRIVATE_2_1: "PRIVATE-2.1",
 } as const;
 export const FormRules = z.enum([
   Object.values(formRules)[0],
@@ -47,8 +51,10 @@ function getFormRules(ruleset: FormRules): RiskAnalysisFormRules {
       .with(formRules.PA_2_0, () => pa2)
       .with(formRules.PA_3_0, () => pa3)
       .with(formRules.PA_3_1, () => pa31)
+      .with(formRules.PA_3_2, () => pa32)
       .with(formRules.PRIVATE_1_0, () => private1)
       .with(formRules.PRIVATE_2_0, () => private2)
+      .with(formRules.PRIVATE_2_1, () => private21)
       .exhaustive()
   );
 }
@@ -76,8 +82,21 @@ export const riskAnalysisFormRules: Record<
     getFormRules("PA-2.0"),
     getFormRules("PA-3.0"),
     getFormRules("PA-3.1"),
+    getFormRules("PA-3.2"),
   ],
-  PRIVATE: [getFormRules("PRIVATE-1.0"), getFormRules("PRIVATE-2.0")],
-  GSP: [getFormRules("PRIVATE-1.0"), getFormRules("PRIVATE-2.0")],
-  SCP: [getFormRules("PRIVATE-1.0"), getFormRules("PRIVATE-2.0")],
+  PRIVATE: [
+    getFormRules("PRIVATE-1.0"),
+    getFormRules("PRIVATE-2.0"),
+    getFormRules("PRIVATE-2.1"),
+  ],
+  GSP: [
+    getFormRules("PRIVATE-1.0"),
+    getFormRules("PRIVATE-2.0"),
+    getFormRules("PRIVATE-2.1"),
+  ],
+  SCP: [
+    getFormRules("PRIVATE-1.0"),
+    getFormRules("PRIVATE-2.0"),
+    getFormRules("PRIVATE-2.1"),
+  ],
 };
