@@ -1374,7 +1374,7 @@ paths:
       tags:
         - process
       summary: Archive a delegated archiving request for the selected E-Service.
-      operationId: internalArchiveDelegatedArchivingRequest
+      operationId: internalDeleteDelegatedArchivingRequest
       description: Archives (closes) an active delegated archiving request for the specified E-Service or one of its descriptors.
       parameters:
         - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1391,7 +1391,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/InternalArchiveDelegatedArchivingRequestSeed"
+              $ref: "#/components/schemas/InternalDeleteDelegatedArchivingRequestSeed"
       responses:
         "204":
           description: Delegated archiving request archived
@@ -4213,10 +4213,10 @@ components:
             - MANUAL
       required:
         - kind
-    InternalArchiveDelegatedArchivingRequestSeed:
+    InternalDeleteDelegatedArchivingRequestSeed:
       type: object
       additionalProperties: false
-      description: Seed for archiving a delegated archiving request
+      description: Seed for deleting a delegated archiving request
       properties:
         descriptorId:
           type: string

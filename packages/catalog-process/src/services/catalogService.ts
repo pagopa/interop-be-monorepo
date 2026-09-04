@@ -2493,13 +2493,13 @@ export function catalogServiceBuilder(
 
       await repository.createEvent(event);
     },
-    async internalArchiveDelegatedArchivingRequest(
+    async internalDeleteDelegatedArchivingRequest(
       eserviceId: EServiceId,
-      seed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed,
+      seed: catalogApi.InternalDeleteDelegatedArchivingRequestSeed,
       { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
     ): Promise<void> {
       logger.info(
-        `Internal archiving delegated archiving request for EService ${eserviceId}`
+        `Internal deleting delegated archiving request for EService ${eserviceId}`
       );
 
       const eservice = await retrieveEService(eserviceId, readModelService);

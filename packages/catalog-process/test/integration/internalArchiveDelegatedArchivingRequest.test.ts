@@ -34,7 +34,7 @@ describe("internal archive delegated archiving request", () => {
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
 
-  const mockSeed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = {};
+  const mockSeed: catalogApi.InternalDeleteDelegatedArchivingRequestSeed = {};
 
   beforeAll(() => {
     vi.useFakeTimers();
@@ -62,7 +62,7 @@ describe("internal archive delegated archiving request", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.internalArchiveDelegatedArchivingRequest(
+    await catalogService.internalDeleteDelegatedArchivingRequest(
       eservice.id,
       { ...mockSeed, descriptorId: descriptor.id },
       getMockContextInternal({})
@@ -112,7 +112,7 @@ describe("internal archive delegated archiving request", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.internalArchiveDelegatedArchivingRequest(
+    await catalogService.internalDeleteDelegatedArchivingRequest(
       eservice.id,
       mockSeed,
       getMockContextInternal({})
@@ -160,7 +160,7 @@ describe("internal archive delegated archiving request", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.internalArchiveDelegatedArchivingRequest(
+    await catalogService.internalDeleteDelegatedArchivingRequest(
       eservice.id,
       { ...mockSeed, descriptorId: descriptor.id },
       getMockContextInternal({})
@@ -190,7 +190,7 @@ describe("internal archive delegated archiving request", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.internalArchiveDelegatedArchivingRequest(
+    await catalogService.internalDeleteDelegatedArchivingRequest(
       eservice.id,
       mockSeed,
       getMockContextInternal({})
@@ -206,7 +206,7 @@ describe("internal archive delegated archiving request", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     await expect(
-      catalogService.internalArchiveDelegatedArchivingRequest(
+      catalogService.internalDeleteDelegatedArchivingRequest(
         mockEService.id,
         mockSeed,
         getMockContextInternal({})
@@ -222,7 +222,7 @@ describe("internal archive delegated archiving request", () => {
     await addOneEService(eservice);
 
     await expect(
-      catalogService.internalArchiveDelegatedArchivingRequest(
+      catalogService.internalDeleteDelegatedArchivingRequest(
         eservice.id,
         { ...mockSeed, descriptorId: mockDescriptor.id },
         getMockContextInternal({})

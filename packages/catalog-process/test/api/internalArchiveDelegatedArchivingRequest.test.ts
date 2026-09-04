@@ -24,16 +24,16 @@ describe("API /internal/eservices/{eServiceId}/delegatedArchivingRequests/archiv
     descriptors: [],
   };
 
-  const mockSeed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = {};
+  const mockSeed: catalogApi.InternalDeleteDelegatedArchivingRequestSeed = {};
 
-  catalogService.internalArchiveDelegatedArchivingRequest = vi
+  catalogService.internalDeleteDelegatedArchivingRequest = vi
     .fn()
     .mockResolvedValue(undefined);
 
   const makeRequest = async (
     token: string,
     eServiceId: EServiceId,
-    body: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = mockSeed
+    body: catalogApi.InternalDeleteDelegatedArchivingRequestSeed = mockSeed
   ) =>
     request(api)
       .post(
@@ -78,7 +78,7 @@ describe("API /internal/eservices/{eServiceId}/delegatedArchivingRequests/archiv
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      catalogService.internalArchiveDelegatedArchivingRequest = vi
+      catalogService.internalDeleteDelegatedArchivingRequest = vi
         .fn()
         .mockRejectedValue(error);
 
@@ -98,7 +98,7 @@ describe("API /internal/eservices/{eServiceId}/delegatedArchivingRequests/archiv
       const res = await makeRequest(
         token,
         eServiceId as EServiceId,
-        body as catalogApi.InternalArchiveDelegatedArchivingRequestSeed
+        body as catalogApi.InternalDeleteDelegatedArchivingRequestSeed
       );
 
       expect(res.status).toBe(400);
