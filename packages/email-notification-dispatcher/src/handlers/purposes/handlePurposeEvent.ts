@@ -8,6 +8,7 @@ import { HandlerParams } from "../../models/handlerParams.js";
 import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
 import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
+import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
 import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
 import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
 import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
@@ -161,6 +162,18 @@ export async function handlePurposeEvent(
       ]
     )
     .with(
+      { type: "PurposeRiskAnalysisAssigned" },
+      ({ data: { purpose, newReviewersToNotify } }) =>
+        handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer({
+          purposeV2Msg: purpose,
+          reviewerIds: newReviewersToNotify,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "DraftPurposeDeleted",
@@ -178,7 +191,6 @@ export async function handlePurposeEvent(
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
           "PurposeRiskAnalysisWorkflowCreated",
-          "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSelfAssigned",
           "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",

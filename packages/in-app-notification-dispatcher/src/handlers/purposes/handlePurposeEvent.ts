@@ -7,6 +7,7 @@ import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivat
 import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToConsumer.js";
 import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
 import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
+import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 
@@ -20,6 +21,16 @@ export async function handlePurposeEvent(
       logger.info(`Skipping V1 event ${decodedMessage.type} message`);
       return [];
     })
+    .with(
+      { type: "PurposeRiskAnalysisAssigned" },
+      ({ data: { purpose, newReviewersToNotify } }) =>
+        handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer(
+          purpose,
+          newReviewersToNotify,
+          logger,
+          readModelService
+        )
+    )
     .with(
       {
         type: P.union(
@@ -110,7 +121,6 @@ export async function handlePurposeEvent(
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
           "PurposeRiskAnalysisWorkflowCreated",
-          "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSelfAssigned",
           "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",
