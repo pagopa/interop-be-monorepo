@@ -442,20 +442,20 @@ async function enhanceClient(
     })
   );
 
-  const purposeById = new Map(
+  const purposesById = new Map(
     retrievedPurposes.map((purpose) => [purpose.id, purpose])
   );
-  const eserviceById = new Map(
+  const eservicesById = new Map(
     eservices.map((eservice) => [eservice.id, eservice])
   );
-  const tenantById = new Map(tenants.map((tenant) => [tenant.id, tenant]));
-  const consumer = tenantById.get(client.consumerId);
+  const tenantsById = new Map(tenants.map((tenant) => [tenant.id, tenant]));
+  const consumer = tenantsById.get(client.consumerId);
   if (!consumer) {
     throw tenantNotFound(client.consumerId);
   }
 
   const purposes = client.purposes.map((purposeId) =>
-    enhancePurpose(purposeId, purposeById, eserviceById, tenantById)
+    enhancePurpose(purposeId, purposesById, eservicesById, tenantsById)
   );
 
   return {
@@ -475,19 +475,19 @@ async function enhanceClient(
 
 function enhancePurpose(
   clientPurposeId: string,
-  purposeById: Map<string, purposeApi.Purpose>,
-  eserviceById: Map<string, catalogApi.EService>,
-  tenantById: Map<string, tenantApi.Tenant>
+  purposesById: Map<string, purposeApi.Purpose>,
+  eservicesById: Map<string, catalogApi.EService>,
+  tenantsById: Map<string, tenantApi.Tenant>
 ): bffApi.ClientPurpose {
-  const purpose = purposeById.get(clientPurposeId);
+  const purpose = purposesById.get(clientPurposeId);
   if (!purpose) {
     throw purposeNotFound(clientPurposeId);
   }
-  const eservice = eserviceById.get(purpose.eserviceId);
+  const eservice = eservicesById.get(purpose.eserviceId);
   if (!eservice) {
     throw eServiceNotFound(purpose.eserviceId);
   }
-  const producer = tenantById.get(eservice.producerId);
+  const producer = tenantsById.get(eservice.producerId);
   if (!producer) {
     throw tenantNotFound(eservice.producerId);
   }
