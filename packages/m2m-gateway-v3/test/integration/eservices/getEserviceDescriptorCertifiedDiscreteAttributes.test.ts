@@ -12,7 +12,7 @@ import {
 import { generateId, unsafeBrandId } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { toM2MGatewayApiCertifiedAttribute } from "../../../src/api/attributeApiConverter.js";
+import { toM2MGatewayApiCertifiedDiscreteAttribute } from "../../../src/api/attributeApiConverter.js";
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   eserviceDescriptorAttributeNotFound,
@@ -25,7 +25,7 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("getEserviceDescriptorCertifiedAttributes", () => {
+describe("getEserviceDescriptorCertifiedDiscreteAttributes", () => {
   const attribute1: catalogApi.Attribute = {
     id: generateId(),
     explicitAttributeVerification: false,
@@ -62,7 +62,7 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
     creationTime: new Date().toISOString(),
     description: "Description 1",
     origin: "Origin 1",
-    kind: "CERTIFIED",
+    kind: "CERTIFIED_DISCRETE",
   };
 
   const bulkAttribute2: attributeRegistryApi.Attribute = {
@@ -72,7 +72,7 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
     creationTime: new Date().toISOString(),
     description: "Description 2",
     origin: "Origin 2",
-    kind: "CERTIFIED",
+    kind: "CERTIFIED_DISCRETE",
   };
 
   const bulkAttribute3: attributeRegistryApi.Attribute = {
@@ -82,7 +82,7 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
     creationTime: new Date().toISOString(),
     description: "Description 3",
     origin: "Origin 3",
-    kind: "CERTIFIED",
+    kind: "CERTIFIED_DISCRETE",
   };
 
   const descriptor: catalogApi.EServiceDescriptor = {
@@ -99,29 +99,30 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
     descriptors: [descriptor],
   };
 
-  const response: m2mGatewayApiV3.EServiceDescriptorCertifiedAttribute[] = [
-    {
-      groupIndex: 0,
-      attribute: toM2MGatewayApiCertifiedAttribute({
-        attribute: bulkAttribute1,
-        logger: genericLogger,
-      }),
-    },
-    {
-      groupIndex: 0,
-      attribute: toM2MGatewayApiCertifiedAttribute({
-        attribute: bulkAttribute2,
-        logger: genericLogger,
-      }),
-    },
-    {
-      groupIndex: 1,
-      attribute: toM2MGatewayApiCertifiedAttribute({
-        attribute: bulkAttribute3,
-        logger: genericLogger,
-      }),
-    },
-  ];
+  const response: m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttribute[] =
+    [
+      {
+        groupIndex: 0,
+        attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+          attribute: bulkAttribute1,
+          logger: genericLogger,
+        }),
+      },
+      {
+        groupIndex: 0,
+        attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+          attribute: bulkAttribute2,
+          logger: genericLogger,
+        }),
+      },
+      {
+        groupIndex: 1,
+        attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+          attribute: bulkAttribute3,
+          logger: genericLogger,
+        }),
+      },
+    ];
 
   const mockCatalogResponse = getMockWithMetadata(eservice);
   const mockGetEServiceById = vi.fn().mockResolvedValue(mockCatalogResponse);
@@ -132,6 +133,13 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
     },
     metadata: {},
   });
+  mockInteropBeClients.catalogProcessClient = {
+    getEServiceById: mockGetEServiceById,
+  } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
+
+  mockInteropBeClients.attributeProcessClient = {
+    getBulkedAttributes: mockGetBulkedAttributes,
+  } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
 
   beforeEach(() => {
     mockGetEServiceById.mockClear();
@@ -144,7 +152,7 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
     } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
   });
 
-  it("Should return only certified attributes from the certified bucket", async () => {
+  it("Should return only certified discrete attributes from the certified bucket", async () => {
     const certifiedAttribute: catalogApi.Attribute = {
       id: generateId(),
       explicitAttributeVerification: false,
@@ -210,7 +218,7 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
     } as unknown as PagoPAInteropBeClients["attributeProcessClient"];
 
     const attributes =
-      await eserviceService.getEserviceDescriptorCertifiedAttributes(
+      await eserviceService.getEserviceDescriptorCertifiedDiscreteAttributes(
         unsafeBrandId(eserviceWithMixedAttributes.id),
         unsafeBrandId(descriptorWithMixedCertifiedAttributes.id),
         { limit: 10, offset: 0 },
@@ -218,14 +226,14 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
       );
 
     expect(attributes.results).toHaveLength(1);
-    expect(attributes.results[0]?.attribute.id).toBe(certifiedAttribute.id);
-    expect(attributes.results[0]?.attribute.name).toBe("Certified");
-    expect(attributes.results[0]?.attribute.code).toBe("regular");
+    expect(attributes.results[0]?.attribute.id).toBe(discreteAttribute.id);
+    expect(attributes.results[0]?.attribute.name).toBe("Discrete Certified");
+    expect(attributes.results[0]?.attribute.code).toBe("discrete");
   });
 
   it("Should succeed and perform service calls", async () => {
     const attributes =
-      await eserviceService.getEserviceDescriptorCertifiedAttributes(
+      await eserviceService.getEserviceDescriptorCertifiedDiscreteAttributes(
         unsafeBrandId(eservice.id),
         unsafeBrandId(descriptor.id),
         { limit: 10, offset: 0 },
@@ -246,17 +254,18 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
   });
 
   it("Should apply filters (offset, limit)", async () => {
-    const response1: m2mGatewayApiV3.EServiceDescriptorCertifiedAttributes = {
-      pagination: {
-        offset: 0,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [response[0], response[1]],
-    };
+    const response1: m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributes =
+      {
+        pagination: {
+          offset: 0,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [response[0], response[1]],
+      };
 
     const result =
-      await eserviceService.getEserviceDescriptorCertifiedAttributes(
+      await eserviceService.getEserviceDescriptorCertifiedDiscreteAttributes(
         unsafeBrandId(eservice.id),
         unsafeBrandId(descriptor.id),
         { limit: 2, offset: 0 },
@@ -265,17 +274,18 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
 
     expect(result).toStrictEqual(response1);
 
-    const response2: m2mGatewayApiV3.EServiceDescriptorCertifiedAttributes = {
-      pagination: {
-        offset: 2,
-        limit: 2,
-        totalCount: 3,
-      },
-      results: [response[2]],
-    };
+    const response2: m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributes =
+      {
+        pagination: {
+          offset: 2,
+          limit: 2,
+          totalCount: 3,
+        },
+        results: [response[2]],
+      };
 
     const result2 =
-      await eserviceService.getEserviceDescriptorCertifiedAttributes(
+      await eserviceService.getEserviceDescriptorCertifiedDiscreteAttributes(
         unsafeBrandId(eservice.id),
         unsafeBrandId(descriptor.id),
         { limit: 2, offset: 2 },
@@ -288,13 +298,13 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
   it("Should throw eserviceDescriptorNotFound in case the returned eservice has no descriptor with the given id", async () => {
     const nonExistingDescriptorId = generateId();
     await expect(
-      eserviceService.getEserviceDescriptorCertifiedAttributes(
+      eserviceService.getEserviceDescriptorCertifiedDiscreteAttributes(
         unsafeBrandId(eservice.id),
         unsafeBrandId(nonExistingDescriptorId),
         { limit: 10, offset: 0 },
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       eserviceDescriptorNotFound(eservice.id, nonExistingDescriptorId)
     );
   });
@@ -335,13 +345,13 @@ describe("getEserviceDescriptorCertifiedAttributes", () => {
     } as unknown as PagoPAInteropBeClients["catalogProcessClient"];
 
     await expect(
-      eserviceService.getEserviceDescriptorCertifiedAttributes(
+      eserviceService.getEserviceDescriptorCertifiedDiscreteAttributes(
         unsafeBrandId(eserviceWithDescriptorWithoutAttribute.id),
         unsafeBrandId(descriptorWithMissingAttribute.id),
         { limit: 10, offset: 0 },
         getMockM2MAdminAppContext()
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       eserviceDescriptorAttributeNotFound(descriptorWithMissingAttribute.id)
     );
   });

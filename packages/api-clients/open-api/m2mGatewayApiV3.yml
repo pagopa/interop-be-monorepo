@@ -4560,6 +4560,55 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+    get:
+      tags:
+        - eservices
+      summary: List E-Service Descriptor Certified Discrete Attributes
+      description: Retrieve a list of E-Service Descriptor Certified Discrete Attributes
+      operationId: getEServiceDescriptorCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: E-Service Descriptors Certified Discrete Attributes retrieved
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/declaredAttributes:
     parameters:
       - name: eserviceId
@@ -4700,6 +4749,73 @@ paths:
           description:
             E-Service Descriptor Certified Attribute assigned to the Attribute
             Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+      - name: groupIndex
+        in: path
+        description: The index of the group of attributes
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+    post:
+      tags:
+        - eservices
+      summary: Assign E-Service Descriptor Certified Discrete Attributes to a specific
+        Attribute Group
+      description: Assign a set of Certified Discrete Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Descriptor
+      operationId: assignEServiceDescriptorCertifiedDiscreteAttributesToGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroupSeed"
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Discrete Attribute assigned to the
+            Attribute Group
           content:
             application/json:
               schema:
@@ -4976,6 +5092,71 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes/{attributeId}:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+      - name: groupIndex
+        in: path
+        description: The index of the group to which the Attribute belongs
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - name: attributeId
+        in: path
+        description: The ID of the Certified Discrete Attribute
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    delete:
+      tags:
+        - eservices
+      summary: Delete an E-Service Descriptor Certified Discrete Attribute from a specific
+        Attribute Group
+      description: |
+        Delete a specific Certified Discrete Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
+        If the deleted attribute is the last one in the group, the entire group will be removed.
+      operationId: deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Discrete Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/verifiedAttributes/groups/{groupIndex}/attributes/{attributeId}:
     parameters:
       - name: eserviceId
@@ -5140,6 +5321,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceDescriptorCertifiedAttributesGroup"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+    post:
+      tags:
+        - eservices
+      summary: Create a Certified Discrete Attributes Group for an E-Service Descriptor
+      description: Create a new group of Certified Discrete Attributes for an E-Service
+        Descriptor in Draft state
+      operationId: createEServiceDescriptorCertifiedDiscreteAttributesGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroupSeed"
+      responses:
+        "201":
+          description: Certified Discrete Attributes Group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -11710,6 +11946,36 @@ components:
       required:
         - groupIndex
         - attribute
+    EServiceTemplateVersionCertifiedDiscreteAttribute:
+      type: object
+      description: Represents an E-Service Template Version Certified Discrete attribute with
+        the index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+      required:
+        - groupIndex
+        - attribute
+    EServiceDescriptorCertifiedDiscreteAttribute:
+      type: object
+      description: Represents an E-Service Descriptor Certified Discrete attribute with the
+        index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+      required:
+        - groupIndex
+        - attribute
     EServiceDescriptorDeclaredAttribute:
       type: object
       description:
@@ -11785,6 +12051,50 @@ components:
             format: uuid
       required:
         - attributeIds
+    EServiceDescriptorCertifiedDiscreteAttributesGroupSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+                format: uuid
+              discreteConfig:
+                $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfigSeed"
+            required:
+              - id
+              - discreteConfig
+      required:
+        - attributes
+    AttributeCertifiedDiscreteComparator:
+      type: string
+      enum:
+        - GT
+        - LT
+        - EQ
+        - GTE
+        - LTE
+        - NE
+    EServiceAttributeCertifiedDiscreteConfigSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        threshold:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        comparator:
+          $ref: "#/components/schemas/AttributeCertifiedDiscreteComparator"
+      required:
+        - threshold
+        - comparator
     EServiceDescriptorAttributeSeed:
       type: object
       additionalProperties: false
@@ -11837,6 +12147,19 @@ components:
       required:
         - results
         - pagination
+    EServiceDescriptorCertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     EServiceTemplateVersionCertifiedAttributes:
       type: object
       additionalProperties: false
@@ -11858,6 +12181,16 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
+      required:
+        - attributes
+    EServiceDescriptorCertifiedDiscreteAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttribute"
       required:
         - attributes
     EServiceTemplateVersionCertifiedAttributesGroup:
@@ -12056,7 +12389,7 @@ components:
       required:
         - description
         - name
-        - code
+        - code  
     DeclaredAttribute:
       type: object
       additionalProperties: false

@@ -84,7 +84,6 @@ export type GetTenantCertifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenantCertifiedAttributes"
 >;
-
 export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenantVerifiedAttributes"

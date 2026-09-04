@@ -47,6 +47,7 @@ function convertAttribute(
   mapThrownErrorsToNotFound = false
 ):
   | m2mGatewayApiV3.CertifiedAttribute
+  | m2mGatewayApiV3.CertifiedDiscreteAttribute
   | m2mGatewayApiV3.DeclaredAttribute
   | m2mGatewayApiV3.VerifiedAttribute {
   try {

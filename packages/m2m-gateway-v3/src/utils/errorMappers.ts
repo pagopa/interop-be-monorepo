@@ -316,6 +316,7 @@ export const createEServiceDescriptorAttributeGroupsErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createEServiceTemplateVersionAttributeGroupsErrorMapper = (
@@ -382,6 +383,7 @@ export const assignEServiceDescriptorAttributesErrorMapper = (
       "eserviceDescriptorAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const assignEServiceTemplateVersionAttributesErrorMapper = (
