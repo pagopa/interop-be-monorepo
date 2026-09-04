@@ -53,6 +53,16 @@ paths:
       description: Retrieve Purpose Templates with pagination and filters
       parameters:
         - in: query
+          name: purposeTemplateIds
+          description: comma separated sequence of purpose template IDs
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+            default: []
+          explode: false
+        - in: query
           name: purposeTitle
           description: filter by purpose title
           schema:

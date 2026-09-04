@@ -109,6 +109,7 @@ describe("getPurposeTemplates", () => {
       mockGet:
         mockInteropBeClients.purposeTemplateProcessClient.getPurposeTemplates,
       queries: {
+        purposeTemplateIds: [],
         offset: mockParams.offset,
         limit: mockParams.limit,
         eserviceIds: mockParams.eserviceIds,

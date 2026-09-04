@@ -7,6 +7,7 @@ export function toGetPurposeTemplatesApiQueryParams(
   params: m2mGatewayApiV3.GetPurposeTemplatesQueryParams
 ): purposeTemplateApi.GetPurposeTemplatesQueryParams {
   return {
+    purposeTemplateIds: [],
     purposeTitle: params.purposeTitle,
     creatorIds: params.creatorIds,
     eserviceIds: params.eserviceIds,

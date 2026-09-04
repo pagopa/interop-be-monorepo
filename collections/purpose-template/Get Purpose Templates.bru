@@ -13,6 +13,7 @@ get {
 params:query {
   offset: 0
   limit: 10
+  ~purposeTemplateIds: ["{{purposeTemplateId}}"]
   ~states: ["DRAFT", "PUBLISHED"]
   ~eserviceIds: ["{{eserviceId}}"]
   ~creatorIds: ["{{tenantId}}"]
