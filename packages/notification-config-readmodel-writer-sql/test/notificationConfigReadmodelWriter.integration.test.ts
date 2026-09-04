@@ -2,7 +2,7 @@ import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockTenantNotificationConfig,
   getMockUserNotificationConfig,
-} from "pagopa-interop-commons-test/index.js";
+} from "pagopa-interop-commons-test";
 import {
   NotificationConfigEventEnvelope,
   TenantNotificationConfig,
