@@ -16,6 +16,7 @@ import {
 
 import {
   toM2MGatewayApiCertifiedAttribute,
+  toM2MGatewayApiCertifiedDiscreteAttribute,
   toM2MGatewayApiDeclaredAttribute,
   toM2MGatewayApiVerifiedAttribute,
 } from "../api/attributeApiConverter.js";
@@ -36,6 +37,7 @@ import {
   eserviceTemplateVersionAttributeNotFound,
   eserviceTemplateVersionNotFound,
   eserviceTemplateVersionAttributeGroupNotFound,
+  missingDiscreteConfig,
 } from "../model/errors.js";
 import { M2MGatewayAppContext } from "../utils/context.js";
 import { downloadDocument, DownloadedDocument } from "../utils/fileDownload.js";
@@ -57,6 +59,59 @@ export function eserviceTemplateServiceBuilder(
   clients: PagoPAInteropBeClients,
   fileManager: FileManager
 ) {
+  type AttributeKind =
+    | keyof eserviceTemplateApi.Attributes
+    | "certified_discrete";
+  type AttributesGroupSeed =
+    | m2mGatewayApiV3.EServiceTemplateVersionAttributesGroupSeed
+    | m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed;
+
+  function getAttributeIds(seed: AttributesGroupSeed): string[] {
+    return "attributes" in seed
+      ? seed.attributes.map((attribute) => attribute.id)
+      : seed.attributeIds;
+  }
+
+  function getDiscreteConfig(
+    seed: AttributesGroupSeed,
+    attributeId: string
+  ): eserviceTemplateApi.EServiceAttributeCertifiedDiscreteConfig | undefined {
+    if (!("attributes" in seed)) {
+      return undefined;
+    }
+
+    return seed.attributes.find((attribute) => attribute.id === attributeId)
+      ?.discreteConfig;
+  }
+
+  function mapAttributeKindToEServiceTemplateKind(
+    attributeKind: AttributeKind
+  ): keyof eserviceTemplateApi.Attributes {
+    return attributeKind === "certified_discrete" ? "certified" : attributeKind;
+  }
+
+  function isDiscreteAttributeGroup(
+    group: eserviceTemplateApi.Attribute[]
+  ): boolean {
+    return group.some((attribute) => attribute.discreteConfig !== undefined);
+  }
+
+  function getIndexedKindAttributeGroups(
+    version: eserviceTemplateApi.EServiceTemplateVersion,
+    attributeKind: AttributeKind
+  ): Array<{ group: eserviceTemplateApi.Attribute[]; index: number }> {
+    const templateAttributeKind =
+      mapAttributeKindToEServiceTemplateKind(attributeKind);
+
+    return version.attributes[templateAttributeKind]
+      .map((group, index) => ({ group, index }))
+      .filter(
+        ({ group }) =>
+          attributeKind !== "certified_discrete" ||
+          isDiscreteAttributeGroup(group)
+      );
+  }
+
   const retrieveEServiceTemplateRiskAnalysisById = (
     eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
     riskAnalysisId: RiskAnalysisId
@@ -107,7 +162,7 @@ export function eserviceTemplateServiceBuilder(
   async function retrieveEServiceTemplateVersionAttributes(
     eserviceTemplate: WithMaybeMetadata<eserviceTemplateApi.EServiceTemplate>,
     versionId: EServiceTemplateVersionId,
-    attributeKind: keyof eserviceTemplateApi.Attributes,
+    attributeKind: AttributeKind,
     { offset, limit }: { offset: number; limit: number },
     headers: M2MGatewayAppContext["headers"]
   ): Promise<
@@ -120,7 +175,9 @@ export function eserviceTemplateServiceBuilder(
       eserviceTemplate,
       versionId
     );
-    const kindAttributeGroups = version.attributes[attributeKind];
+    const templateAttributeKind =
+      mapAttributeKindToEServiceTemplateKind(attributeKind);
+    const kindAttributeGroups = version.attributes[templateAttributeKind];
     const allFlatKindAttributes: Array<{
       attributeId: string;
       groupIndex: number;
@@ -131,13 +188,8 @@ export function eserviceTemplateServiceBuilder(
       }))
     );
 
-    const paginatedFlatKindAttributes = allFlatKindAttributes.slice(
-      offset,
-      offset + limit
-    );
-
     const attributeIdsToResolve: Array<attributeRegistryApi.Attribute["id"]> =
-      paginatedFlatKindAttributes.map((item) => item.attributeId);
+      allFlatKindAttributes.map((item) => item.attributeId);
 
     const attributeMap = await getResolvedAttributesMap(
       attributeIdsToResolve,
@@ -145,23 +197,39 @@ export function eserviceTemplateServiceBuilder(
       clients
     );
 
-    // Recombination: Map the paginated flat list with the resolved complete details
-    const attributesToReturn = paginatedFlatKindAttributes.map((item) => {
+    // Recombination: Map the flat list with the resolved complete details and filter by kind
+    const attributesToReturn = allFlatKindAttributes.flatMap((item) => {
       const attributeDetailed = attributeMap.get(item.attributeId);
 
       if (!attributeDetailed) {
         throw eserviceTemplateVersionAttributeNotFound(versionId);
       }
 
-      return {
-        attribute: attributeDetailed,
-        groupIndex: item.groupIndex,
-      };
+      const matchesExpectedKind =
+        (attributeKind === "certified" &&
+          attributeDetailed.kind ===
+            attributeRegistryApi.AttributeKind.Values.CERTIFIED) ||
+        (attributeKind === "certified_discrete" &&
+          attributeDetailed.kind ===
+            attributeRegistryApi.AttributeKind.Values.CERTIFIED_DISCRETE) ||
+        (attributeKind !== "certified" &&
+          attributeKind !== "certified_discrete");
+
+      if (!matchesExpectedKind) {
+        return [];
+      }
+
+      return [
+        {
+          attribute: attributeDetailed,
+          groupIndex: item.groupIndex,
+        },
+      ];
     });
 
     return {
-      results: attributesToReturn,
-      totalCount: allFlatKindAttributes.length,
+      results: attributesToReturn.slice(offset, offset + limit),
+      totalCount: attributesToReturn.length,
     };
   }
 
@@ -188,8 +256,8 @@ export function eserviceTemplateServiceBuilder(
   async function createEServiceTemplateVersionAttributesGroup(
     templateId: EServiceTemplateId,
     versionId: EServiceTemplateVersionId,
-    seed: m2mGatewayApiV3.EServiceTemplateVersionAttributesGroupSeed,
-    attributeKind: keyof eserviceTemplateApi.Attributes,
+    seed: AttributesGroupSeed,
+    attributeKind: AttributeKind,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<{
     groupIndex: number;
@@ -198,17 +266,47 @@ export function eserviceTemplateServiceBuilder(
     const template = await retrieveEServiceTemplateById(headers, templateId);
     const version = retrieveEServiceTemplateVersionById(template, versionId);
 
-    const newGroupIndex = version.attributes[attributeKind].length;
+    const templateAttributeKind =
+      mapAttributeKindToEServiceTemplateKind(attributeKind);
+
+    const newGroupIndex = version.attributes[templateAttributeKind].length;
+
+    const existingDiscreteConfigById =
+      attributeKind === "certified_discrete"
+        ? new Map(
+            version.attributes.certified.flatMap((group) =>
+              group.flatMap((attribute) =>
+                attribute.discreteConfig !== undefined
+                  ? [[attribute.id, attribute.discreteConfig] as const]
+                  : []
+              )
+            )
+          )
+        : new Map<
+            string,
+            eserviceTemplateApi.EServiceAttributeCertifiedDiscreteConfig
+          >();
+
     const newKindAttributeGroups = [
-      ...version.attributes[attributeKind],
-      seed.attributeIds.map((id) => ({
-        id,
-        explicitAttributeVerification: false,
-      })),
+      ...version.attributes[templateAttributeKind],
+      getAttributeIds(seed).map((id) => {
+        const discreteConfig =
+          getDiscreteConfig(seed, id) ?? existingDiscreteConfigById.get(id);
+
+        if (attributeKind === "certified_discrete" && !discreteConfig) {
+          throw missingDiscreteConfig(id);
+        }
+
+        return {
+          id,
+          explicitAttributeVerification: false,
+          ...(discreteConfig !== undefined ? { discreteConfig } : {}),
+        };
+      }),
     ];
     const newAttributes = {
       ...version.attributes,
-      [attributeKind]: newKindAttributeGroups,
+      [templateAttributeKind]: newKindAttributeGroups,
     };
 
     const response =
@@ -226,13 +324,13 @@ export function eserviceTemplateServiceBuilder(
     await pollEServiceTemplate(response, headers);
 
     const attributeMap = await getResolvedAttributesMap(
-      seed.attributeIds,
+      getAttributeIds(seed),
       headers,
       clients
     );
 
     const newlyCreatedGroupAttributes: attributeRegistryApi.Attribute[] =
-      seed.attributeIds.map((attributeId) => {
+      getAttributeIds(seed).map((attributeId) => {
         const attributeDetailed = attributeMap.get(attributeId);
 
         if (!attributeDetailed) {
@@ -260,7 +358,7 @@ export function eserviceTemplateServiceBuilder(
     versionId: EServiceTemplateVersionId,
     groupIndex: number,
     attributeId: AttributeId,
-    attributeKind: keyof eserviceTemplateApi.Attributes,
+    attributeKind: AttributeKind,
     { headers }: WithLogger<M2MGatewayAppContext>
   ): Promise<void> {
     const eserviceTemplate = await retrieveEServiceTemplateById(
@@ -272,19 +370,32 @@ export function eserviceTemplateServiceBuilder(
       versionId
     );
 
+    const templateAttributeKind =
+      mapAttributeKindToEServiceTemplateKind(attributeKind);
+
     const kindAttributeGroups =
-      eserviceTemplateVersion.attributes[attributeKind];
+      eserviceTemplateVersion.attributes[templateAttributeKind];
 
-    const attributeGroup = kindAttributeGroups.at(groupIndex);
+    const indexedKindAttributeGroups = getIndexedKindAttributeGroups(
+      eserviceTemplateVersion,
+      attributeKind
+    );
 
-    if (!attributeGroup) {
+    const indexedAttributeGroup = indexedKindAttributeGroups.find(
+      ({ index }) => index === groupIndex
+    );
+
+    if (!indexedAttributeGroup) {
       throw eserviceTemplateVersionAttributeGroupNotFound(
-        attributeKind,
+        templateAttributeKind,
         templateId,
         versionId,
         groupIndex
       );
     }
+
+    const { group: attributeGroup, index: actualGroupIndex } =
+      indexedAttributeGroup;
 
     if (!attributeGroup.find((a) => a.id === attributeId)) {
       throw eserviceTemplateVersionAttributeNotFound(versionId);
@@ -297,13 +408,13 @@ export function eserviceTemplateServiceBuilder(
     const updatedGroups =
       attributeGroupWithoutAttribute.length === 0
         ? [
-            ...kindAttributeGroups.slice(0, groupIndex),
-            ...kindAttributeGroups.slice(groupIndex + 1),
+            ...kindAttributeGroups.slice(0, actualGroupIndex),
+            ...kindAttributeGroups.slice(actualGroupIndex + 1),
           ]
         : [
-            ...kindAttributeGroups.slice(0, groupIndex),
+            ...kindAttributeGroups.slice(0, actualGroupIndex),
             attributeGroupWithoutAttribute,
-            ...kindAttributeGroups.slice(groupIndex + 1),
+            ...kindAttributeGroups.slice(actualGroupIndex + 1),
           ];
 
     const response =
@@ -311,7 +422,7 @@ export function eserviceTemplateServiceBuilder(
         {
           attributes: {
             ...eserviceTemplateVersion.attributes,
-            [attributeKind]: updatedGroups,
+            [templateAttributeKind]: updatedGroups,
           },
         },
         {
@@ -327,33 +438,56 @@ export function eserviceTemplateServiceBuilder(
     templateId: EServiceTemplateId,
     versionId: EServiceTemplateVersionId,
     groupIndex: number,
-    seed: m2mGatewayApiV3.EServiceTemplateVersionAttributesGroupSeed,
-    attributeKind: keyof eserviceTemplateApi.Attributes,
+    seed: AttributesGroupSeed,
+    attributeKind: AttributeKind,
     headers: M2MGatewayAppContext["headers"]
   ): Promise<void> {
     const eservice = await retrieveEServiceTemplateById(headers, templateId);
     const version = retrieveEServiceTemplateVersionById(eservice, versionId);
-    const kindAttributeGroups = version.attributes[attributeKind];
-    const attributeGroup = kindAttributeGroups.at(groupIndex);
-    if (!attributeGroup) {
+    const templateAttributeKind =
+      mapAttributeKindToEServiceTemplateKind(attributeKind);
+    const kindAttributeGroups = version.attributes[templateAttributeKind];
+    const indexedKindAttributeGroups = getIndexedKindAttributeGroups(
+      version,
+      attributeKind
+    );
+    const indexedAttributeGroup = indexedKindAttributeGroups.find(
+      ({ index }) => index === groupIndex
+    );
+    if (!indexedAttributeGroup) {
       throw eserviceTemplateVersionAttributeGroupNotFound(
-        attributeKind,
+        templateAttributeKind,
         templateId,
         versionId,
         groupIndex
       );
     }
+    const { group: attributeGroup, index: actualGroupIndex } =
+      indexedAttributeGroup;
+
     const updatedAttributeGroup = [
       ...attributeGroup,
-      ...seed.attributeIds.map((id) => ({
-        id,
-        explicitAttributeVerification: false,
-      })),
+      ...getAttributeIds(seed).map((id) => {
+        const discreteConfig =
+          attributeKind === "certified_discrete"
+            ? getDiscreteConfig(seed, id)
+            : undefined;
+
+        if (attributeKind === "certified_discrete" && !discreteConfig) {
+          throw missingDiscreteConfig(id);
+        }
+
+        return {
+          id,
+          explicitAttributeVerification: false,
+          ...(discreteConfig !== undefined ? { discreteConfig } : {}),
+        };
+      }),
     ];
     const updatedGroups = [
-      ...kindAttributeGroups.slice(0, groupIndex),
+      ...kindAttributeGroups.slice(0, actualGroupIndex),
       updatedAttributeGroup,
-      ...kindAttributeGroups.slice(groupIndex + 1),
+      ...kindAttributeGroups.slice(actualGroupIndex + 1),
     ];
     const configOptions = {
       params: { templateId, templateVersionId: versionId },
@@ -361,7 +495,7 @@ export function eserviceTemplateServiceBuilder(
     };
     const updatedAttributes = {
       ...version.attributes,
-      [attributeKind]: updatedGroups,
+      [templateAttributeKind]: updatedGroups,
     };
 
     const response = await (version.state ===
@@ -1031,6 +1165,36 @@ export function eserviceTemplateServiceBuilder(
       };
     },
 
+    async createEServiceTemplateVersionCertifiedDiscreteAttributesGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      seed: AttributesGroupSeed,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributesGroup> {
+      ctx.logger.info(
+        `Creating Certified Discrete Attributes Group for E-Service Template ${templateId} Version ${versionId}`
+      );
+
+      const { attributes, groupIndex } =
+        await createEServiceTemplateVersionAttributesGroup(
+          templateId,
+          versionId,
+          seed,
+          "certified_discrete",
+          ctx
+        );
+
+      return {
+        attributes: attributes.map((attr) => ({
+          groupIndex,
+          attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+            attribute: attr,
+            logger: ctx.logger,
+          }),
+        })),
+      };
+    },
+
     async createEServiceTemplateVersionDeclaredAttributesGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
@@ -1141,6 +1305,43 @@ export function eserviceTemplateServiceBuilder(
         },
       };
     },
+    async getEserviceTemplateVersionCertifiedDiscreteAttributes(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      {
+        limit,
+        offset,
+      }: m2mGatewayApiV3.GetEServiceTemplateVersionCertifiedDiscreteAttributesQueryParams,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<m2mGatewayApiV3.EServiceTemplateVersionCertifiedDiscreteAttributes> {
+      logger.info(
+        `Retrieving Certified Discrete Attributes for E-Service Template ${templateId} Version ${versionId}`
+      );
+
+      const eserviceTemplateVersionAttributes =
+        await retrieveEServiceTemplateVersionAttributes(
+          await retrieveEServiceTemplateById(headers, templateId),
+          versionId,
+          "certified_discrete",
+          { offset, limit },
+          headers
+        );
+
+      return {
+        results: eserviceTemplateVersionAttributes.results.map((item) => ({
+          groupIndex: item.groupIndex,
+          attribute: toM2MGatewayApiCertifiedDiscreteAttribute({
+            attribute: item.attribute,
+            logger,
+          }),
+        })),
+        pagination: {
+          limit,
+          offset,
+          totalCount: eserviceTemplateVersionAttributes.totalCount,
+        },
+      };
+    },
 
     async getEserviceTemplateVersionDeclaredAttributes(
       templateId: EServiceTemplateId,
@@ -1236,6 +1437,25 @@ export function eserviceTemplateServiceBuilder(
         headers
       );
     },
+    async assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      seed: AttributesGroupSeed,
+      { headers, logger }: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Assigning Certified Discrete Attributes to Group ${groupIndex} for E-Service template ${templateId} Version ${versionId}`
+      );
+      await assignEServiceTemplateVersionAttributesToGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        seed,
+        "certified_discrete",
+        headers
+      );
+    },
     async assignEServiceTemplateVersionDeclaredAttributesToGroup(
       templateId: EServiceTemplateId,
       versionId: EServiceTemplateVersionId,
@@ -1290,6 +1510,25 @@ export function eserviceTemplateServiceBuilder(
         groupIndex,
         attributeId,
         "certified",
+        ctx
+      );
+    },
+    async deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
+      templateId: EServiceTemplateId,
+      versionId: EServiceTemplateVersionId,
+      groupIndex: number,
+      attributeId: AttributeId,
+      ctx: WithLogger<M2MGatewayAppContext>
+    ): Promise<void> {
+      ctx.logger.info(
+        `Deleting certified discrete attribute ${attributeId} from group ${groupIndex} for version ${versionId} of eservice template ${templateId}`
+      );
+      await deleteEServiceTemplateVersionAttributeFromGroup(
+        templateId,
+        versionId,
+        groupIndex,
+        attributeId,
+        "certified_discrete",
         ctx
       );
     },

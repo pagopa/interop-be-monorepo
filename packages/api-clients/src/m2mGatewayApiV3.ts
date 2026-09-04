@@ -170,6 +170,12 @@ export type GetEServiceTemplateVersionCertifiedAttributesQueryParams =
     "getEServiceTemplateVersionCertifiedAttributes"
   >;
 
+export type GetEServiceTemplateVersionCertifiedDiscreteAttributesQueryParams =
+  QueryParametersByAlias<
+    EServiceTemplateApi,
+    "getEServiceTemplateVersionCertifiedDiscreteAttributes"
+  >;
+
 export type GetEServiceTemplateVersionDeclaredAttributesQueryParams =
   QueryParametersByAlias<
     EServiceTemplateApi,
