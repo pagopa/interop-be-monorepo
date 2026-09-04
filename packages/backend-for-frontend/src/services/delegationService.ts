@@ -28,6 +28,7 @@ import { config } from "../config/config.js";
 import {
   delegationContractNotFound,
   delegationNotFound,
+  tenantNotFound,
 } from "../model/errors.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
@@ -544,26 +545,44 @@ export function delegationServiceBuilder(
           headers,
         });
 
-      const eservicesWithProducerData: bffApi.CompactEService[] =
-        await Promise.all(
-          eservicesData.results.map(async (eservice) => {
-            const producer = await tenantClient.tenant.getTenant({
-              params: { id: eservice.producerId },
-              headers,
-            });
+      const producerIds = Array.from(
+        new Set(eservicesData.results.map((eservice) => eservice.producerId))
+      );
+      const producers =
+        producerIds.length === 0
+          ? []
+          : await getAllFromPaginated((offset, limit) =>
+              tenantClient.tenant.getTenants({
+                queries: {
+                  tenantIds: producerIds,
+                  offset,
+                  limit,
+                },
+                headers,
+              })
+            );
+      const producersById = new Map(
+        producers.map((producer) => [producer.id, producer])
+      );
 
-            return {
-              id: eservice.id,
-              name: eservice.name,
-              producer: {
-                id: eservice.producerId,
-                name: producer.name,
-                kind: producer.kind,
-                contactMail: getLatestTenantContactEmail(producer),
-              },
-            };
-          })
-        );
+      const eservicesWithProducerData: bffApi.CompactEService[] =
+        eservicesData.results.map((eservice) => {
+          const producer = producersById.get(eservice.producerId);
+          if (!producer) {
+            throw tenantNotFound(eservice.producerId);
+          }
+
+          return {
+            id: eservice.id,
+            name: eservice.name,
+            producer: {
+              id: eservice.producerId,
+              name: producer.name,
+              kind: producer.kind,
+              contactMail: getLatestTenantContactEmail(producer),
+            },
+          };
+        });
 
       return {
         results: eservicesWithProducerData,
