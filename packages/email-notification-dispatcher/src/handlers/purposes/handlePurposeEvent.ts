@@ -9,6 +9,7 @@ import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNew
 import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
 import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
+import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
 import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
 import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
 import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
@@ -205,7 +206,6 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSelfAssigned",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
@@ -218,6 +218,18 @@ export async function handlePurposeEvent(
         );
         return [];
       }
+    )
+    .with(
+      { type: "PurposeRiskAnalysisAssigned" },
+      ({ data: { purpose, newReviewersToNotify } }) =>
+        handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer({
+          purposeV2Msg: purpose,
+          reviewerIds: newReviewersToNotify,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
     )
     .exhaustive();
 }
