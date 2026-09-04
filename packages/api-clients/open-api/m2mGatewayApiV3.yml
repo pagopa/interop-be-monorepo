@@ -6968,8 +6968,8 @@ paths:
               $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed"
       responses:
         "200":
-          description: E-Service Descriptor Certified Discrete Attribute assigned to the Attribute
-            Group
+          description: E-Service Template Version Certified Discrete Attribute assigned to the 
+            Attribute Group
           content:
             application/json:
               schema:
