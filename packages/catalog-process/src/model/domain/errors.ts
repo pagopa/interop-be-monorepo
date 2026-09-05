@@ -96,6 +96,7 @@ const errorCodes = {
   noActiveDelegationFound: "0075",
   delegatedArchiveRequestForIncorrectDelegateProducer: "0076",
   interfaceDocumentNotUpdatable: "0077",
+  templateInstanceInterfaceDataMissing: "0078",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -534,6 +535,17 @@ export function eserviceInterfaceDataNotValid(): ApiError<ErrorCodes> {
     detail: `EService template interface data not valid`,
     code: "eserviceTemplateInterfaceDataNotValid",
     title: "EService template interface data not valid",
+  });
+}
+
+export function templateInstanceInterfaceDataMissing(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `The interface of descriptor ${descriptorId} of template instance EService ${eserviceId} has not been generated because interface data (server URLs and contact metadata) is missing`,
+    code: "templateInstanceInterfaceDataMissing",
+    title: "Template instance interface data missing",
   });
 }
 
