@@ -8,6 +8,7 @@ import {
 import {
   AgreementId,
   AttributeId,
+  DelegationId,
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
@@ -51,6 +52,7 @@ describe("revokeTenantVerifiedAttribute", () => {
   );
 
   const mockAgreementId = generateId<AgreementId>();
+  const mockDelegationId = generateId<DelegationId>();
 
   const mockRevokeVerifiedAttribute = vi
     .fn()
@@ -85,6 +87,7 @@ describe("revokeTenantVerifiedAttribute", () => {
       unsafeBrandId(mockTenantProcessResponse.data.id),
       unsafeBrandId(mockVerifiedAttribute1.id),
       mockAgreementId,
+      mockDelegationId,
       getMockM2MAdminAppContext()
     );
 
@@ -99,6 +102,7 @@ describe("revokeTenantVerifiedAttribute", () => {
       },
       body: {
         agreementId: mockAgreementId,
+        delegationId: mockDelegationId,
       },
     });
     expectApiClientGetToHaveBeenCalledWith({
@@ -117,6 +121,7 @@ describe("revokeTenantVerifiedAttribute", () => {
         unsafeBrandId(mockTenantProcessResponse.data.id),
         nonExistentAttributeId,
         mockAgreementId,
+        undefined,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(
@@ -138,6 +143,7 @@ describe("revokeTenantVerifiedAttribute", () => {
         unsafeBrandId(mockTenantProcessResponse.data.id),
         unsafeBrandId(mockVerifiedAttribute1.id),
         mockAgreementId,
+        undefined,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -154,6 +160,7 @@ describe("revokeTenantVerifiedAttribute", () => {
         unsafeBrandId(mockTenantProcessResponse.data.id),
         unsafeBrandId(unsafeBrandId(mockVerifiedAttribute1.id)),
         mockAgreementId,
+        undefined,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(missingMetadata());
@@ -172,6 +179,7 @@ describe("revokeTenantVerifiedAttribute", () => {
         unsafeBrandId(mockTenantProcessResponse.data.id),
         unsafeBrandId(mockVerifiedAttribute1.id),
         mockAgreementId,
+        undefined,
         getMockM2MAdminAppContext()
       )
     ).rejects.toThrowError(

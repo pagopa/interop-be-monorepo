@@ -447,6 +447,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       {
         id: attributeId,
         agreementId,
+        delegationId,
         expirationDate,
       }: m2mGatewayApiV3.TenantVerifiedAttributeSeed,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
@@ -460,6 +461,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
           {
             id: attributeId,
             agreementId,
+            delegationId,
             expirationDate,
           },
           {
@@ -481,6 +483,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
       tenantId: TenantId,
       attributeId: AttributeId,
       agreementId: AgreementId,
+      delegationId: DelegationId | undefined,
       { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApiV3.TenantVerifiedAttribute> {
       logger.info(
@@ -491,6 +494,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         await clients.tenantProcessClient.tenantAttribute.revokeVerifiedAttribute(
           {
             agreementId,
+            delegationId,
           },
           {
             params: { tenantId, attributeId },
