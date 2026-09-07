@@ -20,7 +20,7 @@ import {
   userRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
-import { invalidClaim } from "pagopa-interop-models";
+import { invalidClaim, tokenVerificationFailed } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
 import { startJwksServer } from "../src/jwksServer.js";
@@ -197,6 +197,45 @@ describe("JWT tests", () => {
       } finally {
         await unavailableJwksServer.close();
         await availableJwksServer.close();
+      }
+    });
+
+    it("should reject the token after all JWKS retries are exhausted", async () => {
+      const { accessToken, authServerPublicJwk } =
+        await generateM2MAdminAccessTokenWithDPoPProof({
+          htu: "https://interop.pagopa.it/test",
+        });
+      const firstUnavailableJwksServer = await startJwksServer(
+        authServerPublicJwk,
+        { failuresBeforeSuccess: 2 }
+      );
+      const secondUnavailableJwksServer = await startJwksServer(
+        authServerPublicJwk,
+        { failuresBeforeSuccess: 2 }
+      );
+
+      try {
+        await expect(
+          verifyJwtToken(
+            accessToken,
+            {
+              wellKnownUrls: [
+                APIEndpoint.parse(firstUnavailableJwksServer.url),
+                APIEndpoint.parse(secondUnavailableJwksServer.url),
+              ],
+              acceptedAudiences: ["dev.interop.pagopa.it/m2m"],
+              jwksCacheMaxAge: undefined,
+            },
+            genericLogger
+          )
+        ).rejects.toThrowError(
+          tokenVerificationFailed(mockM2MAdminUserId, undefined)
+        );
+        expect(firstUnavailableJwksServer.requestCount()).toBe(2);
+        expect(secondUnavailableJwksServer.requestCount()).toBe(2);
+      } finally {
+        await firstUnavailableJwksServer.close();
+        await secondUnavailableJwksServer.close();
       }
     });
   });
