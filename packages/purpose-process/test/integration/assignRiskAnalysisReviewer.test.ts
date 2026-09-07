@@ -532,6 +532,27 @@ describe("assignRiskAnalysisReviewer", () => {
     ).rejects.toThrow(purposeNotFound(randomId));
   });
 
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    const otherOrganizationId = generateId<TenantId>();
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData(otherOrganizationId) })
+      )
+    ).rejects.toThrow(tenantIsNotTheConsumer(otherOrganizationId));
+  });
+
   it.each([
     {
       description: "A: adminWritesAdminSigns -> adminWritesReviewerSigns",
@@ -1010,27 +1031,6 @@ describe("assignRiskAnalysisReviewer", () => {
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrow(reviewersNotAllowedForReviewMode(mockPurpose.id));
-  });
-
-  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-    };
-
-    await addOnePurpose(mockPurpose);
-
-    const otherOrganizationId = generateId<TenantId>();
-
-    expect(
-      purposeService.assignRiskAnalysisReviewer(
-        mockPurpose.id,
-        {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId()],
-        },
-        getMockContext({ authData: getMockAuthData(otherOrganizationId) })
-      )
-    ).rejects.toThrow(tenantIsNotTheConsumer(otherOrganizationId));
   });
 
   it("should throw missingSelfcareId if the consumer tenant has no selfcareId", async () => {
