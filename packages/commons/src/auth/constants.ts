@@ -1,0 +1,2 @@
+export const JWKS_READ_ATTEMPTS = 2;
+export const JWKS_READ_RETRY_DELAY_MILLIS = 100;
