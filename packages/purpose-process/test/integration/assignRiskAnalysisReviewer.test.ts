@@ -175,6 +175,83 @@ async function addPurposeInReviewMode({
   return mockPurpose;
 }
 
+type AssignmentEventType =
+  | "PurposeRiskAnalysisSelfAssigned"
+  | "PurposeRiskAnalysisWorkflowCreated"
+  | "PurposeRiskAnalysisAssigned";
+
+const assignmentEventTypeForReviewMode = (
+  reviewMode: RiskAnalysisReviewMode
+): AssignmentEventType =>
+  match(reviewMode)
+    .with(
+      riskAnalysisReviewMode.adminWritesAdminSigns,
+      () => "PurposeRiskAnalysisSelfAssigned" as const
+    )
+    .with(
+      riskAnalysisReviewMode.adminWritesReviewerSigns,
+      () => "PurposeRiskAnalysisWorkflowCreated" as const
+    )
+    .with(
+      riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      () => "PurposeRiskAnalysisAssigned" as const
+    )
+    .exhaustive();
+
+async function expectAssignmentEvent({
+  purposeId,
+  purpose,
+  type,
+  newReviewersToNotify = [],
+  oldReviewersToNotify = [],
+}: {
+  purposeId: PurposeId;
+  purpose: Purpose;
+  type: AssignmentEventType;
+  newReviewersToNotify?: UserId[];
+  oldReviewersToNotify?: UserId[];
+}): Promise<void> {
+  const writtenEvent = await readLastPurposeEvent(purposeId);
+
+  expect(writtenEvent).toMatchObject({
+    stream_id: purposeId,
+    version: "1",
+    type,
+    event_version: 2,
+  });
+
+  const writtenPayload = match(type)
+    .with("PurposeRiskAnalysisSelfAssigned", () =>
+      decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisSelfAssignedV2,
+        payload: writtenEvent.data,
+      })
+    )
+    .with("PurposeRiskAnalysisWorkflowCreated", () =>
+      decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisWorkflowCreatedV2,
+        payload: writtenEvent.data,
+      })
+    )
+    .with("PurposeRiskAnalysisAssigned", () =>
+      decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisAssignedV2,
+        payload: writtenEvent.data,
+      })
+    )
+    .exhaustive();
+
+  const expectedPayload = {
+    purpose: toPurposeV2(purpose),
+    oldReviewersToNotify,
+    ...(type === "PurposeRiskAnalysisSelfAssigned"
+      ? {}
+      : { newReviewersToNotify }),
+  };
+
+  expect(writtenPayload).toEqual(expectedPayload);
+}
+
 describe("assignRiskAnalysisReviewer", () => {
   it("should read reviewers from legacy protobuf workflow fields", () => {
     const legacySentToReviewerAt = new Date("2020-01-01T00:00:00.000Z");
@@ -461,6 +538,360 @@ describe("assignRiskAnalysisReviewer", () => {
 
   it.each([
     {
+      description: "A: adminWritesAdminSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      previousReviewers: [],
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description: "B: adminWritesAdminSigns -> reviewerWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      previousReviewers: [],
+      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.assigned,
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: true,
+    },
+    {
+      description: "C-draft: adminWritesReviewerSigns -> adminWritesAdminSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.draft,
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "C-submitted: adminWritesReviewerSigns -> adminWritesAdminSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.submitted,
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      notifiedReviewerIds: previousReviewerIds,
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: previousReviewerIds,
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "C-rejected-partial: adminWritesReviewerSigns -> adminWritesAdminSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      notifiedReviewerIds: [keptReviewerId],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [keptReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description: "D: reviewerWritesReviewerSigns -> adminWritesAdminSigns",
+      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.assigned,
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      notifiedReviewerIds: previousReviewerIds,
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: previousReviewerIds,
+      shouldResetForm: true,
+    },
+    {
+      description:
+        "E-draft: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-draft-partial: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      notifiedReviewerIds: [keptReviewerId],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-rejected: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      expectedSigningState: riskAnalysisSigningState.rejected,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      notifiedReviewerIds: previousReviewerIds,
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-rejected-partial: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      expectedSigningState: riskAnalysisSigningState.rejected,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      notifiedReviewerIds: [removedReviewerId],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-rejected-unnotified: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      expectedSigningState: riskAnalysisSigningState.rejected,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-submitted: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.submitted,
+      expectedSigningState: riskAnalysisSigningState.submitted,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      notifiedReviewerIds: previousReviewerIds,
+      expectedNewReviewersToNotify: [addedReviewerId],
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "F: reviewerWritesReviewerSigns -> reviewerWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.assigned,
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      notifiedReviewerIds: previousReviewerIds,
+      expectedNewReviewersToNotify: [addedReviewerId],
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "G-draft: adminWritesReviewerSigns -> reviewerWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: true,
+    },
+    {
+      description:
+        "G-rejected: adminWritesReviewerSigns -> reviewerWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      notifiedReviewerIds: [removedReviewerId],
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: true,
+    },
+    {
+      description: "H: reviewerWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.assigned,
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      notifiedReviewerIds: previousReviewerIds,
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: previousReviewerIds,
+      shouldResetForm: true,
+    },
+    {
+      description: "I: undefined -> adminWritesAdminSigns",
+      previousReviewMode: undefined,
+      previousReviewers: [],
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.draft,
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description: "J: undefined -> adminWritesReviewerSigns",
+      previousReviewMode: undefined,
+      previousReviewers: [],
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description: "K: undefined -> reviewerWritesReviewerSigns",
+      previousReviewMode: undefined,
+      previousReviewers: [],
+      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.assigned,
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      notifiedReviewerIds: [],
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: true,
+    },
+  ])(
+    "should apply the complete assignment transition ($description)",
+    async ({
+      description,
+      previousReviewMode,
+      previousReviewers,
+      requestedReviewMode,
+      signingState,
+      expectedSigningState,
+      expectedEventType,
+      notifiedReviewerIds,
+      expectedNewReviewersToNotify,
+      expectedOldReviewersToNotify,
+      shouldResetForm,
+    }) => {
+      vi.useFakeTimers();
+      const now = new Date();
+      vi.setSystemTime(now);
+
+      const riskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
+      const mockPurpose = await addPurposeInReviewMode({
+        previousReviewMode,
+        previousReviewers,
+        riskAnalysisForm,
+        signingState,
+        notifiedReviewerIds,
+      });
+
+      const { data: updatedPurpose } =
+        await purposeService.assignRiskAnalysisReviewer(
+          mockPurpose.id,
+          {
+            reviewMode: requestedReviewMode,
+            reviewerIds: reviewersFor(requestedReviewMode),
+          },
+          getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        );
+
+      expect(updatedPurpose.reviewMode).toBe(requestedReviewMode);
+      expect(updatedPurpose.riskAnalysisForm).toEqual(
+        shouldResetForm ? undefined : riskAnalysisForm
+      );
+
+      expect(updatedPurpose.reviewerWorkflow?.signingState, description).toBe(
+        expectedSigningState
+      );
+      expect(
+        updatedPurpose.reviewerWorkflow?.reviewers.map(
+          (reviewer) => reviewer.id
+        ) ?? []
+      ).toEqual(reviewersFor(requestedReviewMode));
+
+      const isMode2ToMode2Transition =
+        previousReviewMode ===
+          riskAnalysisReviewMode.adminWritesReviewerSigns &&
+        requestedReviewMode === riskAnalysisReviewMode.adminWritesReviewerSigns;
+      const isSubmittedOrRejected =
+        signingState === riskAnalysisSigningState.submitted ||
+        signingState === riskAnalysisSigningState.rejected;
+
+      // In mode 2, reviewer timestamps determine who has already been notified.
+      if (isMode2ToMode2Transition && isSubmittedOrRejected) {
+        expect(updatedPurpose.reviewerWorkflow).toEqual({
+          reviewers: [
+            {
+              id: keptReviewerId,
+              sentToReviewerAt: notifiedReviewerIds.includes(keptReviewerId)
+                ? previousSentToReviewerAt
+                : undefined,
+            },
+            {
+              id: addedReviewerId,
+              sentToReviewerAt:
+                signingState === riskAnalysisSigningState.submitted
+                  ? now
+                  : undefined,
+            },
+          ],
+          signingState,
+          sentToReviewerAt: undefined,
+        } satisfies ReviewerWorkflow);
+      }
+
+      await expectAssignmentEvent({
+        purposeId: mockPurpose.id,
+        purpose: updatedPurpose,
+        type: expectedEventType as AssignmentEventType,
+        newReviewersToNotify: expectedNewReviewersToNotify,
+        oldReviewersToNotify: expectedOldReviewersToNotify,
+      });
+
+      vi.useRealTimers();
+    }
+  );
+
+  it.skip.each([
+    {
       description: "never assigned -> ReviewerWritesReviewerSigns",
       previousReviewMode: undefined,
       requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
@@ -505,10 +936,26 @@ describe("assignRiskAnalysisReviewer", () => {
         );
 
       expect(updatedPurpose.riskAnalysisForm).toBeUndefined();
+
+      await expectAssignmentEvent({
+        purposeId: mockPurpose.id,
+        purpose: updatedPurpose,
+        type: assignmentEventTypeForReviewMode(requestedReviewMode),
+        newReviewersToNotify:
+          requestedReviewMode ===
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns
+            ? requestedReviewerIds
+            : [],
+        oldReviewersToNotify:
+          previousReviewMode ===
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns
+            ? previousReviewerIds
+            : [],
+      });
     }
   );
 
-  it.each([
+  it.skip.each([
     {
       description: "never assigned -> AdminWritesAdminSigns",
       previousReviewMode: undefined,
@@ -560,10 +1007,29 @@ describe("assignRiskAnalysisReviewer", () => {
         );
 
       expect(updatedPurpose.riskAnalysisForm).toEqual(riskAnalysisForm);
+
+      await expectAssignmentEvent({
+        purposeId: mockPurpose.id,
+        purpose: updatedPurpose,
+        type: assignmentEventTypeForReviewMode(requestedReviewMode),
+        newReviewersToNotify:
+          requestedReviewMode ===
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns
+            ? previousReviewMode ===
+              riskAnalysisReviewMode.reviewerWritesReviewerSigns
+              ? [addedReviewerId]
+              : requestedReviewerIds
+            : [],
+        oldReviewersToNotify:
+          previousReviewMode ===
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns
+            ? [removedReviewerId]
+            : [],
+      });
     }
   );
 
-  it.each([
+  it.skip.each([
     {
       signingState: RiskAnalysisSigningState.Values.Submitted,
       shouldStampAddedReviewer: true,
@@ -573,7 +1039,7 @@ describe("assignRiskAnalysisReviewer", () => {
       shouldStampAddedReviewer: false,
     },
   ])(
-    "should preserve the mode 2 workflow in $signingState when reviewers change",
+    "should preserve the adminWritesReviewerSigns workflow in $signingState when reviewers change",
     async ({ signingState, shouldStampAddedReviewer }) => {
       vi.useFakeTimers();
       const now = new Date();
@@ -627,7 +1093,7 @@ describe("assignRiskAnalysisReviewer", () => {
     }
   );
 
-  it("should reset the risk analysis form when the workflow is removed from ReviewerWritesReviewerSigns", async () => {
+  it.skip("should reset the risk analysis form when the workflow is removed from ReviewerWritesReviewerSigns", async () => {
     const mockPurpose = await addPurposeInReviewMode({
       previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       previousReviewers: previousReviewerIds,
@@ -667,7 +1133,7 @@ describe("assignRiskAnalysisReviewer", () => {
     );
   });
 
-  it.each([
+  it.skip.each([
     {
       description: "never assigned -> AdminWritesReviewerSigns",
       previousReviewMode: undefined,
@@ -767,7 +1233,7 @@ describe("assignRiskAnalysisReviewer", () => {
     }
   );
 
-  it.each([
+  it.skip.each([
     {
       description: "never assigned -> ReviewerWritesReviewerSigns",
       previousReviewMode: undefined,
@@ -876,7 +1342,7 @@ describe("assignRiskAnalysisReviewer", () => {
     }
   );
 
-  it.each([
+  it.skip.each([
     {
       description:
         "AdminWritesReviewerSigns -> AdminWritesAdminSigns, never notified",
@@ -958,7 +1424,7 @@ describe("assignRiskAnalysisReviewer", () => {
     }
   );
 
-  it("should emit PurposeRiskAnalysisSelfAssigned when a never assigned purpose is set to AdminWritesAdminSigns", async () => {
+  it.skip("should emit PurposeRiskAnalysisSelfAssigned when a never assigned purpose is set to AdminWritesAdminSigns", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
