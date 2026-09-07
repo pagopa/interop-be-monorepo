@@ -406,6 +406,11 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'amministratore ha pubblicato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio che ti era stata assegnata.`,
+  draftPurposeDeletedWithRiskAnalysisToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha eliminato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio approvata da te.`,
   purposeQuotaAdjustmentNewVersionToProducer: (
     consumerName: string,
     purposeName: string,
