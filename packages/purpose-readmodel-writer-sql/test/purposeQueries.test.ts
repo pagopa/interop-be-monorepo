@@ -205,11 +205,6 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
 
-      const reviewers = [
-        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-      ];
-
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [purposeVersion1, purposeVersion2, purposeVersion3],
