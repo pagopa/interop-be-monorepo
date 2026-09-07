@@ -958,7 +958,7 @@ export const rejectDelegatedDescriptorArchivingErrorMapper = (
     .with("delegatedArchivingRequestNotActive", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const internalArchiveDelegatedArchivingRequestErrorMapper = (
+export const internalDeleteDelegatedArchivingRequestErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

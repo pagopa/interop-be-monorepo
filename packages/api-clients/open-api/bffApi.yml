@@ -14520,11 +14520,11 @@ components:
         asyncExchange:
           type: boolean
         delegatedArchivingRequest:
-          $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+          $ref: "#/components/schemas/DelegatedArchivingRequest"
         latestActiveDescriptorId:
           type: string
           format: uuid
-    DelegatedEServiceArchivingRequest:
+    DelegatedArchivingRequest:
       type: object
       additionalProperties: false
       required:
@@ -14807,7 +14807,7 @@ components:
         asyncExchange:
           type: boolean
         delegatedArchivingRequest:
-          $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
+          $ref: "#/components/schemas/DelegatedArchivingRequest"
     ProducerDescriptorEServiceProducer:
       type: object
       additionalProperties: false

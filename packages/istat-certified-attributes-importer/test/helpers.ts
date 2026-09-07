@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { setupTestContainersVitest } from "pagopa-interop-commons-test/index.js";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
   Attribute,
   AttributeId,

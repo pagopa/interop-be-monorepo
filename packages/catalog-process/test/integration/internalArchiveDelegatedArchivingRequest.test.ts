@@ -34,9 +34,7 @@ describe("internal archive delegated archiving request", () => {
   const mockDescriptor = getMockDescriptor();
   const mockDocument = getMockDocument();
 
-  const mockSeed: catalogApi.InternalArchiveDelegatedArchivingRequestSeed = {
-    reason: "Request closed automatically by system",
-  };
+  const mockSeed: catalogApi.InternalDeleteDelegatedArchivingRequestSeed = {};
 
   beforeAll(() => {
     vi.useFakeTimers();
@@ -64,7 +62,7 @@ describe("internal archive delegated archiving request", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.internalArchiveDelegatedArchivingRequest(
+    await catalogService.internalDeleteDelegatedArchivingRequest(
       eservice.id,
       { ...mockSeed, descriptorId: descriptor.id },
       getMockContextInternal({})
@@ -84,17 +82,12 @@ describe("internal archive delegated archiving request", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedRejectedRequest: DelegatedDescriptorArchivingRequest = {
-      ...pendingRequest,
-      rejectedAt: new Date(),
-      rejectionReason: mockSeed.reason,
-    };
     const expectedEservice = {
       ...eservice,
       descriptors: [
         {
           ...descriptor,
-          delegatedArchivingRequest: [expectedRejectedRequest],
+          delegatedArchivingRequest: [],
         },
       ],
     };
@@ -119,7 +112,7 @@ describe("internal archive delegated archiving request", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.internalArchiveDelegatedArchivingRequest(
+    await catalogService.internalDeleteDelegatedArchivingRequest(
       eservice.id,
       mockSeed,
       getMockContextInternal({})
@@ -138,14 +131,9 @@ describe("internal archive delegated archiving request", () => {
       payload: writtenEvent.data,
     });
 
-    const expectedRejectedRequest: DelegatedEServiceArchivingRequest = {
-      ...pendingRequest,
-      rejectedAt: new Date(),
-      rejectionReason: mockSeed.reason,
-    };
     const expectedEservice = {
       ...eservice,
-      delegatedArchivingRequest: [expectedRejectedRequest],
+      delegatedArchivingRequest: undefined,
     };
 
     expect(writtenPayload).toEqual({
@@ -172,7 +160,7 @@ describe("internal archive delegated archiving request", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.internalArchiveDelegatedArchivingRequest(
+    await catalogService.internalDeleteDelegatedArchivingRequest(
       eservice.id,
       { ...mockSeed, descriptorId: descriptor.id },
       getMockContextInternal({})
@@ -202,7 +190,7 @@ describe("internal archive delegated archiving request", () => {
     };
     await addOneEService(eservice);
 
-    await catalogService.internalArchiveDelegatedArchivingRequest(
+    await catalogService.internalDeleteDelegatedArchivingRequest(
       eservice.id,
       mockSeed,
       getMockContextInternal({})
@@ -218,7 +206,7 @@ describe("internal archive delegated archiving request", () => {
 
   it("should throw eServiceNotFound if the eservice doesn't exist", async () => {
     await expect(
-      catalogService.internalArchiveDelegatedArchivingRequest(
+      catalogService.internalDeleteDelegatedArchivingRequest(
         mockEService.id,
         mockSeed,
         getMockContextInternal({})
@@ -234,7 +222,7 @@ describe("internal archive delegated archiving request", () => {
     await addOneEService(eservice);
 
     await expect(
-      catalogService.internalArchiveDelegatedArchivingRequest(
+      catalogService.internalDeleteDelegatedArchivingRequest(
         eservice.id,
         { ...mockSeed, descriptorId: mockDescriptor.id },
         getMockContextInternal({})

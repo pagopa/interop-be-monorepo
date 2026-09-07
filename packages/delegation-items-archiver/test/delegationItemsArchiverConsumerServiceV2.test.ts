@@ -48,7 +48,7 @@ const purposeProcessClient = {
   internalArchivePurposeVersionAfterDelegationRevocation: vi.fn(),
 } as unknown as purposeApi.PurposeProcessClient;
 const catalogProcessClient = {
-  internalArchiveDelegatedArchivingRequest: vi.fn(),
+  internalDeleteDelegatedArchivingRequest: vi.fn(),
 } as unknown as catalogApi.CatalogProcessClient;
 
 describe("delegationItemsArchiverConsumerServiceV2", () => {
@@ -590,14 +590,13 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       await handleMessage();
 
       expect(
-        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+        catalogProcessClient.internalDeleteDelegatedArchivingRequest
       ).toHaveBeenCalledTimes(2);
       expect(
-        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+        catalogProcessClient.internalDeleteDelegatedArchivingRequest
       ).toHaveBeenCalledWith(
         {
           descriptorId: descriptorWithPendingRequest.id,
-          reason: `Producer delegation ${delegation.id} has been revoked`,
         },
         {
           params: { eServiceId: delegation.eserviceId },
@@ -605,11 +604,10 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         }
       );
       expect(
-        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+        catalogProcessClient.internalDeleteDelegatedArchivingRequest
       ).toHaveBeenCalledWith(
         {
           descriptorId: undefined,
-          reason: `Producer delegation ${delegation.id} has been revoked`,
         },
         {
           params: { eServiceId: delegation.eserviceId },
@@ -635,7 +633,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       await handleMessage();
 
       expect(
-        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+        catalogProcessClient.internalDeleteDelegatedArchivingRequest
       ).not.toHaveBeenCalled();
     });
 
@@ -643,7 +641,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
       await handleMessage();
 
       expect(
-        catalogProcessClient.internalArchiveDelegatedArchivingRequest
+        catalogProcessClient.internalDeleteDelegatedArchivingRequest
       ).not.toHaveBeenCalled();
     });
   });

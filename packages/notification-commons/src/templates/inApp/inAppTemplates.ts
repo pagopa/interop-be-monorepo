@@ -224,12 +224,12 @@ export const inAppTemplates = {
     descriptorVersion: string,
     eserviceName: string
   ): string =>
-    `L'ente delegato ${delegateName} ha richiesto l'archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}. Puoi approvare o rifiutare la richiesta.`,
+    `L'ente delegato ${delegateName} ha richiesto l'archiviazione della versione ${descriptorVersion} dell'e-service ${eserviceName}. Puoi confermare o rifiutare la richiesta.`,
   eserviceArchivingRequestedByDelegateToDelegator: (
     delegateName: string,
     eserviceName: string
   ): string =>
-    `L'ente delegato ${delegateName} ha richiesto l'archiviazione dell'e-service ${eserviceName}. Puoi approvare o rifiutare la richiesta.`,
+    `L'ente delegato ${delegateName} ha richiesto l'archiviazione dell'e-service ${eserviceName}. Puoi confermare o rifiutare la richiesta.`,
   eserviceDescriptorArchivingRequestApprovedByDelegatorToDelegate: (
     delegatorName: string,
     descriptorVersion: string,

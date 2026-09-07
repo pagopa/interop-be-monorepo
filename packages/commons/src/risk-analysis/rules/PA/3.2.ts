@@ -1,8 +1,7 @@
 import { RiskAnalysisFormRules } from "../riskAnalysisFormRules.js";
 
-export const pa3: RiskAnalysisFormRules = {
-  version: "3.0",
-  expiration: new Date("2026-02-15T23:59:59"),
+export const pa32: RiskAnalysisFormRules = {
+  version: "3.2",
   questions: [
     {
       id: "purpose",
@@ -77,16 +76,114 @@ export const pa3: RiskAnalysisFormRules = {
       ],
     },
     {
+      id: "usesPersonalData",
+      type: "radio",
+      dataType: "single",
+      label: {
+        it: "Indicare se si accede a dati personali",
+        en: "Indicare se si accede a dati personali",
+      },
+      infoLabel: {
+        it: "NB: si ricorda che ai sensi dell’art. 4, paragrafo 1, n. 1,  del GDPR  per dato personale si intende qualsiasi informazione riguardante una persona fisica identificata o che può essere identificata, direttamente o indirettamente, con particolare riferimento a un identificativo come il nome, un numero di identificazione, dati relativi all'ubicazione, un identificativo online o a uno o più elementi caratteristici della sua identità fisica, fisiologica, genetica, psichica, economica, culturale o sociale”. Pertanto devono essere considerati dati personali non solo dati che identificano direttamente un individuo (es. nome e cognome, codice fiscale, indirizzo e-mail) ma anche dati che possono essere ricondotti a un individuo solo indirettamente, tramite terzi rispetto al Fruitore (es. la targa di un veicolo, numero di matricola o altro codice alfanumerico attribuito a un individuo da un soggetto terzo).",
+        en: "NB: si ricorda che ai sensi dell’art. 4, paragrafo 1, n. 1,  del GDPR  per dato personale si intende qualsiasi informazione riguardante una persona fisica identificata o che può essere identificata, direttamente o indirettamente, con particolare riferimento a un identificativo come il nome, un numero di identificazione, dati relativi all'ubicazione, un identificativo online o a uno o più elementi caratteristici della sua identità fisica, fisiologica, genetica, psichica, economica, culturale o sociale”. Pertanto devono essere considerati dati personali non solo dati che identificano direttamente un individuo (es. nome e cognome, codice fiscale, indirizzo e-mail) ma anche dati che possono essere ricondotti a un individuo solo indirettamente, tramite terzi rispetto al Fruitore (es. la targa di un veicolo, numero di matricola o altro codice alfanumerico attribuito a un individuo da un soggetto terzo).",
+      },
+      options: [
+        {
+          label: {
+            it: "Sì",
+            en: "Sì",
+          },
+          value: "YES",
+        },
+        {
+          label: {
+            it: "No",
+            en: "No",
+          },
+          value: "NO",
+        },
+      ],
+      defaultValue: ["NO"],
+      required: true,
+      dependencies: [],
+    },
+    {
+      id: "usesThirdPartyPersonalData",
+      type: "radio",
+      dataType: "single",
+      label: {
+        it: "Indicare se si accede a dati non personali di terzi (quindi a dati non personali che non sono riferibili al Fruitore stesso)",
+        en: "Indicare se si accede a dati non personali di terzi (quindi a dati non personali che non sono riferibili al Fruitore stesso)",
+      },
+      options: [
+        {
+          label: {
+            it: "Sì",
+            en: "Sì",
+          },
+          value: "YES",
+        },
+        {
+          label: {
+            it: "No",
+            en: "No",
+          },
+          value: "NO",
+        },
+      ],
+      defaultValue: ["NO"],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "NO",
+        },
+      ],
+    },
+    {
+      id: "usesThirdPartyConfidentialData",
+      type: "radio",
+      dataType: "single",
+      label: {
+        it: "Indicare se si accede a dati non personali ma comunque confidenziali o strettamente riservati",
+        en: "Indicare se si accede a dati non personali ma comunque confidenziali o strettamente riservati",
+      },
+      options: [
+        {
+          label: {
+            it: "Sì",
+            en: "Sì",
+          },
+          value: "YES",
+        },
+        {
+          label: {
+            it: "No",
+            en: "No",
+          },
+          value: "NO",
+        },
+      ],
+      defaultValue: ["NO"],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "NO",
+        },
+        {
+          id: "usesThirdPartyPersonalData",
+          value: "YES",
+        },
+      ],
+    },
+    {
       id: "personalDataTypes",
       type: "checkbox",
       dataType: "multi",
       label: {
         it: "Indicare la tipologia di dati personali cui si avrà accesso attraverso la fruizione del presente E-service, tenuto conto delle definizioni contenute nell’art. 4, nn. 1, 13, 14 e 15 del GDPR",
         en: "Indicare la tipologia di dati personali cui si avrà accesso attraverso la fruizione del presente E-service, tenuto conto delle definizioni contenute nell’art. 4, nn. 1, 13, 14 e 15 del GDPR",
-      },
-      infoLabel: {
-        it: "NB: si ricorda che ai sensi dell’art. 4, paragrafo 1, n. 1,  del GDPR  per dato personale si intende qualsiasi informazione riguardante una persona fisica identificata o che può essere identificata, direttamente o indirettamente, con particolare riferimento a un identificativo come il nome, un numero di identificazione, dati relativi all'ubicazione, un identificativo online o a uno o più elementi caratteristici della sua identità fisica, fisiologica, genetica, psichica, economica, culturale o sociale”. Pertanto devono essere considerati dati personali non solo dati che identificano direttamente un individuo (es. nome e cognome, codice fiscale, indirizzo e-mail) ma anche dati che possono essere ricondotti a un individuo solo indirettamente, tramite terzi rispetto al Fruitore (es. la targa di un veicolo, numero di matricola o altro codice alfanumerico attribuito a un individuo da un soggetto terzo)",
-        en: "NB: si ricorda che ai sensi dell’art. 4, paragrafo 1, n. 1,  del GDPR  per dato personale si intende qualsiasi informazione riguardante una persona fisica identificata o che può essere identificata, direttamente o indirettamente, con particolare riferimento a un identificativo come il nome, un numero di identificazione, dati relativi all'ubicazione, un identificativo online o a uno o più elementi caratteristici della sua identità fisica, fisiologica, genetica, psichica, economica, culturale o sociale”. Pertanto devono essere considerati dati personali non solo dati che identificano direttamente un individuo (es. nome e cognome, codice fiscale, indirizzo e-mail) ma anche dati che possono essere ricondotti a un individuo solo indirettamente, tramite terzi rispetto al Fruitore (es. la targa di un veicolo, numero di matricola o altro codice alfanumerico attribuito a un individuo da un soggetto terzo)",
       },
       options: [
         {
@@ -119,8 +216,8 @@ export const pa3: RiskAnalysisFormRules = {
         },
         {
           label: {
-            it: "Dati giudiziari ex art. 10 del GDPR (es. provvedimenti penali di condanna definitivi, liberazione condizionale, divieto od obbligo di soggiorno, misure alternative alla detenzione)",
-            en: "Dati giudiziari ex art. 10 del GDPR (es. provvedimenti penali di condanna definitivi, liberazione condizionale, divieto od obbligo di soggiorno, misure alternative alla detenzione)",
+            it: "Dati giudiziari ex art. 10 del GDPR",
+            en: "Dati giudiziari ex art. 10 del GDPR",
           },
           value: "GDPR_ART_10",
         },
@@ -134,7 +231,12 @@ export const pa3: RiskAnalysisFormRules = {
       ],
       defaultValue: [],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "otherPersonalDataTypes",
@@ -151,6 +253,10 @@ export const pa3: RiskAnalysisFormRules = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "personalDataTypes",
           value: "OTHER",
         },
@@ -161,8 +267,8 @@ export const pa3: RiskAnalysisFormRules = {
       type: "checkbox",
       dataType: "multi",
       label: {
-        it: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-Service",
-        en: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-Service",
+        it: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-service",
+        en: "Indicare sulla base di quale, fra le seguenti basi giuridiche ex art. 6 del GDPR, ritiene di essere titolato ad accedere ai dati personali messi a disposizione con la fruizione dell’E-service",
       },
       options: [
         {
@@ -203,7 +309,12 @@ export const pa3: RiskAnalysisFormRules = {
       ],
       defaultValue: [],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "legalObligationReference",
@@ -223,6 +334,10 @@ export const pa3: RiskAnalysisFormRules = {
       defaultValue: [],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "legalBasis",
           value: "LEGAL_OBLIGATION",
@@ -264,6 +379,10 @@ export const pa3: RiskAnalysisFormRules = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "legalBasis",
           value: "PUBLIC_INTEREST",
         },
@@ -296,6 +415,10 @@ export const pa3: RiskAnalysisFormRules = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "legalBasisPublicInterest",
           value: "RULE_OF_LAW",
         },
@@ -323,6 +446,10 @@ export const pa3: RiskAnalysisFormRules = {
       defaultValue: [],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "legalBasisPublicInterest",
           value: "ADMINISTRATIVE_ACT",
@@ -362,22 +489,33 @@ export const pa3: RiskAnalysisFormRules = {
       type: "radio",
       dataType: "single",
       label: {
-        it: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-Service",
-        en: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-Service",
+        it: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-service",
+        en: "Indicare se si conosce la quantità di dati personali di cui si entrerà in possesso attraverso la fruizione del presente E-service",
       },
       options: [
         {
-          label: { it: "Sì", en: "Sì" },
+          label: {
+            it: "Sì",
+            en: "Sì",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "No" },
+          label: {
+            it: "No",
+            en: "No",
+          },
           value: "NO",
         },
       ],
       defaultValue: ["NO"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "dataQuantity",
@@ -388,34 +526,53 @@ export const pa3: RiskAnalysisFormRules = {
         en: "Fascia di riferimento",
       },
       infoLabel: {
-        it: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-Service",
-        en: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-Service",
+        it: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-service",
+        en: "Si richiede di specificare la fascia di riferimento fra quelle di seguito indicate anche in funzione del periodo di validità del voucher emesso per la fruizione dell’E-service",
       },
       options: [
         {
-          label: { it: "0-100", en: "0-100" },
+          label: {
+            it: "0-100",
+            en: "0-100",
+          },
           value: "QUANTITY_0_TO_100",
         },
         {
-          label: { it: "101-500", en: "101-500" },
+          label: {
+            it: "101-500",
+            en: "101-500",
+          },
           value: "QUANTITY_101_TO_500",
         },
         {
-          label: { it: "501-1000", en: "501-1000" },
+          label: {
+            it: "501-1000",
+            en: "501-1000",
+          },
           value: "QUANTITY_500_TO_1000",
         },
         {
-          label: { it: "1001-5000", en: "1001-5000" },
+          label: {
+            it: "1001-5000",
+            en: "1001-5000",
+          },
           value: "QUANTITY_1001_TO_5000",
         },
         {
-          label: { it: "da 5001 in su", en: "da 5001 in su" },
+          label: {
+            it: "da 5001 in su",
+            en: "da 5001 in su",
+          },
           value: "QUANTITY_5001_OVER",
         },
       ],
       defaultValue: ["QUANTITY_0_TO_100"],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "knowsDataQuantity",
           value: "YES",
@@ -466,7 +623,12 @@ export const pa3: RiskAnalysisFormRules = {
       ],
       defaultValue: ["CLEARTEXT"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "policyProvided",
@@ -478,17 +640,28 @@ export const pa3: RiskAnalysisFormRules = {
       },
       options: [
         {
-          label: { it: "Sì", en: "Sì" },
+          label: {
+            it: "Sì",
+            en: "Sì",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "No" },
+          label: {
+            it: "No",
+            en: "No",
+          },
           value: "NO",
         },
       ],
       defaultValue: ["YES"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "reasonPolicyNotProvided",
@@ -509,8 +682,77 @@ export const pa3: RiskAnalysisFormRules = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "policyProvided",
           value: "NO",
+        },
+      ],
+    },
+    {
+      id: "policyProvidedMedium",
+      type: "radio",
+      dataType: "single",
+      label: {
+        it: "Indicare la modalità attraverso la quale è stata fornita l'informativa",
+        en: "Indicare la modalità attraverso la quale è stata fornita l'informativa",
+      },
+      options: [
+        {
+          label: {
+            it: "Cartacea",
+            en: "Cartacea",
+          },
+          value: "PRINT",
+        },
+        {
+          label: {
+            it: "Online",
+            en: "Online",
+          },
+          value: "ONLINE",
+        },
+      ],
+      defaultValue: ["PRINT"],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
+          id: "policyProvided",
+          value: "YES",
+        },
+      ],
+    },
+    {
+      id: "policyProvidedOnlineLink",
+      type: "text",
+      dataType: "freeText",
+      label: {
+        it: "Inserire il link all'informativa",
+        en: "Inserire il link all'informativa",
+      },
+      validation: {
+        maxLength: 2000,
+      },
+      defaultValue: [],
+      required: true,
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
+          id: "policyProvided",
+          value: "YES",
+        },
+        {
+          id: "policyProvidedMedium",
+          value: "ONLINE",
         },
       ],
     },
@@ -524,13 +766,21 @@ export const pa3: RiskAnalysisFormRules = {
       },
       options: [
         {
-          label: { it: "Confermo", en: "Confermo" },
+          label: {
+            it: "Confermo",
+            en: "Confermo",
+          },
           value: "true",
         },
       ],
       defaultValue: ["false"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "doneDpia",
@@ -546,17 +796,28 @@ export const pa3: RiskAnalysisFormRules = {
       },
       options: [
         {
-          label: { it: "Sì", en: "Sì" },
+          label: {
+            it: "Sì",
+            en: "Sì",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "No" },
+          label: {
+            it: "No",
+            en: "No",
+          },
           value: "NO",
         },
       ],
       defaultValue: ["NO"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "confirmedDoneDpia",
@@ -572,17 +833,27 @@ export const pa3: RiskAnalysisFormRules = {
       },
       options: [
         {
-          label: { it: "Sì", en: "Sì" },
+          label: {
+            it: "Sì",
+            en: "Sì",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "No" },
+          label: {
+            it: "No",
+            en: "No",
+          },
           value: "NO",
         },
       ],
       defaultValue: ["NO"],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "doneDpia",
           value: "YES",
@@ -619,29 +890,35 @@ export const pa3: RiskAnalysisFormRules = {
       ],
       defaultValue: ["NO"],
       required: true,
-      dependencies: [],
-    },
-    {
-      id: "confirmDataRetentionPeriod",
-      type: "switch",
-      dataType: "single",
-      label: {
-        it: "Confermare di aver individuato il periodo di conservazione dei dati in download ai quali si avrà accesso attraverso il presente E-service",
-        en: "Confermare di aver individuato il periodo di conservazione dei dati in download ai quali si avrà accesso attraverso il presente E-service",
-      },
-      infoLabel: {
-        it: "",
-        en: "",
-      },
-      options: [
+      dependencies: [
         {
-          label: { it: "Confermo", en: "Confermo" },
-          value: "true",
+          id: "usesPersonalData",
+          value: "YES",
         },
       ],
-      defaultValue: ["false"],
+    },
+    {
+      id: "dataRetentionPeriod",
+      type: "text",
+      dataType: "freeText",
+      label: {
+        it: "Indicare il periodo di conservazione dei dati individuato",
+        en: "Indicare il periodo di conservazione dei dati individuato",
+      },
+      infoLabel: {
+        it: "La cifra seguita da ora, giorno, mese, anno. Ad es. 1 ora oppure 10 giorni oppure 3 mesi oppure 2 anni",
+        en: "La cifra seguita da ora, giorno, mese, anno. Ad es. 1 ora oppure 10 giorni oppure 3 mesi oppure 2 anni",
+      },
+      validation: {
+        maxLength: 2000,
+      },
+      defaultValue: [],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "dataDownload",
           value: "YES",
@@ -674,7 +951,12 @@ export const pa3: RiskAnalysisFormRules = {
       ],
       defaultValue: ["MERE_CORRECTNESS"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
     {
       id: "checkedExistenceMereCorrectnessInteropCatalogue",
@@ -690,13 +972,20 @@ export const pa3: RiskAnalysisFormRules = {
       },
       options: [
         {
-          label: { it: "Confermo", en: "Confermo" },
+          label: {
+            it: "Confermo",
+            en: "Confermo",
+          },
           value: "true",
         },
       ],
       defaultValue: ["false"],
       required: true,
       dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
         {
           id: "purposePursuit",
           value: "MERE_CORRECTNESS",
@@ -717,7 +1006,10 @@ export const pa3: RiskAnalysisFormRules = {
       },
       options: [
         {
-          label: { it: "Sì", en: "Sì" },
+          label: {
+            it: "Sì",
+            en: "Sì",
+          },
           value: "true",
         },
       ],
@@ -725,26 +1017,36 @@ export const pa3: RiskAnalysisFormRules = {
       required: true,
       dependencies: [
         {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+        {
           id: "purposePursuit",
           value: "NEW_PERSONAL_DATA",
         },
       ],
     },
     {
-      id: "usesThirdPartyData",
+      id: "isRequestOnBehalfOfThirdParties",
       type: "radio",
       dataType: "single",
       label: {
-        it: "Indicare se si accede a dati su richiesta/per conto di terzi soggetti",
-        en: "Indicare se si accede a dati su richiesta/per conto di terzi soggetti",
+        it: "Indicare se si intende fruire dell’E-service, anche o esclusivamente, per accedere a dati su richiesta/per conto di terzi soggetti",
+        en: "Indicare se si intende fruire dell’E-service, anche o esclusivamente, per accedere a dati su richiesta/per conto di terzi soggetti",
       },
       options: [
         {
-          label: { it: "Sì", en: "Sì" },
+          label: {
+            it: "Sì",
+            en: "Sì",
+          },
           value: "YES",
         },
         {
-          label: { it: "No", en: "No" },
+          label: {
+            it: "No",
+            en: "No",
+          },
           value: "NO",
         },
       ],
@@ -753,28 +1055,34 @@ export const pa3: RiskAnalysisFormRules = {
       dependencies: [],
     },
     {
-      id: "doesUseThirdPartyData",
+      id: "thirdPartiesRequestDataUsage",
       type: "radio",
       dataType: "single",
       label: {
-        it: "Indicare se si accede a dati per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
-        en: "Indicare se si accede a dati per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
+        it: "Indicare se si intende fruire dell’e-service per accedere a dati",
+        en: "Indicare se si intende fruire dell’e-service per accedere a dati",
       },
       options: [
         {
-          label: { it: "Sì", en: "Sì" },
-          value: "YES",
+          label: {
+            it: "Esclusivamente per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
+            en: "Esclusivamente per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
+          },
+          value: "PA_ONLY",
         },
         {
-          label: { it: "No", en: "No" },
-          value: "NO",
+          label: {
+            it: "Anche per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
+            en: "Anche per conto di un soggetto di cui all’art. 2, comma 2, lett. a) del CAD",
+          },
+          value: "PA_ALSO",
         },
       ],
-      defaultValue: ["NO"],
+      defaultValue: [],
       required: true,
       dependencies: [
         {
-          id: "usesThirdPartyData",
+          id: "isRequestOnBehalfOfThirdParties",
           value: "YES",
         },
       ],
@@ -784,18 +1092,26 @@ export const pa3: RiskAnalysisFormRules = {
       type: "switch",
       dataType: "single",
       label: {
-        it: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e ​​dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
-        en: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e ​​dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
+        it: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
+        en: "Dichiara di essere consapevole degli obblighi di cui al GDPR in tema di trattamento di dati personali e dichiara di essere in grado di comprovarne il rispetto (principio di responsabilizzazione di cui all’art. 5, paragrafo 2, del GDPR)",
       },
       options: [
         {
-          label: { it: "Confermo", en: "Confermo" },
+          label: {
+            it: "Confermo",
+            en: "Confermo",
+          },
           value: "true",
         },
       ],
       defaultValue: ["false"],
       required: true,
-      dependencies: [],
+      dependencies: [
+        {
+          id: "usesPersonalData",
+          value: "YES",
+        },
+      ],
     },
   ],
 };
