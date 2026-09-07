@@ -186,36 +186,36 @@ describe("editRiskAnalysisForm", () => {
   ])(
     "should throw reviewerWorkflowNotEditable if the workflow is not in Assigned state (%s)",
     async (signingState) => {
-    const reviewerId: UserId = generateId();
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      consumerId: mockTenant.id,
-      eserviceId: mockEService.id,
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerWorkflow: {
-        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
-        signingState,
-        signedBy: reviewerId,
-      },
-    };
+      const reviewerId: UserId = generateId();
+      const mockPurpose: Purpose = {
+        ...getMockPurpose([getMockPurposeVersion()]),
+        consumerId: mockTenant.id,
+        eserviceId: mockEService.id,
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerWorkflow: {
+          reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+          signingState,
+          signedBy: reviewerId,
+        },
+      };
 
-    await addOneTenant(mockTenant);
-    await addOneEService(mockEService);
-    await addOnePurpose(mockPurpose);
+      await addOneTenant(mockTenant);
+      await addOneEService(mockEService);
+      await addOnePurpose(mockPurpose);
 
-    const riskAnalysisFormSeed = buildRiskAnalysisFormSeed(
-      getMockValidRiskAnalysisForm(tenantKind.PA)
-    );
+      const riskAnalysisFormSeed = buildRiskAnalysisFormSeed(
+        getMockValidRiskAnalysisForm(tenantKind.PA)
+      );
 
-    await expect(
-      purposeService.editRiskAnalysisForm(
-        mockPurpose.id,
-        riskAnalysisFormSeed,
-        getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
-        })
-      )
-    ).rejects.toThrowError(reviewerWorkflowNotEditable(mockPurpose.id));
+      await expect(
+        purposeService.editRiskAnalysisForm(
+          mockPurpose.id,
+          riskAnalysisFormSeed,
+          getMockContext({
+            authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          })
+        )
+      ).rejects.toThrowError(reviewerWorkflowNotEditable(mockPurpose.id));
     }
   );
 
