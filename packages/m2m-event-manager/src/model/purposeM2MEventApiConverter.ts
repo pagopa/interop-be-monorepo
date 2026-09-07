@@ -68,6 +68,10 @@ export function toApiPurposeM2MEventType(
     )
     .with("PurposeRiskAnalysisAssigned", () => "PURPOSE_RISK_ANALYSIS_ASSIGNED")
     .with(
+      "PurposeRiskAnalysisSelfAssigned",
+      () => "PURPOSE_RISK_ANALYSIS_SELF_ASSIGNED"
+    )
+    .with(
       "PurposeRiskAnalysisSubmitted",
       () => "PURPOSE_RISK_ANALYSIS_SUBMITTED"
     )

@@ -129,20 +129,24 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
     };
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
+      newReviewersToNotify: reviewerIds,
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
@@ -210,20 +214,24 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: undefined,
+      })),
       signingState: RiskAnalysisSigningState.Values.Draft,
-      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
+      newReviewersToNotify: [],
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
@@ -297,20 +305,24 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
     };
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
+      newReviewersToNotify: reviewerIds,
+      oldReviewersToNotify: [],
     });
 
     vi.useRealTimers();
@@ -358,10 +370,8 @@ describe("assignRiskAnalysisReviewer", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: mockEService.id,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [unsafeBrandId(generateId())],
+        reviewers: [{ id: unsafeBrandId(generateId()) }],
         signingState: RiskAnalysisSigningState.Values.Draft,
-        sentToReviewerAt: undefined,
       },
     };
 

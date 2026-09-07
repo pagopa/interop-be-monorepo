@@ -118,18 +118,25 @@ const enrichPurposeReviewerWorkflow = async (
 
   if (isConsumer && hasAdminOrViewerRole) {
     const reviewers = await Promise.all(
-      reviewerWorkflow.reviewerIds.map((reviewerId) =>
-        getSelfcareCompactUserById(
+      reviewerWorkflow.reviewers.map(async (reviewer) => ({
+        ...(await getSelfcareCompactUserById(
           selfcareV2UserClient,
-          reviewerId,
+          reviewer.id,
           selfcareId,
           correlationId
-        )
-      )
+        )),
+        sentToReviewerAt: reviewer.sentToReviewerAt,
+      }))
     );
     return { ...reviewerWorkflow, reviewers };
   }
-  return reviewerWorkflow;
+
+  // Reviewer details are disclosed only to the consumer, so the raw reviewers
+  // array is dropped for everyone else.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { reviewers: _reviewers, ...workflowWithoutReviewers } =
+    reviewerWorkflow;
+  return workflowWithoutReviewers;
 };
 
 const getCurrentVersion = (
@@ -342,6 +349,7 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
+      reviewMode: purpose.reviewMode,
       reviewerWorkflow: await enrichPurposeReviewerWorkflow(
         purpose.reviewerWorkflow,
         authData,

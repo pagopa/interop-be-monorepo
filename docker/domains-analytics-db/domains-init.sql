@@ -266,6 +266,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose (
   is_free_of_charge BOOLEAN NOT NULL,
   free_of_charge_reason VARCHAR(2048),
   purpose_template_id VARCHAR(36),
+  risk_analysis_review_mode VARCHAR(2048),
   reviewer_workflow_review_mode VARCHAR(2048),
   reviewer_workflow_signing_state VARCHAR(2048),
   reviewer_workflow_signed_by VARCHAR(36),
@@ -303,6 +304,7 @@ CREATE TABLE IF NOT EXISTS domains.purpose_risk_analysis_reviewer (
   purpose_id VARCHAR(36) NOT NULL REFERENCES domains.purpose(id),
   metadata_version INTEGER NOT NULL,
   reviewer_id VARCHAR(36) NOT NULL,
+  sent_to_reviewer_at TIMESTAMP WITH TIME ZONE,
   deleted BOOLEAN,
   PRIMARY KEY (purpose_id, reviewer_id)
 );

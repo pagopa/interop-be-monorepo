@@ -64,11 +64,10 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -155,9 +154,9 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId }],
         signingState: riskAnalysisSigningState.draft,
       },
     };
@@ -187,12 +186,11 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.signed,
         signedBy: reviewerId,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -221,11 +219,10 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -255,11 +252,10 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [generateId<UserId>()],
+        reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -291,11 +287,10 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 

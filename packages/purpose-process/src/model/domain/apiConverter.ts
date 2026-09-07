@@ -154,6 +154,9 @@ export const purposeToApiPurpose = (purpose: Purpose): purposeApi.Purpose => ({
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
   purposeTemplateId: purpose.purposeTemplateId,
+  reviewMode: purpose.reviewMode
+    ? reviewModeToApiReviewMode(purpose.reviewMode)
+    : undefined,
   reviewerWorkflow: purpose.reviewerWorkflow
     ? reviewerWorkflowToApiReviewerWorkflow(purpose.reviewerWorkflow)
     : undefined,
@@ -272,7 +275,13 @@ export const remainingDailyCallsToApiRemainingDailyCalls = (
 export const apiReviewModeToReviewMode = (
   apiReviewMode: purposeApi.RiskAnalysisReviewMode
 ): RiskAnalysisReviewMode =>
-  match(apiReviewMode)
+  match<purposeApi.RiskAnalysisReviewMode, RiskAnalysisReviewMode>(
+    apiReviewMode
+  )
+    .with(
+      "ADMIN_WRITES_ADMIN_SIGNS",
+      () => riskAnalysisReviewMode.adminWritesAdminSigns
+    )
     .with(
       "REVIEWER_WRITES_REVIEWER_SIGNS",
       () => riskAnalysisReviewMode.reviewerWritesReviewerSigns
@@ -286,14 +295,18 @@ export const apiReviewModeToReviewMode = (
 const reviewModeToApiReviewMode = (
   mode: RiskAnalysisReviewMode
 ): purposeApi.RiskAnalysisReviewMode =>
-  match(mode)
+  match<RiskAnalysisReviewMode, purposeApi.RiskAnalysisReviewMode>(mode)
+    .with(
+      riskAnalysisReviewMode.adminWritesAdminSigns,
+      () => "ADMIN_WRITES_ADMIN_SIGNS"
+    )
     .with(
       riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      (): purposeApi.RiskAnalysisReviewMode => "REVIEWER_WRITES_REVIEWER_SIGNS"
+      () => "REVIEWER_WRITES_REVIEWER_SIGNS"
     )
     .with(
       riskAnalysisReviewMode.adminWritesReviewerSigns,
-      (): purposeApi.RiskAnalysisReviewMode => "ADMIN_WRITES_REVIEWER_SIGNS"
+      () => "ADMIN_WRITES_REVIEWER_SIGNS"
     )
     .exhaustive();
 
@@ -322,10 +335,11 @@ export const apiSigningStateToSigningState = (
 const reviewerWorkflowToApiReviewerWorkflow = (
   workflow: ReviewerWorkflow
 ): purposeApi.ReviewerWorkflow => ({
-  reviewMode: reviewModeToApiReviewMode(workflow.reviewMode),
-  reviewerIds: workflow.reviewerIds,
+  reviewers: workflow.reviewers.map((reviewer) => ({
+    id: reviewer.id,
+    sentToReviewerAt: reviewer.sentToReviewerAt?.toJSON(),
+  })),
   signingState: signingStateToApiSigningState(workflow.signingState),
   signedBy: workflow.signedBy,
   rejectionReason: workflow.rejectionReason,
-  sentToReviewerAt: workflow.sentToReviewerAt?.toJSON(),
 });

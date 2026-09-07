@@ -533,7 +533,7 @@ const purposeRouter = (
             unsafeBrandId(req.params.purposeId),
             {
               reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
-              reviewerIds: req.body.reviewerIds,
+              reviewerIds: req.body.reviewerIds ?? [],
             },
             ctx
           );
