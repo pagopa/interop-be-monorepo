@@ -136,3 +136,29 @@ export function retrieveDescriptor(
   }
   return descriptor;
 }
+
+export function getRequesterIdFromLatestArchivingRequest(
+  requests:
+    | Array<{
+        requesterId: TenantId;
+        requestedAt: Date;
+        acceptedAt?: Date;
+        rejectedAt?: Date;
+      }>
+    | undefined
+): TenantId | undefined {
+  if (!requests || requests.length === 0) {
+    return undefined;
+  }
+
+  const latestRequest = requests.reduce((latest, current) => {
+    const latestDate =
+      latest.acceptedAt ?? latest.rejectedAt ?? latest.requestedAt;
+    const currentDate =
+      current.acceptedAt ?? current.rejectedAt ?? current.requestedAt;
+
+    return currentDate > latestDate ? current : latest;
+  });
+
+  return latestRequest.requesterId;
+}
