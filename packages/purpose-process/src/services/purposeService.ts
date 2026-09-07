@@ -582,15 +582,19 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
       }
 
-      if (seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns) {
-        if (seed.reviewerIds.length > 0) {
-          throw reviewersNotAllowedForReviewMode(purposeId);
-        }
-      } else {
-        if (seed.reviewerIds.length === 0) {
-          throw missingReviewers(purposeId);
-        }
+      const isSelfAssignmentMode =
+        seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns;
+      const hasRequestedReviewers = seed.reviewerIds.length > 0;
 
+      if (isSelfAssignmentMode && hasRequestedReviewers) {
+        throw reviewersNotAllowedForReviewMode(purposeId);
+      }
+
+      if (!isSelfAssignmentMode && !hasRequestedReviewers) {
+        throw missingReviewers(purposeId);
+      }
+
+      if (!isSelfAssignmentMode) {
         const consumer = await retrieveTenant(
           purpose.data.consumerId,
           readModelService
@@ -2771,6 +2775,17 @@ type RiskAnalysisReviewAssignment = {
   reviewerIds: string[];
 };
 
+const isReviewerWritingMode = (
+  reviewMode: RiskAnalysisReviewMode | undefined
+): boolean => reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
+
+const hasSameReviewerIds = (
+  previousReviewerIds: UserId[],
+  requestedReviewerIds: UserId[]
+): boolean =>
+  previousReviewerIds.length === requestedReviewerIds.length &&
+  previousReviewerIds.every((id) => requestedReviewerIds.includes(id));
+
 type RiskAnalysisAssignmentOutcome = {
   reviewerWorkflow: ReviewerWorkflow | undefined;
   newReviewersToNotify: UserId[];
@@ -2931,8 +2946,7 @@ function assignRiskAnalysisReviewerLogic(
 
   const assignmentIsUnchanged =
     previousReviewMode === review.reviewMode &&
-    previousReviewerIds.length === requestedReviewers.length &&
-    previousReviewerIds.every((id) => requestedReviewers.includes(id));
+    hasSameReviewerIds(previousReviewerIds, requestedReviewers);
 
   if (assignmentIsUnchanged) {
     return { event: undefined, updatedPurpose: purpose.data };
@@ -2977,14 +2991,13 @@ function assignRiskAnalysisReviewerLogic(
     )
     .exhaustive();
 
-  const reviewerWritingDutyChanges =
-    (previousReviewMode ===
-      riskAnalysisReviewMode.reviewerWritesReviewerSigns) !==
-    (review.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns);
+  const reviewerWritingModeChanged =
+    isReviewerWritingMode(previousReviewMode) !==
+    isReviewerWritingMode(review.reviewMode);
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
-    riskAnalysisForm: reviewerWritingDutyChanges
+    riskAnalysisForm: reviewerWritingModeChanged
       ? undefined
       : purpose.data.riskAnalysisForm,
     reviewMode: review.reviewMode,
