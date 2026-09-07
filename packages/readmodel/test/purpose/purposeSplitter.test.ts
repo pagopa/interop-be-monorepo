@@ -52,6 +52,10 @@ describe("Purpose splitter", () => {
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
     const reviewerWorkflow: ReviewerWorkflow = {
+      reviewers: [
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
       rejectionReason: "Reviewer workflow rejection reason",
