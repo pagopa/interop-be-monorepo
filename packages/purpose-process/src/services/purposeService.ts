@@ -3005,29 +3005,29 @@ function assignRiskAnalysisReviewerLogic(
     updatedAt: now,
   };
 
-  const eventPayload = {
-    purpose: updatedPurpose,
-    version: purpose.metadata.version,
-    correlationId,
-  };
-
   const event = match(review.reviewMode)
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
       toCreateEventPurposeRiskAnalysisSelfAssigned({
-        ...eventPayload,
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
         oldReviewersToNotify: outcome.oldReviewersToNotify,
       })
     )
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
       toCreateEventPurposeRiskAnalysisWorkflowCreated({
-        ...eventPayload,
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
         newReviewersToNotify: outcome.newReviewersToNotify,
         oldReviewersToNotify: outcome.oldReviewersToNotify,
       })
     )
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
       toCreateEventPurposeRiskAnalysisAssigned({
-        ...eventPayload,
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
         newReviewersToNotify: outcome.newReviewersToNotify,
         oldReviewersToNotify: outcome.oldReviewersToNotify,
       })
