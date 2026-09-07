@@ -180,10 +180,6 @@ type AssignmentEventType =
   | "PurposeRiskAnalysisWorkflowCreated"
   | "PurposeRiskAnalysisAssigned";
 
-const assignmentEventTypeForReviewMode = (
-    .with(
-    .exhaustive();
-
 async function expectAssignmentEvent({
   purposeId,
   purpose,
