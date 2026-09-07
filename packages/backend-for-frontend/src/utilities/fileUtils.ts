@@ -265,3 +265,43 @@ export async function cloneEServiceDocument({
     serverUrls: [],
   };
 }
+
+export function buildDescriptorDocumentPrettyName({
+  eserviceName,
+  producerName,
+  descriptorVersion,
+}: {
+  eserviceName: string;
+  producerName: string;
+  descriptorVersion: string;
+}): string {
+  return `Specifica API_${eserviceName}_${producerName}_v${descriptorVersion}`;
+}
+
+export function buildDescriptorDocumentFilename({
+  eserviceName,
+  producerName,
+  descriptorVersion,
+  documentName,
+}: {
+  eserviceName: string;
+  producerName: string;
+  descriptorVersion: string;
+  documentName: string;
+}): string {
+  const extension = path.parse(documentName).ext;
+  return `${buildDescriptorDocumentPrettyName({
+    eserviceName,
+    producerName,
+    descriptorVersion,
+  })}${extension}`;
+}
+
+export function buildAttachmentContentDisposition(filename: string): string {
+  // eslint-disable-next-line no-control-regex
+  const asciiFilename = filename
+    .replace(/[^\x20-\x7E]/g, "_")
+    .replace(/"/g, "");
+  const encodedFilename = encodeURIComponent(filename);
+  return `attachment; filename="${asciiFilename}"; filename*=UTF-8''${encodedFilename}`;
+}

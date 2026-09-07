@@ -71,6 +71,7 @@ import {
 import { ConfigurationEservice } from "../model/types.js";
 import { BffAppContext, Headers } from "../utilities/context.js";
 import {
+  buildDescriptorDocumentFilename,
   cloneEServiceDocument,
   createDescriptorDocumentZipFile,
 } from "../utilities/fileUtils.js";
@@ -1185,19 +1186,32 @@ export function catalogServiceBuilder(
       descriptorId: DescriptorId,
       documentId: EServiceDocumentId,
       { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<{ contentType: string; document: Buffer }> => {
+    ): Promise<{
+      contentType: string;
+      document: Buffer;
+      filename?: string;
+      isInterface: boolean;
+    }> => {
       logger.info(
         `Retrieving document ${documentId} of descriptor ${descriptorId} of EService ${eServiceId}`
       );
-      const { path, contentType } =
-        await catalogProcessClient.getEServiceDocumentById({
+
+      const [eservice, { path, contentType, name }] = await Promise.all([
+        catalogProcessClient.getEServiceById({
+          params: { eServiceId },
+          headers,
+        }),
+        catalogProcessClient.getEServiceDocumentById({
           params: {
             eServiceId,
             descriptorId,
             documentId,
           },
           headers,
-        });
+        }),
+      ]);
+
+      const descriptor = retrieveEserviceDescriptor(eservice, descriptorId);
 
       const stream = await fileManager.get(
         config.eserviceDocumentsContainer,
@@ -1205,7 +1219,36 @@ export function catalogServiceBuilder(
         logger
       );
 
-      return { contentType, document: Buffer.from(stream) };
+      const isInterface = descriptor.interface?.id === documentId;
+
+      const output: {
+        contentType: string;
+        document: Buffer;
+        isInterface: boolean;
+        filename?: string;
+      } = {
+        contentType,
+        document: Buffer.from(stream),
+        isInterface,
+      };
+
+      if (isInterface) {
+        const producerTenant = await tenantProcessClient.tenant.getTenant({
+          headers,
+          params: {
+            id: eservice.producerId,
+          },
+        });
+
+        output.filename = buildDescriptorDocumentFilename({
+          eserviceName: eservice.name,
+          producerName: producerTenant.name,
+          descriptorVersion: descriptor.version,
+          documentName: name,
+        });
+      }
+
+      return output;
     },
     createDescriptor: async (
       eServiceId: EServiceId,
