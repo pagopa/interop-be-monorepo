@@ -49,13 +49,25 @@ const buildService = ({
   tenants: tenantApi.Tenant[];
 }) => {
   const getTenants = vi.fn().mockImplementation(({ queries }) => {
+    const tenantsWithSelfcareId = tenants.filter(
+      (tenant) => tenant.selfcareId !== undefined
+    );
     const results = queries.name
-      ? tenants.filter((tenant) => tenant.name.includes(queries.name))
-      : tenants.filter((tenant) => queries.tenantIds.includes(tenant.id));
+      ? tenantsWithSelfcareId.filter((tenant) =>
+          tenant.name.includes(queries.name)
+        )
+      : tenantsWithSelfcareId.filter((tenant) =>
+          queries.tenantIds.includes(tenant.id)
+        );
 
     return Promise.resolve({ results, totalCount: results.length });
   });
-  const getTenant = vi.fn();
+  const getTenant = vi.fn().mockImplementation(({ params }) => {
+    const tenant = tenants.find((tenant) => tenant.id === params.id);
+    return tenant
+      ? Promise.resolve(tenant)
+      : Promise.reject(new Error(`Tenant ${params.id} not found`));
+  });
   const tenantProcessClient = {
     tenant: { getTenant, getTenants },
   } as unknown as TenantProcessClient;
@@ -100,8 +112,18 @@ describe("getEServiceTemplateInstances", () => {
       { ...getMockedApiEservice(), producerId: producerId1 },
     ];
     const tenants = [
-      { ...getMockedApiTenant(), id: producerId1, name: "Producer one" },
-      { ...getMockedApiTenant(), id: producerId2, name: "Producer two" },
+      {
+        ...getMockedApiTenant(),
+        id: producerId1,
+        name: "Producer one",
+        selfcareId: "selfcare-1",
+      },
+      {
+        ...getMockedApiTenant(),
+        id: producerId2,
+        name: "Producer two",
+        selfcareId: "selfcare-2",
+      },
     ];
     const { service, getTenant, getTenants } = buildService({
       eservices,
@@ -145,7 +167,12 @@ describe("getEServiceTemplateInstances", () => {
     const producerId = generateId<TenantId>();
     const eservices = [{ ...getMockedApiEservice(), producerId }];
     const tenants = [
-      { ...getMockedApiTenant(), id: producerId, name: "Matching producer" },
+      {
+        ...getMockedApiTenant(),
+        id: producerId,
+        name: "Matching producer",
+        selfcareId: "selfcare",
+      },
     ];
     const { service, getTenant, getTenants } = buildService({
       eservices,
@@ -174,6 +201,40 @@ describe("getEServiceTemplateInstances", () => {
       },
     });
   });
+
+  it("retrieves a producer without selfcareId through the single-tenant endpoint", async () => {
+    const templateId = generateId<EServiceTemplateId>();
+    const producerId = generateId<TenantId>();
+    const eservices = [{ ...getMockedApiEservice(), producerId }];
+    const producer = {
+      ...getMockedApiTenant(),
+      id: producerId,
+      name: "Producer without selfcareId",
+      selfcareId: undefined,
+    };
+    const { service, getTenant, getTenants } = buildService({
+      eservices,
+      tenants: [producer],
+    });
+    const ctx = getBffMockContext(getMockContext({}));
+
+    const result = await service.getEServiceTemplateInstances(
+      templateId,
+      undefined,
+      [],
+      0,
+      10,
+      ctx
+    );
+
+    expect(result.results[0].producerName).toBe(producer.name);
+    expect(getTenants).toHaveBeenCalledTimes(1);
+    expect(getTenant).toHaveBeenCalledTimes(1);
+    expect(getTenant).toHaveBeenCalledWith({
+      headers: ctx.headers,
+      params: { id: producerId },
+    });
+  });
 });
 
 describe("getMyEServiceTemplateInstances", () => {
@@ -186,7 +247,12 @@ describe("getMyEServiceTemplateInstances", () => {
       { ...getMockedApiEservice(), producerId },
     ];
     const tenants = [
-      { ...getMockedApiTenant(), id: producerId, name: "My producer" },
+      {
+        ...getMockedApiTenant(),
+        id: producerId,
+        name: "My producer",
+        selfcareId: "selfcare",
+      },
     ];
     const { service, getTenant, getTenants } = buildService({
       eservices,
@@ -215,6 +281,48 @@ describe("getMyEServiceTemplateInstances", () => {
         offset: 0,
         limit: 50,
       },
+    });
+  });
+
+  it("retrieves a producer without selfcareId once through the single-tenant endpoint", async () => {
+    const templateId = generateId<EServiceTemplateId>();
+    const producerId = generateId<TenantId>();
+    const eservices = [
+      { ...getMockedApiEservice(), producerId },
+      { ...getMockedApiEservice(), producerId },
+    ];
+    const producer = {
+      ...getMockedApiTenant(),
+      id: producerId,
+      name: "My producer without selfcareId",
+      selfcareId: undefined,
+    };
+    const { service, getTenant, getTenants } = buildService({
+      eservices,
+      tenants: [producer],
+    });
+    const ctx = getBffMockContext(
+      getMockContext({
+        authData: { ...getMockAuthData(), organizationId: producerId },
+      })
+    );
+
+    const result = await service.getMyEServiceTemplateInstances(
+      templateId,
+      0,
+      10,
+      ctx
+    );
+
+    expect(result.results.map(({ producerName }) => producerName)).toEqual([
+      producer.name,
+      producer.name,
+    ]);
+    expect(getTenants).toHaveBeenCalledTimes(1);
+    expect(getTenant).toHaveBeenCalledTimes(1);
+    expect(getTenant).toHaveBeenCalledWith({
+      headers: ctx.headers,
+      params: { id: producerId },
     });
   });
 });

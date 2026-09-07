@@ -110,7 +110,22 @@ const retrieveTenantsByIds = async (
     })
   );
 
-  return new Map(tenants.map((tenant) => [tenant.id, tenant]));
+  const tenantsMap = new Map(tenants.map((tenant) => [tenant.id, tenant]));
+  const tenantsWithoutSelfcareId = await Promise.all(
+    uniqueTenantIds
+      .filter((tenantId) => !tenantsMap.has(tenantId))
+      .map((tenantId) =>
+        tenantProcessClient.tenant.getTenant({
+          headers,
+          params: { id: tenantId },
+        })
+      )
+  );
+  tenantsWithoutSelfcareId.forEach((tenant) => {
+    tenantsMap.set(tenant.id, tenant);
+  });
+
+  return tenantsMap;
 };
 
 const enhanceCatalogEservices = async (
