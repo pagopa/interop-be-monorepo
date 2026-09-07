@@ -70,7 +70,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     {
       description: "without reviewers for AdminWritesAdminSigns",
       body: {
-        reviewMode: "ADMIN_WRITES_ADMIN_SIGNS",
+        reviewMode: "ADMIN_WRITES_ADMIN_SIGNS" as const,
       },
     },
   ])(
