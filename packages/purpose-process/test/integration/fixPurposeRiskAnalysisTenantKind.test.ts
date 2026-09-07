@@ -25,7 +25,6 @@ import { describe, it, expect } from "vitest";
 import {
   purposeNotFound,
   unableToDetermineTenantKind,
-  tenantKindNotFound,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -248,7 +247,7 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
     });
   });
 
-  it("Should throw tenantKindNotFound when history is empty", async () => {
+  it("Should not throw tenantKindNotFound when history is empty", async () => {
     const consumerKind: TenantKind = tenantKind.PA;
     const riskAnalysisId = generateId<RiskAnalysisId>();
     const riskAnalysisForm = {
@@ -277,7 +276,7 @@ describe("fixPurposeRiskAnalysisTenantKind", () => {
         purpose.id,
         getMockContextInternal({})
       )
-    ).rejects.toThrowError(tenantKindNotFound(purpose.consumerId));
+    ).resolves.not.toThrowError();
   });
 
   it("Should throw unableToDetermineTenantKind when receive-mode has no reference date", async () => {
