@@ -8,6 +8,8 @@ import { z } from "zod";
 import { htmlTemplateNotFound } from "../../models/errors.js";
 
 export const eventMailTemplateType = {
+  purposeRiskAnalysisSignedToReviewerMailTemplate:
+    "purpose-risk-analysis-signed-to-reviewer-mail",
   purposeRiskAnalysisAssignmentRemovedToReviewerMailTemplate:
     "purpose-risk-analysis-assignment-removed-to-reviewer-mail",
   purposeRiskAnalysisAssignedForWritingAndSigningToReviewerMailTemplate:
