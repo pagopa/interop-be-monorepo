@@ -10,7 +10,10 @@ export const parseEServiceInstanceLabel = (
     : undefined;
 };
 
-/** Builds the catalog name shared by every e-service template instance. */
+/**
+ * Builds an e-service instance name as `<templateName> - <instanceLabel>`,
+ * or returns `templateName` when the label is missing or blank.
+ */
 export const buildEServiceInstanceName = ({
   templateName,
   instanceLabel,
