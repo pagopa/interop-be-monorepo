@@ -1,4 +1,8 @@
-import { ProducerKeychain, ProducerKeyM2MEvent } from "pagopa-interop-models";
+import {
+  ProducerKeychain,
+  ProducerKeyM2MEvent,
+  m2mEventVisibility,
+} from "pagopa-interop-models";
 
 import { generateM2MEventId } from "../../utils/uuidv7.js";
 
@@ -16,5 +20,7 @@ export function createProducerKeyM2MEvent(
     resourceVersion,
     kid,
     producerKeychainId: producerKeychain.id,
+    producerId: producerKeychain.producerId,
+    visibility: m2mEventVisibility.owner,
   };
 }
