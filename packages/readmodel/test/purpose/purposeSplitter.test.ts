@@ -122,7 +122,7 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: purpose.purposeTemplateId!,
-      reviewMode: purpose.reviewMode!,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
