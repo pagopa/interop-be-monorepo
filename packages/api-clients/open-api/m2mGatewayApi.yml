@@ -19746,6 +19746,16 @@ components:
             - ESERVICE_DESCRIPTOR_ARCHIVING_COMPLETED
             - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
             - MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED
+            - ESERVICE_ARCHIVING_REQUESTED_BY_DELEGATE
+            - ESERVICE_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR
+            - ESERVICE_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR
+            - ESERVICE_ARCHIVING_REQUEST_CANCELED_BY_DELEGATE
+            - ESERVICE_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUESTED_BY_DELEGATE
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_DELEGATE
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION
         eventTimestamp:
           type: string
           format: date-time
@@ -20890,6 +20900,10 @@ components:
           type: string
         asyncExchange:
           type: boolean
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
       required:
         - id
         - producerId
@@ -20984,6 +20998,10 @@ components:
           $ref: "#/components/schemas/ArchivingSchedule"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
       required:
         - id
         - version
@@ -20996,6 +21014,63 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
         - serverUrls
+    DelegatedDescriptorArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+    DelegatedEServiceArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+        - archivingReason
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+        archivingReason:
+          type: string
+    GracePeriodDays:
+      description: Number of days for the archiving grace period
+      type: integer
+      format: int32
+      enum: [30, 60, 90, 120]
+      default: 60
     ArchivingSchedule:
       type: object
       additionalProperties: false

@@ -129,7 +129,7 @@ describe("handleEserviceDescriptorArchivingScheduledReminderInApp", () => {
   });
 
   it.each([...gracePeriodDays])(
-    "returns one producer + one consumer notification for an active agreement (gracePeriodDays: %d)",
+    "returns only the producer notification when an active agreement exists (gracePeriodDays: %d)",
     async (gracePeriodDaysValue: GracePeriodDays) => {
       const descriptor = makeDescriptor({}, gracePeriodDaysValue);
       const eservice = makeEservice({ descriptors: [descriptor] });
@@ -182,18 +182,14 @@ describe("handleEserviceDescriptorArchivingScheduledReminderInApp", () => {
           genericLogger
         );
 
-      expect(result).toHaveLength(2);
+      expect(result).toHaveLength(1);
       const producer = result.find(
         (n) => n.notificationType === "eserviceStateChangedToProducer"
-      );
-      const consumer = result.find(
-        (n) => n.notificationType === "eserviceStateChangedToConsumer"
       );
       expect(producer?.userId).toBe(producerUserId);
       expect(producer?.tenantId).toBe(eservice.producerId);
       expect(producer?.body).toContain("sarà archiviata");
-      expect(consumer?.userId).toBe(consumerUserId);
-      expect(consumer?.tenantId).toBe(consumerId);
+      expect(readModelService.getAgreementsByEserviceId).not.toHaveBeenCalled();
     }
   );
 });

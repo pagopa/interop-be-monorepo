@@ -1039,9 +1039,17 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
         "404":
-          $ref: "#/components/responses/NotFound"
+          description: Tenant Not Found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
         "409":
-          $ref: "#/components/responses/Conflict"
+          description: Attribute already revoked for the Tenant
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
   /maintenance/tenants/{tenantId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1514,6 +1522,11 @@ components:
           type: string
         kind:
           $ref: "#/components/schemas/CertifiedAttributeKind"
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - id
         - name
