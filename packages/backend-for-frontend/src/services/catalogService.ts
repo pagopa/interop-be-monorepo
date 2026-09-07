@@ -54,6 +54,7 @@ import {
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
+import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../config/constants.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -1643,6 +1644,8 @@ export function catalogServiceBuilder(
       }
 
       const descriptorInterface = importedEservice.descriptor.interface;
+      const asyncExchangeCallbackInterface =
+        importedEservice.descriptor.asyncExchangeCallbackInterface;
 
       if (
         descriptorInterface &&
@@ -1651,10 +1654,21 @@ export function catalogServiceBuilder(
         throw invalidZipStructure("Error reading interface");
       }
 
+      if (
+        asyncExchangeCallbackInterface &&
+        entriesMap.get(asyncExchangeCallbackInterface.path) === undefined
+      ) {
+        throw invalidZipStructure(
+          "Error reading async exchange callback interface"
+        );
+      }
+
       const allowedFiles = [
         "configuration.json",
         "documents/",
+        `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/`,
         importedEservice.descriptor.interface?.path,
+        importedEservice.descriptor.asyncExchangeCallbackInterface?.path,
         ...importedEservice.descriptor.docs.map((doc) => doc.path),
       ].filter(
         (path: string | undefined): path is string => path !== undefined
@@ -1676,6 +1690,7 @@ export function catalogServiceBuilder(
         description: importedEservice.description,
         technology: importedEservice.technology,
         mode: importedEservice.mode,
+        asyncExchange: importedEservice.asyncExchange,
         descriptor: {
           description: importedEservice.descriptor.description,
           audience: importedEservice.descriptor.audience,
@@ -1706,6 +1721,43 @@ export function catalogServiceBuilder(
       await pollEServiceById({
         condition: (result) => result.descriptors.length > 0,
       });
+
+      if (importedEservice.descriptor.asyncExchangeProperties) {
+        await catalogProcessClient.updateDraftDescriptor(
+          {
+            description: importedEservice.descriptor.description,
+            audience: importedEservice.descriptor.audience,
+            voucherLifespan: importedEservice.descriptor.voucherLifespan,
+            dailyCallsPerConsumer:
+              importedEservice.descriptor.dailyCallsPerConsumer,
+            dailyCallsTotal: importedEservice.descriptor.dailyCallsTotal,
+            agreementApprovalPolicy:
+              importedEservice.descriptor.agreementApprovalPolicy,
+            attributes: {
+              certified: [],
+              declared: [],
+              verified: [],
+            },
+            asyncExchangeProperties:
+              importedEservice.descriptor.asyncExchangeProperties,
+          },
+          {
+            headers,
+            params: {
+              eServiceId: eservice.id,
+              descriptorId: eservice.descriptors[0].id,
+            },
+          }
+        );
+        await pollEServiceById({
+          condition: (result) =>
+            result.descriptors.some(
+              (descriptor) =>
+                descriptor.id === eservice.descriptors[0].id &&
+                descriptor.asyncExchangeProperties !== undefined
+            ),
+        });
+      }
 
       for (const riskAnalysis of importedEservice.riskAnalysis) {
         try {
@@ -1787,6 +1839,33 @@ export function catalogServiceBuilder(
             (d) => d.id === descriptor.id && d.interface !== undefined
           ),
       });
+
+      if (asyncExchangeCallbackInterface) {
+        await verifyAndCreateImportedDocument(
+          fileManager,
+          unsafeBrandId(eservice.id),
+          apiTechnologyToTechnology(eservice.technology),
+          entriesMap,
+          asyncExchangeCallbackInterface,
+          "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+          createEserviceDocumentRequest,
+          config.eserviceDocumentsContainer,
+          config.eserviceDocumentsPath,
+          {
+            maxFileSizeBytes: config.maxFileSizeBytes,
+            maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+          },
+          context.logger
+        );
+        await pollEServiceById({
+          condition: (result) =>
+            result.descriptors.some(
+              (d) =>
+                d.id === descriptor.id &&
+                d.asyncExchangeCallbackInterface !== undefined
+            ),
+        });
+      }
 
       for (const doc of importedEservice.descriptor.docs) {
         await verifyAndCreateImportedDocument(
