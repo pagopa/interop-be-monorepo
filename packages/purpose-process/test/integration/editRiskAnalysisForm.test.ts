@@ -180,7 +180,12 @@ describe("editRiskAnalysisForm", () => {
     ).rejects.toThrowError(editNotAllowedForReviewMode(mockPurpose.id));
   });
 
-  it("should throw reviewerWorkflowNotEditable if the workflow is not in Assigned state", async () => {
+  it.each([
+    riskAnalysisSigningState.submitted,
+    riskAnalysisSigningState.signed,
+  ])(
+    "should throw reviewerWorkflowNotEditable if the workflow is not in Assigned state (%s)",
+    async (signingState) => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
@@ -189,7 +194,7 @@ describe("editRiskAnalysisForm", () => {
       reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
-        signingState: riskAnalysisSigningState.signed,
+        signingState,
         signedBy: reviewerId,
       },
     };
@@ -211,7 +216,8 @@ describe("editRiskAnalysisForm", () => {
         })
       )
     ).rejects.toThrowError(reviewerWorkflowNotEditable(mockPurpose.id));
-  });
+    }
+  );
 
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const reviewerId: UserId = generateId();

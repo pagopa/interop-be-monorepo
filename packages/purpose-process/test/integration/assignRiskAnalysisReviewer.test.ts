@@ -35,6 +35,7 @@ import {
   fromReviewerWorkflowV2,
   ReviewerWorkflowV2,
   RiskAnalysisSigningStateV2,
+  riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { describe, expect, it, vi } from "vitest";
@@ -105,18 +106,16 @@ const reviewersFor = (reviewMode: RiskAnalysisReviewMode): UserId[] =>
 function previousReviewerWorkflow(
   previousReviewMode: RiskAnalysisReviewMode | undefined,
   previousReviewers: UserId[],
-  signingState: RiskAnalysisSigningState = RiskAnalysisSigningState.Values
-    .Draft,
+  signingState: RiskAnalysisSigningState = riskAnalysisSigningState.draft,
   notifiedReviewerIds: UserId[] = []
 ): ReviewerWorkflow | undefined {
   return match(previousReviewMode)
-    .returnType<ReviewerWorkflow | undefined>()
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
       reviewers: previousReviewers.map((id) => ({
         id,
         sentToReviewerAt: previousSentToReviewerAt,
       })),
-      signingState: RiskAnalysisSigningState.Values.Assigned,
+      signingState: riskAnalysisSigningState.assigned,
       sentToReviewerAt: previousSentToReviewerAt,
     }))
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () => ({
@@ -1108,7 +1107,7 @@ describe("assignRiskAnalysisReviewer", () => {
           { reviewMode: requestedReviewMode, reviewerIds: [] },
           getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
         )
-      ).rejects.toThrowError(missingReviewers(mockPurpose.id));
+      ).rejects.toThrow(missingReviewers(mockPurpose.id));
     }
   );
 
@@ -1127,7 +1126,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(reviewersNotAllowedForReviewMode(mockPurpose.id));
+    ).rejects.toThrow(reviewersNotAllowedForReviewMode(mockPurpose.id));
   });
 
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
@@ -1141,7 +1140,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData() })
       )
-    ).rejects.toThrowError(purposeNotFound(randomId));
+    ).rejects.toThrow(purposeNotFound(randomId));
   });
 
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
@@ -1162,7 +1161,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(otherOrganizationId) })
       )
-    ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
+    ).rejects.toThrow(tenantIsNotTheConsumer(otherOrganizationId));
   });
 
   it("should throw missingSelfcareId if the consumer tenant has no selfcareId", async () => {
@@ -1187,7 +1186,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(missingSelfcareId(mockTenant.id));
+    ).rejects.toThrow(missingSelfcareId(mockTenant.id));
   });
 
   it("should throw userWithoutReviewerPrivileges if the reviewer is not a reviewer in selfcare", async () => {
@@ -1216,9 +1215,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(
-      userWithoutReviewerPrivileges(mockTenant.id, reviewerId)
-    );
+    ).rejects.toThrow(userWithoutReviewerPrivileges(mockTenant.id, reviewerId));
   });
 
   it("should throw purposeFromTemplateCannotBeModified if the purpose is from a template", async () => {
@@ -1239,7 +1236,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       purposeFromTemplateCannotBeModified(mockPurpose.id, purposeTemplateId)
     );
   });
@@ -1261,7 +1258,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       reviewerWorkflowNotAllowedForDelegatedPurpose(mockPurpose.id)
     );
   });
@@ -1288,9 +1285,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(
-      reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id)
-    );
+    ).rejects.toThrow(reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id));
   });
 
   it("should throw purposeNotInDraftState if the purpose is not in draft state", async () => {
@@ -1309,7 +1304,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
+    ).rejects.toThrow(purposeNotInDraftState(mockPurpose.id));
   });
 
   it("should throw reviewerWorkflowConflict if the risk analysis has already been signed", async () => {
@@ -1335,6 +1330,6 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(reviewerWorkflowConflict(mockPurpose.id));
+    ).rejects.toThrow(reviewerWorkflowConflict(mockPurpose.id));
   });
 });

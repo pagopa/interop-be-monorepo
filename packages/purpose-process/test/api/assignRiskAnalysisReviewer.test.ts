@@ -62,11 +62,23 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
-  it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
-    async (role) => {
+  it.each([
+    {
+      description: "with reviewers",
+      body: defaultBody,
+    },
+    {
+      description: "without reviewers for AdminWritesAdminSigns",
+      body: {
+        reviewMode: "ADMIN_WRITES_ADMIN_SIGNS",
+      },
+    },
+  ])(
+    "Should return 200 for an authorized user $description",
+    async ({ body }) => {
+      const role = authRole.ADMIN_ROLE;
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const res = await makeRequest(token, mockPurpose.id, body);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
