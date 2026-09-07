@@ -5,6 +5,7 @@ import {
 import { P, match } from "ts-pattern";
 
 import { HandlerParams } from "../../models/handlerParams.js";
+import { handleDraftPurposeDeletedWithRiskAnalysisToReviewer } from "./handleDraftPurposeDeletedWithRiskAnalysisToReviewer.js";
 import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
 import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
@@ -227,7 +228,6 @@ export async function handlePurposeEvent(
     .with(
       {
         type: P.union(
-          "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
@@ -309,6 +309,15 @@ export async function handlePurposeEvent(
           correlationId,
         })),
       ]
+    )
+    .with({ type: "DraftPurposeDeleted" }, ({ data: { purpose } }) =>
+      handleDraftPurposeDeletedWithRiskAnalysisToReviewer({
+        purposeV2Msg: purpose,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
     .exhaustive();
 }
