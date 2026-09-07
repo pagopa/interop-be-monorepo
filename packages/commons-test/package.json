@@ -19,6 +19,7 @@
     "@anatine/zod-mock": "catalog:",
     "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/client-kms": "catalog:",
+    "@aws-sdk/client-s3": "catalog:",
     "@aws-sdk/client-sesv2": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "@faker-js/faker": "catalog:",
