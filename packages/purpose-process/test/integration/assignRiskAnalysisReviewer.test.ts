@@ -520,6 +520,7 @@ describe("assignRiskAnalysisReviewer", () => {
 
   it("should throw purposeNotFound if the purpose doesn't exist", async () => {
     const randomId: PurposeId = generateId();
+
     expect(
       purposeService.assignRiskAnalysisReviewer(
         randomId,
