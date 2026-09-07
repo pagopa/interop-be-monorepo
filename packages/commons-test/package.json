@@ -20,6 +20,7 @@
     "@aws-sdk/client-dynamodb": "catalog:",
     "@aws-sdk/client-kms": "catalog:",
     "@aws-sdk/client-sesv2": "catalog:",
+    "@aws-sdk/client-sqs": "catalog:",
     "@aws-sdk/util-dynamodb": "catalog:",
     "@faker-js/faker": "catalog:",
     "@protobuf-ts/runtime": "catalog:",
