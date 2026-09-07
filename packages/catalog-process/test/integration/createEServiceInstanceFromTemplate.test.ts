@@ -12,6 +12,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockContext,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   Document,
@@ -426,7 +427,9 @@ describe("create eService from template", () => {
       ],
     };
 
-    expect(result).toEqual(expectedEServiceWithDescriptor);
+    expect(sortRiskAnalysisCollections(result)).toEqual(
+      sortRiskAnalysisCollections(expectedEServiceWithDescriptor)
+    );
   });
 
   it("should write on event-store for the creation of an eService in RECEIVE mode from a template when user has kind Private", async () => {
@@ -510,7 +513,9 @@ describe("create eService from template", () => {
       ],
     };
 
-    expect(result).toEqual(expectedEServiceWithDescriptor);
+    expect(sortRiskAnalysisCollections(result)).toEqual(
+      sortRiskAnalysisCollections(expectedEServiceWithDescriptor)
+    );
   });
 
   it("should write on event-store for the creation of an eService from a template with documents", async () => {

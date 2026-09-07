@@ -145,12 +145,6 @@ import {
   RiskAnalysisTemplateMultiAnswer,
   RiskAnalysisTemplateSingleAnswerV2,
   RiskAnalysisTemplateMultiAnswerV2,
-  EServiceV2,
-  EServiceTemplateV2,
-  EServiceRiskAnalysisV2,
-  EServiceTemplateRiskAnalysisV2,
-  EServiceRiskAnalysisSingleAnswerV2,
-  EServiceRiskAnalysisMultiAnswerV2,
   AgreementSignedContract,
   PurposeVersionSignedDocument,
   DelegationSignedContractDocument,
@@ -1124,6 +1118,46 @@ export const sortBy =
     return 0;
   };
 
+type SortableRiskAnalysis = {
+  id: string;
+  riskAnalysisForm?: {
+    singleAnswers: Array<{ id: string }>;
+    multiAnswers: Array<{ id: string }>;
+  };
+};
+
+const sortRiskAnalysisAnswers = <T extends SortableRiskAnalysis>(
+  riskAnalysis: T
+): T => {
+  if (!riskAnalysis.riskAnalysisForm) {
+    return riskAnalysis;
+  }
+  const { singleAnswers, multiAnswers } = riskAnalysis.riskAnalysisForm;
+  return {
+    ...riskAnalysis,
+    riskAnalysisForm: {
+      ...riskAnalysis.riskAnalysisForm,
+      singleAnswers: [...singleAnswers].sort(sortBy((answer) => answer.id)),
+      multiAnswers: [...multiAnswers].sort(sortBy((answer) => answer.id)),
+    },
+  };
+};
+
+// Risk analyses and answers are reconstructed from SQL joins without a defined order.
+export const sortRiskAnalysisCollections = <
+  T extends { riskAnalysis: SortableRiskAnalysis[] } | undefined,
+>(
+  entity: T
+): T =>
+  entity
+    ? {
+        ...entity,
+        riskAnalysis: entity.riskAnalysis
+          .map(sortRiskAnalysisAnswers)
+          .sort(sortBy((riskAnalysis) => riskAnalysis.id)),
+      }
+    : entity;
+
 export const sortTenant = <T extends Tenant | WithMetadata<Tenant> | undefined>(
   tenant: T
 ): T => {
@@ -1412,60 +1446,6 @@ export const sortEService = <
 
 export const sortEServices = (eservices: EService[]): EService[] =>
   eservices.map(sortEService);
-
-// Risk analyses and their answers are read from the readmodel without a
-// deterministic ORDER BY, so their order is not guaranteed. Sort them (and the
-// answers within each form) before order-sensitive comparisons on V2 payloads.
-const sortRiskAnalysisV2 = <
-  T extends EServiceRiskAnalysisV2 | EServiceTemplateRiskAnalysisV2,
->(
-  riskAnalysis: T
-): T => ({
-  ...riskAnalysis,
-  ...(riskAnalysis.riskAnalysisForm
-    ? {
-        riskAnalysisForm: {
-          ...riskAnalysis.riskAnalysisForm,
-          singleAnswers: [...riskAnalysis.riskAnalysisForm.singleAnswers].sort(
-            sortBy<EServiceRiskAnalysisSingleAnswerV2>((answer) => answer.key)
-          ),
-          multiAnswers: [...riskAnalysis.riskAnalysisForm.multiAnswers].sort(
-            sortBy<EServiceRiskAnalysisMultiAnswerV2>((answer) => answer.key)
-          ),
-        },
-      }
-    : {}),
-});
-
-export const sortEServiceV2 = <T extends EServiceV2 | undefined>(
-  eservice: T
-): T => {
-  if (!eservice) {
-    return eservice;
-  }
-  return {
-    ...eservice,
-    riskAnalysis: [...eservice.riskAnalysis]
-      .sort(sortBy<EServiceRiskAnalysisV2>((ra) => ra.id))
-      .map(sortRiskAnalysisV2),
-  };
-};
-
-export const sortEServiceTemplateV2 = <
-  T extends EServiceTemplateV2 | undefined,
->(
-  eserviceTemplate: T
-): T => {
-  if (!eserviceTemplate) {
-    return eserviceTemplate;
-  }
-  return {
-    ...eserviceTemplate,
-    riskAnalysis: [...eserviceTemplate.riskAnalysis]
-      .sort(sortBy<EServiceTemplateRiskAnalysisV2>((ra) => ra.id))
-      .map(sortRiskAnalysisV2),
-  };
-};
 
 export const getMockContextInternal = ({
   serviceName,
