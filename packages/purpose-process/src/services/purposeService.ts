@@ -2786,23 +2786,6 @@ const hasSameReviewerIds = (
   previousReviewerIds.length === requestedReviewerIds.length &&
   previousReviewerIds.every((id) => requestedReviewerIds.includes(id));
 
-type RiskAnalysisAssignmentOutcome = {
-  reviewerWorkflow: ReviewerWorkflow | undefined;
-  newReviewersToNotify: UserId[];
-  oldReviewersToNotify: UserId[];
-};
-
-type RiskAnalysisAssignmentContext = {
-  purpose: WithMetadata<Purpose>;
-  previousReviewMode: RiskAnalysisReviewMode | undefined;
-  previousReviewers: RiskAnalysisReviewer[];
-  requestedReviewers: UserId[];
-  addedReviewers: UserId[];
-  alreadyNotifiedReviewerIds: UserId[];
-  removedReviewersToNotify: UserId[];
-  now: Date;
-};
-
 /**
  * Reviewers already in the workflow keep their stamp; joining reviewers get
  * the supplied stamp when they acquire an action to perform.
@@ -2827,6 +2810,23 @@ const evaluateReviewerStamps = (
           : sentAt,
     };
   });
+};
+
+type RiskAnalysisAssignmentContext = {
+  purpose: WithMetadata<Purpose>;
+  previousReviewMode: RiskAnalysisReviewMode | undefined;
+  previousReviewers: RiskAnalysisReviewer[];
+  requestedReviewers: UserId[];
+  addedReviewers: UserId[];
+  alreadyNotifiedReviewerIds: UserId[];
+  removedReviewersToNotify: UserId[];
+  now: Date;
+};
+
+type RiskAnalysisAssignmentOutcome = {
+  reviewerWorkflow: ReviewerWorkflow | undefined;
+  newReviewersToNotify: UserId[];
+  oldReviewersToNotify: UserId[];
 };
 
 const transitionToAdminWritesAdminSigns = ({
