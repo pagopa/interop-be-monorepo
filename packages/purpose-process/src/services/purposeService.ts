@@ -739,22 +739,22 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotFound(purposeId);
       }
 
-      const isReviewerWritesSignable = match([
-        purpose.data.reviewMode,
-        workflow.signingState,
-      ])
+      const isReviewerWritesSignable = match({
+        reviewMode: purpose.data.reviewMode,
+        signingState: workflow.signingState,
+      })
         .with(
-          [
-            riskAnalysisReviewMode.adminWritesReviewerSigns,
-            riskAnalysisSigningState.submitted,
-          ],
+          {
+            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.submitted,
+          },
           () => false
         )
         .with(
-          [
-            riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-            riskAnalysisSigningState.assigned,
-          ],
+          {
+            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.assigned,
+          },
           () => true
         )
         .otherwise(() => {
