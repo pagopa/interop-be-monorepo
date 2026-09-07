@@ -4,7 +4,7 @@ info:
   description: PDND Interoperability API for machine-to-machine interaction with
     interoperability features
   x-summary: PDND Interoperability API
-  version: "3.1.1"
+  version: "3.1.2"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -3019,6 +3019,385 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/approveDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Approve a delegated archiving request for an E-Service
+      operationId: approveDelegatedEServiceArchiving
+      description: Allows the owner (delegator) to approve a delegate's archiving request.
+      responses:
+        "200":
+          description: Delegated archiving request approved.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /eservices/{eserviceId}/rejectDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Reject a delegated archiving request for an E-Service
+      operationId: rejectDelegatedEServiceArchiving
+      description: Allows the owner (delegator) to reject a delegate's archiving request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedEServiceArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request rejected.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /eservices/{eserviceId}/submitDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Submit a delegated archiving request for an E-Service
+      operationId: submitDelegatedEServiceArchiving
+      description: Allows a delegate to request the archiving of the specified E-Service. The owner must then approve or reject the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegateEServiceArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request submitted.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - eservices
+      summary: Cancel a delegated archiving request for an E-Service
+      operationId: cancelDelegatedEServiceArchiving
+      description: Allows a delegate to cancel a previously submitted archiving request for the specified E-Service.
+      responses:
+        "200":
+          description: Delegated archiving request canceled.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Submit a delegated archiving request for an E-Service
+      operationId: submitDelegatedDescriptorArchiving
+      description: Allows a delegate to request the archiving of the specified Descriptor. The owner must then approve or reject the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegateGracePeriodDaysSeed"
+      responses:
+        "200":
+          description: Delegated archiving request submitted.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - eservices
+      summary: Cancel a delegated archiving request for an E-Service
+      operationId: cancelDelegatedDescriptorArchiving
+      description: Allows a delegate to cancel a previously submitted archiving request for the specified Descriptor.
+      responses:
+        "200":
+          description: Delegated archiving request canceled.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/approveDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Approve a delegated archiving request for an E-Service Descriptor
+      operationId: approveDelegatedDescriptorArchiving
+      description: Allows the owner (delegator) to approve a delegate's descriptor archiving request, starting the regular archiving grace period.
+      responses:
+        "200":
+          description: Delegated archiving request approved.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/rejectDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Reject a delegated archiving request for an E-Service Descriptor
+      operationId: rejectDelegatedDescriptorArchiving
+      description: Allows the owner (delegator) to reject a delegate's descriptor archiving request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedDescriptorArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request rejected.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/delegation:
@@ -8724,6 +9103,198 @@ paths:
           $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /tenants/{tenantId}/certifiedDiscreteAttributes:
+    parameters:
+      - name: tenantId
+        in: path
+        description: The Tenant ID of the Certified Discrete Attributes
+        required: true
+        schema:
+          $ref: "#/components/schemas/TenantId"
+    get:
+      tags:
+        - tenants
+      summary: List Tenant Certified Discrete Attributes
+      description: Retrieve a list of Certified Discrete Attributes assigned to the Tenant
+      operationId: getTenantCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Tenant Certified Discrete Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - tenants
+      summary: Assign a Certified Discrete Attribute to a Tenant
+      description: Assign a Certified Discrete Attribute to a Tenant
+      operationId: assignTenantCertifiedDiscreteAttribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantCertifiedDiscreteAttributeSeed"
+        required: true
+      responses:
+        "200":
+          description: Certified Discrete Attribute assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /tenants/{tenantId}/certifiedDiscreteAttributes/{attributeId}:
+    parameters:
+      - name: tenantId
+        in: path
+        description: The Tenant ID of the Certified Discrete Attribute
+        required: true
+        schema:
+          $ref: "#/components/schemas/TenantId"
+      - name: attributeId
+        in: path
+        description: The Certified Discrete Attribute ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    patch:
+      tags:
+        - tenants
+      summary: Replace the Certified Discrete Attribute from a Tenant
+      description: Replace the Certified Discrete Attribute from a Tenant
+      operationId: replaceTenantCertifiedDiscreteAttribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTenantCertifiedDiscreteAttributeSeed"
+        required: true
+      responses:
+        "200":
+          description: Certified Discrete Attribute updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - tenants
+      summary: Revoke a Certified Discrete Attribute from a Tenant
+      description: Revoke a Certified Discrete Attribute from a Tenant
+      operationId: revokeTenantCertifiedDiscreteAttribute
+      responses:
+        "200":
+          description: Certified Discrete Attribute revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /tenants/{tenantId}/verifiedAttributes:
     parameters:
       - name: tenantId
@@ -11429,9 +12000,19 @@ components:
             - ESERVICE_ARCHIVING_SCHEDULED
             - ESERVICE_ARCHIVING_CANCELED
             - ESERVICE_ARCHIVING_COMPLETED
+            - ESERVICE_ARCHIVING_REQUESTED_BY_DELEGATE
+            - ESERVICE_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR
+            - ESERVICE_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR
+            - ESERVICE_ARCHIVING_REQUEST_CANCELED_BY_DELEGATE
+            - ESERVICE_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION
             - ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED
             - ESERVICE_DESCRIPTOR_ARCHIVING_CANCELED
             - ESERVICE_DESCRIPTOR_ARCHIVING_COMPLETED
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUESTED_BY_DELEGATE
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_DELEGATE
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION
             - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
             - MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED
         eventTimestamp:
@@ -12389,7 +12970,7 @@ components:
       required:
         - description
         - name
-        - code  
+        - code
     DeclaredAttribute:
       type: object
       additionalProperties: false
@@ -12815,6 +13396,10 @@ components:
           type: string
         asyncExchange:
           type: boolean
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
       required:
         - id
         - producerId
@@ -12910,6 +13495,10 @@ components:
           $ref: "#/components/schemas/ArchivingSchedule"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
       required:
         - id
         - version
@@ -12922,6 +13511,57 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
         - serverUrls
+    DelegatedDescriptorArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+    DelegatedEServiceArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+        - archivingReason
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+        archivingReason:
+          type: string
     ArchivingSchedule:
       type: object
       additionalProperties: false
@@ -14249,6 +14889,53 @@ components:
           $ref: "#/components/schemas/GracePeriodDays"
       required:
         - archivingReason
+    RejectDelegatedEServiceArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for an owner to reject a delegated archiving request
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 1
+      required:
+        - rejectionReason
+    RejectDelegatedDescriptorArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for an owner to reject a delegated descriptor archiving request
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 1
+      required:
+        - rejectionReason
+    DelegateGracePeriodDays:
+      description: Number of days for the archiving grace period, explicitly chosen by the delegate requesting the archiving
+      type: integer
+      format: int32
+      enum: [30, 60, 90, 120]
+    DelegateGracePeriodDaysSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        gracePeriodDays:
+          $ref: "#/components/schemas/DelegateGracePeriodDays"
+      required:
+        - gracePeriodDays
+    DelegateEServiceArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Archiving Reason and Grace Period Days
+      properties:
+        archivingReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+        gracePeriodDays:
+          $ref: "#/components/schemas/DelegateGracePeriodDays"
+      required:
+        - archivingReason
+        - gracePeriodDays
     Tenant:
       description: Tenant model
       type: object
@@ -14394,6 +15081,67 @@ components:
           format: uuid
       required:
         - id
+    TenantCertifiedDiscreteAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        assignedAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - assignedAt
+        - discreteValue
+    TenantCertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    TenantCertifiedDiscreteAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - certifiedDiscreteValue
+    UpdateTenantCertifiedDiscreteAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - certifiedDiscreteValue
     TenantDeclaredAttribute:
       type: object
       additionalProperties: false

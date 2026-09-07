@@ -26,7 +26,7 @@ import {
 } from "../../integrationUtils.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
-describe("createCertifiedAttribute", () => {
+describe("createCertifiedDiscreteAttribute", () => {
   const mockCertifiedDiscreteAttributeSeed: m2mGatewayApiV3.CertifiedDiscreteAttributeSeed =
     generateMock(m2mGatewayApiV3.CertifiedDiscreteAttributeSeed);
 

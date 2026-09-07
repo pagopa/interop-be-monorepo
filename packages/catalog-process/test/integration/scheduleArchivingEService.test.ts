@@ -24,6 +24,7 @@ import {
   EServiceArchivingScheduledV2,
   GracePeriodDays,
   ArchivingSchedule,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
 
@@ -645,4 +646,28 @@ describe("schedule archiving of an EService", () => {
       );
     }
   );
+
+  it("should throw hyperlinkDetectionError when the archivingReason contains a hyperlink", async () => {
+    const descriptor: Descriptor = {
+      ...mockDescriptor,
+      state: descriptorState.published,
+      version: "1",
+    };
+    const eservice: EService = {
+      ...mockEService,
+      descriptors: [descriptor],
+    };
+    await addOneEService(eservice);
+    const archivingReason = "see https://evil.example.com";
+    await expect(
+      catalogService.scheduleEServiceArchiving(
+        eservice.id,
+        {
+          archivingReason,
+          gracePeriodDays: mockGracePeriodDays,
+        },
+        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(archivingReason));
+  });
 });

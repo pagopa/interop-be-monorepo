@@ -69,6 +69,7 @@ const errorCodes = {
   eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound: "0047",
   clientNotFound: "0048",
   missingDiscreteConfig: "0049",
+  tenantCertifiedDiscreteAttributeNotFound: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -226,6 +227,17 @@ export function tenantCertifiedAttributeNotFound(
     detail: `Certified attribute ${attributeId} not found for tenant ${tenant.id}`,
     code: "tenantCertifiedAttributeNotFound",
     title: "Tenant certified attribute not found",
+  });
+}
+
+export function tenantCertifiedDiscreteAttributeNotFound(
+  tenant: tenantApi.Tenant,
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified discrete attribute ${attributeId} not found for tenant ${tenant.id}`,
+    code: "tenantCertifiedDiscreteAttributeNotFound",
+    title: "Tenant certified discrete attribute not found",
   });
 }
 
