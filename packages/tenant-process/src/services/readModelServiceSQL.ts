@@ -406,7 +406,7 @@ export function readModelServiceBuilderSQL(
       return agreementWithMetadata?.data;
     },
 
-    async getCertifiedAttributes({
+    async getCertifiedAttributesByCertifier({
       certifierId,
       offset,
       limit,

@@ -516,6 +516,8 @@ components:
         - producerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
+        - eserviceArchivingRequestedToDelegator
+        - eserviceArchivingApprovedRejectedToDelegate
     NotificationsByType:
       type: object
       additionalProperties: false
@@ -593,6 +595,12 @@ components:
               type: integer
               format: int32
             purposeOverQuotaStateToConsumer:
+              type: integer
+              format: int32
+            eserviceArchivingRequestedToDelegator:
+              type: integer
+              format: int32
+            eserviceArchivingApprovedRejectedToDelegate:
               type: integer
               format: int32
         totalCount:

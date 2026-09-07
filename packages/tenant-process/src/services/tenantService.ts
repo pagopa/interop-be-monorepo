@@ -14,6 +14,7 @@ import {
   M2MAuthData,
   isUiAuthData,
   M2MAdminAuthData,
+  validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
   Attribute,
@@ -57,6 +58,7 @@ import {
   attributeRevocationNotAllowed,
   attributeVerificationNotAllowed,
   certifiedAttributeAlreadyAssigned,
+  certifiedDiscreteAttributeRevoked,
   certifierWithExistingAttributes,
   mailAlreadyExists,
   mailNotFound,
@@ -227,6 +229,31 @@ async function retrieveAgreement(
     throw agreementNotFound(agreementId);
   }
   return agreement;
+}
+
+type CertifiedDiscreteTenantAttribute = Extract<
+  TenantAttribute,
+  { type: typeof tenantAttributeType.CERTIFIED_DISCRETE }
+>;
+
+function isCertifiedDiscreteTenantAttribute(
+  attr: TenantAttribute,
+  attributeId: AttributeId
+): attr is CertifiedDiscreteTenantAttribute {
+  return (
+    attr.type === tenantAttributeType.CERTIFIED_DISCRETE &&
+    attr.id === attributeId
+  );
+}
+
+function isActiveCertifiedDiscreteTenantAttribute(
+  attr: TenantAttribute,
+  attributeId: AttributeId
+): attr is CertifiedDiscreteTenantAttribute {
+  return (
+    isCertifiedDiscreteTenantAttribute(attr, attributeId) &&
+    !attr.revocationTimestamp
+  );
 }
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -667,14 +694,8 @@ export function tenantServiceBuilder(
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const existingCertifiedDiscrete = targetTenant.data.attributes.find(
-        (
-          attr
-        ): attr is Extract<
-          TenantAttribute,
-          { type: typeof tenantAttributeType.CERTIFIED_DISCRETE }
-        > =>
-          attr.type === tenantAttributeType.CERTIFIED_DISCRETE &&
-          attr.id === attribute.id
+        (attr): attr is CertifiedDiscreteTenantAttribute =>
+          isCertifiedDiscreteTenantAttribute(attr, attribute.id)
       );
 
       const now = new Date();
@@ -1018,14 +1039,8 @@ export function tenantServiceBuilder(
       const targetTenant = await retrieveTenant(tenantId, readModelService);
 
       const certifiedTenantAttribute = targetTenant.data.attributes.find(
-        (
-          attr
-        ): attr is Extract<
-          TenantAttribute,
-          { type: typeof tenantAttributeType.CERTIFIED_DISCRETE }
-        > =>
-          attr.type === tenantAttributeType.CERTIFIED_DISCRETE &&
-          attr.id === attributeId
+        (attr): attr is CertifiedDiscreteTenantAttribute =>
+          isCertifiedDiscreteTenantAttribute(attr, attributeId)
       );
 
       if (!certifiedTenantAttribute) {
@@ -1092,6 +1107,138 @@ export function tenantServiceBuilder(
 
       return {
         data: tenantWithRevokedAttribute,
+        metadata: { version: newVersion },
+      };
+    },
+
+    async updateCertifiedDiscreteAttributeById(
+      {
+        tenantId,
+        attributeId,
+        tenantAttributeSeed,
+      }: {
+        tenantId: TenantId;
+        attributeId: AttributeId;
+        tenantAttributeSeed: tenantApi.UpdateCertifiedDiscreteTenantAttributeSeed;
+      },
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
+    ): Promise<WithMetadata<Tenant>> {
+      const newValue = tenantAttributeSeed.certifiedDiscreteValue;
+
+      logger.info(
+        `Update certified discrete attribute ${attributeId} to value ${newValue} for tenant ${tenantId}`
+      );
+
+      const requesterTenant = await retrieveTenant(
+        authData.organizationId,
+        readModelService
+      );
+
+      const certifierId = retrieveCertifierId(requesterTenant.data);
+
+      const attribute = await retrieveAttribute(attributeId, readModelService);
+
+      if (attribute.kind !== attributeKind.certifiedDiscrete) {
+        throw attributeNotFound(attribute.id);
+      }
+
+      if (!attribute.origin || attribute.origin !== certifierId) {
+        throw attributeDoesNotBelongToCertifier(
+          attribute.id,
+          authData.organizationId,
+          tenantId
+        );
+      }
+
+      const targetTenant = await retrieveTenant(tenantId, readModelService);
+
+      const certifiedTenantAttribute = targetTenant.data.attributes.find(
+        (attr): attr is CertifiedDiscreteTenantAttribute =>
+          isCertifiedDiscreteTenantAttribute(attr, attributeId)
+      );
+
+      if (!certifiedTenantAttribute) {
+        throw attributeNotFound(attributeId);
+      }
+
+      if (certifiedTenantAttribute.revocationTimestamp) {
+        throw certifiedDiscreteAttributeRevoked(tenantId, attributeId);
+      }
+
+      const previousValue = certifiedTenantAttribute.discreteValue;
+
+      if (previousValue === newValue) {
+        return {
+          data: targetTenant.data,
+          metadata: { version: targetTenant.metadata.version },
+        };
+      }
+
+      const updatedAttributes = targetTenant.data.attributes.map((a) =>
+        isCertifiedDiscreteTenantAttribute(a, attributeId)
+          ? { ...a, discreteValue: newValue }
+          : a
+      );
+
+      const tenantWithUpdatedAttribute: Tenant = {
+        ...targetTenant.data,
+        attributes: updatedAttributes,
+        updatedAt: new Date(),
+      };
+
+      const tenantCertifiedDiscreteAttributeUpdatedEvent =
+        toCreateEventTenantCertifiedDiscreteAttributeUpdated(
+          targetTenant.metadata.version,
+          tenantWithUpdatedAttribute,
+          attributeId,
+          previousValue,
+          newValue,
+          correlationId
+        );
+
+      const tenantKind = await getTenantKindLoadingCertifiedAttributes(
+        readModelService,
+        tenantWithUpdatedAttribute.attributes,
+        tenantWithUpdatedAttribute.externalId,
+        tenantWithUpdatedAttribute.selfcareInstitutionType
+      );
+
+      if (tenantWithUpdatedAttribute.kind !== tenantKind) {
+        const updatedTenant = {
+          ...tenantWithUpdatedAttribute,
+          kind: tenantKind,
+        };
+
+        const tenantKindUpdatedEvent = toCreateEventTenantKindUpdated(
+          targetTenant.metadata.version + 1,
+          targetTenant.data.kind,
+          updatedTenant,
+          correlationId
+        );
+
+        const createdEvents = await repository.createEvents([
+          tenantCertifiedDiscreteAttributeUpdatedEvent,
+          tenantKindUpdatedEvent,
+        ]);
+
+        return {
+          data: updatedTenant,
+          metadata: {
+            version: createdEvents.latestNewVersions.get(updatedTenant.id) ?? 0,
+          },
+        };
+      }
+
+      const { newVersion } = await repository.createEvent(
+        tenantCertifiedDiscreteAttributeUpdatedEvent
+      );
+
+      return {
+        data: tenantWithUpdatedAttribute,
         metadata: { version: newVersion },
       };
     },
@@ -1738,11 +1885,8 @@ export function tenantServiceBuilder(
         readModelService,
       });
 
-      const certifiedAttribute = tenantToModify.data.attributes.find(
-        (attr): boolean =>
-          attr.type === tenantAttributeType.CERTIFIED_DISCRETE &&
-          attr.id === attributeToRevoke.id &&
-          !attr.revocationTimestamp
+      const certifiedAttribute = tenantToModify.data.attributes.find((attr) =>
+        isActiveCertifiedDiscreteTenantAttribute(attr, attributeToRevoke.id)
       );
 
       if (!certifiedAttribute) {
@@ -1798,7 +1942,7 @@ export function tenantServiceBuilder(
         return { version: event.newVersion };
       }
     },
-    async getCertifiedAttributes(
+    async getCertifiedAttributesByCertifier(
       {
         offset,
         limit,
@@ -1818,7 +1962,7 @@ export function tenantServiceBuilder(
 
       const certifierId = retrieveCertifierId(tenant.data);
 
-      return await readModelService.getCertifiedAttributes({
+      return await readModelService.getCertifiedAttributesByCertifier({
         certifierId,
         offset,
         limit,
@@ -1979,6 +2123,8 @@ export function tenantServiceBuilder(
       { authData, logger, correlationId }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Adding mail of kind ${mailSeed.kind} to Tenant ${tenantId}`);
+
+      validateNoHyperlinksSafe(mailSeed.description);
 
       await assertRequesterAllowed(tenantId, authData);
 

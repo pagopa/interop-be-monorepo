@@ -2,22 +2,21 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 import { genericLogger } from "pagopa-interop-commons";
+import {
+  PurposeItemsSchema,
+  PurposeVersionItemsSchema,
+} from "pagopa-interop-kpi-models";
 
 import { config } from "../config/config.js";
 import { DBContext } from "../db/db.js";
 import { DeletingDbTable } from "../model/db/deleting.js";
 import { PurposeDbTable } from "../model/db/purpose.js";
-import {
-  PurposeDeletingSchema,
-  PurposeItemsSchema,
-} from "../model/purpose/purpose.js";
-import {
-  PurposeVersionDeletingSchema,
-  PurposeVersionItemsSchema,
-} from "../model/purpose/purposeVersion.js";
+import { PurposeDeletingSchema } from "../model/purpose/purpose.js";
+import { PurposeVersionDeletingSchema } from "../model/purpose/purposeVersion.js";
 import { purposeRepo } from "../repository/purpose/purpose.repository.js";
 import { purposeRiskAnalysisAnswerRepo } from "../repository/purpose/purposeRiskAnalysisAnswer.repository.js";
 import { purposeRiskAnalysisFormRepo } from "../repository/purpose/purposeRiskAnalysisForm.repository.js";
+import { purposeRiskAnalysisReviewerRepo } from "../repository/purpose/purposeRiskAnalysisReviewer.repository.js";
 import { purposeVersionRepo } from "../repository/purpose/purposeVersion.repository.js";
 import { purposeVersionDocumentRepo } from "../repository/purpose/purposeVersionDocument.repository.js";
 import { purposeVersionSignedDocumentRepo } from "../repository/purpose/purposeVersionSignedDocument.repository.js";
@@ -38,6 +37,7 @@ export function purposeServiceBuilder(db: DBContext) {
   const signedVersionDocumentRepository = purposeVersionSignedDocumentRepo(
     db.conn
   );
+  const reviewerRepository = purposeRiskAnalysisReviewerRepo(db.conn);
 
   return {
     async upsertBatchPurpose(
@@ -65,6 +65,7 @@ export function purposeServiceBuilder(db: DBContext) {
             versionSignedDocumentsSQL: batch.flatMap(
               (item) => item.versionSignedDocumentsSQL
             ),
+            reviewersSQL: batch.flatMap((item) => item.reviewersSQL),
           };
 
           if (batchItems.purposeSQL.length) {
@@ -116,6 +117,13 @@ export function purposeServiceBuilder(db: DBContext) {
               batchItems.versionSignedDocumentsSQL
             );
           }
+          if (batchItems.reviewersSQL.length) {
+            await reviewerRepository.insert(
+              t,
+              dbContext.pgp,
+              batchItems.reviewersSQL
+            );
+          }
           genericLogger.info(
             `Staging data inserted for batch of ${batchItems.purposeSQL.length} purposes`
           );
@@ -128,6 +136,7 @@ export function purposeServiceBuilder(db: DBContext) {
         await formRepository.merge(t);
         await answerRepository.merge(t);
         await signedVersionDocumentRepository.merge(t);
+        await reviewerRepository.merge(t);
       });
 
       await dbContext.conn.tx(async (t) => {
@@ -141,6 +150,7 @@ export function purposeServiceBuilder(db: DBContext) {
             PurposeDbTable.purpose_risk_analysis_answer,
             PurposeDbTable.purpose_risk_analysis_form,
             PurposeDbTable.purpose_version_signed_document,
+            PurposeDbTable.purpose_risk_analysis_reviewer,
           ],
           PurposeDbTable.purpose
         );
@@ -157,6 +167,7 @@ export function purposeServiceBuilder(db: DBContext) {
       await formRepository.clean();
       await answerRepository.clean();
       await signedVersionDocumentRepository.clean();
+      await reviewerRepository.clean();
       genericLogger.info(`Staging data cleaned`);
     },
 
@@ -245,6 +256,7 @@ export function purposeServiceBuilder(db: DBContext) {
             PurposeDbTable.purpose_risk_analysis_form,
             PurposeDbTable.purpose_risk_analysis_answer,
             PurposeDbTable.purpose_version_signed_document,
+            PurposeDbTable.purpose_risk_analysis_reviewer,
           ],
           DeletingDbTable.purpose_deleting_table
         );

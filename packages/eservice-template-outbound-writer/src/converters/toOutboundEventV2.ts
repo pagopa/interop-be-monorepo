@@ -100,7 +100,6 @@ export function toOutboundEventV2(
       { type: "EServiceTemplateVersionDocumentUpdated" },
       { type: "EServiceTemplateVersionInterfaceAdded" },
       { type: "EServiceTemplateVersionInterfaceDeleted" },
-      { type: "EServiceTemplateVersionInterfaceUpdated" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -135,7 +134,6 @@ export function toOutboundEventV2(
       { type: "EServiceTemplateRiskAnalysisDeleted" },
       { type: "EServiceTemplateRiskAnalysisUpdated" },
       { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceAdded" },
-      { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceUpdated" },
       { type: "EServiceTemplateVersionAsyncExchangeCallbackInterfaceDeleted" },
       { type: "MaintenanceEServiceTemplateRiskAnalysisSetTenantKind" },
       () => undefined

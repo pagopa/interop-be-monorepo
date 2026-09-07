@@ -32,6 +32,10 @@ export type GetCertifiedAttributesQueryParams = QueryParametersByAlias<
   AttributeApi,
   "getCertifiedAttributes"
 >;
+export type GetCertifiedDiscreteAttributesQueryParams = QueryParametersByAlias<
+  AttributeApi,
+  "getCertifiedDiscreteAttributes"
+>;
 export type GetDeclaredAttributesQueryParams = QueryParametersByAlias<
   AttributeApi,
   "getDeclaredAttributes"
@@ -85,6 +89,8 @@ export type GetTenantVerifiedAttributesQueryParams = QueryParametersByAlias<
   TenantApi,
   "getTenantVerifiedAttributes"
 >;
+export type GetTenantCertifiedDiscreteAttributesQueryParams =
+  QueryParametersByAlias<TenantApi, "getTenantCertifiedDiscreteAttributes">;
 export type GetTenantVerifiedAttributeVerifiersQueryParams =
   QueryParametersByAlias<TenantApi, "getTenantVerifiedAttributeVerifiers">;
 export type GetTenantVerifiedAttributeRevokersQueryParams =
