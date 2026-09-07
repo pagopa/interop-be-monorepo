@@ -135,13 +135,17 @@ describe("handlePurposeRiskAnalysisAssignedForSigningToReviewer", () => {
       version: 1,
       log_date: new Date(),
     };
-    const messages = await handlePurposeEvent({
+    const allMessages = await handlePurposeEvent({
       decodedMessage,
       logger,
       templateService,
       readModelService,
       correlationId,
     });
+    const messages = allMessages.filter(
+      (message) =>
+        message.email.subject === "Hai un'analisi del rischio da approvare"
+    );
 
     expect(messages).toHaveLength(reviewerIds.length);
     expect(messages.map((message) => message.type)).toEqual(["User", "User"]);
@@ -176,13 +180,17 @@ describe("handlePurposeRiskAnalysisAssignedForSigningToReviewer", () => {
       log_date: new Date(),
     };
 
-    const messages = await handlePurposeEvent({
+    const allMessages = await handlePurposeEvent({
       decodedMessage,
       logger,
       templateService,
       readModelService,
       correlationId,
     });
+    const messages = allMessages.filter(
+      (message) =>
+        message.email.subject === "Hai un'analisi del rischio da approvare"
+    );
 
     expect(messages).toHaveLength(reviewerIds.length);
     expect(

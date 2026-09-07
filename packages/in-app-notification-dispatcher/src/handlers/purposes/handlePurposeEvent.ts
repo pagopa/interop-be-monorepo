@@ -9,6 +9,7 @@ import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQu
 import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
 import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
+import { handlePurposeRiskAnalysisAssignmentRemovedToReviewer } from "./handlePurposeRiskAnalysisAssignmentRemovedToReviewer.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 
@@ -24,14 +25,25 @@ export async function handlePurposeEvent(
     })
     .with(
       { type: "PurposeRiskAnalysisWorkflowCreated" },
-      ({ data: { purpose, newReviewersToNotify }, type }) =>
-        handlePurposeRiskAnalysisAssignedForSigningToReviewer(
+      async ({
+        data: { purpose, newReviewersToNotify, oldReviewersToNotify },
+        type,
+      }) => [
+        ...(await handlePurposeRiskAnalysisAssignedForSigningToReviewer(
           purpose,
           newReviewersToNotify,
           logger,
           readModelService,
           type
-        )
+        )),
+        ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
+          purpose,
+          oldReviewersToNotify,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
     )
     .with(
       { type: "PurposeRiskAnalysisSubmitted" },
@@ -133,7 +145,6 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisSelfAssigned",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
           "PurposeRiskAnalysisFormEdited"
@@ -148,12 +159,34 @@ export async function handlePurposeEvent(
     )
     .with(
       { type: "PurposeRiskAnalysisAssigned" },
-      ({ data: { purpose, newReviewersToNotify } }) =>
-        handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer(
+      async ({
+        data: { purpose, newReviewersToNotify, oldReviewersToNotify },
+        type,
+      }) => [
+        ...(await handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer(
           purpose,
           newReviewersToNotify,
           logger,
           readModelService
+        )),
+        ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
+          purpose,
+          oldReviewersToNotify,
+          logger,
+          readModelService,
+          type
+        )),
+      ]
+    )
+    .with(
+      { type: "PurposeRiskAnalysisSelfAssigned" },
+      ({ data: { purpose, oldReviewersToNotify }, type }) =>
+        handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
+          purpose,
+          oldReviewersToNotify,
+          logger,
+          readModelService,
+          type
         )
     )
     .exhaustive();
