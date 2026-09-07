@@ -285,7 +285,7 @@ paths:
       operationId: createPurpose
       description: Creates the Purpose
       responses:
-        "200":
+        "201":
           description: Purpose created
           headers:
             X-Metadata-Version:
@@ -323,7 +323,7 @@ paths:
               $ref: "#/components/schemas/ReversePurposeSeed"
         required: true
       responses:
-        "200":
+        "201":
           description: Purpose created
           headers:
             X-Metadata-Version:
@@ -525,7 +525,7 @@ paths:
       operationId: createPurposeVersion
       description: Creates a draft Purpose Version
       responses:
-        "200":
+        "201":
           description: Purpose version created
           headers:
             X-Metadata-Version:
@@ -1162,7 +1162,7 @@ paths:
               $ref: "#/components/schemas/PurposeFromTemplateSeed"
         required: true
       responses:
-        "200":
+        "201":
           description: Purpose created
           headers:
             X-Metadata-Version:
