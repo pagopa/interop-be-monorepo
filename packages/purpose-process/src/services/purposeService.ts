@@ -2978,7 +2978,7 @@ function assignRiskAnalysisReviewerLogic(
     now,
   };
 
-  const outcome = match(review.reviewMode)
+  const transitionOutcome = match(review.reviewMode)
     .returnType<RiskAnalysisAssignmentOutcome>()
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
       transitionToAdminWritesAdminSigns(transitionContext)
@@ -3001,7 +3001,7 @@ function assignRiskAnalysisReviewerLogic(
       ? undefined
       : purpose.data.riskAnalysisForm,
     reviewMode: review.reviewMode,
-    reviewerWorkflow: outcome.reviewerWorkflow,
+    reviewerWorkflow: transitionOutcome.reviewerWorkflow,
     updatedAt: now,
   };
 
@@ -3011,7 +3011,7 @@ function assignRiskAnalysisReviewerLogic(
         purpose: updatedPurpose,
         version: purpose.metadata.version,
         correlationId,
-        oldReviewersToNotify: outcome.oldReviewersToNotify,
+        oldReviewersToNotify: transitionOutcome.oldReviewersToNotify,
       })
     )
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
@@ -3019,8 +3019,8 @@ function assignRiskAnalysisReviewerLogic(
         purpose: updatedPurpose,
         version: purpose.metadata.version,
         correlationId,
-        newReviewersToNotify: outcome.newReviewersToNotify,
-        oldReviewersToNotify: outcome.oldReviewersToNotify,
+        newReviewersToNotify: transitionOutcome.newReviewersToNotify,
+        oldReviewersToNotify: transitionOutcome.oldReviewersToNotify,
       })
     )
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
@@ -3028,8 +3028,8 @@ function assignRiskAnalysisReviewerLogic(
         purpose: updatedPurpose,
         version: purpose.metadata.version,
         correlationId,
-        newReviewersToNotify: outcome.newReviewersToNotify,
-        oldReviewersToNotify: outcome.oldReviewersToNotify,
+        newReviewersToNotify: transitionOutcome.newReviewersToNotify,
+        oldReviewersToNotify: transitionOutcome.oldReviewersToNotify,
       })
     )
     .exhaustive();
