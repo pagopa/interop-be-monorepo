@@ -5,6 +5,7 @@ import {
   getMockEService,
   getMockAuthData,
   getMockContext,
+  getMockDescriptor,
 } from "pagopa-interop-commons-test";
 import {
   ProducerKeychain,
@@ -14,6 +15,8 @@ import {
   generateId,
   EServiceId,
   toProducerKeychainV2,
+  descriptorState,
+  Descriptor,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -23,6 +26,7 @@ import {
   tenantNotAllowedOnEService,
   eserviceAlreadyLinkedToProducerKeychain,
   producerKeychainNotFound,
+  archivedStateNotAllowed,
 } from "../../src/model/domain/errors.js";
 import {
   addOneEService,
@@ -233,5 +237,40 @@ describe("addProducerKeychainEService", async () => {
         mockProducerKeychain.id
       )
     );
+  });
+
+  it("should throw archivedStateNotAllowed if the eservice is archived", async () => {
+    const mockProducerId: TenantId = generateId();
+    const mockEServiceId: EServiceId = generateId();
+    const mockDescriptor: Descriptor = {
+      ...getMockDescriptor(),
+      state: descriptorState.archived,
+    };
+
+    const mockEService: EService = {
+      ...getMockEService(),
+      id: mockEServiceId,
+      producerId: mockProducerId,
+      descriptors: [mockDescriptor],
+    };
+
+    const mockProducerKeychain: ProducerKeychain = {
+      ...getMockProducerKeychain(),
+      producerId: mockProducerId,
+      eservices: [mockEService.id],
+    };
+
+    await addOneProducerKeychain(mockProducerKeychain);
+    await addOneEService(mockEService);
+
+    expect(
+      authorizationService.addProducerKeychainEService(
+        {
+          producerKeychainId: mockProducerKeychain.id,
+          seed: { eserviceId: mockEService.id },
+        },
+        getMockContext({ authData: getMockAuthData(mockProducerId) })
+      )
+    ).rejects.toThrowError(archivedStateNotAllowed(mockEService.id));
   });
 });
