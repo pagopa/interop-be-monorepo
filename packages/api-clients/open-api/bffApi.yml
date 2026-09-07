@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "1.0"
+  version: "2.0"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -13706,32 +13706,6 @@ components:
           type: string
       required:
         - rejectionReason
-    GoogleSAMLPayload:
-      type: object
-      additionalProperties: false
-      properties:
-        SAMLResponse:
-          type: string
-          description: SAML response
-        RelayState:
-          type: string
-          nullable: true
-      required:
-        - SAMLResponse
-    SAMLTokenRequest:
-      type: object
-      additionalProperties: false
-      properties:
-        saml2:
-          type: string
-          description: SAML
-        tenantId:
-          type: string
-          format: uuid
-          description: tenant id
-      required:
-        - saml2
-        - tenantId
     AccessTokenRequest:
       type: object
       additionalProperties: false
