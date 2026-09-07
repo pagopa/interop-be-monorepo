@@ -12,6 +12,7 @@ import {
   UserClaims,
   UserRole,
   WithLogger,
+  decodeJwtToken,
   userRole,
   verifyJwtToken,
 } from "pagopa-interop-commons";
@@ -21,6 +22,7 @@ import {
   invalidClaim,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { z } from "zod";
 
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import { config } from "../config/config.js";
@@ -34,6 +36,26 @@ import { BffAppContext, Headers } from "../utilities/context.js";
 import { validateSamlResponse } from "../utilities/samlValidator.js";
 
 const { HTTP_STATUS_NOT_FOUND } = constants;
+
+/*
+  The identity token is logged without being verified, so each claim is accepted
+  only if it looks like an identifier: a claim containing newlines would be
+  turned into additional log lines by the log format. Claims are parsed one by
+  one, so that one is still logged when the other is missing or malformed.
+*/
+const LoggedIdentityTokenClaim = z
+  .string()
+  .max(64)
+  .regex(/^[A-Za-z0-9._:-]+$/)
+  .optional()
+  .catch(undefined);
+
+const LoggedIdentityTokenClaims = z
+  .object({
+    jti: LoggedIdentityTokenClaim,
+    uid: LoggedIdentityTokenClaim,
+  })
+  .catch({ jti: undefined, uid: undefined });
 
 export type GetSessionTokenReturnType =
   | {
@@ -84,6 +106,32 @@ export function authorizationServiceBuilder(
       sessionClaims,
       selfcareId: sessionClaims.organization.id,
     };
+  };
+
+  /*
+    The identity token is only decoded here, never verified: verification
+    happens in readJwt, and the logins that fail it must be traced as well.
+  */
+  const logIdentityTokenClaims = (
+    identityToken: string,
+    logger: Logger
+  ): void => {
+    try {
+      const { jti, uid } = LoggedIdentityTokenClaims.parse(
+        decodeJwtToken(identityToken, logger)
+      );
+
+      if (!jti && !uid) {
+        logger.warn("No loggable jti and uid claims in the identity token");
+        return;
+      }
+
+      logger.info(`[JTI=${jti}][UID=${uid}] Identity token claims`);
+    } catch {
+      // The decoding error is already logged by decodeJwtToken, and it embeds
+      // part of the token payload, so it is not reported again here.
+      logger.warn("Unable to decode the identity token to log its claims");
+    }
   };
 
   const assertTenantAllowed = (
@@ -162,6 +210,7 @@ export function authorizationServiceBuilder(
       { headers, logger }: WithLogger<BffAppContext>
     ): Promise<GetSessionTokenReturnType> => {
       logger.info("Received session token exchange request");
+      logIdentityTokenClaims(identityToken, logger);
 
       const { sessionClaims, roles, selfcareId } = await readJwt(
         identityToken,
