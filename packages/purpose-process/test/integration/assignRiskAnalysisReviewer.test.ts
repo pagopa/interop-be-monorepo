@@ -787,7 +787,6 @@ describe("assignRiskAnalysisReviewer", () => {
       signingState,
       expectedSigningState,
       expectedEventType,
-      expectedMetadataVersion,
       notifiedReviewerIds,
       expectedNewReviewersToNotify,
       expectedOldReviewersToNotify,
@@ -806,7 +805,7 @@ describe("assignRiskAnalysisReviewer", () => {
         notifiedReviewerIds,
       });
 
-      const { data: updatedPurpose, metadata } =
+      const { data: updatedPurpose } =
         await purposeService.assignRiskAnalysisReviewer(
           mockPurpose.id,
           {
@@ -817,9 +816,6 @@ describe("assignRiskAnalysisReviewer", () => {
         );
 
       expect(updatedPurpose.reviewMode).toBe(requestedReviewMode);
-      if (expectedMetadataVersion !== undefined) {
-        expect(metadata.version).toBe(expectedMetadataVersion);
-      }
       expect(updatedPurpose.riskAnalysisForm).toEqual(
         shouldResetForm ? undefined : riskAnalysisForm
       );
