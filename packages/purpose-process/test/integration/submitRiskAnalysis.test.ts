@@ -125,11 +125,11 @@ describe("submitRiskAnalysis", () => {
       reviewers: [
         {
           id: unsafeBrandId(generateId()),
-          sentToReviewerAt: new Date("2020-01-01T00:00:00.000Z"),
+          sentToReviewerAt: new Date("2026-09-01T00:00:00.000Z"),
         },
         {
           id: unsafeBrandId(generateId()),
-          sentToReviewerAt: new Date("2021-01-01T00:00:00.000Z"),
+          sentToReviewerAt: new Date("2026-09-02T00:00:00.000Z"),
         },
       ],
       signingState: riskAnalysisSigningState.rejected,
