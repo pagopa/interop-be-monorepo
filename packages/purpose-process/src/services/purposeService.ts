@@ -2807,7 +2807,7 @@ type RiskAnalysisAssignmentContext = {
  * Reviewers already in the workflow keep their stamp; joining reviewers get
  * the supplied stamp when they acquire an action to perform.
  */
-const preserveExistingReviewerStamps = (
+const evaluateReviewerStamps = (
   reviewerIds: UserId[],
   previousReviewers: RiskAnalysisReviewer[],
   sentAt: Date | undefined
@@ -2860,7 +2860,7 @@ const transitionToAdminWritesReviewerSigns = ({
       return {
         reviewerWorkflow: {
           ...previousWorkflow,
-          reviewers: preserveExistingReviewerStamps(
+          reviewers: evaluateReviewerStamps(
             requestedReviewers,
             previousReviewers,
             shouldNotifyAddedReviewers ? now : undefined
@@ -2895,7 +2895,7 @@ const transitionToReviewerWritesReviewerSigns = ({
   match(previousReviewMode)
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
       reviewerWorkflow: {
-        reviewers: preserveExistingReviewerStamps(
+        reviewers: evaluateReviewerStamps(
           requestedReviewers,
           previousReviewers,
           now
