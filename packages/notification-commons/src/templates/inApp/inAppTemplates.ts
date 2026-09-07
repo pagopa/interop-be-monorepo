@@ -13,6 +13,11 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorRejectedByDelegator";
 
 export const inAppTemplates = {
+  purposeRiskAnalysisAssignmentRemovedToReviewer: (
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'amministratore ha rimosso l'assegnazione dell'analisi del rischio per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
   purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: (
     producerName: string,
     purposeName: string,
