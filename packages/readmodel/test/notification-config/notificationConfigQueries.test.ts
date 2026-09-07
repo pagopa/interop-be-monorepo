@@ -99,6 +99,8 @@ describe("Notification config queries", () => {
           producerKeychainKeyAddedDeletedToClientUsers: false,
           purposeQuotaAdjustmentRequestToProducer: false,
           purposeOverQuotaStateToConsumer: false,
+          eserviceArchivingRequestedToDelegator: false,
+          eserviceArchivingApprovedRejectedToDelegate: false,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer: false,
@@ -125,6 +127,8 @@ describe("Notification config queries", () => {
           producerKeychainKeyAddedDeletedToClientUsers: false,
           purposeQuotaAdjustmentRequestToProducer: false,
           purposeOverQuotaStateToConsumer: false,
+          eserviceArchivingRequestedToDelegator: false,
+          eserviceArchivingApprovedRejectedToDelegate: false,
         },
       };
       await insertUserNotificationConfig(
