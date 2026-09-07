@@ -39,12 +39,13 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
   });
 
   const mockAttribute = getMockedApiCertifiedDiscreteAttribute();
+  const mockCertifiedAttribute = getMockedApiEServiceAttribute();
   const mockCertifiedDiscreteAttributes = [
     [
       getMockedApiCertifiedDiscreteAttribute(),
       getMockedApiCertifiedDiscreteAttribute(),
     ],
-    [getMockedApiCertifiedDiscreteAttribute(), mockAttribute],
+    [mockCertifiedAttribute, mockAttribute],
     [mockAttribute],
     [
       getMockedApiCertifiedDiscreteAttribute(),
@@ -176,6 +177,63 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
           certified: mockCertifiedDiscreteAttributes.filter(
             (_, index) => index !== groupIndex
           ),
+          declared: [],
+          verified: [],
+        },
+      },
+    });
+  });
+
+  it("Should delete the certified discrete group at its catalog index", async () => {
+    const regularGroup = [getMockedApiEServiceAttribute()];
+    const anotherRegularGroup = [getMockedApiEServiceAttribute()];
+    const mixedGroupCertifiedAttribute = getMockedApiEServiceAttribute();
+    const discreteAttribute = getMockedApiCertifiedDiscreteAttribute();
+    const mixedCertifiedAttributes = [
+      regularGroup,
+      anotherRegularGroup,
+      [mixedGroupCertifiedAttribute, discreteAttribute],
+    ];
+    const mixedDescriptor = getMockedApiEserviceDescriptor({
+      attributes: {
+        certified: mixedCertifiedAttributes,
+        declared: [],
+        verified: [],
+      },
+    });
+    const mixedEService = getMockedApiEservice({
+      descriptors: [mixedDescriptor],
+    });
+    const mixedEServiceResponse = getMockWithMetadata(mixedEService);
+
+    mockPatchUpdateDescriptor.mockResolvedValueOnce(mixedEServiceResponse);
+    mockGetEService.mockResolvedValueOnce(mixedEServiceResponse);
+    mockGetEService.mockImplementation(
+      mockPollingResponse(mixedEServiceResponse, 2)
+    );
+
+    await eserviceService.deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup(
+      unsafeBrandId(mixedEService.id),
+      unsafeBrandId(mixedDescriptor.id),
+      2,
+      unsafeBrandId(discreteAttribute.id),
+      getMockM2MAdminAppContext()
+    );
+
+    expectApiClientPostToHaveBeenCalledWith({
+      mockPost:
+        mockInteropBeClients.catalogProcessClient.patchUpdateDraftDescriptor,
+      params: {
+        eServiceId: mixedEService.id,
+        descriptorId: mixedDescriptor.id,
+      },
+      body: {
+        attributes: {
+          certified: [
+            regularGroup,
+            anotherRegularGroup,
+            [mixedGroupCertifiedAttribute],
+          ],
           declared: [],
           verified: [],
         },

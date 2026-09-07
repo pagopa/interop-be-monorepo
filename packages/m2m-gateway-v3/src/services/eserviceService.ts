@@ -91,7 +91,7 @@ export function eserviceServiceBuilder(
   }
 
   function isDiscreteAttributeGroup(group: catalogApi.Attribute[]): boolean {
-    return group.every((attribute) => attribute.discreteConfig !== undefined);
+    return group.some((attribute) => attribute.discreteConfig !== undefined);
   }
 
   function getIndexedKindAttributeGroups(
@@ -327,7 +327,9 @@ export function eserviceServiceBuilder(
       attributeKind
     );
 
-    const indexedAttributeGroup = indexedKindAttributeGroups.at(groupIndex);
+    const indexedAttributeGroup = indexedKindAttributeGroups.find(
+      ({ index }) => index === groupIndex
+    );
 
     if (!indexedAttributeGroup) {
       throw eserviceDescriptorAttributeGroupNotFound(
@@ -421,7 +423,9 @@ export function eserviceServiceBuilder(
       descriptor,
       attributeKind
     );
-    const indexedAttributeGroup = indexedKindAttributeGroups.at(groupIndex);
+    const indexedAttributeGroup = indexedKindAttributeGroups.find(
+      ({ index }) => index === groupIndex
+    );
     if (!indexedAttributeGroup) {
       throw eserviceDescriptorAttributeGroupNotFound(
         catalogAttributeKind,
