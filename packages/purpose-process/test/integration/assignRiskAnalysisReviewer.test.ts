@@ -518,6 +518,20 @@ describe("assignRiskAnalysisReviewer", () => {
     vi.useRealTimers();
   });
 
+  it("should throw purposeNotFound if the purpose doesn't exist", async () => {
+    const randomId: PurposeId = generateId();
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        randomId,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData() })
+      )
+    ).rejects.toThrow(purposeNotFound(randomId));
+  });
+
   it.each([
     {
       description: "A: adminWritesAdminSigns -> adminWritesReviewerSigns",
@@ -996,20 +1010,6 @@ describe("assignRiskAnalysisReviewer", () => {
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrow(reviewersNotAllowedForReviewMode(mockPurpose.id));
-  });
-
-  it("should throw purposeNotFound if the purpose doesn't exist", async () => {
-    const randomId: PurposeId = generateId();
-    expect(
-      purposeService.assignRiskAnalysisReviewer(
-        randomId,
-        {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId()],
-        },
-        getMockContext({ authData: getMockAuthData() })
-      )
-    ).rejects.toThrow(purposeNotFound(randomId));
   });
 
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
