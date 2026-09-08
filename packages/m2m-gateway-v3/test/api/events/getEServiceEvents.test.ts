@@ -1,5 +1,5 @@
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { AuthRole, authRole, problemContentType } from "pagopa-interop-commons";
 import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
 import request from "supertest";
@@ -69,6 +69,21 @@ describe("GET /eserviceEvents router test", () => {
     const token = generateToken(role);
     const res = await makeRequest(token, mockQueryParams);
     expect(res.status).toBe(403);
+  });
+
+  it("Should send the problem body when the service throws", async () => {
+    mockEventService.getEServiceEvents = vi
+      .fn()
+      .mockRejectedValue(new Error("Unexpected error"));
+
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, mockQueryParams);
+
+    expect(res.status).toBe(500);
+    expect(res.headers["content-type"]).toBe(problemContentType);
+    expect(res.body).toEqual(
+      expect.objectContaining({ type: "about:blank", status: 500 })
+    );
   });
 
   it.each([
