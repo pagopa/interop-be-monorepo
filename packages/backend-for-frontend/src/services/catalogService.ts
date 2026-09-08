@@ -55,6 +55,7 @@ import {
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
 import { BffProcessConfig, config } from "../config/config.js";
+import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../config/constants.js";
 import {
   eserviceDescriptorNotFound,
   eserviceRiskNotFound,
@@ -64,6 +65,7 @@ import {
   tenantNotFound,
 } from "../model/errors.js";
 import {
+  getLastArchivingRequest,
   getLatestActiveDescriptor,
   getLatestTenantContactEmail,
 } from "../model/modelMappingUtils.js";
@@ -584,6 +586,10 @@ export function catalogServiceBuilder(
         isClientAccessDelegable: eservice.isClientAccessDelegable,
         personalData: eservice.personalData,
         asyncExchange: eservice.asyncExchange,
+        delegatedArchivingRequest: getLastArchivingRequest(
+          eservice,
+          eservice.descriptors
+        ),
         latestActiveDescriptorId: getLatestActiveDescriptor(eservice)?.id,
       };
     },
@@ -832,6 +838,7 @@ export function catalogServiceBuilder(
       consumersIds: string[],
       delegated: boolean | undefined,
       personalData: bffApi.PersonalDataFilter | undefined,
+      states: bffApi.EServiceDescriptorState[] | undefined,
       offset: number,
       limit: number,
       ctx: WithLogger<BffAppContext>
@@ -852,6 +859,7 @@ export function catalogServiceBuilder(
           consumersIds,
           delegated,
           personalData,
+          states,
           offset,
           limit,
         },
@@ -1462,6 +1470,131 @@ export function catalogServiceBuilder(
         },
       });
     },
+    approveDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Approving delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.approveDelegatedEServiceArchiving(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
+    rejectDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      body: catalogApi.RejectDelegatedEServiceArchivingSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Rejecting delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.rejectDelegatedEServiceArchiving(body, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
+    submitDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      seed: catalogApi.EServiceArchivingSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(`Submitting delegated archiving for EService ${eServiceId}`);
+      await catalogProcessClient.submitDelegatedEServiceArchiving(seed, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
+    cancelDelegatedEServiceArchiving: async (
+      eServiceId: EServiceId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Canceling delegated archiving request for EService ${eServiceId}`
+      );
+      await catalogProcessClient.cancelDelegatedEServiceArchiving(undefined, {
+        headers,
+        params: {
+          eServiceId,
+        },
+      });
+    },
+    submitDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      seed: catalogApi.GracePeriodDaysSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Submitting delegated archiving for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.submitDelegatedDescriptorArchiving(seed, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    cancelDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Canceling delegated archiving request for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.cancelDelegatedDescriptorArchiving(undefined, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
+    approveDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Approving delegated archiving request for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.approveDelegatedDescriptorArchiving(
+        undefined,
+        {
+          headers,
+          params: {
+            eServiceId,
+            descriptorId,
+          },
+        }
+      );
+    },
+    rejectDelegatedDescriptorArchiving: async (
+      eServiceId: EServiceId,
+      descriptorId: DescriptorId,
+      body: catalogApi.RejectDelegatedDescriptorArchivingSeed,
+      { headers, logger }: WithLogger<BffAppContext>
+    ): Promise<void> => {
+      logger.info(
+        `Rejecting delegated archiving request for descriptor ${descriptorId} of EService ${eServiceId}`
+      );
+      await catalogProcessClient.rejectDelegatedDescriptorArchiving(body, {
+        headers,
+        params: {
+          eServiceId,
+          descriptorId,
+        },
+      });
+    },
     updateAgreementApprovalPolicy: async (
       eServiceId: EServiceId,
       descriptorId: DescriptorId,
@@ -1668,6 +1801,8 @@ export function catalogServiceBuilder(
       }
 
       const descriptorInterface = importedEservice.descriptor.interface;
+      const asyncExchangeCallbackInterface =
+        importedEservice.descriptor.asyncExchangeCallbackInterface;
 
       if (
         descriptorInterface &&
@@ -1676,10 +1811,21 @@ export function catalogServiceBuilder(
         throw invalidZipStructure("Error reading interface");
       }
 
+      if (
+        asyncExchangeCallbackInterface &&
+        entriesMap.get(asyncExchangeCallbackInterface.path) === undefined
+      ) {
+        throw invalidZipStructure(
+          "Error reading async exchange callback interface"
+        );
+      }
+
       const allowedFiles = [
         "configuration.json",
         "documents/",
+        `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/`,
         importedEservice.descriptor.interface?.path,
+        importedEservice.descriptor.asyncExchangeCallbackInterface?.path,
         ...importedEservice.descriptor.docs.map((doc) => doc.path),
       ].filter(
         (path: string | undefined): path is string => path !== undefined
@@ -1701,6 +1847,7 @@ export function catalogServiceBuilder(
         description: importedEservice.description,
         technology: importedEservice.technology,
         mode: importedEservice.mode,
+        asyncExchange: importedEservice.asyncExchange,
         descriptor: {
           description: importedEservice.descriptor.description,
           audience: importedEservice.descriptor.audience,
@@ -1731,6 +1878,43 @@ export function catalogServiceBuilder(
       await pollEServiceById({
         condition: (result) => result.descriptors.length > 0,
       });
+
+      if (importedEservice.descriptor.asyncExchangeProperties) {
+        await catalogProcessClient.updateDraftDescriptor(
+          {
+            description: importedEservice.descriptor.description,
+            audience: importedEservice.descriptor.audience,
+            voucherLifespan: importedEservice.descriptor.voucherLifespan,
+            dailyCallsPerConsumer:
+              importedEservice.descriptor.dailyCallsPerConsumer,
+            dailyCallsTotal: importedEservice.descriptor.dailyCallsTotal,
+            agreementApprovalPolicy:
+              importedEservice.descriptor.agreementApprovalPolicy,
+            attributes: {
+              certified: [],
+              declared: [],
+              verified: [],
+            },
+            asyncExchangeProperties:
+              importedEservice.descriptor.asyncExchangeProperties,
+          },
+          {
+            headers,
+            params: {
+              eServiceId: eservice.id,
+              descriptorId: eservice.descriptors[0].id,
+            },
+          }
+        );
+        await pollEServiceById({
+          condition: (result) =>
+            result.descriptors.some(
+              (descriptor) =>
+                descriptor.id === eservice.descriptors[0].id &&
+                descriptor.asyncExchangeProperties !== undefined
+            ),
+        });
+      }
 
       for (const riskAnalysis of importedEservice.riskAnalysis) {
         try {
@@ -1812,6 +1996,33 @@ export function catalogServiceBuilder(
             (d) => d.id === descriptor.id && d.interface !== undefined
           ),
       });
+
+      if (asyncExchangeCallbackInterface) {
+        await verifyAndCreateImportedDocument(
+          fileManager,
+          unsafeBrandId(eservice.id),
+          apiTechnologyToTechnology(eservice.technology),
+          entriesMap,
+          asyncExchangeCallbackInterface,
+          "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
+          createEserviceDocumentRequest,
+          config.eserviceDocumentsContainer,
+          config.eserviceDocumentsPath,
+          {
+            maxFileSizeBytes: config.maxFileSizeBytes,
+            maxInterfaceFileSizeBytes: config.maxInterfaceFileSizeBytes,
+          },
+          context.logger
+        );
+        await pollEServiceById({
+          condition: (result) =>
+            result.descriptors.some(
+              (d) =>
+                d.id === descriptor.id &&
+                d.asyncExchangeCallbackInterface !== undefined
+            ),
+        });
+      }
 
       for (const doc of importedEservice.descriptor.docs) {
         await verifyAndCreateImportedDocument(

@@ -136,6 +136,7 @@ export function readModelServiceBuilderKPI(dbContext: DBContext) {
         })),
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        archivingRequestsSQL: [],
         asyncExchangePropertiesSQL,
       });
     },
