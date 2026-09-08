@@ -5,7 +5,7 @@ import {
   bffApi,
   SelfcareV2UsersClient,
 } from "pagopa-interop-api-clients";
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+import { getAllFromPaginated, retry, WithLogger } from "pagopa-interop-commons";
 import { CorrelationId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
@@ -15,11 +15,21 @@ import {
 } from "../api/authorizationApiConverter.js";
 import { AuthorizationProcessClient } from "../clients/clientsProvider.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import {
+  AUTHORIZATION_EVENT_CONFLICT_CODE,
+  EVENT_CONFLICT_MAX_ATTEMPTS,
+  EVENT_CONFLICT_RETRY_DELAY_MS,
+} from "../config/constants.js";
 import { clientNotFound } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
+import { isEventConflictWithCode } from "../utilities/eventConflict.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
 import { assertClientVisibilityIsFull } from "./validators.js";
+
+const isAuthorizationEventConflict = isEventConflictWithCode(
+  AUTHORIZATION_EVENT_CONFLICT_CODE
+);
 
 export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
   const {
@@ -271,10 +281,18 @@ export function clientServiceBuilder(apiClients: PagoPAInteropBeClients) {
     ): Promise<void> {
       logger.info(`Adding purpose ${purpose.purposeId} to client ${clientId}`);
 
-      await authorizationClient.client.addClientPurpose(purpose, {
-        params: { clientId },
-        headers,
-      });
+      await retry(
+        () =>
+          authorizationClient.client.addClientPurpose(purpose, {
+            params: { clientId },
+            headers,
+          }),
+        {
+          retries: EVENT_CONFLICT_MAX_ATTEMPTS,
+          delay: EVENT_CONFLICT_RETRY_DELAY_MS,
+          shouldRetry: isAuthorizationEventConflict,
+        }
+      );
     },
 
     async getClientUsers(
