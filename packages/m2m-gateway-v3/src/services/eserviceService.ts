@@ -343,7 +343,13 @@ export function eserviceServiceBuilder(
     const { group: attributeGroup, index: actualGroupIndex } =
       indexedAttributeGroup;
 
-    if (!attributeGroup.find((a) => a.id === attributeId)) {
+    const attribute = attributeGroup.find((a) => a.id === attributeId);
+
+    if (
+      !attribute ||
+      (attributeKind === "certified_discrete" &&
+        attribute.discreteConfig === undefined)
+    ) {
       throw eserviceDescriptorAttributeNotFound(descriptorId);
     }
 
