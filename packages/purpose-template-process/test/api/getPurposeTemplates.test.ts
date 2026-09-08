@@ -18,6 +18,7 @@ import { purposeTemplateToApiPurposeTemplate } from "../../src/model/domain/apiC
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 describe("API GET /purposeTemplates", () => {
+  const purposeTemplateIds = [generateId(), generateId()];
   const mockPurposeTemplate1: PurposeTemplate = {
     ...getMockPurposeTemplate(),
     purposeTitle: "Mock purpose template 1",
@@ -35,6 +36,7 @@ describe("API GET /purposeTemplates", () => {
     offset: 0,
     limit: 10,
     purposeTitle: "Mock title",
+    purposeTemplateIds: purposeTemplateIds.join(","),
     eserviceIds: generateId(),
     creatorIds: `${generateId()},${generateId()}`,
     states: `${purposeTemplateApi.PurposeTemplateState.Enum.PUBLISHED},${purposeTemplateApi.PurposeTemplateState.Enum.DRAFT}`,
@@ -91,6 +93,19 @@ describe("API GET /purposeTemplates", () => {
     }
   );
 
+  it("Should parse purposeTemplateIds and pass them to the service", async () => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(200);
+    expect(purposeTemplateService.getPurposeTemplates).toHaveBeenCalledWith(
+      expect.objectContaining({ purposeTemplateIds }),
+      { offset: defaultQuery.offset, limit: defaultQuery.limit },
+      expect.anything()
+    );
+  });
+
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
@@ -109,6 +124,12 @@ describe("API GET /purposeTemplates", () => {
     { query: { offset: "invalid", limit: 10 } },
     { query: { offset: 0, limit: "invalid" } },
     { query: { ...defaultQuery, eserviceIds: `${generateId()},invalid` } },
+    {
+      query: {
+        ...defaultQuery,
+        purposeTemplateIds: `${generateId()},invalid`,
+      },
+    },
     { query: { ...defaultQuery, creatorIds: `${generateId()},invalid` } },
     {
       query: {

@@ -15,6 +15,7 @@ import {
   emptyErrorMapper,
   EServiceId,
   EServiceTemplateId,
+  PurposeTemplateId,
   RiskAnalysisMultiAnswerId,
   RiskAnalysisSingleAnswerId,
   RiskAnalysisTemplateDocument,
@@ -106,6 +107,7 @@ const purposeTemplateRouter = (
         ]);
 
         const {
+          purposeTemplateIds,
           purposeTitle,
           creatorIds,
           eserviceIds,
@@ -120,6 +122,9 @@ const purposeTemplateRouter = (
         const purposeTemplates =
           await purposeTemplateService.getPurposeTemplates(
             {
+              purposeTemplateIds: purposeTemplateIds?.map(
+                unsafeBrandId<PurposeTemplateId>
+              ),
               purposeTitle,
               targetTenantKind,
               creatorIds: creatorIds?.map(unsafeBrandId<TenantId>),

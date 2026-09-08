@@ -201,6 +201,27 @@ describe("getPurposeTemplates", async () => {
     ]);
   });
 
+  it("should get purpose templates with filters: purposeTemplateIds", async () => {
+    const result = await purposeTemplateService.getPurposeTemplates(
+      {
+        purposeTemplateIds: [
+          publishedPurposeTemplateByCreator1.id,
+          suspendedPurposeTemplateByCreator2.id,
+        ],
+        eserviceIds: [],
+        creatorIds: [],
+        states: [],
+      },
+      { offset: 0, limit: 50 },
+      getMockContext({ authData: getMockAuthData(creatorId1) })
+    );
+
+    expectSinglePageListResult(result, [
+      publishedPurposeTemplateByCreator1,
+      suspendedPurposeTemplateByCreator2,
+    ]);
+  });
+
   it("should get purpose templates with filters: targetTenantKind", async () => {
     const result = await purposeTemplateService.getPurposeTemplates(
       {

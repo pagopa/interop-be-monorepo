@@ -77,6 +77,7 @@ import { z } from "zod";
 import { hasRoleToAccessDraftPurposeTemplates } from "./validators.js";
 
 export type GetPurposeTemplatesFilters = {
+  purposeTemplateIds?: PurposeTemplateId[];
   purposeTitle?: string;
   targetTenantKind?: TargetTenantKind;
   creatorIds: TenantId[];
@@ -104,6 +105,7 @@ const getPurposeTemplatesFilters = (
   resolvedEServiceTemplateIds: EServiceTemplateId[]
 ): SQL | undefined => {
   const {
+    purposeTemplateIds = [],
     purposeTitle,
     creatorIds,
     eserviceIds,
@@ -112,6 +114,14 @@ const getPurposeTemplatesFilters = (
     excludeExpiredRiskAnalysis,
     handlesPersonalData,
   } = filters;
+
+  const purposeTemplateIdsFilter =
+    purposeTemplateIds.length > 0
+      ? inArray(
+          purposeTemplateInReadmodelPurposeTemplate.id,
+          purposeTemplateIds
+        )
+      : undefined;
 
   const purposeTitleFilter = purposeTitle
     ? ilikeEscaped(
@@ -202,6 +212,7 @@ const getPurposeTemplatesFilters = (
       );
 
   return and(
+    purposeTemplateIdsFilter,
     purposeTitleFilter,
     creatorIdsFilter,
     eserviceIdsFilter,

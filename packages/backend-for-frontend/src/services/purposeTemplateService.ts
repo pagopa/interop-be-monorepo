@@ -375,6 +375,7 @@ export function purposeTemplateServiceBuilder(
         await purposeTemplateClient.getPurposeTemplates({
           headers,
           queries: {
+            purposeTemplateIds: [],
             purposeTitle,
             creatorIds: [authData.organizationId],
             states,
@@ -426,6 +427,7 @@ export function purposeTemplateServiceBuilder(
         await purposeTemplateClient.getPurposeTemplates({
           headers,
           queries: {
+            purposeTemplateIds: [],
             purposeTitle,
             targetTenantKind,
             creatorIds,
