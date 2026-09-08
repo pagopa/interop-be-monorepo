@@ -12,6 +12,7 @@ import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQ
 import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
 import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
 import { handlePurposeRiskAnalysisAssignmentRemovedToReviewer } from "./handlePurposeRiskAnalysisAssignmentRemovedToReviewer.js";
+import { handlePurposeRiskAnalysisRejectedToAdmin } from "./handlePurposeRiskAnalysisRejectedToAdmin.js";
 import { handlePurposeRiskAnalysisSignedToAdmin } from "./handlePurposeRiskAnalysisSignedToAdmin.js";
 import { handlePurposeRiskAnalysisSignedToReviewer } from "./handlePurposeRiskAnalysisSignedToReviewer.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
@@ -163,7 +164,6 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisRejected",
           "PurposeRiskAnalysisFormEdited"
         ),
       },
@@ -223,6 +223,13 @@ export async function handlePurposeEvent(
     )
     .with({ type: "DraftPurposeDeleted" }, ({ data: { purpose } }) =>
       handleDraftPurposeDeletedWithRiskAnalysisToReviewer(
+        purpose,
+        logger,
+        readModelService
+      )
+    )
+    .with({ type: "PurposeRiskAnalysisRejected" }, ({ data: { purpose } }) =>
+      handlePurposeRiskAnalysisRejectedToAdmin(
         purpose,
         logger,
         readModelService

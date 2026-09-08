@@ -16,6 +16,8 @@ export const eventMailTemplateType = {
     "purpose-risk-analysis-assignment-removed-to-reviewer-mail",
   purposeRiskAnalysisAssignedForWritingAndSigningToReviewerMailTemplate:
     "purpose-risk-analysis-assigned-for-writing-and-signing-to-reviewer-mail",
+  purposeRiskAnalysisRejectedToAdminMailTemplate:
+    "purpose-risk-analysis-rejected-to-admin-mail",
   agreementActivatedToConsumerMailTemplate:
     "agreement-activated-to-consumer-mail",
   agreementActivatedToProducerMailTemplate:
