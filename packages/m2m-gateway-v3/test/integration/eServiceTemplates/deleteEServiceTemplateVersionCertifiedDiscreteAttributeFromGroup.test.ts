@@ -49,6 +49,7 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
     ],
     [mockAttribute],
   ];
+  const mockNonDiscreteAttribute = mockCertifiedDiscreteAttributes[1][0];
 
   const mockVersion = getMockedApiEserviceTemplateVersion({
     attributes: {
@@ -262,6 +263,22 @@ describe("deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup", () 
     ).rejects.toThrow(
       eserviceTemplateVersionAttributeNotFound(unsafeBrandId(mockVersion.id))
     );
+  });
+
+  it("Should throw eserviceTemplateVersionAttributeNotFound for a non-discrete attribute in a mixed group", async () => {
+    await expect(
+      eserviceTemplateService.deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup(
+        unsafeBrandId(mockEServiceTemplate.id),
+        unsafeBrandId(mockVersion.id),
+        1,
+        unsafeBrandId(mockNonDiscreteAttribute.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrow(
+      eserviceTemplateVersionAttributeNotFound(unsafeBrandId(mockVersion.id))
+    );
+
+    expect(mockPatchUpdateTemplateVersion).not.toHaveBeenCalled();
   });
 
   it("Should throw eserviceTemplateVersionNotFound in case of eservice template version not found", async () => {
