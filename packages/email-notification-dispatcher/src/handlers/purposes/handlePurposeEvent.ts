@@ -11,6 +11,7 @@ import { handlePurposeArchived } from "./handlePurposeArchived.js";
 import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
 import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
 import { handlePurposeRiskAnalysisAssignmentRemovedToReviewer } from "./handlePurposeRiskAnalysisAssignmentRemovedToReviewer.js";
+import { handlePurposeRiskAnalysisSignedToAdmin } from "./handlePurposeRiskAnalysisSignedToAdmin.js";
 import { handlePurposeRiskAnalysisSignedToReviewer } from "./handlePurposeRiskAnalysisSignedToReviewer.js";
 import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
 import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
@@ -272,14 +273,24 @@ export async function handlePurposeEvent(
           correlationId,
         })
     )
-    .with({ type: "PurposeRiskAnalysisSigned" }, ({ data: { purpose } }) =>
-      handlePurposeRiskAnalysisSignedToReviewer({
-        purposeV2Msg: purpose,
-        logger,
-        readModelService,
-        templateService,
-        correlationId,
-      })
+    .with(
+      { type: "PurposeRiskAnalysisSigned" },
+      async ({ data: { purpose } }) => [
+        ...(await handlePurposeRiskAnalysisSignedToReviewer({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+        ...(await handlePurposeRiskAnalysisSignedToAdmin({
+          purposeV2Msg: purpose,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
+      ]
     )
     .exhaustive();
 }
