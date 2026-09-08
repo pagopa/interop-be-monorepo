@@ -2,7 +2,7 @@
 import { tenantApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import { generateToken, getMockTenant } from "pagopa-interop-commons-test";
-import { generateId, Tenant } from "pagopa-interop-models";
+import { generateId, Tenant, TenantId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -28,6 +28,7 @@ describe("API GET /tenants test", () => {
     limit: 10,
     name: "Tenant",
     features: "PERSISTENT_CERTIFIER,DELEGATED_PRODUCER",
+    tenantIds: "",
     externalIdOrigin: "",
     externalIdValue: "",
   };
@@ -77,6 +78,22 @@ describe("API GET /tenants test", () => {
     }
   );
 
+  it("Should parse tenantIds and pass them to the service", async () => {
+    const tenantIds = [generateId<TenantId>(), generateId<TenantId>()];
+    const token = generateToken(authRole.ADMIN_ROLE);
+
+    const res = await makeRequest(token, {
+      ...defaultQuery,
+      tenantIds: tenantIds.join(","),
+    });
+
+    expect(res.status).toBe(200);
+    expect(tenantService.getTenants).toHaveBeenCalledWith(
+      expect.objectContaining({ tenantIds }),
+      expect.anything()
+    );
+  });
+
   it.each(
     Object.values(authRole).filter((role) => !authorizedRoles.includes(role))
   )("Should return 403 for user with role %s", async (role) => {
@@ -97,6 +114,7 @@ describe("API GET /tenants test", () => {
     {
       query: { ...defaultQuery, features: "PERSISTENT_CERTIFIER,invalid" },
     },
+    { query: { ...defaultQuery, tenantIds: "invalid" } },
   ])("Should return 400 if passed invalid data: %s", async ({ query }) => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, query as typeof defaultQuery);

@@ -58,6 +58,42 @@ describe("getTenants", () => {
       expect(tenantsByName.totalCount).toBe(1);
       expect(tenantsByName.results).toEqual([tenant1]);
     });
+    it("should get tenants by ids", async () => {
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+
+      const tenantsByIds = await readModelService.getTenants({
+        tenantIds: [tenant1.id, tenant3.id],
+        name: undefined,
+        features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
+        offset: 0,
+        limit: 50,
+      });
+
+      expect(tenantsByIds.totalCount).toBe(2);
+      expect(tenantsByIds.results).toEqual([tenant1, tenant3]);
+    });
+    it("should paginate tenants filtered by ids", async () => {
+      await addOneTenant(tenant1);
+      await addOneTenant(tenant2);
+      await addOneTenant(tenant3);
+
+      const tenantsByIds = await readModelService.getTenants({
+        tenantIds: [tenant1.id, tenant3.id],
+        name: undefined,
+        features: [],
+        externalIdOrigin: undefined,
+        externalIdValue: undefined,
+        offset: 1,
+        limit: 1,
+      });
+
+      expect(tenantsByIds.totalCount).toBe(2);
+      expect(tenantsByIds.results).toEqual([tenant3]);
+    });
     it("should get tenants by feature", async () => {
       const tenantDelegatedProducer1: Tenant = {
         ...tenant1,
