@@ -91,7 +91,8 @@ try {
     headers,
     loggerInstance,
     config.attributeRegistryUrl,
-    config.attributeCreationWaitTime
+    config.attributeCreationWaitTime,
+    config.defaultPollingMaxRetries
   );
 
   loggerInstance.info("Assigning new attributes");
@@ -104,7 +105,7 @@ try {
     loggerInstance
   );
 
-  await assignNewAttributes(
+  const failedUpserts = await assignNewAttributes(
     attributesToAssign,
     tenantProcessClient,
     readModelServiceSQL,
@@ -124,7 +125,7 @@ try {
     attributes
   );
 
-  await revokeAttributes(
+  const failedRevocations = await revokeAttributes(
     attributesToRevoke,
     tenantProcessClient,
     readModelServiceSQL,
@@ -136,9 +137,16 @@ try {
     }
   );
 
-  loggerInstance.info("IPA certified attributes import completed");
+  loggerInstance.info(
+    `IPA certified attributes import completed. Failed upserts: ${failedUpserts}, failed revocations: ${failedRevocations}`
+  );
+
+  if (failedUpserts > 0 || failedRevocations > 0) {
+    process.exitCode = 1;
+  }
 } catch (error) {
   loggerInstance.error(error);
+  process.exitCode = 1;
 } finally {
   await cleanup();
 }
