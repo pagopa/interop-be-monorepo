@@ -316,6 +316,7 @@ export const createEServiceDescriptorAttributeGroupsErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createEServiceTemplateVersionAttributeGroupsErrorMapper = (
@@ -323,6 +324,7 @@ export const createEServiceTemplateVersionAttributeGroupsErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 export const deleteEServiceDescriptorAttributeFromGroupErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -382,6 +384,7 @@ export const assignEServiceDescriptorAttributesErrorMapper = (
       "eserviceDescriptorAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const assignEServiceTemplateVersionAttributesErrorMapper = (
@@ -394,6 +397,7 @@ export const assignEServiceTemplateVersionAttributesErrorMapper = (
       "eserviceTemplateVersionAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeTemplateRiskAnalysisErrorMapper = (

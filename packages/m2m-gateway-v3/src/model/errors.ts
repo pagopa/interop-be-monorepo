@@ -68,7 +68,8 @@ const errorCodes = {
   purposeVersionDocumentNotReady: "0046",
   eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound: "0047",
   clientNotFound: "0048",
-  tenantCertifiedDiscreteAttributeNotFound: "0049",
+  missingDiscreteConfig: "0049",
+  tenantCertifiedDiscreteAttributeNotFound: "0050",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -441,6 +442,16 @@ export function eserviceDescriptorAttributeNotFound(
     detail: `Attribute not found for descriptor ${descriptorId}`,
     code: "eserviceDescriptorAttributeNotFound",
     title: "E-Service Descriptor Attribute Not Found",
+  });
+}
+
+export function missingDiscreteConfig(
+  attributeId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Discrete configuration not found for attribute ${attributeId}`,
+    code: "missingDiscreteConfig",
+    title: "Missing discrete configuration",
   });
 }
 
