@@ -411,6 +411,11 @@ export const getMockBffApiRejectDelegatedEServiceDescriptorSeed =
     rejectionReason: generateMock(z.string()),
   });
 
+export const getMockBffApiRejectDelegatedDescriptorArchivingSeed =
+  (): bffApi.RejectDelegatedDescriptorArchivingSeed => ({
+    rejectionReason: generateMock(z.string()),
+  });
+
 export const getMockCatalogApiUpdateEServiceDescriptorQuotasSeed =
   (): catalogApi.UpdateEServiceDescriptorQuotasSeed => ({
     voucherLifespan: generateMock(z.number().int().gte(60).lte(86400)),

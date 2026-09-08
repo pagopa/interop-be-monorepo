@@ -3,7 +3,6 @@ import {
   EService,
   EServiceIdDescriptorId,
   NewNotification,
-  TenantId,
 } from "pagopa-interop-models";
 import {
   getNotificationRecipients,
@@ -67,15 +66,7 @@ export async function handleEserviceArchivingScheduledReminderInApp(
     log,
   });
 
-  const consumerNotifications = await buildConsumerNotifications({
-    eservice,
-    archivableOn,
-    entityId,
-    readModelService,
-    log,
-  });
-
-  return [...producerNotifications, ...consumerNotifications];
+  return producerNotifications;
 }
 
 type BuilderParams = {
@@ -107,42 +98,6 @@ async function buildProducerNotifications({
       archivableOn
     ),
     notificationType: "eserviceStateChangedToProducer",
-    entityId,
-  }));
-}
-
-async function buildConsumerNotifications({
-  eservice,
-  archivableOn,
-  entityId,
-  readModelService,
-  log,
-}: BuilderParams): Promise<NewNotification[]> {
-  const agreements = await readModelService.getAgreementsByEserviceId(
-    eservice.id,
-    { includeArchived: false }
-  );
-  const consumerIds = Array.from(
-    new Set(agreements.map((a) => a.consumerId))
-  ) as TenantId[];
-  if (consumerIds.length === 0) {
-    return [];
-  }
-
-  const recipients = await getNotificationRecipients(
-    consumerIds,
-    "eserviceStateChangedToConsumer",
-    readModelService,
-    log
-  );
-  return recipients.map(({ userId, tenantId }) => ({
-    userId,
-    tenantId,
-    body: inAppTemplates.eserviceArchivingScheduledReminderToConsumer(
-      eservice.name,
-      archivableOn
-    ),
-    notificationType: "eserviceStateChangedToConsumer",
     entityId,
   }));
 }

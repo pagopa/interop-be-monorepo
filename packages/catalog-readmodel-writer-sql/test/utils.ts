@@ -28,6 +28,8 @@ import {
   EServiceDescriptorArchivingScheduleSQL,
   EServiceDescriptorAsyncExchangePropertiesSQL,
   eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
+  EServiceDescriptorArchivingRequestSQL,
 } from "pagopa-interop-readmodel-models";
 import { inject, afterEach, expect } from "vitest";
 
@@ -85,6 +87,10 @@ export const checkCompleteEService = async (
     eservice.id,
     readModelDB
   );
+  const archivingRequestsSQL = await retrieveEServiceArchivingRequestsSQLById(
+    eservice.id,
+    readModelDB
+  );
   const asyncExchangePropertiesSQL =
     await retrieveEserviceAsyncExchangePropertiesSQLById(
       eservice.id,
@@ -124,6 +130,7 @@ export const checkCompleteEService = async (
     riskAnalysisAnswersSQL,
     templateVersionRefsSQL,
     archivingSchedulesSQL,
+    archivingRequestsSQL,
     asyncExchangePropertiesSQL,
   };
 };
@@ -240,6 +247,20 @@ export const retrieveEServiceArchivingSchedulesSQLById = async (
     .where(
       eq(
         eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
+        eserviceId
+      )
+    );
+
+export const retrieveEServiceArchivingRequestsSQLById = async (
+  eserviceId: EServiceId,
+  db: DrizzleReturnType
+): Promise<EServiceDescriptorArchivingRequestSQL[]> =>
+  await db
+    .select()
+    .from(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+    .where(
+      eq(
+        eserviceDescriptorArchivingRequestInReadmodelCatalog.eserviceId,
         eserviceId
       )
     );
