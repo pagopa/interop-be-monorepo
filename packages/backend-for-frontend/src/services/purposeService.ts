@@ -433,7 +433,7 @@ export function purposeServiceBuilder(
       ...purposes.results.map((p) => p.consumerId),
       ...eservices.map((e) => e.producerId),
     ]);
-    const tenants =
+    const bulkTenants =
       tenantIds.length > 0
         ? await getAllFromPaginated((offset, limit) =>
             tenantProcessClient.tenant.getTenants({
@@ -442,6 +442,17 @@ export function purposeServiceBuilder(
             })
           )
         : [];
+
+    // The list endpoint excludes tenants without selfcareId, unlike getTenant.
+    const bulkTenantIds = new Set(bulkTenants.map((tenant) => tenant.id));
+    const missingTenants = await Promise.all(
+      tenantIds
+        .filter((id) => !bulkTenantIds.has(id))
+        .map((id) =>
+          tenantProcessClient.tenant.getTenant({ params: { id }, headers })
+        )
+    );
+    const tenants = [...bulkTenants, ...missingTenants];
 
     const purposeTemplatesById = new Map(
       purposeTemplates.map((purposeTemplate) => [

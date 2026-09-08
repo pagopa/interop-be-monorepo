@@ -154,6 +154,42 @@ describe("getPurposes — bulk enrichment", () => {
     getAgreements.mockResolvedValue({ results: [agreement], totalCount: 1 });
   });
 
+  it.each([consumer, producer])(
+    "retrieves a $name without selfcareId omitted from the bulk response only once",
+    async (missingTenant) => {
+      const authData = getMockAuthData(undefined, undefined, [
+        userRole.VIEWER_ROLE,
+      ]);
+      const ctx = getBffMockContext(getMockContext({ authData }));
+      const expected = await purposeService.getConsumerPurposes({}, 0, 50, ctx);
+      getTenants.mockResolvedValue({
+        results: [consumer, producer].filter((t) => t.id !== missingTenant.id),
+        totalCount: 1,
+      });
+      getTenant.mockResolvedValue(missingTenant);
+
+      const result = await purposeService.getConsumerPurposes({}, 0, 50, ctx);
+
+      expect(missingTenant.selfcareId).toBeUndefined();
+      expect(result).toEqual(expected);
+      expect(getTenant).toHaveBeenCalledExactlyOnceWith({
+        params: { id: missingTenant.id },
+        headers: ctx.headers,
+      });
+    }
+  );
+
+  it("propagates an error when a tenant missing from the bulk response cannot be retrieved", async () => {
+    const ctx = getBffMockContext(getMockContext({}));
+    const error = new Error("Tenant not found");
+    getTenants.mockResolvedValue({ results: [producer], totalCount: 1 });
+    getTenant.mockRejectedValue(error);
+
+    await expect(
+      purposeService.getConsumerPurposes({}, 0, 50, ctx)
+    ).rejects.toBe(error);
+  });
+
   it("retrieves shared enrichment resources in bulk without changing the response", async () => {
     const authData = getMockAuthData(undefined, undefined, [
       userRole.VIEWER_ROLE,
