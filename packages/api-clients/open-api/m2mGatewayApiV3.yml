@@ -4908,7 +4908,7 @@ paths:
       tags:
         - eservices
       summary: List E-Service Descriptor Certified Attributes
-      description: Retrieve a list of E-Service Descriptor Certified Attributes
+      description: Retrieve a list containing only E-Service Descriptor Certified Attributes
       operationId: getEServiceDescriptorCertifiedAttributes
       parameters:
         - $ref: "#/components/parameters/OffsetParam"
@@ -4957,7 +4957,7 @@ paths:
       tags:
         - eservices
       summary: List E-Service Descriptor Certified Discrete Attributes
-      description: Retrieve a list of E-Service Descriptor Certified Discrete Attributes
+      description: Retrieve a list containing only E-Service Descriptor Certified Discrete Attributes
       operationId: getEServiceDescriptorCertifiedDiscreteAttributes
       parameters:
         - $ref: "#/components/parameters/OffsetParam"
