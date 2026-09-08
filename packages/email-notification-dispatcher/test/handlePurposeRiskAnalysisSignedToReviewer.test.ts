@@ -112,13 +112,18 @@ describe("handlePurposeRiskAnalysisSignedToReviewer", () => {
   });
 
   it("should email assigned reviewers except the signer", async () => {
-    const messages = await handlePurposeEvent({
+    const allMessages = await handlePurposeEvent({
       decodedMessage: event,
       logger,
       templateService,
       readModelService,
       correlationId,
     });
+    const messages = allMessages.filter(
+      (message) =>
+        message.email.subject ===
+        "L'analisi del rischio assegnata a te è già stata approvata"
+    );
 
     expect(messages).toHaveLength(otherReviewerIds.length);
     expect(
@@ -154,7 +159,7 @@ describe("handlePurposeRiskAnalysisSignedToReviewer", () => {
       },
     };
 
-    const messages = await handlePurposeEvent({
+    const allMessages = await handlePurposeEvent({
       decodedMessage: {
         ...event,
         data: { purpose: toPurposeV2(singleReviewerPurpose) },
@@ -164,10 +169,19 @@ describe("handlePurposeRiskAnalysisSignedToReviewer", () => {
       readModelService,
       correlationId,
     });
+    const messages = allMessages.filter(
+      (message) =>
+        message.email.subject ===
+        "L'analisi del rischio assegnata a te è già stata approvata"
+    );
 
     expect(messages).toEqual([]);
     expect(
       readModelService.getTenantUsersWithNotificationEnabled
-    ).not.toHaveBeenCalled();
+    ).not.toHaveBeenCalledWith(
+      [consumerId],
+      "purposeRiskAnalysisSignedToReviewer",
+      "email"
+    );
   });
 });
