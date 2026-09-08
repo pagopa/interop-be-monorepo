@@ -11,10 +11,12 @@ const APIProcessServerConfig = z
   .object({
     AGREEMENT_PROCESS_URL: APIEndpoint,
     PURPOSE_PROCESS_URL: APIEndpoint,
+    CATALOG_PROCESS_URL: APIEndpoint,
   })
   .transform((c) => ({
     agreementProcessUrl: c.AGREEMENT_PROCESS_URL,
     purposeProcessUrl: c.PURPOSE_PROCESS_URL,
+    catalogProcessUrl: c.CATALOG_PROCESS_URL,
   }));
 
 const DelegationItemsArchiverConfig = APIProcessServerConfig.and(

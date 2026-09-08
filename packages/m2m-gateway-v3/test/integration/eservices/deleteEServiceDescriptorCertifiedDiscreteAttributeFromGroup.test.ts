@@ -241,6 +241,38 @@ describe("deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup", () => {
     });
   });
 
+  it("Should not delete a certified attribute from a mixed certified discrete group", async () => {
+    const certifiedAttribute = getMockedApiEServiceAttribute();
+    const discreteAttribute = getMockedApiCertifiedDiscreteAttribute();
+    const mixedDescriptor = getMockedApiEserviceDescriptor({
+      attributes: {
+        certified: [[certifiedAttribute, discreteAttribute]],
+        declared: [],
+        verified: [],
+      },
+    });
+    const mixedEService = getMockedApiEservice({
+      descriptors: [mixedDescriptor],
+    });
+    const mixedEServiceResponse = getMockWithMetadata(mixedEService);
+
+    mockGetEService.mockResolvedValueOnce(mixedEServiceResponse);
+
+    await expect(
+      eserviceService.deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup(
+        unsafeBrandId(mixedEService.id),
+        unsafeBrandId(mixedDescriptor.id),
+        0,
+        unsafeBrandId(certifiedAttribute.id),
+        getMockM2MAdminAppContext()
+      )
+    ).rejects.toThrow(
+      eserviceDescriptorAttributeNotFound(unsafeBrandId(mixedDescriptor.id))
+    );
+
+    expect(mockPatchUpdateDescriptor).not.toHaveBeenCalled();
+  });
+
   it("Should throw missingMetadata in case the eservice returned by the update PATCH call has no metadata", async () => {
     mockGetEService.mockResolvedValueOnce(mockGetEServiceResponse);
 

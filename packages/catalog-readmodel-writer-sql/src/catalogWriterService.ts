@@ -27,6 +27,7 @@ import {
   eserviceInReadmodelCatalog,
   eserviceRiskAnalysisAnswerInReadmodelCatalog,
   eserviceRiskAnalysisInReadmodelCatalog,
+  eserviceDescriptorArchivingRequestInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
@@ -47,6 +48,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
       eserviceRiskAnalysisAnswerInReadmodelCatalog,
       eserviceDescriptorArchivingScheduleInReadmodelCatalog,
       eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog,
+      eserviceDescriptorArchivingRequestInReadmodelCatalog,
     ];
 
     for (const table of catalogTables) {
@@ -120,6 +122,7 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           templateVersionRefsSQL,
           archivingSchedulesSQL,
           asyncExchangePropertiesSQL,
+          archivingRequestsSQL,
         } = splitEserviceIntoObjectsSQL(eservice, metadataVersion);
 
         await tx.insert(eserviceInReadmodelCatalog).values(eserviceSQL);
@@ -182,6 +185,11 @@ export function catalogWriterServiceBuilder(db: DrizzleReturnType) {
           await tx
             .insert(eserviceDescriptorAsyncExchangePropertiesInReadmodelCatalog)
             .values(asyncExchangePropsSQL);
+        }
+        for (const archivingRequestSQL of archivingRequestsSQL) {
+          await tx
+            .insert(eserviceDescriptorArchivingRequestInReadmodelCatalog)
+            .values(archivingRequestSQL);
         }
       });
     },

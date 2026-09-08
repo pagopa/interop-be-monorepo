@@ -23,6 +23,7 @@ import {
   checkCompleteEService,
   readModelDB,
   retrieveEServiceArchivingSchedulesSQLById,
+  retrieveEServiceArchivingRequestsSQLById,
   retrieveEserviceAsyncExchangePropertiesSQLById,
   retrieveEserviceDescriptorAttributesSQLById,
   retrieveEserviceDescriptorsSQLById,
@@ -95,6 +96,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        archivingRequestsSQL,
         asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
@@ -109,6 +111,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        archivingRequestsSQL,
         asyncExchangePropertiesSQL,
       });
 
@@ -168,6 +171,11 @@ describe("E-service queries", () => {
           eservice.id,
           readModelDB
         );
+      const archivingRequestsSQL =
+        await retrieveEServiceArchivingRequestsSQLById(
+          eservice.id,
+          readModelDB
+        );
       const asyncExchangePropertiesSQL =
         await retrieveEserviceAsyncExchangePropertiesSQLById(
           eservice.id,
@@ -195,6 +203,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        archivingRequestsSQL,
         asyncExchangePropertiesSQL,
       });
 
@@ -265,6 +274,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        archivingRequestsSQL,
         asyncExchangePropertiesSQL,
       } = await checkCompleteEService(eservice);
 
@@ -279,6 +289,7 @@ describe("E-service queries", () => {
         riskAnalysisAnswersSQL,
         templateVersionRefsSQL,
         archivingSchedulesSQL,
+        archivingRequestsSQL,
         asyncExchangePropertiesSQL,
       });
 

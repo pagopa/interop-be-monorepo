@@ -6,6 +6,9 @@
   "description": "common test utilities",
   "main": "dist",
   "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
   "scripts": {
     "test:unit": "vitest",
     "test:it": "vitest integration",
