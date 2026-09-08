@@ -8,6 +8,7 @@ import {
   createVerifiedAttributeScenario,
   createRevokedAttributeScenario,
   createCertifiedAssignedAttributeScenario,
+  createCertifiedDiscreteAttributeScenario,
   createCertifiedRevokedAttributeScenario,
   createTenantWithMultipleAttributes,
   TEST_TIME_WINDOWS,
@@ -465,6 +466,29 @@ describe("ReadModelService - getCertifiedAssignedAttributes", () => {
       });
     });
 
+    test("should return discrete certified assigned attributes within the 7-day window", async () => {
+      const tenantId = generateId<TenantId>();
+
+      const { attribute, certifier } =
+        await createCertifiedDiscreteAttributeScenario({
+          tenantId,
+          attributeName: "Test Discrete Certified Assigned",
+          assignmentDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+        });
+
+      const result =
+        await readModelService.getCertifiedAssignedAttributes(tenantId);
+
+      expect(result).toEqual([
+        {
+          attributeName: attribute.name,
+          certifierName: certifier.name,
+          state: "assigned",
+          totalCount: 1,
+        },
+      ]);
+    });
+
     test("should not return certified attributes assigned more than 7 days ago", async () => {
       const tenantId = generateId<TenantId>();
 
@@ -554,6 +578,30 @@ describe("ReadModelService - getCertifiedRevokedAttributes", () => {
         state: "revoked",
         totalCount: 1,
       });
+    });
+
+    test("should return discrete certified revoked attributes within the 7-day window", async () => {
+      const tenantId = generateId<TenantId>();
+
+      const { attribute, certifier } =
+        await createCertifiedDiscreteAttributeScenario({
+          tenantId,
+          attributeName: "Test Discrete Certified Revoked",
+          assignmentDaysAgo: TEST_TIME_WINDOWS.OUTSIDE_RANGE,
+          revocationDaysAgo: TEST_TIME_WINDOWS.WITHIN_RANGE,
+        });
+
+      const result =
+        await readModelService.getCertifiedRevokedAttributes(tenantId);
+
+      expect(result).toEqual([
+        {
+          attributeName: attribute.name,
+          certifierName: certifier.name,
+          state: "revoked",
+          totalCount: 1,
+        },
+      ]);
     });
 
     test("should not return certified attributes revoked more than 7 days ago", async () => {

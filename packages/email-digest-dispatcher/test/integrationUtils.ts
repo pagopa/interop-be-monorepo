@@ -32,6 +32,7 @@ import {
   Attribute,
   AttributeId,
   attributeKind,
+  CertifiedDiscreteTenantAttribute,
   VerifiedTenantAttribute,
   CertifiedTenantAttribute,
   tenantAttributeType,
@@ -741,6 +742,18 @@ const createMockCertifiedTenantAttribute = (
   revocationTimestamp,
 });
 
+const createMockCertifiedDiscreteTenantAttribute = (
+  attributeId: AttributeId,
+  assignmentTimestamp: Date,
+  revocationTimestamp?: Date
+): CertifiedDiscreteTenantAttribute => ({
+  id: attributeId,
+  type: tenantAttributeType.CERTIFIED_DISCRETE,
+  assignmentTimestamp,
+  revocationTimestamp,
+  discreteValue: 42,
+});
+
 /**
  * Creates a tenant with a certified assigned attribute
  */
@@ -778,6 +791,25 @@ const createTenantWithCertifiedRevokedAttribute = (
   return createMockTenant({
     id: tenantId,
     attributes: [certifiedAttribute],
+  });
+};
+
+const createTenantWithCertifiedDiscreteAttribute = (
+  tenantId: TenantId,
+  attributeId: AttributeId,
+  assignmentTimestamp: Date,
+  revocationTimestamp?: Date
+): Tenant => {
+  const certifiedDiscreteAttribute: CertifiedDiscreteTenantAttribute =
+    createMockCertifiedDiscreteTenantAttribute(
+      attributeId,
+      assignmentTimestamp,
+      revocationTimestamp
+    );
+
+  return createMockTenant({
+    id: tenantId,
+    attributes: [certifiedDiscreteAttribute],
   });
 };
 
@@ -866,6 +898,54 @@ export const createCertifiedRevokedAttributeScenario = async (config: {
   await addOneTenant(certifier);
 
   const tenant = createTenantWithCertifiedRevokedAttribute(
+    config.tenantId,
+    attribute.id,
+    assignmentTimestamp,
+    revocationTimestamp
+  );
+  await addOneTenant(tenant);
+
+  return { tenant, attribute, certifier };
+};
+
+export const createCertifiedDiscreteAttributeScenario = async (config: {
+  tenantId: TenantId;
+  attributeName?: string;
+  assignmentDaysAgo: number;
+  revocationDaysAgo?: number;
+  certifierId?: string;
+  certifierName?: string;
+}): Promise<{
+  tenant: Tenant;
+  attribute: Attribute;
+  certifier: Tenant;
+}> => {
+  const assignmentTimestamp: Date = daysAgo(config.assignmentDaysAgo);
+  const revocationTimestamp: Date | undefined =
+    config.revocationDaysAgo === undefined
+      ? undefined
+      : daysAgo(config.revocationDaysAgo);
+  const certifierId: string = config.certifierId ?? generateId<TenantId>();
+  const attribute: Attribute = createMockAttribute({
+    kind: attributeKind.certifiedDiscrete,
+    origin: certifierId,
+    ...(config.attributeName ? { name: config.attributeName } : {}),
+  });
+
+  await addOneAttribute(attribute);
+
+  const certifier: Tenant = createMockTenant({
+    name: config.certifierName ?? `Certifier ${certifierId}`,
+    features: [
+      {
+        type: tenantFeatureType.persistentCertifier,
+        certifierId,
+      },
+    ],
+  });
+  await addOneTenant(certifier);
+
+  const tenant: Tenant = createTenantWithCertifiedDiscreteAttribute(
     config.tenantId,
     attribute.id,
     assignmentTimestamp,
