@@ -6,12 +6,15 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  EService,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
+  Purpose,
   PurposeEventEnvelope,
   PurposeId,
   riskAnalysisSigningState,
+  Tenant,
   TenantId,
   toPurposeV2,
   UserId,
@@ -31,19 +34,19 @@ describe("handlePurposeRiskAnalysisAssignedForSigningToReviewer", () => {
   const reviewerIds = [generateId<UserId>(), generateId<UserId>()];
   const unrelatedUserId = generateId<UserId>();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
     name: "E-service test",
     descriptors: [getMockDescriptorPublished()],
   };
-  const producer = {
+  const producer: Tenant = {
     ...getMockTenant(producerId),
     name: "Ente erogatore",
   };
   const consumer = getMockTenant(consumerId);
-  const purpose = {
+  const purpose: Purpose = {
     ...getMockPurpose(),
     id: purposeId,
     eserviceId,
@@ -138,7 +141,7 @@ describe("handlePurposeRiskAnalysisAssignedForSigningToReviewer", () => {
       ...reviewerIds.map((userId) => ({ userId, tenantId: consumerId })),
       { userId: unrelatedUserId, tenantId: consumerId },
     ]);
-    const purposeWithReviewers = {
+    const purposeWithReviewers: Purpose = {
       ...purpose,
       reviewerWorkflow: {
         reviewers: reviewerIds.map((id) => ({ id })),
