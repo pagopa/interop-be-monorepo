@@ -5,6 +5,8 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  EService,
+  Purpose,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
@@ -29,7 +31,7 @@ describe("handlePurposeRiskAnalysisSignedToReviewer", () => {
   const signedBy = generateId<UserId>();
   const otherReviewerIds = [generateId<UserId>(), generateId<UserId>()];
   const unrelatedUserId = generateId<UserId>();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     name: "E-service test",
@@ -46,7 +48,7 @@ describe("handlePurposeRiskAnalysisSignedToReviewer", () => {
       signingState: riskAnalysisSigningState.signed,
       signedBy,
     },
-  };
+  } satisfies Purpose;
   const event: PurposeEventEnvelope = {
     event_version: 2,
     type: "PurposeRiskAnalysisSigned",
@@ -110,7 +112,7 @@ describe("handlePurposeRiskAnalysisSignedToReviewer", () => {
   });
 
   it("should not create notifications when the signer is the only reviewer", async () => {
-    const singleReviewerPurpose = {
+    const singleReviewerPurpose: Purpose = {
       ...purpose,
       reviewerWorkflow: {
         ...purpose.reviewerWorkflow,
