@@ -1,0 +1,25 @@
+name: Delete branch on PR close (unmerged)
+
+on:
+  pull_request:
+    types:
+      - "closed"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  delete-branch:
+    if: |
+      github.event.pull_request.merged == false &&
+      !contains(fromJSON('["develop", "main"]'), github.head_ref)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete branch
+        run: |
+          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${{ github.head_ref }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
