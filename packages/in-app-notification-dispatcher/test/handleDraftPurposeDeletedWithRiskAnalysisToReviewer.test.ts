@@ -6,6 +6,8 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  EService,
+  Purpose,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
@@ -46,8 +48,8 @@ describe("handleDraftPurposeDeletedWithRiskAnalysisToReviewer", () => {
       ],
       signingState: riskAnalysisSigningState.draft,
     },
-  };
-  const eservice = {
+  } satisfies Purpose;
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
