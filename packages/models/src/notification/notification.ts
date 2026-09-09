@@ -39,7 +39,7 @@ export const NotificationType = z.enum([
   "purposePublishedWithRiskAnalysisToReviewer", // Finalità pubblicata con analisi del rischio assegnata al valutatore
   "draftPurposeDeletedWithRiskAnalysisToReviewer", // Bozza di finalità eliminata con analisi del rischio assegnata a valutatore
   "purposeRiskAnalysisAssignmentRemovedToReviewer", // Assegnazione analisi del rischio rimossa
-  "purposeRiskAnalysisSignedToReviewer", // Assegnazione analisi del rischio approvata da un altro valutatore
+  "purposeRiskAnalysisSignedToReviewer", // Analisi del rischio approvata da un altro valutatore
   "purposeRiskAnalysisSignedToAdmin", // Approvazione analisi del rischio
   "purposeRiskAnalysisRejectedToAdmin", // Rifiuto analisi del rischio
 ]);
