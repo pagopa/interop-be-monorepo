@@ -79,7 +79,7 @@ describe("updateTenantVerifiedAttribute", async () => {
         updateVerifiedTenantAttributeSeed,
       },
       getMockContext({
-        authData: getMockAuthData(verifierId),
+        authData: getMockAuthData({ organizationId: verifierId }),
       })
     );
     const writtenEvent = await readLastTenantEvent(tenant.id);
@@ -122,7 +122,7 @@ describe("updateTenantVerifiedAttribute", async () => {
           updateVerifiedTenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(verifierId),
+          authData: getMockAuthData({ organizationId: verifierId }),
         })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
@@ -148,7 +148,7 @@ describe("updateTenantVerifiedAttribute", async () => {
           updateVerifiedTenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(verifierId),
+          authData: getMockAuthData({ organizationId: verifierId }),
         })
       )
     ).rejects.toThrowError(
@@ -190,7 +190,7 @@ describe("updateTenantVerifiedAttribute", async () => {
           updateVerifiedTenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(verifierId),
+          authData: getMockAuthData({ organizationId: verifierId }),
         })
       )
     ).rejects.toThrowError(

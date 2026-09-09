@@ -57,7 +57,7 @@ describe("suspendPurposeTemplate", () => {
 
     const suspendResponse = await purposeTemplateService.suspendPurposeTemplate(
       purposeTemplate.id,
-      getMockContext({ authData: getMockAuthData(creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
     );
 
     const updatedPurposeTemplate = suspendResponse.data;
@@ -106,7 +106,7 @@ describe("suspendPurposeTemplate", () => {
     await expect(async () => {
       await purposeTemplateService.suspendPurposeTemplate(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(otherTenantId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: otherTenantId }) })
       );
     }).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
@@ -148,7 +148,7 @@ describe("suspendPurposeTemplate", () => {
       await expect(async () => {
         await purposeTemplateService.suspendPurposeTemplate(
           purposeTemplateWithUnexpectedState.id,
-          getMockContext({ authData: getMockAuthData(creatorId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
         );
       }).rejects.toThrowError(error);
     }

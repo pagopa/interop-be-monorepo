@@ -35,7 +35,7 @@ describe("getClientUsers", async () => {
       {
         clientId: mockClient.id,
       },
-      getMockContext({ authData: getMockAuthData(organizationId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
     );
     expect(users.sort()).toEqual([userId1, userId2].sort());
   });
@@ -60,7 +60,7 @@ describe("getClientUsers", async () => {
           clientId: mockClient.id,
         },
         getMockContext({
-          authData: getMockAuthData(organizationIdNotMatchWithConsumer),
+          authData: getMockAuthData({ organizationId: organizationIdNotMatchWithConsumer }),
         })
       )
     ).rejects.toThrowError(

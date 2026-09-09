@@ -50,7 +50,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
   const eserviceId2 = generateId<EServiceId>();
 
   const asyncEservice: EService = {
-    ...getMockEService(eserviceId1, producerId),
+    ...getMockEService({ eserviceId: eserviceId1, producerId: producerId }),
     asyncExchange: true,
     descriptors: [
       {
@@ -60,7 +60,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
   };
 
   const syncEservice: EService = {
-    ...getMockEService(eserviceId2, producerId),
+    ...getMockEService({ eserviceId: eserviceId2, producerId: producerId }),
     asyncExchange: false,
     descriptors: [
       {
@@ -69,7 +69,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
     ],
   };
 
-  const producerTenant = getMockTenant(producerId);
+  const producerTenant = getMockTenant({ tenantId: producerId });
 
   const { logger } = getMockContext({});
 
@@ -279,7 +279,7 @@ describe("handleProducerKeychainNoKeysForAsyncEservice", () => {
     it("should include multiple async e-service names comma-separated", async () => {
       const eserviceId3 = generateId<EServiceId>();
       const asyncEservice2: EService = {
-        ...getMockEService(eserviceId3, producerId),
+        ...getMockEService({ eserviceId: eserviceId3, producerId: producerId }),
         asyncExchange: true,
         name: "Async EService 2",
         descriptors: [

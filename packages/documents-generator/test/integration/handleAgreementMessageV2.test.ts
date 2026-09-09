@@ -147,7 +147,7 @@ describe("handleAgreementMessageV2", () => {
   it("should generate and store a contract for an 'AgreementActivated' event", async () => {
     const mockDescriptorId = generateId<DescriptorId>();
     const mockAgreement = {
-      ...getMockAgreement(mockEServiceId, mockConsumerId, "Active"),
+      ...getMockAgreement({ eserviceId: mockEServiceId, consumerId: mockConsumerId, state: "Active" }),
       producerId: mockProducerId,
       id: mockAgreementId,
       descriptorId: mockDescriptorId,
@@ -169,13 +169,13 @@ describe("handleAgreementMessageV2", () => {
       publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     };
     const mockEService = {
-      ...getMockEService(mockEServiceId, mockProducerId, [descriptor]),
+      ...getMockEService({ eserviceId: mockEServiceId, producerId: mockProducerId, descriptors: [descriptor] }),
     };
     const mockConsumer = {
-      ...getMockTenant(mockConsumerId),
+      ...getMockTenant({ tenantId: mockConsumerId }),
     };
     const mockProducer = {
-      ...getMockTenant(mockProducerId),
+      ...getMockTenant({ tenantId: mockProducerId }),
     };
     await addOneAgreement(mockAgreement);
     await addOneEService(mockEService);
@@ -228,17 +228,17 @@ describe("handleAgreementMessageV2", () => {
     const consumerId: TenantId = generateId();
 
     const certifiedAttribute: Attribute = {
-      ...getMockAttribute("Certified", mockAttributeIdCertified),
+      ...getMockAttribute({ kind: "Certified", id: mockAttributeIdCertified }),
       kind: "Certified",
     };
 
     const declaredAttribute: Attribute = {
-      ...getMockAttribute("Declared", mockAttributeIdDeclared),
+      ...getMockAttribute({ kind: "Declared", id: mockAttributeIdDeclared }),
       kind: "Declared",
     };
 
     const verifiedAttribute: Attribute = {
-      ...getMockAttribute("Verified", mockAttributeIdVerified),
+      ...getMockAttribute({ kind: "Verified", id: mockAttributeIdVerified }),
       kind: "Verified",
     };
 
@@ -341,7 +341,7 @@ describe("handleAgreementMessageV2", () => {
     };
 
     const mockConsumer: Tenant = {
-      ...getMockTenant(consumerId),
+      ...getMockTenant({ tenantId: consumerId }),
       selfcareId: generateId(),
       attributes: [
         validTenantCertifiedAttribute,
@@ -482,7 +482,7 @@ describe("handleAgreementMessageV2", () => {
     );
   });
   it("should not process an 'AgreementAdded' event and only log an info message", async () => {
-    const mockAgreement = getMockAgreement(mockEServiceId, mockConsumerId);
+    const mockAgreement = getMockAgreement({ eserviceId: mockEServiceId, consumerId: mockConsumerId });
 
     const mockEvent: AgreementEventEnvelopeV2 = {
       sequence_num: 1,
@@ -512,7 +512,7 @@ describe("handleAgreementMessageV2", () => {
   });
   it("should throw eServiceNotFound error if EService is missing for an 'AgreementActivated' event", async () => {
     const mockAgreement = {
-      ...getMockAgreement(mockEServiceId, mockConsumerId, "Active"),
+      ...getMockAgreement({ eserviceId: mockEServiceId, consumerId: mockConsumerId, state: "Active" }),
       producerId: mockProducerId,
       id: mockAgreementId,
       stamps: {
@@ -547,7 +547,7 @@ describe("handleAgreementMessageV2", () => {
 
   it("should throw tenantNotFound error if Consumer Tenant is missing for an 'AgreementActivated' event", async () => {
     const mockAgreement = {
-      ...getMockAgreement(mockEServiceId, mockConsumerId, "Active"),
+      ...getMockAgreement({ eserviceId: mockEServiceId, consumerId: mockConsumerId, state: "Active" }),
       producerId: mockProducerId,
       id: mockAgreementId,
       stamps: {
@@ -575,7 +575,7 @@ describe("handleAgreementMessageV2", () => {
       publishedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
     };
     const newMockEService = {
-      ...getMockEService(mockEServiceId, mockProducerId, [newDescriptor]),
+      ...getMockEService({ eserviceId: mockEServiceId, producerId: mockProducerId, descriptors: [newDescriptor] }),
     };
     await addOneEService(newMockEService);
 

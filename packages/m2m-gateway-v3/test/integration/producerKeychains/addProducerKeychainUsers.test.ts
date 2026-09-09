@@ -30,7 +30,7 @@ describe("addProducerKeychainUsers", () => {
     userId: generateId(),
   };
 
-  const mockTenant = getMockTenant(tenantId);
+  const mockTenant = getMockTenant({ tenantId: tenantId });
   const mockTenantWithMetadata = getMockWithMetadata(mockTenant);
   const mockTenantWithoutSelfcareId = getMockWithMetadata({
     ...mockTenant,

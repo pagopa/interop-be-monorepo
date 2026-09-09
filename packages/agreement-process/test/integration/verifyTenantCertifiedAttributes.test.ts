@@ -47,27 +47,20 @@ describe("Verify Tenant Certified Attributes", () => {
     revocationTimestamp: undefined,
   };
 
-  const mockTenant = getMockTenant(undefined, [
+  const mockTenant = getMockTenant({ tenantId: undefined, attributes: [
     attribute1,
     attribute2,
     attribute3,
-  ]);
-  const mockDescriptor = getMockDescriptorPublished(
-    generateId<DescriptorId>(),
-    [
+  ] });
+  const mockDescriptor = getMockDescriptorPublished({ descriptorId: generateId<DescriptorId>(), certifiedAttributes: [
       [
         getMockEServiceAttribute(attribute1.id),
         getMockEServiceAttribute(attribute2.id),
         getMockEServiceAttribute(attribute3.id),
       ],
-    ]
-  );
+    ] });
 
-  const mockEService = getMockEService(
-    generateId<EServiceId>(),
-    generateId<TenantId>(),
-    [mockDescriptor]
-  );
+  const mockEService = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [mockDescriptor] });
   describe("With delegationId", () => {
     const mockDelegation = getMockDelegation({
       kind: "DelegatedConsumer",
@@ -92,7 +85,7 @@ describe("Verify Tenant Certified Attributes", () => {
           descriptorId: mockDescriptor.id,
           eserviceId: mockEService.id,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       );
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
@@ -132,7 +125,7 @@ describe("Verify Tenant Certified Attributes", () => {
           descriptorId: mockDescriptor.id,
           eserviceId: mockEService.id,
         },
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
       );
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
@@ -166,7 +159,7 @@ describe("Verify Tenant Certified Attributes", () => {
           descriptorId: mockDescriptor.id,
           eserviceId: mockEService.id,
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       );
 
       expect(result).toEqual({ hasCertifiedAttributes: true });
@@ -181,7 +174,7 @@ describe("Verify Tenant Certified Attributes", () => {
             descriptorId: mockDescriptor.id,
             eserviceId: mockEService.id,
           },
-          getMockContext({ authData: getMockAuthData(tenantId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenantId }) })
         )
       ).rejects.toThrowError(tenantNotFound(tenantId));
     });
@@ -197,7 +190,7 @@ describe("Verify Tenant Certified Attributes", () => {
             descriptorId: mockDescriptor.id,
             eserviceId,
           },
-          getMockContext({ authData: getMockAuthData(mockTenant.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
         )
       ).rejects.toThrowError(eServiceNotFound(eserviceId));
     });
@@ -214,7 +207,7 @@ describe("Verify Tenant Certified Attributes", () => {
             descriptorId,
             eserviceId: mockEService.id,
           },
-          getMockContext({ authData: getMockAuthData(mockTenant.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
         )
       ).rejects.toThrowError(descriptorNotFound(mockEService.id, descriptorId));
     });

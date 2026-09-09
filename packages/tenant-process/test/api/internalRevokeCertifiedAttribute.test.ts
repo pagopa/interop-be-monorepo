@@ -16,7 +16,7 @@ import {
 import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API DELETE /internal/origin/{tOrigin}/externalId/{tExternalId}/attributes/origin/{aOrigin}/externalId/{aExternalId} test", () => {
-  const attribute = getMockAttribute(attributeKind.certified);
+  const attribute = getMockAttribute({ kind: attributeKind.certified });
   const targetTenant: Tenant = {
     ...getMockTenant(),
     attributes: [],

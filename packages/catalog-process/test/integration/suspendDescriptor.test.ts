@@ -57,7 +57,7 @@ describe("suspend descriptor", () => {
       const suspendDescriptorResponse = await catalogService.suspendDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -114,7 +114,7 @@ describe("suspend descriptor", () => {
     const suspendDescriptorResponse = await catalogService.suspendDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -154,7 +154,7 @@ describe("suspend descriptor", () => {
       catalogService.suspendDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -201,7 +201,7 @@ describe("suspend descriptor", () => {
       catalogService.suspendDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -217,7 +217,7 @@ describe("suspend descriptor", () => {
       catalogService.suspendDescriptor(
         eservice.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -246,7 +246,7 @@ describe("suspend descriptor", () => {
         catalogService.suspendDescriptor(
           eservice.id,
           descriptor.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }

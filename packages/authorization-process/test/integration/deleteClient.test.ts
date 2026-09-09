@@ -33,7 +33,7 @@ describe("delete client", () => {
       {
         clientId: mockClient.id,
       },
-      getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockConsumer.id }) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -85,7 +85,7 @@ describe("delete client", () => {
         {
           clientId: mockClient.id,
         },
-        getMockContext({ authData: getMockAuthData(mockConsumer2.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumer2.id }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnClient(mockConsumer2.id, mockClient.id)

@@ -36,7 +36,7 @@ describe("remove client key", () => {
     const mockConsumer = getMockTenant();
     const keyToRemove = getMockKey();
     const keyToNotRemove = getMockKey();
-    const mockAuthData = getMockAuthData(mockConsumer.id);
+    const mockAuthData = getMockAuthData({ organizationId: mockConsumer.id });
 
     const mockClient: Client = {
       ...getMockClient(),
@@ -92,7 +92,7 @@ describe("remove client key", () => {
         clientId: mockClient.id,
         keyIdToRemove: keyToRemove.kid,
       },
-      getMockContext({ authData: getMockAuthData(mockConsumer.id, mockUserId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockConsumer.id, userId: mockUserId }) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -132,7 +132,7 @@ describe("remove client key", () => {
           clientId: mockClient.id,
           keyIdToRemove: keyToRemove.kid,
         },
-        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumer.id }) })
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
@@ -155,7 +155,7 @@ describe("remove client key", () => {
           clientId: mockClient.id,
           keyIdToRemove: notExistingKeyId,
         },
-        getMockContext({ authData: getMockAuthData(mockConsumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumer.id }) })
       )
     ).rejects.toThrowError(clientKeyNotFound(notExistingKeyId, mockClient.id));
   });
@@ -177,7 +177,7 @@ describe("remove client key", () => {
           clientId: mockClient.id,
           keyIdToRemove: keyToRemove.kid,
         },
-        getMockContext({ authData: getMockAuthData(mockConsumer2.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumer2.id }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnClient(mockConsumer2.id, mockClient.id)
@@ -203,9 +203,9 @@ describe("remove client key", () => {
           keyIdToRemove: keyToRemove.kid,
         },
         getMockContext({
-          authData: getMockAuthData(mockConsumer.id, mockUserId, [
+          authData: getMockAuthData({ organizationId: mockConsumer.id, userId: mockUserId, userRoles: [
             userRole.SECURITY_ROLE,
-          ]),
+          ] }),
         })
       )
     ).rejects.toThrowError(userNotAllowedOnClient(mockUserId, mockClient.id));
@@ -230,9 +230,9 @@ describe("remove client key", () => {
           keyIdToRemove: keyToRemove.kid,
         },
         getMockContext({
-          authData: getMockAuthData(mockConsumer.id, mockUserId, [
+          authData: getMockAuthData({ organizationId: mockConsumer.id, userId: mockUserId, userRoles: [
             userRole.SECURITY_ROLE,
-          ]),
+          ] }),
         })
       )
     ).rejects.toThrowError(

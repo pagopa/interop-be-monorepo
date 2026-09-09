@@ -396,12 +396,12 @@ describe("integration tests V1 events", async () => {
       const purpose1: Purpose = {
         ...getMockPurpose(),
         consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
         consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const oldKey = getMockKey();
       const addedKey = getMockKey();
@@ -723,12 +723,12 @@ describe("integration tests V1 events", async () => {
       const purpose1: Purpose = {
         ...getMockPurpose(),
         consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
         consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const oldKey = getMockKey();
       const addedKey = getMockKey();
@@ -1834,7 +1834,7 @@ describe("integration tests V1 events", async () => {
       const purpose: Purpose = {
         ...getMockPurpose(),
         consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const client: Client = {
         ...getMockClient(),
@@ -2060,12 +2060,12 @@ describe("integration tests V1 events", async () => {
       const purpose1: Purpose = {
         ...getMockPurpose(),
         consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
         consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
 
       const client: Client = {
@@ -2371,12 +2371,12 @@ describe("integration tests V1 events", async () => {
       const purpose1: Purpose = {
         ...getMockPurpose(),
         consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purpose2: Purpose = {
         ...getMockPurpose(),
         consumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
 
       const client: Client = {

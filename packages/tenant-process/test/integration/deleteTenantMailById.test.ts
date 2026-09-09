@@ -61,7 +61,7 @@ describe("deleteTenantMailById", async () => {
         mailId,
       },
       getMockContext({
-        authData: getMockAuthData(tenant.id),
+        authData: getMockAuthData({ organizationId: tenant.id }),
       })
     );
     const writtenEvent = await readLastEventByStreamId(
@@ -108,7 +108,7 @@ describe("deleteTenantMailById", async () => {
           mailId,
         },
         getMockContext({
-          authData: getMockAuthData(tenantId),
+          authData: getMockAuthData({ organizationId: tenantId }),
         })
       )
     ).rejects.toThrowError(tenantNotFound(tenantId));
@@ -158,7 +158,7 @@ describe("deleteTenantMailById", async () => {
           mailId: mailIdNotInTenant,
         },
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(mailNotFound(mailIdNotInTenant));

@@ -63,7 +63,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
         answerId,
         validRiskAnalysisAnswerAnnotationRequest,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       );
 
@@ -170,9 +170,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
         answerId,
         updatedAnnotationRequest,
         getMockContext({
-          authData: getMockAuthData(
-            mockPurposeTemplateWithAnnotation.creatorId
-          ),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplateWithAnnotation.creatorId }),
         })
       );
 
@@ -209,7 +207,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
         answerId,
         requestWithHyperlink,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrow(hyperlinkDetectionError(textWithHyperlink).message);
@@ -239,9 +237,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
         generateId<RiskAnalysisSingleAnswerId>(),
         validRiskAnalysisAnswerAnnotationRequest,
         getMockContext({
-          authData: getMockAuthData(
-            purposeTemplateWithoutRiskAnalysis.creatorId
-          ),
+          authData: getMockAuthData({ organizationId: purposeTemplateWithoutRiskAnalysis.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -271,7 +267,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
         nonExistentAnswerId,
         validRiskAnalysisAnswerAnnotationRequest,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -296,7 +292,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
         generateId<RiskAnalysisSingleAnswerId>(),
         validRiskAnalysisAnswerAnnotationRequest,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
@@ -327,7 +323,7 @@ describe("addRiskAnalysisAnswerAnnotation", () => {
         answerId,
         validRiskAnalysisAnswerAnnotationRequest,
         getMockContext({
-          authData: getMockAuthData(differentCreatorId),
+          authData: getMockAuthData({ organizationId: differentCreatorId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));

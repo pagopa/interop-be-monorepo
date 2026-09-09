@@ -81,7 +81,7 @@ describe("integration tests for events V2", () => {
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const payload: PurposeActivatedV2 = {
         purpose: toPurposeV2(purpose),
@@ -133,7 +133,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purposeId = purpose.id;
       const purposeVersions = purpose.versions;
@@ -257,7 +257,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const payload: PurposeActivatedV2 = {
         purpose: toPurposeV2(purpose),
@@ -342,7 +342,7 @@ describe("integration tests for events V2", () => {
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purposeVersions = purpose.versions;
       const payload: PurposeActivatedV2 = {
@@ -458,7 +458,7 @@ describe("integration tests for events V2", () => {
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purposeVersions = purpose.versions;
       const payload: PurposeActivatedV2 = {
@@ -477,7 +477,7 @@ describe("integration tests for events V2", () => {
       // platform-states
       const mockDescriptor = getMockDescriptor();
       const mockAgreement: Agreement = {
-        ...getMockAgreement(purpose.eserviceId, purpose.consumerId),
+        ...getMockAgreement({ eserviceId: purpose.eserviceId, consumerId: purpose.consumerId }),
         descriptorId: mockDescriptor.id,
         stamps: {
           activation: {
@@ -639,7 +639,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -743,8 +743,8 @@ describe("integration tests for events V2", () => {
       const messageVersion = 3;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
-        getMockPurposeVersion(purposeVersionState.waitingForApproval),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
+        getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -877,7 +877,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -934,7 +934,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purposeId = purpose.id;
       const purposeVersions = purpose.versions;
@@ -1059,7 +1059,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const payload: PurposeVersionActivatedV2 = {
         purpose: toPurposeV2(purpose),
@@ -1145,7 +1145,7 @@ describe("integration tests for events V2", () => {
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purposeVersions = purpose.versions;
       const payload: PurposeVersionActivatedV2 = {
@@ -1262,7 +1262,7 @@ describe("integration tests for events V2", () => {
 
       const purpose: Purpose = {
         ...getMockPurpose(),
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const purposeVersions = purpose.versions;
       const payload: PurposeVersionActivatedV2 = {
@@ -1282,7 +1282,7 @@ describe("integration tests for events V2", () => {
       // platform-states
       const mockDescriptor = getMockDescriptor();
       const mockAgreement: Agreement = {
-        ...getMockAgreement(purpose.eserviceId, purpose.consumerId),
+        ...getMockAgreement({ eserviceId: purpose.eserviceId, consumerId: purpose.consumerId }),
         descriptorId: mockDescriptor.id,
         stamps: {
           activation: {
@@ -1444,7 +1444,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -1548,7 +1548,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 2;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -1672,7 +1672,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 2;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.suspended),
+        getMockPurposeVersion({ state: purposeVersionState.suspended }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -1804,7 +1804,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -1908,7 +1908,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 2;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -2032,7 +2032,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 2;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.suspended),
+        getMockPurposeVersion({ state: purposeVersionState.suspended }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -2164,7 +2164,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.suspended),
+        getMockPurposeVersion({ state: purposeVersionState.suspended }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -2270,7 +2270,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 2;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.suspended),
+        getMockPurposeVersion({ state: purposeVersionState.suspended }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -2396,7 +2396,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 2;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.suspended),
+        getMockPurposeVersion({ state: purposeVersionState.suspended }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -2529,7 +2529,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 1;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.suspended),
+        getMockPurposeVersion({ state: purposeVersionState.suspended }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -2635,7 +2635,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 2;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.suspended),
+        getMockPurposeVersion({ state: purposeVersionState.suspended }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -2761,7 +2761,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 2;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.suspended),
+        getMockPurposeVersion({ state: purposeVersionState.suspended }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),
@@ -2894,7 +2894,7 @@ describe("integration tests for events V2", () => {
       const messageVersion = 2;
 
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.active),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
       ];
       const purpose: Purpose = {
         ...getMockPurpose(),

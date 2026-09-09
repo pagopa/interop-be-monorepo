@@ -37,7 +37,7 @@ describe("remove producer keychain key", () => {
     const keyToRemove = getMockKey();
     const keyToNotRemove = getMockKey();
 
-    const authData = getMockAuthData(mockProducer.id);
+    const authData = getMockAuthData({ organizationId: mockProducer.id });
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -85,7 +85,7 @@ describe("remove producer keychain key", () => {
     const mockUserId: UserId = generateId();
     const anotherUserId: UserId = generateId();
 
-    const authData = getMockAuthData(mockProducer.id, mockUserId);
+    const authData = getMockAuthData({ organizationId: mockProducer.id, userId: mockUserId });
 
     const keyToRemove: Key = {
       ...getMockKey(),
@@ -136,7 +136,7 @@ describe("remove producer keychain key", () => {
     const mockProducer = getMockTenant();
     const keyToRemove = getMockKey();
 
-    const authData = getMockAuthData(mockProducer.id);
+    const authData = getMockAuthData({ organizationId: mockProducer.id });
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -162,7 +162,7 @@ describe("remove producer keychain key", () => {
     const notExistingKeyId = generateId();
     const keyToNotRemove = getMockKey();
 
-    const authData = getMockAuthData(mockProducer.id);
+    const authData = getMockAuthData({ organizationId: mockProducer.id });
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -190,7 +190,7 @@ describe("remove producer keychain key", () => {
     const mockProducer2 = getMockTenant();
     const keyToRemove = getMockKey();
 
-    const authData = getMockAuthData(mockProducer2.id);
+    const authData = getMockAuthData({ organizationId: mockProducer2.id });
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),
@@ -239,9 +239,9 @@ describe("remove producer keychain key", () => {
           keyIdToRemove: keyToRemove.kid,
         },
         getMockContext({
-          authData: getMockAuthData(mockProducer.id, mockUserId, [
+          authData: getMockAuthData({ organizationId: mockProducer.id, userId: mockUserId, userRoles: [
             userRole.SECURITY_ROLE,
-          ]),
+          ] }),
         })
       )
     ).rejects.toThrowError(
@@ -268,9 +268,9 @@ describe("remove producer keychain key", () => {
           keyIdToRemove: keyToRemove.kid,
         },
         getMockContext({
-          authData: getMockAuthData(mockProducer.id, mockUserId, [
+          authData: getMockAuthData({ organizationId: mockProducer.id, userId: mockUserId, userRoles: [
             userRole.SECURITY_ROLE,
-          ]),
+          ] }),
         })
       )
     ).rejects.toThrowError(

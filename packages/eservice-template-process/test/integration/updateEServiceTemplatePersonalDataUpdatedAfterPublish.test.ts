@@ -49,7 +49,7 @@ describe("update EService Template personalData flag for an already created ESer
         eserviceTemplate.id,
         newPersonalDataValue,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
 
@@ -106,7 +106,7 @@ describe("update EService Template personalData flag for an already created ESer
           eserviceTemplate.id,
           newValue,
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -125,7 +125,7 @@ describe("update EService Template personalData flag for an already created ESer
           eserviceTemplate.id,
           personalDataFlag,
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
@@ -163,7 +163,7 @@ describe("update EService Template personalData flag for an already created ESer
           eserviceTemplate.id,
           personalDataFlag,
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(

@@ -21,9 +21,9 @@ import { api, clients, services } from "../../vitest.api.setup.js";
 describe("API POST /reverse/purposes/{purposeId} test", () => {
   const mockPurposeUpdateContent = getMockBffApiPurposeUpdateContent();
   const mockPurposeVersionResource = getMockBffApiPurposeVersionResource();
-  const mockPurpose = getMockPurpose([
+  const mockPurpose = getMockPurpose({ versions: [
     { ...getMockPurposeVersion(), id: mockPurposeVersionResource.versionId },
-  ]);
+  ] });
 
   beforeEach(() => {
     clients.purposeProcessClient.updateReversePurpose = vi

@@ -55,11 +55,11 @@ describe("handlePurposeVersionRejected", async () => {
     descriptors: [descriptor],
   };
   const producerTenant: Tenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     name: "Producer Tenant",
   };
   const consumerTenant = {
-    ...getMockTenant(consumerId),
+    ...getMockTenant({ tenantId: consumerId }),
     name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };
@@ -116,7 +116,7 @@ describe("handlePurposeVersionRejected", async () => {
     const unknownConsumerId = generateId<TenantId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: eservice.id,
       consumerId: unknownConsumerId,
     };
@@ -143,7 +143,7 @@ describe("handlePurposeVersionRejected", async () => {
     await addOneEService(eserviceWithUnknownProducer);
 
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: eserviceWithUnknownProducer.id,
       consumerId: consumerTenant.id,
     };
@@ -164,7 +164,7 @@ describe("handlePurposeVersionRejected", async () => {
     const unknownEServiceId = generateId<EServiceId>();
 
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: unknownEServiceId,
       consumerId: consumerTenant.id,
     };
@@ -183,7 +183,7 @@ describe("handlePurposeVersionRejected", async () => {
 
   it("should generate one message per user of the consumer", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -223,7 +223,7 @@ describe("handlePurposeVersionRejected", async () => {
       ]);
 
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -252,7 +252,7 @@ describe("handlePurposeVersionRejected", async () => {
 
   it("should generate one message to the consumer", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -289,7 +289,7 @@ describe("handlePurposeVersionRejected", async () => {
     await addOneTenant(consumerTenantWithMultipleMails);
 
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: eservice.id,
       consumerId: consumerTenantWithMultipleMails.id,
     };
@@ -323,7 +323,7 @@ describe("handlePurposeVersionRejected", async () => {
       });
 
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: eservice.id,
       consumerId: consumerTenant.id,
     };
@@ -349,7 +349,7 @@ describe("handlePurposeVersionRejected", async () => {
 
   it("should generate a complete and correct message", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId,
       consumerId,
     };
@@ -386,7 +386,7 @@ describe("handlePurposeVersionRejected", async () => {
 
   it("should use purposeVersionRejectedMailTemplate and not purposeVersionActivatedMailTemplate", async () => {
     const purpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId,
       consumerId,
     };

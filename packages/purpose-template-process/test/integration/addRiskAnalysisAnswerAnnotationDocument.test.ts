@@ -127,7 +127,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           subjectAnswerId,
           validAnnotationDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         );
 
@@ -202,7 +202,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         subjectSingleAnswer.id,
         validAnnotationDocumentSeed,
         getMockContext({
-          authData: getMockAuthData(existentPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -223,7 +223,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         subjectSingleAnswer.id,
         validAnnotationDocumentSeed,
         getMockContext({
-          authData: getMockAuthData(publishedPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: publishedPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -248,7 +248,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         subjectSingleAnswer.id,
         validAnnotationDocumentSeed,
         getMockContext({
-          authData: getMockAuthData(existentPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -285,7 +285,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           subjectAnswerId,
           validAnnotationDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -342,7 +342,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           subjectAnswerId,
           validAnnotationDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -399,7 +399,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           subjectAnswerId,
           validAnnotationDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -447,7 +447,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           subjectAnswerId,
           validAnnotationDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -506,7 +506,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           subjectAnswerId,
           validAnnotationDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(annotationDocumentLimitExceeded(subjectAnswerId));
@@ -524,7 +524,7 @@ describe("addRiskAnalysisTemplateAnswerAnnotationDocument", () => {
         subjectSingleAnswer.id,
         validAnnotationDocumentSeed,
         getMockContext({
-          authData: getMockAuthData(differentCreatorId),
+          authData: getMockAuthData({ organizationId: differentCreatorId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(existentPurposeTemplate.id));

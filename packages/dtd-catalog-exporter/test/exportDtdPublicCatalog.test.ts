@@ -64,9 +64,9 @@ describe("exportDtdPublicCatalog", () => {
 
   it("should correctly retrieve and remap eservices from json file", async () => {
     const producerMock = getMockTenant();
-    const attribute1Mock = getMockAttribute("Declared");
-    const attribute2Mock = getMockAttribute("Declared");
-    const attribute3Mock = getMockAttribute("Declared");
+    const attribute1Mock = getMockAttribute({ kind: "Declared" });
+    const attribute2Mock = getMockAttribute({ kind: "Declared" });
+    const attribute3Mock = getMockAttribute({ kind: "Declared" });
 
     const descriptorMock: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -195,7 +195,7 @@ describe("exportDtdPublicCatalog", () => {
 
   it("should throw an error if an eservice attribute is not present in the readmodel", async () => {
     const producerMock = getMockTenant();
-    const attributeMock = getMockAttribute("Declared");
+    const attributeMock = getMockAttribute({ kind: "Declared" });
 
     const descriptorMock: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -226,9 +226,9 @@ describe("exportDtdPublicCatalog", () => {
 
   it("should correctly convert eservices to a csv", async () => {
     const producerMock = getMockTenant();
-    const attribute1Mock = getMockAttribute("Declared");
-    const attribute2Mock = getMockAttribute("Declared");
-    const attribute3Mock = getMockAttribute("Declared");
+    const attribute1Mock = getMockAttribute({ kind: "Declared" });
+    const attribute2Mock = getMockAttribute({ kind: "Declared" });
+    const attribute3Mock = getMockAttribute({ kind: "Declared" });
 
     const descriptorMock: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -304,12 +304,9 @@ describe("exportDtdPublicCatalog", () => {
   it("should correctly convert tenants to a csv", async () => {
     const producerId = generateId<TenantId>();
     const producerAttribute = getMockCertifiedTenantAttribute();
-    const producerMock = getMockTenant(producerId, [producerAttribute]);
+    const producerMock = getMockTenant({ tenantId: producerId, attributes: [producerAttribute] });
 
-    const attribute: Attribute = getMockAttribute(
-      attributeKind.certified,
-      producerAttribute.id
-    );
+    const attribute: Attribute = getMockAttribute({ kind: attributeKind.certified, id: producerAttribute.id });
 
     const publicTenant: PublicTenant = {
       id: producerMock.id,

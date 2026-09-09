@@ -142,7 +142,7 @@ describe("patchUpdatePurposeFromTemplate", () => {
   // Purpose Seed
   // ========================
   const draftPurpose: Purpose = {
-    ...getMockPurpose([getMockPurposeVersion()]),
+    ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
     eserviceId: eservice.id,
     consumerId: consumer.id,
     riskAnalysisForm: validRiskAnalysis.riskAnalysisForm,

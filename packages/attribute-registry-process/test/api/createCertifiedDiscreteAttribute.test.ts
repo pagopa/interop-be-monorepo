@@ -17,7 +17,7 @@ describe("API /certifiedDiscreteAttributes authorization test", () => {
       description: "This is a certified discrete attribute",
       code: "001",
     };
-  const mockAttribute = getMockAttribute(attributeKind.certifiedDiscrete);
+  const mockAttribute = getMockAttribute({ kind: attributeKind.certifiedDiscrete });
 
   const apiAttribute = attributeRegistryApi.Attribute.parse(
     toApiAttribute(mockAttribute)

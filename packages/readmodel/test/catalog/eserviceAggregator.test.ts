@@ -215,7 +215,7 @@ describe("E-service aggregator", () => {
     }
 
     // Given numbers are just casual
-    const eservice = getMockEService(undefined, undefined, [
+    const eservice = getMockEService({ eserviceId: undefined, producerId: undefined, descriptors: [
       {
         ...getMockDescriptor(),
         version: "1",
@@ -240,7 +240,7 @@ describe("E-service aggregator", () => {
           maxAttributesNum: 5,
         }),
       },
-    ]);
+    ] });
 
     // eslint-disable-next-line functional/no-let
     let serialized = EServiceAddedV2.toBinary({

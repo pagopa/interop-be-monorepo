@@ -35,7 +35,7 @@ describe("getProducerKeychainKeyById", async () => {
         producerKeychainId: mockProducerKeychain.id,
         kid: mockKey1.kid,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
     expect(retrievedKey).toEqual(mockKey1);
   });
@@ -55,7 +55,7 @@ describe("getProducerKeychainKeyById", async () => {
           producerKeychainId: mockProducerKeychain.id,
           kid: mockKey.kid,
         },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnProducerKeychain(
@@ -79,7 +79,7 @@ describe("getProducerKeychainKeyById", async () => {
           producerKeychainId: mockProducerKeychain.id,
           kid: mockKey.kid,
         },
-        getMockContext({ authData: getMockAuthData(producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
       )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
@@ -99,7 +99,7 @@ describe("getProducerKeychainKeyById", async () => {
           producerKeychainId: mockProducerKeychain.id,
           kid: mockKey.kid,
         },
-        getMockContext({ authData: getMockAuthData(producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
       )
     ).rejects.toThrowError(
       producerKeyNotFound(mockKey.kid, mockProducerKeychain.id)

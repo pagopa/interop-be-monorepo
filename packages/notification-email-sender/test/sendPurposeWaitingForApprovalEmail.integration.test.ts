@@ -50,11 +50,7 @@ describe("sendPurposeWaitingForApprovalEmail", () => {
     await addOneTenant(producer);
 
     const descriptor = getMockDescriptor();
-    const eservice: EService = getMockEService(
-      generateId<EServiceId>(),
-      producer.id,
-      [descriptor]
-    );
+    const eservice: EService = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: producer.id, descriptors: [descriptor] });
     await addOneEService(eservice);
 
     const purpose: Purpose = {

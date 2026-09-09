@@ -209,7 +209,7 @@ export const getTenantOneCertifierFeature = (
 export const getMockDescriptorArchiving = (
   descriptorId: DescriptorId = generateId<DescriptorId>()
 ): Descriptor => ({
-  ...getMockDescriptor(descriptorState.archiving),
+  ...getMockDescriptor({ state: descriptorState.archiving }),
   id: descriptorId,
   state: descriptorState.archiving,
   archivingSchedule: {
@@ -220,13 +220,18 @@ export const getMockDescriptorArchiving = (
   },
 });
 
-export const getMockDescriptorPublished = (
-  descriptorId: DescriptorId = generateId<DescriptorId>(),
-  certifiedAttributes: EServiceAttribute[][] = [],
-  declaredAttributes: EServiceAttribute[][] = [],
-  verifiedAttributes: EServiceAttribute[][] = []
-): Descriptor => ({
-  ...getMockDescriptor(descriptorState.published),
+export const getMockDescriptorPublished = ({
+  descriptorId = generateId<DescriptorId>(),
+  certifiedAttributes = [],
+  declaredAttributes = [],
+  verifiedAttributes = [],
+}: {
+  descriptorId?: DescriptorId;
+  certifiedAttributes?: EServiceAttribute[][];
+  declaredAttributes?: EServiceAttribute[][];
+  verifiedAttributes?: EServiceAttribute[][];
+} = {}): Descriptor => ({
+  ...getMockDescriptor({ state: descriptorState.published }),
   id: descriptorId,
   state: descriptorState.published,
   attributes: {
@@ -266,12 +271,17 @@ export const getMockEServiceAttributes = (): EserviceAttributes => ({
   verified: [[getMockEServiceAttribute(), getMockEServiceAttribute()]],
 });
 
-export const getMockEService = (
-  eserviceId: EServiceId = generateId<EServiceId>(),
-  producerId: TenantId = generateId<TenantId>(),
-  descriptors: Descriptor[] = [],
-  templateId?: EServiceTemplateId | undefined
-): EService => ({
+export const getMockEService = ({
+  eserviceId = generateId<EServiceId>(),
+  producerId = generateId<TenantId>(),
+  descriptors = [],
+  templateId,
+}: {
+  eserviceId?: EServiceId;
+  producerId?: TenantId;
+  descriptors?: Descriptor[];
+  templateId?: EServiceTemplateId;
+} = {}): EService => ({
   id: eserviceId,
   name: "eService name",
   description: "eService description",
@@ -344,10 +354,13 @@ export const getMockEServiceTemplateAttributeCertifiedDiscrete = (
   discreteConfig: getMockEServiceAttributeCertifiedDiscreteConfig(),
 });
 
-export const getMockTenant = (
-  tenantId: TenantId = generateId<TenantId>(),
-  attributes: TenantAttribute[] = []
-): Tenant => ({
+export const getMockTenant = ({
+  tenantId = generateId<TenantId>(),
+  attributes = [],
+}: {
+  tenantId?: TenantId;
+  attributes?: TenantAttribute[];
+} = {}): Tenant => ({
   name: "A tenant",
   id: tenantId,
   createdAt: new Date(),
@@ -390,11 +403,15 @@ export const getMockAgreementStamps = (): AgreementStamps => {
   return stamps;
 };
 
-export const getMockAgreement = (
-  eserviceId: EServiceId = generateId<EServiceId>(),
-  consumerId: TenantId = generateId<TenantId>(),
-  state: AgreementState = agreementState.draft
-): Agreement => ({
+export const getMockAgreement = ({
+  eserviceId = generateId<EServiceId>(),
+  consumerId = generateId<TenantId>(),
+  state = agreementState.draft,
+}: {
+  eserviceId?: EServiceId;
+  consumerId?: TenantId;
+  state?: AgreementState;
+} = {}): Agreement => ({
   ...generateMock(Agreement),
   eserviceId,
   consumerId,
@@ -403,10 +420,13 @@ export const getMockAgreement = (
   stamps: getMockAgreementStamps(),
 });
 
-export const getMockAttribute = (
-  kind: AttributeKind = attributeKind.certified,
-  id: AttributeId = generateId()
-): Attribute => {
+export const getMockAttribute = ({
+  kind = attributeKind.certified,
+  id = generateId<AttributeId>(),
+}: {
+  kind?: AttributeKind;
+  id?: AttributeId;
+} = {}): Attribute => {
   if (kind === attributeKind.certified) {
     return getMockCertifiedAttribute(kind, id);
   }
@@ -432,11 +452,15 @@ export const getMockCertifiedAttribute = (
   creationTime: new Date(),
 });
 
-export const getMockPurpose = (versions?: PurposeVersion[]): Purpose => ({
+export const getMockPurpose = ({
+  versions = [],
+}: {
+  versions?: PurposeVersion[];
+} = {}): Purpose => ({
   id: generateId(),
   eserviceId: generateId(),
   consumerId: generateId(),
-  versions: versions ?? [],
+  versions,
   title: "Purpose 1 - test",
   description: "Test purpose - description",
   createdAt: new Date(),
@@ -461,12 +485,15 @@ export const getMockPurposeTemplate = (
   handlesPersonalData,
 });
 
-export const getMockPurposeVersion = (
-  state?: PurposeVersionState,
-  stamps?: PurposeVersionStamps
-): PurposeVersion => ({
+export const getMockPurposeVersion = ({
+  state = purposeVersionState.draft,
+  stamps,
+}: {
+  state?: PurposeVersionState;
+  stamps?: PurposeVersionStamps;
+} = {}): PurposeVersion => ({
   id: generateId(),
-  state: state || purposeVersionState.draft,
+  state,
   riskAnalysis: getMockPurposeVersionDocument(),
   dailyCalls: 10,
   createdAt: new Date(),
@@ -501,11 +528,15 @@ export const getMockPurposeVersionSignedDocument =
 export const getMockPurposeVersionStamps = (): PurposeVersionStamps =>
   generateMock(PurposeVersionStamps);
 
-export const getMockDescriptor = (state?: DescriptorState): Descriptor => ({
+export const getMockDescriptor = ({
+  state = descriptorState.draft,
+}: {
+  state?: DescriptorState;
+} = {}): Descriptor => ({
   id: generateId(),
   version: "1",
   docs: [],
-  state: state || descriptorState.draft,
+  state,
   audience: ["pagopa.it"],
   voucherLifespan: 60,
   dailyCallsPerConsumer: 10,
@@ -645,15 +676,19 @@ export const getMockProducerJWKKey = (
   );
 };
 
-export const getMockAuthData = (
-  organizationId?: TenantId,
-  userId?: UserId,
-  userRoles?: UserRole[]
-): UIAuthData => ({
+export const getMockAuthData = ({
+  organizationId = generateId<TenantId>(),
+  userId = generateId<UserId>(),
+  userRoles = [userRole.ADMIN_ROLE],
+}: {
+  organizationId?: TenantId;
+  userId?: UserId;
+  userRoles?: UserRole[];
+} = {}): UIAuthData => ({
   systemRole: undefined,
-  organizationId: organizationId || generateId(),
-  userId: userId || generateId(),
-  userRoles: userRoles || [userRole.ADMIN_ROLE],
+  organizationId,
+  userId,
+  userRoles,
   externalId: {
     value: "123456",
     origin: "IPA",

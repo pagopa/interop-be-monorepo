@@ -114,20 +114,11 @@ describe("clone agreement", () => {
       validCertifiedTenantAttribute.id
     );
 
-    const consumer = getMockTenant(consumerId, [validCertifiedTenantAttribute]);
+    const consumer = getMockTenant({ tenantId: consumerId, attributes: [validCertifiedTenantAttribute] });
 
-    const descriptor = getMockDescriptorPublished(
-      generateId<DescriptorId>(),
-      [[validCertifiedEserviceAttribute]],
-      // Declared and verified attributes shall not be validated: we add some random ones to test that
-      [[getMockEServiceAttribute()]],
-      [[getMockEServiceAttribute()]]
-    );
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    const descriptor = getMockDescriptorPublished({ descriptorId: generateId<DescriptorId>(), certifiedAttributes: [[validCertifiedEserviceAttribute]], declaredAttributes: // Declared and verified attributes shall not be validated: we add some random ones to test that
+      [[getMockEServiceAttribute()]], verifiedAttributes: [[getMockEServiceAttribute()]] });
+    const eservice = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [descriptor] });
 
     const agreementId = generateId<AgreementId>();
 
@@ -136,11 +127,7 @@ describe("clone agreement", () => {
       getMockConsumerDocument(agreementId)
     );
     const agreementToBeCloned = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementClonableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementClonableStates) }),
       id: agreementId,
       producerId: eservice.producerId,
       descriptorId: descriptor.id,
@@ -156,15 +143,11 @@ describe("clone agreement", () => {
     }
 
     const anotherNonConflictingAgreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(
           Object.values(agreementState).filter(
             (s) => !agreementCloningConflictingStates.includes(s)
           )
-        )
-      ),
+        ) }),
       producerId: eservice.producerId,
     };
     await addOneAgreement(anotherNonConflictingAgreement);
@@ -231,20 +214,11 @@ describe("clone agreement", () => {
       validCertifiedTenantAttribute.id
     );
 
-    const consumer = getMockTenant(consumerId, [validCertifiedTenantAttribute]);
+    const consumer = getMockTenant({ tenantId: consumerId, attributes: [validCertifiedTenantAttribute] });
 
-    const descriptor = getMockDescriptorPublished(
-      generateId<DescriptorId>(),
-      [[validCertifiedEserviceAttribute]],
-      // Declared and verified attributes shall not be validated: we add some random ones to test that
-      [[getMockEServiceAttribute()]],
-      [[getMockEServiceAttribute()]]
-    );
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    const descriptor = getMockDescriptorPublished({ descriptorId: generateId<DescriptorId>(), certifiedAttributes: [[validCertifiedEserviceAttribute]], declaredAttributes: // Declared and verified attributes shall not be validated: we add some random ones to test that
+      [[getMockEServiceAttribute()]], verifiedAttributes: [[getMockEServiceAttribute()]] });
+    const eservice = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [descriptor] });
 
     const agreementId = generateId<AgreementId>();
 
@@ -253,11 +227,7 @@ describe("clone agreement", () => {
       getMockConsumerDocument(agreementId)
     );
     const agreementToBeCloned = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementClonableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementClonableStates) }),
       id: agreementId,
       producerId: eservice.producerId,
       descriptorId: descriptor.id,
@@ -283,15 +253,11 @@ describe("clone agreement", () => {
     await addSomeRandomDelegations(agreementToBeCloned, addOneDelegation);
 
     const anotherNonConflictingAgreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(
           Object.values(agreementState).filter(
             (s) => !agreementCloningConflictingStates.includes(s)
           )
-        )
-      ),
+        ) }),
       producerId: eservice.producerId,
     };
     await addOneAgreement(anotherNonConflictingAgreement);
@@ -356,11 +322,7 @@ describe("clone agreement", () => {
 
   it("should throw an tenantIsNotTheConsumer error when the requester is not the Consumer", async () => {
     const authData = getMockAuthData();
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      randomArrayItem(agreementClonableStates)
-    );
+    const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: randomArrayItem(agreementClonableStates) });
     await addOneAgreement(agreement);
     await expect(
       agreementService.cloneAgreement(
@@ -373,11 +335,7 @@ describe("clone agreement", () => {
   it("should throw an tenantIsNotTheDelegateConsumer error when the requester is the Consumer but there is a Consumer Delegation", async () => {
     const authData = getMockAuthData();
     const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      consumerId,
-      randomArrayItem(agreementClonableStates)
-    );
+    const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: consumerId, state: randomArrayItem(agreementClonableStates) });
     await addOneAgreement(agreement);
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -401,15 +359,11 @@ describe("clone agreement", () => {
   it("should throw an agreementNotInExpectedState error when the Agreement is not in a clonable state", async () => {
     const authData = getMockAuthData();
     const consumerId = authData.organizationId;
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      consumerId,
-      randomArrayItem(
+    const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: consumerId, state: randomArrayItem(
         Object.values(agreementState).filter(
           (s) => !agreementClonableStates.includes(s)
         )
-      )
-    );
+      ) });
 
     await addOneAgreement(agreement);
     await expect(
@@ -425,11 +379,7 @@ describe("clone agreement", () => {
   it("should throw an eserviceNotFound error when the EService does not exist", async () => {
     const authData = getMockAuthData();
     const consumerId = authData.organizationId;
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      consumerId,
-      randomArrayItem(agreementClonableStates)
-    );
+    const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: consumerId, state: randomArrayItem(agreementClonableStates) });
 
     await addOneAgreement(agreement);
     await expect(
@@ -445,20 +395,12 @@ describe("clone agreement", () => {
     const consumerId = authData.organizationId;
     const eservice = getMockEService();
     const agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementClonableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementClonableStates) }),
       producerId: eservice.producerId,
     };
 
     const conflictingAgreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementCloningConflictingStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementCloningConflictingStates) }),
       producerId: eservice.producerId,
     };
 
@@ -478,31 +420,19 @@ describe("clone agreement", () => {
     const consumerId = authData.organizationId;
 
     const descriptor = getMockDescriptorPublished();
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    const eservice = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [descriptor] });
     const agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementClonableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementClonableStates) }),
       producerId: eservice.producerId,
       descriptorId: descriptor.id,
     };
 
     const conflictingAgreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(
           Object.values(agreementState).filter(
             (s) => !agreementCloningConflictingStates.includes(s)
           )
-        )
-      ),
+        ) }),
       producerId: eservice.producerId,
     };
 
@@ -520,14 +450,10 @@ describe("clone agreement", () => {
   it("should throw a descriptorNotFound error when the Descriptor does not exist", async () => {
     const authData = getMockAuthData();
     const consumerId = authData.organizationId;
-    const consumer = getMockTenant(consumerId);
+    const consumer = getMockTenant({ tenantId: consumerId });
     const eservice = getMockEService();
     const agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementClonableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementClonableStates) }),
       producerId: eservice.producerId,
     };
 
@@ -557,27 +483,19 @@ describe("clone agreement", () => {
       invalidCertifiedTenantAttribute.id
     );
 
-    const consumer = getMockTenant(consumerId, [
+    const consumer = getMockTenant({ tenantId: consumerId, attributes: [
       invalidCertifiedTenantAttribute,
-    ]);
+    ] });
 
-    const descriptor = getMockDescriptorPublished(generateId<DescriptorId>(), [
+    const descriptor = getMockDescriptorPublished({ descriptorId: generateId<DescriptorId>(), certifiedAttributes: [
       [invalidCertifiedEserviceAttribute],
-    ]);
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    ] });
+    const eservice = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [descriptor] });
 
     const agreementId = generateId<AgreementId>();
 
     const agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementClonableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementClonableStates) }),
       id: agreementId,
       producerId: eservice.producerId,
       descriptorId: descriptor.id,
@@ -601,23 +519,15 @@ describe("clone agreement", () => {
     const authData = getMockAuthData();
     const consumerId = authData.organizationId;
 
-    const consumer = getMockTenant(consumerId);
+    const consumer = getMockTenant({ tenantId: consumerId });
 
     const descriptor = getMockDescriptorPublished();
-    const eservice = getMockEService(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      [descriptor]
-    );
+    const eservice = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [descriptor] });
 
     const agreementId = generateId<AgreementId>();
 
     const agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementClonableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementClonableStates) }),
       id: agreementId,
       producerId: eservice.producerId,
       descriptorId: descriptor.id,

@@ -44,7 +44,7 @@ describe("delete eserviceTemplate", () => {
     await addOneEServiceTemplate(eserviceTemplate);
     await eserviceTemplateService.deleteEServiceTemplate(
       eserviceTemplate.id,
-      getMockContext({ authData: getMockAuthData(eserviceTemplate.creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }) })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
       eserviceTemplate.id
@@ -143,7 +143,7 @@ describe("delete eserviceTemplate", () => {
     await addOneEServiceTemplate(eserviceTemplate);
     await eserviceTemplateService.deleteEServiceTemplate(
       eserviceTemplate.id,
-      getMockContext({ authData: getMockAuthData(eserviceTemplate.creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }) })
     );
 
     const versionDeletionEvent = await readEventByStreamIdAndVersion(
@@ -226,7 +226,7 @@ describe("delete eserviceTemplate", () => {
       eserviceTemplateService.deleteEServiceTemplate(
         mockEServiceTemplate.id,
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
@@ -265,7 +265,7 @@ describe("delete eserviceTemplate", () => {
       eserviceTemplateService.deleteEServiceTemplate(
         eserviceTemplate.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(

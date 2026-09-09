@@ -81,7 +81,7 @@ describe("getClients", async () => {
   });
 
   it("should get all clients when no filters are set", async () => {
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
     const result = await authorizationService.getClients(
       {
         filters: {
@@ -114,7 +114,7 @@ describe("getClients", async () => {
 
   it("should get the clients if they exist (parameters: name)", async () => {
     const spyQuery = vi.spyOn(readModelService, "getClients");
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const filters: GetClientsFilters = {
       name: "test client",
@@ -157,9 +157,9 @@ describe("getClients", async () => {
 
   it("should get the clients if they exist (parameters: userIds taken from the authData)", async () => {
     const spyQuery = vi.spyOn(readModelService, "getClients");
-    const authData = getMockAuthData(consumerId, userId1, [
+    const authData = getMockAuthData({ organizationId: consumerId, userId: userId1, userRoles: [
       userRole.SECURITY_ROLE,
-    ]);
+    ] });
 
     const filters: GetClientsFilters = {
       name: "",
@@ -204,7 +204,7 @@ describe("getClients", async () => {
 
   it("should get the clients if they exist (parameters: consumerId, userIds taken from the filter)", async () => {
     const spyQuery = vi.spyOn(readModelService, "getClients");
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
     const filters: GetClientsFilters = {
       name: "",
       userIds: [userId1, userId3],
@@ -257,7 +257,7 @@ describe("getClients", async () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
     );
     expect({
       ...result,
@@ -276,7 +276,7 @@ describe("getClients", async () => {
 
   it("should get the clients if they exist (parameters: purposeId)", async () => {
     const spyQuery = vi.spyOn(readModelService, "getClients");
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const filters: GetClientsFilters = {
       name: undefined,
@@ -330,7 +330,7 @@ describe("getClients", async () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
     );
     expect({
       ...result1,
@@ -360,7 +360,7 @@ describe("getClients", async () => {
         offset: 2,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
     );
     expect(result.results.map(sortClient)).toEqual(
       [mockClient3, mockClient4, mockClient5].map(sortClient)
@@ -380,7 +380,7 @@ describe("getClients", async () => {
         offset: 0,
         limit: 2,
       },
-      getMockContext({ authData: getMockAuthData(consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
     );
     expect(result.results.map(sortClient)).toEqual(
       [mockClient1, mockClient2].map(sortClient)
@@ -400,7 +400,7 @@ describe("getClients", async () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
     );
     expect(result).toEqual({
       totalCount: 0,
@@ -421,7 +421,7 @@ describe("getClients", async () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
     );
     expect({
       ...result,
@@ -434,7 +434,7 @@ describe("getClients", async () => {
 
   it(`should return empty result in case some owner filters are set and
         consumerId is set to a tenant different from the requester`, async () => {
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
     const result1 = await authorizationService.getClients(
       {
         filters: {

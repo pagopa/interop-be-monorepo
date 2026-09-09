@@ -40,15 +40,15 @@ import {
 } from "../integrationUtils.js";
 
 describe("updateEServiceTemplateVersionAttributes", () => {
-  const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
-  const mockCertifiedAttribute2 = getMockAttribute(attributeKind.certified);
-  const mockCertifiedAttribute3 = getMockAttribute(attributeKind.certified);
-  const mockVerifiedAttribute1 = getMockAttribute(attributeKind.verified);
-  const mockVerifiedAttribute2 = getMockAttribute(attributeKind.verified);
-  const mockVerifiedAttribute3 = getMockAttribute(attributeKind.verified);
-  const mockDeclaredAttribute1 = getMockAttribute(attributeKind.declared);
-  const mockDeclaredAttribute2 = getMockAttribute(attributeKind.declared);
-  const mockDeclaredAttribute3 = getMockAttribute(attributeKind.declared);
+  const mockCertifiedAttribute1 = getMockAttribute({ kind: attributeKind.certified });
+  const mockCertifiedAttribute2 = getMockAttribute({ kind: attributeKind.certified });
+  const mockCertifiedAttribute3 = getMockAttribute({ kind: attributeKind.certified });
+  const mockVerifiedAttribute1 = getMockAttribute({ kind: attributeKind.verified });
+  const mockVerifiedAttribute2 = getMockAttribute({ kind: attributeKind.verified });
+  const mockVerifiedAttribute3 = getMockAttribute({ kind: attributeKind.verified });
+  const mockDeclaredAttribute1 = getMockAttribute({ kind: attributeKind.declared });
+  const mockDeclaredAttribute2 = getMockAttribute({ kind: attributeKind.declared });
+  const mockDeclaredAttribute3 = getMockAttribute({ kind: attributeKind.declared });
 
   const validMockVersionCertifiedAttributes = [
     [
@@ -154,7 +154,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           mockEServiceTemplateVersion.id,
           validMockVersionAttributeSeed,
           getMockContext({
-            authData: getMockAuthData(mockEServiceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
           })
         );
 
@@ -206,7 +206,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplateVersion.id,
         validMockVersionAttributeSeed,
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
@@ -236,7 +236,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplateVersion.id,
         validMockVersionAttributeSeed,
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -290,7 +290,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           ],
         },
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingAttributeId));
@@ -348,7 +348,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplateVersion.id,
         validMockVersionAttributeSeed,
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -387,7 +387,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           declared: [],
         },
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -434,7 +434,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           declared: [],
         },
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -486,7 +486,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
           declared: [],
         },
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -540,7 +540,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplate.versions[0].id,
         seed,
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -591,7 +591,7 @@ describe("updateEServiceTemplateVersionAttributes", () => {
         mockEServiceTemplate.versions[0].id,
         seed,
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(

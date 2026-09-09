@@ -165,14 +165,14 @@ export const authDataAndDelegationsFromRequesterIs = (
 } =>
   match(requesterIs)
     .with("Producer", () => ({
-      authData: getMockAuthData(agreement.producerId),
+      authData: getMockAuthData({ organizationId: agreement.producerId }),
       producerDelegation: undefined,
       delegateProducer: undefined,
       consumerDelegation: undefined,
       delegateConsumer: undefined,
     }))
     .with("Consumer", () => ({
-      authData: getMockAuthData(agreement.consumerId),
+      authData: getMockAuthData({ organizationId: agreement.consumerId }),
       producerDelegation: undefined,
       delegateProducer: undefined,
       consumerDelegation: undefined,
@@ -189,7 +189,7 @@ export const authDataAndDelegationsFromRequesterIs = (
       });
 
       return {
-        authData: getMockAuthData(delegateProducer.id),
+        authData: getMockAuthData({ organizationId: delegateProducer.id }),
         producerDelegation,
         delegateProducer,
         consumerDelegation: undefined,
@@ -206,7 +206,7 @@ export const authDataAndDelegationsFromRequesterIs = (
         eserviceId: agreement.eserviceId,
       });
       return {
-        authData: getMockAuthData(delegateConsumer.id),
+        authData: getMockAuthData({ organizationId: delegateConsumer.id }),
         consumerDelegation,
         delegateConsumer,
         producerDelegation: undefined,

@@ -366,11 +366,7 @@ describe("get eservice templates", () => {
       creatorId: organizationId1,
       versions: [eserviceTemplateVersion6],
     };
-    const authData: UIAuthData = getMockAuthData(
-      organizationId1,
-      generateId<UserId>(),
-      [userRole.SECURITY_ROLE]
-    );
+    const authData: UIAuthData = getMockAuthData({ organizationId: organizationId1, userId: generateId<UserId>(), userRoles: [userRole.SECURITY_ROLE] });
     await addOneEServiceTemplate(eserviceTemplate6);
     const result = await eserviceTemplateService.getEServiceTemplates(
       {
@@ -495,11 +491,7 @@ describe("get eservice templates", () => {
       versions: [eserviceTemplateVersion6a, eserviceTemplateVersion6b],
     };
 
-    const authData: UIAuthData = getMockAuthData(
-      organizationId1,
-      generateId<UserId>(),
-      [userRole.SECURITY_ROLE]
-    );
+    const authData: UIAuthData = getMockAuthData({ organizationId: organizationId1, userId: generateId<UserId>(), userRoles: [userRole.SECURITY_ROLE] });
     await addOneEServiceTemplate(eserviceTemplate6);
     const result = await eserviceTemplateService.getEServiceTemplates(
       {
@@ -579,7 +571,7 @@ describe("get eservice templates", () => {
         0,
         50,
         getMockContext({
-          authData: getMockAuthData(organizationId3),
+          authData: getMockAuthData({ organizationId: organizationId3 }),
         })
       );
 

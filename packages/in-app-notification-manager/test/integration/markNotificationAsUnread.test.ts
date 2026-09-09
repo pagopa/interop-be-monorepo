@@ -33,7 +33,7 @@ describe("markNotificationAsUnread", () => {
       notification.id,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -54,7 +54,7 @@ describe("markNotificationAsUnread", () => {
         notificationId,
         getMockContext({
           authData: {
-            ...getMockAuthData(tenantId),
+            ...getMockAuthData({ organizationId: tenantId }),
             userId,
           },
         })

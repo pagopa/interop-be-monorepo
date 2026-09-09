@@ -39,7 +39,7 @@ describe("getNotifications", () => {
       0,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -69,7 +69,7 @@ describe("getNotifications", () => {
       0,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -90,7 +90,7 @@ describe("getNotifications", () => {
       0,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -112,7 +112,7 @@ describe("getNotifications", () => {
       0,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -129,7 +129,7 @@ describe("getNotifications", () => {
       0,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -150,7 +150,7 @@ describe("getNotifications", () => {
       0,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -165,7 +165,7 @@ describe("getNotifications", () => {
       3,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -188,7 +188,7 @@ describe("getNotifications", () => {
       0,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -232,7 +232,7 @@ describe("getNotifications", () => {
         0,
         getMockContext({
           authData: {
-            ...getMockAuthData(tenantId),
+            ...getMockAuthData({ organizationId: tenantId }),
             userId,
           },
         })
@@ -254,7 +254,7 @@ describe("getNotifications", () => {
         0,
         getMockContext({
           authData: {
-            ...getMockAuthData(tenantId),
+            ...getMockAuthData({ organizationId: tenantId }),
             userId,
           },
         })
@@ -276,7 +276,7 @@ describe("getNotifications", () => {
         0,
         getMockContext({
           authData: {
-            ...getMockAuthData(tenantId),
+            ...getMockAuthData({ organizationId: tenantId }),
             userId,
           },
         })

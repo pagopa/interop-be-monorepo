@@ -12,7 +12,7 @@ import { purposeReadModelService } from "./purposeUtils.js";
 describe("Purpose queries", () => {
   describe("Get a Purpose", async () => {
     it("should get a purpose by id if present", async () => {
-      const purpose = getMockPurpose([getMockPurposeVersion()]);
+      const purpose = getMockPurpose({ versions: [getMockPurposeVersion()] });
       await upsertPurpose(readModelDB, purpose, 1);
 
       const retrievedPurpose = await purposeReadModelService.getPurposeById(

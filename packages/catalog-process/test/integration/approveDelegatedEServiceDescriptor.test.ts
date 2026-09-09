@@ -70,7 +70,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       await catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -130,7 +130,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       await catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor2.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -202,7 +202,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       };
       await addOneTenant(tenant);
       const agreement = {
-        ...getMockAgreement(eservice.id),
+        ...getMockAgreement({ eserviceId: eservice.id }),
         descriptorId: descriptor1.id,
         producerId: eservice.producerId,
         consumerId: tenant.id,
@@ -213,7 +213,7 @@ describe("publish descriptor (after delegator's approval)", () => {
         await catalogService.approveDelegatedEServiceDescriptor(
           eservice.id,
           descriptor2.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -260,7 +260,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -275,7 +275,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -323,7 +323,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -349,7 +349,7 @@ describe("publish descriptor (after delegator's approval)", () => {
         catalogService.approveDelegatedEServiceDescriptor(
           eservice.id,
           descriptor.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -374,7 +374,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       catalogService.publishDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(missingPersonalDataFlag(eservice.id, descriptor.id));
   });
@@ -400,7 +400,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       missingAsyncExchangeProperties(eservice.id, descriptor.id)
@@ -434,7 +434,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       missingAsyncExchangeCallbackInterface(eservice.id, descriptor.id)
@@ -469,7 +469,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).resolves.toBeDefined();
   });
@@ -502,7 +502,7 @@ describe("publish descriptor (after delegator's approval)", () => {
       catalogService.approveDelegatedEServiceDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).resolves.toBeDefined();
   });

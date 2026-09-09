@@ -93,7 +93,7 @@ describe("createKey", () => {
     surname: "surname_test",
   };
 
-  const mockAuthData: AuthData = getMockAuthData(consumerId, userId);
+  const mockAuthData: AuthData = getMockAuthData({ organizationId: consumerId, userId: userId });
 
   const mockClient: Client = {
     ...getMockClient(),

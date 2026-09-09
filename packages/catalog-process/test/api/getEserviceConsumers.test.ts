@@ -38,7 +38,7 @@ describe("API /eservices/{eServiceId}/consumers authorization test", () => {
   const tenant = getMockTenant();
 
   const agreement = {
-    ...getMockAgreement(eservice.id, tenant.id, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice.id, consumerId: tenant.id, state: agreementState.active }),
     descriptorId: descriptor.id,
     producerId: eservice.producerId,
   };

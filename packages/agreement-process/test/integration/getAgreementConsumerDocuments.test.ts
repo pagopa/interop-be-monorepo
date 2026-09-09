@@ -97,7 +97,7 @@ describe("getAgreementConsumerDocuments", () => {
       descriptors: [getMockDescriptorPublished()],
     };
     const agreement = {
-      ...getMockAgreement(eservice.id),
+      ...getMockAgreement({ eserviceId: eservice.id }),
       descriptorId: eservice.descriptors[0].id,
       producerId: producer.id,
       consumerId: consumer.id,
@@ -145,7 +145,7 @@ describe("getAgreementConsumerDocuments", () => {
       descriptors: [getMockDescriptorPublished()],
     };
     const agreement = {
-      ...getMockAgreement(eservice.id),
+      ...getMockAgreement({ eserviceId: eservice.id }),
       descriptorId: eservice.descriptors[0].id,
       producerId: producer.id,
       consumerId: consumer.id,

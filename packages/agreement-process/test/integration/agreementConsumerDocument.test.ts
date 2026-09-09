@@ -69,7 +69,7 @@ describe("agreement consumer document", () => {
 
       await addOneAgreement(agreement);
 
-      const consumerAuthData = getMockAuthData(agreement.consumerId);
+      const consumerAuthData = getMockAuthData({ organizationId: agreement.consumerId });
       for (const document of agreement.consumerDocuments) {
         const retrievedDocument =
           await agreementService.getAgreementConsumerDocument(
@@ -80,7 +80,7 @@ describe("agreement consumer document", () => {
         expect(retrievedDocument).toEqual(document);
       }
 
-      const producerAuthData = getMockAuthData(agreement.producerId);
+      const producerAuthData = getMockAuthData({ organizationId: agreement.producerId });
       for (const document of agreement.consumerDocuments) {
         const retrievedDocument =
           await agreementService.getAgreementConsumerDocument(
@@ -103,7 +103,7 @@ describe("agreement consumer document", () => {
         descriptors: [getMockDescriptorPublished()],
       };
       const agreement = {
-        ...getMockAgreement(eservice.id),
+        ...getMockAgreement({ eserviceId: eservice.id }),
         descriptorId: eservice.descriptors[0].id,
         producerId: producer.id,
         consumerId: consumer.id,
@@ -116,7 +116,7 @@ describe("agreement consumer document", () => {
         delegatorId: eservice.producerId,
         state: delegationState.active,
       });
-      const delegate = getMockTenant(delegation.delegateId);
+      const delegate = getMockTenant({ tenantId: delegation.delegateId });
 
       await addOneTenant(delegate);
       await addOneEService(eservice);
@@ -203,7 +203,7 @@ describe("agreement consumer document", () => {
     it("should succeed when the requester is the producer, even if there is an active producer delegation", async () => {
       const producer = getMockTenant();
       const consumer = getMockTenant();
-      const authData = getMockAuthData(producer.id);
+      const authData = getMockAuthData({ organizationId: producer.id });
       const eservice = {
         ...getMockEService(),
         producerId: producer.id,
@@ -211,7 +211,7 @@ describe("agreement consumer document", () => {
         descriptors: [getMockDescriptorPublished()],
       };
       const agreement = {
-        ...getMockAgreement(eservice.id),
+        ...getMockAgreement({ eserviceId: eservice.id }),
         descriptorId: eservice.descriptors[0].id,
         producerId: producer.id,
         consumerId: consumer.id,
@@ -251,7 +251,7 @@ describe("agreement consumer document", () => {
       await addOneAgreement(getMockAgreement());
 
       const randomAgreementId = generateId<AgreementId>();
-      const authData = getMockAuthData(agreement.consumerId);
+      const authData = getMockAuthData({ organizationId: agreement.consumerId });
 
       await expect(
         agreementService.getAgreementConsumerDocument(
@@ -296,7 +296,7 @@ describe("agreement consumer document", () => {
       await addOneAgreement(agreement);
       await addOneAgreement(getMockAgreement());
 
-      const authData = getMockAuthData(agreement.consumerId);
+      const authData = getMockAuthData({ organizationId: agreement.consumerId });
       const randomDocumentId = generateId<AgreementDocumentId>();
 
       await expect(
@@ -315,10 +315,7 @@ describe("agreement consumer document", () => {
     it("should succeed on happy path when the requester is the Consumer", async () => {
       const authData = getMockAuthData();
       const organizationId = authData.organizationId;
-      const agreement = getMockAgreement(
-        generateId<EServiceId>(),
-        organizationId
-      );
+      const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: organizationId });
 
       const consumerDocument = getMockConsumerDocument(agreement.id);
 
@@ -368,7 +365,7 @@ describe("agreement consumer document", () => {
       const authData = getMockAuthData();
       const consumerId = generateId<TenantId>();
       const organizationId = authData.organizationId;
-      const agreement = getMockAgreement(generateId<EServiceId>(), consumerId);
+      const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: consumerId });
 
       const consumerDocument = getMockConsumerDocument(agreement.id);
 
@@ -464,7 +461,7 @@ describe("agreement consumer document", () => {
     it("should throw an tenantIsNotTheDelegateConsumer when the requester is the Consumer but there is a Consumer Delegation", async () => {
       const authData = getMockAuthData();
       const consumerId = unsafeBrandId<TenantId>(authData.organizationId);
-      const agreement = getMockAgreement(generateId<EServiceId>(), consumerId);
+      const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: consumerId });
 
       const consumerDocument = getMockConsumerDocument(agreement.id);
 
@@ -501,11 +498,7 @@ describe("agreement consumer document", () => {
         )
       );
 
-      const agreement = getMockAgreement(
-        generateId<EServiceId>(),
-        organizationId,
-        agreementConsumerDocumentChangeFailureState
-      );
+      const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: organizationId, state: agreementConsumerDocumentChangeFailureState });
 
       const consumerDocument = getMockConsumerDocument(agreement.id);
 
@@ -525,10 +518,7 @@ describe("agreement consumer document", () => {
     it("should throw a agreementDocumentAlreadyExists if document already exists", async () => {
       const authData = getMockAuthData();
       const organizationId = authData.organizationId;
-      let agreement = getMockAgreement(
-        generateId<EServiceId>(),
-        organizationId
-      );
+      let agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: organizationId });
       const consumerDocument = getMockConsumerDocument(agreement.id);
       agreement = {
         ...agreement,
@@ -562,7 +552,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should succeed on happy path when the requester is the consumer", async () => {
-      const authData = getMockAuthData(agreement1.consumerId);
+      const authData = getMockAuthData({ organizationId: agreement1.consumerId });
       const consumerDocument = agreement1.consumerDocuments[0];
 
       await uploadDocument(
@@ -666,7 +656,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw tenantIsNotTheDelegateConsumer when the requester is the consumer but there is a consumer delegation", async () => {
-      const authData = getMockAuthData(agreement1.consumerId);
+      const authData = getMockAuthData({ organizationId: agreement1.consumerId });
 
       const delegation = getMockDelegation({
         kind: delegationKind.delegatedConsumer,
@@ -736,7 +726,7 @@ describe("agreement consumer document", () => {
         state: agreementConsumerDocumentChangeFailureState,
         consumerDocuments: anotherConsumerDocuments,
       };
-      const authData = getMockAuthData(agreement.consumerId);
+      const authData = getMockAuthData({ organizationId: agreement.consumerId });
 
       await addOneAgreement(agreement);
 
@@ -753,7 +743,7 @@ describe("agreement consumer document", () => {
     });
 
     it("should throw a agreementDocumentNotFound if document does not exist", async () => {
-      const authData = getMockAuthData(agreement1.consumerId);
+      const authData = getMockAuthData({ organizationId: agreement1.consumerId });
       const nonExistentDocumentId = generateId<AgreementDocumentId>();
 
       const removeAgreementConsumerDocument =
@@ -770,7 +760,7 @@ describe("agreement consumer document", () => {
     it("should fail if the file deletion fails", async () => {
       // eslint-disable-next-line functional/immutable-data
       config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
-      const authData = getMockAuthData(agreement1.consumerId);
+      const authData = getMockAuthData({ organizationId: agreement1.consumerId });
       const consumerDocument = agreement1.consumerDocuments[0];
 
       await expect(

@@ -115,7 +115,7 @@ describe("getConsumerDelegators", () => {
           offset: 1,
           limit: 1,
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
@@ -136,7 +136,7 @@ describe("getConsumerDelegators", () => {
           limit: 50,
           delegatorName: "Comune",
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
@@ -160,7 +160,7 @@ describe("getConsumerDelegators", () => {
           limit: 50,
           delegatorName: "PagoPA",
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
@@ -180,7 +180,7 @@ describe("getConsumerDelegators", () => {
           offset: 0,
           limit: 50,
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [

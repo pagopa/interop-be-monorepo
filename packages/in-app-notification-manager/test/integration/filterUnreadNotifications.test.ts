@@ -49,7 +49,7 @@ describe("hasUnreadNotification", () => {
         [entityId],
         getMockContext({
           authData: {
-            ...getMockAuthData(tenantId),
+            ...getMockAuthData({ organizationId: tenantId }),
             userId,
           },
         })
@@ -66,7 +66,7 @@ describe("hasUnreadNotification", () => {
       await inAppNotificationService.hasUnreadNotifications(
         [entityId],
         getMockContext({
-          authData: getMockAuthData(tenantId, userId, [userRole.SUPPORT_ROLE]),
+          authData: getMockAuthData({ organizationId: tenantId, userId: userId, userRoles: [userRole.SUPPORT_ROLE] }),
         })
       );
 
@@ -80,10 +80,10 @@ describe("hasUnreadNotification", () => {
       await inAppNotificationService.hasUnreadNotifications(
         [entityId],
         getMockContext({
-          authData: getMockAuthData(tenantId, userId, [
+          authData: getMockAuthData({ organizationId: tenantId, userId: userId, userRoles: [
             userRole.ADMIN_ROLE,
             userRole.SUPPORT_ROLE,
-          ]),
+          ] }),
         })
       );
 
@@ -99,7 +99,7 @@ describe("hasUnreadNotification", () => {
         [entityId],
         getMockContext({
           authData: {
-            ...getMockAuthData(tenantId),
+            ...getMockAuthData({ organizationId: tenantId }),
             userId,
           },
         })

@@ -40,8 +40,8 @@ import {
 import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/update authorization test", () => {
-  const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
-  const mockCertifiedAttribute2 = getMockAttribute(attributeKind.certified);
+  const mockCertifiedAttribute1 = getMockAttribute({ kind: attributeKind.certified });
+  const mockCertifiedAttribute2 = getMockAttribute({ kind: attributeKind.certified });
   const validMockDescriptorCertifiedAttributes = [
     [
       {
@@ -55,8 +55,8 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/attributes/upda
     ],
   ];
 
-  const mockVerifiedAttribute1 = getMockAttribute(attributeKind.verified);
-  const mockVerifiedAttribute2 = getMockAttribute(attributeKind.verified);
+  const mockVerifiedAttribute1 = getMockAttribute({ kind: attributeKind.verified });
+  const mockVerifiedAttribute2 = getMockAttribute({ kind: attributeKind.verified });
 
   const validMockDescriptorVerifiedAttributes = [
     [

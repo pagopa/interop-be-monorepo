@@ -69,7 +69,7 @@ describe("create eservice", () => {
         personalData,
         asyncExchange,
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eservice).toBeDefined();
@@ -175,7 +175,7 @@ describe("create eservice", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eservice).toBeDefined();
@@ -262,7 +262,7 @@ describe("create eservice", () => {
           isConsumerDelegable: false,
           isClientAccessDelegable: true,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toMatchObject({
       code: invalidDelegationFlags(false, true).code,
@@ -283,7 +283,7 @@ describe("create eservice", () => {
           mode: "DELIVER",
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicateForProducer(
@@ -306,7 +306,7 @@ describe("create eservice", () => {
           mode: "DELIVER",
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicateForProducer(
@@ -329,7 +329,7 @@ describe("create eservice", () => {
           mode: "DELIVER",
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eserviceTemplateNameConflict(mockEService.name));
   });
@@ -347,7 +347,7 @@ describe("create eservice", () => {
           mode: "DELIVER",
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       eserviceTemplateNameConflict(mockEService.name.toLowerCase())
@@ -366,7 +366,7 @@ describe("create eservice", () => {
         },
         getMockContext({
           authData: {
-            ...getMockAuthData(mockEService.producerId),
+            ...getMockAuthData({ organizationId: mockEService.producerId }),
             externalId: {
               value: "123456",
               origin: "not-allowed-origin",
@@ -391,7 +391,7 @@ describe("create eservice", () => {
             dailyCallsTotal: 99,
           },
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -408,7 +408,7 @@ describe("create eservice", () => {
         descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
         asyncExchange: true,
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const eserviceCreationEvent = await readEventByStreamIdAndVersion(
@@ -439,7 +439,7 @@ describe("create eservice", () => {
           descriptor: buildDescriptorSeedForEserviceCreation(mockDescriptor),
           asyncExchange: true,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toMatchObject({
       code: asyncExchangeNotAllowedForReceiveMode(mockEService.id).code,

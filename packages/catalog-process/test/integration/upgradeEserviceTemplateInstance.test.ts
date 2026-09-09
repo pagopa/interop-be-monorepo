@@ -149,7 +149,7 @@ describe("upgrade eservice template instance", () => {
 
     await catalogService.upgradeEServiceInstance(
       eservice.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -311,7 +311,7 @@ describe("upgrade eservice template instance", () => {
 
     const returnedDescriptor = await catalogService.upgradeEServiceInstance(
       eservice.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     expect(returnedDescriptor.asyncExchangeProperties).toEqual(
@@ -440,7 +440,7 @@ describe("upgrade eservice template instance", () => {
 
     await catalogService.upgradeEServiceInstance(
       eservice.id,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -579,7 +579,7 @@ describe("upgrade eservice template instance", () => {
     await expect(
       catalogService.upgradeEServiceInstance(
         eservice.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(FileManagerError);
   });
@@ -614,7 +614,7 @@ describe("upgrade eservice template instance", () => {
     expect(
       catalogService.upgradeEServiceInstance(
         mockEService.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
   });
@@ -628,7 +628,7 @@ describe("upgrade eservice template instance", () => {
     expect(
       catalogService.upgradeEServiceInstance(
         mockEService.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceTemplateNotFound(eservice.templateId as EServiceTemplateId)
@@ -684,7 +684,7 @@ describe("upgrade eservice template instance", () => {
     expect(
       catalogService.upgradeEServiceInstance(
         mockEService.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceAlreadyUpgraded(eservice.id));
   });

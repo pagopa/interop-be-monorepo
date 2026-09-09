@@ -42,7 +42,7 @@ describe("update agreement", () => {
       state: randomArrayItem(agreementUpdatableStates),
     };
     await addOneAgreement(agreement);
-    const authData = getMockAuthData(agreement.consumerId);
+    const authData = getMockAuthData({ organizationId: agreement.consumerId });
     const returnedAgreement = await agreementService.updateAgreement(
       agreement.id,
       { consumerNotes: "Updated consumer notes" },
@@ -111,7 +111,7 @@ describe("update agreement", () => {
       ),
     };
     await addOneAgreement(agreement);
-    const authData = getMockAuthData(agreement.consumerId);
+    const authData = getMockAuthData({ organizationId: agreement.consumerId });
     await expect(
       agreementService.updateAgreement(
         agreement.id,

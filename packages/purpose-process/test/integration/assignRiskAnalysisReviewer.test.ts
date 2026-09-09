@@ -76,7 +76,7 @@ describe("assignRiskAnalysisReviewer", () => {
     const mockEService = getMockEService();
     const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([mockPurposeVersion]),
+      ...getMockPurpose({ versions: [mockPurposeVersion] }),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
     };
@@ -90,7 +90,7 @@ describe("assignRiskAnalysisReviewer", () => {
     mockSelfcareV2ClientCall([mockSelfCareUser]);
 
     const ctx = getMockContext({
-      authData: getMockAuthData(mockPurpose.consumerId),
+      authData: getMockAuthData({ organizationId: mockPurpose.consumerId }),
     });
 
     await purposeService.assignRiskAnalysisReviewer(
@@ -157,7 +157,7 @@ describe("assignRiskAnalysisReviewer", () => {
     const mockEService = getMockEService();
     const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([mockPurposeVersion]),
+      ...getMockPurpose({ versions: [mockPurposeVersion] }),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
     };
@@ -171,7 +171,7 @@ describe("assignRiskAnalysisReviewer", () => {
     mockSelfcareV2ClientCall([mockSelfCareUser]);
 
     const ctx = getMockContext({
-      authData: getMockAuthData(mockPurpose.consumerId),
+      authData: getMockAuthData({ organizationId: mockPurpose.consumerId }),
     });
 
     await purposeService.assignRiskAnalysisReviewer(
@@ -247,7 +247,7 @@ describe("assignRiskAnalysisReviewer", () => {
 
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
     };
 
     await addOnePurpose(mockPurpose);
@@ -261,7 +261,7 @@ describe("assignRiskAnalysisReviewer", () => {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: [generateId()],
         },
-        getMockContext({ authData: getMockAuthData(otherOrganizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: otherOrganizationId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
   });
@@ -269,7 +269,7 @@ describe("assignRiskAnalysisReviewer", () => {
   it("should throw reviewerWorkflowConflict if the purpose already has a reviewer workflow", async () => {
     const mockEService = getMockEService();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: mockEService.id,
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
@@ -289,7 +289,7 @@ describe("assignRiskAnalysisReviewer", () => {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: [generateId()],
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(reviewerWorkflowConflict(mockPurpose.id));
   });
@@ -297,7 +297,7 @@ describe("assignRiskAnalysisReviewer", () => {
   it("should throw multipleReviewersNotAllowed if more than one reviewer are provided", async () => {
     const mockEService = getMockEService();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: mockEService.id,
     };
 
@@ -311,7 +311,7 @@ describe("assignRiskAnalysisReviewer", () => {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: [generateId(), generateId()],
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(multipleReviewersNotAllowed(mockPurpose.id));
   });
@@ -320,7 +320,7 @@ describe("assignRiskAnalysisReviewer", () => {
     const mockEService = getMockEService();
     const mockTenant = { ...getMockTenant(), selfcareId: undefined };
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
     };
@@ -336,7 +336,7 @@ describe("assignRiskAnalysisReviewer", () => {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: [generateId()],
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(missingSelfcareId(mockTenant.id));
   });
@@ -345,7 +345,7 @@ describe("assignRiskAnalysisReviewer", () => {
     const mockEService = getMockEService();
     const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
     };
@@ -365,7 +365,7 @@ describe("assignRiskAnalysisReviewer", () => {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: [reviewerId],
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(
       userWithoutReviewerPrivileges(mockTenant.id, reviewerId)
@@ -375,7 +375,7 @@ describe("assignRiskAnalysisReviewer", () => {
   it("should throw purposeFromTemplateCannotBeModified if the purpose is from a template", async () => {
     const purposeTemplateId = generateId<PurposeTemplateId>();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       purposeTemplateId,
     };
 
@@ -388,7 +388,7 @@ describe("assignRiskAnalysisReviewer", () => {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: [generateId()],
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(
       purposeFromTemplateCannotBeModified(mockPurpose.id, purposeTemplateId)
@@ -397,7 +397,7 @@ describe("assignRiskAnalysisReviewer", () => {
 
   it("should throw reviewerWorkflowNotAllowedForDelegatedPurpose if the purpose has an active delegation", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       delegationId: generateId<DelegationId>(),
     };
 
@@ -410,7 +410,7 @@ describe("assignRiskAnalysisReviewer", () => {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: [generateId()],
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(
       reviewerWorkflowNotAllowedForDelegatedPurpose(mockPurpose.id)
@@ -423,7 +423,7 @@ describe("assignRiskAnalysisReviewer", () => {
       mode: eserviceMode.receive,
     };
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: mockEService.id,
     };
 
@@ -437,7 +437,7 @@ describe("assignRiskAnalysisReviewer", () => {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerIds: [generateId()],
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(
       reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id)

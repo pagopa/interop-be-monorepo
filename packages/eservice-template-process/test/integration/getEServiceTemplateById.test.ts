@@ -139,7 +139,7 @@ describe("getEServiceTemplateById", () => {
         eserviceTemplate.id,
         getMockContext({
           authData: {
-            ...getMockAuthData(eserviceTemplate.creatorId),
+            ...getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
             userRoles: [userRole.SECURITY_ROLE],
           },
         })
@@ -172,7 +172,7 @@ describe("getEServiceTemplateById", () => {
         eserviceTemplate.id,
         getMockContext({
           authData: {
-            ...getMockAuthData(eserviceTemplate.creatorId),
+            ...getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
             userRoles: [userRole.SECURITY_ROLE],
           },
         })
@@ -202,7 +202,7 @@ describe("getEServiceTemplateById", () => {
       eserviceTemplate.id,
       getMockContext({
         authData: {
-          ...getMockAuthData(eserviceTemplate.creatorId),
+          ...getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           userRoles: [userRole.SECURITY_ROLE],
         },
       })

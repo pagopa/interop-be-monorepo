@@ -61,7 +61,7 @@ describe("API /producerKeychains/{producerKeychainId}/keys/{keyId} authorization
       expect(res.body).toEqual(
         producerKeychainToApiProducerKeychain(
           mockProducerKeychain.data,
-          getMockAuthData(mockProducerKeychain.data.producerId)
+          getMockAuthData({ organizationId: mockProducerKeychain.data.producerId })
         )
       );
     }

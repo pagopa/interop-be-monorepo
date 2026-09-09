@@ -66,7 +66,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -102,7 +102,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       riskAnalysisToUpdate.id,
       riskAnalysisSeed,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -201,7 +201,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
           getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
         ),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
@@ -237,7 +237,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
           getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
         ),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -267,7 +267,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     const requesterId = generateId<TenantId>();
-    await addOneTenant(getMockTenant(requesterId));
+    await addOneTenant(getMockTenant({ tenantId: requesterId }));
 
     expect(
       eserviceTemplateService.updateRiskAnalysis(
@@ -276,7 +276,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
         buildRiskAnalysisSeed(
           getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
         ),
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -302,7 +302,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await addOneTenant(getMockTenant(eserviceTemplate.creatorId));
+    await addOneTenant(getMockTenant({ tenantId: eserviceTemplate.creatorId }));
 
     expect(
       eserviceTemplateService.updateRiskAnalysis(
@@ -312,7 +312,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
           getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
         ),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -341,7 +341,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await addOneTenant(getMockTenant(eserviceTemplate.creatorId));
+    await addOneTenant(getMockTenant({ tenantId: eserviceTemplate.creatorId }));
 
     expect(
       eserviceTemplateService.updateRiskAnalysis(
@@ -351,7 +351,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
           getMockValidEServiceTemplateRiskAnalysis(creatorTenantKind)
         ),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));
@@ -363,7 +363,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -417,7 +417,7 @@ describe("updateEServiceTemplateRiskAnalysis", () => {
         riskAnalysisToUpdate.id,
         invalidRiskAnalysisSeed,
         getMockContext({
-          authData: getMockAuthData(creator.id),
+          authData: getMockAuthData({ organizationId: creator.id }),
         })
       )
     ).rejects.toThrowError(

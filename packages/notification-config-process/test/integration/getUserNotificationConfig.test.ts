@@ -81,7 +81,7 @@ describe("getUserNotificationConfig", () => {
     // console.log("getting config for userId:", userId);
     const result = await notificationConfigService.getUserNotificationConfig(
       getMockContext({
-        authData: getMockAuthData(tenantId, userId, [authRole.ADMIN_ROLE]),
+        authData: getMockAuthData({ organizationId: tenantId, userId: userId, userRoles: [authRole.ADMIN_ROLE] }),
       })
     );
     expect(result).toEqual(userNotificationConfig);
@@ -90,9 +90,9 @@ describe("getUserNotificationConfig", () => {
   it("should override not allowed notification types if the user has the 'api' role", async () => {
     const result = await notificationConfigService.getUserNotificationConfig(
       getMockContext({
-        authData: getMockAuthData(tenantId, userIdForRoleOverrideTests, [
+        authData: getMockAuthData({ organizationId: tenantId, userId: userIdForRoleOverrideTests, userRoles: [
           authRole.API_ROLE,
-        ]),
+        ] }),
       })
     );
     const expected: UserNotificationConfig = {
@@ -106,9 +106,9 @@ describe("getUserNotificationConfig", () => {
   it("should override not allowed notification types if the user has the 'security' role", async () => {
     const result = await notificationConfigService.getUserNotificationConfig(
       getMockContext({
-        authData: getMockAuthData(tenantId, userIdForRoleOverrideTests, [
+        authData: getMockAuthData({ organizationId: tenantId, userId: userIdForRoleOverrideTests, userRoles: [
           authRole.SECURITY_ROLE,
-        ]),
+        ] }),
       })
     );
     const expected: UserNotificationConfig = {
@@ -122,10 +122,10 @@ describe("getUserNotificationConfig", () => {
   it("should override not allowed notification types if the user has the 'api' and 'security' roles", async () => {
     const result = await notificationConfigService.getUserNotificationConfig(
       getMockContext({
-        authData: getMockAuthData(tenantId, userIdForRoleOverrideTests, [
+        authData: getMockAuthData({ organizationId: tenantId, userId: userIdForRoleOverrideTests, userRoles: [
           authRole.API_ROLE,
           authRole.SECURITY_ROLE,
-        ]),
+        ] }),
       })
     );
     const expected: UserNotificationConfig = {
@@ -139,9 +139,9 @@ describe("getUserNotificationConfig", () => {
   it("should return all notification types disabled if the user has the 'support' role", async () => {
     const result = await notificationConfigService.getUserNotificationConfig(
       getMockContext({
-        authData: getMockAuthData(tenantId, userIdForRoleOverrideTests, [
+        authData: getMockAuthData({ organizationId: tenantId, userId: userIdForRoleOverrideTests, userRoles: [
           authRole.SUPPORT_ROLE,
-        ]),
+        ] }),
       })
     );
     const expected: UserNotificationConfig = {
@@ -166,7 +166,7 @@ describe("getUserNotificationConfig", () => {
       expect(
         notificationConfigService.getUserNotificationConfig(
           getMockContext({
-            authData: getMockAuthData(tenantId, userId),
+            authData: getMockAuthData({ organizationId: tenantId, userId: userId }),
           })
         )
       ).rejects.toThrowError(userNotificationConfigNotFound(userId, tenantId));

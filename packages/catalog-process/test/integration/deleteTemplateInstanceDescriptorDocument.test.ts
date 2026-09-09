@@ -69,7 +69,7 @@ describe("delete Document", () => {
       eservice.id,
       descriptor.id,
       document.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -128,7 +128,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         mockDocument.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(
@@ -162,7 +162,7 @@ describe("delete Document", () => {
         eservice.id,
         mockDescriptor.id,
         mockDocument.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)

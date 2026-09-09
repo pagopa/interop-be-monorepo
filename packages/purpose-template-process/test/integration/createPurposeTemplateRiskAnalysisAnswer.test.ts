@@ -67,7 +67,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         mockPurposeTemplate.id,
         validRiskAnalysisAnswerRequest,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       );
 
@@ -156,7 +156,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         mockPurposeTemplate.id,
         requestWithHyperlink,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
@@ -190,7 +190,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         mockPurposeTemplate.id,
         requestWithHyperlink,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).not.rejects.toThrowError(hyperlinkDetectionError(textWithHyperlink));
@@ -224,7 +224,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         purposeTemplateWithoutRiskAnalysis.id,
         validRiskAnalysisAnswerRequest,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -259,7 +259,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         mockPurposeTemplate.id,
         invalidFieldRequest,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -292,7 +292,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         mockPurposeTemplate.id,
         invalidValueRequest,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -326,7 +326,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         mockPurposeTemplate.id,
         validRiskAnalysisAnswerRequest,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));
@@ -357,7 +357,7 @@ describe("createPurposeTemplateRiskAnalysisAnswer", () => {
         mockPurposeTemplate.id,
         validRiskAnalysisAnswerRequest,
         getMockContext({
-          authData: getMockAuthData(differentCreatorId),
+          authData: getMockAuthData({ organizationId: differentCreatorId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(mockPurposeTemplate.id));

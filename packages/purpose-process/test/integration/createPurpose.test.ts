@@ -80,11 +80,7 @@ describe("createPurpose", () => {
     descriptors: [descriptor1],
   };
 
-  const agreementEservice1 = getMockAgreement(
-    eService1.id,
-    tenant.id,
-    agreementState.active
-  );
+  const agreementEservice1 = getMockAgreement({ eserviceId: eService1.id, consumerId: tenant.id, state: agreementState.active });
 
   const mockValidRiskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
   const mockExpiredRiskAnalysisForm = getMockExpiredRiskAnalysisForm(
@@ -106,9 +102,7 @@ describe("createPurpose", () => {
     const createPurposeResponse = await purposeService.createPurpose(
       purposeSeed,
       getMockContext({
-        authData: getMockAuthData(
-          unsafeBrandId<TenantId>(purposeSeed.consumerId)
-        ),
+        authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeSeed.consumerId) }),
       })
     );
 
@@ -194,9 +188,7 @@ describe("createPurpose", () => {
     const createPurposeResponse = await purposeService.createPurpose(
       purposeSeedWithFreeOfChargeFalse,
       getMockContext({
-        authData: getMockAuthData(
-          unsafeBrandId<TenantId>(purposeSeed.consumerId)
-        ),
+        authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeSeed.consumerId) }),
       })
     );
 
@@ -294,7 +286,7 @@ describe("createPurpose", () => {
 
     const createPurposeResponse = await purposeService.createPurpose(
       purposeSeed,
-      getMockContext({ authData: getMockAuthData(delegateTenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegateTenant.id }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(
@@ -436,7 +428,7 @@ describe("createPurpose", () => {
 
     const createPurposeResponse = await purposeService.createPurpose(
       delegatePurposeSeed,
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(
@@ -518,9 +510,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -537,9 +527,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
@@ -555,10 +543,7 @@ describe("createPurpose", () => {
       producerId: tenantWithoutKind.id,
     };
 
-    const agreementEservice = getMockAgreement(
-      eService.id,
-      tenantWithoutKind.id
-    );
+    const agreementEservice = getMockAgreement({ eserviceId: eService.id, consumerId: tenantWithoutKind.id });
 
     const seed: purposeApi.PurposeSeed = {
       ...purposeSeed,
@@ -574,9 +559,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
@@ -587,9 +570,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         purposeSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
@@ -631,7 +612,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(seed.consumerId) }),
         })
       )
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
@@ -650,9 +631,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(tenant.id));
@@ -676,7 +655,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(seed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -702,7 +681,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         seed,
         getMockContext({
-          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(seed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -731,9 +710,7 @@ describe("createPurpose", () => {
       purposeService.createPurpose(
         purposeSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));

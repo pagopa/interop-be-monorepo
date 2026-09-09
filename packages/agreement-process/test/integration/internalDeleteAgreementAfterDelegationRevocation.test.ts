@@ -116,11 +116,7 @@ describe("internal delete agreement", () => {
   );
 
   it("should throw an agreementNotFound error when the agreement does not exist", async () => {
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      randomArrayItem(agreementDeletableStates)
-    );
+    const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: randomArrayItem(agreementDeletableStates) });
 
     const consumerDelegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,

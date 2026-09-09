@@ -40,7 +40,7 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
   const verifierTenantId = generateId<TenantId>();
   const attributeId = generateId<AttributeId>();
 
-  const attribute: Attribute = getMockAttribute("Verified", attributeId);
+  const attribute: Attribute = getMockAttribute({ kind: "Verified", id: attributeId });
   const tenantAttribute: VerifiedTenantAttribute = {
     assignmentTimestamp: new Date(),
     type: tenantAttributeType.VERIFIED,
@@ -55,13 +55,13 @@ describe("handleTenantVerifiedAttributeAssigned", async () => {
   };
 
   const targetTenant: Tenant = {
-    ...getMockTenant(targetTenantId),
+    ...getMockTenant({ tenantId: targetTenantId }),
     name: "Target Tenant",
     mails: [getMockTenantMail()],
     attributes: [tenantAttribute],
   };
   const verifierTenant = {
-    ...getMockTenant(verifierTenantId),
+    ...getMockTenant({ tenantId: verifierTenantId }),
     name: "Verifier Tenant",
   };
   const users = [getMockUser(targetTenantId), getMockUser(targetTenantId)];

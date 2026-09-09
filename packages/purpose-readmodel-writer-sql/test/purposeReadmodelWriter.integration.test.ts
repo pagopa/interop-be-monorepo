@@ -619,10 +619,7 @@ describe("Integration tests", async () => {
       await purposeWriterService.upsertPurpose(purpose, 1);
 
       const waitingForApprovalVersion: PurposeVersion = {
-        ...getMockPurposeVersion(
-          purposeVersionState.waitingForApproval,
-          getMockPurposeVersionStamps()
-        ),
+        ...getMockPurposeVersion({ state: purposeVersionState.waitingForApproval, stamps: getMockPurposeVersionStamps() }),
       };
 
       const updatedPurpose: Purpose = {

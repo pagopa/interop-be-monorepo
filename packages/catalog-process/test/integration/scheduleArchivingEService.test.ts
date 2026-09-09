@@ -77,7 +77,7 @@ describe("schedule archiving of an EService", () => {
             archivingReason: mockArchivingReason,
             gracePeriodDays: mockGracePeriodDays,
           },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -146,7 +146,7 @@ describe("schedule archiving of an EService", () => {
       const { data } = await catalogService.scheduleEServiceArchiving(
         eservice.id,
         seed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const actualArchivingSchedule = data.descriptors[0].archivingSchedule!;
@@ -190,7 +190,7 @@ describe("schedule archiving of an EService", () => {
             archivingReason: mockArchivingReason,
             gracePeriodDays: mockGracePeriodDays,
           },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrow(notValidEServiceState(eservice.id));
     }
@@ -230,7 +230,7 @@ describe("schedule archiving of an EService", () => {
             archivingReason: mockArchivingReason,
             gracePeriodDays: mockGracePeriodDays,
           },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -338,7 +338,7 @@ describe("schedule archiving of an EService", () => {
             archivingReason: mockArchivingReason,
             gracePeriodDays: mockGracePeriodDays,
           },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -442,7 +442,7 @@ describe("schedule archiving of an EService", () => {
           archivingReason: mockArchivingReason,
           gracePeriodDays: mockGracePeriodDays,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).resolves.not.toThrow();
   });
@@ -480,7 +480,7 @@ describe("schedule archiving of an EService", () => {
           archivingReason: mockArchivingReason,
           gracePeriodDays: mockGracePeriodDays,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrow(
       gracePeriodDaysLowerThanDescriptor(
@@ -522,7 +522,7 @@ describe("schedule archiving of an EService", () => {
             archivingReason: mockArchivingReason,
             gracePeriodDays: mockGracePeriodDays,
           },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -578,7 +578,7 @@ describe("schedule archiving of an EService", () => {
           archivingReason: mockArchivingReason,
           gracePeriodDays: mockGracePeriodDays,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrow(eServiceNotFound(mockEService.id));
   });
@@ -634,7 +634,7 @@ describe("schedule archiving of an EService", () => {
             gracePeriodDays: mockGracePeriodDays,
           },
           getMockContext({
-            authData: getMockAuthData(eservice.producerId),
+            authData: getMockAuthData({ organizationId: eservice.producerId }),
           })
         )
       ).rejects.toThrow(

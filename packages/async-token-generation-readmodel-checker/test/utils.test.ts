@@ -99,7 +99,7 @@ const buildFixture = (
   state: DescriptorState = descriptorState.published
 ): Fixture => {
   const descriptor = {
-    ...getMockDescriptor(descriptorState.published),
+    ...getMockDescriptor({ state: descriptorState.published }),
     state: state,
     audience: ["pagopa.it"],
     voucherLifespan: 600,
@@ -110,9 +110,9 @@ const buildFixture = (
     asyncExchange: true,
     descriptors: [descriptor],
   };
-  const purposeVersion = getMockPurposeVersion(purposeVersionState.active);
+  const purposeVersion = getMockPurposeVersion({ state: purposeVersionState.active });
   const purpose = {
-    ...getMockPurpose([purposeVersion]),
+    ...getMockPurpose({ versions: [purposeVersion] }),
     eserviceId: eservice.id,
   };
   const agreement = {

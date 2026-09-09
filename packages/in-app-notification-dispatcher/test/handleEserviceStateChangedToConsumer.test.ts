@@ -141,11 +141,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
   it("should throw tenantNotFound when tenant is not found", async () => {
     await addOneTenant(producerTenant);
     const consumerId = generateId<TenantId>();
-    const agreement = getMockAgreement(
-      eservice.id,
-      consumerId,
-      agreementState.active
-    );
+    const agreement = getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: agreementState.active });
     await addOneAgreement(agreement);
 
     const msg: EServiceEventV2 = {
@@ -191,7 +187,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
       await addOneTenant(consumerTenant);
       await addOneEService(eservice);
 
-      const agreement = getMockAgreement(eservice.id, consumerTenant.id, state);
+      const agreement = getMockAgreement({ eserviceId: eservice.id, consumerId: consumerTenant.id, state: state });
       await addOneAgreement(agreement);
 
       const users = [
@@ -473,17 +469,13 @@ describe("handleEserviceStateChangedToConsumer", async () => {
     "should generate notifications for $msg.type",
     async ({ msg, expectedBody }) => {
       const consumerId = generateId<TenantId>();
-      const consumerTenant = getMockTenant(consumerId);
+      const consumerTenant = getMockTenant({ tenantId: consumerId });
 
       // eslint-disable-next-line functional/immutable-data
       readModelService.getAgreementsByEserviceId = vi
         .fn()
         .mockResolvedValue([
-          getMockAgreement(
-            unsafeBrandId<EServiceId>(msg.data.eservice.id),
-            consumerId,
-            agreementState.active
-          ),
+          getMockAgreement({ eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice.id), consumerId: consumerId, state: agreementState.active }),
         ]);
       // eslint-disable-next-line functional/immutable-data
       readModelService.getTenantById = vi
@@ -540,16 +532,12 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         );
 
       const consumerId = generateId<TenantId>();
-      const consumerTenantForCase = getMockTenant(consumerId);
+      const consumerTenantForCase = getMockTenant({ tenantId: consumerId });
       // eslint-disable-next-line functional/immutable-data
       readModelService.getAgreementsByEserviceId = vi
         .fn()
         .mockResolvedValue([
-          getMockAgreement(
-            unsafeBrandId<EServiceId>(msg.data.eservice!.id),
-            consumerId,
-            agreementState.active
-          ),
+          getMockAgreement({ eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice!.id), consumerId: consumerId, state: agreementState.active }),
         ]);
       // eslint-disable-next-line functional/immutable-data
       readModelService.getTenantById = vi
@@ -604,16 +592,12 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         );
 
       const consumerId = generateId<TenantId>();
-      const consumerTenantForCase = getMockTenant(consumerId);
+      const consumerTenantForCase = getMockTenant({ tenantId: consumerId });
       // eslint-disable-next-line functional/immutable-data
       readModelService.getAgreementsByEserviceId = vi
         .fn()
         .mockResolvedValue([
-          getMockAgreement(
-            unsafeBrandId<EServiceId>(msg.data.eservice!.id),
-            consumerId,
-            agreementState.active
-          ),
+          getMockAgreement({ eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice!.id), consumerId: consumerId, state: agreementState.active }),
         ]);
       // eslint-disable-next-line functional/immutable-data
       readModelService.getTenantById = vi
@@ -670,16 +654,12 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         );
 
       const consumerId = generateId<TenantId>();
-      const consumerTenantForCase = getMockTenant(consumerId);
+      const consumerTenantForCase = getMockTenant({ tenantId: consumerId });
       // eslint-disable-next-line functional/immutable-data
       readModelService.getAgreementsByEserviceId = vi
         .fn()
         .mockResolvedValue([
-          getMockAgreement(
-            unsafeBrandId<EServiceId>(msg.data.eservice!.id),
-            consumerId,
-            agreementState.active
-          ),
+          getMockAgreement({ eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice!.id), consumerId: consumerId, state: agreementState.active }),
         ]);
       // eslint-disable-next-line functional/immutable-data
       readModelService.getTenantById = vi
@@ -734,16 +714,12 @@ describe("handleEserviceStateChangedToConsumer", async () => {
         );
 
       const consumerId = generateId<TenantId>();
-      const consumerTenantForCase = getMockTenant(consumerId);
+      const consumerTenantForCase = getMockTenant({ tenantId: consumerId });
       // eslint-disable-next-line functional/immutable-data
       readModelService.getAgreementsByEserviceId = vi
         .fn()
         .mockResolvedValue([
-          getMockAgreement(
-            unsafeBrandId<EServiceId>(msg.data.eservice!.id),
-            consumerId,
-            agreementState.active
-          ),
+          getMockAgreement({ eserviceId: unsafeBrandId<EServiceId>(msg.data.eservice!.id), consumerId: consumerId, state: agreementState.active }),
         ]);
       // eslint-disable-next-line functional/immutable-data
       readModelService.getTenantById = vi
@@ -777,12 +753,8 @@ describe("handleEserviceStateChangedToConsumer", async () => {
 
   it("should return empty array when no user notification configs exist for the eservice", async () => {
     const consumerId = generateId<TenantId>();
-    const consumerTenant = getMockTenant(consumerId);
-    const agreement = getMockAgreement(
-      eservice.id,
-      consumerId,
-      agreementState.active
-    );
+    const consumerTenant = getMockTenant({ tenantId: consumerId });
+    const agreement = getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: agreementState.active });
     await addOneAgreement(agreement);
     await addOneTenant(consumerTenant);
 

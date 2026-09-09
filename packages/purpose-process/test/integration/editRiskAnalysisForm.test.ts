@@ -61,7 +61,7 @@ describe("editRiskAnalysisForm", () => {
 
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       reviewerWorkflow: {
@@ -84,7 +84,7 @@ describe("editRiskAnalysisForm", () => {
       mockPurpose.id,
       riskAnalysisFormSeed,
       getMockContext({
-        authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+        authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
       })
     );
 
@@ -126,7 +126,7 @@ describe("editRiskAnalysisForm", () => {
 
   it("should throw reviewerWorkflowNotFound if the purpose has no reviewer workflow", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       reviewerWorkflow: undefined,
@@ -144,7 +144,7 @@ describe("editRiskAnalysisForm", () => {
       purposeService.editRiskAnalysisForm(
         mockPurpose.id,
         riskAnalysisFormSeed,
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(reviewerWorkflowNotFound(mockPurpose.id));
   });
@@ -152,7 +152,7 @@ describe("editRiskAnalysisForm", () => {
   it("should throw editNotAllowedForReviewMode if the workflow mode is AdminWritesReviewerSigns", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       reviewerWorkflow: {
@@ -175,7 +175,7 @@ describe("editRiskAnalysisForm", () => {
         mockPurpose.id,
         riskAnalysisFormSeed,
         getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
         })
       )
     ).rejects.toThrowError(editNotAllowedForReviewMode(mockPurpose.id));
@@ -184,7 +184,7 @@ describe("editRiskAnalysisForm", () => {
   it("should throw reviewerWorkflowNotEditable if the workflow is not in Assigned state", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       reviewerWorkflow: {
@@ -209,7 +209,7 @@ describe("editRiskAnalysisForm", () => {
         mockPurpose.id,
         riskAnalysisFormSeed,
         getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
         })
       )
     ).rejects.toThrowError(reviewerWorkflowNotEditable(mockPurpose.id));
@@ -218,7 +218,7 @@ describe("editRiskAnalysisForm", () => {
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       reviewerWorkflow: {
@@ -244,7 +244,7 @@ describe("editRiskAnalysisForm", () => {
         mockPurpose.id,
         riskAnalysisFormSeed,
         getMockContext({
-          authData: getMockAuthData(otherOrganizationId, reviewerId),
+          authData: getMockAuthData({ organizationId: otherOrganizationId, userId: reviewerId }),
         })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
@@ -252,7 +252,7 @@ describe("editRiskAnalysisForm", () => {
 
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       reviewerWorkflow: {
@@ -276,10 +276,7 @@ describe("editRiskAnalysisForm", () => {
         mockPurpose.id,
         riskAnalysisFormSeed,
         getMockContext({
-          authData: getMockAuthData(
-            mockPurpose.consumerId,
-            generateId<UserId>()
-          ),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: generateId<UserId>() }),
         })
       )
     ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
@@ -288,7 +285,7 @@ describe("editRiskAnalysisForm", () => {
   it("should throw riskAnalysisValidationFailed if the risk analysis is not valid", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       reviewerWorkflow: {
@@ -317,7 +314,7 @@ describe("editRiskAnalysisForm", () => {
         mockPurpose.id,
         riskAnalysisFormSeed,
         getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
         })
       )
     ).rejects.toThrowError(

@@ -89,7 +89,7 @@ describe("update eService", () => {
         personalData,
         asyncExchange,
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -152,7 +152,7 @@ describe("update eService", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -213,7 +213,7 @@ describe("update eService", () => {
         isConsumerDelegable,
         isClientAccessDelegable,
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -268,7 +268,7 @@ describe("update eService", () => {
           isConsumerDelegable: false,
           isClientAccessDelegable: true,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
@@ -317,7 +317,7 @@ describe("update eService", () => {
         technology: "SOAP",
         mode: "DELIVER",
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -379,7 +379,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -430,7 +430,7 @@ describe("update eService", () => {
         mode: "RECEIVE",
         personalData: false,
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -485,7 +485,7 @@ describe("update eService", () => {
           technology: "SOAP",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(
@@ -507,7 +507,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -553,7 +553,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
       },
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const expectedEService: EService = {
@@ -600,7 +600,7 @@ describe("update eService", () => {
         technology: "REST",
         mode: "DELIVER",
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -640,7 +640,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -681,7 +681,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -713,7 +713,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice1.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicateForProducer(name, eservice1.producerId)
@@ -746,7 +746,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice1.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicateForProducer(name.toUpperCase(), eservice1.producerId)
@@ -778,7 +778,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice1.producerId }) })
       )
     ).rejects.toThrowError(eserviceTemplateNameConflict(name));
   });
@@ -808,7 +808,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice1.producerId }) })
       )
     ).rejects.toThrowError(eserviceTemplateNameConflict(name.toUpperCase()));
   });
@@ -833,7 +833,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -858,7 +858,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -883,7 +883,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -908,7 +908,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -936,7 +936,7 @@ describe("update eService", () => {
           technology: "REST",
           mode: "DELIVER",
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
@@ -965,7 +965,7 @@ describe("update eService", () => {
         mode: "DELIVER",
         asyncExchange: false,
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(updateEServiceReturn.data.asyncExchange).toBe(true);
@@ -1002,7 +1002,7 @@ describe("update eService", () => {
           mode: "RECEIVE",
           asyncExchange: true,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       asyncExchangeNotAllowedForReceiveMode(mockEService.id)

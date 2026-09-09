@@ -55,9 +55,9 @@ describe("handleEserviceDescriptorPublished", async () => {
     producerId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
+  const producerTenant = getMockTenant({ tenantId: producerId });
   const consumerTenants: Tenant[] = consumerIds.map((id) => ({
-    ...getMockTenant(id),
+    ...getMockTenant({ tenantId: id }),
     mails: [getMockTenantMail()],
   }));
   const users = [

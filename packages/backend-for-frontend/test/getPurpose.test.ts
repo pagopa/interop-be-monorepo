@@ -180,7 +180,7 @@ describe("getPurpose — reviewer enrichment", () => {
     "should NOT include reviewers in reviewerWorkflow when requester is the producer (role: %s)",
     async (role) => {
       const authData: UIAuthData = {
-        ...getMockAuthData(undefined, undefined, [role]),
+        ...getMockAuthData({ organizationId: undefined, userId: undefined, userRoles: [role] }),
         organizationId: producerId,
       };
       const ctx = getBffMockContext(getMockContext({ authData }));
@@ -200,7 +200,7 @@ describe("getPurpose — reviewer enrichment", () => {
     "should NOT include reviewers when requester is the consumer with role: %s",
     async (role) => {
       const authData: UIAuthData = {
-        ...getMockAuthData(undefined, undefined, [role]),
+        ...getMockAuthData({ organizationId: undefined, userId: undefined, userRoles: [role] }),
         organizationId: consumerId,
       };
       const ctx = getBffMockContext(getMockContext({ authData }));

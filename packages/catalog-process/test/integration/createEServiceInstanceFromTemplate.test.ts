@@ -83,7 +83,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
 
@@ -93,7 +93,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       {},
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eService).toBeDefined();
@@ -217,7 +217,7 @@ describe("create eService from template", () => {
       };
 
       const tenant: Tenant = {
-        ...getMockTenant(mockEService.producerId),
+        ...getMockTenant({ tenantId: mockEService.producerId }),
         kind: tenantKind.PA,
       };
 
@@ -226,12 +226,7 @@ describe("create eService from template", () => {
 
       // Add an existing instance with label "istanza 0001" to verify no conflict
       const existingInstance: EService = {
-        ...getMockEService(
-          undefined,
-          mockEService.producerId,
-          [],
-          eServiceTemplate.id
-        ),
+        ...getMockEService({ eserviceId: undefined, producerId: mockEService.producerId, descriptors: [], templateId: eServiceTemplate.id }),
         name: `${eServiceTemplate.name} - istanza 0001`,
         instanceLabel: "istanza 0001",
       };
@@ -246,7 +241,7 @@ describe("create eService from template", () => {
         eServiceTemplate.id,
         { instanceLabel },
         getMockContext({
-          authData: getMockAuthData(mockEService.producerId),
+          authData: getMockAuthData({ organizationId: mockEService.producerId }),
         })
       );
 
@@ -344,7 +339,7 @@ describe("create eService from template", () => {
 
   it("should write on event-store for the creation of an eService in RECEIVE mode from a template when user is a PA", async () => {
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       id: mockEService.producerId,
       kind: tenantKind.PA,
     };
@@ -387,7 +382,7 @@ describe("create eService from template", () => {
     const result = await catalogService.createEServiceInstanceFromTemplate(
       eserviceTemplate.id,
       {},
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const expectedEServiceWithDescriptor: EService = {
@@ -431,7 +426,7 @@ describe("create eService from template", () => {
 
   it("should write on event-store for the creation of an eService in RECEIVE mode from a template when user has kind Private", async () => {
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       id: mockEService.producerId,
       kind: tenantKind.PRIVATE,
     };
@@ -474,7 +469,7 @@ describe("create eService from template", () => {
     const result = await catalogService.createEServiceInstanceFromTemplate(
       eserviceTemplate.id,
       {},
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const expectedEServiceWithDescriptor: EService = {
@@ -560,7 +555,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
     await addOneTenant(tenant);
@@ -598,7 +593,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       {},
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eService).toBeDefined();
@@ -799,7 +794,7 @@ describe("create eService from template", () => {
 
   it("should throw templateMissingRequiredRiskAnalysis when the template is in receive mode and there are no risk analysis of the requester tenant kind", async () => {
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       id: mockEService.producerId,
       kind: tenantKind.PA,
     };
@@ -834,7 +829,7 @@ describe("create eService from template", () => {
       catalogService.createEServiceInstanceFromTemplate(
         eserviceTemplate.id,
         {},
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toMatchObject({
       code: "templateMissingRequiredRiskAnalysis",
@@ -846,7 +841,7 @@ describe("create eService from template", () => {
       catalogService.createEServiceInstanceFromTemplate(
         generateId(),
         {},
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toMatchObject({
       code: "eServiceTemplateNotFound",
@@ -864,7 +859,7 @@ describe("create eService from template", () => {
       catalogService.createEServiceInstanceFromTemplate(
         eServiceTemplate.id,
         {},
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toMatchObject({
       code: "eServiceTemplateWithoutPublishedVersion",
@@ -882,7 +877,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
 
@@ -893,7 +888,7 @@ describe("create eService from template", () => {
       catalogService.createEServiceInstanceFromTemplate(
         eServiceTemplate.id,
         {},
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toMatchObject({
       code: "eServiceTemplateWithoutPersonalDataFlag",
@@ -913,7 +908,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
 
@@ -924,7 +919,7 @@ describe("create eService from template", () => {
       catalogService.createEServiceInstanceFromTemplate(
         eServiceTemplate.id,
         {},
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toMatchObject({
       code: "templateVersionMissingAsyncExchangeProperties",
@@ -957,12 +952,7 @@ describe("create eService from template", () => {
 
       await addOneEServiceTemplate(eServiceTemplate);
 
-      const mock = getMockEService(
-        undefined,
-        mockEService.producerId,
-        [],
-        eServiceTemplate.id
-      );
+      const mock = getMockEService({ eserviceId: undefined, producerId: mockEService.producerId, descriptors: [], templateId: eServiceTemplate.id });
       const existingInstance: EService =
         existingLabel === undefined
           ? { ...mock, name: eServiceTemplate.name, instanceLabel: undefined }
@@ -982,7 +972,7 @@ describe("create eService from template", () => {
         catalogService.createEServiceInstanceFromTemplate(
           eServiceTemplate.id,
           { instanceLabel: requestedLabel },
-          getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
         )
       ).rejects.toThrowError(
         eServiceNameDuplicateForProducer(expectedName, mockEService.producerId)
@@ -1010,7 +1000,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
 
@@ -1020,7 +1010,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       {},
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eService).toBeDefined();
@@ -1076,7 +1066,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
 
@@ -1092,7 +1082,7 @@ describe("create eService from template", () => {
           maxResultSet: 500,
         },
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eService).toBeDefined();
@@ -1141,7 +1131,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
 
@@ -1151,7 +1141,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       { asyncExchangeProperties: { responseTime: 900 } },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eService).toBeDefined();
@@ -1202,7 +1192,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
 
@@ -1218,7 +1208,7 @@ describe("create eService from template", () => {
           maxResultSet: 500,
         },
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eService).toBeDefined();
@@ -1277,7 +1267,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
 
@@ -1298,7 +1288,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       {},
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eService).toBeDefined();
@@ -1373,7 +1363,7 @@ describe("create eService from template", () => {
     };
 
     const tenant: Tenant = {
-      ...getMockTenant(mockEService.producerId),
+      ...getMockTenant({ tenantId: mockEService.producerId }),
       kind: tenantKind.PA,
     };
 
@@ -1394,7 +1384,7 @@ describe("create eService from template", () => {
     const eService = await catalogService.createEServiceInstanceFromTemplate(
       eServiceTemplate.id,
       {},
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     expect(eService).toBeDefined();

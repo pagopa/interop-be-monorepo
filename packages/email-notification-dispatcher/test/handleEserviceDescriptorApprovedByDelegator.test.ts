@@ -44,12 +44,12 @@ describe("handleEserviceDescriptorApprovedByDelegator", async () => {
 
   const descriptor = getMockDescriptorPublished();
   const delegatorTenant: Tenant = {
-    ...getMockTenant(delegatorId),
+    ...getMockTenant({ tenantId: delegatorId }),
     name: "Delegator Tenant",
     mails: [getMockTenantMail()],
   };
   const delegateTenant: Tenant = {
-    ...getMockTenant(delegateId),
+    ...getMockTenant({ tenantId: delegateId }),
     name: "Delegate Tenant",
     mails: [getMockTenantMail()],
   };

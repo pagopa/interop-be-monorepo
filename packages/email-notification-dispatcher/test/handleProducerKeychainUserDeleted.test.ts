@@ -44,7 +44,7 @@ describe("handleProducerKeychainUserDeleted", async () => {
     users: [userId1, userId2, userId3],
   };
 
-  const producerTenant = getMockTenant(producerId);
+  const producerTenant = getMockTenant({ tenantId: producerId });
   const users = [
     getMockUser(producerTenant.id, userId1),
     getMockUser(producerTenant.id, userId2),

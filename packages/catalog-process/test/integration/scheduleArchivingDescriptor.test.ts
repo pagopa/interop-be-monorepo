@@ -85,7 +85,7 @@ describe("schedule archiving of a descriptor", () => {
           eservice.id,
           descriptor1.id,
           mockGracePeriodDays,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -162,7 +162,7 @@ describe("schedule archiving of a descriptor", () => {
         eservice.id,
         descriptor1.id,
         seed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const actualArchivingSchedule = data.descriptors[0].archivingSchedule!;
@@ -199,7 +199,7 @@ describe("schedule archiving of a descriptor", () => {
         eservice.id,
         descriptor.id,
         mockGracePeriodDays,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrow(notValidDescriptorState(descriptor.id, descriptor.state));
   });
@@ -224,7 +224,7 @@ describe("schedule archiving of a descriptor", () => {
           eservice.id,
           descriptor.id,
           mockGracePeriodDays,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrow(notValidDescriptorState(descriptor.id, state));
     }
@@ -250,7 +250,7 @@ describe("schedule archiving of a descriptor", () => {
     "should test grace period if archivableOn is $expectedArchivableOn when requested at $startedAt for $testCase",
     async ({ startedAt, expectedArchivableOn }) => {
       const descriptor1: Descriptor = {
-        ...getMockDescriptor(descriptorState.deprecated),
+        ...getMockDescriptor({ state: descriptorState.deprecated }),
         interface: mockDocument,
         version: "1",
       };
@@ -280,7 +280,7 @@ describe("schedule archiving of a descriptor", () => {
           eservice.id,
           descriptor1.id,
           mockGracePeriodDays,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -341,7 +341,7 @@ describe("schedule archiving of a descriptor", () => {
           eservice.id,
           descriptor1.id,
           mockGracePeriodDays,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrow(notValidDescriptorState(descriptor1.id, state));
     }
@@ -353,7 +353,7 @@ describe("schedule archiving of a descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         mockGracePeriodDays,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrow(eServiceNotFound(mockEService.id));
   });
@@ -413,7 +413,7 @@ describe("schedule archiving of a descriptor", () => {
           descriptor.id,
           mockGracePeriodDays,
           getMockContext({
-            authData: getMockAuthData(eservice.producerId),
+            authData: getMockAuthData({ organizationId: eservice.producerId }),
           })
         )
       ).rejects.toThrow(
@@ -438,7 +438,7 @@ describe("schedule archiving of a descriptor", () => {
         eservice.id,
         mockDescriptor.id,
         mockGracePeriodDays,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrow(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)

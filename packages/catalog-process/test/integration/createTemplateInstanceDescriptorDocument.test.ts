@@ -42,7 +42,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
     "should write on event-store for the internal creation of a document when descriptor state is %s",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         serverUrls: [],
       };
       const eservice: EService = {
@@ -57,7 +57,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
         eservice.id,
         descriptor.id,
         newDocument,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -126,7 +126,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
       eservice.id,
       descriptor.id,
       newDocument,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -157,7 +157,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
       eservice.id,
       descriptor.id,
       newDocument,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -192,7 +192,7 @@ describe("createTemplateInstanceDescriptorDocument", () => {
         eservice.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)

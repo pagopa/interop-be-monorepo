@@ -19,7 +19,7 @@ describe("API /internal/certifiedDiscreteAttributes authorization test", () => {
       origin: "ISTAT",
     };
 
-  const mockAttribute = getMockAttribute(attributeKind.certifiedDiscrete);
+  const mockAttribute = getMockAttribute({ kind: attributeKind.certifiedDiscrete });
 
   const apiAttribute = attributeRegistryApi.Attribute.parse(
     toApiAttribute(mockAttribute)

@@ -48,7 +48,7 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
       descriptor.id,
       mockDocument.id,
       { prettyName: "updated prettyName" },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     const expectedEservice = toEServiceV2({
@@ -118,7 +118,7 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
       descriptor.id,
       mockDocument.id,
       { prettyName: "updated prettyName" },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
 
@@ -154,7 +154,7 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
         mockDescriptor.id,
         generateId(),
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -178,7 +178,7 @@ describe("updateTemplateInstanceDescriptorDocument", () => {
         descriptor.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)

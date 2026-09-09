@@ -38,7 +38,7 @@ import {
 
 describe("update descriptor certified attribute", () => {
   it("should update dailyCallsPerConsumer and write a dedicated event", async () => {
-    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
     await addOneAttribute(certifiedAttribute);
 
     const descriptor: Descriptor = {
@@ -93,7 +93,7 @@ describe("update descriptor certified attribute", () => {
         0,
         certifiedAttribute.id,
         { dailyCallsPerConsumer: 100 },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -120,7 +120,7 @@ describe("update descriptor certified attribute", () => {
   });
 
   it("should throw inconsistentDailyCalls if dailyCallsPerConsumer exceeds dailyCallsTotal", async () => {
-    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
     await addOneAttribute(certifiedAttribute);
 
     const descriptor: Descriptor = {
@@ -154,13 +154,13 @@ describe("update descriptor certified attribute", () => {
         0,
         certifiedAttribute.id,
         { dailyCallsPerConsumer: 200 },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
 
   it("should throw unchangedAttributes if the value is identical to the current one", async () => {
-    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
     await addOneAttribute(certifiedAttribute);
 
     const descriptor: Descriptor = {
@@ -194,13 +194,13 @@ describe("update descriptor certified attribute", () => {
         0,
         certifiedAttribute.id,
         { dailyCallsPerConsumer: 50 },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(unchangedAttributes(eservice.id, descriptor.id));
   });
 
   it("should throw certifiedAttributeGroupNotFoundInSeed if groupIndex is out of range", async () => {
-    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
     await addOneAttribute(certifiedAttribute);
 
     const descriptor: Descriptor = {
@@ -233,7 +233,7 @@ describe("update descriptor certified attribute", () => {
         99,
         certifiedAttribute.id,
         { dailyCallsPerConsumer: 100 },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       certifiedAttributeGroupNotFoundInSeed(eservice.id, descriptor.id)
@@ -241,8 +241,8 @@ describe("update descriptor certified attribute", () => {
   });
 
   it("should throw attributeNotFound if attributeId is not in the group", async () => {
-    const certifiedAttribute = getMockAttribute(attributeKind.certified);
-    const otherAttribute = getMockAttribute(attributeKind.certified);
+    const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
+    const otherAttribute = getMockAttribute({ kind: attributeKind.certified });
     await addOneAttribute(certifiedAttribute);
     await addOneAttribute(otherAttribute);
 
@@ -276,13 +276,13 @@ describe("update descriptor certified attribute", () => {
         0,
         otherAttribute.id,
         { dailyCallsPerConsumer: 100 },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(attributeNotFound(otherAttribute.id));
   });
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
-    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
     await addOneAttribute(certifiedAttribute);
 
     const descriptor: Descriptor = {
@@ -324,7 +324,7 @@ describe("update descriptor certified attribute", () => {
   it.each([descriptorState.waitingForApproval, descriptorState.archived])(
     "should throw notValidDescriptorState if the descriptor is in %s state",
     async (state) => {
-      const certifiedAttribute = getMockAttribute(attributeKind.certified);
+      const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
       await addOneAttribute(certifiedAttribute);
 
       const descriptor: Descriptor = {
@@ -358,14 +358,14 @@ describe("update descriptor certified attribute", () => {
           0,
           certifiedAttribute.id,
           { dailyCallsPerConsumer: 100 },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
   );
 
   it("should throw templateInstanceNotAllowed if the e-service is a template instance", async () => {
-    const certifiedAttribute = getMockAttribute(attributeKind.certified);
+    const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
     await addOneAttribute(certifiedAttribute);
 
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
@@ -401,7 +401,7 @@ describe("update descriptor certified attribute", () => {
         0,
         certifiedAttribute.id,
         { dailyCallsPerConsumer: 100 },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });

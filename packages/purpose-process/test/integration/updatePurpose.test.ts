@@ -166,7 +166,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     const updatePurposeReturn = await purposeService.updatePurpose(
       purposeForDeliver.id,
       purposeUpdateContent,
-      getMockContext({ authData: getMockAuthData(tenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(purposeForDeliver.id);
@@ -216,7 +216,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     const updatePurposeReturn = await purposeService.updatePurpose(
       purposeForDeliver.id,
       updateContentWithoutTitle,
-      getMockContext({ authData: getMockAuthData(tenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(purposeForDeliver.id);
@@ -261,7 +261,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     const updatePurposeReturn = await purposeService.updateReversePurpose(
       purposeForReceive.id,
       reversePurposeUpdateContent,
-      getMockContext({ authData: getMockAuthData(tenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(purposeForReceive.id);
@@ -496,7 +496,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     const updatePurposeReturn = await purposeService.updatePurpose(
       delegatePurpose.id,
       updateContentWithoutTitle,
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
@@ -601,7 +601,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     const updatePurposeReturn = await purposeService.updateReversePurpose(
       delegatePurpose.id,
       reversePurposeUpdateContent,
-      getMockContext({ authData: getMockAuthData(consumer.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
@@ -642,7 +642,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         purposeId,
         purposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(purposeNotFound(purposeId));
   });
@@ -662,7 +662,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         mockPurpose.id,
         purposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(organizationId));
   });
@@ -675,7 +675,7 @@ describe("updatePurpose and updateReversePurpose", () => {
     async (state) => {
       const mockPurpose: Purpose = {
         ...purposeForDeliver,
-        versions: [{ ...getMockPurposeVersion(state) }],
+        versions: [{ ...getMockPurposeVersion({ state: state }) }],
       };
 
       await addOnePurpose(mockPurpose);
@@ -686,7 +686,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         purposeService.updatePurpose(
           mockPurpose.id,
           purposeUpdateContent,
-          getMockContext({ authData: getMockAuthData(tenant.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
         )
       ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
     }
@@ -708,7 +708,7 @@ describe("updatePurpose and updateReversePurpose", () => {
           ...purposeUpdateContent,
           title: purposeWithDuplicatedTitle.title,
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       duplicatedPurposeTitle(purposeWithDuplicatedTitle.title)
@@ -729,7 +729,7 @@ describe("updatePurpose and updateReversePurpose", () => {
           ...purposeUpdateContent,
           title: purposeFromTemplate.title,
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       purposeFromTemplateCannotBeModified(
@@ -752,7 +752,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         mockPurpose.id,
         purposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(eserviceNotFound(eserviceId));
   });
@@ -765,7 +765,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         purposeForReceive.id,
         purposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       eServiceModeNotAllowed(eServiceReceive.id, "Deliver")
@@ -780,7 +780,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updateReversePurpose(
         purposeForDeliver.id,
         reversePurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       eServiceModeNotAllowed(eServiceDeliver.id, "Receive")
@@ -805,7 +805,7 @@ describe("updatePurpose and updateReversePurpose", () => {
             isFreeOfCharge: true,
             freeOfChargeReason,
           },
-          getMockContext({ authData: getMockAuthData(tenant.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
         )
       ).rejects.toThrowError(missingFreeOfChargeReason());
     }
@@ -933,7 +933,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         purposeForDeliver.id,
         cleanedSeed,
         getMockContext({
-          authData: getMockAuthData(purpose.consumerId),
+          authData: getMockAuthData({ organizationId: purpose.consumerId }),
         })
       );
 
@@ -1004,7 +1004,7 @@ describe("updatePurpose and updateReversePurpose", () => {
             ...seed,
           },
           getMockContext({
-            authData: getMockAuthData(purpose.consumerId),
+            authData: getMockAuthData({ organizationId: purpose.consumerId }),
           })
         )
       ).rejects.toThrowError(
@@ -1023,7 +1023,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         purposeForDeliver.id,
         purposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
 
@@ -1034,7 +1034,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updateReversePurpose(
         purposeForReceive.id,
         reversePurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
@@ -1052,7 +1052,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         purposeForDeliver.id,
         purposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
       )
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
   });
@@ -1078,7 +1078,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         purposeForDeliver.id,
         mockPurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
@@ -1227,7 +1227,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         delegatePurpose.id,
         reversePurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
@@ -1255,7 +1255,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updateReversePurpose(
         delegatePurpose.id,
         reversePurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
@@ -1294,7 +1294,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         purpose.id,
         reversePurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       )
     ).rejects.toThrowError(
       tenantIsNotTheDelegatedConsumer(
@@ -1338,7 +1338,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updateReversePurpose(
         purpose.id,
         reversePurposeUpdateContent,
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       )
     ).rejects.toThrowError(
       tenantIsNotTheDelegatedConsumer(
@@ -1393,7 +1393,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         purposeService.updatePurpose(
           purposeWithWorkflow.id,
           updateContentWithDifferentRiskAnalysis,
-          getMockContext({ authData: getMockAuthData(tenant.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
         )
       ).rejects.toThrowError(
         riskAnalysisFormCannotBeUpdated(purposeWithWorkflow.id)
@@ -1437,7 +1437,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         purposeService.updatePurpose(
           purposeWithWorkflow.id,
           updateContentWithDifferentRiskAnalysis,
-          getMockContext({ authData: getMockAuthData(tenant.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
         )
       ).resolves.toBeDefined();
 
@@ -1474,7 +1474,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       purposeService.updatePurpose(
         purposeWithWorkflow.id,
         updateContentWithSameForm,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).resolves.toBeDefined();
 
@@ -1515,7 +1515,7 @@ describe("updatePurpose and updateReversePurpose", () => {
         purposeService.updatePurpose(
           purposeWithWorkflowNoForm.id,
           updateContentWithNewRiskAnalysis,
-          getMockContext({ authData: getMockAuthData(tenant.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
         )
       ).rejects.toThrowError(
         riskAnalysisFormCannotBeUpdated(purposeWithWorkflowNoForm.id)
@@ -1559,7 +1559,7 @@ describe("updatePurpose and updateReversePurpose", () => {
       const result = await purposeService.updatePurpose(
         purposeWithFormAndWorkflow.id,
         updateContentWithoutForm,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       );
 
       expect(result.data.purpose.riskAnalysisForm).toEqual(

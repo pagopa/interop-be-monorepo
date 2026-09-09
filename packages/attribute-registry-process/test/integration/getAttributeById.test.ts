@@ -17,7 +17,7 @@ import {
 describe("getAttributeById", () => {
   it("should get the attribute if it exists", async () => {
     const attribute1: Attribute = {
-      ...getMockAttribute(attributeKind.certified),
+      ...getMockAttribute({ kind: attributeKind.certified }),
       origin: "IPA",
     };
     await addOneAttribute(attribute1);

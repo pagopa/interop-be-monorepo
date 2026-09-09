@@ -71,7 +71,7 @@ describe("getTenantVerifiedAttributeRevokers", () => {
       id: revoker2Id,
     });
     await addOneAttribute({
-      ...getMockAttribute(attributeKind.verified),
+      ...getMockAttribute({ kind: attributeKind.verified }),
       id: attributeId,
     });
   });
@@ -199,7 +199,7 @@ describe("getTenantVerifiedAttributeRevokers", () => {
     };
 
     await addOneAttribute({
-      ...getMockAttribute(attributeKind.verified),
+      ...getMockAttribute({ kind: attributeKind.verified }),
       id: attributeWithoutRevokers.id,
     });
     await addOneTenant(tenantWithoutRevokers);
@@ -244,11 +244,11 @@ describe("getTenantVerifiedAttributeRevokers", () => {
     };
 
     await addOneAttribute({
-      ...getMockAttribute(attributeKind.certified),
+      ...getMockAttribute({ kind: attributeKind.certified }),
       id: certifiedAttributeId,
     });
     await addOneAttribute({
-      ...getMockAttribute(attributeKind.declared),
+      ...getMockAttribute({ kind: attributeKind.declared }),
       id: declaredAttributeId,
     });
     await addOneTenant(tenantWithMixedAttributes);

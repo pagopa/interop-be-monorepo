@@ -69,7 +69,7 @@ describe("getPurposes", async () => {
     title: "purpose 1 - test",
     consumerId: consumerId1,
     eserviceId: mockEService1ByTenant1.id,
-    versions: [getMockPurposeVersion(purposeVersionState.draft)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.draft })],
     purposeTemplateId: generateId<PurposeTemplateId>(),
   };
 
@@ -85,7 +85,7 @@ describe("getPurposes", async () => {
     title: "purpose 3 - test",
     consumerId: consumerId1,
     eserviceId: mockEService2ByTenant1.id,
-    versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.suspended })],
   };
 
   const mockPurpose4: Purpose = {
@@ -93,14 +93,14 @@ describe("getPurposes", async () => {
     title: "purpose 4",
     consumerId: consumerId2,
     eserviceId: mockEService3ByTenant2.id,
-    versions: [getMockPurposeVersion(purposeVersionState.rejected)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.rejected })],
   };
 
   const mockPurpose5: Purpose = {
     ...getMockPurpose(),
     title: "purpose 5",
     eserviceId: mockEService4.id,
-    versions: [getMockPurposeVersion(purposeVersionState.waitingForApproval)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.waitingForApproval })],
   };
 
   const mockPurpose6: Purpose = {
@@ -109,8 +109,8 @@ describe("getPurposes", async () => {
     consumerId: consumerId1,
     eserviceId: mockEService3ByTenant2.id,
     versions: [
-      getMockPurposeVersion(purposeVersionState.archived),
-      getMockPurposeVersion(purposeVersionState.active),
+      getMockPurposeVersion({ state: purposeVersionState.archived }),
+      getMockPurposeVersion({ state: purposeVersionState.active }),
     ],
   };
 
@@ -148,7 +148,7 @@ describe("getPurposes", async () => {
     title: "purpose 8 - delegated purpose 1",
     consumerId: consumerId1,
     eserviceId: mockEService1ByTenant1.id,
-    versions: [getMockPurposeVersion(purposeVersionState.active)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     delegationId: consumerDelegation1.id,
   };
 
@@ -157,7 +157,7 @@ describe("getPurposes", async () => {
     title: "purpose 9 - delegated purpose 2",
     consumerId: consumerId2,
     eserviceId: mockEService3ByTenant2.id,
-    versions: [getMockPurposeVersion(purposeVersionState.active)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     delegationId: consumerDelegation2.id,
   };
 
@@ -225,7 +225,7 @@ describe("getPurposes", async () => {
         clientId: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expectSinglePageListResult(allPurposesVisibleToProducer1, [
@@ -246,7 +246,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId2) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId2 }) })
     );
 
     expectSinglePageListResult(allPurposesVisibleToProducer2, [
@@ -266,7 +266,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(consumerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId1 }) })
     );
 
     expectSinglePageListResult(allPurposesVisibleToConsumer1, [
@@ -287,7 +287,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(consumerId2) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId2 }) })
     );
 
     expectSinglePageListResult(allPurposesVisibleToConsumer2, [
@@ -310,7 +310,7 @@ describe("getPurposes", async () => {
           excludeDraft: undefined,
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(delegateProducerId1) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateProducerId1 }) })
       );
 
     expectSinglePageListResult(allPurposesVisibleToDelegateProducer1, [
@@ -333,7 +333,7 @@ describe("getPurposes", async () => {
           excludeDraft: undefined,
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(delegateConsumerId1) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateConsumerId1 }) })
       );
 
     expectSinglePageListResult(allPurposesVisibleToDelegateConsumer1, [
@@ -352,7 +352,7 @@ describe("getPurposes", async () => {
           excludeDraft: undefined,
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(delegateConsumerId2) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateConsumerId2 }) })
       );
 
     expectSinglePageListResult(allPurposesVisibleToDelegateConsumer2, [
@@ -372,7 +372,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
@@ -389,7 +389,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expectSinglePageListResult(result, [
@@ -410,7 +410,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
     expect(result.totalCount).toBe(3);
 
@@ -432,7 +432,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(consumerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId1 }) })
     );
     expect(result.totalCount).toBe(2);
 
@@ -450,7 +450,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expectSinglePageListResult(result, [mockPurpose2]);
@@ -467,7 +467,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expectSinglePageListResult(result, [
@@ -489,7 +489,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
     expectSinglePageListResult(result, [mockPurpose1, mockDelegatedPurpose1]);
 
@@ -507,7 +507,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId2) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId2 }) })
     );
     expectSinglePageListResult(result2, [
       mockPurpose4,
@@ -536,7 +536,7 @@ describe("getPurposes", async () => {
       title: "purpose assigned review",
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
-      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.suspended })],
       reviewerWorkflow: assignedWorkflow,
     };
 
@@ -545,7 +545,7 @@ describe("getPurposes", async () => {
       title: "purpose submitted review",
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
-      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.suspended })],
       reviewerWorkflow: submittedWorkflow,
     };
 
@@ -564,7 +564,7 @@ describe("getPurposes", async () => {
         signingStates: [riskAnalysisSigningState.assigned],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1, reviewerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1, userId: reviewerId }) })
     );
 
     expectSinglePageListResult(assignedResult, [assignedPurpose]);
@@ -581,7 +581,7 @@ describe("getPurposes", async () => {
         signingStates: [riskAnalysisSigningState.submitted],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1, reviewerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1, userId: reviewerId }) })
     );
 
     expectSinglePageListResult(submittedResult, [submittedPurpose]);
@@ -622,7 +622,7 @@ describe("getPurposes", async () => {
       title: "purpose submitted reviewer 1",
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
-      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.suspended })],
       reviewerWorkflow: submittedReviewer1Workflow,
     };
 
@@ -631,7 +631,7 @@ describe("getPurposes", async () => {
       title: "purpose submitted reviewer 2",
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
-      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.suspended })],
       reviewerWorkflow: submittedReviewer2Workflow,
     };
 
@@ -640,7 +640,7 @@ describe("getPurposes", async () => {
       title: "purpose assigned reviewer 1",
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
-      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.suspended })],
       reviewerWorkflow: assignedReviewer1Workflow,
     };
 
@@ -649,7 +649,7 @@ describe("getPurposes", async () => {
       title: "purpose assigned reviewer 2",
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
-      versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.suspended })],
       reviewerWorkflow: assignedReviewer2Workflow,
     };
 
@@ -669,7 +669,7 @@ describe("getPurposes", async () => {
         reviewerId: reviewerId1,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1, reviewerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1, userId: reviewerId1 }) })
     );
 
     expectSinglePageListResult(result, [
@@ -689,7 +689,7 @@ describe("getPurposes", async () => {
       },
       { offset: 0, limit: 50 },
       getMockContext({
-        authData: getMockAuthData(producerId1, reviewerIdWithoutPurposes),
+        authData: getMockAuthData({ organizationId: producerId1, userId: reviewerIdWithoutPurposes }),
       })
     );
 
@@ -701,7 +701,7 @@ describe("getPurposes", async () => {
       ...getMockPurpose(),
       title: "archived purpose",
       eserviceId: mockEService1ByTenant1.id,
-      versions: [getMockPurposeVersion(purposeVersionState.archived)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.archived })],
     };
 
     const mockArchivedAndActivePurpose: Purpose = {
@@ -709,8 +709,8 @@ describe("getPurposes", async () => {
       title: "archived and active purpose",
       eserviceId: mockEService1ByTenant1.id,
       versions: [
-        getMockPurposeVersion(purposeVersionState.archived),
-        getMockPurposeVersion(purposeVersionState.active),
+        getMockPurposeVersion({ state: purposeVersionState.archived }),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
       ],
     };
 
@@ -727,7 +727,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expectSinglePageListResult(result, [mockArchivedPurpose]);
@@ -744,7 +744,7 @@ describe("getPurposes", async () => {
         excludeDraft: true,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
     expectSinglePageListResult(result, [mockPurpose3, mockDelegatedPurpose1]);
   });
@@ -760,7 +760,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expectSinglePageListResult(result, [
@@ -782,7 +782,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 2, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expect({
@@ -805,7 +805,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 2 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expect({
@@ -850,7 +850,7 @@ describe("getPurposes", async () => {
             excludeDraft: undefined,
           },
           { offset, limit: 1 },
-          getMockContext({ authData: getMockAuthData(consumerId1) })
+          getMockContext({ authData: getMockAuthData({ organizationId: consumerId1 }) })
         )
       )
     );
@@ -871,7 +871,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expect(result).toEqual({
@@ -892,7 +892,7 @@ describe("getPurposes", async () => {
         excludeDraft: true,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expectSinglePageListResult(result, [mockPurpose3]);
@@ -910,7 +910,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(producerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId1 }) })
     );
 
     expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
@@ -928,7 +928,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(consumerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId1 }) })
     );
 
     expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
@@ -946,7 +946,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(consumerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId1 }) })
     );
 
     expectSinglePageListResult(result, [mockPurpose1, mockPurpose3]);
@@ -964,7 +964,7 @@ describe("getPurposes", async () => {
         excludeDraft: undefined,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(consumerId2) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId2 }) })
     );
 
     expectSinglePageListResult(result, []);
@@ -981,7 +981,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(delegateProducerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegateProducerId1 }) })
     );
 
     expectSinglePageListResult(results, [
@@ -1002,7 +1002,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(delegateProducerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegateProducerId1 }) })
     );
 
     expectSinglePageListResult(results, [
@@ -1023,7 +1023,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(delegateConsumerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegateConsumerId1 }) })
     );
 
     expectSinglePageListResult(results, [mockDelegatedPurpose1]);
@@ -1040,7 +1040,7 @@ describe("getPurposes", async () => {
         excludeDraft: false,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(delegateConsumerId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegateConsumerId1 }) })
     );
 
     expectSinglePageListResult(results, [mockDelegatedPurpose1]);

@@ -113,7 +113,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
           documentId: annotationDocument1.id,
           ctx: getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
           }),
         }
       );
@@ -193,7 +193,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
           documentId: annotationDocument1.id,
           ctx: getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
           }),
         }
       )
@@ -211,7 +211,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
           documentId: annotationDocument1.id,
           ctx: getMockContext({
-            authData: getMockAuthData(requesterId),
+            authData: getMockAuthData({ organizationId: requesterId }),
           }),
         }
       )
@@ -229,9 +229,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           answerId: generateId<RiskAnalysisMultiAnswerId>(),
           documentId: generateId(),
           ctx: getMockContext({
-            authData: getMockAuthData(
-              purposeTemplateWithoutRiskAnalysisTemplate.creatorId
-            ),
+            authData: getMockAuthData({ organizationId: purposeTemplateWithoutRiskAnalysisTemplate.creatorId }),
           }),
         }
       )
@@ -255,7 +253,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
           answerId,
           documentId,
           ctx: getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
           }),
         }
       )
@@ -288,7 +286,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
             answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
             documentId: annotationDocument1.id,
             ctx: getMockContext({
-              authData: getMockAuthData(purposeTemplate.creatorId),
+              authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
             }),
           }
         )

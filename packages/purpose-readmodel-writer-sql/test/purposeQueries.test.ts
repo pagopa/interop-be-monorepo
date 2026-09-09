@@ -46,7 +46,7 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
       const purposeVersion2: PurposeVersion = {
-        ...getMockPurposeVersion(purposeVersionState.draft),
+        ...getMockPurposeVersion({ state: purposeVersionState.draft }),
         riskAnalysis: getMockPurposeVersionDocument(),
         rejectionReason: "Test rejection reason",
         updatedAt: new Date(),
@@ -54,10 +54,7 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
       const purposeVersion3: PurposeVersion = {
-        ...getMockPurposeVersion(
-          purposeVersionState.active,
-          getMockPurposeVersionStamps()
-        ),
+        ...getMockPurposeVersion({ state: purposeVersionState.active, stamps: getMockPurposeVersionStamps() }),
         riskAnalysis: getMockPurposeVersionDocument(),
         rejectionReason: "Test rejection reason",
         updatedAt: new Date(),
@@ -183,7 +180,7 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
       const purposeVersion2: PurposeVersion = {
-        ...getMockPurposeVersion(purposeVersionState.draft),
+        ...getMockPurposeVersion({ state: purposeVersionState.draft }),
         riskAnalysis: getMockPurposeVersionDocument(),
         rejectionReason: "Test rejection reason",
         updatedAt: new Date(),
@@ -191,10 +188,7 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
       const purposeVersion3: PurposeVersion = {
-        ...getMockPurposeVersion(
-          purposeVersionState.active,
-          getMockPurposeVersionStamps()
-        ),
+        ...getMockPurposeVersion({ state: purposeVersionState.active, stamps: getMockPurposeVersionStamps() }),
         riskAnalysis: getMockPurposeVersionDocument(),
         rejectionReason: "Test rejection reason",
         updatedAt: new Date(),
@@ -276,10 +270,7 @@ describe("Purpose queries", () => {
             suspendedAt: new Date(),
           },
           {
-            ...getMockPurposeVersion(
-              purposeVersionState.active,
-              getMockPurposeVersionStamps()
-            ),
+            ...getMockPurposeVersion({ state: purposeVersionState.active, stamps: getMockPurposeVersionStamps() }),
             riskAnalysis: getMockPurposeVersionDocument(),
             rejectionReason: "Test rejection reason",
             updatedAt: new Date(),
@@ -318,10 +309,7 @@ describe("Purpose queries", () => {
             suspendedAt: new Date(),
           },
           {
-            ...getMockPurposeVersion(
-              purposeVersionState.active,
-              getMockPurposeVersionStamps()
-            ),
+            ...getMockPurposeVersion({ state: purposeVersionState.active, stamps: getMockPurposeVersionStamps() }),
             riskAnalysis: getMockPurposeVersionDocument(),
             rejectionReason: "Test rejection reason",
             updatedAt: new Date(),

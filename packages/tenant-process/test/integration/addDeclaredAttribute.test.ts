@@ -36,7 +36,7 @@ import {
 } from "../integrationUtils.js";
 
 describe("addDeclaredAttribute", async () => {
-  const declaredAttribute = getMockAttribute(attributeKind.declared);
+  const declaredAttribute = getMockAttribute({ kind: attributeKind.declared });
 
   beforeAll(async () => {
     vi.useFakeTimers();
@@ -62,7 +62,7 @@ describe("addDeclaredAttribute", async () => {
         tenantAttributeSeed: { id: declaredAttribute.id },
       },
       getMockContext({
-        authData: getMockAuthData(tenantWithoutDeclaredAttribute.id),
+        authData: getMockAuthData({ organizationId: tenantWithoutDeclaredAttribute.id }),
       })
     );
     const writtenEvent = await readLastEventByStreamId(
@@ -121,7 +121,7 @@ describe("addDeclaredAttribute", async () => {
         tenantAttributeSeed: { id: declaredAttribute.id },
       },
       getMockContext({
-        authData: getMockAuthData(tenantWithAttributeRevoked.id),
+        authData: getMockAuthData({ organizationId: tenantWithAttributeRevoked.id }),
       })
     );
     const writtenEvent = await readLastEventByStreamId(
@@ -195,7 +195,7 @@ describe("addDeclaredAttribute", async () => {
         },
       },
       getMockContext({
-        authData: getMockAuthData(delegateWithoutDeclaredAttribute.id),
+        authData: getMockAuthData({ organizationId: delegateWithoutDeclaredAttribute.id }),
       })
     );
     const writtenEvent = await readLastEventByStreamId(
@@ -272,7 +272,7 @@ describe("addDeclaredAttribute", async () => {
         tenantAttributeSeed: { id: declaredAttribute.id, delegationId },
       },
       getMockContext({
-        authData: getMockAuthData(delegateWithoutDeclaredAttribute.id),
+        authData: getMockAuthData({ organizationId: delegateWithoutDeclaredAttribute.id }),
       })
     );
 
@@ -322,7 +322,7 @@ describe("addDeclaredAttribute", async () => {
           tenantAttributeSeed: { id: declaredAttribute.id },
         },
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
@@ -336,7 +336,7 @@ describe("addDeclaredAttribute", async () => {
           tenantAttributeSeed: { id: declaredAttribute.id },
         },
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(

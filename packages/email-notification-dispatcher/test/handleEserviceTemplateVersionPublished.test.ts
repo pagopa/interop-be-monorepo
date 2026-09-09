@@ -47,15 +47,15 @@ describe("handleEServiceTemplateVersionPublished", async () => {
     creatorId,
   };
   const eservice: EService = {
-    ...getMockEService(eserviceId),
+    ...getMockEService({ eserviceId: eserviceId }),
     templateId: eserviceTemplateId,
     producerId: instantiatorId,
     descriptors: [getMockDescriptorPublished()],
   };
   const eserviceTemplateVersionId = eserviceTemplate.versions[0].id;
 
-  const creatorTenant = getMockTenant(creatorId);
-  const instantiatorTenant = getMockTenant(instantiatorId);
+  const creatorTenant = getMockTenant({ tenantId: creatorId });
+  const instantiatorTenant = getMockTenant({ tenantId: instantiatorId });
   const users = [getMockUser(instantiatorId), getMockUser(instantiatorId)];
 
   const { logger } = getMockContext({});

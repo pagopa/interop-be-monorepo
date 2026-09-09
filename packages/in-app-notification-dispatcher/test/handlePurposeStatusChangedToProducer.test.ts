@@ -44,11 +44,11 @@ describe("handlePurposeStatusChangedToProducer", () => {
     descriptors: [getMockDescriptorPublished()],
   };
 
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant = getMockTenant({ tenantId: producerId });
+  const consumerTenant = getMockTenant({ tenantId: consumerId });
 
   const purpose = {
-    ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+    ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
     id: purposeId,
     eserviceId,
     consumerId,

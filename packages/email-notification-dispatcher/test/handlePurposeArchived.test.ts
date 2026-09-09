@@ -53,12 +53,12 @@ describe("handlePurposeArchived", async () => {
     descriptors: [descriptor],
   };
   const producerTenant: Tenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     name: "Producer Tenant",
     mails: [getMockTenantMail()],
   };
   const consumerTenant = {
-    ...getMockTenant(consumerId),
+    ...getMockTenant({ tenantId: consumerId }),
     name: "Consumer Tenant",
   };
   const users = [

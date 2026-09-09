@@ -124,25 +124,25 @@ export const getContextsAllowedToSeeInactiveDescriptors = (
 ) => [
   getMockContext({
     authData: {
-      ...getMockAuthData(producerOrDelegateId),
+      ...getMockAuthData({ organizationId: producerOrDelegateId }),
       userRoles: [userRole.ADMIN_ROLE],
     },
   }),
   getMockContext({
     authData: {
-      ...getMockAuthData(producerOrDelegateId),
+      ...getMockAuthData({ organizationId: producerOrDelegateId }),
       userRoles: [userRole.API_ROLE],
     },
   }),
   getMockContext({
     authData: {
-      ...getMockAuthData(producerOrDelegateId),
+      ...getMockAuthData({ organizationId: producerOrDelegateId }),
       userRoles: [userRole.SUPPORT_ROLE],
     },
   }),
   getMockContext({
     authData: {
-      ...getMockAuthData(producerOrDelegateId),
+      ...getMockAuthData({ organizationId: producerOrDelegateId }),
       userRoles: [userRole.VIEWER_ROLE],
     },
   }),

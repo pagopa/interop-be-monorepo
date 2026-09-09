@@ -85,7 +85,7 @@ describe("updatePurposeTemplate", () => {
     targetTenantKind.PRIVATE
   )!.version;
   const creatorId = generateId<TenantId>();
-  const creator: Tenant = getMockTenant(creatorId);
+  const creator: Tenant = getMockTenant({ tenantId: creatorId });
 
   const mockValidRiskAnalysisTemplateForm =
     getMockValidRiskAnalysisFormTemplate(targetTenantKind.PA);
@@ -179,7 +179,7 @@ describe("updatePurposeTemplate", () => {
           existingPurposeTemplate.id,
           validPurposeTemplateSeed,
           getMockContext({
-            authData: getMockAuthData(creatorId),
+            authData: getMockAuthData({ organizationId: creatorId }),
           })
         );
 
@@ -284,7 +284,7 @@ describe("updatePurposeTemplate", () => {
         existingPurposeTemplate.id,
         purposeTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(existingPurposeTemplate.id));
@@ -304,7 +304,7 @@ describe("updatePurposeTemplate", () => {
         purposeTemplateInPublishedState.id,
         purposeTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -328,7 +328,7 @@ describe("updatePurposeTemplate", () => {
         existingPurposeTemplate.id,
         purposeTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(existingPurposeTemplate.id));
@@ -347,7 +347,7 @@ describe("updatePurposeTemplate", () => {
             purposeFreeOfChargeReason,
           },
           getMockContext({
-            authData: getMockAuthData(existingPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existingPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(missingFreeOfChargeReason());
@@ -372,7 +372,7 @@ describe("updatePurposeTemplate", () => {
           purposeTitle: "template title", // lowercase version
         },
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       );
 
@@ -478,7 +478,7 @@ describe("updatePurposeTemplate", () => {
         existingPurposeTemplateWithAnnotations.id,
         purposeTemplateSeedUpdated,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       );
 
@@ -584,7 +584,7 @@ describe("updatePurposeTemplate", () => {
         existingPurposeTemplateWithAnnotations.id,
         purposeTemplateSeedUpdated,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       );
 
@@ -721,7 +721,7 @@ describe("updatePurposeTemplate", () => {
           existingPurposeTemplate.id,
           cleanedSeed,
           getMockContext({
-            authData: getMockAuthData(creatorId),
+            authData: getMockAuthData({ organizationId: creatorId }),
           })
         );
 
@@ -796,7 +796,7 @@ describe("updatePurposeTemplate", () => {
             ...seed,
           },
           getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(

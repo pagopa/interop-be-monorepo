@@ -77,32 +77,20 @@ describe("EService Descriptors Archiver", async () => {
         descriptors: [descriptor],
       };
       const archivedAgreement = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
         descriptorId: descriptor.id,
         producerId,
       };
 
       // Relating agreements: same descriptor, same eservice, different consumer
       const otherAgreement1 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
         descriptorId: descriptor.id,
         producerId,
       };
 
       const otherAgreement2 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
         descriptorId: descriptor.id,
         producerId,
       };
@@ -158,32 +146,20 @@ describe("EService Descriptors Archiver", async () => {
           descriptors: [descriptor, newerDescriptor],
         };
         const archivedAgreement = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
 
         // Relating agreements: same descriptor, same eservice, different consumer
         const otherAgreement1 = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
 
         const otherAgreement2 = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
@@ -225,32 +201,20 @@ describe("EService Descriptors Archiver", async () => {
         descriptors: [descriptor],
       };
       const archivedAgreement = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
         descriptorId: descriptor.id,
         producerId,
       };
 
       // Relating agreements: same descriptor, same eservice, different consumer
       const otherAgreement1 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
         descriptorId: descriptor.id,
         producerId,
       };
 
       const otherAgreement2 = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.active }),
         descriptorId: descriptor.id,
         producerId,
       };
@@ -299,32 +263,20 @@ describe("EService Descriptors Archiver", async () => {
           descriptors: [descriptor],
         };
         const archivedAgreement = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
 
         // Relating agreements: same descriptor, same eservice, different consumer
         const otherAgreement1 = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
 
         const otherAgreement2 = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
@@ -367,32 +319,20 @@ describe("EService Descriptors Archiver", async () => {
           descriptors: [descriptor],
         };
         const archivedAgreement = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
 
         // Relating agreements: same descriptor, same eservice, different consumer
         const otherAgreement1 = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
 
         const otherAgreement2 = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
@@ -454,11 +394,7 @@ describe("EService Descriptors Archiver", async () => {
         };
 
         const archivedAgreement = {
-          ...getMockAgreement(
-            eservice.id,
-            generateId<TenantId>(),
-            agreementState.archived
-          ),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
           descriptorId: descriptor.id,
           producerId,
         };
@@ -480,11 +416,7 @@ describe("EService Descriptors Archiver", async () => {
     );
 
     it("should throw an error when the EService is not found", async () => {
-      const archivedAgreement = getMockAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        agreementState.archived
-      );
+      const archivedAgreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: agreementState.archived });
 
       await expect(
         archiveDescriptorForArchivedAgreement(
@@ -509,11 +441,7 @@ describe("EService Descriptors Archiver", async () => {
         producerId,
       };
       const archivedAgreement = {
-        ...getMockAgreement(
-          eservice.id,
-          generateId<TenantId>(),
-          agreementState.archived
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: generateId<TenantId>(), state: agreementState.archived }),
         producerId,
       };
 

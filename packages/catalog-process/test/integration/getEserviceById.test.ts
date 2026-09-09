@@ -48,7 +48,7 @@ describe("get eservice by id", () => {
     };
     await addOneEService(eservice1);
     const authData: AuthData = {
-      ...getMockAuthData(eservice1.producerId),
+      ...getMockAuthData({ organizationId: eservice1.producerId }),
       userRoles: [userRole.ADMIN_ROLE],
     };
 
@@ -159,7 +159,7 @@ describe("get eservice by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getMockAuthData(eservice.producerId),
+      ...getMockAuthData({ organizationId: eservice.producerId }),
       userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(mockEService);
@@ -222,7 +222,7 @@ describe("get eservice by id", () => {
           descriptors: [descriptorA, descriptorB],
         };
         const authData: AuthData = {
-          ...getMockAuthData(eservice.producerId),
+          ...getMockAuthData({ organizationId: eservice.producerId }),
           userRoles: [userRole.SECURITY_ROLE],
         };
         await addOneEService(eservice);

@@ -39,7 +39,7 @@ describe("getProducerKeychainEServiceFlags", async () => {
         producerId,
         eserviceId,
       },
-      getMockContext({ authData: getMockAuthData(requesterId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
     );
 
     expect(result).toEqual({
@@ -56,7 +56,7 @@ describe("getProducerKeychainEServiceFlags", async () => {
         producerId,
         eserviceId,
       },
-      getMockContext({ authData: getMockAuthData(requesterId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
     );
 
     expect(result).toEqual({
@@ -75,7 +75,7 @@ describe("getProducerKeychainEServiceFlags", async () => {
         producerId,
         eserviceId,
       },
-      getMockContext({ authData: getMockAuthData(requesterId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
     );
 
     expect(result).toEqual({

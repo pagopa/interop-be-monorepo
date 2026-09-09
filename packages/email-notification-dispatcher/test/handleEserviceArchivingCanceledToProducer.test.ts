@@ -29,10 +29,10 @@ import {
 
 describe("handleEserviceArchivingCanceledToProducer", () => {
   const producerId = generateId<TenantId>();
-  const producerTenant = { ...getMockTenant(producerId), name: "Producer T" };
+  const producerTenant = { ...getMockTenant({ tenantId: producerId }), name: "Producer T" };
 
   const descriptor: Descriptor = {
-    ...getMockDescriptor(descriptorState.published),
+    ...getMockDescriptor({ state: descriptorState.published }),
   };
   const eservice: EService = {
     ...getMockEService(),

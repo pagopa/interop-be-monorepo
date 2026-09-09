@@ -32,7 +32,7 @@ describe("API /eservices/{eServiceId}/descriptors/{descriptorId}/documents/{docu
   const document: Document = getMockDocument();
 
   const descriptor: Descriptor = {
-    ...getMockDescriptor(descriptorState.published),
+    ...getMockDescriptor({ state: descriptorState.published }),
     docs: [document],
   };
   const eservice: EService = {

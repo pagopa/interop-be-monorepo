@@ -64,7 +64,7 @@ describe.each([
 
   it("should approve delegation if validations succeed", async () => {
     const delegationId = generateId<DelegationId>();
-    const authData = getMockAuthData(delegate.id);
+    const authData = getMockAuthData({ organizationId: delegate.id });
 
     const delegation = getMockDelegation({
       kind,
@@ -122,7 +122,7 @@ describe.each([
     await expect(
       approveFn(
         nonExistentDelegationId,
-        getMockContext({ authData: getMockAuthData(delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateId }) })
       )
     ).rejects.toThrow(delegationNotFound(nonExistentDelegationId, kind));
   });
@@ -143,7 +143,7 @@ describe.each([
     await expect(
       approveFn(
         delegation.id,
-        getMockContext({ authData: getMockAuthData(delegate.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegate.id }) })
       )
     ).rejects.toThrow(delegationNotFound(delegation.id, kind));
   });
@@ -163,7 +163,7 @@ describe.each([
     await expect(
       approveFn(
         delegation.id,
-        getMockContext({ authData: getMockAuthData(wrongDelegate.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: wrongDelegate.id }) })
       )
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegate.id, delegation.id)
@@ -189,7 +189,7 @@ describe.each([
       await expect(
         approveFn(
           delegation.id,
-          getMockContext({ authData: getMockAuthData(delegate.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: delegate.id }) })
         )
       ).rejects.toThrow(
         incorrectState(delegation.id, state, delegationState.waitingForApproval)
@@ -211,7 +211,7 @@ describe.each([
 
     await approveFn(
       delegation.id,
-      getMockContext({ authData: getMockAuthData(delegate.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegate.id }) })
     );
 
     const event = await readLastDelegationEvent(delegation.id);

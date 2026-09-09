@@ -23,7 +23,7 @@ describe("API /verifiedAttributes authorization test", () => {
     description: "This is a verified attribute",
   };
 
-  const mockAttribute = getMockAttribute(attributeKind.verified);
+  const mockAttribute = getMockAttribute({ kind: attributeKind.verified });
 
   const serviceResponse = getMockWithMetadata(mockAttribute);
 

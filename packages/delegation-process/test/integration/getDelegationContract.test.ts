@@ -43,7 +43,7 @@ describe("getDelegationContract", () => {
     const returnedContract = await delegationService.getDelegationContract(
       delegation.id,
       mockContract.id,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     expect(returnedContract).toEqual(mockContract);
@@ -60,7 +60,7 @@ describe("getDelegationContract", () => {
     const returnedContract = delegationService.getDelegationContract(
       notFoundId,
       mockContract.id,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     await expect(returnedContract).rejects.toThrow(
@@ -82,7 +82,7 @@ describe("getDelegationContract", () => {
     const returnedContract = delegationService.getDelegationContract(
       delegation.id,
       falseContractId,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     await expect(returnedContract).rejects.toThrow(

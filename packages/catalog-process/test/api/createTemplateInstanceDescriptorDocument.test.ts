@@ -27,7 +27,7 @@ import { api, catalogService } from "../vitest.api.setup.js";
 
 describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptorId}/documents/update authorization test", () => {
   const mockDescriptor: Descriptor = {
-    ...getMockDescriptor(descriptorState.published),
+    ...getMockDescriptor({ state: descriptorState.published }),
     serverUrls: [],
   };
 

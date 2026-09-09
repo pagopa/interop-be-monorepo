@@ -52,11 +52,11 @@ describe("updateDraftDescriptor", () => {
   const mockEService = getMockEService();
   const mockDocument = getMockDocument();
 
-  const certifiedAttribute: Attribute = getMockAttribute("Certified");
+  const certifiedAttribute: Attribute = getMockAttribute({ kind: "Certified" });
 
-  const verifiedAttribute: Attribute = getMockAttribute("Verified");
+  const verifiedAttribute: Attribute = getMockAttribute({ kind: "Verified" });
 
-  const declaredAttribute: Attribute = getMockAttribute("Declared");
+  const declaredAttribute: Attribute = getMockAttribute({ kind: "Declared" });
 
   beforeEach(async () => {
     await addOneAttribute(certifiedAttribute);
@@ -130,7 +130,7 @@ describe("updateDraftDescriptor", () => {
       eservice.id,
       descriptor.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -155,7 +155,7 @@ describe("updateDraftDescriptor", () => {
 
   it("should allow changing the discreteConfig of a certified discrete attribute on a draft descriptor", async () => {
     config.featureFlagAttributeCertifiedDiscrete = true;
-    const discreteAttribute = getMockAttribute(attributeKind.certifiedDiscrete);
+    const discreteAttribute = getMockAttribute({ kind: attributeKind.certifiedDiscrete });
     await addOneAttribute(discreteAttribute);
 
     const descriptor: Descriptor = {
@@ -224,7 +224,7 @@ describe("updateDraftDescriptor", () => {
       eservice.id,
       descriptor.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -303,7 +303,7 @@ describe("updateDraftDescriptor", () => {
       eservice.id,
       descriptor.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -337,7 +337,7 @@ describe("updateDraftDescriptor", () => {
         mockEService.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -354,7 +354,7 @@ describe("updateDraftDescriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         buildUpdateDescriptorSeed(mockDescriptor),
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -384,7 +384,7 @@ describe("updateDraftDescriptor", () => {
           eservice.id,
           descriptor.id,
           buildUpdateDescriptorSeed(descriptor),
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(mockDescriptor.id, state));
     }
@@ -435,7 +435,7 @@ describe("updateDraftDescriptor", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -460,7 +460,7 @@ describe("updateDraftDescriptor", () => {
           dailyCallsPerConsumer: 100,
           dailyCallsTotal: 50,
         }),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -510,7 +510,7 @@ describe("updateDraftDescriptor", () => {
         eservice.id,
         descriptor.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
   });
@@ -541,7 +541,7 @@ describe("updateDraftDescriptor", () => {
         eservice.id,
         descriptor.id,
         buildUpdateDescriptorSeed(descriptor),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       templateInstanceNotAllowed(eservice.id, template.id)
@@ -575,7 +575,7 @@ describe("updateDraftDescriptor", () => {
       eservice.id,
       descriptor.id,
       updateSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const updatedDescriptor = result.data.descriptors.find(
@@ -635,7 +635,7 @@ describe("updateDraftDescriptor", () => {
         eservice.id,
         descriptor.id,
         updateSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       asyncExchangeBulkNotAllowedForSoap(eservice.id, descriptor.id)
@@ -669,7 +669,7 @@ describe("updateDraftDescriptor", () => {
       eservice.id,
       descriptor.id,
       updateSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const updatedDescriptor = result.data.descriptors.find(
@@ -708,7 +708,7 @@ describe("updateDraftDescriptor", () => {
       eservice.id,
       descriptor.id,
       updateSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const updatedDescriptor = result.data.descriptors.find(
@@ -819,7 +819,7 @@ describe("updateDraftDescriptor", () => {
       eservice.id,
       descriptor.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);

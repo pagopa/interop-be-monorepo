@@ -73,7 +73,7 @@ describe("cancel archiving of a descriptor", () => {
         await catalogService.cancelEServiceDescriptorArchiving(
           eservice.id,
           descriptor1.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -134,7 +134,7 @@ describe("cancel archiving of a descriptor", () => {
         await catalogService.cancelEServiceDescriptorArchiving(
           eservice.id,
           descriptor1.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -201,7 +201,7 @@ describe("cancel archiving of a descriptor", () => {
         await catalogService.cancelEServiceDescriptorArchiving(
           eservice.id,
           descriptor1.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -238,7 +238,7 @@ describe("cancel archiving of a descriptor", () => {
       catalogService.cancelEServiceDescriptorArchiving(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -283,7 +283,7 @@ describe("cancel archiving of a descriptor", () => {
       catalogService.cancelEServiceDescriptorArchiving(
         eservice.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -322,7 +322,7 @@ describe("cancel archiving of a descriptor", () => {
         catalogService.cancelEServiceDescriptorArchiving(
           eservice.id,
           descriptor1.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor1.id, state));
     }
@@ -357,7 +357,7 @@ describe("cancel archiving of a descriptor", () => {
       catalogService.cancelEServiceDescriptorArchiving(
         eservice.id,
         descriptor1.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       descriptorArchivingNotCancelableByScope(descriptor1.id)
@@ -381,7 +381,7 @@ describe("cancel archiving of a descriptor", () => {
       catalogService.cancelEServiceDescriptorArchiving(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       notValidDescriptorState(descriptor.id, descriptor.state)

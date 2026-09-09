@@ -1051,7 +1051,7 @@ describe("authorization server tests", () => {
 
     const purpose: Purpose = {
       ...getMockPurpose(),
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
     const clientId = generateId<ClientId>();
 
@@ -1334,7 +1334,7 @@ describe("authorization server tests", () => {
 
     const purpose: Purpose = {
       ...getMockPurpose(),
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
     const clientId = generateId<ClientId>();
 

@@ -34,7 +34,7 @@ describe("handleDelegationApprovedRejectedToDelegator", () => {
   const eserviceId: EServiceId = generateId();
 
   const eservice = {
-    ...getMockEService(eserviceId, delegator.id),
+    ...getMockEService({ eserviceId: eserviceId, producerId: delegator.id }),
     name: "Test EService",
   };
   const delegation = getMockDelegation({

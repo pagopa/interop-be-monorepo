@@ -121,7 +121,7 @@ const setupCallbackScenario = async (overrides?: {
   // Step 1: Create consumer client and start_interaction to create an interaction
   const purpose: Purpose = {
     ...getMockPurpose(),
-    versions: [getMockPurposeVersion(purposeVersionState.active)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
   };
   const consumerClientId = generateId<ClientId>();
   const eServiceId = generateId<EServiceId>();

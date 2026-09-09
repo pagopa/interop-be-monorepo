@@ -31,7 +31,7 @@ import {
 describe("update E-service personalData flag for an already created E-service", async () => {
   it("should write on event-store for the update of the E-service personalData flag (undefined -> true)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
 
@@ -47,7 +47,7 @@ describe("update E-service personalData flag for an already created E-service", 
       await catalogService.updateEServicePersonalDataFlagAfterPublication(
         eservice.id,
         newPersonalDataValue,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
     const updatedEService: EService = {
@@ -83,7 +83,7 @@ describe("update E-service personalData flag for an already created E-service", 
     "should NOT write on event-store for the update of the E-service personalData flag if it was already set (%s -> %s)",
     async (oldPersonalDataValue, newPersonalDataValue) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.published),
+        ...getMockDescriptor({ state: descriptorState.published }),
         interface: getMockDocument(),
       };
 
@@ -99,7 +99,7 @@ describe("update E-service personalData flag for an already created E-service", 
         catalogService.updateEServicePersonalDataFlagAfterPublication(
           eservice.id,
           newPersonalDataValue,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(
         eservicePersonalDataFlagCanOnlyBeSetOnce(eservice.id)
@@ -115,7 +115,7 @@ describe("update E-service personalData flag for an already created E-service", 
         catalogService.updateEServicePersonalDataFlagAfterPublication(
           eservice.id,
           personalDataFlag,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(eServiceNotFound(eservice.id));
     }
@@ -149,7 +149,7 @@ describe("update E-service personalData flag for an already created E-service", 
         catalogService.updateEServicePersonalDataFlagAfterPublication(
           eservice.id,
           personalDataFlag,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }

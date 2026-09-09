@@ -56,7 +56,7 @@ describe("getDocuments", () => {
     await addOneEService(mockEService);
 
     const authData: AuthData = {
-      ...getMockAuthData(mockEService.producerId),
+      ...getMockAuthData({ organizationId: mockEService.producerId }),
       userRoles: [userRole.ADMIN_ROLE],
     };
     const result = await catalogService.getDocuments(
@@ -89,7 +89,7 @@ describe("getDocuments", () => {
       await addOneEService(mockEService);
 
       const authData: AuthData = {
-        ...getMockAuthData(mockEService.producerId),
+        ...getMockAuthData({ organizationId: mockEService.producerId }),
         userRoles: [userRole.ADMIN_ROLE],
       };
       const result = await catalogService.getDocuments(
@@ -128,7 +128,7 @@ describe("getDocuments", () => {
     await addOneDelegation(delegation);
 
     const authData: AuthData = {
-      ...getMockAuthData(mockEService.producerId),
+      ...getMockAuthData({ organizationId: mockEService.producerId }),
       userRoles: [userRole.ADMIN_ROLE],
     };
     const result = await catalogService.getDocuments(
@@ -229,7 +229,7 @@ describe("getDocuments", () => {
       await addOneEService(mockEService);
 
       const authData: AuthData = {
-        ...getMockAuthData(mockEService.producerId),
+        ...getMockAuthData({ organizationId: mockEService.producerId }),
         userRoles: [userRole.SECURITY_ROLE],
       };
       await expect(
@@ -261,7 +261,7 @@ describe("getDocuments", () => {
       await addOneEService(mockEService);
 
       const authData: AuthData = {
-        ...getMockAuthData(mockEService.producerId),
+        ...getMockAuthData({ organizationId: mockEService.producerId }),
         userRoles: [userRole.SECURITY_ROLE],
       };
       await expect(

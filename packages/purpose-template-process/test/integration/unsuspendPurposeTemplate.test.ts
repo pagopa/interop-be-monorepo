@@ -66,7 +66,7 @@ describe("unsuspendPurposeTemplate", () => {
     const unsuspendResponse =
       await purposeTemplateService.unsuspendPurposeTemplate(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
       );
 
     const updatedPurposeTemplate = unsuspendResponse.data;
@@ -115,7 +115,7 @@ describe("unsuspendPurposeTemplate", () => {
     await expect(async () => {
       await purposeTemplateService.unsuspendPurposeTemplate(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(otherTenantId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: otherTenantId }) })
       );
     }).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
@@ -131,7 +131,7 @@ describe("unsuspendPurposeTemplate", () => {
     await expect(async () => {
       await purposeTemplateService.unsuspendPurposeTemplate(
         purposeTemplateWithoutRiskAnalysis.id,
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
       );
     }).rejects.toThrowError(
       purposeTemplateRiskAnalysisFormNotFound(
@@ -171,7 +171,7 @@ describe("unsuspendPurposeTemplate", () => {
     await expect(async () => {
       await purposeTemplateService.unsuspendPurposeTemplate(
         purposeTemplateWithInvalidRiskAnalysis.id,
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
       );
     }).rejects.toThrowError(
       riskAnalysisTemplateValidationFailed(
@@ -217,7 +217,7 @@ describe("unsuspendPurposeTemplate", () => {
       await expect(async () => {
         await purposeTemplateService.unsuspendPurposeTemplate(
           purposeTemplateWithUnexpectedState.id,
-          getMockContext({ authData: getMockAuthData(creatorId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
         );
       }).rejects.toThrowError(error);
     }

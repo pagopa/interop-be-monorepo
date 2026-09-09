@@ -58,7 +58,7 @@ describe("addTenantMail", async () => {
         mailSeed,
       },
       getMockContext({
-        authData: getMockAuthData(mockTenant.id),
+        authData: getMockAuthData({ organizationId: mockTenant.id }),
       })
     );
     const writtenEvent = await readLastEventByStreamId(
@@ -117,7 +117,7 @@ describe("addTenantMail", async () => {
         mailSeed,
       },
       getMockContext({
-        authData: getMockAuthData(mockTenant.id),
+        authData: getMockAuthData({ organizationId: mockTenant.id }),
       })
     );
     const writtenEvent = await readLastEventByStreamId(
@@ -167,7 +167,7 @@ describe("addTenantMail", async () => {
         mailSeed: mailSeedWithStrangeCharacters,
       },
       getMockContext({
-        authData: getMockAuthData(mockTenant.id),
+        authData: getMockAuthData({ organizationId: mockTenant.id }),
       })
     );
     const writtenEvent = await readLastEventByStreamId(
@@ -213,7 +213,7 @@ describe("addTenantMail", async () => {
           mailSeed,
         },
         getMockContext({
-          authData: getMockAuthData(mockTenant.id),
+          authData: getMockAuthData({ organizationId: mockTenant.id }),
         })
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
@@ -255,7 +255,7 @@ describe("addTenantMail", async () => {
           mailSeed,
         },
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(mailAlreadyExists());
@@ -276,7 +276,7 @@ describe("addTenantMail", async () => {
           mailSeed: mailSeedWithStrangeCharacters,
         },
         getMockContext({
-          authData: getMockAuthData(mockTenant.id),
+          authData: getMockAuthData({ organizationId: mockTenant.id }),
         })
       )
     ).rejects.toThrowError(notValidMailAddress());

@@ -54,11 +54,11 @@ describe("handleClientPurposeRemoved", async () => {
     descriptors: [descriptor],
   };
   const producerTenant: Tenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     mails: [getMockTenantMail()],
   };
   const consumerTenant: Tenant = {
-    ...getMockTenant(consumerId),
+    ...getMockTenant({ tenantId: consumerId }),
     mails: [getMockTenantMail()],
   };
   const users = [

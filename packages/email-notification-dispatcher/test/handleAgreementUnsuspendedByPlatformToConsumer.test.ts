@@ -49,9 +49,9 @@ describe("handleAgreementUnsuspendedByPlatformToConsumer", async () => {
     producerId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
+  const producerTenant = getMockTenant({ tenantId: producerId });
   const consumerTenant: Tenant = {
-    ...getMockTenant(consumerId),
+    ...getMockTenant({ tenantId: consumerId }),
     mails: [getMockTenantMail()],
   };
   const users = [

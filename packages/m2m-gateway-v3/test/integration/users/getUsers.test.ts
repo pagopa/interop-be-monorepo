@@ -32,7 +32,7 @@ interface SelfcareUser {
 
 describe("getUsers", () => {
   const tenantId = generateId<TenantId>();
-  const mockTenant = getMockTenant(tenantId);
+  const mockTenant = getMockTenant({ tenantId: tenantId });
   const mockTenantWithMetadata = getMockWithMetadata(mockTenant);
   const mockTenantWithMetadataAndEmptySelfcareId = getMockWithMetadata({
     ...mockTenant,

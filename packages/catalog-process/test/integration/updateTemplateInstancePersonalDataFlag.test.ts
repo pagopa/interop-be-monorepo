@@ -26,7 +26,7 @@ import {
 describe("internalUpdateTemplateInstancePersonalDataFlag", () => {
   it("should write on event-store for the internal update of the eService personalData flag", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -40,7 +40,7 @@ describe("internalUpdateTemplateInstancePersonalDataFlag", () => {
     await catalogService.internalUpdateTemplateInstancePersonalDataFlag(
       eservice.id,
       updatedPersonalDataFlag,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const updatedEService: EService = {
@@ -72,7 +72,7 @@ describe("internalUpdateTemplateInstancePersonalDataFlag", () => {
       catalogService.internalUpdateTemplateInstancePersonalDataFlag(
         eservice.id,
         true,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });

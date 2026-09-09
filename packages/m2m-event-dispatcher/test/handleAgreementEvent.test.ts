@@ -57,7 +57,7 @@ describe("handleAgreementEvent test", async () => {
           it.each(Object.values(agreementState))(
             "should write M2M event with the right visibility for agreement in state %s",
             async (state) => {
-              const agreement = getMockAgreement(undefined, undefined, state);
+              const agreement = getMockAgreement({ eserviceId: undefined, consumerId: undefined, state: state });
 
               let producerDelegation: Delegation | undefined;
               let consumerDelegation: Delegation | undefined;

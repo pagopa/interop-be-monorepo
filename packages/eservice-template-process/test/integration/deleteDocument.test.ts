@@ -84,7 +84,7 @@ describe("delete Document", () => {
           eserviceTemplateVersion.id,
           document.id,
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         );
       const writtenEvent = await readLastEserviceTemplateEvent(
@@ -171,7 +171,7 @@ describe("delete Document", () => {
       eserviceTemplateVersion.id,
       interfaceDocument.id,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -264,7 +264,7 @@ describe("delete Document", () => {
         mockEServiceTemplateVersion.id,
         mockDocument.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -294,7 +294,7 @@ describe("delete Document", () => {
           eserviceTemplateVersion.id,
           mockDocument.id,
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -326,7 +326,7 @@ describe("delete Document", () => {
           eserviceTemplateVersion.id,
           mockDocument.id,
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -353,7 +353,7 @@ describe("delete Document", () => {
         eserviceTemplateVersion.id,
         mockDocument.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -386,7 +386,7 @@ describe("delete Document", () => {
         eserviceTemplateVersion.id,
         mockDocument.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -439,7 +439,7 @@ describe("delete Document", () => {
       eserviceTemplateVersion.id,
       callbackInterface.id,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -519,7 +519,7 @@ describe("delete Document", () => {
           eserviceTemplateVersion.id,
           mockDocument.id,
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(

@@ -44,15 +44,15 @@ describe("handlePurposeQuotaAdjustmentResponseToConsumer", () => {
     descriptors: [getMockDescriptorPublished()],
   };
 
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant = getMockTenant({ tenantId: producerId });
+  const consumerTenant = getMockTenant({ tenantId: consumerId });
 
   // Purpose with multiple versions (> 1) to trigger the notification
   const purpose = {
-    ...getMockPurpose([
-      getMockPurposeVersion(purposeVersionState.active),
-      getMockPurposeVersion(purposeVersionState.active),
-    ]),
+    ...getMockPurpose({ versions: [
+      getMockPurposeVersion({ state: purposeVersionState.active }),
+      getMockPurposeVersion({ state: purposeVersionState.active }),
+    ] }),
     id: purposeId,
     eserviceId,
     consumerId,
@@ -97,7 +97,7 @@ describe("handlePurposeQuotaAdjustmentResponseToConsumer", () => {
 
   it("should return empty array when purpose has only one version", async () => {
     const purposeWithOneVersion = {
-      ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
       id: generateId<PurposeId>(),
       eserviceId,
       consumerId,

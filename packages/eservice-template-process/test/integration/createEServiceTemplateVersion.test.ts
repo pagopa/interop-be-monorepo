@@ -91,7 +91,7 @@ describe("createEServiceTemplateVersion", async () => {
         eserviceTemplate.id,
         versionSeed,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
 
@@ -199,7 +199,7 @@ describe("createEServiceTemplateVersion", async () => {
         eserviceTemplate.id,
         buildCreateVersionSeed(version),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -213,7 +213,7 @@ describe("createEServiceTemplateVersion", async () => {
         mockEServiceTemplate.id,
         buildCreateVersionSeed(getMockEServiceTemplateVersion()),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
@@ -266,7 +266,7 @@ describe("createEServiceTemplateVersion", async () => {
         eserviceTemplate.id,
         versionSeed,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
@@ -291,7 +291,7 @@ describe("createEServiceTemplateVersion", async () => {
         eserviceTemplate.id,
         eserviceTemplateVersionSeed,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -321,7 +321,7 @@ describe("createEServiceTemplateVersion", async () => {
         eserviceTemplate.id,
         versionSeed,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
@@ -349,7 +349,7 @@ describe("createEServiceTemplateVersion", async () => {
   it.each([attributeKind.declared, attributeKind.verified])(
     "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
     async (kind) => {
-      const nonCertifiedAttribute = getMockAttribute(kind);
+      const nonCertifiedAttribute = getMockAttribute({ kind: kind });
       await addOneAttribute(nonCertifiedAttribute);
 
       const existingVersion: EServiceTemplateVersion = {
@@ -399,7 +399,7 @@ describe("createEServiceTemplateVersion", async () => {
             },
           },
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(

@@ -49,7 +49,7 @@ describe("delete eservice", () => {
     await addOneEService(eservice);
     await catalogService.deleteEService(
       eservice.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -147,7 +147,7 @@ describe("delete eservice", () => {
     await addOneEService(eservice);
     await catalogService.deleteEService(
       eservice.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
@@ -224,7 +224,7 @@ describe("delete eservice", () => {
     void expect(
       catalogService.deleteEService(
         mockEService.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -251,7 +251,7 @@ describe("delete eservice", () => {
         catalogService.deleteEService(
           mockEService.id,
           getMockContext({
-            authData: getMockAuthData(mockEService.producerId),
+            authData: getMockAuthData({ organizationId: mockEService.producerId }),
           })
         )
       ).rejects.toThrowError(
@@ -275,7 +275,7 @@ describe("delete eservice", () => {
         catalogService.deleteEService(
           mockEService.id,
           getMockContext({
-            authData: getMockAuthData(mockEService.producerId),
+            authData: getMockAuthData({ organizationId: mockEService.producerId }),
           })
         )
       ).resolves.not.toThrowError(
@@ -306,7 +306,7 @@ describe("delete eservice", () => {
     expect(
       catalogService.deleteEService(
         eservice.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });

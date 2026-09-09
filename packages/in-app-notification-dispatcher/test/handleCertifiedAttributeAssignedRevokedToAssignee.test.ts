@@ -51,27 +51,27 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
   };
 
   const certifiedAttribute: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     name: "Certified Attribute",
     origin: certifierId,
   };
   const certifiedAttributeANAC: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     name: "Certified ANAC Attribute",
     origin: "ANAC",
   };
   const certifiedAttributeIPA: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     name: "Certified IPA Attribute",
     origin: "IPA",
   };
   const certifiedAttributeIVASS: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     name: "Certified IVASS Attribute",
     origin: "IVASS",
   };
   const certifiedAttributeSELFCARE: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     name: "Certified SELFCARE Attribute",
     origin: "SELFCARE",
   };
@@ -130,7 +130,7 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
 
   it("should throw attributeOriginUndefined when the certified attribute has undefined origin", async () => {
     const certifiedAttributeWithUndefinedOrigin: Attribute = {
-      ...getMockAttribute(attributeKind.certified),
+      ...getMockAttribute({ kind: attributeKind.certified }),
       origin: undefined,
     };
     await addOneAttribute(certifiedAttributeWithUndefinedOrigin);
@@ -156,7 +156,7 @@ describe("handleCertifiedAttributeAssignedRevokedToAssignee", () => {
   it("should throw certifierTenantNotFound when the certifier tenant is not found", async () => {
     const unknownCertifierId = generateId();
     const certifiedAttributeWithUnknownCertifier: Attribute = {
-      ...getMockAttribute(attributeKind.certified),
+      ...getMockAttribute({ kind: attributeKind.certified }),
       origin: unknownCertifierId,
     };
     await addOneAttribute(certifiedAttributeWithUnknownCertifier);

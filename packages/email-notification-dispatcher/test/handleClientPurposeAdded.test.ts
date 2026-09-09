@@ -54,12 +54,12 @@ describe("handleClientPurposeAdded", async () => {
     descriptors: [descriptor],
   };
   const producerTenant: Tenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     name: "Producer Tenant",
     mails: [getMockTenantMail()],
   };
   const consumerTenant: Tenant = {
-    ...getMockTenant(consumerId),
+    ...getMockTenant({ tenantId: consumerId }),
     name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };

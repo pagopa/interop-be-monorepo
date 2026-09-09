@@ -61,7 +61,7 @@ describe("delete Document", () => {
         path: `${config.eserviceDocumentsPath}/${mockDocument.id}/${mockDocument.name}`,
       };
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         docs: [document],
       };
       const eservice: EService = {
@@ -89,7 +89,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         document.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -172,7 +172,7 @@ describe("delete Document", () => {
       eservice.id,
       descriptor.id,
       interfaceDocument.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -262,7 +262,7 @@ describe("delete Document", () => {
       eservice.id,
       descriptor.id,
       interfaceDocument.id,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent.stream_id).toBe(eservice.id);
@@ -320,7 +320,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         mockDocument.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(
@@ -383,7 +383,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         mockDocument.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -399,7 +399,7 @@ describe("delete Document", () => {
         eservice.id,
         mockDescriptor.id,
         mockDocument.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -409,7 +409,7 @@ describe("delete Document", () => {
     "should throw notValidDescriptorState when trying to delete a document with descriptor in %s state",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         docs: [mockDocument],
       };
       const eservice: EService = {
@@ -422,7 +422,7 @@ describe("delete Document", () => {
           eservice.id,
           descriptor.id,
           mockDocument.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -435,7 +435,7 @@ describe("delete Document", () => {
     "should throw notValidDescriptorState when trying to delete an interface with descriptor in %s state",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         interface: mockDocument,
       };
       const eservice: EService = {
@@ -448,7 +448,7 @@ describe("delete Document", () => {
           eservice.id,
           descriptor.id,
           mockDocument.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -470,7 +470,7 @@ describe("delete Document", () => {
         eservice.id,
         descriptor.id,
         mockDocument.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDocumentNotFound(eservice.id, descriptor.id, mockDocument.id)
@@ -497,7 +497,7 @@ describe("delete Document", () => {
         eService.id,
         descriptor.id,
         mockDocument.id,
-        getMockContext({ authData: getMockAuthData(eService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eService.producerId }) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });

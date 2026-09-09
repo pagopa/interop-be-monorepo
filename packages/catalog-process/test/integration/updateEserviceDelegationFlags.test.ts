@@ -40,7 +40,7 @@ import {
 describe("update eService flags", () => {
   it("should write on event-store for the update of the eService isConsumerDelegable flag (false -> true)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -56,7 +56,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -87,7 +87,7 @@ describe("update eService flags", () => {
   });
   it("should write on event-store for the update of the eService isConsumerDelegable flag (true -> false)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -103,7 +103,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: false,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -134,7 +134,7 @@ describe("update eService flags", () => {
   });
   it("should write on event-store for the update of the eService isClientAccessDelegable flag (false -> true)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -151,7 +151,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: true,
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -182,7 +182,7 @@ describe("update eService flags", () => {
   });
   it("should write on event-store for the update of the eService isClientAccessDelegable flag (true -> false)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -199,7 +199,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -230,7 +230,7 @@ describe("update eService flags", () => {
   });
   it("should write TWO events on event-store when both flags are updated simultaneously (false, false -> true, true)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -247,7 +247,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: true,
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -298,7 +298,7 @@ describe("update eService flags", () => {
   });
   it("should write TWO events on event-store when disabling consumer delegable while client access was enabled (true, true -> false, false)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -315,7 +315,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: false,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -366,7 +366,7 @@ describe("update eService flags", () => {
   });
   it("should allow the delegate producer to update delegation flags (delegate happy path)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -389,7 +389,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const expectedEService: EService = {
@@ -419,7 +419,7 @@ describe("update eService flags", () => {
   });
   it("should not produce any event when delegation flags are unchanged (idempotency)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -436,7 +436,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: true,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -462,7 +462,7 @@ describe("update eService flags", () => {
           isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -499,7 +499,7 @@ describe("update eService flags", () => {
           isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -514,7 +514,7 @@ describe("update eService flags", () => {
           isConsumerDelegable: true,
           isClientAccessDelegable: false,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
@@ -522,7 +522,7 @@ describe("update eService flags", () => {
     "should throw eserviceWithoutValidDescriptors if the eservice doesn't have valid descriptors (Descriptor with state %s)",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         interface: getMockDocument(),
       };
       const eservice: EService = {
@@ -538,14 +538,14 @@ describe("update eService flags", () => {
             isConsumerDelegable: true,
             isClientAccessDelegable: false,
           },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
   );
   it("should write TWO events on event-store when both flags are updated simultaneously (true, false -> false, false) - only consumer changes", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -562,7 +562,7 @@ describe("update eService flags", () => {
         isConsumerDelegable: false,
         isClientAccessDelegable: false,
       },
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -592,7 +592,7 @@ describe("update eService flags", () => {
   });
   it("should throw invalidDelegationFlags if the isConsumerDelegable is false and isClientAccessDelegable is true (starting from true, true)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -610,13 +610,13 @@ describe("update eService flags", () => {
           isConsumerDelegable: false,
           isClientAccessDelegable: true,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
   it("should throw invalidDelegationFlags if the isConsumerDelegable is false and isClientAccessDelegable is true (starting from true, false)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -634,13 +634,13 @@ describe("update eService flags", () => {
           isConsumerDelegable: false,
           isClientAccessDelegable: true,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
   it("should throw invalidDelegationFlags if the isConsumerDelegable is false and isClientAccessDelegable is true (starting from false, false)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -658,7 +658,7 @@ describe("update eService flags", () => {
           isConsumerDelegable: false,
           isClientAccessDelegable: true,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });

@@ -50,7 +50,7 @@ describe("suspendEServiceTemplateVersion", () => {
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
 
@@ -91,7 +91,7 @@ describe("suspendEServiceTemplateVersion", () => {
         mockEServiceTemplate.id,
         mockEServiceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
@@ -129,7 +129,7 @@ describe("suspendEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         mockEServiceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -161,7 +161,7 @@ describe("suspendEServiceTemplateVersion", () => {
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(

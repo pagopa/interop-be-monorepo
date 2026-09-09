@@ -61,7 +61,7 @@ describe("verifyVerifiedAttribute", async () => {
   const tenantAttributeSeedId = generateId<AttributeId>();
 
   const attribute: Attribute = {
-    ...getMockAttribute(attributeKind.verified),
+    ...getMockAttribute({ kind: attributeKind.verified }),
     id: unsafeBrandId(tenantAttributeSeedId),
   };
   const descriptor1: Descriptor = {
@@ -136,7 +136,7 @@ describe("verifyVerifiedAttribute", async () => {
             attributeId: tenantAttributeSeedId,
             agreementId: agreementEservice1.id,
           },
-          getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: requesterTenant.id }) })
         );
 
       const writtenEvent = await readLastEventByStreamId(
@@ -244,7 +244,7 @@ describe("verifyVerifiedAttribute", async () => {
             attributeId: tenantAttributeSeedId,
             agreementId: agreementEservice1.id,
           },
-          getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: requesterTenant.id }) })
         );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithVerifiedAttribute.id,
@@ -305,7 +305,7 @@ describe("verifyVerifiedAttribute", async () => {
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
         },
-        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterTenant.id }) })
       )
     ).rejects.toThrowError(tenantNotFound(targetTenant.id));
   });
@@ -322,7 +322,7 @@ describe("verifyVerifiedAttribute", async () => {
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEservice1.id,
         },
-        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterTenant.id }) })
       )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
   });
@@ -366,7 +366,7 @@ describe("verifyVerifiedAttribute", async () => {
           attributeId: tenantAttributeSeedId,
           agreementId: agreementEserviceWithNotAllowedDescriptor.id,
         },
-        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterTenant.id }) })
       )
     ).rejects.toThrowError(
       attributeVerificationNotAllowed(
@@ -389,7 +389,7 @@ describe("verifyVerifiedAttribute", async () => {
           agreementId: agreementEservice1.id,
         },
         getMockContext({
-          authData: getMockAuthData(agreementEservice1.producerId),
+          authData: getMockAuthData({ organizationId: agreementEservice1.producerId }),
         })
       )
     ).rejects.toThrowError(verifiedAttributeSelfVerificationNotAllowed());
@@ -442,7 +442,7 @@ describe("verifyVerifiedAttribute", async () => {
           agreementId: agreementEservice1.id,
           expirationDate: yesterday.toISOString(),
         },
-        getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterTenant.id }) })
       )
     ).rejects.toThrowError(expirationDateCannotBeInThePast(yesterday));
   });

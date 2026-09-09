@@ -85,8 +85,8 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           delegationId: delegation.id,
           eserviceId: delegation.eserviceId,
           versions: [
-            getMockPurposeVersion(purposeVersionState.draft),
-            getMockPurposeVersion(purposeVersionState.waitingForApproval),
+            getMockPurposeVersion({ state: purposeVersionState.draft }),
+            getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
           ],
         };
 
@@ -95,7 +95,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           consumerId: delegation.delegatorId,
           delegationId: delegation.id,
           eserviceId: delegation.eserviceId,
-          versions: [getMockPurposeVersion(purposeVersionState.draft)],
+          versions: [getMockPurposeVersion({ state: purposeVersionState.draft })],
         };
 
         const purpose3: Purpose = {
@@ -104,7 +104,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           delegationId: delegation.id,
           eserviceId: delegation.eserviceId,
           versions: [
-            getMockPurposeVersion(purposeVersionState.waitingForApproval),
+            getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
           ],
         };
 
@@ -169,7 +169,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           consumerId: delegation.delegatorId,
           delegationId: delegation.id,
           eserviceId: delegation.eserviceId,
-          versions: [getMockPurposeVersion(purposeVersionState.active)],
+          versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
         };
 
         const purpose2: Purpose = {
@@ -177,7 +177,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
           consumerId: delegation.delegatorId,
           delegationId: delegation.id,
           eserviceId: delegation.eserviceId,
-          versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+          versions: [getMockPurposeVersion({ state: purposeVersionState.suspended })],
         };
 
         const agreement: Agreement = {
@@ -351,7 +351,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         delegationId: delegation.id,
         eserviceId: delegation.eserviceId,
         title: "Purpose 1", // Setting title because there can't be two purposes with the same title for the same consumer and eservice
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
 
       const purpose2: Purpose = {
@@ -360,7 +360,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         delegationId: delegation.id,
         eserviceId: delegation.eserviceId,
         title: "Purpose 2",
-        versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.suspended })],
       };
 
       const purpose3: Purpose = {
@@ -369,7 +369,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         delegationId: delegation.id,
         eserviceId: delegation.eserviceId,
         title: "Purpose 3",
-        versions: [getMockPurposeVersion(purposeVersionState.draft)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.draft })],
       };
 
       const purpose4: Purpose = {
@@ -378,7 +378,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         delegationId: delegation.id,
         eserviceId: delegation.eserviceId,
         title: "Purpose 3",
-        versions: [getMockPurposeVersion(purposeVersionState.rejected)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.rejected })],
       };
 
       const purpose5: Purpose = {
@@ -388,7 +388,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         eserviceId: delegation.eserviceId,
         title: "Purpose 3",
         versions: [
-          getMockPurposeVersion(purposeVersionState.waitingForApproval),
+          getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
         ],
       };
 
@@ -398,7 +398,7 @@ describe("delegationItemsArchiverConsumerServiceV2", () => {
         delegationId: delegation.id,
         eserviceId: delegation.eserviceId,
         title: "Purpose 3",
-        versions: [getMockPurposeVersion(purposeVersionState.archived)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.archived })],
       };
 
       await addOneAgreement(agreement1);

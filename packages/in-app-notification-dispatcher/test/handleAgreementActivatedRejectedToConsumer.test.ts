@@ -44,11 +44,11 @@ describe("handleAgreementActivatedRejectedToConsumer", () => {
     descriptors: [getMockDescriptorPublished()],
   };
 
-  const consumerTenant = getMockTenant(consumerId);
-  const producerTenant = getMockTenant(producerId);
+  const consumerTenant = getMockTenant({ tenantId: consumerId });
+  const producerTenant = getMockTenant({ tenantId: producerId });
 
   const agreement = {
-    ...getMockAgreement(eserviceId, consumerId, agreementState.active),
+    ...getMockAgreement({ eserviceId: eserviceId, consumerId: consumerId, state: agreementState.active }),
     id: agreementId,
     producerId,
   };

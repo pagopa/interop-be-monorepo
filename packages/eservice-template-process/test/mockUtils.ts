@@ -141,25 +141,25 @@ export const buildDocumentSeed =
 export const getContextsAllowedToSeeDraftVersions = (creatorId: TenantId) => [
   getMockContext({
     authData: {
-      ...getMockAuthData(creatorId),
+      ...getMockAuthData({ organizationId: creatorId }),
       userRoles: [userRole.ADMIN_ROLE],
     },
   }),
   getMockContext({
     authData: {
-      ...getMockAuthData(creatorId),
+      ...getMockAuthData({ organizationId: creatorId }),
       userRoles: [userRole.API_ROLE],
     },
   }),
   getMockContext({
     authData: {
-      ...getMockAuthData(creatorId),
+      ...getMockAuthData({ organizationId: creatorId }),
       userRoles: [userRole.SUPPORT_ROLE],
     },
   }),
   getMockContext({
     authData: {
-      ...getMockAuthData(creatorId),
+      ...getMockAuthData({ organizationId: creatorId }),
       userRoles: [userRole.VIEWER_ROLE],
     },
   }),

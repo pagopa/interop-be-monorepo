@@ -26,7 +26,7 @@ import {
 describe("internalupdateTemplateInstanceDescription", () => {
   it("should write on event-store for the internal update of the eService description", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -40,7 +40,7 @@ describe("internalupdateTemplateInstanceDescription", () => {
     await catalogService.internalUpdateTemplateInstanceDescription(
       eservice.id,
       updatedDescription,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const updatedEService: EService = {
@@ -72,7 +72,7 @@ describe("internalupdateTemplateInstanceDescription", () => {
       catalogService.internalUpdateTemplateInstanceDescription(
         eservice.id,
         "eservice new description",
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });

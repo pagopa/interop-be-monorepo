@@ -38,7 +38,7 @@ describe("getPurposeTemplateById", () => {
         await purposeTemplateService.getPurposeTemplateById(
           purposeTemplate.id,
           getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
           })
         );
       expect({
@@ -73,7 +73,7 @@ describe("getPurposeTemplateById", () => {
         await purposeTemplateService.getPurposeTemplateById(
           purposeTemplate.id,
           getMockContext({
-            authData: getMockAuthData(requesterId),
+            authData: getMockAuthData({ organizationId: requesterId }),
           })
         );
       expect({
@@ -101,7 +101,7 @@ describe("getPurposeTemplateById", () => {
     await expect(
       purposeTemplateService.getPurposeTemplateById(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
@@ -114,7 +114,7 @@ describe("getPurposeTemplateById", () => {
     await expect(
       purposeTemplateService.getPurposeTemplateById(
         notExistingId,
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(notExistingId));
   });

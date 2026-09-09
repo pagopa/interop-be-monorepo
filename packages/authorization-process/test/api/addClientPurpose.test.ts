@@ -59,7 +59,7 @@ describe("API /clients/{clientId}/purposes authorization test", () => {
     ...getMockPurpose(),
     eserviceId: mockEservice.id,
     consumerId: mockConsumerId,
-    versions: [getMockPurposeVersion(purposeVersionState.active)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
   };
 
   const mockClient: Client = getMockClient({

@@ -45,7 +45,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getMockAuthData(eservice.producerId),
+      ...getMockAuthData({ organizationId: eservice.producerId }),
       userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
@@ -73,7 +73,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getMockAuthData(eservice.producerId),
+      ...getMockAuthData({ organizationId: eservice.producerId }),
       userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
@@ -108,7 +108,7 @@ describe("get document by id", () => {
     });
 
     const authData: AuthData = {
-      ...getMockAuthData(delegation.delegateId),
+      ...getMockAuthData({ organizationId: delegation.delegateId }),
       userRoles: [userRole.ADMIN_ROLE],
     };
 
@@ -181,7 +181,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getMockAuthData(eservice.producerId),
+      ...getMockAuthData({ organizationId: eservice.producerId }),
       userRoles: [userRole.ADMIN_ROLE],
     };
     await addOneEService(eservice);
@@ -235,7 +235,7 @@ describe("get document by id", () => {
       descriptors: [descriptor],
     };
     const authData: AuthData = {
-      ...getMockAuthData(eservice.producerId),
+      ...getMockAuthData({ organizationId: eservice.producerId }),
       userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(eservice);

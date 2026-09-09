@@ -45,7 +45,7 @@ describe("updateEServiceTemplateIntendedTarget", () => {
         eserviceTemplate.id,
         updatedTemplateDescription,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
     const updatedEServiceTemplate: EServiceTemplate = {
@@ -80,7 +80,7 @@ describe("updateEServiceTemplateIntendedTarget", () => {
         eserviceTemplate.id,
         "eservice template new description",
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
@@ -104,7 +104,7 @@ describe("updateEServiceTemplateIntendedTarget", () => {
         eserviceTemplate.id,
         "eservice template new description",
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -127,7 +127,7 @@ describe("updateEServiceTemplateIntendedTarget", () => {
         eserviceTemplate.id,
         "eservice template new description",
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(

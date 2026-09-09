@@ -67,7 +67,7 @@ describe("update EService template", () => {
           updatedEServiceTemplate
         ),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       );
 
@@ -169,7 +169,7 @@ describe("update EService template", () => {
           updatedEServiceTemplate
         ),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
 
@@ -230,7 +230,7 @@ describe("update EService template", () => {
           isSignalHubEnabled: eserviceTemplate.isSignalHubEnabled,
         },
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
 
@@ -281,7 +281,7 @@ describe("update EService template", () => {
           asyncExchange: true,
         }),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
 
@@ -332,7 +332,7 @@ describe("update EService template", () => {
           eserviceTemplate.id,
           eserviceTemplateToApiUpdateEServiceTemplateSeed(eserviceTemplate),
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -347,7 +347,7 @@ describe("update EService template", () => {
         mockEServiceTemplate.id,
         eserviceTemplateToApiUpdateEServiceTemplateSeed(mockEServiceTemplate),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
@@ -380,7 +380,7 @@ describe("update EService template", () => {
           mode: "DELIVER",
         },
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate1.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate1.creatorId }),
         })
       )
     ).rejects.toThrowError(

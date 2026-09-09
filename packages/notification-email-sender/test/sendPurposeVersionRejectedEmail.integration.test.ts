@@ -60,7 +60,7 @@ describe("sendPurposeVersionRejectedEmail", () => {
       ...getMockPurpose(),
       eserviceId: eservice.id,
       consumerId: consumer.id,
-      versions: [getMockPurposeVersion(purposeVersionState.waitingForApproval)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.waitingForApproval })],
     };
     await addOnePurpose(purpose);
 

@@ -42,11 +42,11 @@ describe("handleClientAddedRemovedToProducer", () => {
     descriptors: [getMockDescriptorPublished()],
   };
 
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant = getMockTenant({ tenantId: producerId });
+  const consumerTenant = getMockTenant({ tenantId: consumerId });
 
   const purpose = {
-    ...getMockPurpose([getMockPurposeVersion()]),
+    ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
     id: purposeId,
     eserviceId,
     consumerId,

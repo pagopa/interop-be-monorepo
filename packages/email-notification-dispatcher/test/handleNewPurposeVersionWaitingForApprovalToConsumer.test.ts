@@ -58,11 +58,11 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
     descriptors: [descriptor],
   };
   const producerTenant: Tenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     name: "Producer Tenant",
   };
   const consumerTenant = {
-    ...getMockTenant(consumerId),
+    ...getMockTenant({ tenantId: consumerId }),
     name: "Consumer Tenant",
   };
   const users = [
@@ -286,7 +286,7 @@ describe("handleNewPurposeVersionWaitingForApprovalOverthreshold", async () => {
 
   it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
     const olderDescriptor = {
-      ...getMockDescriptor(descriptorState.deprecated),
+      ...getMockDescriptor({ state: descriptorState.deprecated }),
       dailyCallsPerConsumer: 500,
       version: "1",
       publishedAt: new Date("2023-01-01"),

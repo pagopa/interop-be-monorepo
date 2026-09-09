@@ -76,7 +76,7 @@ describe("activate descriptor", () => {
         await catalogService.activateDescriptor(
           eservice.id,
           descriptor.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const expectedDescriptor: Descriptor = {
@@ -174,7 +174,7 @@ describe("activate descriptor", () => {
       catalogService.activateDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -190,7 +190,7 @@ describe("activate descriptor", () => {
       catalogService.activateDescriptor(
         eservice.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -240,7 +240,7 @@ describe("activate descriptor", () => {
       catalogService.activateDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -268,7 +268,7 @@ describe("activate descriptor", () => {
         catalogService.activateDescriptor(
           mockEService.id,
           mockDescriptor.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }

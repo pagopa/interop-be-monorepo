@@ -32,9 +32,9 @@ describe("handleEserviceNewVersionSubmittedToDelegator", () => {
   const delegator = getMockTenant();
   const delegate = getMockTenant();
 
-  const eservice = getMockEService(generateId<EServiceId>(), delegator.id, [
+  const eservice = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: delegator.id, descriptors: [
     getMockDescriptorPublished(),
-  ]);
+  ] });
 
   const delegation = getMockDelegation({
     kind: delegationKind.delegatedProducer,

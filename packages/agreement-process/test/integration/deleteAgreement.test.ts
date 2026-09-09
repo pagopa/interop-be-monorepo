@@ -62,7 +62,7 @@ describe("delete agreement", () => {
         )
       );
 
-      const authData = getMockAuthData(agreement.consumerId);
+      const authData = getMockAuthData({ organizationId: agreement.consumerId });
       await agreementService.deleteAgreementById(
         agreement.id,
         getMockContext({ authData })
@@ -117,7 +117,7 @@ describe("delete agreement", () => {
     };
 
     const delegateId = generateId<TenantId>();
-    const authData = getMockAuthData(delegateId);
+    const authData = getMockAuthData({ organizationId: delegateId });
 
     const delegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -237,7 +237,7 @@ describe("delete agreement", () => {
       ),
     };
     await addOneAgreement(agreement);
-    const authData = getMockAuthData(agreement.consumerId);
+    const authData = getMockAuthData({ organizationId: agreement.consumerId });
     await expect(
       agreementService.deleteAgreementById(
         agreement.id,
@@ -263,7 +263,7 @@ describe("delete agreement", () => {
     await expect(
       agreementService.deleteAgreementById(
         agreement.id,
-        getMockContext({ authData: getMockAuthData(agreement.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: agreement.consumerId }) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(

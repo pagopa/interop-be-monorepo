@@ -27,9 +27,9 @@ import {
 describe("create consumer delegation", () => {
   it("should throw an eserviceNotConsumerDelegable error if Eservice is not consumer delegable", async () => {
     const delegatorId = generateId<TenantId>();
-    const authData = getMockAuthData(delegatorId);
+    const authData = getMockAuthData({ organizationId: delegatorId });
     const delegator = {
-      ...getMockTenant(delegatorId),
+      ...getMockTenant({ tenantId: delegatorId }),
       externalId: {
         origin: "IPA",
         value: "test",
@@ -47,7 +47,7 @@ describe("create consumer delegation", () => {
     };
 
     const eservice = {
-      ...getMockEService(generateId<EServiceId>(), delegatorId),
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: delegatorId }),
       isConsumerDelegable: false,
     };
 
@@ -74,9 +74,9 @@ describe("create consumer delegation", () => {
     "should throw delegationRelatedAgreementExists error for %s agreement",
     async (state) => {
       const delegatorId = generateId<TenantId>();
-      const authData = getMockAuthData(delegatorId);
+      const authData = getMockAuthData({ organizationId: delegatorId });
       const delegator = {
-        ...getMockTenant(delegatorId),
+        ...getMockTenant({ tenantId: delegatorId }),
         externalId: {
           origin: "IPA",
           value: "test",
@@ -92,15 +92,11 @@ describe("create consumer delegation", () => {
         ],
       };
       const eservice = {
-        ...getMockEService(generateId<EServiceId>(), delegatorId),
+        ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: delegatorId }),
         isConsumerDelegable: true,
       };
 
-      const activeAgreement = getMockAgreement(
-        eservice.id,
-        delegator.id,
-        state
-      );
+      const activeAgreement = getMockAgreement({ eserviceId: eservice.id, consumerId: delegator.id, state: state });
 
       await addOneTenant(delegator);
       await addOneTenant(delegate);

@@ -99,7 +99,7 @@ describe("update draft version", () => {
       version.id,
       expectedVersionSeed,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -133,7 +133,7 @@ describe("update draft version", () => {
         version.id,
         buildUpdateVersionSeed(version),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
@@ -152,7 +152,7 @@ describe("update draft version", () => {
         mockVersion.id,
         buildUpdateVersionSeed(mockVersion),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -184,7 +184,7 @@ describe("update draft version", () => {
           version.id,
           buildUpdateVersionSeed(version),
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -239,7 +239,7 @@ describe("update draft version", () => {
         eservice.id,
         version.id,
         buildUpdateVersionSeed(expectedVersion),
-        getMockContext({ authData: getMockAuthData(eservice.creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.creatorId }) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -271,7 +271,7 @@ describe("update draft version", () => {
         version.id,
         buildUpdateVersionSeed(expectedVersion),
         getMockContext({
-          authData: getMockAuthData(expectedEserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: expectedEserviceTemplate.creatorId }),
         })
       );
 
@@ -348,7 +348,7 @@ describe("update draft version", () => {
         version.id,
         descriptorSeed,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
@@ -356,7 +356,7 @@ describe("update draft version", () => {
   it.each([attributeKind.declared, attributeKind.verified])(
     "should throw attributeDiscreteConfigNotAllowed when setting discreteConfig on a non-certified attribute",
     async (kind) => {
-      const nonCertifiedAttribute = getMockAttribute(kind);
+      const nonCertifiedAttribute = getMockAttribute({ kind: kind });
       await addOneAttribute(nonCertifiedAttribute);
 
       const version: EServiceTemplateVersion = {
@@ -431,7 +431,7 @@ describe("update draft version", () => {
             },
           },
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -481,7 +481,7 @@ describe("update draft version", () => {
       version.id,
       expectedVersionSeed,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -532,7 +532,7 @@ describe("update draft version", () => {
         version.id,
         versionSeed,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -576,7 +576,7 @@ describe("update draft version", () => {
       version.id,
       expectedVersionSeed,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(

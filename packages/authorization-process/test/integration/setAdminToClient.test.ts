@@ -65,7 +65,7 @@ describe("setAdminToClient", () => {
         adminId,
         clientId: mockClient.id,
       },
-      getMockContext({ authData: getMockAuthData(mockClient.consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockClient.consumerId }) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -103,13 +103,13 @@ describe("setAdminToClient", () => {
           adminId,
           clientId: notFoundClientId,
         },
-        getMockContext({ authData: getMockAuthData(mockClient.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockClient.consumerId }) })
       )
     ).rejects.toThrowError(clientNotFound(notFoundClientId));
   });
   it("should throw tenantNotAllowedOnClient when user is not allowed to perform operations on Client", async () => {
     await addOneClient(mockClient);
-    const authData = getMockAuthData(generateId<TenantId>());
+    const authData = getMockAuthData({ organizationId: generateId<TenantId>() });
 
     await expect(
       authorizationService.setAdminToClient(
@@ -126,7 +126,7 @@ describe("setAdminToClient", () => {
   it("should throw clientKindNotAllowed when client kind is not allowed", async () => {
     const client: Client = getMockClient();
     await addOneClient(client);
-    const authData = getMockAuthData(generateId<TenantId>());
+    const authData = getMockAuthData({ organizationId: generateId<TenantId>() });
 
     await expect(
       authorizationService.setAdminToClient(
@@ -140,7 +140,7 @@ describe("setAdminToClient", () => {
   });
   it("should throw userWithoutSecurityPrivileges when users length is 0", async () => {
     mockSelfcareV2ClientCall([]);
-    const authData = getMockAuthData(generateId<TenantId>());
+    const authData = getMockAuthData({ organizationId: generateId<TenantId>() });
     await addOneClient(mockClient);
 
     await expect(
@@ -168,7 +168,7 @@ describe("setAdminToClient", () => {
           clientId: mockClientWithAdmin.id,
         },
         getMockContext({
-          authData: getMockAuthData(mockClientWithAdmin.consumerId),
+          authData: getMockAuthData({ organizationId: mockClientWithAdmin.consumerId }),
         })
       )
     ).rejects.toThrowError(

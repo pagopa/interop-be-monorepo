@@ -129,7 +129,7 @@ describe("updateUserNotificationConfig", () => {
       await notificationConfigService.updateUserNotificationConfig(
         userNotificationConfigSeed,
         getMockContext({
-          authData: getMockAuthData(tenantId, userId),
+          authData: getMockAuthData({ organizationId: tenantId, userId: userId }),
         })
       );
     const writtenEvent = await readLastNotificationConfigEvent(
@@ -175,7 +175,7 @@ describe("updateUserNotificationConfig", () => {
         notificationConfigService.updateUserNotificationConfig(
           userNotificationConfigSeed,
           getMockContext({
-            authData: getMockAuthData(tenantId, userId),
+            authData: getMockAuthData({ organizationId: tenantId, userId: userId }),
           })
         )
       ).rejects.toThrowError(userNotificationConfigNotFound(userId, tenantId));
@@ -221,7 +221,7 @@ describe("updateUserNotificationConfig", () => {
         notificationConfigService.updateUserNotificationConfig(
           seed,
           getMockContext({
-            authData: getMockAuthData(tenantId, userId, userRoles),
+            authData: getMockAuthData({ organizationId: tenantId, userId: userId, userRoles: userRoles }),
           })
         )
       ).rejects.toThrowError(

@@ -120,8 +120,8 @@ describe("handlePurposeEvent test", async () => {
                 () => [
                   {
                     versions: [
-                      getMockPurposeVersion(purposeVersionState.draft),
-                      getMockPurposeVersion(purposeVersionState.draft),
+                      getMockPurposeVersion({ state: purposeVersionState.draft }),
+                      getMockPurposeVersion({ state: purposeVersionState.draft }),
                       // Visibility based only on event, versions state doesn't matter
                     ],
                     expectedVisibility: m2mEventVisibility.owner,
@@ -138,8 +138,8 @@ describe("handlePurposeEvent test", async () => {
                 () => [
                   {
                     versions: [
-                      getMockPurposeVersion(purposeVersionState.draft),
-                      getMockPurposeVersion(purposeVersionState.draft),
+                      getMockPurposeVersion({ state: purposeVersionState.draft }),
+                      getMockPurposeVersion({ state: purposeVersionState.draft }),
                       // Visibility based only on event, versions state doesn't matter
                     ],
                     expectedVisibility: m2mEventVisibility.restricted,
@@ -166,8 +166,8 @@ describe("handlePurposeEvent test", async () => {
                 () => [
                   {
                     versions: [
-                      getMockPurposeVersion(purposeVersionState.draft),
-                      getMockPurposeVersion(purposeVersionState.draft),
+                      getMockPurposeVersion({ state: purposeVersionState.draft }),
+                      getMockPurposeVersion({ state: purposeVersionState.draft }),
                       // Visibility based only on event, versions state doesn't matter
                     ],
                     affectedVersion: 1,
@@ -185,16 +185,14 @@ describe("handlePurposeEvent test", async () => {
                   // All versions in draft / waiting for approval, owner visibility
                   {
                     versions: [
-                      getMockPurposeVersion(purposeVersionState.draft),
+                      getMockPurposeVersion({ state: purposeVersionState.draft }),
                     ],
                     expectedVisibility: m2mEventVisibility.owner,
                   },
                   // At least one version published / waiting for approval, restricted visibility
                   {
                     versions: [
-                      getMockPurposeVersion(
-                        purposeVersionState.waitingForApproval
-                      ),
+                      getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
                     ],
                     affectedVersion: undefined,
                     expectedVisibility: m2mEventVisibility.restricted,
@@ -210,9 +208,7 @@ describe("handlePurposeEvent test", async () => {
                 () => [
                   {
                     versions: [
-                      getMockPurposeVersion(
-                        purposeVersionState.waitingForApproval
-                      ),
+                      getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
                     ],
                     expectedVisibility: m2mEventVisibility.restricted,
                     eventNotHandled: true,

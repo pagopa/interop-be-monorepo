@@ -25,11 +25,7 @@ import { api, clients } from "../../vitest.api.setup.js";
 describe("API POST /templates/:templateId/eservices", () => {
   const mockInstanceEServiceSeed = getMockBffApiInstanceEServiceSeed();
   const mockDescriptor = getMockDescriptor();
-  const mockEService = getMockEService(
-    generateId<EServiceId>(),
-    generateId<TenantId>(),
-    [mockDescriptor]
-  );
+  const mockEService = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [mockDescriptor] });
   const mockApiCreatedEServiceDescriptor =
     getMockBffApiCreatedEServiceDescriptor(mockEService.id, mockDescriptor.id);
 

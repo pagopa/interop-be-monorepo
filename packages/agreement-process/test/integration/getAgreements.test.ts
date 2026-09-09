@@ -94,27 +94,27 @@ describe("get agreements", () => {
     descriptor5 = getMockDescriptorPublished();
     descriptor6 = getMockDescriptorPublished();
     eservice1 = {
-      ...getMockEService(generateId<EServiceId>(), tenant1.id, [
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: tenant1.id, descriptors: [
         descriptor1,
         descriptor2,
         // descriptor2 is the latest - agreements for descriptor1 are upgradeable
-      ]),
+      ] }),
       name: "EService1", // Adding name because results are sorted by esevice name
     };
     eservice2 = {
-      ...getMockEService(generateId<EServiceId>(), tenant2.id, [
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: tenant2.id, descriptors: [
         descriptor3,
         descriptor4,
         // descriptor4 is not the latest - agreements for descriptor3 are not upgradeable
-      ]),
+      ] }),
       name: "EService2", // Adding name because results are sorted by esevice name
     };
     eservice3 = {
-      ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor5]),
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: tenant3.id, descriptors: [descriptor5] }),
       name: "EService3", // Adding name because results are sorted by eservice name
     };
     eservice4 = {
-      ...getMockEService(generateId<EServiceId>(), tenant3.id, [descriptor6]),
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: tenant3.id, descriptors: [descriptor6] }),
       name: "EService4", // Adding name because results are sorted by eservice name
     };
 
@@ -135,7 +135,7 @@ describe("get agreements", () => {
     attribute3 = { id: generateId() };
     attribute4 = { id: generateId() };
     agreement1 = {
-      ...getMockAgreement(eservice1.id, tenant1.id, agreementState.draft),
+      ...getMockAgreement({ eserviceId: eservice1.id, consumerId: tenant1.id, state: agreementState.draft }),
       descriptorId: eservice1.descriptors[0].id,
       producerId: eservice1.producerId,
       certifiedAttributes: [attribute1, attribute2],
@@ -143,7 +143,7 @@ describe("get agreements", () => {
     };
 
     agreement2 = {
-      ...getMockAgreement(eservice1.id, tenant2.id, agreementState.active),
+      ...getMockAgreement({ eserviceId: eservice1.id, consumerId: tenant2.id, state: agreementState.active }),
       descriptorId: eservice1.descriptors[1].id,
       producerId: eservice1.producerId,
       declaredAttributes: [attribute3],
@@ -151,66 +151,50 @@ describe("get agreements", () => {
     };
 
     agreement3 = {
-      ...getMockAgreement(eservice2.id, tenant1.id, agreementState.pending),
+      ...getMockAgreement({ eserviceId: eservice2.id, consumerId: tenant1.id, state: agreementState.pending }),
       descriptorId: eservice2.descriptors[0].id,
       producerId: eservice2.producerId,
     };
 
     agreement4 = {
-      ...getMockAgreement(
-        eservice2.id,
-        tenant2.id,
-        agreementState.missingCertifiedAttributes
-      ),
+      ...getMockAgreement({ eserviceId: eservice2.id, consumerId: tenant2.id, state: agreementState.missingCertifiedAttributes }),
       // upgradeable agreement based on descriptors, but not in an upgradeable state
       descriptorId: eservice2.descriptors[1].id,
       producerId: eservice2.producerId,
     };
 
     agreement5 = {
-      ...getMockAgreement(eservice3.id, tenant1.id, agreementState.archived),
+      ...getMockAgreement({ eserviceId: eservice3.id, consumerId: tenant1.id, state: agreementState.archived }),
       descriptorId: eservice3.descriptors[0].id,
       producerId: eservice3.producerId,
     };
 
     agreement6 = {
-      ...getMockAgreement(eservice3.id, tenant3.id, agreementState.rejected),
+      ...getMockAgreement({ eserviceId: eservice3.id, consumerId: tenant3.id, state: agreementState.rejected }),
       descriptorId: eservice3.descriptors[0].id,
       producerId: eservice3.producerId,
     };
 
     agreement7 = {
-      ...getMockAgreement(eservice4.id, tenant1.id, agreementState.draft),
+      ...getMockAgreement({ eserviceId: eservice4.id, consumerId: tenant1.id, state: agreementState.draft }),
       descriptorId: eservice4.descriptors[0].id,
       producerId: eservice4.producerId,
     };
 
     agreement8 = {
-      ...getMockAgreement(
-        eservice4.id,
-        delegateProducer1.id,
-        agreementState.active
-      ),
+      ...getMockAgreement({ eserviceId: eservice4.id, consumerId: delegateProducer1.id, state: agreementState.active }),
       descriptorId: eservice4.descriptors[0].id,
       producerId: eservice4.producerId,
     };
 
     agreement9 = {
-      ...getMockAgreement(
-        eservice4.id,
-        delegateConsumer1.id,
-        agreementState.active
-      ),
+      ...getMockAgreement({ eserviceId: eservice4.id, consumerId: delegateConsumer1.id, state: agreementState.active }),
       descriptorId: eservice4.descriptors[0].id,
       producerId: eservice4.producerId,
     };
 
     agreement10 = {
-      ...getMockAgreement(
-        eservice4.id,
-        delegateConsumer2.id,
-        agreementState.active
-      ),
+      ...getMockAgreement({ eserviceId: eservice4.id, consumerId: delegateConsumer2.id, state: agreementState.active }),
       descriptorId: eservice4.descriptors[0].id,
       producerId: eservice4.producerId,
     };
@@ -277,7 +261,7 @@ describe("get agreements", () => {
       {},
       20,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(allAgreementsVisibleToTenant1, [
       agreement1,
@@ -291,7 +275,7 @@ describe("get agreements", () => {
       {},
       20,
       0,
-      getMockContext({ authData: getMockAuthData(tenant2.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant2.id }) })
     );
     expectSinglePageListResult(allAgreementsVisibleToTenant2, [
       agreement2,
@@ -303,7 +287,7 @@ describe("get agreements", () => {
       {},
       20,
       0,
-      getMockContext({ authData: getMockAuthData(tenant3.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant3.id }) })
     );
     expectSinglePageListResult(allAgreementsVisibleToTenant3, [
       agreement5,
@@ -321,7 +305,7 @@ describe("get agreements", () => {
         {},
         20,
         0,
-        getMockContext({ authData: getMockAuthData(delegateProducer1.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateProducer1.id }) })
       );
     expectSinglePageListResult(allAgreementsVisibleToDelegateProducer1, [
       agreement1,
@@ -336,7 +320,7 @@ describe("get agreements", () => {
         {},
         20,
         0,
-        getMockContext({ authData: getMockAuthData(delegateConsumer1.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateConsumer1.id }) })
       );
 
     expectSinglePageListResult(allAgreementsVisibleToDelegateConsumer1, [
@@ -349,7 +333,7 @@ describe("get agreements", () => {
         {},
         20,
         0,
-        getMockContext({ authData: getMockAuthData(delegateConsumer2.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateConsumer2.id }) })
       );
     expectSinglePageListResult(allAgreementsVisibleToDelegateConsumer2, [
       agreement6,
@@ -364,7 +348,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements1, [agreement1, agreement2]);
 
@@ -374,7 +358,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements2, [
       agreement1,
@@ -390,7 +374,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements1, [
       agreement1,
@@ -405,7 +389,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements2, [
       agreement1,
@@ -423,7 +407,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements1, [agreement1, agreement2]);
 
@@ -433,7 +417,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements2, [
       agreement1,
@@ -449,7 +433,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements1, [agreement1]);
 
@@ -459,7 +443,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements2, [
       agreement1,
@@ -475,7 +459,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements1, [agreement1]);
 
@@ -485,7 +469,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements2, [agreement1, agreement2]);
 
@@ -495,7 +479,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements3, [agreement1, agreement2]);
   });
@@ -507,7 +491,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements, [agreement2, agreement3]);
   });
@@ -519,7 +503,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements, [
       agreement1,
@@ -536,7 +520,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements, [agreement1, agreement3]);
   });
@@ -551,7 +535,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements, [agreement1]);
   });
@@ -564,7 +548,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements, [agreement2]);
   });
@@ -578,7 +562,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements1, [agreement1]);
 
@@ -590,7 +574,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expectSinglePageListResult(agreements2, []);
   });
@@ -600,7 +584,7 @@ describe("get agreements", () => {
       {},
       2,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expect({
       totalCount: agreements.totalCount,
@@ -616,7 +600,7 @@ describe("get agreements", () => {
       {},
       2,
       2,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
     expect({
       totalCount: agreements.totalCount,
@@ -634,7 +618,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
 
     expect(agreements).toEqual({
@@ -650,7 +634,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(delegateProducer1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegateProducer1.id }) })
     );
     expectSinglePageListResult(agreements, [agreement1, agreement2]);
   });
@@ -662,7 +646,7 @@ describe("get agreements", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(delegateConsumer1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegateConsumer1.id }) })
     );
     expectSinglePageListResult(agreements, [agreement5]);
   });
@@ -718,7 +702,7 @@ describe("get agreements", () => {
           },
           10,
           0,
-          getMockContext({ authData: getMockAuthData(tenantA.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenantA.id }) })
         );
         expectSinglePageListResult(agreements, [agreement11]);
       });
@@ -731,7 +715,7 @@ describe("get agreements", () => {
           },
           10,
           0,
-          getMockContext({ authData: getMockAuthData(tenantA.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenantA.id }) })
         );
         expectSinglePageListResult(agreements, [agreement11, agreement12]);
       });
@@ -744,7 +728,7 @@ describe("get agreements", () => {
           },
           10,
           0,
-          getMockContext({ authData: getMockAuthData(tenantA.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenantA.id }) })
         );
         expectSinglePageListResult(agreements, [agreement12]);
       });
@@ -757,7 +741,7 @@ describe("get agreements", () => {
           },
           10,
           0,
-          getMockContext({ authData: getMockAuthData(tenantA.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenantA.id }) })
         );
         expectSinglePageListResult(agreements, [agreement12]);
       });
@@ -772,7 +756,7 @@ describe("get agreements", () => {
           },
           10,
           0,
-          getMockContext({ authData: getMockAuthData(tenantB.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenantB.id }) })
         );
         expectSinglePageListResult(agreements, []);
       });
@@ -785,7 +769,7 @@ describe("get agreements", () => {
           },
           10,
           0,
-          getMockContext({ authData: getMockAuthData(tenantB.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenantB.id }) })
         );
         expectSinglePageListResult(agreements, [agreement12]);
       });
@@ -798,7 +782,7 @@ describe("get agreements", () => {
           },
           10,
           0,
-          getMockContext({ authData: getMockAuthData(tenantB.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenantB.id }) })
         );
         expectSinglePageListResult(agreements, [agreement12]);
       });
@@ -811,7 +795,7 @@ describe("get agreements", () => {
           },
           10,
           0,
-          getMockContext({ authData: getMockAuthData(tenantB.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: tenantB.id }) })
         );
         expectSinglePageListResult(agreements, [agreement12]);
       });

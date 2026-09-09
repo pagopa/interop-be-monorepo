@@ -102,7 +102,7 @@ describe("createReversePurpose", () => {
     const createReversePurposeResponse =
       await purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       );
 
     const purpose = createReversePurposeResponse.data;
@@ -215,7 +215,7 @@ describe("createReversePurpose", () => {
     const createReversePurposeResponse =
       await purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(delegateTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateTenant.id }) })
       );
 
     const purpose = createReversePurposeResponse.data;
@@ -358,7 +358,7 @@ describe("createReversePurpose", () => {
     const createReversePurposeResponse =
       await purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
       );
 
     const purpose = createReversePurposeResponse.data;
@@ -461,7 +461,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(producer.id));
   });
@@ -511,7 +511,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       )
     ).rejects.toThrowError(
       eServiceModeNotAllowed(mockEService.id, eserviceMode.receive)
@@ -563,7 +563,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       )
     ).rejects.toThrowError(
       eserviceRiskAnalysisNotFound(mockEService.id, randomRiskAnalysisId)
@@ -617,7 +617,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       )
     ).rejects.toThrowError(
       invalidFreeOfChargeReason(isFreeOfCharge, freeOfChargeReason)
@@ -669,7 +669,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
@@ -711,7 +711,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       )
     ).rejects.toThrowError(agreementNotFound(mockEService.id, consumer.id));
   });
@@ -770,7 +770,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       )
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeTitle));
   });
@@ -821,7 +821,7 @@ describe("createReversePurpose", () => {
     expect(
       purposeService.createReversePurpose(
         reversePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       )
     ).resolves.toMatchObject(
       expect.objectContaining({

@@ -49,7 +49,7 @@ describe("handleEserviceArchivingToConsumer", () => {
   const getArchivingDescriptor = (
     gracePeriodDaysValue: GracePeriodDays
   ): Descriptor => ({
-    ...getMockDescriptor(descriptorState.archiving),
+    ...getMockDescriptor({ state: descriptorState.archiving }),
     id: archivingDescriptorId,
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
@@ -100,11 +100,7 @@ describe("handleEserviceArchivingToConsumer", () => {
       };
       await addOneEService(eservice);
       await addOneAgreement({
-        ...getMockAgreement(
-          eservice.id,
-          consumerTenant.id,
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerTenant.id, state: agreementState.active }),
       });
 
       const msg: EServiceEventV2 = {
@@ -148,11 +144,7 @@ describe("handleEserviceArchivingToConsumer", () => {
       };
       await addOneEService(eservice);
       await addOneAgreement({
-        ...getMockAgreement(
-          eservice.id,
-          consumerTenant.id,
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerTenant.id, state: agreementState.active }),
       });
 
       const msg: EServiceEventV2 = {
@@ -188,11 +180,7 @@ describe("handleEserviceArchivingToConsumer", () => {
       };
       await addOneEService(eservice);
       await addOneAgreement({
-        ...getMockAgreement(
-          eservice.id,
-          consumerTenant.id,
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerTenant.id, state: agreementState.active }),
       });
 
       const msg: EServiceEventV2 = {
@@ -230,11 +218,7 @@ describe("handleEserviceArchivingToConsumer", () => {
       };
       await addOneEService(eservice);
       await addOneAgreement({
-        ...getMockAgreement(
-          eservice.id,
-          consumerTenant.id,
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerTenant.id, state: agreementState.active }),
       });
 
       const msg: EServiceEventV2 = {

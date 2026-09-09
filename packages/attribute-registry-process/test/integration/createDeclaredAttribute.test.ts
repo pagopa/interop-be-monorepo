@@ -30,13 +30,13 @@ import {
 } from "../integrationUtils.js";
 
 describe("declared attribute creation", () => {
-  const mockAttribute = getMockAttribute(attributeKind.declared);
+  const mockAttribute = getMockAttribute({ kind: attributeKind.declared });
   const mockTenant = getMockTenant();
 
   it.each([
     {
       label: "UIAuthData",
-      context: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+      context: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
     },
     {
       label: "M2MAdminAuthData",

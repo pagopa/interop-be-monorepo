@@ -53,7 +53,7 @@ describe("create eservice template", () => {
           mode: eserviceMode.deliver,
         }),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       );
 
@@ -112,7 +112,7 @@ describe("create eservice template", () => {
         eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
         getMockContext({
           authData: {
-            ...getMockAuthData(mockEServiceTemplate.creatorId),
+            ...getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
             externalId: { origin: "not-allowed-origin", value: "aaa" },
           },
         })
@@ -129,7 +129,7 @@ describe("create eservice template", () => {
           asyncExchange: true,
         }),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(asyncExchangeReceiveTemplateNotAllowed());
@@ -141,7 +141,7 @@ describe("create eservice template", () => {
       eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -158,7 +158,7 @@ describe("create eservice template", () => {
       eserviceTemplateService.createEServiceTemplate(
         eserviceTemplateToApiEServiceTemplateSeed(mockEServiceTemplate),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -176,7 +176,7 @@ describe("create eservice template", () => {
           asyncExchange: true,
         }),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       );
 
@@ -209,7 +209,7 @@ describe("create eservice template", () => {
           ],
         }),
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());

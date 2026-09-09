@@ -35,15 +35,15 @@ import {
 } from "../integrationUtils.js";
 
 describe("updateTemplateInstanceDescriptorAttributes", () => {
-  const mockCertifiedAttribute1 = getMockAttribute(attributeKind.certified);
-  const mockCertifiedAttribute2 = getMockAttribute(attributeKind.certified);
-  const mockCertifiedAttribute3 = getMockAttribute(attributeKind.certified);
-  const mockVerifiedAttribute1 = getMockAttribute(attributeKind.verified);
-  const mockVerifiedAttribute2 = getMockAttribute(attributeKind.verified);
-  const mockVerifiedAttribute3 = getMockAttribute(attributeKind.verified);
-  const mockDeclaredAttribute1 = getMockAttribute(attributeKind.declared);
-  const mockDeclaredAttribute2 = getMockAttribute(attributeKind.declared);
-  const mockDeclaredAttribute3 = getMockAttribute(attributeKind.declared);
+  const mockCertifiedAttribute1 = getMockAttribute({ kind: attributeKind.certified });
+  const mockCertifiedAttribute2 = getMockAttribute({ kind: attributeKind.certified });
+  const mockCertifiedAttribute3 = getMockAttribute({ kind: attributeKind.certified });
+  const mockVerifiedAttribute1 = getMockAttribute({ kind: attributeKind.verified });
+  const mockVerifiedAttribute2 = getMockAttribute({ kind: attributeKind.verified });
+  const mockVerifiedAttribute3 = getMockAttribute({ kind: attributeKind.verified });
+  const mockDeclaredAttribute1 = getMockAttribute({ kind: attributeKind.declared });
+  const mockDeclaredAttribute2 = getMockAttribute({ kind: attributeKind.declared });
+  const mockDeclaredAttribute3 = getMockAttribute({ kind: attributeKind.declared });
 
   const validMockDescriptorCertifiedAttributes = [
     [
@@ -143,7 +143,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -194,7 +194,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -233,7 +233,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         verified: validMockDescriptorVerifiedAttributes,
         declared: [],
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -266,7 +266,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -294,7 +294,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         validMockDescriptorAttributeSeed,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(mockEService.id, mockDescriptor.id)
@@ -343,7 +343,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
             ],
           ],
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingAttributeId));
   });
@@ -383,7 +383,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
           ],
           declared: [],
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       inconsistentAttributesSeedGroupsCount(mockEService.id, mockDescriptor.id)
@@ -430,7 +430,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
           ],
           declared: [],
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       descriptorAttributeGroupSupersetMissingInAttributesSeed(
@@ -511,7 +511,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         seedWithNewAttribute,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);
@@ -635,7 +635,7 @@ describe("updateTemplateInstanceDescriptorAttributes", () => {
         mockEService.id,
         mockDescriptor.id,
         seedWithNewAttribute,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(mockEService.id);

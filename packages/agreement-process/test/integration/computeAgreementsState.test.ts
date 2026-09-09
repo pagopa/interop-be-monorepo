@@ -91,7 +91,7 @@ describe("compute Agreements state by attribute", () => {
       await addOneEService(eservice);
 
       const updatableActiveAgreement: Agreement = {
-        ...getMockAgreement(eservice.id, consumer.id, agreementState.active),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: agreementState.active }),
         descriptorId: eservice.descriptors[0].id,
         producerId: eservice.producerId,
         suspendedByPlatform: false,
@@ -179,11 +179,7 @@ describe("compute Agreements state by attribute", () => {
       await addOneEService(discreteEService);
 
       const updatableActiveAgreement: Agreement = {
-        ...getMockAgreement(
-          discreteEService.id,
-          discreteConsumer.id,
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: discreteEService.id, consumerId: discreteConsumer.id, state: agreementState.active }),
         descriptorId: discreteEService.descriptors[0].id,
         producerId: discreteEService.producerId,
         suspendedByPlatform: false,
@@ -277,11 +273,7 @@ describe("compute Agreements state by attribute", () => {
       await addOneEService(mixedEService);
 
       const updatableActiveAgreement: Agreement = {
-        ...getMockAgreement(
-          mixedEService.id,
-          mixedConsumer.id,
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: mixedEService.id, consumerId: mixedConsumer.id, state: agreementState.active }),
         descriptorId: mixedEService.descriptors[0].id,
         producerId: mixedEService.producerId,
         suspendedByPlatform: false,
@@ -358,11 +350,7 @@ describe("compute Agreements state by attribute", () => {
       await addOneEService(discreteEService);
 
       const updatableActiveAgreement: Agreement = {
-        ...getMockAgreement(
-          discreteEService.id,
-          discreteConsumer.id,
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: discreteEService.id, consumerId: discreteConsumer.id, state: agreementState.active }),
         descriptorId: discreteEService.descriptors[0].id,
         producerId: discreteEService.producerId,
         suspendedByPlatform: false,
@@ -387,7 +375,7 @@ describe("compute Agreements state by attribute", () => {
         await addOneEService(eservice);
 
         const updatableDraftOrPendingAgreement: Agreement = {
-          ...getMockAgreement(eservice.id, consumer.id, state),
+          ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: state }),
           descriptorId: eservice.descriptors[0].id,
           producerId: eservice.producerId,
           suspendedByPlatform: false,
@@ -439,7 +427,7 @@ describe("compute Agreements state by attribute", () => {
       const suspendedByProducer = !suspendedByConsumer ? true : randomBoolean();
 
       const updatableSuspendedAgreement: Agreement = {
-        ...getMockAgreement(eservice.id, consumer.id, agreementState.suspended),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: agreementState.suspended }),
         descriptorId: eservice.descriptors[0].id,
         producerId: eservice.producerId,
         suspendedByPlatform: false,
@@ -540,7 +528,7 @@ describe("compute Agreements state by attribute", () => {
       await addOneEService(eservice);
 
       const updatableSuspendedAgreement: Agreement = {
-        ...getMockAgreement(eservice.id, consumer.id, agreementState.suspended),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: agreementState.suspended }),
         descriptorId: eservice.descriptors[0].id,
         producerId: eservice.producerId,
         suspendedByPlatform: true,
@@ -593,11 +581,7 @@ describe("compute Agreements state by attribute", () => {
       await addOneEService(eservice);
 
       const updatableMissingCertAttributesAgreement: Agreement = {
-        ...getMockAgreement(
-          eservice.id,
-          consumer.id,
-          agreementState.missingCertifiedAttributes
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: agreementState.missingCertifiedAttributes }),
         descriptorId: eservice.descriptors[0].id,
         producerId: eservice.producerId,
         suspendedByPlatform: true,
@@ -652,7 +636,7 @@ describe("compute Agreements state by attribute", () => {
       const suspendedByConsumer = !suspendedByProducer ? true : randomBoolean();
 
       const updatableSuspendedAgreement: Agreement = {
-        ...getMockAgreement(eservice.id, consumer.id, agreementState.suspended),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: agreementState.suspended }),
         descriptorId: eservice.descriptors[0].id,
         producerId: eservice.producerId,
         suspendedByPlatform: true,
@@ -746,29 +730,21 @@ describe("compute Agreements state by attribute", () => {
     };
 
     const updatableAgreement1: Agreement = {
-      ...getMockAgreement(
-        eservice1.id,
-        consumer.id,
-        randomArrayItem([agreementState.draft, agreementState.pending])
-      ),
+      ...getMockAgreement({ eserviceId: eservice1.id, consumerId: consumer.id, state: randomArrayItem([agreementState.draft, agreementState.pending]) }),
       descriptorId: eservice1.descriptors[0].id,
       producerId: eservice1.producerId,
       suspendedByPlatform: false,
     };
 
     const updatableAgreement2: Agreement = {
-      ...getMockAgreement(eservice2.id, consumer.id, agreementState.active),
+      ...getMockAgreement({ eserviceId: eservice2.id, consumerId: consumer.id, state: agreementState.active }),
       descriptorId: eservice2.descriptors[0].id,
       producerId: eservice2.producerId,
       suspendedByPlatform: false,
     };
 
     const nonUpdatableAgreement = {
-      ...getMockAgreement(
-        eservice1.id,
-        consumer.id,
-        randomArrayItem([agreementState.archived, agreementState.rejected])
-      ),
+      ...getMockAgreement({ eserviceId: eservice1.id, consumerId: consumer.id, state: randomArrayItem([agreementState.archived, agreementState.rejected]) }),
       descriptorId: eservice1.descriptors[0].id,
       producerId: eservice1.producerId,
     };

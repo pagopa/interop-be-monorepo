@@ -61,7 +61,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
   it("should return empty array when no user notification configs exist for the template", async () => {
     // Create a mock creator tenant for the template
     const creatorId = generateId<TenantId>();
-    const creatorTenant = getMockTenant(creatorId);
+    const creatorTenant = getMockTenant({ tenantId: creatorId });
     await addOneTenant(creatorTenant);
 
     // Set up the eserviceTemplate with the creatorId
@@ -96,11 +96,11 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
 
   it("should generate notifications for all tenant users with notification enabled", async () => {
     const creatorId = generateId<TenantId>();
-    const creatorTenant = getMockTenant(creatorId);
+    const creatorTenant = getMockTenant({ tenantId: creatorId });
     await addOneTenant(creatorTenant);
 
     const producerId = generateId<TenantId>();
-    const producerTenant = getMockTenant(producerId);
+    const producerTenant = getMockTenant({ tenantId: producerId });
     await addOneTenant(producerTenant);
 
     // Set up the eserviceTemplate with the creatorId
@@ -111,12 +111,7 @@ describe("handleEserviceTemplateStatusChangedToInstantiator", async () => {
     await addOneEServiceTemplate(updatedEServiceTemplate);
 
     const eserviceId = generateId<EServiceId>();
-    const eservice = getMockEService(
-      eserviceId,
-      producerId,
-      [getMockDescriptor(descriptorState.published)],
-      updatedEServiceTemplate.id
-    );
+    const eservice = getMockEService({ eserviceId: eserviceId, producerId: producerId, descriptors: [getMockDescriptor({ state: descriptorState.published })], templateId: updatedEServiceTemplate.id });
     await addOneEService(eservice);
 
     const users = [

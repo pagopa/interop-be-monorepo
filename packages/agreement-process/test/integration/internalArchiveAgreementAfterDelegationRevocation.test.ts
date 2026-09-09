@@ -38,11 +38,7 @@ describe("internal archive agreement", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date());
 
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      randomArrayItem(agreementArchivableStates)
-    );
+    const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: randomArrayItem(agreementArchivableStates) });
 
     const consumerDelegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -96,11 +92,7 @@ describe("internal archive agreement", () => {
   });
 
   it("should throw a agreementNotFound error when the Agreement doesn't exist", async () => {
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      randomArrayItem(agreementArchivableStates)
-    );
+    const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: randomArrayItem(agreementArchivableStates) });
 
     const consumerDelegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,
@@ -126,11 +118,7 @@ describe("internal archive agreement", () => {
         (s) => !agreementArchivableStates.includes(s)
       )
     );
-    const agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      notArchivableState
-    );
+    const agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: notArchivableState });
 
     const consumerDelegation = getMockDelegation({
       kind: delegationKind.delegatedConsumer,

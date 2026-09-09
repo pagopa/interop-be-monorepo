@@ -68,7 +68,7 @@ describe("createPurposeTemplate", () => {
       await purposeTemplateService.createPurposeTemplate(
         purposeTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       );
 
@@ -154,7 +154,7 @@ describe("createPurposeTemplate", () => {
       await purposeTemplateService.createPurposeTemplate(
         seedWithFreeOfChargeFalse,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       );
 
@@ -239,7 +239,7 @@ describe("createPurposeTemplate", () => {
       purposeTemplateService.createPurposeTemplate(
         seed,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
@@ -263,7 +263,7 @@ describe("createPurposeTemplate", () => {
       purposeTemplateService.createPurposeTemplate(
         purposeTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -288,7 +288,7 @@ describe("createPurposeTemplate", () => {
       purposeTemplateService.createPurposeTemplate(
         seedWithInvalidRiskAnalysis,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -326,7 +326,7 @@ describe("createPurposeTemplate", () => {
       purposeTemplateService.createPurposeTemplate(
         seedWithUnexpectedField,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -367,7 +367,7 @@ describe("createPurposeTemplate", () => {
       purposeTemplateService.createPurposeTemplate(
         seedWithMissingField,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -392,7 +392,7 @@ describe("createPurposeTemplate", () => {
       purposeTemplateService.createPurposeTemplate(
         seedWithInvalidTargetTenantKind,
         getMockContext({
-          authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(ruleSetNotFoundError(invalidTenantKind));
@@ -417,7 +417,7 @@ describe("createPurposeTemplate", () => {
             purposeFreeOfChargeReason: freeOfChargeReason,
           },
           getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(

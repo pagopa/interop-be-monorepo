@@ -66,7 +66,7 @@ describe("upload Document", () => {
     "should write on event-store for the upload of a document when descriptor state is %s",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         serverUrls: [],
       };
       const eservice: EService = {
@@ -79,7 +79,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildDocumentSeed(),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -131,7 +131,7 @@ describe("upload Document", () => {
 
   it("should write on event-store for the upload of a interface when descriptor state is draft", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
       serverUrls: [],
     };
     const eservice: EService = {
@@ -144,7 +144,7 @@ describe("upload Document", () => {
       eservice.id,
       descriptor.id,
       buildInterfaceSeed(),
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -203,7 +203,7 @@ describe("upload Document", () => {
     "should write on event-store for the upload of a document when descriptor state is %s (delegate)",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         serverUrls: [],
       };
       const eservice: EService = {
@@ -223,7 +223,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildDocumentSeed(),
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -275,7 +275,7 @@ describe("upload Document", () => {
 
   it("should write on event-store for the upload of a interface when descriptor state is draft (delegate)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
       serverUrls: [],
     };
     const eservice: EService = {
@@ -295,7 +295,7 @@ describe("upload Document", () => {
       eservice.id,
       descriptor.id,
       buildInterfaceSeed(),
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -417,7 +417,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -432,7 +432,7 @@ describe("upload Document", () => {
         eservice.id,
         mockDescriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -456,7 +456,7 @@ describe("upload Document", () => {
     "should throw notValidDescriptorState when uploading a document for a Descriptor in in %s state",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
       };
       const eservice: EService = {
         ...mockEService,
@@ -468,7 +468,7 @@ describe("upload Document", () => {
           eservice.id,
           descriptor.id,
           buildDocumentSeed(),
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -481,7 +481,7 @@ describe("upload Document", () => {
     "should throw notValidDescriptorState when uploading an interface for a Descriptor in in %s state",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
       };
       const eservice: EService = {
         ...mockEService,
@@ -493,7 +493,7 @@ describe("upload Document", () => {
           eservice.id,
           descriptor.id,
           buildInterfaceSeed(),
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -514,7 +514,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildInterfaceSeed(),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(interfaceAlreadyExists(descriptor.id));
   });
@@ -542,7 +542,7 @@ describe("upload Document", () => {
           ...buildDocumentSeed(),
           prettyName: document.prettyName.toLowerCase(),
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       documentPrettyNameDuplicate(
@@ -570,7 +570,7 @@ describe("upload Document", () => {
         {
           ...buildDocumentSeed(),
         },
-        getMockContext({ authData: getMockAuthData(eService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eService.producerId }) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
@@ -599,7 +599,7 @@ describe("upload Document", () => {
           ...buildDocumentSeed(),
           checksum: document.checksum,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(checksumDuplicate(eservice.id, descriptor.id));
   });
@@ -618,7 +618,7 @@ describe("upload Document", () => {
 
     it("should write on event-store for the upload of an async exchange callback interface when descriptor state is draft", async () => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.draft),
+        ...getMockDescriptor({ state: descriptorState.draft }),
         serverUrls: [],
         asyncExchangeProperties: {
           responseTime: 3600,
@@ -639,7 +639,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildAsyncExchangeCallbackInterfaceSeed(),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -693,7 +693,7 @@ describe("upload Document", () => {
 
     it("should write on event-store for the upload of an async exchange callback interface even when the descriptor has no asyncExchangeProperties set yet", async () => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.draft),
+        ...getMockDescriptor({ state: descriptorState.draft }),
         serverUrls: [],
         asyncExchangeProperties: undefined,
       };
@@ -708,7 +708,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildAsyncExchangeCallbackInterfaceSeed(),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -762,7 +762,7 @@ describe("upload Document", () => {
 
     it("should write on event-store for the upload of an async exchange callback interface when descriptor state is draft (delegate)", async () => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.draft),
+        ...getMockDescriptor({ state: descriptorState.draft }),
         serverUrls: [],
         asyncExchangeProperties: {
           responseTime: 3600,
@@ -790,7 +790,7 @@ describe("upload Document", () => {
         eservice.id,
         descriptor.id,
         buildAsyncExchangeCallbackInterfaceSeed(),
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -818,7 +818,7 @@ describe("upload Document", () => {
       "should throw notValidDescriptorState when uploading an async exchange callback interface for a Descriptor in %s state",
       async (state) => {
         const descriptor: Descriptor = {
-          ...getMockDescriptor(state),
+          ...getMockDescriptor({ state: state }),
         };
         const eservice: EService = {
           ...mockEService,
@@ -830,7 +830,7 @@ describe("upload Document", () => {
             eservice.id,
             descriptor.id,
             buildAsyncExchangeCallbackInterfaceSeed(),
-            getMockContext({ authData: getMockAuthData(eservice.producerId) })
+            getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
           )
         ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
       }
@@ -860,7 +860,7 @@ describe("upload Document", () => {
           eservice.id,
           descriptor.id,
           buildAsyncExchangeCallbackInterfaceSeed(),
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(
         asyncExchangeCallbackInterfaceAlreadyExists(descriptor.id)
@@ -871,7 +871,7 @@ describe("upload Document", () => {
       config.featureFlagAsyncExchange = false;
 
       const descriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.draft),
+        ...getMockDescriptor({ state: descriptorState.draft }),
         serverUrls: [],
       };
       const eservice: EService = {
@@ -884,7 +884,7 @@ describe("upload Document", () => {
           eservice.id,
           descriptor.id,
           buildAsyncExchangeCallbackInterfaceSeed(),
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(featureFlagNotEnabled("featureFlagAsyncExchange"));
     });

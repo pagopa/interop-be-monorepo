@@ -97,7 +97,7 @@ describe("getPurposeTemplateEServiceTemplates", async () => {
           creatorIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       );
 
     expect(result).toEqual({
@@ -114,7 +114,7 @@ describe("getPurposeTemplateEServiceTemplates", async () => {
           creatorIds: [],
         },
         { offset: 1, limit: 50 },
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       );
 
     expect(result).toEqual({
@@ -131,7 +131,7 @@ describe("getPurposeTemplateEServiceTemplates", async () => {
           creatorIds: [],
         },
         { offset: 0, limit: 1 },
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       );
 
     expect(result).toEqual({
@@ -148,7 +148,7 @@ describe("getPurposeTemplateEServiceTemplates", async () => {
           creatorIds: [eserviceTemplate2.creatorId],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       );
 
     expect(result).toEqual({
@@ -166,7 +166,7 @@ describe("getPurposeTemplateEServiceTemplates", async () => {
           creatorIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       );
 
     expect(result).toEqual({
@@ -183,7 +183,7 @@ describe("getPurposeTemplateEServiceTemplates", async () => {
           creatorIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       );
 
     expect(result).toEqual({
@@ -202,7 +202,7 @@ describe("getPurposeTemplateEServiceTemplates", async () => {
           creatorIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(notExistingId));
   });
@@ -219,7 +219,7 @@ describe("getPurposeTemplateEServiceTemplates", async () => {
           creatorIds: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplateDraft.id));
   });

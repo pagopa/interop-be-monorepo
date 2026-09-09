@@ -37,7 +37,7 @@ describe("getProducerKeychainById", async () => {
       {
         producerKeychainId: expectedProducerKeychain.id,
       },
-      getMockContext({ authData: getMockAuthData(organizationId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
     );
     expect(sortProducerKeychain(producerKeychain)).toEqual({
       data: sortProducerKeychain(expectedProducerKeychain),
@@ -57,7 +57,7 @@ describe("getProducerKeychainById", async () => {
       {
         producerKeychainId: expectedProducerKeychainWithoutUser.id,
       },
-      getMockContext({ authData: getMockAuthData(organizationId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
     );
 
     expect(sortProducerKeychain(producerKeychain)).toEqual({
@@ -73,7 +73,7 @@ describe("getProducerKeychainById", async () => {
         {
           producerKeychainId,
         },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(producerKeychainNotFound(producerKeychainId));
   });

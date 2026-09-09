@@ -42,12 +42,12 @@ describe("getPurposeTemplates", async () => {
   const eservice1: EService = {
     ...getMockEService(),
     name: "eService 1",
-    descriptors: [getMockDescriptor(descriptorState.published)],
+    descriptors: [getMockDescriptor({ state: descriptorState.published })],
   };
   const eservice2: EService = {
     ...getMockEService(),
     name: "eService 2",
-    descriptors: [getMockDescriptor(descriptorState.archived)],
+    descriptors: [getMockDescriptor({ state: descriptorState.archived })],
   };
 
   const publishedPurposeTemplateByCreator1: PurposeTemplate = {
@@ -169,7 +169,7 @@ describe("getPurposeTemplates", async () => {
           states: [],
         },
         { offset: 0, limit: 50 },
-        getMockContext({ authData: getMockAuthData(creatorId1) })
+        getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
       );
 
     expectSinglePageListResult(allPurposeTemplates, [
@@ -192,7 +192,7 @@ describe("getPurposeTemplates", async () => {
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
 
     expectSinglePageListResult(result, [
@@ -210,7 +210,7 @@ describe("getPurposeTemplates", async () => {
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
 
     expectSinglePageListResult(result, [
@@ -227,7 +227,7 @@ describe("getPurposeTemplates", async () => {
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
 
     expectSinglePageListResult(result, [
@@ -244,7 +244,7 @@ describe("getPurposeTemplates", async () => {
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
 
     expectSinglePageListResult(result, []);
@@ -258,7 +258,7 @@ describe("getPurposeTemplates", async () => {
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
     expect(result.totalCount).toBe(4);
 
@@ -278,7 +278,7 @@ describe("getPurposeTemplates", async () => {
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
 
     expectSinglePageListResult(result, [publishedPurposeTemplateByCreator1]);
@@ -292,7 +292,7 @@ describe("getPurposeTemplates", async () => {
         states: [purposeTemplateState.draft, purposeTemplateState.published],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
     expectSinglePageListResult(result, [
       draftPurposeTemplateByCreator1,
@@ -311,7 +311,7 @@ describe("getPurposeTemplates", async () => {
         ],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
     expectSinglePageListResult(result2, [
       archivedPurposeTemplateByCreator1,
@@ -354,7 +354,7 @@ describe("getPurposeTemplates", async () => {
         excludeExpiredRiskAnalysis: false,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
     expectSinglePageListResult(result, [
       archivedPurposeTemplateByCreator1,
@@ -399,7 +399,7 @@ describe("getPurposeTemplates", async () => {
         excludeExpiredRiskAnalysis: true,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
     expectSinglePageListResult(result, [
       archivedPurposeTemplateByCreator1,
@@ -421,7 +421,7 @@ describe("getPurposeTemplates", async () => {
         handlesPersonalData: true,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
     expectSinglePageListResult(result, [
       publishedPurposeTemplateByCreator1,
@@ -438,7 +438,7 @@ describe("getPurposeTemplates", async () => {
         handlesPersonalData: false,
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
     expectSinglePageListResult(result, [
       archivedPurposeTemplateByCreator1,
@@ -457,7 +457,7 @@ describe("getPurposeTemplates", async () => {
         states: [],
       },
       { offset: 2, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
 
     expect({
@@ -483,7 +483,7 @@ describe("getPurposeTemplates", async () => {
         states: [],
       },
       { offset: 0, limit: 2 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
 
     expect({
@@ -506,7 +506,7 @@ describe("getPurposeTemplates", async () => {
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
 
     expect(result).toEqual({
@@ -524,7 +524,7 @@ describe("getPurposeTemplates", async () => {
         states: [purposeTemplateState.draft, purposeTemplateState.suspended],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId1) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId1 }) })
     );
 
     expectSinglePageListResult(result, [suspendedPurposeTemplateByCreator2]);
@@ -546,18 +546,18 @@ describe("getPurposeTemplates - e-service template instance resolution", async (
     ...getMockEService(),
     name: "instance of linked template",
     templateId: linkedEServiceTemplate.id,
-    descriptors: [getMockDescriptor(descriptorState.published)],
+    descriptors: [getMockDescriptor({ state: descriptorState.published })],
   };
   const standaloneEService: EService = {
     ...getMockEService(),
     name: "standalone eservice",
-    descriptors: [getMockDescriptor(descriptorState.published)],
+    descriptors: [getMockDescriptor({ state: descriptorState.published })],
   };
   const instanceOfUnlinkedTemplate: EService = {
     ...getMockEService(),
     name: "instance of unlinked template",
     templateId: unlinkedEServiceTemplate.id,
-    descriptors: [getMockDescriptor(descriptorState.published)],
+    descriptors: [getMockDescriptor({ state: descriptorState.published })],
   };
 
   const ptViaTemplate: PurposeTemplate = {
@@ -645,7 +645,7 @@ describe("getPurposeTemplates - e-service template instance resolution", async (
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
     );
 
     expectSinglePageListResult(result, [
@@ -663,7 +663,7 @@ describe("getPurposeTemplates - e-service template instance resolution", async (
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
     );
 
     expectSinglePageListResult(result, [ptViaConcrete, ptViaBoth]);
@@ -677,7 +677,7 @@ describe("getPurposeTemplates - e-service template instance resolution", async (
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
     );
 
     expect(result.totalCount).toBe(4);
@@ -697,7 +697,7 @@ describe("getPurposeTemplates - e-service template instance resolution", async (
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
     );
 
     expectSinglePageListResult(result, []);
@@ -711,7 +711,7 @@ describe("getPurposeTemplates - e-service template instance resolution", async (
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
     );
 
     expectSinglePageListResult(result, []);
@@ -725,7 +725,7 @@ describe("getPurposeTemplates - e-service template instance resolution", async (
         states: [],
       },
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(otherCreatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: otherCreatorId }) })
     );
 
     expectSinglePageListResult(result, [ptViaTemplate, ptViaBoth]);

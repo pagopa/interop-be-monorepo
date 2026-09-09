@@ -167,19 +167,19 @@ describe("get eservices", () => {
     };
     await addOneTenant(tenant);
     const agreement1 = {
-      ...getMockAgreement(eservice1.id, tenant.id, agreementState.active),
+      ...getMockAgreement({ eserviceId: eservice1.id, consumerId: tenant.id, state: agreementState.active }),
       descriptorId: descriptor1.id,
       producerId: eservice1.producerId,
     };
     await addOneAgreement(agreement1);
     const agreement2 = {
-      ...getMockAgreement(eservice3.id, tenant.id, agreementState.active),
+      ...getMockAgreement({ eserviceId: eservice3.id, consumerId: tenant.id, state: agreementState.active }),
       descriptorId: descriptor3.id,
       producerId: eservice3.producerId,
     };
     await addOneAgreement(agreement2);
     const agreement3 = {
-      ...getMockAgreement(eservice4.id, tenant.id, agreementState.draft),
+      ...getMockAgreement({ eserviceId: eservice4.id, consumerId: tenant.id, state: agreementState.draft }),
       descriptorId: descriptor4.id,
       producerId: eservice4.producerId,
     };
@@ -313,7 +313,7 @@ describe("get eservices", () => {
       0,
       50,
       getMockContext({
-        authData: getMockAuthData(organizationId3),
+        authData: getMockAuthData({ organizationId: organizationId3 }),
       })
     );
 
@@ -330,7 +330,7 @@ describe("get eservices", () => {
       0,
       50,
       getMockContext({
-        authData: getMockAuthData(organizationId3),
+        authData: getMockAuthData({ organizationId: organizationId3 }),
       })
     );
 
@@ -488,7 +488,7 @@ describe("get eservices", () => {
       0,
       50,
       getMockContext({
-        authData: getMockAuthData(organizationId3),
+        authData: getMockAuthData({ organizationId: organizationId3 }),
       })
     );
     expect(result.totalCount).toBe(2);
@@ -529,7 +529,7 @@ describe("get eservices", () => {
       0,
       50,
       getMockContext({
-        authData: getMockAuthData(organizationId1),
+        authData: getMockAuthData({ organizationId: organizationId1 }),
       })
     );
     expect(result.totalCount).toBe(2);
@@ -551,7 +551,7 @@ describe("get eservices", () => {
       0,
       50,
       getMockContext({
-        authData: getMockAuthData(organizationId1),
+        authData: getMockAuthData({ organizationId: organizationId1 }),
       })
     );
     expect(result.totalCount).toBe(0);
@@ -571,7 +571,7 @@ describe("get eservices", () => {
       0,
       50,
       getMockContext({
-        authData: getMockAuthData(organizationId1),
+        authData: getMockAuthData({ organizationId: organizationId1 }),
       })
     );
     expect(result.totalCount).toBe(2);
@@ -593,7 +593,7 @@ describe("get eservices", () => {
       0,
       50,
       getMockContext({
-        authData: getMockAuthData(organizationId1),
+        authData: getMockAuthData({ organizationId: organizationId1 }),
       })
     );
     expect(result.totalCount).toBe(0);
@@ -1173,7 +1173,7 @@ describe("get eservices", () => {
       0,
       50,
       getMockContext({
-        authData: getMockAuthData(organizationId3),
+        authData: getMockAuthData({ organizationId: organizationId3 }),
       })
     );
     expect(result.totalCount).toBe(1);
@@ -1196,7 +1196,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      getMockContext({ authData: getMockAuthData(organizationId3) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId3 }) })
     );
     expect(result.totalCount).toBe(2);
     expect(sortEServices(result.results)).toEqual(
@@ -1217,7 +1217,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      getMockContext({ authData: getMockAuthData(organizationId3) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId3 }) })
     );
     expect(result.totalCount).toBe(0);
     expect(result.results).toEqual([]);
@@ -1231,19 +1231,19 @@ describe("get eservices", () => {
     const eserviceInstance1: EService = {
       ...getMockEService(),
       name: `${eserviceTemplate1.name}`,
-      descriptors: [getMockDescriptor(descriptorState.published)],
+      descriptors: [getMockDescriptor({ state: descriptorState.published })],
       templateId: templateId1,
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
       name: `${eserviceTemplate1.name} b`,
-      descriptors: [getMockDescriptor(descriptorState.published)],
+      descriptors: [getMockDescriptor({ state: descriptorState.published })],
       templateId: templateId1,
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
       name: `${eserviceTemplate2.name}`,
-      descriptors: [getMockDescriptor(descriptorState.published)],
+      descriptors: [getMockDescriptor({ state: descriptorState.published })],
       templateId: templateId2,
     };
 
@@ -1265,7 +1265,7 @@ describe("get eservices", () => {
       },
       0,
       50,
-      getMockContext({ authData: getMockAuthData(organizationId3) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId3 }) })
     );
     expect(result.totalCount).toBe(2);
     expect(sortEServices(result.results)).toEqual(
@@ -1280,17 +1280,17 @@ describe("get eservices", () => {
     const eserviceTemplate2 = getMockEServiceTemplate(templateId2);
     const eserviceInstance1: EService = {
       ...getMockEService(),
-      descriptors: [getMockDescriptor(descriptorState.published)],
+      descriptors: [getMockDescriptor({ state: descriptorState.published })],
       templateId: templateId1,
     };
     const eserviceInstance2: EService = {
       ...getMockEService(),
-      descriptors: [getMockDescriptor(descriptorState.archived)],
+      descriptors: [getMockDescriptor({ state: descriptorState.archived })],
       templateId: templateId1,
     };
     const eserviceInstance3: EService = {
       ...getMockEService(),
-      descriptors: [getMockDescriptor(descriptorState.suspended)],
+      descriptors: [getMockDescriptor({ state: descriptorState.suspended })],
       templateId: templateId2,
     };
 
@@ -1313,7 +1313,7 @@ describe("get eservices", () => {
       0,
       50,
       getMockContext({
-        authData: getMockAuthData(organizationId3),
+        authData: getMockAuthData({ organizationId: organizationId3 }),
       })
     );
     expect(result.totalCount).toBe(1);
@@ -1432,7 +1432,7 @@ describe("get eservices", () => {
       descriptors: [],
     };
     const authData: AuthData = {
-      ...getMockAuthData(organizationId1),
+      ...getMockAuthData({ organizationId: organizationId1 }),
       userRoles: [userRole.SECURITY_ROLE],
     };
     await addOneEService(eservice7);
@@ -1624,7 +1624,7 @@ describe("get eservices", () => {
         descriptors: [descriptor8],
       };
       const authData: AuthData = {
-        ...getMockAuthData(organizationId1),
+        ...getMockAuthData({ organizationId: organizationId1 }),
         userRoles: [userRole.SECURITY_ROLE],
       };
       await addOneEService(eservice8);
@@ -1848,7 +1848,7 @@ describe("get eservices", () => {
         descriptors: [descriptor9a, descriptor9b],
       };
       const authData: AuthData = {
-        ...getMockAuthData(organizationId1),
+        ...getMockAuthData({ organizationId: organizationId1 }),
         userRoles: [userRole.SECURITY_ROLE],
       };
       await addOneEService(eservice9);
@@ -2089,7 +2089,7 @@ describe("get eservices", () => {
         0,
         50,
         getMockContext({
-          authData: getMockAuthData(organizationId3),
+          authData: getMockAuthData({ organizationId: organizationId3 }),
         })
       );
 

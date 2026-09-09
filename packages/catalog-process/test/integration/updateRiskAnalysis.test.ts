@@ -108,7 +108,7 @@ describe("update risk analysis", () => {
       eservice.id,
       riskAnalysis.id,
       riskAnalysisUpdatedSeed,
-      getMockContext({ authData: getMockAuthData(producer.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -231,7 +231,7 @@ describe("update risk analysis", () => {
       eservice.id,
       riskAnalysis.id,
       riskAnalysisUpdatedSeed,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -306,7 +306,7 @@ describe("update risk analysis", () => {
         mockEService.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -336,7 +336,7 @@ describe("update risk analysis", () => {
         mockEService.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -357,7 +357,7 @@ describe("update risk analysis", () => {
         eservice.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
   });
@@ -379,7 +379,7 @@ describe("update risk analysis", () => {
         eservice.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceNotInReceiveMode(eservice.id));
   });
@@ -401,7 +401,7 @@ describe("update risk analysis", () => {
         eservice.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(tenantNotFound(eservice.producerId));
   });
@@ -431,7 +431,7 @@ describe("update risk analysis", () => {
         eservice.id,
         generateId(),
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getMockAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
       )
     ).rejects.toThrowError(tenantKindNotFound(producer.id));
   });
@@ -465,7 +465,7 @@ describe("update risk analysis", () => {
         eservice.id,
         riskAnalysisId,
         buildRiskAnalysisSeed(getMockValidRiskAnalysis(tenantKind.PA)),
-        getMockContext({ authData: getMockAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
       )
     ).rejects.toThrowError(
       eServiceRiskAnalysisNotFound(eservice.id, riskAnalysisId)
@@ -514,7 +514,7 @@ describe("update risk analysis", () => {
         eservice.id,
         riskAnalysis_1.id,
         riskAnalysisSeed,
-        getMockContext({ authData: getMockAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
       )
     ).rejects.toThrowError(
       riskAnalysisDuplicated(riskAnalysis_2.name.toLowerCase(), eservice.id)
@@ -573,7 +573,7 @@ describe("update risk analysis", () => {
         eservice.id,
         riskAnalysis.id,
         riskAnalysisUpdatedSeed,
-        getMockContext({ authData: getMockAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
       )
     ).rejects.toThrowError(
       riskAnalysisValidationFailed([
@@ -626,7 +626,7 @@ describe("update risk analysis", () => {
         eService.id,
         riskAnalysis.id,
         riskAnalysisSeed,
-        getMockContext({ authData: getMockAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });

@@ -93,7 +93,7 @@ describe("create descriptor", async () => {
       await catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
     const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -218,7 +218,7 @@ describe("create descriptor", async () => {
           dailyCallsPerConsumer: 60,
           dailyCallsTotal: 600,
         },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
     expect(returnedDescriptor.asyncExchangeProperties).toEqual({
@@ -307,7 +307,7 @@ describe("create descriptor", async () => {
       await catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       );
     const newDescriptorId = returnedDescriptor.id;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -401,7 +401,7 @@ describe("create descriptor", async () => {
         catalogService.createTemplateInstanceDescriptor(
           eservice.id,
           descriptorSeed,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));
     }
@@ -445,7 +445,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -527,7 +527,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer: 60, dailyCallsTotal: 60 },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -566,7 +566,7 @@ describe("create descriptor", async () => {
       catalogService.createTemplateInstanceDescriptor(
         eservice.id,
         { audience: [], dailyCallsPerConsumer, dailyCallsTotal },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });

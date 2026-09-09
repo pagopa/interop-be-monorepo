@@ -44,7 +44,7 @@ describe.each([
     vi.setSystemTime(currentExecutionTime);
 
     const delegate = getMockTenant();
-    const authData = getMockAuthData(delegate.id);
+    const authData = getMockAuthData({ organizationId: delegate.id });
     const delegation = getMockDelegation({
       kind,
       state: delegationState.waitingForApproval,
@@ -113,7 +113,7 @@ describe.each([
         delegation.id,
         rejectionReason,
         getMockContext({
-          authData: getMockAuthData(delegation.delegateId),
+          authData: getMockAuthData({ organizationId: delegation.delegateId }),
         })
       )
     ).rejects.toThrow(delegationNotFound(delegation.id, kind));
@@ -131,7 +131,7 @@ describe.each([
       rejectFn(
         delegation.id,
         "",
-        getMockContext({ authData: getMockAuthData(wrongDelegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: wrongDelegateId }) })
       )
     ).rejects.toThrow(
       operationRestrictedToDelegate(wrongDelegateId, delegation.id)
@@ -155,7 +155,7 @@ describe.each([
         rejectFn(
           delegation.id,
           "",
-          getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
         )
       ).rejects.toThrow(
         incorrectState(delegation.id, state, delegationState.waitingForApproval)

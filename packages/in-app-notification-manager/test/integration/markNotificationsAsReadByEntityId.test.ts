@@ -42,7 +42,7 @@ describe("markNotificationsAsReadByEntityId", () => {
       entityId,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -81,7 +81,7 @@ describe("markNotificationsAsReadByEntityId", () => {
       entityId,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -111,7 +111,7 @@ describe("markNotificationsAsReadByEntityId", () => {
       entityId,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })
@@ -133,7 +133,7 @@ describe("markNotificationsAsReadByEntityId", () => {
       nonExistentEntityId,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })

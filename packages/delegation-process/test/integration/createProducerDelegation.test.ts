@@ -21,9 +21,9 @@ describe("create producer delegation", () => {
     vi.setSystemTime(currentExecutionTime);
 
     const delegatorId = generateId<TenantId>();
-    const authData = getMockAuthData(delegatorId);
+    const authData = getMockAuthData({ organizationId: delegatorId });
     const delegator = {
-      ...getMockTenant(delegatorId),
+      ...getMockTenant({ tenantId: delegatorId }),
       externalId: {
         origin: "IPA",
         value: "test",

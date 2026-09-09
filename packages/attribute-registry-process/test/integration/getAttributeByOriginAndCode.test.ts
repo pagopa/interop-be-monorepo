@@ -12,7 +12,7 @@ import {
 describe("getAttributeByOriginAndCode", () => {
   it("should get the attribute if it exists", async () => {
     const attribute1: Attribute = {
-      ...getMockAttribute(attributeKind.certified),
+      ...getMockAttribute({ kind: attributeKind.certified }),
       origin: "IPA",
       code: "12345A",
     };

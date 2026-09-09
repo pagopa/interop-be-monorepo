@@ -58,7 +58,7 @@ describe("handleClientKeyAddedDeletedToClientUsers", () => {
     name: "Test Client",
   };
 
-  const consumerTenant = getMockTenant(consumerId);
+  const consumerTenant = getMockTenant({ tenantId: consumerId });
 
   const { logger } = getMockContext({});
 

@@ -110,7 +110,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         purposeTemplateId: purposeTemplate.id,
         answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
         ctx: getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
         }),
       });
 
@@ -178,7 +178,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         purposeTemplateId: purposeTemplate.id,
         answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
         ctx: getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
         }),
       })
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
@@ -193,7 +193,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         purposeTemplateId: purposeTemplate.id,
         answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
         ctx: getMockContext({
-          authData: getMockAuthData(requesterId),
+          authData: getMockAuthData({ organizationId: requesterId }),
         }),
       })
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
@@ -208,9 +208,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         purposeTemplateId: purposeTemplateWithoutRiskAnalysisTemplate.id,
         answerId: generateId(),
         ctx: getMockContext({
-          authData: getMockAuthData(
-            purposeTemplateWithoutRiskAnalysisTemplate.creatorId
-          ),
+          authData: getMockAuthData({ organizationId: purposeTemplateWithoutRiskAnalysisTemplate.creatorId }),
         }),
       })
     ).rejects.toThrowError(
@@ -229,7 +227,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         purposeTemplateId: purposeTemplate.id,
         answerId,
         ctx: getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
         }),
       })
     ).rejects.toThrowError(
@@ -254,7 +252,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
         purposeTemplateId: purposeTemplateWithoutAnnotation.id,
         answerId: riskAnalysisFormWithoutAnnotation.singleAnswers[0].id,
         ctx: getMockContext({
-          authData: getMockAuthData(purposeTemplateWithoutAnnotation.creatorId),
+          authData: getMockAuthData({ organizationId: purposeTemplateWithoutAnnotation.creatorId }),
         }),
       })
     ).rejects.toThrowError(
@@ -283,7 +281,7 @@ describe("deleteRiskAnalysisTemplateAnswerAnnotation", () => {
           purposeTemplateId: purposeTemplate.id,
           answerId: riskAnalysisFormTemplate.singleAnswers[0].id,
           ctx: getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
           }),
         })
       ).rejects.toThrowError(

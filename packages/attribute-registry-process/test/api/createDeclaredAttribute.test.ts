@@ -23,7 +23,7 @@ describe("API /declaredAttributes authorization test", () => {
     description: "This is a declared attribute",
   };
 
-  const mockAttribute = getMockAttribute(attributeKind.declared);
+  const mockAttribute = getMockAttribute({ kind: attributeKind.declared });
 
   const serviceResponse = getMockWithMetadata(mockAttribute);
 

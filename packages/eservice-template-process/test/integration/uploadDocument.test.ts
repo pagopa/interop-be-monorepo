@@ -76,7 +76,7 @@ describe("upload Document", () => {
           version.id,
           buildDocumentSeed(),
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         );
 
@@ -149,7 +149,7 @@ describe("upload Document", () => {
         version.id,
         buildInterfaceSeed(),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
 
@@ -248,7 +248,7 @@ describe("upload Document", () => {
         mockVersion.id,
         buildInterfaceSeed(),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -287,7 +287,7 @@ describe("upload Document", () => {
           version.id,
           buildDocumentSeed(),
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -321,7 +321,7 @@ describe("upload Document", () => {
           version.id,
           buildInterfaceSeed(),
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -347,7 +347,7 @@ describe("upload Document", () => {
         version.id,
         buildInterfaceSeed(),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(interfaceAlreadyExists(version.id));
@@ -378,7 +378,7 @@ describe("upload Document", () => {
           prettyName: document.prettyName.toLowerCase(),
         },
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -408,7 +408,7 @@ describe("upload Document", () => {
         mockVersion.id,
         buildDocumentSeed(),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -441,7 +441,7 @@ describe("upload Document", () => {
         version.id,
         buildAsyncExchangeCallbackInterfaceSeed(),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
 
@@ -518,7 +518,7 @@ describe("upload Document", () => {
         version.id,
         buildAsyncExchangeCallbackInterfaceSeed(),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -552,7 +552,7 @@ describe("upload Document", () => {
         version.id,
         buildAsyncExchangeCallbackInterfaceSeed(),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -586,7 +586,7 @@ describe("upload Document", () => {
           version.id,
           buildAsyncExchangeCallbackInterfaceSeed(),
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -614,7 +614,7 @@ describe("upload Document", () => {
         version.id,
         buildAsyncExchangeCallbackInterfaceSeed(),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
 
@@ -693,7 +693,7 @@ describe("upload Document", () => {
         version.id,
         buildAsyncExchangeCallbackInterfaceSeed(),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(featureFlagNotEnabled("featureFlagAsyncExchange"));

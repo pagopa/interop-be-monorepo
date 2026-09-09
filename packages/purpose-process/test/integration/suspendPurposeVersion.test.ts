@@ -85,7 +85,7 @@ describe("suspendPurposeVersion", () => {
           versionId: mockPurposeVersion1.id,
           delegationId: undefined,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       );
 
       const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -154,7 +154,7 @@ describe("suspendPurposeVersion", () => {
         versionId: mockPurposeVersion1.id,
         delegationId: undefined,
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -231,7 +231,7 @@ describe("suspendPurposeVersion", () => {
         versionId: mockPurposeVersion1.id,
         delegationId: delegation.id,
       },
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -301,7 +301,7 @@ describe("suspendPurposeVersion", () => {
         versionId: mockPurposeVersion1.id,
         delegationId: undefined,
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -384,7 +384,7 @@ describe("suspendPurposeVersion", () => {
         versionId: mockPurposeVersion1.id,
         delegationId: delegation.id,
       },
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -598,7 +598,7 @@ describe("suspendPurposeVersion", () => {
         versionId: mockPurposeVersion1.id,
         delegationId: consumerDelegation.id,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
@@ -714,7 +714,7 @@ describe("suspendPurposeVersion", () => {
         versionId: mockPurposeVersion1.id,
         delegationId: consumerDelegation.id,
       },
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
@@ -796,7 +796,7 @@ describe("suspendPurposeVersion", () => {
           versionId: randomVersionId,
           delegationId: undefined,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -947,7 +947,7 @@ describe("suspendPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
           delegationId: undefined,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheDelegate(mockEService.producerId));
   });
@@ -961,7 +961,7 @@ describe("suspendPurposeVersion", () => {
     "should throw notValidVersionState if the purpose version is in %s state",
     async (state) => {
       const mockEService = getMockEService();
-      const mockPurposeVersion = getMockPurposeVersion(state);
+      const mockPurposeVersion = getMockPurposeVersion({ state: state });
 
       const mockPurpose: Purpose = {
         ...getMockPurpose(),
@@ -980,7 +980,7 @@ describe("suspendPurposeVersion", () => {
             delegationId: undefined,
           },
           getMockContext({
-            authData: getMockAuthData(mockPurpose.consumerId),
+            authData: getMockAuthData({ organizationId: mockPurpose.consumerId }),
           })
         )
       ).rejects.toThrowError(
@@ -1022,7 +1022,7 @@ describe("suspendPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
           delegationId: undefined,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheDelegate(mockPurpose.consumerId));
   });
@@ -1031,9 +1031,7 @@ describe("suspendPurposeVersion", () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
 
-    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
-      randomArrayItem(isSuspendable)
-    );
+    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion({ state: randomArrayItem(isSuspendable) });
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
@@ -1093,7 +1091,7 @@ describe("suspendPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
           delegationId: delegation.id,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheDelegate(delegation.delegateId));
   });
@@ -1137,7 +1135,7 @@ describe("suspendPurposeVersion", () => {
           delegationId: anotherDelegation.id,
         },
         getMockContext({
-          authData: getMockAuthData(anotherDelegation.delegateId),
+          authData: getMockAuthData({ organizationId: anotherDelegation.delegateId }),
         })
       )
     ).rejects.toThrowError(

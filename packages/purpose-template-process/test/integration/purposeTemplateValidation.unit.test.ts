@@ -56,13 +56,13 @@ describe("Purpose Template Validation", () => {
     const eserviceId1 = generateId<EServiceId>();
     const descriptorId1 = generateId<DescriptorId>();
 
-    const mockDescriptor1 = getMockDescriptor(descriptorState.published);
+    const mockDescriptor1 = getMockDescriptor({ state: descriptorState.published });
     mockDescriptor1.id = descriptorId1;
 
     const mockEService1: EService = {
-      ...getMockEService(eserviceId1, generateId<TenantId>(), [
+      ...getMockEService({ eserviceId: eserviceId1, producerId: generateId<TenantId>(), descriptors: [
         mockDescriptor1,
-      ]),
+      ] }),
       personalData: true,
     };
 
@@ -221,7 +221,7 @@ describe("Purpose Template Validation", () => {
     it("should return invalid result when eservice has no descriptors (validateEServiceDescriptors)", async () => {
       const eserviceIds = [eserviceId1];
       const eserviceWithoutDescriptors: EService = {
-        ...getMockEService(eserviceId1, generateId<TenantId>(), []),
+        ...getMockEService({ eserviceId: eserviceId1, producerId: generateId<TenantId>(), descriptors: [] }),
         personalData: true,
       };
 
@@ -254,12 +254,12 @@ describe("Purpose Template Validation", () => {
       "should return invalid result (invalidDescriptorStateError) when associating an eservice that only has invalid descriptor state %s (validateEServiceDescriptors)",
       async (invalidState) => {
         const eserviceIds = [eserviceId1];
-        const invalidDescriptor = getMockDescriptor(invalidState);
+        const invalidDescriptor = getMockDescriptor({ state: invalidState });
         invalidDescriptor.id = descriptorId1;
         const eserviceWithInvalidDescriptors = {
-          ...getMockEService(eserviceId1, generateId<TenantId>(), [
+          ...getMockEService({ eserviceId: eserviceId1, producerId: generateId<TenantId>(), descriptors: [
             invalidDescriptor,
-          ]),
+          ] }),
           personalData: true,
         };
 
@@ -297,12 +297,12 @@ describe("Purpose Template Validation", () => {
       "should return invalid result (invalidDescriptorStateError) when disassociating an eservice that only has invalid descriptor state %s (validateEServiceDescriptors)",
       async (invalidState) => {
         const eserviceIds = [eserviceId1];
-        const invalidDescriptor = getMockDescriptor(invalidState);
+        const invalidDescriptor = getMockDescriptor({ state: invalidState });
         invalidDescriptor.id = descriptorId1;
         const eserviceWithInvalidDescriptors = {
-          ...getMockEService(eserviceId1, generateId<TenantId>(), [
+          ...getMockEService({ eserviceId: eserviceId1, producerId: generateId<TenantId>(), descriptors: [
             invalidDescriptor,
-          ]),
+          ] }),
           personalData: true,
         };
 
@@ -339,9 +339,9 @@ describe("Purpose Template Validation", () => {
     it("should return error when trying to unlink eservice that is not associated", async () => {
       const eserviceIds = [eserviceId1];
       const mockEService1 = {
-        ...getMockEService(eserviceId1, generateId<TenantId>(), [
-          getMockDescriptor(descriptorState.published),
-        ]),
+        ...getMockEService({ eserviceId: eserviceId1, producerId: generateId<TenantId>(), descriptors: [
+          getMockDescriptor({ state: descriptorState.published }),
+        ] }),
         personalData: true,
       };
 
@@ -369,12 +369,12 @@ describe("Purpose Template Validation", () => {
 
     it("should return valid when trying to unlink eservice that is associated", async () => {
       const eserviceIds = [eserviceId1];
-      const mockDescriptor = getMockDescriptor(descriptorState.published);
+      const mockDescriptor = getMockDescriptor({ state: descriptorState.published });
       mockDescriptor.id = descriptorId1;
       const mockEService1 = {
-        ...getMockEService(eserviceId1, generateId<TenantId>(), [
+        ...getMockEService({ eserviceId: eserviceId1, producerId: generateId<TenantId>(), descriptors: [
           mockDescriptor,
-        ]),
+        ] }),
         personalData: true,
       };
 

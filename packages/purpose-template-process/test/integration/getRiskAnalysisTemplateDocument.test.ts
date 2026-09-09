@@ -39,7 +39,7 @@ describe("getRiskAnalysisTemplateDocument", async () => {
     const purposeTemplateResponse =
       await purposeTemplateService.getRiskAnalysisTemplateDocument(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }) })
       );
     expect(purposeTemplateResponse).toMatchObject(
       purposeTemplate.purposeRiskAnalysisForm!.document!
@@ -61,7 +61,7 @@ describe("getRiskAnalysisTemplateDocument", async () => {
       purposeTemplateService.getRiskAnalysisTemplateDocument(
         purposeTemplateWithNoDocuments.id,
         getMockContext({
-          authData: getMockAuthData(purposeTemplateWithNoDocuments.creatorId),
+          authData: getMockAuthData({ organizationId: purposeTemplateWithNoDocuments.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -77,7 +77,7 @@ describe("getRiskAnalysisTemplateDocument", async () => {
       purposeTemplateService.getRiskAnalysisTemplateDocument(
         notExistentPurposeTemplateId,
         getMockContext({
-          authData: getMockAuthData(generateId<TenantId>()),
+          authData: getMockAuthData({ organizationId: generateId<TenantId>() }),
         })
       )
     ).rejects.toThrowError(
@@ -94,7 +94,7 @@ describe("getRiskAnalysisTemplateDocument", async () => {
       purposeTemplateService.getRiskAnalysisTemplateDocument(
         purposeTemplateWithNoForm.id,
         getMockContext({
-          authData: getMockAuthData(purposeTemplateWithNoForm.creatorId),
+          authData: getMockAuthData({ organizationId: purposeTemplateWithNoForm.creatorId }),
         })
       )
     ).rejects.toThrowError(

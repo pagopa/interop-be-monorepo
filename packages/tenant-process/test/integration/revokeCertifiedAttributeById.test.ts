@@ -45,7 +45,7 @@ describe("revokeCertifiedAttributeById", async () => {
       },
     ],
   };
-  const authData = getMockAuthData(requesterTenant.id);
+  const authData = getMockAuthData({ organizationId: requesterTenant.id });
 
   const attribute: Attribute = {
     ...getMockAttribute(),
@@ -157,7 +157,7 @@ describe("revokeCertifiedAttributeById", async () => {
     const notCertifierTenant: Tenant = {
       ...getMockTenant(),
     };
-    const authData = getMockAuthData(notCertifierTenant.id);
+    const authData = getMockAuthData({ organizationId: notCertifierTenant.id });
 
     await addOneAttribute(attribute);
     await addOneTenant(targetTenant);

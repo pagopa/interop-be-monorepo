@@ -64,7 +64,7 @@ describe("archivePurposeTemplate", () => {
       const archiveResponse =
         await purposeTemplateService.archivePurposeTemplate(
           purposeTemplate.id,
-          getMockContext({ authData: getMockAuthData(creatorId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
         );
 
       const updatedPurposeTemplate = archiveResponse.data;
@@ -116,7 +116,7 @@ describe("archivePurposeTemplate", () => {
     await expect(async () => {
       await purposeTemplateService.archivePurposeTemplate(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(otherTenantId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: otherTenantId }) })
       );
     }).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
@@ -150,7 +150,7 @@ describe("archivePurposeTemplate", () => {
       await expect(async () => {
         await purposeTemplateService.archivePurposeTemplate(
           purposeTemplateWithUnexpectedState.id,
-          getMockContext({ authData: getMockAuthData(creatorId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
         );
       }).rejects.toThrowError(error);
     }

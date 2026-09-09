@@ -52,11 +52,11 @@ describe("handleProducerDelegationApproved", async () => {
     descriptors: [descriptor],
   };
   const delegatorTenant: Tenant = {
-    ...getMockTenant(delegatorId),
+    ...getMockTenant({ tenantId: delegatorId }),
     mails: [getMockTenantMail()],
   };
   const delegateTenant: Tenant = {
-    ...getMockTenant(delegateId),
+    ...getMockTenant({ tenantId: delegateId }),
     mails: [getMockTenantMail()],
   };
   const users = [

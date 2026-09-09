@@ -59,7 +59,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
 
   it("should return empty array when no user notification configs exist for the template", async () => {
     const creatorId = generateId<TenantId>();
-    const creatorTenant = getMockTenant(creatorId);
+    const creatorTenant = getMockTenant({ tenantId: creatorId });
     await addOneTenant(creatorTenant);
 
     mockGetNotificationRecipients.mockResolvedValue([]);
@@ -77,7 +77,7 @@ describe("handleTemplateStatusChangedToProducer", async () => {
 
   it("should generate notifications for all tenant users with notification enabled", async () => {
     const creatorId = generateId<TenantId>();
-    const creatorTenant = getMockTenant(creatorId);
+    const creatorTenant = getMockTenant({ tenantId: creatorId });
     await addOneTenant(creatorTenant);
 
     const users = [

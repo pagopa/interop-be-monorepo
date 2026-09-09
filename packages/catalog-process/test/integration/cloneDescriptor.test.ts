@@ -166,7 +166,7 @@ describe("clone descriptor", () => {
     const newEService = await catalogService.cloneDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(newEService.id);
@@ -313,7 +313,7 @@ describe("clone descriptor", () => {
     const newEService = await catalogService.cloneDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(newEService.id);
@@ -352,7 +352,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(FileManagerError);
   });
@@ -391,7 +391,7 @@ describe("clone descriptor", () => {
         existentEService.id,
         descriptor.id,
         getMockContext({
-          authData: getMockAuthData(existentEService.producerId),
+          authData: getMockAuthData({ organizationId: existentEService.producerId }),
         })
       )
     ).rejects.toThrowError(
@@ -435,7 +435,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         eservice1.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice1.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicateForProducer(
@@ -476,7 +476,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         eservice1.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice1.producerId }) })
       )
     ).rejects.toThrowError(
       eserviceTemplateNameConflict(
@@ -516,7 +516,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         eservice1.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice1.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice1.producerId }) })
       )
     ).rejects.toThrowError(
       eserviceTemplateNameConflict(
@@ -576,7 +576,7 @@ describe("clone descriptor", () => {
         eservice.id,
         descriptor.id,
         getMockContext({
-          authData: getMockAuthData(delegation.delegateId),
+          authData: getMockAuthData({ organizationId: delegation.delegateId }),
         })
       )
     ).rejects.toThrowError(operationForbidden);
@@ -591,7 +591,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         mockEService.id,
         mockDescriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -613,7 +613,7 @@ describe("clone descriptor", () => {
       catalogService.cloneDescriptor(
         eservice.id,
         descriptor.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
@@ -642,7 +642,7 @@ describe("clone descriptor", () => {
     const clonedEService = await catalogService.cloneDescriptor(
       eservice.id,
       descriptor.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const clonedDescriptor = clonedEService.descriptors[0];

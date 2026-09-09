@@ -29,7 +29,7 @@ describe("API /internal/templates/eservices/{eServiceId}/descriptors/{descriptor
   const document: Document = getMockDocument();
 
   const descriptor: Descriptor = {
-    ...getMockDescriptor(descriptorState.published),
+    ...getMockDescriptor({ state: descriptorState.published }),
     docs: [document],
   };
   const eservice: EService = {

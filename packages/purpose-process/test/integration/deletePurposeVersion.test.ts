@@ -55,12 +55,8 @@ describe("deletePurposeVersion", () => {
     vi.setSystemTime(new Date());
 
     const mockEService = getMockEService();
-    const mockPurposeVersion1 = getMockPurposeVersion(
-      purposeVersionState.waitingForApproval
-    );
-    const mockPurposeVersion2 = getMockPurposeVersion(
-      purposeVersionState.draft
-    );
+    const mockPurposeVersion1 = getMockPurposeVersion({ state: purposeVersionState.waitingForApproval });
+    const mockPurposeVersion2 = getMockPurposeVersion({ state: purposeVersionState.draft });
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
@@ -76,7 +72,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion1.id,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -115,12 +111,8 @@ describe("deletePurposeVersion", () => {
     vi.setSystemTime(new Date());
 
     const mockEService = getMockEService();
-    const mockPurposeVersion1 = getMockPurposeVersion(
-      purposeVersionState.waitingForApproval
-    );
-    const mockPurposeVersion2 = getMockPurposeVersion(
-      purposeVersionState.draft
-    );
+    const mockPurposeVersion1 = getMockPurposeVersion({ state: purposeVersionState.waitingForApproval });
+    const mockPurposeVersion2 = getMockPurposeVersion({ state: purposeVersionState.draft });
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
@@ -222,12 +214,8 @@ describe("deletePurposeVersion", () => {
       state: agreementState.active,
     };
 
-    const mockPurposeVersion1 = getMockPurposeVersion(
-      purposeVersionState.waitingForApproval
-    );
-    const mockPurposeVersion2 = getMockPurposeVersion(
-      purposeVersionState.draft
-    );
+    const mockPurposeVersion1 = getMockPurposeVersion({ state: purposeVersionState.waitingForApproval });
+    const mockPurposeVersion2 = getMockPurposeVersion({ state: purposeVersionState.draft });
 
     const delegatePurpose: Purpose = {
       ...getMockPurpose(),
@@ -271,7 +259,7 @@ describe("deletePurposeVersion", () => {
           purposeId: delegatePurpose.id,
           versionId: mockPurposeVersion1.id,
         },
-        getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
       );
 
     const writtenEvent = await readLastPurposeEvent(delegatePurpose.id);
@@ -324,7 +312,7 @@ describe("deletePurposeVersion", () => {
           purposeId: randomId,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(purposeNotFound(randomId));
   });
@@ -346,7 +334,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: randomVersionId,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -360,7 +348,7 @@ describe("deletePurposeVersion", () => {
       eserviceId: mockEService.id,
       versions: [
         mockPurposeVersion,
-        getMockPurposeVersion(purposeVersionState.draft),
+        getMockPurposeVersion({ state: purposeVersionState.draft }),
       ],
     };
 
@@ -373,7 +361,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(mockEService.producerId));
   });
@@ -384,14 +372,14 @@ describe("deletePurposeVersion", () => {
   )(
     "should throw purposeVersionCannotBeDeleted if the purpose version is in %s state",
     async (state) => {
-      const mockPurposeVersion = getMockPurposeVersion(state);
+      const mockPurposeVersion = getMockPurposeVersion({ state: state });
       const mockEService = getMockEService();
       const mockPurpose: Purpose = {
         ...getMockPurpose(),
         eserviceId: mockEService.id,
         versions: [
           mockPurposeVersion,
-          getMockPurposeVersion(purposeVersionState.draft),
+          getMockPurposeVersion({ state: purposeVersionState.draft }),
         ],
       };
 
@@ -405,7 +393,7 @@ describe("deletePurposeVersion", () => {
             versionId: mockPurposeVersion.id,
           },
           getMockContext({
-            authData: getMockAuthData(mockPurpose.consumerId),
+            authData: getMockAuthData({ organizationId: mockPurpose.consumerId }),
           })
         )
       ).rejects.toThrowError(
@@ -414,9 +402,7 @@ describe("deletePurposeVersion", () => {
     }
   );
   it("should throw purposeVersionCannotBeDeleted if the purpose has only that version", async () => {
-    const mockPurposeVersion = getMockPurposeVersion(
-      purposeVersionState.waitingForApproval
-    );
+    const mockPurposeVersion = getMockPurposeVersion({ state: purposeVersionState.waitingForApproval });
     const mockEService = getMockEService();
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -433,7 +419,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(
       purposeVersionCannotBeDeleted(mockPurpose.id, mockPurposeVersion.id)
@@ -482,9 +468,7 @@ describe("deletePurposeVersion", () => {
   it("should throw purposeDelegationNotFound when the requester is the Consumer, is deleting a purpose created by a delegate in deletePurpose, but the delegation cannot be found", async () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
-    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
-      purposeVersionState.draft
-    );
+    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion({ state: purposeVersionState.draft });
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
@@ -538,7 +522,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
@@ -584,7 +568,7 @@ describe("deletePurposeVersion", () => {
           purposeId: mockPurpose.id,
           versionId: mockPurposeVersion.id,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       )
     ).rejects.toThrowError(
       tenantIsNotTheDelegatedConsumer(

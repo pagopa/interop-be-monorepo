@@ -43,7 +43,7 @@ describe("handleEserviceArchivingToProducer", () => {
   const getArchivingDescriptor = (
     gracePeriodDaysValue: GracePeriodDays
   ): Descriptor => ({
-    ...getMockDescriptor(descriptorState.archiving),
+    ...getMockDescriptor({ state: descriptorState.archiving }),
     id: archivingDescriptorId,
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),

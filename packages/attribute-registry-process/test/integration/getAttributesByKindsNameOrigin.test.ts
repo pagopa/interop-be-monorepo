@@ -7,37 +7,37 @@ import { addOneAttribute, readModelService } from "../integrationUtils.js";
 
 describe("getAttributesByKindsNameOrigin", () => {
   const attribute1 = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     name: "attribute 001 test",
     origin: "IPA",
     code: "12345A",
   };
   const attribute2 = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     name: "attribute 002 test",
     origin: "IPA",
     code: "12345B",
   };
   const attribute3 = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     name: "attribute 003 test",
     origin: "IPA",
     code: "12345C",
   };
   const attribute4 = {
-    ...getMockAttribute(attributeKind.declared),
+    ...getMockAttribute({ kind: attributeKind.declared }),
     name: "attribute 004",
   };
   const attribute5 = {
-    ...getMockAttribute(attributeKind.declared),
+    ...getMockAttribute({ kind: attributeKind.declared }),
     name: "attribute 005",
   };
   const attribute6 = {
-    ...getMockAttribute(attributeKind.verified),
+    ...getMockAttribute({ kind: attributeKind.verified }),
     name: "attribute 006",
   };
   const attribute7 = {
-    ...getMockAttribute(attributeKind.verified),
+    ...getMockAttribute({ kind: attributeKind.verified }),
     name: "attribute 007",
   };
 

@@ -50,7 +50,7 @@ describe("handleAuthorizationEvent", () => {
   };
 
   const asyncEservice: EService = {
-    ...getMockEService(eserviceId, producerId),
+    ...getMockEService({ eserviceId: eserviceId, producerId: producerId }),
     asyncExchange: true,
     name: "Async EService 1",
   };

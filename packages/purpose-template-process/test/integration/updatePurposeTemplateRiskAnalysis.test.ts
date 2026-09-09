@@ -81,7 +81,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
     tenantKind.PRIVATE
   )!.version;
   const creatorId = generateId<TenantId>();
-  const creator: Tenant = getMockTenant(creatorId);
+  const creator: Tenant = getMockTenant({ tenantId: creatorId });
 
   const mockValidRiskAnalysisTemplateForm =
     getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
@@ -176,7 +176,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
           existingPurposeTemplate.id,
           updatedRiskAnalysisFormTemplateSeed,
           getMockContext({
-            authData: getMockAuthData(creatorId),
+            authData: getMockAuthData({ organizationId: creatorId }),
           })
         );
 
@@ -267,7 +267,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
         existingPurposeTemplate.id,
         riskAnalysisFormTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(existingPurposeTemplate.id));
@@ -287,7 +287,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
         purposeTemplateInPublishedState.id,
         riskAnalysisFormTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -310,7 +310,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
         existingPurposeTemplate.id,
         riskAnalysisFormTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(requesterId),
+          authData: getMockAuthData({ organizationId: requesterId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(existingPurposeTemplate.id));
@@ -415,7 +415,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
         existingPurposeTemplateWithAnnotations.id,
         purposeTemplateSeedUpdated.purposeRiskAnalysisForm!,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       );
 
@@ -521,7 +521,7 @@ describe("updatePurposeTemplateRiskAnalysisRiskAnalysis", () => {
         existingPurposeTemplateWithAnnotations.id,
         purposeTemplateSeedUpdated.purposeRiskAnalysisForm!,
         getMockContext({
-          authData: getMockAuthData(creatorId),
+          authData: getMockAuthData({ organizationId: creatorId }),
         })
       );
 

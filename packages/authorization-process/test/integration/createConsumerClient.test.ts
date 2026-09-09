@@ -42,7 +42,7 @@ describe("createConsumerClient", () => {
       {
         clientSeed,
       },
-      getMockContext({ authData: getMockAuthData(organizationId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -92,7 +92,7 @@ describe("createConsumerClient", () => {
     await expect(
       authorizationService.createConsumerClient(
         { clientSeed: seed },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(error);
   });

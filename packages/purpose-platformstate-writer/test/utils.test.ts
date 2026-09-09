@@ -79,8 +79,8 @@ describe("utils tests", async () => {
   describe("getPurposeStateFromPurposeVersions", () => {
     it("should return active if at least one version is active", async () => {
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.archived),
-        getMockPurposeVersion(purposeVersionState.active),
+        getMockPurposeVersion({ state: purposeVersionState.archived }),
+        getMockPurposeVersion({ state: purposeVersionState.active }),
       ];
       expect(getPurposeStateFromPurposeVersions(purposeVersions)).toBe(
         itemState.active
@@ -89,9 +89,9 @@ describe("utils tests", async () => {
 
     it("should return inactive if all versions aren't active", async () => {
       const purposeVersions: PurposeVersion[] = [
-        getMockPurposeVersion(purposeVersionState.archived),
-        getMockPurposeVersion(purposeVersionState.suspended),
-        getMockPurposeVersion(purposeVersionState.waitingForApproval),
+        getMockPurposeVersion({ state: purposeVersionState.archived }),
+        getMockPurposeVersion({ state: purposeVersionState.suspended }),
+        getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
       ];
       expect(getPurposeStateFromPurposeVersions(purposeVersions)).toBe(
         itemState.inactive
@@ -697,7 +697,7 @@ describe("utils tests", async () => {
       // platform-states
       const mockDescriptor = getMockDescriptor();
       const mockAgreement: Agreement = {
-        ...getMockAgreement(purpose.eserviceId, purpose.consumerId),
+        ...getMockAgreement({ eserviceId: purpose.eserviceId, consumerId: purpose.consumerId }),
         descriptorId: mockDescriptor.id,
         stamps: {
           activation: {
@@ -829,7 +829,7 @@ describe("utils tests", async () => {
       // platform-states
       const mockDescriptor = getMockDescriptor();
       const mockAgreement: Agreement = {
-        ...getMockAgreement(purpose.eserviceId, purpose.consumerId),
+        ...getMockAgreement({ eserviceId: purpose.eserviceId, consumerId: purpose.consumerId }),
         descriptorId: mockDescriptor.id,
         stamps: {
           activation: {

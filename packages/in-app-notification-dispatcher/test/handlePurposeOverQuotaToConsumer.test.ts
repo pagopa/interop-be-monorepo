@@ -51,13 +51,13 @@ describe("handlePurposeOverQuotaToConsumer", () => {
     descriptors: [descriptor],
   };
 
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant = getMockTenant({ tenantId: producerId });
+  const consumerTenant = getMockTenant({ tenantId: consumerId });
 
   const purpose = {
-    ...getMockPurpose([
-      getMockPurposeVersion(purposeVersionState.waitingForApproval),
-    ]),
+    ...getMockPurpose({ versions: [
+      getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
+    ] }),
     id: purposeId,
     eserviceId,
     consumerId,
@@ -196,7 +196,7 @@ describe("handlePurposeOverQuotaToConsumer", () => {
 
   it("should use dailyCallsPerConsumer from the latest published descriptor", async () => {
     const olderDescriptor = {
-      ...getMockDescriptor(descriptorState.deprecated),
+      ...getMockDescriptor({ state: descriptorState.deprecated }),
       dailyCallsPerConsumer: 500,
       version: "1",
       publishedAt: new Date("2023-01-01"),
@@ -218,9 +218,9 @@ describe("handlePurposeOverQuotaToConsumer", () => {
     await addOneEService(eserviceWithMultipleDescriptors);
 
     const purposeForMultiDescriptor = {
-      ...getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.waitingForApproval),
-      ]),
+      ...getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
+      ] }),
       id: generateId<PurposeId>(),
       eserviceId: eserviceWithMultipleDescriptors.id,
       consumerId,

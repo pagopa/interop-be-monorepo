@@ -15,7 +15,7 @@ describe("database test", async () => {
   describe("Events V1", () => {
     it("AttributeAdded - certified", async () => {
       const certifiedAttribute: Attribute = {
-        ...getMockAttribute(attributeKind.certified),
+        ...getMockAttribute({ kind: attributeKind.certified }),
         origin: "certifier-id",
       };
       const payload: AttributeAddedV1 = {
@@ -41,7 +41,7 @@ describe("database test", async () => {
     });
 
     it("AttributeAdded - declared", async () => {
-      const declaredAttribute = getMockAttribute(attributeKind.declared);
+      const declaredAttribute = getMockAttribute({ kind: attributeKind.declared });
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(declaredAttribute),
       };
@@ -64,7 +64,7 @@ describe("database test", async () => {
     });
 
     it("AttributeAdded - verified", async () => {
-      const verifiedAttribute = getMockAttribute(attributeKind.verified);
+      const verifiedAttribute = getMockAttribute({ kind: attributeKind.verified });
       const payload: AttributeAddedV1 = {
         attribute: toAttributeV1(verifiedAttribute),
       };

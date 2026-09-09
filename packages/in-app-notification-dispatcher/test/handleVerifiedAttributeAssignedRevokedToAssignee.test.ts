@@ -47,7 +47,7 @@ describe("handleVerifiedAttributeAssignedRevokedToAssignee", () => {
   };
 
   const verifiedAttribute: Attribute = {
-    ...getMockAttribute(attributeKind.verified),
+    ...getMockAttribute({ kind: attributeKind.verified }),
     name: "Verified Attribute",
   };
 

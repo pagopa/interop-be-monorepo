@@ -67,7 +67,7 @@ describe("handleProducerKeychainKeyDeleted", async () => {
   };
 
   const producerTenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     mails: [getMockTenantMail()],
   };
   const users = [

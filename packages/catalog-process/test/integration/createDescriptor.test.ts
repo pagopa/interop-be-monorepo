@@ -91,7 +91,7 @@ describe("create descriptor", async () => {
     const createDescriptorResponse = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
     const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -179,7 +179,7 @@ describe("create descriptor", async () => {
     const createDescriptorResponse = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
@@ -307,7 +307,7 @@ describe("create descriptor", async () => {
     const createDescriptorResponse = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
@@ -406,7 +406,7 @@ describe("create descriptor", async () => {
         catalogService.createDescriptor(
           eservice.id,
           buildCreateDescriptorSeed(descriptor),
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(draftDescriptorAlreadyExists(eservice.id));
     }
@@ -418,7 +418,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         mockEService.id,
         buildCreateDescriptorSeed(getMockDescriptor()),
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -464,7 +464,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(attributeNotFound(notExistingId1));
   });
@@ -510,7 +510,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         eservice.id,
         buildCreateDescriptorSeed(descriptor),
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -530,7 +530,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -556,7 +556,7 @@ describe("create descriptor", async () => {
     const createDescriptorResponse = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     expect(createDescriptorResponse.data.eservice.descriptors).toEqual(
@@ -586,7 +586,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eservice.id, templateId));
   });
@@ -650,7 +650,7 @@ describe("create descriptor", async () => {
     const createDescriptorResponse = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const newDescriptorId = createDescriptorResponse.data.createdDescriptorId;
@@ -754,7 +754,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
@@ -802,7 +802,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       attributeDailyCallsNotAllowed(mockDeclaredAttribute.id)
@@ -817,7 +817,7 @@ describe("create descriptor", async () => {
         docs: [],
       };
 
-      const mockAttribute = getMockAttribute(kind);
+      const mockAttribute = getMockAttribute({ kind: kind });
       await addOneAttribute(mockAttribute);
 
       const descriptorSeed: catalogApi.EServiceDescriptorSeed = {
@@ -862,7 +862,7 @@ describe("create descriptor", async () => {
         catalogService.createDescriptor(
           eservice.id,
           descriptorSeed,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(
         attributeDiscreteConfigNotAllowed(mockAttribute.id)
@@ -914,7 +914,7 @@ describe("create descriptor", async () => {
         catalogService.createDescriptor(
           eservice.id,
           descriptorSeed,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(eserviceInArchivingOrArchivedState(eservice.id));
     }
@@ -941,7 +941,7 @@ describe("create descriptor", async () => {
     const result = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const createdDescriptor = result.data.eservice.descriptors.find(
@@ -996,7 +996,7 @@ describe("create descriptor", async () => {
       catalogService.createDescriptor(
         eservice.id,
         descriptorSeed,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toMatchObject({
       code: "asyncExchangeBulkNotAllowedForSoap",
@@ -1025,7 +1025,7 @@ describe("create descriptor", async () => {
     const result = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const createdDescriptor = result.data.eservice.descriptors.find(
@@ -1059,7 +1059,7 @@ describe("create descriptor", async () => {
     const result = await catalogService.createDescriptor(
       eservice.id,
       descriptorSeed,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const createdDescriptor = result.data.eservice.descriptors.find(

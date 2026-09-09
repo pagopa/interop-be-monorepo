@@ -65,17 +65,13 @@ describe("clonePurpose", async () => {
     };
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: mockTenant.id, state: agreementState.active });
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     await addOneEService(mockEService);
@@ -88,7 +84,7 @@ describe("clonePurpose", async () => {
       seed: {
         eserviceId: mockEService.id,
       },
-      ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+      ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
     });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -135,18 +131,14 @@ describe("clonePurpose", async () => {
     };
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: mockTenant.id, state: agreementState.active });
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       title: "Title exceeding the maximum length when the suffix is added",
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     await addOneEService(mockEService);
@@ -159,7 +151,7 @@ describe("clonePurpose", async () => {
       seed: {
         eserviceId: mockEService.id,
       },
-      ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+      ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
     });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -213,17 +205,13 @@ describe("clonePurpose", async () => {
 
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      consumer.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: consumer.id, state: agreementState.active });
 
     const purposeCreatedByDelegate: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: consumer.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       delegationId: generateId<DelegationId>(),
     };
 
@@ -250,7 +238,7 @@ describe("clonePurpose", async () => {
         eserviceId: mockEService.id,
       },
       ctx: getMockContext({
-        authData: getMockAuthData(delegation.delegateId),
+        authData: getMockAuthData({ organizationId: delegation.delegateId }),
       }),
     });
 
@@ -325,9 +313,7 @@ describe("clonePurpose", async () => {
       eserviceId: eservice.id,
     };
 
-    const mockPurposeVersion = getMockPurposeVersion(
-      purposeVersionState.active
-    );
+    const mockPurposeVersion = getMockPurposeVersion({ state: purposeVersionState.active });
 
     const delegatePurpose: Purpose = {
       ...getMockPurpose(),
@@ -371,7 +357,7 @@ describe("clonePurpose", async () => {
         eserviceId: eservice.id,
       },
       ctx: getMockContext({
-        authData: getMockAuthData(consumerDelegation.delegateId),
+        authData: getMockAuthData({ organizationId: consumerDelegation.delegateId }),
       }),
     });
 
@@ -420,17 +406,13 @@ describe("clonePurpose", async () => {
     };
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: mockTenant.id, state: agreementState.active });
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     await addOneTenant(mockTenant);
@@ -442,7 +424,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
       })
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
   });
@@ -453,11 +435,7 @@ describe("clonePurpose", async () => {
     };
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: mockTenant.id, state: agreementState.active });
 
     const riskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
 
@@ -465,7 +443,7 @@ describe("clonePurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       riskAnalysisForm,
     };
 
@@ -479,7 +457,7 @@ describe("clonePurpose", async () => {
       seed: {
         eserviceId: mockEService.id,
       },
-      ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+      ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
     });
 
     const writtenEvent = await readLastPurposeEvent(purpose.id);
@@ -537,11 +515,7 @@ describe("clonePurpose", async () => {
     };
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: mockTenant.id, state: agreementState.active });
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
@@ -560,7 +534,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
@@ -571,17 +545,13 @@ describe("clonePurpose", async () => {
     };
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: mockTenant.id, state: agreementState.active });
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
-      versions: [getMockPurposeVersion(purposeVersionState.draft)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.draft })],
     };
 
     await addOnePurpose(mockPurpose);
@@ -594,7 +564,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
@@ -605,17 +575,13 @@ describe("clonePurpose", async () => {
     };
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: mockTenant.id, state: agreementState.active });
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
-      versions: [getMockPurposeVersion(purposeVersionState.archived)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.archived })],
     };
 
     await addOnePurpose(mockPurpose);
@@ -628,7 +594,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
       })
     ).rejects.toThrowError(purposeCannotBeCloned(mockPurpose.id));
   });
@@ -639,17 +605,13 @@ describe("clonePurpose", async () => {
     };
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      mockTenant.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: mockTenant.id, state: agreementState.active });
 
     const mockPurposeToClone: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: mockTenant.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockPurposeWithSameName: Purpose = {
@@ -672,7 +634,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
       })
     ).rejects.toThrowError(
       duplicatedPurposeTitle(mockPurposeWithSameName.title)
@@ -691,17 +653,13 @@ describe("clonePurpose", async () => {
 
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      consumer.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: consumer.id, state: agreementState.active });
 
     const purposeCreatedByDelegate: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: consumer.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       delegationId: generateId<DelegationId>(),
     };
 
@@ -726,7 +684,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: getMockContext({ authData: getMockAuthData(consumer.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) }),
       })
     ).rejects.toThrowError(
       tenantIsNotTheDelegatedConsumer(consumer.id, delegation.id)
@@ -745,17 +703,13 @@ describe("clonePurpose", async () => {
 
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      consumer.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: consumer.id, state: agreementState.active });
 
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: consumer.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       delegationId: generateId<DelegationId>(),
     };
 
@@ -770,7 +724,7 @@ describe("clonePurpose", async () => {
         seed: {
           eserviceId: mockEService.id,
         },
-        ctx: getMockContext({ authData: getMockAuthData(consumer.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) }),
       })
     ).rejects.toThrowError(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -790,17 +744,13 @@ describe("clonePurpose", async () => {
 
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      consumer.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: consumer.id, state: agreementState.active });
 
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
       consumerId: consumer.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       delegationId: undefined,
     };
 
@@ -825,7 +775,7 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: getMockContext({
-          authData: getMockAuthData(delegation.delegateId),
+          authData: getMockAuthData({ organizationId: delegation.delegateId }),
         }),
       })
     ).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
@@ -843,11 +793,7 @@ describe("clonePurpose", async () => {
 
     const mockEService = getMockEService();
 
-    const mockAgreement = getMockAgreement(
-      mockEService.id,
-      consumer.id,
-      agreementState.active
-    );
+    const mockAgreement = getMockAgreement({ eserviceId: mockEService.id, consumerId: consumer.id, state: agreementState.active });
 
     const purpose: Purpose = {
       ...getMockPurpose(),
@@ -887,7 +833,7 @@ describe("clonePurpose", async () => {
           eserviceId: mockEService.id,
         },
         ctx: getMockContext({
-          authData: getMockAuthData(consumerDelegate.id),
+          authData: getMockAuthData({ organizationId: consumerDelegate.id }),
         }),
       })
     ).rejects.toThrowError(

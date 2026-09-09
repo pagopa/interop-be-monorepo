@@ -34,7 +34,7 @@ describe("getClientById", async () => {
       {
         clientId: expectedClient.id,
       },
-      getMockContext({ authData: getMockAuthData(organizationId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
     );
 
     expect(sortClient(clientResult)).toEqual({
@@ -57,7 +57,7 @@ describe("getClientById", async () => {
       {
         clientId: expectedClient.id,
       },
-      getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+      getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
     );
     expect(sortClient(clientResult)).toEqual({
       data: sortClient(expectedClient),
@@ -72,7 +72,7 @@ describe("getClientById", async () => {
         {
           clientId,
         },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(clientNotFound(clientId));
   });

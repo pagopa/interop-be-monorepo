@@ -46,7 +46,7 @@ describe("remove producer keychain e-service", () => {
           producerKeychainId: mockProducerKeychain.id,
           eserviceIdToRemove,
         },
-        getMockContext({ authData: getMockAuthData(mockProducer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducer.id }) })
       );
 
     const writtenEvent = await readLastAuthorizationEvent(
@@ -100,7 +100,7 @@ describe("remove producer keychain e-service", () => {
           producerKeychainId: mockProducerKeychain.id,
           eserviceIdToRemove,
         },
-        getMockContext({ authData: getMockAuthData(mockProducer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducer.id }) })
       )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
@@ -123,7 +123,7 @@ describe("remove producer keychain e-service", () => {
           producerKeychainId: mockProducerKeychain.id,
           eserviceIdToRemove: notExistingEServiceId,
         },
-        getMockContext({ authData: getMockAuthData(mockProducer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducer.id }) })
       )
     ).rejects.toThrowError(eserviceNotFound(notExistingEServiceId));
   });
@@ -145,7 +145,7 @@ describe("remove producer keychain e-service", () => {
           producerKeychainId: mockProducerKeychain.id,
           eserviceIdToRemove,
         },
-        getMockContext({ authData: getMockAuthData(mockProducer2.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducer2.id }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnProducerKeychain(

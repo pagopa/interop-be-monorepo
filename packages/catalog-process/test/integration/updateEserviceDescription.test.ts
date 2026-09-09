@@ -39,7 +39,7 @@ import {
 describe("update eService description", () => {
   it("should write on event-store for the update of the eService description", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -52,7 +52,7 @@ describe("update eService description", () => {
     const returnedEService = await catalogService.updateEServiceDescription(
       eservice.id,
       updatedDescription,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const expectedEService: EService = {
@@ -82,7 +82,7 @@ describe("update eService description", () => {
   });
   it("should write on event-store for the update of the eService description (delegate)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -102,7 +102,7 @@ describe("update eService description", () => {
     const returnedEService = await catalogService.updateEServiceDescription(
       eservice.id,
       updatedDescription,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const expectedEService: EService = {
@@ -137,7 +137,7 @@ describe("update eService description", () => {
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -169,7 +169,7 @@ describe("update eService description", () => {
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -181,7 +181,7 @@ describe("update eService description", () => {
       catalogService.updateEServiceDescription(
         eservice.id,
         "eservice new description",
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
@@ -193,7 +193,7 @@ describe("update eService description", () => {
     "should throw eserviceWithoutValidDescriptors if the eservice doesn't have valid descriptors (Descriptor with state %s)",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         interface: getMockDocument(),
       };
       const eservice: EService = {
@@ -206,7 +206,7 @@ describe("update eService description", () => {
         catalogService.updateEServiceDescription(
           eservice.id,
           "eservice new description",
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }
@@ -214,7 +214,7 @@ describe("update eService description", () => {
   it("should throw templateInstanceNotAllowed if the templateId is defined", async () => {
     const templateId = unsafeBrandId<EServiceTemplateId>(generateId());
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eService: EService = {
@@ -228,13 +228,13 @@ describe("update eService description", () => {
       catalogService.updateEServiceDescription(
         eService.id,
         "eservice new description",
-        getMockContext({ authData: getMockAuthData(eService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eService.producerId }) })
       )
     ).rejects.toThrowError(templateInstanceNotAllowed(eService.id, templateId));
   });
   it("should throw eServiceDescriptionUpdateConflict if the new description is the same as the current one", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
     const eservice: EService = {
@@ -247,7 +247,7 @@ describe("update eService description", () => {
       catalogService.updateEServiceDescription(
         eservice.id,
         eservice.description,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceUpdateSameDescriptionConflict(eservice.id));
   });

@@ -35,13 +35,13 @@ import {
 
 describe("handleEserviceDescriptorArchivedToProducer", () => {
   const producerId = generateId<TenantId>();
-  const producerTenant = { ...getMockTenant(producerId), name: "Producer T" };
+  const producerTenant = { ...getMockTenant({ tenantId: producerId }), name: "Producer T" };
 
   const archivingDescriptorId = generateId<DescriptorId>();
   const getArchivingDescriptor = (
     gracePeriodDaysValue: GracePeriodDays
   ): Descriptor => ({
-    ...getMockDescriptor(descriptorState.archiving),
+    ...getMockDescriptor({ state: descriptorState.archiving }),
     id: archivingDescriptorId,
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
@@ -126,7 +126,7 @@ describe("handleEserviceDescriptorArchivedToProducer", () => {
       descriptors: [routineDescriptor],
     };
     await addOneEService(routineEservice);
-    await addOneTenant({ ...getMockTenant(producerId), name: "Producer T" });
+    await addOneTenant({ ...getMockTenant({ tenantId: producerId }), name: "Producer T" });
 
     const messages = await handleEserviceDescriptorArchivedToProducer({
       eserviceV2Msg: toEServiceV2(routineEservice),

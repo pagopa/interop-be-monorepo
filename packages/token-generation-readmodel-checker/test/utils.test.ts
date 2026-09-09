@@ -75,12 +75,12 @@ describe("Token Generation Read Model Checker utils tests", () => {
 
   describe("purpose utils", () => {
     it("compareReadModelPurposesWithPlatformStates", async () => {
-      const purpose1 = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.active),
-      ]);
-      const purpose2 = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.active),
-      ]);
+      const purpose1 = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.active }),
+      ] });
+      const purpose2 = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.active }),
+      ] });
       await addOnePurpose(purpose1);
       await addOnePurpose(purpose2);
 
@@ -290,13 +290,13 @@ describe("Token Generation Read Model Checker utils tests", () => {
       await addOneEService(eservice2);
 
       const purpose1: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice1.id,
       };
       const purpose2: Purpose = {
-        ...getMockPurpose([
-          getMockPurposeVersion(purposeVersionState.archived),
-        ]),
+        ...getMockPurpose({ versions: [
+          getMockPurposeVersion({ state: purposeVersionState.archived }),
+        ] }),
         eserviceId: eservice2.id,
       };
       const purposesById = new Map([
@@ -534,15 +534,15 @@ describe("Token Generation Read Model Checker utils tests", () => {
     date2.setDate(date1.getDate() + 1);
     date3.setDate(date1.getDate() + 2);
     const purposeVersion1: PurposeVersion = {
-      ...getMockPurposeVersion(purposeVersionState.archived),
+      ...getMockPurposeVersion({ state: purposeVersionState.archived }),
       createdAt: date1,
     };
     const purposeVersion2: PurposeVersion = {
-      ...getMockPurposeVersion(purposeVersionState.active),
+      ...getMockPurposeVersion({ state: purposeVersionState.active }),
       createdAt: date2,
     };
     const purposeVersion3: PurposeVersion = {
-      ...getMockPurposeVersion(purposeVersionState.rejected),
+      ...getMockPurposeVersion({ state: purposeVersionState.rejected }),
       createdAt: date3,
     };
 
@@ -559,11 +559,11 @@ describe("Token Generation Read Model Checker utils tests", () => {
     const eserviceId = generateId<EServiceId>();
     const consumerId = generateId<TenantId>();
     const agreement1: Agreement = {
-      ...getMockAgreement(eserviceId, consumerId, agreementState.active),
+      ...getMockAgreement({ eserviceId: eserviceId, consumerId: consumerId, state: agreementState.active }),
       createdAt: date1,
     };
     const agreement2: Agreement = {
-      ...getMockAgreement(eserviceId, consumerId, agreementState.pending),
+      ...getMockAgreement({ eserviceId: eserviceId, consumerId: consumerId, state: agreementState.pending }),
       createdAt: date2,
     };
 

@@ -56,7 +56,7 @@ describe("addProducerKeychainEService", async () => {
           producerKeychainId: mockProducerKeychain.id,
           seed: { eserviceId: mockEService.id },
         },
-        getMockContext({ authData: getMockAuthData(mockProducerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducerId }) })
       );
 
     const writtenEvent = await readLastAuthorizationEvent(
@@ -110,7 +110,7 @@ describe("addProducerKeychainEService", async () => {
           producerKeychainId: mockProducerKeychain.id,
           seed: { eserviceId: mockEService.id },
         },
-        getMockContext({ authData: getMockAuthData(mockProducerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducerId }) })
       )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
@@ -135,7 +135,7 @@ describe("addProducerKeychainEService", async () => {
           producerKeychainId: mockProducerKeychain.id,
           seed: { eserviceId: mockEService.id },
         },
-        getMockContext({ authData: getMockAuthData(mockProducerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducerId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnProducerKeychain(
@@ -167,7 +167,7 @@ describe("addProducerKeychainEService", async () => {
           producerKeychainId: mockProducerKeychain.id,
           seed: { eserviceId: mockEService.id },
         },
-        getMockContext({ authData: getMockAuthData(mockProducerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducerId }) })
       )
     ).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
@@ -194,7 +194,7 @@ describe("addProducerKeychainEService", async () => {
           producerKeychainId: mockProducerKeychain.id,
           seed: { eserviceId: mockEService.id },
         },
-        getMockContext({ authData: getMockAuthData(mockProducerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducerId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnEService(mockProducerId, mockEService.id)
@@ -225,7 +225,7 @@ describe("addProducerKeychainEService", async () => {
           producerKeychainId: mockProducerKeychain.id,
           seed: { eserviceId: mockEService.id },
         },
-        getMockContext({ authData: getMockAuthData(mockProducerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducerId }) })
       )
     ).rejects.toThrowError(
       eserviceAlreadyLinkedToProducerKeychain(

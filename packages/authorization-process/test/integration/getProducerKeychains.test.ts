@@ -79,7 +79,7 @@ describe("getProducerKeychains", async () => {
   });
 
   it("should get all keychains when no filters are set", async () => {
-    const authData = getMockAuthData(producerId);
+    const authData = getMockAuthData({ organizationId: producerId });
     const result = await authorizationService.getProducerKeychains(
       {
         filters: {
@@ -111,7 +111,7 @@ describe("getProducerKeychains", async () => {
 
   it("should get the keychains if they exist (parameters: name)", async () => {
     const spyQuery = vi.spyOn(readModelService, "getProducerKeychains");
-    const authData = getMockAuthData(producerId);
+    const authData = getMockAuthData({ organizationId: producerId });
 
     const filters: GetProducerKeychainsFilters = {
       name: "test keychain",
@@ -153,9 +153,9 @@ describe("getProducerKeychains", async () => {
 
   it("should get the keychains if they exist (parameters: userIds taken from the authData)", async () => {
     const spyQuery = vi.spyOn(readModelService, "getProducerKeychains");
-    const authData = getMockAuthData(producerId, userId1, [
+    const authData = getMockAuthData({ organizationId: producerId, userId: userId1, userRoles: [
       userRole.SECURITY_ROLE,
-    ]);
+    ] });
 
     const filters: GetProducerKeychainsFilters = {
       name: "",
@@ -199,7 +199,7 @@ describe("getProducerKeychains", async () => {
 
   it("should get the keychains if they exist (parameters: producerId, userIds taken from the filter)", async () => {
     const spyQuery = vi.spyOn(readModelService, "getProducerKeychains");
-    const authData = getMockAuthData(producerId);
+    const authData = getMockAuthData({ organizationId: producerId });
     const filters: GetProducerKeychainsFilters = {
       name: "",
       userIds: [userId1, userId3],
@@ -250,7 +250,7 @@ describe("getProducerKeychains", async () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
     expect({
       ...result,
@@ -269,7 +269,7 @@ describe("getProducerKeychains", async () => {
 
   it("should get the keychains if they exist (parameters: eserviceId)", async () => {
     const spyQuery = vi.spyOn(readModelService, "getProducerKeychains");
-    const authData = getMockAuthData(producerId);
+    const authData = getMockAuthData({ organizationId: producerId });
 
     const filters: GetProducerKeychainsFilters = {
       name: undefined,
@@ -321,7 +321,7 @@ describe("getProducerKeychains", async () => {
         offset: 2,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
     expect(result.results.map(sortProducerKeychain)).toEqual(
       [mockKeychain3, mockKeychain4, mockKeychain5].map(sortProducerKeychain)
@@ -340,7 +340,7 @@ describe("getProducerKeychains", async () => {
         offset: 0,
         limit: 2,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
     expect(result.results.map(sortProducerKeychain)).toEqual(
       [mockKeychain1, mockKeychain2].map(sortProducerKeychain)
@@ -359,7 +359,7 @@ describe("getProducerKeychains", async () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
     expect(result).toEqual({
       totalCount: 0,
@@ -379,7 +379,7 @@ describe("getProducerKeychains", async () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
     expect({
       ...result,
@@ -392,7 +392,7 @@ describe("getProducerKeychains", async () => {
 
   it(`should return empty result in case some owner filters are set and
       producerId is set to a tenant different from the requester`, async () => {
-    const authData = getMockAuthData(producerId);
+    const authData = getMockAuthData({ organizationId: producerId });
     const result1 = await authorizationService.getProducerKeychains(
       {
         filters: {

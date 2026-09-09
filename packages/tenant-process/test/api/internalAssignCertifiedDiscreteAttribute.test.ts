@@ -18,7 +18,7 @@ import {
 import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API POST /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDiscreteAttributes/origin/{aOrigin}/externalId/{aExternalId} test", () => {
-  const attribute = getMockAttribute(attributeKind.certified);
+  const attribute = getMockAttribute({ kind: attributeKind.certified });
   const targetTenant: Tenant = {
     ...getMockTenant(),
     attributes: [],

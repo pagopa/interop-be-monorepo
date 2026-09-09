@@ -70,7 +70,7 @@ describe("addClientUsers", () => {
         clientId: mockClient.id,
         userIds: usersToAdd,
       },
-      getMockContext({ authData: getMockAuthData(consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -121,7 +121,7 @@ describe("addClientUsers", () => {
           clientId: mockClient.id,
           userIds: [userIdToAdd],
         },
-        getMockContext({ authData: getMockAuthData(consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
@@ -149,7 +149,7 @@ describe("addClientUsers", () => {
           clientId: mockClient.id,
           userIds: userIdsToAdd,
         },
-        getMockContext({ authData: getMockAuthData(consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
       )
     ).rejects.toThrowError(
       clientUserAlreadyAssigned(mockClient.id, alreadyInClientUserId)
@@ -173,7 +173,7 @@ describe("addClientUsers", () => {
           clientId: mockClient.id,
           userIds: userIdsToAdd,
         },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnClient(organizationId, mockClient.id)
@@ -182,7 +182,7 @@ describe("addClientUsers", () => {
   it("should throw userWithoutSecurityPrivileges if one of the Security user is not found", async () => {
     const consumerId: TenantId = generateId();
 
-    const authData: AuthData = getMockAuthData(consumerId);
+    const authData: AuthData = getMockAuthData({ organizationId: consumerId });
 
     const mockClient: Client = {
       ...getMockClient(),

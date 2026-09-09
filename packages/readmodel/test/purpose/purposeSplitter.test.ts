@@ -67,7 +67,7 @@ describe("Purpose splitter", () => {
 
     const purposeVersionStamps = getMockPurposeVersionStamps();
     const purposeVersion: PurposeVersion = {
-      ...getMockPurposeVersion(purposeVersionState.draft, purposeVersionStamps),
+      ...getMockPurposeVersion({ state: purposeVersionState.draft, stamps: purposeVersionStamps }),
       rejectionReason,
       suspendedAt,
       updatedAt,

@@ -32,12 +32,12 @@ import {
 
 describe("handleEserviceArchivingScheduledToProducer", () => {
   const producerId = generateId<TenantId>();
-  const producerTenant = { ...getMockTenant(producerId), name: "Producer T" };
+  const producerTenant = { ...getMockTenant({ tenantId: producerId }), name: "Producer T" };
 
   const getArchivingDescriptor = (
     gracePeriodDaysValue: GracePeriodDays
   ): Descriptor => ({
-    ...getMockDescriptor(descriptorState.archiving),
+    ...getMockDescriptor({ state: descriptorState.archiving }),
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),

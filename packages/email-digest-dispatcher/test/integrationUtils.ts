@@ -163,7 +163,7 @@ export const createMockAgreement = (
   consumerId: TenantId,
   overrides?: Partial<Agreement>
 ): Agreement => ({
-  ...getMockAgreement(eserviceId, consumerId),
+  ...getMockAgreement({ eserviceId: eserviceId, consumerId: consumerId }),
   ...overrides,
 });
 
@@ -554,7 +554,7 @@ export const createTemplateScenario = async (
  * Creates a mock attribute for testing purposes
  */
 const createMockAttribute = (overrides?: Partial<Attribute>): Attribute => ({
-  ...getMockAttribute(attributeKind.verified),
+  ...getMockAttribute({ kind: attributeKind.verified }),
   name: `Test Attribute ${Math.random().toString(36).substring(7)}`,
   ...overrides,
 });
@@ -1048,7 +1048,7 @@ const createMockPurpose = (
   versions: PurposeVersion[] = [],
   overrides?: Partial<Purpose>
 ): Purpose => ({
-  ...getMockPurpose(versions),
+  ...getMockPurpose({ versions: versions }),
   consumerId,
   eserviceId,
   title: `Test Purpose ${Math.random().toString(36).substring(7)}`,
@@ -1063,7 +1063,7 @@ const createMockPurposeVersion = (
   createdAt: Date,
   updatedAt?: Date
 ): PurposeVersion => ({
-  ...getMockPurposeVersion(state),
+  ...getMockPurposeVersion({ state: state }),
   createdAt,
   updatedAt,
 });

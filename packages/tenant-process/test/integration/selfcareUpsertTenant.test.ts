@@ -58,7 +58,7 @@ describe("selfcareUpsertTenant", async () => {
     };
     await tenantService.selfcareUpsertTenant(
       tenantSeed,
-      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
     );
 
     const writtenEvent = await readLastTenantEvent(mockTenant.id);
@@ -175,7 +175,7 @@ describe("selfcareUpsertTenant", async () => {
     expect(
       tenantService.selfcareUpsertTenant(
         newTenantSeed,
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
       )
     ).rejects.toThrowError(
       selfcareIdConflict({

@@ -39,7 +39,7 @@ let attrSCP: Attribute;
 
 beforeAll(() => {
   attrAdesione = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     id: generateId(),
     origin: REGISTRY_ATTRIBUTES_SEEDS.adesione.origin,
     code: generateCodeFromName(REGISTRY_ATTRIBUTES_SEEDS.adesione.name),
@@ -47,7 +47,7 @@ beforeAll(() => {
   };
 
   attrSCP = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     id: generateId(),
     origin: REGISTRY_ATTRIBUTES_SEEDS.scp.origin,
     code: generateCodeFromName(REGISTRY_ATTRIBUTES_SEEDS.scp.name),
@@ -63,7 +63,7 @@ describe("private-certified-attributes-importer integration tests", () => {
   it("should correctly retrieve only tenants with PDND_INFOCAMERE origin from database", async () => {
     const targetId = generateId<TenantId>();
     await addOneTenant({
-      ...getMockTenant(targetId),
+      ...getMockTenant({ tenantId: targetId }),
       externalId: { origin: "PDND_INFOCAMERE_123", value: "VALUE-1" },
     });
 
@@ -84,7 +84,7 @@ describe("private-certified-attributes-importer integration tests", () => {
 
     const tenantId = generateId<TenantId>();
     await addOneTenant({
-      ...getMockTenant(tenantId),
+      ...getMockTenant({ tenantId: tenantId }),
       attributes: [
         {
           ...getMockCertifiedTenantAttribute(attrAdesione.id),
@@ -107,7 +107,7 @@ describe("private-certified-attributes-importer integration tests", () => {
 
     const tenantId = generateId<TenantId>();
     await addOneTenant({
-      ...getMockTenant(tenantId),
+      ...getMockTenant({ tenantId: tenantId }),
       externalId: { origin: "PDND_INFOCAMERE", value: "T-IT-01" },
       selfcareInstitutionType: SCP,
       attributes: [],

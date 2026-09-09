@@ -49,7 +49,7 @@ import {
 describe("revokeVerifiedAttribute", async () => {
   const targetTenant = getMockTenant();
   const revokerTenant = getMockTenant();
-  const authData = getMockAuthData(revokerTenant.id);
+  const authData = getMockAuthData({ organizationId: revokerTenant.id });
   const verifiedAttribute = getMockVerifiedTenantAttribute();
   const descriptor: Descriptor = {
     ...getMockDescriptor(),

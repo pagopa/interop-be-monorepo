@@ -87,7 +87,7 @@ const createAgreementWithStamps = (
   };
 
   return {
-    ...getMockAgreement(eservice.id, consumerId, state),
+    ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: state }),
     producerId,
     descriptorId: eservice.descriptors[0].id,
     stamps: getStamps(),

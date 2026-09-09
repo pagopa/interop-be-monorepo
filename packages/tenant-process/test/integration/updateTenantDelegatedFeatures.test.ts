@@ -50,7 +50,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: false,
         },
       },
-      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -96,7 +96,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: true,
         },
       },
-      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -150,7 +150,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: false,
         },
       },
-      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -198,7 +198,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: false,
         },
       },
-      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -238,7 +238,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: true,
         },
       },
-      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
     );
 
     const consumerEvent = await readEventByStreamIdAndVersion(
@@ -315,7 +315,7 @@ describe("updateTenantDelegatedFeatures", async () => {
           isDelegatedProducerFeatureEnabled: false,
         },
       },
-      getMockContext({ authData: getMockAuthData(mockTenant.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
     );
 
     const consumerEvent = await readEventByStreamIdAndVersion(
@@ -369,7 +369,7 @@ describe("updateTenantDelegatedFeatures", async () => {
             isDelegatedProducerFeatureEnabled: true,
           },
         },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(tenantNotFound(organizationId));
   });
@@ -389,7 +389,7 @@ describe("updateTenantDelegatedFeatures", async () => {
             isDelegatedProducerFeatureEnabled: true,
           },
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(operationForbidden);
 

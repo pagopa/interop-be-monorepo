@@ -65,7 +65,7 @@ describe("update Document", () => {
         mockDocument.id,
         { prettyName: "updated prettyName" },
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
       const writtenEvent = await readLastEserviceTemplateEvent(
@@ -137,7 +137,7 @@ describe("update Document", () => {
       mockDocument.id,
       { prettyName: "updated prettyName" },
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -235,7 +235,7 @@ describe("update Document", () => {
         generateId(),
         { prettyName: "updated prettyName" },
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -275,7 +275,7 @@ describe("update Document", () => {
           mockDocument.id,
           { prettyName: "updated prettyName" },
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -310,7 +310,7 @@ describe("update Document", () => {
           mockDocument.id,
           { prettyName: "updated prettyName" },
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -336,7 +336,7 @@ describe("update Document", () => {
         version.id,
         mockDocument.id,
         { prettyName: "updated prettyName" },
-        getMockContext({ authData: getMockAuthData(eservice.creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.creatorId }) })
       )
     ).rejects.toThrowError(
       eserviceTemplateDocumentNotFound(eservice.id, version.id, mockDocument.id)
@@ -370,7 +370,7 @@ describe("update Document", () => {
         document2.id,
         { prettyName: document1.prettyName.toLowerCase() },
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -401,7 +401,7 @@ describe("update Document", () => {
       callbackInterface.id,
       { prettyName: "updated prettyName" },
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -477,7 +477,7 @@ describe("update Document", () => {
           callbackInterface.id,
           { prettyName: "updated prettyName" },
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(

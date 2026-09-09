@@ -42,11 +42,11 @@ describe("patchUpdateDraftTemplateVersion", () => {
   const mockEServiceTemplate = getMockEServiceTemplate();
   const mockDocument = getMockDocument();
 
-  const certifiedAttribute: Attribute = getMockAttribute("Certified");
+  const certifiedAttribute: Attribute = getMockAttribute({ kind: "Certified" });
 
-  const verifiedAttribute: Attribute = getMockAttribute("Verified");
+  const verifiedAttribute: Attribute = getMockAttribute({ kind: "Verified" });
 
-  const declaredAttribute: Attribute = getMockAttribute("Declared");
+  const declaredAttribute: Attribute = getMockAttribute({ kind: "Declared" });
 
   beforeEach(async () => {
     await addOneAttribute(certifiedAttribute);

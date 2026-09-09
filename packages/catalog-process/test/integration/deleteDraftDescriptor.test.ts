@@ -48,11 +48,11 @@ describe("delete draft descriptor", () => {
     vi.spyOn(fileManager, "delete");
 
     const publishedDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       version: "1",
     };
     const descriptorToDelete: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
       version: "2",
     };
 
@@ -65,7 +65,7 @@ describe("delete draft descriptor", () => {
     const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
       eservice.id,
       descriptorToDelete.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -134,11 +134,11 @@ describe("delete draft descriptor", () => {
     };
 
     const publishedDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       version: "1",
     };
     const descriptorToDelete: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
       docs: [document1, document2],
       interface: interfaceDocument,
       asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDocument,
@@ -211,7 +211,7 @@ describe("delete draft descriptor", () => {
     const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
       eservice.id,
       descriptorToDelete.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -280,7 +280,7 @@ describe("delete draft descriptor", () => {
 
   it("should write on event-store for the deletion of a draft descriptor and the entire eservice", async () => {
     const draftDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
     };
 
     const eservice: EService = {
@@ -292,7 +292,7 @@ describe("delete draft descriptor", () => {
     const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
       eservice.id,
       draftDescriptor.id,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
 
     const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
@@ -346,7 +346,7 @@ describe("delete draft descriptor", () => {
 
   it("should write on event-store for the deletion of a draft descriptor and the entire eservice (delegate)", async () => {
     const draftDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
     };
 
     const eservice: EService = {
@@ -365,7 +365,7 @@ describe("delete draft descriptor", () => {
     const deleteDraftReturn = await catalogService.deleteDraftDescriptor(
       eservice.id,
       draftDescriptor.id,
-      getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
     );
 
     const descriptorDeletionEvent = await readEventByStreamIdAndVersion(
@@ -421,11 +421,11 @@ describe("delete draft descriptor", () => {
     config.s3Bucket = "invalid-bucket"; // configure an invalid bucket to force a failure
 
     const publishedDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       version: "1",
     };
     const descriptorToDelete: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
       docs: [getMockDocument(), getMockDocument()],
       version: "2",
     };
@@ -439,7 +439,7 @@ describe("delete draft descriptor", () => {
       catalogService.deleteDraftDescriptor(
         eservice.id,
         descriptorToDelete.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       fileManagerDeleteError(
@@ -457,7 +457,7 @@ describe("delete draft descriptor", () => {
       catalogService.deleteDraftDescriptor(
         mockEService.id,
         mockDescriptorId,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -473,7 +473,7 @@ describe("delete draft descriptor", () => {
       catalogService.deleteDraftDescriptor(
         eservice.id,
         descriptorIdToDelete,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, descriptorIdToDelete)
@@ -482,11 +482,11 @@ describe("delete draft descriptor", () => {
 
   it("should throw operationForbidden if the requester is not the producer", async () => {
     const publishedDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       version: "1",
     };
     const descriptorToDelete: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
       version: "2",
     };
     const eservice: EService = {
@@ -505,11 +505,11 @@ describe("delete draft descriptor", () => {
 
   it("should throw operationForbidden if the requester if the given e-service has been delegated and caller is not the delegate", async () => {
     const publishedDescriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       version: "1",
     };
     const descriptorToDelete: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
       version: "2",
     };
     const eservice: EService = {
@@ -528,7 +528,7 @@ describe("delete draft descriptor", () => {
       catalogService.deleteDraftDescriptor(
         eservice.id,
         descriptorToDelete.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -537,7 +537,7 @@ describe("delete draft descriptor", () => {
     "should throw notValidDescriptorState if the eservice is in %s state",
     async (state) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         interface: mockDocument,
       };
       const eservice: EService = {
@@ -550,7 +550,7 @@ describe("delete draft descriptor", () => {
         catalogService.deleteDraftDescriptor(
           eservice.id,
           descriptor.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }
@@ -560,12 +560,12 @@ describe("delete draft descriptor", () => {
     "should throw notValidDescriptorState if the eservice is in %s state",
     async (state) => {
       const descriptorToDelete: Descriptor = {
-        ...getMockDescriptor(state),
+        ...getMockDescriptor({ state: state }),
         interface: mockDocument,
         version: "1",
       };
       const publishedDescriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.published),
+        ...getMockDescriptor({ state: descriptorState.published }),
         version: "2",
       };
       const eservice: EService = {
@@ -578,7 +578,7 @@ describe("delete draft descriptor", () => {
         catalogService.deleteDraftDescriptor(
           eservice.id,
           descriptorToDelete.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(
         notValidDescriptorState(descriptorToDelete.id, state)

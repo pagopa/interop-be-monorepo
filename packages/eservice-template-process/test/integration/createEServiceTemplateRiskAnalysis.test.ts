@@ -67,7 +67,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -94,7 +94,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       eserviceTemplate.id,
       riskAnalysisSeed,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
 
@@ -185,7 +185,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
           getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
         ),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
@@ -205,7 +205,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     await addOneEServiceTemplate(eserviceTemplate);
 
     const requesterId = generateId<TenantId>();
-    await addOneTenant(getMockTenant(requesterId));
+    await addOneTenant(getMockTenant({ tenantId: requesterId }));
 
     expect(
       eserviceTemplateService.createRiskAnalysis(
@@ -213,7 +213,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         buildRiskAnalysisSeed(
           getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
         ),
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -231,7 +231,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await addOneTenant(getMockTenant(eserviceTemplate.creatorId));
+    await addOneTenant(getMockTenant({ tenantId: eserviceTemplate.creatorId }));
 
     expect(
       eserviceTemplateService.createRiskAnalysis(
@@ -240,7 +240,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
           getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
         ),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -261,7 +261,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
 
-    await addOneTenant(getMockTenant(eserviceTemplate.creatorId));
+    await addOneTenant(getMockTenant({ tenantId: eserviceTemplate.creatorId }));
 
     expect(
       eserviceTemplateService.createRiskAnalysis(
@@ -270,7 +270,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
           getMockValidEServiceTemplateRiskAnalysis(tenantKind.PA)
         ),
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));
@@ -297,7 +297,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
     };
     await addOneEServiceTemplate(eserviceTemplate);
     const creator = {
-      ...getMockTenant(eserviceTemplate.creatorId),
+      ...getMockTenant({ tenantId: eserviceTemplate.creatorId }),
       kind: creatorTenantKind,
     };
     await addOneTenant(creator);
@@ -315,7 +315,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         riskAnalysisSeed,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -329,7 +329,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -374,7 +374,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         invalidRiskAnalysisSeed,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -394,7 +394,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -422,7 +422,7 @@ describe("createEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         riskAnalysisSeed,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(

@@ -43,7 +43,7 @@ describe("get agreement", () => {
       descriptors: [getMockDescriptorPublished()],
     };
     const agreement = {
-      ...getMockAgreement(eservice.id),
+      ...getMockAgreement({ eserviceId: eservice.id }),
       descriptorId: eservice.descriptors[0].id,
       producerId: producer.id,
       consumerId: consumer.id,
@@ -75,7 +75,7 @@ describe("get agreement", () => {
     const retrievedAgreementByConsumer =
       await agreementService.getAgreementById(
         agreement.id,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       );
     expect(sortAgreement(retrievedAgreementByConsumer)).toEqual({
       data: sortAgreement(agreement),
@@ -85,7 +85,7 @@ describe("get agreement", () => {
     const retrievedAgreementByProducer =
       await agreementService.getAgreementById(
         agreement.id,
-        getMockContext({ authData: getMockAuthData(producer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
       );
     expect(sortAgreement(retrievedAgreementByProducer)).toEqual({
       data: sortAgreement(agreement),
@@ -95,7 +95,7 @@ describe("get agreement", () => {
     const retrievedAgreementByProducerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
-        getMockContext({ authData: getMockAuthData(producerDelegate.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producerDelegate.id }) })
       );
     expect(sortAgreement(retrievedAgreementByProducerDelegate)).toEqual({
       data: sortAgreement(agreement),
@@ -105,7 +105,7 @@ describe("get agreement", () => {
     const retrievedAgreementByConsumerDelegate =
       await agreementService.getAgreementById(
         agreement.id,
-        getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
       );
     expect(sortAgreement(retrievedAgreementByConsumerDelegate)).toEqual({
       data: sortAgreement(agreement),

@@ -38,7 +38,7 @@ describe("clientAdminRemoved", () => {
 
     await authorizationService.removeClientAdmin(
       { clientId: mockClient.id, adminId: mockClient.adminId! },
-      getMockContext({ authData: getMockAuthData(mockClient.consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockClient.consumerId }) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -61,7 +61,7 @@ describe("clientAdminRemoved", () => {
     await expect(
       authorizationService.removeClientAdmin(
         { clientId: mockClient.id, adminId: mockClient.adminId! },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnClient(organizationId, mockClient.id)
@@ -88,7 +88,7 @@ describe("clientAdminRemoved", () => {
     await expect(
       authorizationService.removeClientAdmin(
         { clientId: mockClient.id, adminId: generateId<UserId>() },
-        getMockContext({ authData: getMockAuthData(mockClient.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockClient.consumerId }) })
       )
     ).rejects.toThrowError(clientKindNotAllowed(mockClient.id));
   });
@@ -105,7 +105,7 @@ describe("clientAdminRemoved", () => {
     await expect(
       authorizationService.removeClientAdmin(
         { clientId: mockClient1.id, adminId },
-        getMockContext({ authData: getMockAuthData(mockClient1.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockClient1.consumerId }) })
       )
     ).rejects.toThrowError(clientAdminIdNotFound(mockClient1.id, adminId));
 
@@ -120,7 +120,7 @@ describe("clientAdminRemoved", () => {
     await expect(
       authorizationService.removeClientAdmin(
         { clientId: mockClient2.id, adminId },
-        getMockContext({ authData: getMockAuthData(mockClient2.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockClient2.consumerId }) })
       )
     ).rejects.toThrowError(clientAdminIdNotFound(mockClient2.id, adminId));
   });

@@ -74,7 +74,7 @@ describe("publishPurposeTemplate", () => {
 
     const publishResponse = await purposeTemplateService.publishPurposeTemplate(
       purposeTemplate.id,
-      getMockContext({ authData: getMockAuthData(creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
     );
 
     const updatedPurposeTemplate = publishResponse.data;
@@ -121,7 +121,7 @@ describe("publishPurposeTemplate", () => {
     await expect(async () => {
       await purposeTemplateService.publishPurposeTemplate(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(otherTenantId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: otherTenantId }) })
       );
     }).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
@@ -137,7 +137,7 @@ describe("publishPurposeTemplate", () => {
     await expect(async () => {
       await purposeTemplateService.publishPurposeTemplate(
         purposeTemplateWithoutRiskAnalysis.id,
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
       );
     }).rejects.toThrowError(
       purposeTemplateRiskAnalysisFormNotFound(
@@ -177,7 +177,7 @@ describe("publishPurposeTemplate", () => {
     await expect(async () => {
       await purposeTemplateService.publishPurposeTemplate(
         purposeTemplateWithInvalidRiskAnalysis.id,
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
       );
     }).rejects.toThrowError(
       riskAnalysisTemplateValidationFailed(
@@ -223,7 +223,7 @@ describe("publishPurposeTemplate", () => {
       await expect(async () => {
         await purposeTemplateService.publishPurposeTemplate(
           purposeTemplateWithUnexpectedState.id,
-          getMockContext({ authData: getMockAuthData(creatorId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
         );
       }).rejects.toThrowError(error);
     }
@@ -233,16 +233,16 @@ describe("publishPurposeTemplate", () => {
     await addOnePurposeTemplate(purposeTemplate);
 
     const invalidStateEService: EService = {
-      ...getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-        getMockDescriptor(descriptorState.archived),
-      ]),
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [
+        getMockDescriptor({ state: descriptorState.archived }),
+      ] }),
       personalData: true,
     };
     const relatedEServices: EService[] = [
       ...Array.from({ length: 3 }).map(() => ({
-        ...getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-          getMockDescriptor(descriptorState.published),
-        ]),
+        ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [
+          getMockDescriptor({ state: descriptorState.published }),
+        ] }),
         personalData: true,
       })),
       invalidStateEService,
@@ -266,7 +266,7 @@ describe("publishPurposeTemplate", () => {
     await expect(async () => {
       await purposeTemplateService.publishPurposeTemplate(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: creatorId }) })
       );
     }).rejects.toThrowError(
       invalidAssociatedEServiceForPublication([

@@ -1109,7 +1109,7 @@ describe("utils", () => {
       ...getMockPurpose(),
       consumerId,
       eserviceId: eservice.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
     const key = getMockKey();
     const client: Client = {
@@ -1236,7 +1236,7 @@ describe("utils", () => {
         ...getMockPurpose(),
         consumerId,
         eserviceId: eservice.id,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const key = getMockKey();
       const client: Client = {
@@ -1357,7 +1357,7 @@ describe("utils", () => {
         ...getMockPurpose(),
         consumerId,
         eserviceId: eservice.id,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const key = getMockKey();
       const client: Client = {

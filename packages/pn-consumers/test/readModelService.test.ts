@@ -29,7 +29,7 @@ describe("MetricsManager", () => {
   it("should not count purposes with consumers that have no attribute with id 'COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID'", async () => {
     const tenantsData: Tenant[] = [
       {
-        ...getMockTenant(TENANT_COMUNE_ID, [
+        ...getMockTenant({ tenantId: TENANT_COMUNE_ID, attributes: [
           {
             ...getMockVerifiedTenantAttribute(
               COMUNI_E_LORO_CONSORZI_E_ASSOCIAZIONI_ATTRIBUTE_ID_MOCK
@@ -37,12 +37,12 @@ describe("MetricsManager", () => {
             verifiedBy: [],
             revokedBy: [],
           },
-        ]),
+        ] }),
         name: "tenant-comune",
         externalId: { origin: "origin", value: "value" },
       },
       {
-        ...getMockTenant(TENANT_NON_COMUNE_ID),
+        ...getMockTenant({ tenantId: TENANT_NON_COMUNE_ID }),
         name: "tenant-not-comune",
         externalId: { origin: "origin", value: "value" },
       },
@@ -54,13 +54,13 @@ describe("MetricsManager", () => {
         ...getMockPurpose(),
         eserviceId: PN_ESERVICE_ID_MOCK,
         consumerId: TENANT_COMUNE_ID,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       },
       {
         ...getMockPurpose(),
         eserviceId: PN_ESERVICE_ID_MOCK,
         consumerId: TENANT_NON_COMUNE_ID,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       },
     ];
     await seedPurposes(purposesData);

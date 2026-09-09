@@ -35,7 +35,7 @@ import {
 describe("update E-service signalhub flag for an already created E-service", async () => {
   it("should write on event-store for the update of the E-service signalhub flag (false->true)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
 
@@ -51,7 +51,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
       await catalogService.updateEServiceSignalHubFlag(
         eservice.id,
         newSignalhubFlagValue,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
     const expectedEService: EService = {
@@ -82,7 +82,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
 
   it("should write on event-store for the update of the E-service signalhub flag (true->false)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
 
@@ -99,7 +99,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
       await catalogService.updateEServiceSignalHubFlag(
         eservice.id,
         newSignalhubFlagValue,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
     const expectedEService: EService = {
@@ -135,7 +135,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
     "should NOT write on event-store for the update of the E-service signalhub flag (%s -> %s)",
     async (oldSignalhubFlagValue, newSignalhubFlagValue) => {
       const descriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.published),
+        ...getMockDescriptor({ state: descriptorState.published }),
         interface: getMockDocument(),
       };
 
@@ -151,7 +151,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
         await catalogService.updateEServiceSignalHubFlag(
           eservice.id,
           newSignalhubFlagValue,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -179,7 +179,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
 
   it("should write on event-store for the update of the E-service signalhub flag (false->true) (delegate)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
 
@@ -202,7 +202,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
       await catalogService.updateEServiceSignalHubFlag(
         eservice.id,
         newSignalhubFlagValue,
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       );
 
     const expectedEService: EService = {
@@ -240,7 +240,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
         catalogService.updateEServiceSignalHubFlag(
           eservice.id,
           signalhubFlag,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(eServiceNotFound(eservice.id));
     }
@@ -274,7 +274,7 @@ describe("update E-service signalhub flag for an already created E-service", asy
         catalogService.updateEServiceSignalHubFlag(
           eservice.id,
           signalhubFlag,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
     }

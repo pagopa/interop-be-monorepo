@@ -51,7 +51,7 @@ let attrSCP: Attribute;
 
 beforeAll(() => {
   attrAdesione = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     id: generateId(),
     origin: REGISTRY_ATTRIBUTES_SEEDS.adesione.origin,
     code: generateCodeFromName(REGISTRY_ATTRIBUTES_SEEDS.adesione.name),
@@ -59,7 +59,7 @@ beforeAll(() => {
   };
 
   attrSCP = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     id: generateId(),
     origin: REGISTRY_ATTRIBUTES_SEEDS.scp.origin,
     code: generateCodeFromName(REGISTRY_ATTRIBUTES_SEEDS.scp.name),

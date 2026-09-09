@@ -65,7 +65,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
 
   it("should process an EServiceDescriptorActivated event and save a reference in DynamoDB", async () => {
     const descriptor = getMockDescriptorPublished();
-    const mockEService = getMockEService(undefined, undefined, [descriptor]);
+    const mockEService = getMockEService({ eserviceId: undefined, producerId: undefined, descriptors: [descriptor] });
     const descriptorId = mockEService.descriptors[0].id;
 
     const message: EServiceEventEnvelopeV2 = {
@@ -136,7 +136,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
     "should process an %s event and save all descriptors with archiving state in DynamoDB",
     async (eventType) => {
       const descriptor = getMockDescriptorArchiving();
-      const mockEService = getMockEService(undefined, undefined, [descriptor]);
+      const mockEService = getMockEService({ eserviceId: undefined, producerId: undefined, descriptors: [descriptor] });
 
       const message: EServiceEventEnvelopeV2 = {
         sequence_num: 1,
@@ -204,7 +204,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
 
   it("should not process an EServiceAdded event", async () => {
     const descriptor = getMockDescriptorPublished();
-    const mockEService = getMockEService(undefined, undefined, [descriptor]);
+    const mockEService = getMockEService({ eserviceId: undefined, producerId: undefined, descriptors: [descriptor] });
 
     const message: EServiceEventEnvelopeV2 = {
       sequence_num: 1,
@@ -250,7 +250,7 @@ describe("handleCatalogMessageV2 - Integration Test", () => {
 
   it("should throw an error if file creation fails", async () => {
     const descriptor = getMockDescriptorPublished();
-    const mockEService = getMockEService(undefined, undefined, [descriptor]);
+    const mockEService = getMockEService({ eserviceId: undefined, producerId: undefined, descriptors: [descriptor] });
     const descriptorId = mockEService.descriptors[0].id;
 
     const message: EServiceEventEnvelopeV2 = {

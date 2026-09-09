@@ -326,10 +326,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
       freeOfChargeReason: "Free of charge reason",
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [
-        getMockPurposeVersion(
-          purposeVersionState.draft,
-          mockPurposeVersionStamps
-        ),
+        getMockPurposeVersion({ state: purposeVersionState.draft, stamps: mockPurposeVersionStamps }),
       ],
     };
 
@@ -527,10 +524,7 @@ describe("Purpose messages consumers - handlePurposeMessageV2", () => {
 
     const mockPurposeVersionStamps = getMockPurposeVersionStamps();
 
-    const version = getMockPurposeVersion(
-      purposeVersionState.draft,
-      mockPurposeVersionStamps
-    );
+    const version = getMockPurposeVersion({ state: purposeVersionState.draft, stamps: mockPurposeVersionStamps });
     mock.versions.push(version);
 
     const payload: NewPurposeVersionActivatedV2 = {

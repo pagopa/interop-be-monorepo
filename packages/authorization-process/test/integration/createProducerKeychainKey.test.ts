@@ -93,7 +93,7 @@ describe("createProducerKeychainKey", () => {
     surname: "surname_test",
   };
 
-  const mockAuthData: AuthData = getMockAuthData(producerId, userId);
+  const mockAuthData: AuthData = getMockAuthData({ organizationId: producerId, userId: userId });
 
   const mockProducerKeychain: ProducerKeychain = {
     ...getMockProducerKeychain(),

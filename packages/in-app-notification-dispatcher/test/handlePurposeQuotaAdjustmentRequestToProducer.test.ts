@@ -44,13 +44,13 @@ describe("handlePurposeQuotaAdjustmentRequestToProducer", () => {
     descriptors: [getMockDescriptorPublished()],
   };
 
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenant = getMockTenant(consumerId);
+  const producerTenant = getMockTenant({ tenantId: producerId });
+  const consumerTenant = getMockTenant({ tenantId: consumerId });
 
   const purpose = {
-    ...getMockPurpose([
-      getMockPurposeVersion(purposeVersionState.waitingForApproval),
-    ]),
+    ...getMockPurpose({ versions: [
+      getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
+    ] }),
     id: purposeId,
     eserviceId,
     consumerId,

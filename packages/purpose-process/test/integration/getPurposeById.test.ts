@@ -83,7 +83,7 @@ describe("getPurposeById", () => {
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
-      getMockContext({ authData: getMockAuthData(producer.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
     );
     expect(sortPurposeResponse(purposeResponse)).toMatchObject({
       data: sortPurpose(mockPurpose1),
@@ -113,7 +113,7 @@ describe("getPurposeById", () => {
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
-      getMockContext({ authData: getMockAuthData(consumer.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
     );
     expect(sortPurposeResponse(purposeResponse)).toMatchObject({
       data: sortPurpose(mockPurpose1),
@@ -151,7 +151,7 @@ describe("getPurposeById", () => {
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
-      getMockContext({ authData: getMockAuthData(producerDelegate.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerDelegate.id }) })
     );
     expect(sortPurposeResponse(purposeResponse)).toMatchObject({
       data: sortPurpose(mockPurpose1),
@@ -181,7 +181,7 @@ describe("getPurposeById", () => {
     await expect(
       purposeService.getPurposeById(
         mockPurpose1.id,
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
       )
     ).rejects.toThrowError(tenantNotAllowed(mockTenant.id));
   });
@@ -221,7 +221,7 @@ describe("getPurposeById", () => {
       await expect(
         purposeService.getPurposeById(
           mockPurpose1.id,
-          getMockContext({ authData: getMockAuthData(producerDelegate.id) })
+          getMockContext({ authData: getMockAuthData({ organizationId: producerDelegate.id }) })
         )
       ).rejects.toThrowError(tenantNotAllowed(producerDelegate.id));
     }
@@ -261,7 +261,7 @@ describe("getPurposeById", () => {
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
     );
     expect(sortPurposeResponse(purposeResponse)).toMatchObject({
       data: sortPurpose(mockPurpose1),
@@ -317,7 +317,7 @@ describe("getPurposeById", () => {
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
-      getMockContext({ authData: getMockAuthData(producerDelegate.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerDelegate.id }) })
     );
     expect(sortPurposeResponse(purposeResponse)).toMatchObject({
       data: sortPurpose(mockPurpose1),
@@ -359,7 +359,7 @@ describe("getPurposeById", () => {
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
-      getMockContext({ authData: getMockAuthData(producer.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producer.id }) })
     );
     expect(sortPurposeResponse(purposeResponse)).toMatchObject({
       data: sortPurpose(mockPurpose1),
@@ -400,7 +400,7 @@ describe("getPurposeById", () => {
 
     const purposeResponse = await purposeService.getPurposeById(
       mockPurpose1.id,
-      getMockContext({ authData: getMockAuthData(consumer.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
     );
     expect(sortPurposeResponse(purposeResponse)).toMatchObject({
       data: sortPurpose(mockPurpose1),
@@ -486,7 +486,7 @@ describe("getPurposeById", () => {
 
     const purposeResponse = await purposeService.getPurposeById(
       delegatePurpose.id,
-      getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
     );
     expect(sortPurposeResponse(purposeResponse)).toMatchObject({
       data: sortPurpose(delegatePurpose),
@@ -519,7 +519,7 @@ describe("getPurposeById", () => {
       purposeService.getPurposeById(
         purpose.id,
         getMockContext({
-          authData: getMockAuthData(purposeDelegation.delegateId),
+          authData: getMockAuthData({ organizationId: purposeDelegation.delegateId }),
         })
       )
     ).rejects.toThrowError(tenantNotAllowed(purposeDelegation.delegateId));
@@ -558,7 +558,7 @@ describe("getPurposeById", () => {
     await expect(
       purposeService.getPurposeById(
         purpose.id,
-        getMockContext({ authData: getMockAuthData(delegate.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegate.id }) })
       )
     ).rejects.toThrowError(tenantNotAllowed(delegation.delegateId));
   });
@@ -572,7 +572,7 @@ describe("getPurposeById", () => {
     expect(
       purposeService.getPurposeById(
         notExistingId,
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
       )
     ).rejects.toThrowError(purposeNotFound(notExistingId));
   });
@@ -594,7 +594,7 @@ describe("getPurposeById", () => {
     expect(
       purposeService.getPurposeById(
         mockPurpose.id,
-        getMockContext({ authData: getMockAuthData(consumer.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumer.id }) })
       )
     ).rejects.toThrowError(eserviceNotFound(notExistingId));
   });

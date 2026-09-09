@@ -41,7 +41,7 @@ describe("rejectRiskAnalysis", () => {
 
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds: [reviewerId],
@@ -58,7 +58,7 @@ describe("rejectRiskAnalysis", () => {
         rejectionReason: "This risk analysis is incomplete and needs revision",
       },
       getMockContext({
-        authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+        authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
       })
     );
 
@@ -100,7 +100,7 @@ describe("rejectRiskAnalysis", () => {
 
   it("should throw reviewerWorkflowNotFound if the purpose has no reviewer workflow", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: undefined,
     };
 
@@ -113,7 +113,7 @@ describe("rejectRiskAnalysis", () => {
           rejectionReason:
             "This risk analysis is incomplete and needs revision",
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(reviewerWorkflowNotFound(mockPurpose.id));
   });
@@ -121,7 +121,7 @@ describe("rejectRiskAnalysis", () => {
   it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds: [reviewerId],
@@ -142,7 +142,7 @@ describe("rejectRiskAnalysis", () => {
             "This risk analysis is incomplete and needs revision",
         },
         getMockContext({
-          authData: getMockAuthData(otherOrganizationId, reviewerId),
+          authData: getMockAuthData({ organizationId: otherOrganizationId, userId: reviewerId }),
         })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
@@ -151,7 +151,7 @@ describe("rejectRiskAnalysis", () => {
   it("should throw reviewerWorkflowNotInSubmittedState if the workflow is not in Submitted state", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds: [reviewerId],
@@ -169,7 +169,7 @@ describe("rejectRiskAnalysis", () => {
             "This risk analysis is incomplete and needs revision",
         },
         getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
         })
       )
     ).rejects.toThrowError(reviewerWorkflowNotInSubmittedState(mockPurpose.id));
@@ -178,7 +178,7 @@ describe("rejectRiskAnalysis", () => {
   it("should throw rejectNotAllowedInCurrentMode if the workflow mode is ReviewerWritesReviewerSigns", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerIds: [reviewerId],
@@ -197,7 +197,7 @@ describe("rejectRiskAnalysis", () => {
             "This risk analysis is incomplete and needs revision",
         },
         getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
         })
       )
     ).rejects.toThrowError(rejectNotAllowedInCurrentMode(mockPurpose.id));
@@ -205,7 +205,7 @@ describe("rejectRiskAnalysis", () => {
 
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds: [generateId<UserId>()],
@@ -224,10 +224,7 @@ describe("rejectRiskAnalysis", () => {
             "This risk analysis is incomplete and needs revision",
         },
         getMockContext({
-          authData: getMockAuthData(
-            mockPurpose.consumerId,
-            generateId<UserId>()
-          ),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: generateId<UserId>() }),
         })
       )
     ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));

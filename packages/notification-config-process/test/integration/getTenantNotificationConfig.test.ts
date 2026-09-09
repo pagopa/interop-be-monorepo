@@ -32,7 +32,7 @@ describe("getTenantNotificationConfig", () => {
   it("should get the tenant's notification config", async () => {
     const result = await notificationConfigService.getTenantNotificationConfig(
       getMockContext({
-        authData: getMockAuthData(tenantId),
+        authData: getMockAuthData({ organizationId: tenantId }),
       })
     );
     expect(result).toEqual(tenantNotificationConfig);
@@ -43,7 +43,7 @@ describe("getTenantNotificationConfig", () => {
     expect(
       notificationConfigService.getTenantNotificationConfig(
         getMockContext({
-          authData: getMockAuthData(notExistingTenantId),
+          authData: getMockAuthData({ organizationId: notExistingTenantId }),
         })
       )
     ).rejects.toThrowError(

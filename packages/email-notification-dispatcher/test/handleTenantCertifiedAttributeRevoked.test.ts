@@ -40,38 +40,38 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
   const attributeId = generateId<AttributeId>();
 
   const attribute: Attribute = {
-    ...getMockAttribute("Certified", attributeId),
+    ...getMockAttribute({ kind: "Certified", id: attributeId }),
     origin: certifierId,
   };
 
   const certifiedAttributeANAC: Attribute = {
-    ...getMockAttribute("Certified"),
+    ...getMockAttribute({ kind: "Certified" }),
     name: "Certified ANAC Attribute",
     origin: "ANAC",
   };
   const certifiedAttributeIPA: Attribute = {
-    ...getMockAttribute("Certified"),
+    ...getMockAttribute({ kind: "Certified" }),
     name: "Certified IPA Attribute",
     origin: "IPA",
   };
   const certifiedAttributeIVASS: Attribute = {
-    ...getMockAttribute("Certified"),
+    ...getMockAttribute({ kind: "Certified" }),
     name: "Certified IVASS Attribute",
     origin: "IVASS",
   };
   const certifiedAttributeISTAT: Attribute = {
-    ...getMockAttribute("Certified"),
+    ...getMockAttribute({ kind: "Certified" }),
     name: "Certified ISTAT Attribute",
     origin: "ISTAT",
   };
 
   const targetTenant: Tenant = {
-    ...getMockTenant(targetTenantId),
+    ...getMockTenant({ tenantId: targetTenantId }),
     name: "Target Tenant",
     mails: [getMockTenantMail()],
   };
   const certifierTenant: Tenant = {
-    ...getMockTenant(certifierTenantId),
+    ...getMockTenant({ tenantId: certifierTenantId }),
     name: "Certifier Tenant",
     features: [
       {
@@ -148,7 +148,7 @@ describe("handleTenantCertifiedAttributeRevoked", async () => {
 
   it("should generate no messages when attribute has no origin", async () => {
     const attributeWithNoOrigin: Attribute = {
-      ...getMockAttribute("Certified"),
+      ...getMockAttribute({ kind: "Certified" }),
       origin: undefined,
       code: undefined,
     };

@@ -56,12 +56,12 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
   };
 
   const descriptor1: Descriptor = {
-    ...getMockDescriptor(descriptorState.published),
+    ...getMockDescriptor({ state: descriptorState.published }),
     version: "1",
   };
 
   const descriptor2: Descriptor = {
-    ...getMockDescriptor(descriptorState.published),
+    ...getMockDescriptor({ state: descriptorState.published }),
     id: generateId<DescriptorId>(),
     version: "2",
   };
@@ -114,7 +114,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         purposeTemplate.id,
         eserviceIds,
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       );
 
@@ -176,7 +176,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         nonExistentPurposeTemplateId,
         [eService1.id],
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(
@@ -195,7 +195,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         purposeTemplate.id,
         [nonExistentEServiceId],
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(
@@ -231,7 +231,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         purposeTemplate.id,
         manyEServices,
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(
@@ -252,7 +252,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         purposeTemplate.id,
         [eService1.id],
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(
@@ -283,7 +283,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         purposeTemplate.id,
         [eService1.id, nonExistentEServiceId],
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(
@@ -321,7 +321,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         purposeTemplate.id,
         [eService1.id, nonAssociatedEServiceId],
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(
@@ -340,7 +340,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
 
   it("should throw invalidDescriptorStateError when trying to unlink eservice with descriptor in invalid state (not Published, Archived, Suspended or Deprecated)", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.draft),
+      ...getMockDescriptor({ state: descriptorState.draft }),
       version: "1",
     };
 
@@ -367,7 +367,7 @@ describe("unlinkEservicesFromPurposeTemplate", () => {
         purposeTemplate.id,
         [eService.id],
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(

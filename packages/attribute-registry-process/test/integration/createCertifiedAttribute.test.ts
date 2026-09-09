@@ -52,7 +52,7 @@ describe("certified attribute creation", () => {
           code: "code",
           description: mockAttribute.description,
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       );
 
     const writtenEvent = await readLastAttributeEvent(
@@ -133,7 +133,7 @@ describe("certified attribute creation", () => {
           code: attributeCode,
           description: mockAttribute.description,
         },
-        getMockContext({ authData: getMockAuthData(tenant2.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant2.id }) })
       );
     expect(createdAttribute).toMatchObject({
       data: expectedAttribute,
@@ -172,7 +172,7 @@ describe("certified attribute creation", () => {
           code: attributeCode,
           description: attribute.description,
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       attributeDuplicateByCodeOriginOrName(
@@ -188,7 +188,7 @@ describe("certified attribute creation", () => {
           code: attribute.code,
           description: attribute.description,
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       attributeDuplicateByCodeOriginOrName(
@@ -208,7 +208,7 @@ describe("certified attribute creation", () => {
           code: "code",
           description: mockAttribute.description,
         },
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
       )
     ).rejects.toThrowError(tenantIsNotACertifier(mockTenant.id));
   });
@@ -221,7 +221,7 @@ describe("certified attribute creation", () => {
           code: "code",
           description: mockAttribute.description,
         },
-        getMockContext({ authData: getMockAuthData(mockTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) })
       )
     ).rejects.toThrowError(tenantNotFound(mockTenant.id));
   });

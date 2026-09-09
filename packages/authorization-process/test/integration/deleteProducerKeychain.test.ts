@@ -37,7 +37,7 @@ describe("delete producer keychain", () => {
       {
         producerKeychainId: mockProducerKeychain.id,
       },
-      getMockContext({ authData: getMockAuthData(mockProducer.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockProducer.id }) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(
@@ -93,7 +93,7 @@ describe("delete producer keychain", () => {
         {
           producerKeychainId: mockProducerKeychain.id,
         },
-        getMockContext({ authData: getMockAuthData(mockProducer2.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockProducer2.id }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnProducerKeychain(

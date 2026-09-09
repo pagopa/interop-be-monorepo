@@ -91,7 +91,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       await purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         purposeTemplate.id,
         [template1.id, template2.id],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       );
 
     expect(linkResponse).toHaveLength(2);
@@ -158,7 +158,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       await purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         pt.id,
         [template.id, template.id, template.id],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       );
 
     expect(linkResponse).toHaveLength(1);
@@ -203,7 +203,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         notExistingId,
         [template.id],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(notExistingId));
   });
@@ -222,7 +222,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         suspended.id,
         [template.id],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       purposeTemplateNotInExpectedStates(
@@ -248,7 +248,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         otherPurposeTemplate.id,
         [template.id],
-        getMockContext({ authData: getMockAuthData(nonCreator) })
+        getMockContext({ authData: getMockAuthData({ organizationId: nonCreator }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(otherPurposeTemplate.id));
   });
@@ -266,7 +266,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         pt.id,
         [missingId],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       associationEServiceTemplatesForPurposeTemplateFailed(
@@ -294,7 +294,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         pt.id,
         [template.id],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       associationEServiceTemplatesForPurposeTemplateFailed(
@@ -321,7 +321,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         pt.id,
         [template.id],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       associationEServiceTemplatesForPurposeTemplateFailed(
@@ -345,7 +345,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         pt.id,
         [template.id],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       associationEServiceTemplatesForPurposeTemplateFailed(
@@ -382,7 +382,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         pt.id,
         [template.id],
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       associationBetweenEServiceTemplateAndPurposeTemplateAlreadyExists(
@@ -409,7 +409,7 @@ describe("linkEServiceTemplatesToPurposeTemplate", () => {
       purposeTemplateService.linkEServiceTemplatesToPurposeTemplate(
         pt.id,
         tooMany,
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(
       tooManyEServiceTemplatesForPurposeTemplate(

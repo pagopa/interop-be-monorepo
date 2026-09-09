@@ -39,12 +39,12 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
   const attributeId = generateId<AttributeId>();
 
   const attribute: Attribute = {
-    ...getMockAttribute("Certified", attributeId),
+    ...getMockAttribute({ kind: "Certified", id: attributeId }),
     origin: certifierId,
   };
 
   const targetTenant: Tenant = {
-    ...getMockTenant(targetTenantId),
+    ...getMockTenant({ tenantId: targetTenantId }),
     name: "Target Tenant",
     mails: [getMockTenantMail()],
   };
@@ -111,7 +111,7 @@ describe("handleTenantCertifiedAttributeUpdated", async () => {
 
   it("should generate no messages when attribute has no origin", async () => {
     const attributeWithNoOrigin: Attribute = {
-      ...getMockAttribute("Certified"),
+      ...getMockAttribute({ kind: "Certified" }),
       origin: undefined,
       code: undefined,
     };

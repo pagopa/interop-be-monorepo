@@ -96,11 +96,7 @@ describe("createPurposeFromTemplate", () => {
     descriptors: [publishedDescriptor],
   };
 
-  const activeAgreement = getMockAgreement(
-    publishedEservice.id,
-    tenant.id,
-    agreementState.active
-  );
+  const activeAgreement = getMockAgreement({ eserviceId: publishedEservice.id, consumerId: tenant.id, state: agreementState.active });
 
   const mockValidRiskAnalysisFormTemplate =
     getMockValidRiskAnalysisFormTemplate(tenantKind.PA);
@@ -157,9 +153,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         purposeFromTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       );
 
@@ -304,9 +298,7 @@ describe("createPurposeFromTemplate", () => {
         purposetemplateWithEditableAnswer.id,
         purposeWithAdditionalAnswers,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       );
 
@@ -453,9 +445,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateNotFreeOfCharge.id,
         purposeFromTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       );
 
@@ -560,7 +550,7 @@ describe("createPurposeFromTemplate", () => {
       await purposeService.createPurposeFromTemplate(
         mockPurposeTemplateWithValidRiskAnalysis.id,
         purposeFromTemplateSeed,
-        getMockContext({ authData: getMockAuthData(delegateTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateTenant.id }) })
       );
 
     const writtenEvent = await readLastPurposeEvent(
@@ -723,7 +713,7 @@ describe("createPurposeFromTemplate", () => {
       await purposeService.createPurposeFromTemplate(
         mockPurposeTemplateWithValidRiskAnalysis.id,
         delegatePurposeSeed,
-        getMockContext({ authData: getMockAuthData(consumerDelegate.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumerDelegate.id }) })
       );
 
     const writtenEvent = await readLastPurposeEvent(
@@ -814,9 +804,7 @@ describe("createPurposeFromTemplate", () => {
         nonExistingId,
         purposeFromTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(nonExistingId));
@@ -832,9 +820,7 @@ describe("createPurposeFromTemplate", () => {
         mockDraftPurposeTemplate.id,
         purposeFromTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -852,10 +838,7 @@ describe("createPurposeFromTemplate", () => {
       producerId: tenantWithoutKind.id,
     };
 
-    const agreementEservice = getMockAgreement(
-      eService.id,
-      tenantWithoutKind.id
-    );
+    const agreementEservice = getMockAgreement({ eserviceId: eService.id, consumerId: tenantWithoutKind.id });
 
     const seed: purposeApi.PurposeFromTemplateSeed = {
       ...purposeFromTemplateSeed,
@@ -876,9 +859,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         seed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(tenantKindNotFound(tenantWithoutKind.id));
@@ -891,9 +872,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         purposeFromTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
@@ -940,7 +919,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         seed,
         getMockContext({
-          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(seed.consumerId) }),
         })
       )
     ).rejects.toThrowError(agreementNotFound(eService.id, tenant.id));
@@ -964,9 +943,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         seed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(tenant.id));
@@ -1003,7 +980,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         seed,
         getMockContext({
-          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(seed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -1039,7 +1016,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         seed,
         getMockContext({
-          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(seed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -1072,9 +1049,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         purposeFromTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -1095,9 +1070,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         purposeFromTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -1115,11 +1088,7 @@ describe("createPurposeFromTemplate", () => {
       producerId: privateTenant.id,
     };
 
-    const agreementEservice = getMockAgreement(
-      eService.id,
-      privateTenant.id,
-      agreementState.active
-    );
+    const agreementEservice = getMockAgreement({ eserviceId: eService.id, consumerId: privateTenant.id, state: agreementState.active });
 
     const seed = {
       ...purposeFromTemplateSeed,
@@ -1137,7 +1106,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         seed,
         getMockContext({
-          authData: getMockAuthData(unsafeBrandId<TenantId>(privateTenant.id)),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(privateTenant.id) }),
         })
       )
     ).rejects.toThrowError(
@@ -1201,9 +1170,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         purposeFromTemplateSeedSingle,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeedSingle.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeedSingle.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -1226,9 +1193,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         purposeFromTemplateSeedMulti,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeedMulti.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeedMulti.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -1289,9 +1254,7 @@ describe("createPurposeFromTemplate", () => {
         validPurposeTemplate.id,
         purposeFromTemplateSeedSingle,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -1317,9 +1280,7 @@ describe("createPurposeFromTemplate", () => {
         validPurposeTemplate.id,
         purposeFromTemplateSeedMulti,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -1373,9 +1334,7 @@ describe("createPurposeFromTemplate", () => {
         validPurposeTemplate.id,
         seed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(
@@ -1401,11 +1360,7 @@ describe("createPurposeFromTemplate", () => {
         createdAt: new Date(),
       };
 
-    const agreementEserviceNoPersonalData = getMockAgreement(
-      eserviceNoPersonalData.id,
-      tenant.id,
-      agreementState.active
-    );
+    const agreementEserviceNoPersonalData = getMockAgreement({ eserviceId: eserviceNoPersonalData.id, consumerId: tenant.id, state: agreementState.active });
 
     await addOneEService(eserviceNoPersonalData);
     await addOneAgreement(agreementEserviceNoPersonalData);
@@ -1418,9 +1373,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         purposeFromTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(invalidPersonalData(undefined));
@@ -1442,11 +1395,7 @@ describe("createPurposeFromTemplate", () => {
         createdAt: new Date(),
       };
 
-    const agreementEserviceOtherPersonalData = getMockAgreement(
-      eserviceOtherPersonalData.id,
-      tenant.id,
-      agreementState.active
-    );
+    const agreementEserviceOtherPersonalData = getMockAgreement({ eserviceId: eserviceOtherPersonalData.id, consumerId: tenant.id, state: agreementState.active });
 
     await addOneEService(eserviceOtherPersonalData);
     await addOneAgreement(agreementEserviceOtherPersonalData);
@@ -1459,9 +1408,7 @@ describe("createPurposeFromTemplate", () => {
         mockPurposeTemplateWithValidRiskAnalysis.id,
         purposeFromTemplateSeed,
         getMockContext({
-          authData: getMockAuthData(
-            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
-          ),
+          authData: getMockAuthData({ organizationId: unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId) }),
         })
       )
     ).rejects.toThrowError(

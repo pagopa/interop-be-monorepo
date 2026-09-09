@@ -70,7 +70,7 @@ describe("addProducerKeychainUsers", () => {
         producerKeychainId: mockProducerKeychain.id,
         userIds: userIdsToAdd,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
 
     const writtenEvent = await readLastAuthorizationEvent(
@@ -117,7 +117,7 @@ describe("addProducerKeychainUsers", () => {
           producerKeychainId: mockProducerKeychain.id,
           userIds: userIdsToAdd,
         },
-        getMockContext({ authData: getMockAuthData(producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
       )
     ).rejects.toThrowError(producerKeychainNotFound(mockProducerKeychain.id));
   });
@@ -142,7 +142,7 @@ describe("addProducerKeychainUsers", () => {
           producerKeychainId: mockProducerKeychain.id,
           userIds: [userIdAlreadyAssigned],
         },
-        getMockContext({ authData: getMockAuthData(producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
       )
     ).rejects.toThrowError(
       producerKeychainUserAlreadyAssigned(
@@ -169,7 +169,7 @@ describe("addProducerKeychainUsers", () => {
           producerKeychainId: mockProducerKeychain.id,
           userIds: [userIdToAdd],
         },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnProducerKeychain(
@@ -181,7 +181,7 @@ describe("addProducerKeychainUsers", () => {
   it("should throw userWithoutSecurityPrivileges if one of the Security users is not found", async () => {
     const producerId: TenantId = generateId();
 
-    const authData: AuthData = getMockAuthData(producerId);
+    const authData: AuthData = getMockAuthData({ organizationId: producerId });
 
     const mockProducerKeychain: ProducerKeychain = {
       ...getMockProducerKeychain(),

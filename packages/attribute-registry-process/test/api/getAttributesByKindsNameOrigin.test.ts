@@ -16,11 +16,11 @@ import { api, attributeRegistryService } from "../vitest.api.setup.js";
 
 describe("API /attributes authorization test", () => {
   const attribute1: Attribute = {
-    ...getMockAttribute(attributeKind.declared),
+    ...getMockAttribute({ kind: attributeKind.declared }),
     origin: "IPA",
   };
   const attribute2: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     origin: "SPC",
   };
 

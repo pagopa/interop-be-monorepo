@@ -63,7 +63,7 @@ describe("update E-service instanceLabel after publication", async () => {
       const template: EServiceTemplate = getMockEServiceTemplate();
 
       const descriptor: Descriptor = {
-        ...getMockDescriptor(descriptorState.published),
+        ...getMockDescriptor({ state: descriptorState.published }),
         interface: getMockDocument(),
       };
 
@@ -84,7 +84,7 @@ describe("update E-service instanceLabel after publication", async () => {
         await catalogService.updateEServiceInstanceLabelAfterPublication(
           eservice.id,
           newLabel,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
 
       const updatedEService: EService = {
@@ -119,7 +119,7 @@ describe("update E-service instanceLabel after publication", async () => {
     const template: EServiceTemplate = getMockEServiceTemplate();
 
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
 
@@ -149,7 +149,7 @@ describe("update E-service instanceLabel after publication", async () => {
         eservice.id,
         newLabel,
         getMockContext({
-          authData: getMockAuthData(delegation.delegateId),
+          authData: getMockAuthData({ organizationId: delegation.delegateId }),
         })
       );
 
@@ -163,7 +163,7 @@ describe("update E-service instanceLabel after publication", async () => {
       catalogService.updateEServiceInstanceLabelAfterPublication(
         eservice.id,
         "label",
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(eservice.id));
   });
@@ -172,7 +172,7 @@ describe("update E-service instanceLabel after publication", async () => {
     const template: EServiceTemplate = getMockEServiceTemplate();
 
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
 
@@ -198,7 +198,7 @@ describe("update E-service instanceLabel after publication", async () => {
 
   it("should throw eServiceNotAnInstance if the eservice is not a template instance", async () => {
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
 
@@ -213,7 +213,7 @@ describe("update E-service instanceLabel after publication", async () => {
       catalogService.updateEServiceInstanceLabelAfterPublication(
         eservice.id,
         "label",
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
   });
@@ -236,7 +236,7 @@ describe("update E-service instanceLabel after publication", async () => {
       catalogService.updateEServiceInstanceLabelAfterPublication(
         eservice.id,
         "label",
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(eserviceWithoutValidDescriptors(eservice.id));
   });
@@ -245,7 +245,7 @@ describe("update E-service instanceLabel after publication", async () => {
     const template: EServiceTemplate = getMockEServiceTemplate();
 
     const descriptor: Descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       interface: getMockDocument(),
     };
 
@@ -259,7 +259,7 @@ describe("update E-service instanceLabel after publication", async () => {
 
     const conflictingLabel = "conflict";
     const conflictingEService: EService = {
-      ...getMockEService(undefined, eservice.producerId, [], template.id),
+      ...getMockEService({ eserviceId: undefined, producerId: eservice.producerId, descriptors: [], templateId: template.id }),
       name: `${template.name} - ${conflictingLabel}`,
       instanceLabel: conflictingLabel,
     };
@@ -272,7 +272,7 @@ describe("update E-service instanceLabel after publication", async () => {
       catalogService.updateEServiceInstanceLabelAfterPublication(
         eservice.id,
         conflictingLabel,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceNameDuplicateForProducer(

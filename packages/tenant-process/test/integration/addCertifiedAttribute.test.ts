@@ -60,7 +60,7 @@ describe("addCertifiedAttribute", async () => {
   };
 
   const attribute: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     id: unsafeBrandId(tenantAttributeSeed.id),
     origin: getTenantOneCertifierFeature(requesterTenant).certifierId,
   };
@@ -85,7 +85,7 @@ describe("addCertifiedAttribute", async () => {
           tenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(requesterTenant.id),
+          authData: getMockAuthData({ organizationId: requesterTenant.id }),
         })
       );
     const writtenEvent = await readLastEventByStreamId(
@@ -142,7 +142,7 @@ describe("addCertifiedAttribute", async () => {
           tenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(requesterTenant.id),
+          authData: getMockAuthData({ organizationId: requesterTenant.id }),
         })
       );
     const writtenEventTenantCertifiedAttributeAssigned =
@@ -214,7 +214,7 @@ describe("addCertifiedAttribute", async () => {
           tenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(requesterTenant.id),
+          authData: getMockAuthData({ organizationId: requesterTenant.id }),
         })
       );
     const writtenEvent = await readLastEventByStreamId(
@@ -275,7 +275,7 @@ describe("addCertifiedAttribute", async () => {
           tenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(requesterTenant.id),
+          authData: getMockAuthData({ organizationId: requesterTenant.id }),
         })
       )
     ).rejects.toThrowError(
@@ -291,7 +291,7 @@ describe("addCertifiedAttribute", async () => {
           tenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(requesterTenant.id),
+          authData: getMockAuthData({ organizationId: requesterTenant.id }),
         })
       )
     ).rejects.toThrowError(tenantNotFound(requesterTenant.id));
@@ -307,7 +307,7 @@ describe("addCertifiedAttribute", async () => {
           tenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(requesterTenant.id),
+          authData: getMockAuthData({ organizationId: requesterTenant.id }),
         })
       )
     ).rejects.toThrowError(attributeNotFound(attribute.id));
@@ -326,7 +326,7 @@ describe("addCertifiedAttribute", async () => {
           tenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(tenant.id),
+          authData: getMockAuthData({ organizationId: tenant.id }),
         })
       )
     ).rejects.toThrowError(tenantIsNotACertifier(tenant.id));
@@ -347,7 +347,7 @@ describe("addCertifiedAttribute", async () => {
           tenantAttributeSeed,
         },
         getMockContext({
-          authData: getMockAuthData(requesterTenant.id),
+          authData: getMockAuthData({ organizationId: requesterTenant.id }),
         })
       )
     ).rejects.toThrowError(

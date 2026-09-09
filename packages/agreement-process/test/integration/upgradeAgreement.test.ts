@@ -120,9 +120,9 @@ describe("upgrade Agreement", () => {
     async (requesterIs) => {
       const producerAndConsumerId = generateId<TenantId>();
 
-      const certifiedAttribute = getMockAttribute(attributeKind.certified);
-      const declaredAttribute = getMockAttribute(attributeKind.declared);
-      const verifiedAttribute = getMockAttribute(attributeKind.verified);
+      const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
+      const declaredAttribute = getMockAttribute({ kind: attributeKind.declared });
+      const verifiedAttribute = getMockAttribute({ kind: attributeKind.verified });
       await addOneAttribute(verifiedAttribute);
       await addOneAttribute(declaredAttribute);
       await addOneAttribute(certifiedAttribute);
@@ -165,11 +165,7 @@ describe("upgrade Agreement", () => {
       );
 
       const agreement: Agreement = {
-        ...getMockAgreement(
-          eservice.id,
-          producerAndConsumerId,
-          randomArrayItem(agreementUpgradableStates)
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: producerAndConsumerId, state: randomArrayItem(agreementUpgradableStates) }),
         id: agreementId,
         producerId: eservice.producerId,
         descriptorId: currentDescriptor.id,
@@ -356,7 +352,7 @@ describe("upgrade Agreement", () => {
     "Requester === %s, should succeed with invalid Verified and Declared attributes when consumer and producer are the same",
     async (requesterIs) => {
       const producerAndConsumerId = generateId<TenantId>();
-      const verifiedAttribute = getMockAttribute(attributeKind.verified);
+      const verifiedAttribute = getMockAttribute({ kind: attributeKind.verified });
       const invalidVerifiedTenantAttribute: VerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
         verifiedBy: [
@@ -370,13 +366,13 @@ describe("upgrade Agreement", () => {
         revokedBy: [],
       };
 
-      const declaredAttribute = getMockAttribute(attributeKind.declared);
+      const declaredAttribute = getMockAttribute({ kind: attributeKind.declared });
       const invalidDeclaredTenantAttribute = {
         ...getMockDeclaredTenantAttribute(declaredAttribute.id),
         revocationTimestamp: new Date(),
       };
 
-      const certifiedAttribute = getMockAttribute(attributeKind.certified);
+      const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
       const validCertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
         revocationTimestamp: undefined,
@@ -387,11 +383,11 @@ describe("upgrade Agreement", () => {
         invalidVerifiedTenantAttribute,
       ]);
 
-      const producerAndConsumer = getMockTenant(producerAndConsumerId, [
+      const producerAndConsumer = getMockTenant({ tenantId: producerAndConsumerId, attributes: [
         invalidVerifiedTenantAttribute,
         validCertifiedTenantAttribute,
         invalidDeclaredTenantAttribute,
-      ]);
+      ] });
 
       await addOneTenant(producerAndConsumer);
       await addOneAttribute(certifiedAttribute);
@@ -439,11 +435,7 @@ describe("upgrade Agreement", () => {
       );
 
       const agreement: Agreement = {
-        ...getMockAgreement(
-          eservice.id,
-          producerAndConsumer.id,
-          randomArrayItem(agreementUpgradableStates)
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: producerAndConsumer.id, state: randomArrayItem(agreementUpgradableStates) }),
         id: agreementId,
         producerId: eservice.producerId,
         descriptorId: currentDescriptor.id,
@@ -565,9 +557,9 @@ describe("upgrade Agreement", () => {
           const consumerId = generateId<TenantId>();
           await addOneTenant(producer);
 
-          const certifiedAttribute = getMockAttribute(attributeKind.certified);
-          const declaredAttribute = getMockAttribute(attributeKind.declared);
-          const verifiedAttribute = getMockAttribute(attributeKind.verified);
+          const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
+          const declaredAttribute = getMockAttribute({ kind: attributeKind.declared });
+          const verifiedAttribute = getMockAttribute({ kind: attributeKind.verified });
           await addOneAttribute(verifiedAttribute);
           await addOneAttribute(declaredAttribute);
           await addOneAttribute(certifiedAttribute);
@@ -603,11 +595,7 @@ describe("upgrade Agreement", () => {
           );
 
           const agreement: Agreement = {
-            ...getMockAgreement(
-              eservice.id,
-              consumerId,
-              randomArrayItem(agreementUpgradableStates)
-            ),
+            ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
             id: agreementId,
             producerId: eservice.producerId,
             descriptorId: currentDescriptor.id,
@@ -676,7 +664,7 @@ describe("upgrade Agreement", () => {
           };
 
           const consumer: Tenant = {
-            ...getMockTenant(consumerId),
+            ...getMockTenant({ tenantId: consumerId }),
             selfcareId: generateId(),
             attributes: [
               validCertifiedTenantAttribute,
@@ -800,7 +788,7 @@ describe("upgrade Agreement", () => {
     async (requesterIs) => {
       const producer = getMockTenant();
 
-      const verifiedAttribute = getMockAttribute(attributeKind.verified);
+      const verifiedAttribute = getMockAttribute({ kind: attributeKind.verified });
       const invalidVerifiedTenantAttribute = {
         ...getMockVerifiedTenantAttribute(verifiedAttribute.id),
         verifiedBy: [
@@ -814,13 +802,13 @@ describe("upgrade Agreement", () => {
         revokedBy: [],
       };
 
-      const declaredAttribute = getMockAttribute(attributeKind.declared);
+      const declaredAttribute = getMockAttribute({ kind: attributeKind.declared });
       const invalidDeclaredTenantAttribute = {
         ...getMockDeclaredTenantAttribute(declaredAttribute.id),
         revocationTimestamp: new Date(),
       };
 
-      const certifiedAttribute = getMockAttribute(attributeKind.certified);
+      const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
       const validCertifiedTenantAttribute = {
         ...getMockCertifiedTenantAttribute(certifiedAttribute.id),
         revocationTimestamp: undefined,
@@ -881,11 +869,7 @@ describe("upgrade Agreement", () => {
       );
 
       const agreement: Agreement = {
-        ...getMockAgreement(
-          eservice.id,
-          consumer.id,
-          randomArrayItem(agreementUpgradableStates)
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: randomArrayItem(agreementUpgradableStates) }),
         id: agreementId,
         producerId: eservice.producerId,
         descriptorId: currentDescriptor.id,
@@ -1007,11 +991,7 @@ describe("upgrade Agreement", () => {
   it("should throw an tenantIsNotTheConsumer error when the requester is not the consumer", async () => {
     const authData = getMockAuthData();
 
-    const agreement: Agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      generateId<TenantId>(),
-      randomArrayItem(agreementUpgradableStates)
-    );
+    const agreement: Agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: randomArrayItem(agreementUpgradableStates) });
     await addOneAgreement(agreement);
 
     await expect(
@@ -1051,18 +1031,14 @@ describe("upgrade Agreement", () => {
 
   it("should throw an agreementNotInExpectedState error when the agreement doesn't have an upgradable states", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const invalidAgreementState = randomArrayItem(
       Object.values(agreementState).filter(
         (s) => !agreementUpgradableStates.includes(s)
       )
     );
-    const agreement: Agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      consumerId,
-      invalidAgreementState
-    );
+    const agreement: Agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: consumerId, state: invalidAgreementState });
     await addOneAgreement(agreement);
 
     await expect(
@@ -1077,13 +1053,9 @@ describe("upgrade Agreement", () => {
 
   it("should throw an eServiceNotFound error when the eservice does not exist", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
-    const agreement: Agreement = getMockAgreement(
-      generateId<EServiceId>(),
-      consumerId,
-      randomArrayItem(agreementUpgradableStates)
-    );
+    const agreement: Agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) });
     await addOneAgreement(agreement);
 
     await expect(
@@ -1096,7 +1068,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw a publishedDescriptorNotFound error when a published descriptor does not exist", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const nonPublishedDescriptorState = Object.values(descriptorState).filter(
       (s) => s !== descriptorState.published
@@ -1112,11 +1084,7 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
       producerId: eservice.producerId,
     };
     await addOneAgreement(agreement);
@@ -1131,7 +1099,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw an unexpectedVersionFormat error when the published descriptor has an unexpected version format", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1144,11 +1112,7 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
       producerId: eservice.producerId,
     };
     await addOneAgreement(agreement);
@@ -1165,7 +1129,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw a descriptorNotFound error when the agreement descriptor does not exist", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const publishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1179,11 +1143,7 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
       producerId: eservice.producerId,
     };
     await addOneAgreement(agreement);
@@ -1200,7 +1160,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw an unexpectedVersionFormat error when the agreement descriptor has an unexpected version format", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1219,11 +1179,7 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
     };
@@ -1241,7 +1197,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw a noNewerDescriptor error when the latest published descriptor has version number lower than or equal to the agreement current descriptor", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1260,11 +1216,7 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
     };
@@ -1282,7 +1234,7 @@ describe("upgrade Agreement", () => {
 
   it("should throw a tenantNotFound error when the consumer tenant does not exist", async () => {
     const consumerId = generateId<TenantId>();
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1301,11 +1253,7 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
     };
@@ -1333,7 +1281,7 @@ describe("upgrade Agreement", () => {
     await addOneTenant(consumer);
     await addOneTenant(producer);
 
-    const authData = getMockAuthData(consumer.id);
+    const authData = getMockAuthData({ organizationId: consumer.id });
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1360,11 +1308,7 @@ describe("upgrade Agreement", () => {
     await addOneEService(eservice);
 
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumer.id,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: randomArrayItem(agreementUpgradableStates) }),
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
     };
@@ -1386,7 +1330,7 @@ describe("upgrade Agreement", () => {
     await addOneTenant(consumer);
     await addOneTenant(producer);
 
-    const authData = getMockAuthData(consumer.id);
+    const authData = getMockAuthData({ organizationId: consumer.id });
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1412,11 +1356,7 @@ describe("upgrade Agreement", () => {
 
     const agreementId: AgreementId = generateId<AgreementId>();
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumer.id,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: randomArrayItem(agreementUpgradableStates) }),
       id: agreementId,
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
@@ -1446,7 +1386,7 @@ describe("upgrade Agreement", () => {
     await addOneTenant(consumer);
     await addOneTenant(producer);
 
-    const authData = getMockAuthData(consumer.id);
+    const authData = getMockAuthData({ organizationId: consumer.id });
 
     const newPublishedDescriptor: Descriptor = {
       ...getMockDescriptorPublished(),
@@ -1474,22 +1414,14 @@ describe("upgrade Agreement", () => {
 
     const agreementId: AgreementId = generateId<AgreementId>();
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumer.id,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: randomArrayItem(agreementUpgradableStates) }),
       id: agreementId,
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
     };
     await addOneAgreement(agreement);
 
-    const conflictingAgreement: Agreement = getMockAgreement(
-      eservice.id,
-      consumer.id,
-      agreementState.draft
-    );
+    const conflictingAgreement: Agreement = getMockAgreement({ eserviceId: eservice.id, consumerId: consumer.id, state: agreementState.draft });
     await addOneAgreement(conflictingAgreement);
 
     await expect(
@@ -1507,16 +1439,16 @@ describe("upgrade Agreement", () => {
     const consumerId = generateId<TenantId>();
     await addOneTenant(producer);
 
-    const oldVerifiedAttribute = getMockAttribute("Verified");
-    const oldDeclaredAttribute = getMockAttribute("Declared");
-    const oldCertifiedAttribute = getMockAttribute("Certified");
+    const oldVerifiedAttribute = getMockAttribute({ kind: "Verified" });
+    const oldDeclaredAttribute = getMockAttribute({ kind: "Declared" });
+    const oldCertifiedAttribute = getMockAttribute({ kind: "Certified" });
     await addOneAttribute(oldVerifiedAttribute);
     await addOneAttribute(oldDeclaredAttribute);
     await addOneAttribute(oldCertifiedAttribute);
 
-    const newVerifiedAttribute = getMockAttribute("Verified");
-    const newDeclaredAttribute = getMockAttribute("Declared");
-    const newCertifiedAttribute = getMockAttribute("Certified");
+    const newVerifiedAttribute = getMockAttribute({ kind: "Verified" });
+    const newDeclaredAttribute = getMockAttribute({ kind: "Declared" });
+    const newCertifiedAttribute = getMockAttribute({ kind: "Certified" });
     await addOneAttribute(newVerifiedAttribute);
     await addOneAttribute(newDeclaredAttribute);
     await addOneAttribute(newCertifiedAttribute);
@@ -1614,11 +1546,7 @@ describe("upgrade Agreement", () => {
     const agreementId: AgreementId = generateId<AgreementId>();
 
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
       id: agreementId,
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
@@ -1635,7 +1563,7 @@ describe("upgrade Agreement", () => {
     };
     await addOneAgreement(agreement);
 
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const upgradeAgreementResponse = await agreementService.upgradeAgreement(
       agreement.id,
@@ -1693,8 +1621,8 @@ describe("upgrade Agreement", () => {
     const consumerId = generateId<TenantId>();
     await addOneTenant(producer);
 
-    const oldDiscreteAttribute = getMockAttribute("Certified");
-    const newDiscreteAttribute = getMockAttribute("Certified");
+    const oldDiscreteAttribute = getMockAttribute({ kind: "Certified" });
+    const newDiscreteAttribute = getMockAttribute({ kind: "Certified" });
     await addOneAttribute(oldDiscreteAttribute);
     await addOneAttribute(newDiscreteAttribute);
 
@@ -1772,11 +1700,7 @@ describe("upgrade Agreement", () => {
 
     const agreementId: AgreementId = generateId<AgreementId>();
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
       id: agreementId,
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
@@ -1794,7 +1718,7 @@ describe("upgrade Agreement", () => {
     };
     await addOneAgreement(agreement);
 
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const upgradeAgreementResponse = await agreementService.upgradeAgreement(
       agreement.id,
@@ -1840,7 +1764,7 @@ describe("upgrade Agreement", () => {
     const consumerId = generateId<TenantId>();
     await addOneTenant(producer);
 
-    const discreteAttribute = getMockAttribute("Certified");
+    const discreteAttribute = getMockAttribute({ kind: "Certified" });
     await addOneAttribute(discreteAttribute);
 
     const currentDescriptor: Descriptor = {
@@ -1899,11 +1823,7 @@ describe("upgrade Agreement", () => {
 
     const agreementId: AgreementId = generateId<AgreementId>();
     const agreement: Agreement = {
-      ...getMockAgreement(
-        eservice.id,
-        consumerId,
-        randomArrayItem(agreementUpgradableStates)
-      ),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: randomArrayItem(agreementUpgradableStates) }),
       id: agreementId,
       producerId: eservice.producerId,
       descriptorId: currentDescriptor.id,
@@ -1921,7 +1841,7 @@ describe("upgrade Agreement", () => {
     };
     await addOneAgreement(agreement);
 
-    const authData = getMockAuthData(consumerId);
+    const authData = getMockAuthData({ organizationId: consumerId });
 
     const upgradeAgreementResponse = await agreementService.upgradeAgreement(
       agreement.id,

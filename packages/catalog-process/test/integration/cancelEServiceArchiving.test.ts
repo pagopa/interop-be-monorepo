@@ -108,7 +108,7 @@ describe("cancel eservice archiving", () => {
 
       const result = await catalogService.cancelEServiceArchiving(
         eservice.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -182,7 +182,7 @@ describe("cancel eservice archiving", () => {
 
       const result = await catalogService.cancelEServiceArchiving(
         eservice.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const expectedEService: EService = {
@@ -225,7 +225,7 @@ describe("cancel eservice archiving", () => {
 
       const result = await catalogService.cancelEServiceArchiving(
         eservice.id,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       const expectedEService: EService = {
@@ -249,7 +249,7 @@ describe("cancel eservice archiving", () => {
     await expect(
       catalogService.cancelEServiceArchiving(
         mockEService.id,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -312,7 +312,7 @@ describe("cancel eservice archiving", () => {
       await expect(
         catalogService.cancelEServiceArchiving(
           eservice.id,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(eserviceNotInArchiving(eservice.id));
     }

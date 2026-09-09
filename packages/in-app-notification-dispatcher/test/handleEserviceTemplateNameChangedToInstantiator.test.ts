@@ -36,7 +36,7 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
   await addOneEServiceTemplate(eserviceTemplate);
   const creatorId = eserviceTemplate.creatorId;
-  const creatorTenant = getMockTenant(creatorId);
+  const creatorTenant = getMockTenant({ tenantId: creatorId });
   await addOneTenant(creatorTenant);
 
   beforeEach(async () => {
@@ -95,21 +95,11 @@ describe("handleEserviceTemplateNameChangedToInstantiator", async () => {
 
   it("should generate notifications for all tenant users with notification enabled", async () => {
     const producerId = generateId<TenantId>();
-    const producerTenant = getMockTenant(producerId);
+    const producerTenant = getMockTenant({ tenantId: producerId });
     await addOneTenant(producerTenant);
 
-    const eservice1 = getMockEService(
-      generateId<EServiceId>(),
-      producerId,
-      [getMockDescriptor(descriptorState.published)],
-      eserviceTemplate.id
-    );
-    const eservice2 = getMockEService(
-      generateId<EServiceId>(),
-      producerId,
-      [getMockDescriptor(descriptorState.published)],
-      eserviceTemplate.id
-    );
+    const eservice1 = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: producerId, descriptors: [getMockDescriptor({ state: descriptorState.published })], templateId: eserviceTemplate.id });
+    const eservice2 = getMockEService({ eserviceId: generateId<EServiceId>(), producerId: producerId, descriptors: [getMockDescriptor({ state: descriptorState.published })], templateId: eserviceTemplate.id });
     await addOneEService(eservice1);
     await addOneEService(eservice2);
 

@@ -112,7 +112,7 @@ const initEserviceTemplateInstance = async (
   };
 
   const mockDescriptor = {
-    ...getMockDescriptor(eserviceDescriptorState),
+    ...getMockDescriptor({ state: eserviceDescriptorState }),
     templateVersionRef: {
       id: mockEServiceTemplate.versions[0].id,
     },
@@ -168,7 +168,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
           {
             serverUrls: [{ url: "https://soap.server.com" }],
           },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrow(
         eserviceTemplateInterfaceTechnologyMismatch(template.id, "Rest", "Soap")
@@ -199,7 +199,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
             contactEmail: "john.doe@example.com",
             serverUrls: [{ url: "https://rest.server.com" }],
           },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrow(
         eserviceTemplateInterfaceTechnologyMismatch(template.id, "Soap", "Rest")
@@ -295,9 +295,9 @@ describe("addEServiceTemplateInstanceInterface", () => {
       };
 
       const mockEService: EService = {
-        ...getMockEService(eserviceId, authData.organizationId, [
+        ...getMockEService({ eserviceId: eserviceId, producerId: authData.organizationId, descriptors: [
           mockDescriptor,
-        ]),
+        ] }),
         templateId: mockEServiceTemplate.id,
       };
 
@@ -334,11 +334,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
       const eserviceId = generateId<EServiceId>();
       const mockDescriptor = getMockDescriptor();
 
-      const mockEService: EService = getMockEService(
-        eserviceId,
-        authData.organizationId,
-        [mockDescriptor]
-      );
+      const mockEService: EService = getMockEService({ eserviceId: eserviceId, producerId: authData.organizationId, descriptors: [mockDescriptor] });
 
       await addOneEService(mockEService);
 
@@ -398,9 +394,9 @@ describe("addEServiceTemplateInstanceInterface", () => {
       };
 
       const mockEService: EService = {
-        ...getMockEService(eserviceId, authData.organizationId, [
+        ...getMockEService({ eserviceId: eserviceId, producerId: authData.organizationId, descriptors: [
           mockDescriptor,
-        ]),
+        ] }),
         templateId: mockEServiceTemplate.id,
       };
 
@@ -450,9 +446,9 @@ describe("addEServiceTemplateInstanceInterface", () => {
       };
 
       const mockEService: EService = {
-        ...getMockEService(eserviceId, authData.organizationId, [
+        ...getMockEService({ eserviceId: eserviceId, producerId: authData.organizationId, descriptors: [
           mockDescriptor,
-        ]),
+        ] }),
         templateId: mockEServiceTemplate.id,
       };
 
@@ -521,9 +517,9 @@ describe("addEServiceTemplateInstanceInterface", () => {
       };
 
       const mockEService: EService = {
-        ...getMockEService(eserviceId, authData.organizationId, [
+        ...getMockEService({ eserviceId: eserviceId, producerId: authData.organizationId, descriptors: [
           mockDescriptor,
-        ]),
+        ] }),
         templateId: mockEServiceTemplate.id,
       };
 
@@ -592,7 +588,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         descriptor.id,
         "Rest",
         requestPayload,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       // Assert descriptor contains template interface metadata
@@ -689,7 +685,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         descriptor.id,
         "Rest",
         requestPayload,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       // Assert descriptor contains template interface metadata
@@ -779,7 +775,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         descriptor.id,
         "Soap",
         requestPayload,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       // Assert descriptor contains template interface metadata
@@ -867,7 +863,7 @@ describe("addEServiceTemplateInstanceInterface", () => {
         descriptor.id,
         "Soap",
         requestPayload,
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
       expect(res.descriptors[0]?.state).toBe(descriptorState.draft);

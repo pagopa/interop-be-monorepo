@@ -182,7 +182,7 @@ export const getMockEServiceForPurposeFromTemplate = (
   templateId?: EServiceTemplateId | undefined,
   personalData: boolean = true
 ): EService => ({
-  ...getMockEService(eserviceId, producerId, descriptors, templateId),
+  ...getMockEService({ eserviceId: eserviceId, producerId: producerId, descriptors: descriptors, templateId: templateId }),
   personalData,
 });
 

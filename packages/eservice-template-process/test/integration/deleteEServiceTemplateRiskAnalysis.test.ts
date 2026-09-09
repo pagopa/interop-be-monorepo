@@ -57,7 +57,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -82,7 +82,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       eserviceTemplate.id,
       riskAnalysis.id,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
     const writtenEvent = await readLastEserviceTemplateEvent(
@@ -141,7 +141,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         riskAnalysis.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
@@ -154,7 +154,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -182,7 +182,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         riskAnalysisToDelete.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -197,7 +197,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -222,7 +222,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       eserviceTemplateService.deleteRiskAnalysis(
         eserviceTemplate.id,
         riskAnalysis.id,
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -233,7 +233,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -259,7 +259,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         riskAnalysis.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -273,7 +273,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
       Object.values(tenantKind)
     );
     const creator: Tenant = {
-      ...getMockTenant(requesterId),
+      ...getMockTenant({ tenantId: requesterId }),
       kind: creatorTenantKind,
     };
 
@@ -299,7 +299,7 @@ describe("deleteEServiceTemplateRiskAnalysis", () => {
         eserviceTemplate.id,
         riskAnalysis.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(templateNotInReceiveMode(eserviceTemplate.id));

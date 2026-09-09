@@ -72,7 +72,7 @@ describe("Protobuf converters", () => {
   });
 
   it("should preserve certified discrete attribute kind through V1 protobuf", () => {
-    const attribute = getMockAttribute(attributeKind.certifiedDiscrete);
+    const attribute = getMockAttribute({ kind: attributeKind.certifiedDiscrete });
 
     const protobuf = AttributeV1.fromBinary(
       AttributeV1.toBinary(toAttributeV1(attribute))
@@ -93,7 +93,7 @@ describe("Protobuf converters", () => {
         verified: [],
       },
     };
-    const eservice = getMockEService(undefined, undefined, [descriptor]);
+    const eservice = getMockEService({ eserviceId: undefined, producerId: undefined, descriptors: [descriptor] });
 
     const protobuf = EServiceV2.fromBinary(
       EServiceV2.toBinary(toEServiceV2(eservice))
@@ -145,7 +145,7 @@ describe("Protobuf converters", () => {
     };
     const remoteId = getMockTenantRemoteId();
     const tenant = {
-      ...getMockTenant(undefined, [certifiedDiscreteAttribute]),
+      ...getMockTenant({ tenantId: undefined, attributes: [certifiedDiscreteAttribute] }),
       remoteIds: [remoteId],
     };
 

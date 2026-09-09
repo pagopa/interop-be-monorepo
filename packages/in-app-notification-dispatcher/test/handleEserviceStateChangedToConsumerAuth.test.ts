@@ -40,7 +40,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
       },
     ],
   };
-  const producer = getMockTenant(eservice.producerId);
+  const producer = getMockTenant({ tenantId: eservice.producerId });
   const { logger } = getMockContext({});
 
   const mockGetNotificationRecipients = getNotificationRecipients as Mock;
@@ -101,9 +101,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         },
       ],
     };
-    const producerWithoutAgreements = getMockTenant(
-      eserviceWithoutAgreements.producerId
-    );
+    const producerWithoutAgreements = getMockTenant({ tenantId: eserviceWithoutAgreements.producerId });
     await addOneEService(eserviceWithoutAgreements);
     await addOneTenant(producerWithoutAgreements);
 
@@ -127,16 +125,12 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         },
       ],
     };
-    const testProducer = getMockTenant(testEservice.producerId);
+    const testProducer = getMockTenant({ tenantId: testEservice.producerId });
     await addOneEService(testEservice);
     await addOneTenant(testProducer);
 
     const consumerId = generateId<TenantId>();
-    const agreement = getMockAgreement(
-      testEservice.id,
-      consumerId,
-      agreementState.active
-    );
+    const agreement = getMockAgreement({ eserviceId: testEservice.id, consumerId: consumerId, state: agreementState.active });
     await addOneAgreement(agreement);
 
     await expect(() =>
@@ -169,15 +163,15 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
           },
         ],
       };
-      const testProducer = getMockTenant(testEservice.producerId);
+      const testProducer = getMockTenant({ tenantId: testEservice.producerId });
       await addOneEService(testEservice);
       await addOneTenant(testProducer);
 
       const consumerId = generateId<TenantId>();
-      const consumerTenant = getMockTenant(consumerId);
+      const consumerTenant = getMockTenant({ tenantId: consumerId });
       await addOneTenant(consumerTenant);
 
-      const agreement = getMockAgreement(testEservice.id, consumerId, state);
+      const agreement = getMockAgreement({ eserviceId: testEservice.id, consumerId: consumerId, state: state });
       await addOneAgreement(agreement);
 
       const users = [
@@ -228,29 +222,21 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         },
       ],
     };
-    const testProducer = getMockTenant(testEservice.producerId);
+    const testProducer = getMockTenant({ tenantId: testEservice.producerId });
     await addOneEService(testEservice);
     await addOneTenant(testProducer);
 
     // Create multiple consumers with active agreements
     const consumer1Id = generateId<TenantId>();
     const consumer2Id = generateId<TenantId>();
-    const consumer1 = getMockTenant(consumer1Id);
-    const consumer2 = getMockTenant(consumer2Id);
+    const consumer1 = getMockTenant({ tenantId: consumer1Id });
+    const consumer2 = getMockTenant({ tenantId: consumer2Id });
 
     await addOneTenant(consumer1);
     await addOneTenant(consumer2);
 
-    const agreement1 = getMockAgreement(
-      testEservice.id,
-      consumer1Id,
-      agreementState.active
-    );
-    const agreement2 = getMockAgreement(
-      testEservice.id,
-      consumer2Id,
-      agreementState.active
-    );
+    const agreement1 = getMockAgreement({ eserviceId: testEservice.id, consumerId: consumer1Id, state: agreementState.active });
+    const agreement2 = getMockAgreement({ eserviceId: testEservice.id, consumerId: consumer2Id, state: agreementState.active });
 
     await addOneAgreement(agreement1);
     await addOneAgreement(agreement2);
@@ -302,19 +288,15 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         },
       ],
     };
-    const testProducer = getMockTenant(testEservice.producerId);
+    const testProducer = getMockTenant({ tenantId: testEservice.producerId });
     await addOneEService(testEservice);
     await addOneTenant(testProducer);
 
     const consumerId = generateId<TenantId>();
-    const consumerTenant = getMockTenant(consumerId);
+    const consumerTenant = getMockTenant({ tenantId: consumerId });
     await addOneTenant(consumerTenant);
 
-    const agreement = getMockAgreement(
-      testEservice.id,
-      consumerId,
-      agreementState.active
-    );
+    const agreement = getMockAgreement({ eserviceId: testEservice.id, consumerId: consumerId, state: agreementState.active });
     await addOneAgreement(agreement);
 
     mockGetNotificationRecipients.mockResolvedValue([]);
@@ -340,7 +322,7 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
         },
       ],
     };
-    const testProducer = getMockTenant(testEservice.producerId);
+    const testProducer = getMockTenant({ tenantId: testEservice.producerId });
     await addOneEService(testEservice);
     await addOneTenant(testProducer);
 
@@ -349,29 +331,17 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
     const archivedConsumerId = generateId<TenantId>();
     const pendingConsumerId = generateId<TenantId>();
 
-    const activeConsumer = getMockTenant(activeConsumerId);
-    const archivedConsumer = getMockTenant(archivedConsumerId);
-    const pendingConsumer = getMockTenant(pendingConsumerId);
+    const activeConsumer = getMockTenant({ tenantId: activeConsumerId });
+    const archivedConsumer = getMockTenant({ tenantId: archivedConsumerId });
+    const pendingConsumer = getMockTenant({ tenantId: pendingConsumerId });
 
     await addOneTenant(activeConsumer);
     await addOneTenant(archivedConsumer);
     await addOneTenant(pendingConsumer);
 
-    const activeAgreement = getMockAgreement(
-      testEservice.id,
-      activeConsumerId,
-      agreementState.active
-    );
-    const archivedAgreement = getMockAgreement(
-      testEservice.id,
-      archivedConsumerId,
-      agreementState.archived
-    );
-    const pendingAgreement = getMockAgreement(
-      testEservice.id,
-      pendingConsumerId,
-      agreementState.pending
-    );
+    const activeAgreement = getMockAgreement({ eserviceId: testEservice.id, consumerId: activeConsumerId, state: agreementState.active });
+    const archivedAgreement = getMockAgreement({ eserviceId: testEservice.id, consumerId: archivedConsumerId, state: agreementState.archived });
+    const pendingAgreement = getMockAgreement({ eserviceId: testEservice.id, consumerId: pendingConsumerId, state: agreementState.pending });
 
     await addOneAgreement(activeAgreement);
     await addOneAgreement(archivedAgreement);
@@ -433,21 +403,17 @@ describe("handleEserviceStateChangedToConsumer (Authorization)", async () => {
       ],
     };
     const testProducer = {
-      ...getMockTenant(testEservice.producerId),
+      ...getMockTenant({ tenantId: testEservice.producerId }),
       name: "Test Producer",
     };
     await addOneEService(testEservice);
     await addOneTenant(testProducer);
 
     const consumerId = generateId<TenantId>();
-    const consumerTenant = getMockTenant(consumerId);
+    const consumerTenant = getMockTenant({ tenantId: consumerId });
     await addOneTenant(consumerTenant);
 
-    const agreement = getMockAgreement(
-      testEservice.id,
-      consumerId,
-      agreementState.active
-    );
+    const agreement = getMockAgreement({ eserviceId: testEservice.id, consumerId: consumerId, state: agreementState.active });
     await addOneAgreement(agreement);
 
     const users = [{ userId: generateId(), tenantId: consumerId }];

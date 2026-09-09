@@ -78,7 +78,7 @@ describe("handleEServiceEvent test", async () => {
                 "MaintenanceEServiceRiskAnalysisSetTenantKind",
                 async () => [
                   {
-                    descriptors: [getMockDescriptor(descriptorState.draft)],
+                    descriptors: [getMockDescriptor({ state: descriptorState.draft })],
                     affectedDescriptor: undefined,
                     expectedVisibility: undefined,
                   },
@@ -98,8 +98,8 @@ describe("handleEServiceEvent test", async () => {
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(descriptorState.draft),
-                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor({ state: descriptorState.draft }),
+                      getMockDescriptor({ state: descriptorState.draft }),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: undefined,
@@ -125,8 +125,8 @@ describe("handleEServiceEvent test", async () => {
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(descriptorState.draft),
-                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor({ state: descriptorState.draft }),
+                      getMockDescriptor({ state: descriptorState.draft }),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: 1,
@@ -156,8 +156,8 @@ describe("handleEServiceEvent test", async () => {
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(descriptorState.draft),
-                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor({ state: descriptorState.draft }),
+                      getMockDescriptor({ state: descriptorState.draft }),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: undefined,
@@ -185,8 +185,8 @@ describe("handleEServiceEvent test", async () => {
                 async () => [
                   {
                     descriptors: [
-                      getMockDescriptor(descriptorState.draft),
-                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor({ state: descriptorState.draft }),
+                      getMockDescriptor({ state: descriptorState.draft }),
                       // Visibility based only on event, descriptors state doesn't matter
                     ],
                     affectedDescriptor: 1,
@@ -205,22 +205,22 @@ describe("handleEServiceEvent test", async () => {
                   {
                     // Published e-service, public visibility even if a draft descriptor exists
                     descriptors: [
-                      getMockDescriptor(descriptorState.deprecated),
-                      getMockDescriptor(descriptorState.published),
-                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor({ state: descriptorState.deprecated }),
+                      getMockDescriptor({ state: descriptorState.published }),
+                      getMockDescriptor({ state: descriptorState.draft }),
                     ],
                     affectedDescriptor: undefined,
                     expectedVisibility: m2mEventVisibility.public,
                   },
                   // All descriptors in draft / waiting for approval, owner visibility
                   {
-                    descriptors: [getMockDescriptor(descriptorState.draft)],
+                    descriptors: [getMockDescriptor({ state: descriptorState.draft })],
                     affectedDescriptor: undefined,
                     expectedVisibility: m2mEventVisibility.owner,
                   },
                   {
                     descriptors: [
-                      getMockDescriptor(descriptorState.waitingForApproval),
+                      getMockDescriptor({ state: descriptorState.waitingForApproval }),
                     ],
                     affectedDescriptor: undefined,
                     expectedVisibility: m2mEventVisibility.owner,
@@ -244,9 +244,9 @@ describe("handleEServiceEvent test", async () => {
                   {
                     // Affected descriptor is published, public visibility
                     descriptors: [
-                      getMockDescriptor(descriptorState.deprecated),
-                      getMockDescriptor(descriptorState.published),
-                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor({ state: descriptorState.deprecated }),
+                      getMockDescriptor({ state: descriptorState.published }),
+                      getMockDescriptor({ state: descriptorState.draft }),
                     ],
                     affectedDescriptor: 1,
                     expectedVisibility: m2mEventVisibility.public,
@@ -254,8 +254,8 @@ describe("handleEServiceEvent test", async () => {
                   // Affected descriptor is draft or waiting for approval, owner visibility
                   {
                     descriptors: [
-                      getMockDescriptor(descriptorState.published),
-                      getMockDescriptor(descriptorState.draft),
+                      getMockDescriptor({ state: descriptorState.published }),
+                      getMockDescriptor({ state: descriptorState.draft }),
                     ],
                     affectedDescriptor: 1,
                     expectedVisibility: m2mEventVisibility.owner,
@@ -263,7 +263,7 @@ describe("handleEServiceEvent test", async () => {
                   {
                     // Affected descriptor is draft, owner visibility
                     descriptors: [
-                      getMockDescriptor(descriptorState.waitingForApproval),
+                      getMockDescriptor({ state: descriptorState.waitingForApproval }),
                     ],
                     affectedDescriptor: 0,
                     expectedVisibility: m2mEventVisibility.owner,
@@ -277,11 +277,7 @@ describe("handleEServiceEvent test", async () => {
               affectedDescriptor,
               expectedVisibility,
             } of testCasesData) {
-              const eservice = getMockEService(
-                eserviceId,
-                producerId,
-                descriptors
-              );
+              const eservice = getMockEService({ eserviceId: eserviceId, producerId: producerId, descriptors: descriptors });
 
               const descriptorId =
                 affectedDescriptor !== undefined

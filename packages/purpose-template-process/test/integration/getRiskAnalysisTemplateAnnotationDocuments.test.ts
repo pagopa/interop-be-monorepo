@@ -76,7 +76,7 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
 
   it("should get the annotation documents of a risk analysis template (requester is the creator)", async () => {
     const authData: AuthData = {
-      ...getMockAuthData(purposeTemplate.creatorId),
+      ...getMockAuthData({ organizationId: purposeTemplate.creatorId }),
       userRoles: [userRole.ADMIN_ROLE],
     };
     const result =
@@ -109,7 +109,7 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
         1
       );
       const authData: AuthData = {
-        ...getMockAuthData(generateId<TenantId>()),
+        ...getMockAuthData({ organizationId: generateId<TenantId>() }),
         userRoles: [userRole.ADMIN_ROLE],
       };
       const result =
@@ -133,7 +133,7 @@ describe("getRiskAnalysisTemplateAnnotationDocuments", () => {
       purposeTemplateService.getRiskAnalysisTemplateAnnotationDocuments(
         purposeTemplate.id,
         { offset: 0, limit: 10 },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });

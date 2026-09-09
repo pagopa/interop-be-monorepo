@@ -45,53 +45,53 @@ describe("getRemainingDailyCalls", () => {
     const eserviceId: EServiceId = generateId();
 
     const descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 1000,
     };
-    const eservice: EService = getMockEService(eserviceId, producerId, [
+    const eservice: EService = getMockEService({ eserviceId: eserviceId, producerId: producerId, descriptors: [
       descriptor,
-    ]);
+    ] });
     const agreement: Agreement = {
-      ...getMockAgreement(eservice.id, consumerId, agreementState.active),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: agreementState.active }),
       descriptorId: descriptor.id,
       producerId,
     };
 
     const consumerPurpose: Purpose = {
-      ...getMockPurpose([
+      ...getMockPurpose({ versions: [
         {
-          ...getMockPurposeVersion(purposeVersionState.active),
+          ...getMockPurposeVersion({ state: purposeVersionState.active }),
           dailyCalls: 40,
         },
-      ]),
+      ] }),
       eserviceId: eservice.id,
       consumerId,
     };
     const anotherConsumerPurpose: Purpose = {
-      ...getMockPurpose([
+      ...getMockPurpose({ versions: [
         {
-          ...getMockPurposeVersion(purposeVersionState.active),
+          ...getMockPurposeVersion({ state: purposeVersionState.active }),
           dailyCalls: 10,
         },
-      ]),
+      ] }),
       eserviceId: eservice.id,
       consumerId,
       id: generateId(),
     };
     const otherConsumerPurpose: Purpose = {
-      ...getMockPurpose([
+      ...getMockPurpose({ versions: [
         {
-          ...getMockPurposeVersion(purposeVersionState.active),
+          ...getMockPurposeVersion({ state: purposeVersionState.active }),
           dailyCalls: 100,
         },
-      ]),
+      ] }),
       eserviceId: eservice.id,
       consumerId: generateId(),
       id: generateId(),
     };
 
-    await addOneTenant({ ...getMockTenant(consumerId) });
+    await addOneTenant({ ...getMockTenant({ tenantId: consumerId }) });
     await addOneEService(eservice);
     await addOneAgreement(agreement);
     await addOnePurpose(consumerPurpose);
@@ -100,7 +100,7 @@ describe("getRemainingDailyCalls", () => {
 
     const result = await purposeService.getRemainingDailyCalls({
       purposeId: consumerPurpose.id,
-      ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+      ctx: getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) }),
     });
 
     expect(result).toEqual({
@@ -113,12 +113,12 @@ describe("getRemainingDailyCalls", () => {
     const consumerId: TenantId = generateId();
     const nonExistentPurposeId: PurposeId = generateId();
 
-    await addOneTenant({ ...getMockTenant(consumerId) });
+    await addOneTenant({ ...getMockTenant({ tenantId: consumerId }) });
 
     await expect(
       purposeService.getRemainingDailyCalls({
         purposeId: nonExistentPurposeId,
-        ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) }),
       })
     ).rejects.toThrowError(purposeNotFound(nonExistentPurposeId));
   });
@@ -130,32 +130,32 @@ describe("getRemainingDailyCalls", () => {
     const eserviceId: EServiceId = generateId();
 
     const descriptor = {
-      ...getMockDescriptor(descriptorState.published),
+      ...getMockDescriptor({ state: descriptorState.published }),
       dailyCallsPerConsumer: 100,
       dailyCallsTotal: 1000,
     };
-    const eservice: EService = getMockEService(eserviceId, producerId, [
+    const eservice: EService = getMockEService({ eserviceId: eserviceId, producerId: producerId, descriptors: [
       descriptor,
-    ]);
+    ] });
     const agreement: Agreement = {
-      ...getMockAgreement(eservice.id, consumerId, agreementState.active),
+      ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: agreementState.active }),
       descriptorId: descriptor.id,
       producerId,
     };
 
     const consumerPurpose: Purpose = {
-      ...getMockPurpose([
+      ...getMockPurpose({ versions: [
         {
-          ...getMockPurposeVersion(purposeVersionState.active),
+          ...getMockPurposeVersion({ state: purposeVersionState.active }),
           dailyCalls: 40,
         },
-      ]),
+      ] }),
       eserviceId: eservice.id,
       consumerId,
     };
 
-    await addOneTenant({ ...getMockTenant(consumerId) });
-    await addOneTenant({ ...getMockTenant(anotherConsumerId) });
+    await addOneTenant({ ...getMockTenant({ tenantId: consumerId }) });
+    await addOneTenant({ ...getMockTenant({ tenantId: anotherConsumerId }) });
     await addOneEService(eservice);
     await addOneAgreement(agreement);
     await addOnePurpose(consumerPurpose);
@@ -163,7 +163,7 @@ describe("getRemainingDailyCalls", () => {
     await expect(
       purposeService.getRemainingDailyCalls({
         purposeId: consumerPurpose.id,
-        ctx: getMockContext({ authData: getMockAuthData(anotherConsumerId) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: anotherConsumerId }) }),
       })
     ).rejects.toThrowError(
       tenantIsNotTheConsumer(anotherConsumerId, undefined)
@@ -190,7 +190,7 @@ describe("getRemainingDailyCalls", () => {
       const attributeId: AttributeId = generateId();
 
       const descriptor = {
-        ...getMockDescriptor(descriptorState.published),
+        ...getMockDescriptor({ state: descriptorState.published }),
         dailyCallsPerConsumer: 100,
         dailyCallsTotal: 1000,
         attributes: {
@@ -211,27 +211,27 @@ describe("getRemainingDailyCalls", () => {
           verified: [],
         },
       };
-      const eservice: EService = getMockEService(eserviceId, producerId, [
+      const eservice: EService = getMockEService({ eserviceId: eserviceId, producerId: producerId, descriptors: [
         descriptor,
-      ]);
+      ] });
       const agreement: Agreement = {
-        ...getMockAgreement(eservice.id, consumerId, agreementState.active),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerId, state: agreementState.active }),
         descriptorId: descriptor.id,
         producerId,
       };
       const consumerPurpose: Purpose = {
-        ...getMockPurpose([
+        ...getMockPurpose({ versions: [
           {
-            ...getMockPurposeVersion(purposeVersionState.active),
+            ...getMockPurposeVersion({ state: purposeVersionState.active }),
             dailyCalls: 40,
           },
-        ]),
+        ] }),
         eserviceId: eservice.id,
         consumerId,
       };
 
       await addOneTenant({
-        ...getMockTenant(consumerId, [
+        ...getMockTenant({ tenantId: consumerId, attributes: [
           {
             id: attributeId,
             type: "PersistentCertifiedDiscreteAttribute",
@@ -239,7 +239,7 @@ describe("getRemainingDailyCalls", () => {
             revocationTimestamp: undefined,
             discreteValue,
           },
-        ]),
+        ] }),
       });
       await addOneEService(eservice);
       await addOneAgreement(agreement);
@@ -259,7 +259,7 @@ describe("getRemainingDailyCalls", () => {
 
       const result = await purposeService.getRemainingDailyCalls({
         purposeId,
-        ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) }),
       });
 
       expect(result).toEqual({
@@ -279,7 +279,7 @@ describe("getRemainingDailyCalls", () => {
 
       const result = await purposeService.getRemainingDailyCalls({
         purposeId,
-        ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) }),
       });
 
       expect(result).toEqual({
@@ -299,7 +299,7 @@ describe("getRemainingDailyCalls", () => {
 
       const result = await purposeService.getRemainingDailyCalls({
         purposeId,
-        ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) }),
       });
 
       expect(result).toEqual({
@@ -319,7 +319,7 @@ describe("getRemainingDailyCalls", () => {
 
       const result = await purposeService.getRemainingDailyCalls({
         purposeId,
-        ctx: getMockContext({ authData: getMockAuthData(consumerId) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) }),
       });
 
       expect(result).toEqual({

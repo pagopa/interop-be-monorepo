@@ -41,7 +41,7 @@ describe("createProducerKeychain", () => {
       {
         producerKeychainSeed,
       },
-      getMockContext({ authData: getMockAuthData(organizationId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
     );
 
     const writtenEvent = await readLastEventByStreamId(
@@ -89,7 +89,7 @@ describe("createProducerKeychain", () => {
     await expect(
       authorizationService.createProducerKeychain(
         { producerKeychainSeed: seed },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(error);
   });

@@ -19,7 +19,7 @@ describe("getClientUsers", () => {
   const userId1 = generateId();
   const userId2 = generateId();
 
-  const mockTenant = getMockTenant(tenantId);
+  const mockTenant = getMockTenant({ tenantId: tenantId });
   const mockTenantWithMetadata = getMockWithMetadata(mockTenant);
   const mockTenantWithoutSelfcareId = getMockWithMetadata({
     ...mockTenant,

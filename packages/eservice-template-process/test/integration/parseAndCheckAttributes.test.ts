@@ -17,18 +17,18 @@ import { parseAndCheckAttributes } from "../../src/services/eserviceTemplateServ
 import { addOneAttribute, readModelService } from "../integrationUtils.js";
 
 describe("parseAndCheckAttributes", () => {
-  const certified1 = getMockAttribute("Certified");
-  const certified2 = getMockAttribute("Certified");
-  const certified3 = getMockAttribute("Certified");
-  const certifiedDiscrete1 = getMockAttribute("CertifiedDiscrete");
+  const certified1 = getMockAttribute({ kind: "Certified" });
+  const certified2 = getMockAttribute({ kind: "Certified" });
+  const certified3 = getMockAttribute({ kind: "Certified" });
+  const certifiedDiscrete1 = getMockAttribute({ kind: "CertifiedDiscrete" });
 
-  const declared1 = getMockAttribute("Declared");
-  const declared2 = getMockAttribute("Declared");
-  const declared3 = getMockAttribute("Declared");
+  const declared1 = getMockAttribute({ kind: "Declared" });
+  const declared2 = getMockAttribute({ kind: "Declared" });
+  const declared3 = getMockAttribute({ kind: "Declared" });
 
-  const verified1 = getMockAttribute("Verified");
-  const verified2 = getMockAttribute("Verified");
-  const verified3 = getMockAttribute("Verified");
+  const verified1 = getMockAttribute({ kind: "Verified" });
+  const verified2 = getMockAttribute({ kind: "Verified" });
+  const verified3 = getMockAttribute({ kind: "Verified" });
 
   const nonExistingAttributeId = generateId<AttributeId>();
 

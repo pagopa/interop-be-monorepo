@@ -88,7 +88,7 @@ describe("publishEServiceTemplateVersion", () => {
     };
 
     await addOneTenant({
-      ...getMockTenant(eserviceTemplate.creatorId),
+      ...getMockTenant({ tenantId: eserviceTemplate.creatorId }),
       kind: tenantKind.PA,
     });
     await addOneEServiceTemplate(eserviceTemplate);
@@ -97,7 +97,7 @@ describe("publishEServiceTemplateVersion", () => {
       eserviceTemplate.id,
       eserviceTemplateVersion.id,
       getMockContext({
-        authData: getMockAuthData(eserviceTemplate.creatorId),
+        authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
       })
     );
 
@@ -155,7 +155,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(eserviceTemplate.id));
@@ -194,7 +194,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersionId,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -226,7 +226,7 @@ describe("publishEServiceTemplateVersion", () => {
           eserviceTemplate.id,
           eserviceTemplateVersion.id,
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -253,7 +253,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -292,7 +292,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(missingRiskAnalysis(eserviceTemplate.id));
@@ -337,7 +337,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -376,7 +376,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).resolves.not.toThrowError();
@@ -422,7 +422,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).resolves.not.toThrowError();
@@ -448,7 +448,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -478,7 +478,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -511,7 +511,7 @@ describe("publishEServiceTemplateVersion", () => {
     };
 
     await addOneTenant({
-      ...getMockTenant(eserviceTemplate.creatorId),
+      ...getMockTenant({ tenantId: eserviceTemplate.creatorId }),
       kind: tenantKind.PA,
     });
     await addOneEServiceTemplate(eserviceTemplate);
@@ -521,7 +521,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -555,7 +555,7 @@ describe("publishEServiceTemplateVersion", () => {
     };
 
     await addOneTenant({
-      ...getMockTenant(eserviceTemplate.creatorId),
+      ...getMockTenant({ tenantId: eserviceTemplate.creatorId }),
       kind: tenantKind.PA,
     });
     await addOneEServiceTemplate(eserviceTemplate);
@@ -565,7 +565,7 @@ describe("publishEServiceTemplateVersion", () => {
         eserviceTemplate.id,
         eserviceTemplateVersion.id,
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       )
     ).resolves.not.toThrowError();

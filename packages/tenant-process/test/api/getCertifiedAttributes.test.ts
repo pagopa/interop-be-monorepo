@@ -37,12 +37,12 @@ describe("API GET /tenants/attributes/certified test", () => {
   };
 
   const certifiedAttribute1: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     origin: certifierId,
     id: tenantCertifiedAttribute1.id,
   };
   const certifiedAttribute2: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     origin: certifierId,
     id: tenantCertifiedAttribute2.id,
   };

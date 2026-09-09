@@ -54,19 +54,19 @@ describe("get agreements eservices", () => {
     delegateConsumer2 = getMockTenant();
 
     eservice1 = {
-      ...getMockEService(generateId<EServiceId>(), tenant1.id),
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: tenant1.id }),
       name: "EService 1 Foo",
     };
     eservice2 = {
-      ...getMockEService(generateId<EServiceId>(), tenant2.id),
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: tenant2.id }),
       name: "EService 2 Bar",
     };
     eservice3 = {
-      ...getMockEService(generateId<EServiceId>(), tenant3.id),
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: tenant3.id }),
       name: "EService 3 FooBar",
     };
     eservice4 = {
-      ...getMockEService(generateId<EServiceId>(), tenant3.id),
+      ...getMockEService({ eserviceId: generateId<EServiceId>(), producerId: tenant3.id }),
       name: "EService 4 FooBar",
     };
 
@@ -82,41 +82,41 @@ describe("get agreements eservices", () => {
     await addOneEService(eservice4);
 
     const agreement1 = {
-      ...getMockAgreement(eservice1.id),
+      ...getMockAgreement({ eserviceId: eservice1.id }),
       producerId: eservice1.producerId,
       consumerId: tenant2.id,
     };
     const agreement2 = {
-      ...getMockAgreement(eservice2.id),
+      ...getMockAgreement({ eserviceId: eservice2.id }),
       producerId: eservice2.producerId,
       consumerId: tenant3.id,
     };
 
     const agreement3 = {
-      ...getMockAgreement(eservice3.id),
+      ...getMockAgreement({ eserviceId: eservice3.id }),
       producerId: eservice3.producerId,
       consumerId: tenant1.id,
     };
     const agreement4 = {
-      ...getMockAgreement(eservice4.id),
+      ...getMockAgreement({ eserviceId: eservice4.id }),
       producerId: eservice4.producerId,
       consumerId: tenant3.id,
     };
 
     const agreement5 = {
-      ...getMockAgreement(eservice4.id),
+      ...getMockAgreement({ eserviceId: eservice4.id }),
       consumerId: delegateProducer1.id,
       producerId: eservice4.producerId,
     };
 
     const agreement6 = {
-      ...getMockAgreement(eservice4.id),
+      ...getMockAgreement({ eserviceId: eservice4.id }),
       producerId: eservice4.producerId,
       consumerId: delegateConsumer1.id,
     };
 
     const agreement7 = {
-      ...getMockAgreement(eservice2.id),
+      ...getMockAgreement({ eserviceId: eservice2.id }),
       producerId: eservice2.producerId,
       consumerId: delegateConsumer2.id,
     };
@@ -184,7 +184,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
 
     expectGenericSinglePageListResult(
@@ -200,7 +200,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant2.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant2.id }) })
     );
 
     expectGenericSinglePageListResult(
@@ -216,7 +216,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant3.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant3.id }) })
     );
 
     expectGenericSinglePageListResult(
@@ -235,7 +235,7 @@ describe("get agreements eservices", () => {
         },
         10,
         0,
-        getMockContext({ authData: getMockAuthData(delegateProducer1.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateProducer1.id }) })
       );
     expectGenericSinglePageListResult(
       resultsForDelegateProducer1,
@@ -253,7 +253,7 @@ describe("get agreements eservices", () => {
         },
         10,
         0,
-        getMockContext({ authData: getMockAuthData(delegateConsumer1.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateConsumer1.id }) })
       );
     expectGenericSinglePageListResult(
       resultsForDelegateConsumer1,
@@ -269,7 +269,7 @@ describe("get agreements eservices", () => {
         },
         10,
         0,
-        getMockContext({ authData: getMockAuthData(delegateConsumer2.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateConsumer2.id }) })
       );
     expectGenericSinglePageListResult(
       resultsForDelegateConsumer2,
@@ -286,7 +286,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant3.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant3.id }) })
     );
 
     expectGenericSinglePageListResult(
@@ -304,7 +304,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant3.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant3.id }) })
     );
 
     expectGenericSinglePageListResult(
@@ -322,7 +322,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant2.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant2.id }) })
     );
 
     expectGenericSinglePageListResult(
@@ -340,7 +340,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
 
     expect(eservices).toEqual({
@@ -358,7 +358,7 @@ describe("get agreements eservices", () => {
       },
       2,
       0,
-      getMockContext({ authData: getMockAuthData(tenant3.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant3.id }) })
     );
 
     expect(eservices).toEqual({
@@ -376,7 +376,7 @@ describe("get agreements eservices", () => {
       },
       2,
       1,
-      getMockContext({ authData: getMockAuthData(tenant3.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant3.id }) })
     );
 
     expect(eservices).toEqual({
@@ -394,7 +394,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant1.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant1.id }) })
     );
 
     expectGenericSinglePageListResult(eservices, []);
@@ -409,7 +409,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant2.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant2.id }) })
     );
 
     expectGenericSinglePageListResult(
@@ -427,7 +427,7 @@ describe("get agreements eservices", () => {
       },
       10,
       0,
-      getMockContext({ authData: getMockAuthData(tenant3.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenant3.id }) })
     );
 
     expectGenericSinglePageListResult(

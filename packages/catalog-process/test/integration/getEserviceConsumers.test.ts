@@ -40,7 +40,7 @@ describe("get eservice consumers", () => {
     await addOneTenant(tenant);
 
     const agreement = {
-      ...getMockAgreement(eservice1.id, tenant.id, agreementState.active),
+      ...getMockAgreement({ eserviceId: eservice1.id, consumerId: tenant.id, state: agreementState.active }),
       descriptorId: descriptor1.id,
       producerId: eservice1.producerId,
     };

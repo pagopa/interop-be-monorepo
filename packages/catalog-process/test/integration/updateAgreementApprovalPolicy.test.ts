@@ -82,7 +82,7 @@ describe("update descriptor agreement approval policy", () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorAgreementApprovalPolicy,
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
@@ -151,7 +151,7 @@ describe("update descriptor agreement approval policy", () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorAgreementApprovalPolicy,
-          getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
         );
       const writtenEvent = await readLastEserviceEvent(eservice.id);
       expect(writtenEvent).toMatchObject({
@@ -185,7 +185,7 @@ describe("update descriptor agreement approval policy", () => {
         mockEService.id,
         mockDescriptor.id,
         updatedDescriptorAgreementApprovalPolicy,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -207,7 +207,7 @@ describe("update descriptor agreement approval policy", () => {
         mockEService.id,
         mockDescriptor.id,
         updatedDescriptorAgreementApprovalPolicy,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -237,7 +237,7 @@ describe("update descriptor agreement approval policy", () => {
           eservice.id,
           descriptor.id,
           updatedDescriptorAgreementApprovalPolicy,
-          getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(mockDescriptor.id, state));
     }
@@ -275,7 +275,7 @@ describe("update descriptor agreement approval policy", () => {
         mockEService.id,
         mockDescriptor.id,
         { agreementApprovalPolicy: "MANUAL" },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       featureFlagNotEnabled("featureFlagAgreementApprovalPolicyUpdate")

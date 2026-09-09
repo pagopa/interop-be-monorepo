@@ -136,7 +136,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
           subjectDocumentId,
           validUpdateDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         );
 
@@ -204,7 +204,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
         subjectDocumentSingleId,
         validUpdateDocumentSeed,
         getMockContext({
-          authData: getMockAuthData(existentPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -226,7 +226,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
         subjectDocumentSingleId,
         validUpdateDocumentSeed,
         getMockContext({
-          authData: getMockAuthData(publishedPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: publishedPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -252,7 +252,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
         subjectDocumentSingleId,
         validUpdateDocumentSeed,
         getMockContext({
-          authData: getMockAuthData(existentPurposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -292,7 +292,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
           subjectDocumentId,
           validUpdateDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -352,7 +352,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
           subjectDocumentId,
           validUpdateDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -403,7 +403,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
           subjectDocumentId,
           validUpdateDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -461,7 +461,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
           subjectDocumentId,
           validUpdateDocumentSeed,
           getMockContext({
-            authData: getMockAuthData(existentPurposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: existentPurposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -486,7 +486,7 @@ describe("updateRiskAnalysisAnswerAnnotationDocument", () => {
         subjectDocumentSingleId,
         validUpdateDocumentSeed,
         getMockContext({
-          authData: getMockAuthData(differentCreatorId),
+          authData: getMockAuthData({ organizationId: differentCreatorId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(existentPurposeTemplate.id));

@@ -60,7 +60,7 @@ const setupConsumerClient = async (
 }> => {
   const purpose: Purpose = {
     ...getMockPurpose(),
-    versions: [getMockPurposeVersion(purposeVersionState.active)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
   };
   const clientId = generateId<ClientId>();
 
@@ -299,7 +299,7 @@ describe("async token service - start_interaction", () => {
   it("should throw catalogEntryNotFound when catalog entry is missing", async () => {
     const purpose: Purpose = {
       ...getMockPurpose(),
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
     const clientId = generateId<ClientId>();
 

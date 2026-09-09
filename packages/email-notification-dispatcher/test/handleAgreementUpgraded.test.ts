@@ -47,11 +47,11 @@ describe("handleAgreementUpgraded", async () => {
     descriptors: [descriptor],
   };
   const producerTenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     name: "Producer Tenant",
   };
   const consumerTenant = {
-    ...getMockTenant(consumerId),
+    ...getMockTenant({ tenantId: consumerId }),
     name: "Consumer Tenant",
   };
   const users = [

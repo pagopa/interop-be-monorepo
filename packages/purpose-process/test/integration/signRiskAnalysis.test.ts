@@ -57,7 +57,7 @@ describe("signRiskAnalysis", () => {
 
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
@@ -76,7 +76,7 @@ describe("signRiskAnalysis", () => {
     const { data: updatedPurpose } = await purposeService.signRiskAnalysis(
       mockPurpose.id,
       getMockContext({
-        authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+        authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
       })
     );
 
@@ -107,7 +107,7 @@ describe("signRiskAnalysis", () => {
 
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds: [reviewerId],
@@ -121,7 +121,7 @@ describe("signRiskAnalysis", () => {
     const { data: updatedPurpose } = await purposeService.signRiskAnalysis(
       mockPurpose.id,
       getMockContext({
-        authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+        authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
       })
     );
 
@@ -159,7 +159,7 @@ describe("signRiskAnalysis", () => {
 
   it("should throw reviewerWorkflowNotFound if the purpose has no reviewer workflow", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: undefined,
     };
 
@@ -168,7 +168,7 @@ describe("signRiskAnalysis", () => {
     expect(
       purposeService.signRiskAnalysis(
         mockPurpose.id,
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(reviewerWorkflowNotFound(mockPurpose.id));
   });
@@ -176,7 +176,7 @@ describe("signRiskAnalysis", () => {
   it("should throw reviewerWorkflowNotInSignableState if the workflow is not signable", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds: [reviewerId],
@@ -191,7 +191,7 @@ describe("signRiskAnalysis", () => {
       purposeService.signRiskAnalysis(
         mockPurpose.id,
         getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
         })
       )
     ).rejects.toThrowError(reviewerWorkflowNotInSignableState(mockPurpose.id));
@@ -199,7 +199,7 @@ describe("signRiskAnalysis", () => {
 
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerIds: [generateId<UserId>()],
@@ -214,10 +214,7 @@ describe("signRiskAnalysis", () => {
       purposeService.signRiskAnalysis(
         mockPurpose.id,
         getMockContext({
-          authData: getMockAuthData(
-            mockPurpose.consumerId,
-            generateId<UserId>()
-          ),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: generateId<UserId>() }),
         })
       )
     ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
@@ -226,7 +223,7 @@ describe("signRiskAnalysis", () => {
   it("should throw missingRiskAnalysis for ReviewerWritesReviewerSigns if the form is missing", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerIds: [reviewerId],
@@ -242,7 +239,7 @@ describe("signRiskAnalysis", () => {
       purposeService.signRiskAnalysis(
         mockPurpose.id,
         getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
         })
       )
     ).rejects.toThrowError(missingRiskAnalysis(mockPurpose.id));
@@ -251,7 +248,7 @@ describe("signRiskAnalysis", () => {
   it("should throw riskAnalysisValidationFailed for ReviewerWritesReviewerSigns if the form is invalid", async () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       riskAnalysisForm: getMockExpiredRiskAnalysisForm(tenantKind.PA),
@@ -271,7 +268,7 @@ describe("signRiskAnalysis", () => {
       purposeService.signRiskAnalysis(
         mockPurpose.id,
         getMockContext({
-          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+          authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: reviewerId }),
         })
       )
     ).rejects.toMatchObject({ code: "riskAnalysisValidationFailed" });

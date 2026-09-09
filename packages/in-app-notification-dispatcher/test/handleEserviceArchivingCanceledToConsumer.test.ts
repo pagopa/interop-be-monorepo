@@ -45,7 +45,7 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
   const getDescriptor = (
     gracePeriodDaysValue: GracePeriodDays
   ): Descriptor => ({
-    ...getMockDescriptor(descriptorState.published),
+    ...getMockDescriptor({ state: descriptorState.published }),
     archivingSchedule: {
       archivableOn: new Date("2026-12-31T00:00:00.000Z"),
       startedAt: new Date("2026-05-14T00:00:00.000Z"),
@@ -91,11 +91,7 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
       };
       await addOneEService(eservice);
       await addOneAgreement({
-        ...getMockAgreement(
-          eservice.id,
-          consumerTenant.id,
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerTenant.id, state: agreementState.active }),
       });
 
       const msg: EServiceEventV2 = {
@@ -138,11 +134,7 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
       };
       await addOneEService(eservice);
       await addOneAgreement({
-        ...getMockAgreement(
-          eservice.id,
-          consumerTenant.id,
-          agreementState.active
-        ),
+        ...getMockAgreement({ eserviceId: eservice.id, consumerId: consumerTenant.id, state: agreementState.active }),
       });
 
       const msg: EServiceEventV2 = {
@@ -170,7 +162,7 @@ describe("handleEserviceArchivingCanceledToConsumer", () => {
     const otherEservice: EService = {
       ...getMockEService(),
       producerId: producerTenant.id,
-      descriptors: [getMockDescriptor(descriptorState.published)],
+      descriptors: [getMockDescriptor({ state: descriptorState.published })],
     };
     await addOneEService(otherEservice);
     const msg: EServiceEventV2 = {

@@ -111,7 +111,7 @@ describe("deletePurposeTemplate", () => {
 
     await purposeTemplateService.deletePurposeTemplate(
       purposeTemplate.id,
-      getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }) })
     );
 
     const purposeTemplateDeletionEvent = await readLastPurposeTemplateEvent(
@@ -157,7 +157,7 @@ describe("deletePurposeTemplate", () => {
     void expect(
       purposeTemplateService.deletePurposeTemplate(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
@@ -169,7 +169,7 @@ describe("deletePurposeTemplate", () => {
     expect(
       purposeTemplateService.deletePurposeTemplate(
         purposeTemplate.id,
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
   });
@@ -182,9 +182,7 @@ describe("deletePurposeTemplate", () => {
       purposeTemplateService.deletePurposeTemplate(
         purposeTemplateWithoutRiskAnalysisForm.id,
         getMockContext({
-          authData: getMockAuthData(
-            purposeTemplateWithoutRiskAnalysisForm.creatorId
-          ),
+          authData: getMockAuthData({ organizationId: purposeTemplateWithoutRiskAnalysisForm.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -211,7 +209,7 @@ describe("deletePurposeTemplate", () => {
         purposeTemplateService.deletePurposeTemplate(
           purposeTemplate.id,
           getMockContext({
-            authData: getMockAuthData(purposeTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(

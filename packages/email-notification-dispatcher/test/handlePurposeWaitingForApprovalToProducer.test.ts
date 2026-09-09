@@ -54,12 +54,12 @@ describe("handlePurposeWaitingForApproval", async () => {
     descriptors: [descriptor],
   };
   const producerTenant: Tenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     name: "Producer Tenant",
     mails: [getMockTenantMail()],
   };
   const consumerTenant = {
-    ...getMockTenant(consumerId),
+    ...getMockTenant({ tenantId: consumerId }),
     name: "Consumer Tenant",
   };
   const users = [
@@ -277,7 +277,7 @@ describe("handlePurposeWaitingForApproval", async () => {
     };
     const newMail = getMockTenantMail();
     const producerTenantWithMultipleMails: Tenant = {
-      ...getMockTenant(producerId),
+      ...getMockTenant({ tenantId: producerId }),
       mails: [oldMail, newMail],
     };
     await addOneTenant(producerTenantWithMultipleMails);

@@ -64,7 +64,7 @@ describe("rejectPurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         rejectionReason: "test",
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -135,7 +135,7 @@ describe("rejectPurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         rejectionReason: "test",
       },
-      getMockContext({ authData: getMockAuthData(delegate.organizationId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: delegate.organizationId }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -205,7 +205,7 @@ describe("rejectPurposeVersion", () => {
         versionId: mockPurposeVersion.id,
         rejectionReason: "test",
       },
-      getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -287,7 +287,7 @@ describe("rejectPurposeVersion", () => {
         rejectionReason: "test",
       },
       getMockContext({
-        authData: getMockAuthData(producerDelegate.organizationId),
+        authData: getMockAuthData({ organizationId: producerDelegate.organizationId }),
       })
     );
 
@@ -345,7 +345,7 @@ describe("rejectPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
           rejectionReason: "test",
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(purposeNotFound(randomId));
   });
@@ -367,7 +367,7 @@ describe("rejectPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
           rejectionReason: "test",
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
@@ -390,7 +390,7 @@ describe("rejectPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
           rejectionReason: "test",
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheProducer(mockPurpose.consumerId));
   });
@@ -423,7 +423,7 @@ describe("rejectPurposeVersion", () => {
           versionId: mockPurposeVersion.id,
           rejectionReason: "test",
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       tenantIsNotTheDelegatedProducer(mockEService.producerId, delegation.id)
@@ -461,7 +461,7 @@ describe("rejectPurposeVersion", () => {
           rejectionReason: "test",
         },
         getMockContext({
-          authData: getMockAuthData(randomCaller.organizationId),
+          authData: getMockAuthData({ organizationId: randomCaller.organizationId }),
         })
       )
     ).rejects.toThrowError(
@@ -505,7 +505,7 @@ describe("rejectPurposeVersion", () => {
             rejectionReason: "test",
           },
           getMockContext({
-            authData: getMockAuthData(delegate.organizationId),
+            authData: getMockAuthData({ organizationId: delegate.organizationId }),
           })
         )
       ).rejects.toThrowError(tenantIsNotTheProducer(delegate.organizationId));
@@ -531,7 +531,7 @@ describe("rejectPurposeVersion", () => {
           versionId: randomVersionId,
           rejectionReason: "test",
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       purposeVersionNotFound(mockPurpose.id, randomVersionId)
@@ -545,7 +545,7 @@ describe("rejectPurposeVersion", () => {
     "should throw notValidVersionState if the purpose version is in %s state",
     async (state) => {
       const mockEService = getMockEService();
-      const mockPurposeVersion = getMockPurposeVersion(state);
+      const mockPurposeVersion = getMockPurposeVersion({ state: state });
 
       const mockPurpose: Purpose = {
         ...getMockPurpose(),
@@ -564,7 +564,7 @@ describe("rejectPurposeVersion", () => {
             rejectionReason: "test",
           },
           getMockContext({
-            authData: getMockAuthData(mockEService.producerId),
+            authData: getMockAuthData({ organizationId: mockEService.producerId }),
           })
         )
       ).rejects.toThrowError(

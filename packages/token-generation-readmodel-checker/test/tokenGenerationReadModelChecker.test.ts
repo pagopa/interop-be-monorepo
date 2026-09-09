@@ -104,7 +104,7 @@ describe("Token Generation Read Model Checker tests", () => {
 
       // purpose
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       await addOnePurpose(purpose);
@@ -260,13 +260,13 @@ describe("Token Generation Read Model Checker tests", () => {
 
   describe("purposes", () => {
     it("should not detect differences when the purpose platform-states entries are correct", async () => {
-      const purpose1 = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.active),
-      ]);
+      const purpose1 = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.active }),
+      ] });
 
-      const purpose2 = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.active),
-      ]);
+      const purpose2 = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.active }),
+      ] });
 
       // platform-states
       const purposeEntryPK1 = makePlatformStatesPurposePK(purpose1.id);
@@ -308,13 +308,13 @@ describe("Token Generation Read Model Checker tests", () => {
     });
 
     it("should detect differences for wrong purpose states", async () => {
-      const purpose1 = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.active),
-      ]);
+      const purpose1 = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.active }),
+      ] });
 
-      const purpose2 = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.active),
-      ]);
+      const purpose2 = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.active }),
+      ] });
 
       // platform-states
       const purposeEntryPK1 = makePlatformStatesPurposePK(purpose1.id);
@@ -356,9 +356,9 @@ describe("Token Generation Read Model Checker tests", () => {
     });
 
     it("should detect differences when there's a platform-states purpose entry and the purpose is archived", async () => {
-      const purpose = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.archived),
-      ]);
+      const purpose = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.archived }),
+      ] });
 
       // platform-states
       const purposeEntryPK = makePlatformStatesPurposePK(purpose.id);
@@ -385,9 +385,9 @@ describe("Token Generation Read Model Checker tests", () => {
     });
 
     it("should detect differences when the platform-states entry is missing and the purpose is not archived", async () => {
-      const purpose = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.active),
-      ]);
+      const purpose = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.active }),
+      ] });
 
       const expectedDifferencesLength = 1;
       const purposeDifferences =
@@ -400,9 +400,9 @@ describe("Token Generation Read Model Checker tests", () => {
     });
 
     it("should not detect differences when the platform-states entry is missing and the purpose is archived", async () => {
-      const purpose = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.archived),
-      ]);
+      const purpose = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.archived }),
+      ] });
 
       const expectedDifferencesLength = 0;
       const purposeDifferences =
@@ -415,9 +415,9 @@ describe("Token Generation Read Model Checker tests", () => {
     });
 
     it("should detect differences when the read model purpose is missing", async () => {
-      const purpose = getMockPurpose([
-        getMockPurposeVersion(purposeVersionState.active),
-      ]);
+      const purpose = getMockPurpose({ versions: [
+        getMockPurposeVersion({ state: purposeVersionState.active }),
+      ] });
 
       // platform-states
       const purposeEntryPK = makePlatformStatesPurposePK(purpose.id);
@@ -1045,7 +1045,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
@@ -1147,7 +1147,7 @@ describe("Token Generation Read Model Checker tests", () => {
       };
       const eservicesById = new Map([[eservice.id, eservice]]);
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
@@ -1251,7 +1251,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
@@ -1335,9 +1335,9 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([
-          getMockPurposeVersion(purposeVersionState.waitingForApproval),
-        ]),
+        ...getMockPurpose({ versions: [
+          getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
+        ] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map();
@@ -1441,7 +1441,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map();
@@ -1544,7 +1544,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
@@ -1635,7 +1635,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
@@ -1720,7 +1720,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
@@ -1806,7 +1806,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
@@ -1867,7 +1867,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);
@@ -1927,7 +1927,7 @@ describe("Token Generation Read Model Checker tests", () => {
       const eservicesById = new Map([[eservice.id, eservice]]);
 
       const purpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         eserviceId: eservice.id,
       };
       const purposesById = new Map([[purpose.id, purpose]]);

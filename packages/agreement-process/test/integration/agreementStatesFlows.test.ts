@@ -78,19 +78,15 @@ describe("Agreement states flows", () => {
 
     const descriptorId = generateId<DescriptorId>();
     const descriptorV1: Descriptor = {
-      ...getMockDescriptorPublished(
-        descriptorId,
-        [[validCertifiedEserviceAttribute]],
-        [[validDeclaredEserviceAttribute]]
-        // No verified attributes required in V1
-      ),
+      ...getMockDescriptorPublished({ descriptorId: descriptorId, certifiedAttributes: [[validCertifiedEserviceAttribute]], declaredAttributes: [[validDeclaredEserviceAttribute]]
+        // No verified attributes required in V1 }),
       version: "1",
       agreementApprovalPolicy: "Automatic",
     };
 
     const eserviceId = generateId<EServiceId>();
     const eservice: EService = {
-      ...getMockEService(eserviceId, producer.id, [descriptorV1]),
+      ...getMockEService({ eserviceId: eserviceId, producerId: producer.id, descriptors: [descriptorV1] }),
     };
 
     await addOneEService(eservice);
@@ -114,7 +110,7 @@ describe("Agreement states flows", () => {
     /* =================================
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
-    const consumerAuthData = getMockAuthData(consumer.id);
+    const consumerAuthData = getMockAuthData({ organizationId: consumer.id });
     const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId,
@@ -255,7 +251,7 @@ describe("Agreement states flows", () => {
       During this execution flow, the newly created draft agreement still preserves the suspension flags and PENDING state.
     ================================= */
 
-    const producerAuthData = getMockAuthData(producer.id);
+    const producerAuthData = getMockAuthData({ organizationId: producer.id });
 
     const { data: activatedAgreement } =
       await agreementService.approveAgreement(
@@ -303,19 +299,15 @@ describe("Agreement states flows", () => {
 
     const descriptorId = generateId<DescriptorId>();
     const descriptorV1: Descriptor = {
-      ...getMockDescriptorPublished(
-        descriptorId,
-        [[validCertifiedEserviceAttribute]],
-        [[validDeclaredEserviceAttribute]]
-        // No verified attributes required in V1
-      ),
+      ...getMockDescriptorPublished({ descriptorId: descriptorId, certifiedAttributes: [[validCertifiedEserviceAttribute]], declaredAttributes: [[validDeclaredEserviceAttribute]]
+        // No verified attributes required in V1 }),
       version: "1",
       agreementApprovalPolicy: "Automatic",
     };
 
     const eserviceId = generateId<EServiceId>();
     const eservice: EService = {
-      ...getMockEService(eserviceId, producer.id, [descriptorV1]),
+      ...getMockEService({ eserviceId: eserviceId, producerId: producer.id, descriptors: [descriptorV1] }),
     };
 
     await addOneEService(eservice);
@@ -339,7 +331,7 @@ describe("Agreement states flows", () => {
     /* =================================
       1) Consumer creates the agreement (state DRAFT)
     ================================= */
-    const consumerAuthData = getMockAuthData(consumer.id);
+    const consumerAuthData = getMockAuthData({ organizationId: consumer.id });
     const { data: createdAgreement } = await agreementService.createAgreement(
       {
         eserviceId,
@@ -460,7 +452,7 @@ describe("Agreement states flows", () => {
       8) Agreement activation by producer (state becomes ACTIVE)
     ================================= */
 
-    const producerAuthData = getMockAuthData(producer.id);
+    const producerAuthData = getMockAuthData({ organizationId: producer.id });
 
     const { data: activatedAgreement } =
       await agreementService.approveAgreement(

@@ -44,7 +44,7 @@ describe("updateTenantNotificationConfig", () => {
       await notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,
         getMockContext({
-          authData: getMockAuthData(tenantId),
+          authData: getMockAuthData({ organizationId: tenantId }),
         })
       );
     const writtenEvent = await readLastNotificationConfigEvent(
@@ -79,7 +79,7 @@ describe("updateTenantNotificationConfig", () => {
       notificationConfigService.updateTenantNotificationConfig(
         notificationConfigSeed,
         getMockContext({
-          authData: getMockAuthData(notExistingTenantId),
+          authData: getMockAuthData({ organizationId: notExistingTenantId }),
         })
       )
     ).rejects.toThrowError(

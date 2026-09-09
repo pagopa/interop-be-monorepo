@@ -29,7 +29,7 @@ import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API POST /purposes/{purposeId}/versions test", () => {
   const mockPurposeVersion = getMockPurposeVersion();
-  const mockPurpose: Purpose = getMockPurpose([mockPurposeVersion]);
+  const mockPurpose: Purpose = getMockPurpose({ versions: [mockPurposeVersion] });
   const defaultBody: purposeApi.PurposeVersionSeed = { dailyCalls: 10 };
   const serviceResponse = getMockWithMetadata({
     purpose: mockPurpose,

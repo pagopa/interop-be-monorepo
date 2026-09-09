@@ -58,7 +58,7 @@ describe("revokeDeclaredAttribute", async () => {
         {
           attributeId,
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       );
     const writtenEvent = await readLastEventByStreamId(
       tenant.id,
@@ -103,7 +103,7 @@ describe("revokeDeclaredAttribute", async () => {
         {
           attributeId,
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(tenantNotFound(tenant.id));
   });
@@ -124,7 +124,7 @@ describe("revokeDeclaredAttribute", async () => {
         {
           attributeId,
         },
-        getMockContext({ authData: getMockAuthData(tenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenant.id }) })
       )
     ).rejects.toThrowError(attributeNotFound(attributeId));
   });

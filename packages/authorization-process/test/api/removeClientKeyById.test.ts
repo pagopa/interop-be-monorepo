@@ -50,7 +50,7 @@ describe("API /clients/{mockClient.data.id}/keys/{keyId} authorization test", ()
       expect(res.body).toEqual(
         clientToApiClient(
           mockClient.data,
-          getMockAuthData(mockClient.data.consumerId)
+          getMockAuthData({ organizationId: mockClient.data.consumerId })
         )
       );
     }

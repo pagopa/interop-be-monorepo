@@ -128,9 +128,9 @@ describe("handleDelegationMessageV2", () => {
       id: mockDelegationId,
       createdAt: new Date(),
     };
-    const mockDelegator = getMockTenant(mockDelegatorId);
-    const mockDelegate = getMockTenant(mockDelegateId);
-    const mockEService = getMockEService(mockEServiceId, mockDelegatorId, []);
+    const mockDelegator = getMockTenant({ tenantId: mockDelegatorId });
+    const mockDelegate = getMockTenant({ tenantId: mockDelegateId });
+    const mockEService = getMockEService({ eserviceId: mockEServiceId, producerId: mockDelegatorId, descriptors: [] });
 
     await addOneDelegation(mockDelegation);
     await addOneTenant(mockDelegator);
@@ -191,9 +191,9 @@ describe("handleDelegationMessageV2", () => {
       id: mockDelegationId,
       createdAt: new Date(),
     };
-    const mockDelegator = getMockTenant(mockDelegatorId);
-    const mockDelegate = getMockTenant(mockDelegateId);
-    const mockEService = getMockEService(mockEServiceId, mockDelegatorId, []);
+    const mockDelegator = getMockTenant({ tenantId: mockDelegatorId });
+    const mockDelegate = getMockTenant({ tenantId: mockDelegateId });
+    const mockEService = getMockEService({ eserviceId: mockEServiceId, producerId: mockDelegatorId, descriptors: [] });
 
     await addOneDelegation(mockDelegation);
     await addOneTenant(mockDelegator);
@@ -270,9 +270,9 @@ describe("handleDelegationMessageV2", () => {
       revokedBy: generateId<UserId>(),
     };
 
-    const mockDelegator = getMockTenant(mockDelegatorId);
-    const mockDelegate = getMockTenant(mockDelegateId);
-    const mockEService = getMockEService(mockEServiceId, mockDelegatorId, []);
+    const mockDelegator = getMockTenant({ tenantId: mockDelegatorId });
+    const mockDelegate = getMockTenant({ tenantId: mockDelegateId });
+    const mockEService = getMockEService({ eserviceId: mockEServiceId, producerId: mockDelegatorId, descriptors: [] });
 
     await addOneDelegation(mockDelegation);
     await addOneTenant(mockDelegator);
@@ -336,9 +336,9 @@ describe("handleDelegationMessageV2", () => {
       revokedBy: generateId<UserId>(),
     };
 
-    const mockDelegator = getMockTenant(mockDelegatorId);
-    const mockDelegate = getMockTenant(mockDelegateId);
-    const mockEService = getMockEService(mockEServiceId, mockDelegatorId, []);
+    const mockDelegator = getMockTenant({ tenantId: mockDelegatorId });
+    const mockDelegate = getMockTenant({ tenantId: mockDelegateId });
+    const mockEService = getMockEService({ eserviceId: mockEServiceId, producerId: mockDelegatorId, descriptors: [] });
 
     await addOneDelegation(mockDelegation);
     await addOneTenant(mockDelegator);
@@ -405,17 +405,17 @@ describe("handleDelegationMessageV2", () => {
     };
 
     const mockDelegator = {
-      ...getMockTenant(mockDelegatorId),
+      ...getMockTenant({ tenantId: mockDelegatorId }),
       name: "Delegator S.P.A.",
       externalId: { origin: "IPA", value: "DELEGATORIPACODE" },
     };
     const mockDelegate = {
-      ...getMockTenant(mockDelegateId),
+      ...getMockTenant({ tenantId: mockDelegateId }),
       name: "Delegate S.R.L.",
       externalId: { origin: "IPA", value: "DELEGATEIPACODE" },
     };
     const mockEService = {
-      ...getMockEService(mockEServiceId, mockDelegatorId, []),
+      ...getMockEService({ eserviceId: mockEServiceId, producerId: mockDelegatorId, descriptors: [] }),
       name: "E-Service Fantastico",
     };
 
@@ -545,8 +545,8 @@ describe("handleDelegationMessageV2", () => {
     };
     await addOneDelegation(mockDelegation);
     // Omitting the delegate to force throwin error
-    await addOneTenant(getMockTenant(mockDelegatorId));
-    await addOneEService(getMockEService(mockEServiceId, mockDelegatorId, []));
+    await addOneTenant(getMockTenant({ tenantId: mockDelegatorId }));
+    await addOneEService(getMockEService({ eserviceId: mockEServiceId, producerId: mockDelegatorId, descriptors: [] }));
 
     const mockEvent: DelegationEventEnvelopeV2 = {
       sequence_num: 1,

@@ -78,7 +78,7 @@ describe("update eService Instance", () => {
           isClientAccessDelegable,
           instanceLabel: updatedInstanceLabel,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       );
 
     const updatedEService: EService = {
@@ -148,7 +148,7 @@ describe("update eService Instance", () => {
           isConsumerDelegable,
           isClientAccessDelegable,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       );
 
     const updatedEService: EService = {
@@ -200,7 +200,7 @@ describe("update eService Instance", () => {
           isConsumerDelegable: false,
           isClientAccessDelegable: true,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(invalidDelegationFlags(false, true));
   });
@@ -233,7 +233,7 @@ describe("update eService Instance", () => {
           isClientAccessDelegable: false,
           isSignalHubEnabled: false,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       );
 
     const updatedEService: EService = {
@@ -269,7 +269,7 @@ describe("update eService Instance", () => {
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {},
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -312,7 +312,7 @@ describe("update eService Instance", () => {
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {},
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -344,7 +344,7 @@ describe("update eService Instance", () => {
         catalogService.updateEServiceTemplateInstance(
           eservice.id,
           {},
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(eserviceNotInDraftState(eservice.id));
     }
@@ -367,7 +367,7 @@ describe("update eService Instance", () => {
       catalogService.updateEServiceTemplateInstance(
         mockEService.id,
         {},
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotAnInstance(eservice.id));
   });

@@ -43,12 +43,12 @@ describe("getCertifiedAttributes", () => {
       revocationTimestamp: undefined,
     };
     const certifiedAttribute: Attribute = {
-      ...getMockAttribute(attributeKind.certified),
+      ...getMockAttribute({ kind: attributeKind.certified }),
       origin: certifierId,
       id: tenantCertifiedAttribute.id,
     };
     const certifiedDiscreteAttribute: Attribute = {
-      ...getMockAttribute(attributeKind.certifiedDiscrete),
+      ...getMockAttribute({ kind: attributeKind.certifiedDiscrete }),
       origin: certifierId,
       id: tenantCertifiedDiscreteAttribute.id,
     };
@@ -63,7 +63,7 @@ describe("getCertifiedAttributes", () => {
 
     const result = await tenantService.getCertifiedAttributes(
       { offset: 0, limit: 50 },
-      getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenantCertifier.id }) })
     );
 
     expect(result).toEqual({
@@ -105,13 +105,13 @@ describe("getCertifiedAttributes", () => {
       revocationTimestamp: undefined,
     };
     const certifiedAttribute: Attribute = {
-      ...getMockAttribute(attributeKind.certified),
+      ...getMockAttribute({ kind: attributeKind.certified }),
       id: tenantCertifiedAttribute.id,
       name: "A standard certified attribute",
       origin: certifierId,
     };
     const certifiedDiscreteAttribute: Attribute = {
-      ...getMockAttribute(attributeKind.certifiedDiscrete),
+      ...getMockAttribute({ kind: attributeKind.certifiedDiscrete }),
       id: tenantCertifiedDiscreteAttribute.id,
       name: "B discrete certified attribute",
       origin: certifierId,
@@ -127,11 +127,11 @@ describe("getCertifiedAttributes", () => {
 
     const firstPage = await tenantService.getCertifiedAttributes(
       { offset: 0, limit: 1 },
-      getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenantCertifier.id }) })
     );
     const secondPage = await tenantService.getCertifiedAttributes(
       { offset: 1, limit: 1 },
-      getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenantCertifier.id }) })
     );
 
     expect(firstPage).toEqual({
@@ -207,7 +207,7 @@ describe("getCertifiedAttributes", () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenantCertifier.id }) })
     );
 
     expect(result.totalCount).toBe(2);
@@ -277,7 +277,7 @@ describe("getCertifiedAttributes", () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+      getMockContext({ authData: getMockAuthData({ organizationId: tenantCertifier.id }) })
     );
 
     expect(result.totalCount).toBe(1);
@@ -337,7 +337,7 @@ describe("getCertifiedAttributes", () => {
           offset: 0,
           limit: 50,
         },
-        getMockContext({ authData: getMockAuthData(tenantCertifier.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenantCertifier.id }) })
       )
     ).rejects.toThrowError(tenantNotFound(tenantCertifier.id));
   });
@@ -389,7 +389,7 @@ describe("getCertifiedAttributes", () => {
           offset: 0,
           limit: 50,
         },
-        getMockContext({ authData: getMockAuthData(tenantNotCertifier.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: tenantNotCertifier.id }) })
       )
     ).rejects.toThrowError(tenantIsNotACertifier(tenantNotCertifier.id));
   });

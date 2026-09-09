@@ -30,7 +30,7 @@ describe("deleteNotifications", () => {
       idsToDelete,
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })

@@ -238,7 +238,7 @@ describe("internalArchivePurposeVersionAfterDelegationRevocation", () => {
   )(
     "should throw notValidVersionState if the purpose version is in %s state",
     async (state) => {
-      const mockPurposeVersion = getMockPurposeVersion(state);
+      const mockPurposeVersion = getMockPurposeVersion({ state: state });
 
       const mockPurpose: Purpose = {
         ...getMockPurpose(),

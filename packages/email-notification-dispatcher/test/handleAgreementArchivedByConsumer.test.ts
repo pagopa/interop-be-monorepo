@@ -52,10 +52,10 @@ describe("handleAgreementArchivedByConsumer", async () => {
     descriptors: [descriptor],
   };
   const producerTenant: Tenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     mails: [getMockTenantMail()],
   };
-  const consumerTenant = getMockTenant(consumerId);
+  const consumerTenant = getMockTenant({ tenantId: consumerId });
   const users = [
     getMockUser(producerTenant.id),
     getMockUser(producerTenant.id),

@@ -54,7 +54,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
         eserviceTemplateVersion.id,
         { voucherLifespan: 60 },
         getMockContext({
-          authData: getMockAuthData(eserviceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
         })
       );
 
@@ -98,7 +98,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
         mockEServiceTemplateVersion.id,
         { voucherLifespan: 60 },
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
@@ -138,7 +138,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
         mockEServiceTemplateVersion.id,
         { voucherLifespan: 60 },
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -170,7 +170,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
           eserviceTemplateVersion.id,
           { voucherLifespan: 60 },
           getMockContext({
-            authData: getMockAuthData(eserviceTemplate.creatorId),
+            authData: getMockAuthData({ organizationId: eserviceTemplate.creatorId }),
           })
         )
       ).rejects.toThrowError(
@@ -201,7 +201,7 @@ describe("updateEServiceTemplateVersionQuotas", () => {
           dailyCallsTotal: 10,
         },
         getMockContext({
-          authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: mockEServiceTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(inconsistentDailyCalls());

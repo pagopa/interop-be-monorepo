@@ -38,7 +38,7 @@ describe("getProducerKeychainUsers", async () => {
       {
         producerKeychainId: mockProducerKeychain.id,
       },
-      getMockContext({ authData: getMockAuthData(organizationId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
     );
     expect(users).toEqual(expect.arrayContaining([userId1, userId2]));
   });
@@ -64,7 +64,7 @@ describe("getProducerKeychainUsers", async () => {
           producerKeychainId: mockProducerKeychain.id,
         },
         getMockContext({
-          authData: getMockAuthData(organizationIdNotMatchWithProducer),
+          authData: getMockAuthData({ organizationId: organizationIdNotMatchWithProducer }),
         })
       )
     ).rejects.toThrowError(

@@ -50,11 +50,11 @@ describe("handleAgreementSuspendedByPlatform", async () => {
     descriptors: [descriptor],
   };
   const producerTenant: Tenant = {
-    ...getMockTenant(producerId),
+    ...getMockTenant({ tenantId: producerId }),
     name: "Producer Tenant",
   };
   const consumerTenant: Tenant = {
-    ...getMockTenant(consumerId),
+    ...getMockTenant({ tenantId: consumerId }),
     name: "Consumer Tenant",
     mails: [getMockTenantMail()],
   };

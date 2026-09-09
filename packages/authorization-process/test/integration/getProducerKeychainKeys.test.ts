@@ -66,7 +66,7 @@ describe("getProducerKeychainKeys", async () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
     expect(keys).toEqual({
       results: [keyWithUser1, keyWithUser2, keyWithUser3],
@@ -106,7 +106,7 @@ describe("getProducerKeychainKeys", async () => {
         offset: 0,
         limit: 50,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
     expect(keys).toEqual({
       results: [keyWithUser1],
@@ -141,7 +141,7 @@ describe("getProducerKeychainKeys", async () => {
           offset: 0,
           limit: 50,
         },
-        getMockContext({ authData: getMockAuthData(organizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: organizationId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnProducerKeychain(
@@ -211,7 +211,7 @@ describe("getProducerKeychainKeys", async () => {
         offset: 2,
         limit: 1,
       },
-      getMockContext({ authData: getMockAuthData(producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: producerId }) })
     );
     expect(keys).toEqual({
       results: [keyWithUser3],

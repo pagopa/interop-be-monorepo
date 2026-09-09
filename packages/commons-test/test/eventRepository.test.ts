@@ -64,8 +64,8 @@ describe("EventRepository tests", async () => {
       newVersion: 0,
     });
 
-    const descriptor1 = getMockDescriptor(descriptorState.draft);
-    const descriptor2 = getMockDescriptor(descriptorState.draft);
+    const descriptor1 = getMockDescriptor({ state: descriptorState.draft });
+    const descriptor2 = getMockDescriptor({ state: descriptorState.draft });
 
     const descriptorCreationEvent1 = toCreateEventEServiceDescriptorAdded(
       { ...eservice, descriptors: [descriptor1] },
@@ -112,8 +112,8 @@ describe("EventRepository tests", async () => {
       newVersion: 0,
     });
 
-    const descriptor1 = getMockDescriptor(descriptorState.draft);
-    const descriptor2 = getMockDescriptor(descriptorState.draft);
+    const descriptor1 = getMockDescriptor({ state: descriptorState.draft });
+    const descriptor2 = getMockDescriptor({ state: descriptorState.draft });
 
     const descriptorCreationEvent1 = toCreateEventEServiceDescriptorAdded(
       { ...eservice, descriptors: [descriptor1] },
@@ -149,8 +149,8 @@ describe("EventRepository tests", async () => {
       correlationId
     );
 
-    const descriptor1 = getMockDescriptor(descriptorState.draft);
-    const descriptor2 = getMockDescriptor(descriptorState.draft);
+    const descriptor1 = getMockDescriptor({ state: descriptorState.draft });
+    const descriptor2 = getMockDescriptor({ state: descriptorState.draft });
 
     const descriptorCreationEvent1 = toCreateEventEServiceDescriptorAdded(
       { ...eservice, descriptors: [descriptor1] },
@@ -200,8 +200,8 @@ describe("EventRepository tests", async () => {
       correlationId
     );
 
-    const descriptor1 = getMockDescriptor(descriptorState.draft);
-    const descriptor2 = getMockDescriptor(descriptorState.draft);
+    const descriptor1 = getMockDescriptor({ state: descriptorState.draft });
+    const descriptor2 = getMockDescriptor({ state: descriptorState.draft });
 
     const eservice1DescriptorEvent = toCreateEventEServiceDescriptorAdded(
       { ...eservice1, descriptors: [descriptor1] },

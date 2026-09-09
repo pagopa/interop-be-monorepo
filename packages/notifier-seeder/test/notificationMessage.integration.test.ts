@@ -123,7 +123,7 @@ describe("Notification tests", async () => {
         "6b48e234-aac6-4d33-aef4-93816588ff41"
       );
       const mockEService = {
-        ...getMockEService("d27f668f-630b-4889-a97f-2b7e39b24188"),
+        ...getMockEService({ eserviceId: "d27f668f-630b-4889-a97f-2b7e39b24188" }),
         descriptors: [descriptor],
       };
 

@@ -67,7 +67,7 @@ describe("handleClientKeyDeleted", async () => {
     name: "Test Client",
   };
 
-  const consumerTenant = getMockTenant(consumerId);
+  const consumerTenant = getMockTenant({ tenantId: consumerId });
   const users = [
     getMockUser(consumerTenant.id, userId1),
     getMockUser(consumerTenant.id, userId2),

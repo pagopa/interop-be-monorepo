@@ -72,7 +72,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -99,7 +99,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -150,7 +150,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       delegationId: undefined,
     };
 
@@ -188,7 +188,7 @@ describe("addClientPurpose", async () => {
           seed: { purposeId: mockPurpose.id },
         },
         getMockContext({
-          authData: getMockAuthData(mockClient.consumerId),
+          authData: getMockAuthData({ organizationId: mockClient.consumerId }),
         })
       );
 
@@ -248,7 +248,7 @@ describe("addClientPurpose", async () => {
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
       delegationId: delegation.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -277,7 +277,7 @@ describe("addClientPurpose", async () => {
           seed: { purposeId: mockPurpose.id },
         },
         getMockContext({
-          authData: getMockAuthData(mockClient.consumerId),
+          authData: getMockAuthData({ organizationId: mockClient.consumerId }),
         })
       );
 
@@ -330,7 +330,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -356,7 +356,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(clientNotFound(mockClient.id));
   });
@@ -378,7 +378,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -405,7 +405,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnClient(mockConsumerId, mockClient.id)
@@ -416,7 +416,7 @@ describe("addClientPurpose", async () => {
 
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -433,7 +433,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(clientKindNotAllowed(mockClient.id));
   });
@@ -455,7 +455,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -481,7 +481,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(purposeNotFound(mockPurpose.id));
   });
@@ -503,7 +503,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: generateId(),
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -530,7 +530,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnPurpose(mockConsumerId, mockPurpose.id)
@@ -554,7 +554,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -580,7 +580,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(eserviceNotFound(mockEservice.id));
   });
@@ -602,7 +602,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
     const mockClient: Client = {
       ...getMockClient(),
@@ -619,7 +619,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(
       noActiveOrSuspendedAgreementFound(mockEservice.id, mockConsumerId)
@@ -657,7 +657,7 @@ describe("addClientPurpose", async () => {
         ...getMockPurpose(),
         eserviceId: mockEservice.id,
         consumerId: mockConsumerId,
-        versions: [getMockPurposeVersion(purposeVersionState.active)],
+        versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
       };
       const mockClient: Client = {
         ...getMockClient(),
@@ -675,7 +675,7 @@ describe("addClientPurpose", async () => {
             clientId: mockClient.id,
             seed: { purposeId: mockPurpose.id },
           },
-          getMockContext({ authData: getMockAuthData(mockConsumerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
         )
       ).rejects.toThrowError(
         noActiveOrSuspendedAgreementFound(mockEservice.id, mockConsumerId)
@@ -701,7 +701,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -728,7 +728,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(mockDescriptor.id);
   });
@@ -778,7 +778,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(
       noActiveOrSuspendedPurposeVersionFound(mockPurpose.id)
@@ -811,7 +811,7 @@ describe("addClientPurpose", async () => {
         ...getMockPurpose(),
         eserviceId: mockEservice.id,
         consumerId: mockConsumerId,
-        versions: [getMockPurposeVersion(versionState)],
+        versions: [getMockPurposeVersion({ state: versionState })],
       };
 
       const mockClient: Client = {
@@ -838,7 +838,7 @@ describe("addClientPurpose", async () => {
             clientId: mockClient.id,
             seed: { purposeId: mockPurpose.id },
           },
-          getMockContext({ authData: getMockAuthData(mockConsumerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
         )
       ).rejects.toThrowError(
         noActiveOrSuspendedPurposeVersionFound(mockPurpose.id)
@@ -863,7 +863,7 @@ describe("addClientPurpose", async () => {
       ...getMockPurpose(),
       eserviceId: mockEservice.id,
       consumerId: mockConsumerId,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -891,7 +891,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(mockConsumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockConsumerId }) })
       )
     ).rejects.toThrowError(
       purposeAlreadyLinkedToClient(mockPurpose.id, mockClient.id)
@@ -927,7 +927,7 @@ describe("addClientPurpose", async () => {
       eserviceId: mockEservice.id,
       consumerId,
       delegationId: delegation.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -954,7 +954,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateId }) })
       );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -1015,7 +1015,7 @@ describe("addClientPurpose", async () => {
       eserviceId: mockEservice.id,
       consumerId,
       delegationId: delegation.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -1042,7 +1042,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: consumerId }) })
       );
 
     const writtenEvent = await readLastAuthorizationEvent(mockClient.id);
@@ -1105,7 +1105,7 @@ describe("addClientPurpose", async () => {
       eserviceId: mockEservice.id,
       consumerId,
       delegationId: delegation.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -1132,7 +1132,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateId }) })
       )
     ).rejects.toThrowError(purposeDelegationNotFound(delegation.id));
   });
@@ -1166,7 +1166,7 @@ describe("addClientPurpose", async () => {
       eserviceId: mockEservice.id,
       consumerId,
       delegationId: delegation.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -1193,7 +1193,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateId }) })
       )
     ).rejects.toThrowError(
       tenantNotAllowedOnPurpose(delegateId, mockPurpose.id, delegation.id)
@@ -1229,7 +1229,7 @@ describe("addClientPurpose", async () => {
       eserviceId: mockEservice.id,
       consumerId,
       delegationId: delegation.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -1256,7 +1256,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateId }) })
       )
     ).rejects.toThrowError(eserviceNotDelegableForClientAccess(mockEservice));
   });
@@ -1290,7 +1290,7 @@ describe("addClientPurpose", async () => {
       eserviceId: mockEservice.id,
       consumerId,
       delegationId: delegation.id,
-      versions: [getMockPurposeVersion(purposeVersionState.active)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
     };
 
     const mockClient: Client = {
@@ -1317,7 +1317,7 @@ describe("addClientPurpose", async () => {
           clientId: mockClient.id,
           seed: { purposeId: mockPurpose.id },
         },
-        getMockContext({ authData: getMockAuthData(delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegateId }) })
       )
     ).rejects.toThrowError(
       noActiveOrSuspendedAgreementFound(mockEservice.id, delegation.delegatorId)

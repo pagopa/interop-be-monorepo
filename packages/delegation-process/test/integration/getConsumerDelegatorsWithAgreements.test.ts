@@ -44,7 +44,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   });
 
   const mockAgreement1 = {
-    ...getMockAgreement(eservice1.id, delegator1.id, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice1.id, consumerId: delegator1.id, state: agreementState.active }),
     producerId: eservice1.producerId,
   };
 
@@ -57,7 +57,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   });
 
   const mockAgreement1bis = {
-    ...getMockAgreement(eservice2.id, delegator1.id, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice2.id, consumerId: delegator1.id, state: agreementState.active }),
     producerId: eservice2.producerId,
   };
 
@@ -72,7 +72,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   });
 
   const mockAgreement2 = {
-    ...getMockAgreement(eservice1.id, delegator2.id, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice1.id, consumerId: delegator2.id, state: agreementState.active }),
     producerId: eservice1.producerId,
   };
 
@@ -97,7 +97,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   });
 
   const mockAgreement4 = {
-    ...getMockAgreement(eservice1.id, delegator4.id, agreementState.rejected),
+    ...getMockAgreement({ eserviceId: eservice1.id, consumerId: delegator4.id, state: agreementState.rejected }),
     producerId: eservice1.producerId,
   };
 
@@ -112,7 +112,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   });
 
   const mockAgreement5 = {
-    ...getMockAgreement(eservice3.id, delegator5.id, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice3.id, consumerId: delegator5.id, state: agreementState.active }),
     producerId: eservice3.producerId,
   };
 
@@ -127,7 +127,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
   });
 
   const mockAgreement6 = {
-    ...getMockAgreement(eservice3.id, delegator6.id, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice3.id, consumerId: delegator6.id, state: agreementState.active }),
     producerId: eservice3.producerId,
   };
 
@@ -165,7 +165,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
           offset: 0,
           limit: 50,
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
@@ -192,7 +192,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
           offset: 1,
           limit: 1,
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
@@ -212,7 +212,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
           limit: 50,
           delegatorName: "Comune",
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
@@ -235,7 +235,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
           limit: 50,
           delegatorName: "PagoPA",
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
@@ -267,7 +267,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
           offset: 0,
           limit: 50,
         },
-        getMockContext({ authData: getMockAuthData(delegator3.id) }) // No active delegation
+        getMockContext({ authData: getMockAuthData({ organizationId: delegator3.id }) }) // No active delegation
       )
     ).toEqual({
       results: [],
@@ -280,7 +280,7 @@ describe("getConsumerDelegatorsWithAgreements", () => {
           offset: 0,
           limit: 50,
         },
-        getMockContext({ authData: getMockAuthData(delegator4.id) }) // No active agreements
+        getMockContext({ authData: getMockAuthData({ organizationId: delegator4.id }) }) // No active agreements
       )
     ).toEqual({
       results: [],

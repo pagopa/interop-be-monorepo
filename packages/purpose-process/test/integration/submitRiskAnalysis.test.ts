@@ -71,7 +71,7 @@ describe("submitRiskAnalysis", () => {
     };
 
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       reviewerWorkflow: workflow,
@@ -84,7 +84,7 @@ describe("submitRiskAnalysis", () => {
     const { data: updatedPurpose } = await purposeService.submitRiskAnalysis(
       mockPurpose.id,
       { riskAnalysisForm: validFormSeed },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -121,7 +121,7 @@ describe("submitRiskAnalysis", () => {
     };
 
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       reviewerWorkflow: workflow,
@@ -134,7 +134,7 @@ describe("submitRiskAnalysis", () => {
     const { data: updatedPurpose } = await purposeService.submitRiskAnalysis(
       mockPurpose.id,
       { riskAnalysisForm: validFormSeed },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
     );
 
     const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
@@ -172,7 +172,7 @@ describe("submitRiskAnalysis", () => {
 
   it("should throw reviewerWorkflowNotFound if the purpose has no reviewer workflow", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: undefined,
     };
 
@@ -182,14 +182,14 @@ describe("submitRiskAnalysis", () => {
       purposeService.submitRiskAnalysis(
         mockPurpose.id,
         { riskAnalysisForm: validFormSeed },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(reviewerWorkflowNotFound(mockPurpose.id));
   });
 
   it("should throw submitNotAllowedForReviewMode if review mode is ReviewerWritesReviewerSigns", async () => {
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: {
         reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerIds: [unsafeBrandId(generateId())],
@@ -204,7 +204,7 @@ describe("submitRiskAnalysis", () => {
       purposeService.submitRiskAnalysis(
         mockPurpose.id,
         { riskAnalysisForm: validFormSeed },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       )
     ).rejects.toThrowError(submitNotAllowedForReviewMode(mockPurpose.id));
   });
@@ -217,7 +217,7 @@ describe("submitRiskAnalysis", () => {
     "should throw reviewerWorkflowNotSubmittable if signing state is $signingState",
     async ({ signingState }) => {
       const mockPurpose: Purpose = {
-        ...getMockPurpose([getMockPurposeVersion()]),
+        ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
         reviewerWorkflow: {
           reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
           reviewerIds: [unsafeBrandId(generateId())],
@@ -232,7 +232,7 @@ describe("submitRiskAnalysis", () => {
         purposeService.submitRiskAnalysis(
           mockPurpose.id,
           { riskAnalysisForm: validFormSeed },
-          getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
         )
       ).rejects.toThrowError(reviewerWorkflowNotSubmittable(mockPurpose.id));
     }
@@ -247,7 +247,7 @@ describe("submitRiskAnalysis", () => {
     };
 
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       reviewerWorkflow: workflow,
     };
 
@@ -259,7 +259,7 @@ describe("submitRiskAnalysis", () => {
       purposeService.submitRiskAnalysis(
         mockPurpose.id,
         { riskAnalysisForm: validFormSeed },
-        getMockContext({ authData: getMockAuthData(otherOrganizationId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: otherOrganizationId }) })
       )
     ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
   });

@@ -46,8 +46,8 @@ describe("handleProducerKeychainEserviceAdded", async () => {
     producerId,
     descriptors: [descriptor],
   };
-  const producerTenant = getMockTenant(producerId);
-  const consumerTenants = consumerIds.map((id) => getMockTenant(id));
+  const producerTenant = getMockTenant({ tenantId: producerId });
+  const consumerTenants = consumerIds.map((id) => getMockTenant({ tenantId: id }));
   const users = [
     getMockUser(consumerTenants[0].id),
     getMockUser(consumerTenants[0].id),

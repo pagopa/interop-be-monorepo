@@ -46,7 +46,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
           answerId: singleAnswer.id,
           documentId: singleAnswer.annotation!.docs[0].id,
         },
-        getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }) })
       );
     expect(purposeTemplateResponse).toMatchObject({
       data: singleAnswer.annotation!.docs[0],
@@ -65,7 +65,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
           answerId: singleAnswer.id,
           documentId: notExistingDocumentId,
         },
-        getMockContext({ authData: getMockAuthData(purposeTemplate.creatorId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }) })
       )
     ).rejects.toThrowError(
       riskAnalysisTemplateAnswerAnnotationDocumentNotFound(
@@ -86,7 +86,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
           documentId: singleAnswer.annotation!.docs[0].id,
         },
         getMockContext({
-          authData: getMockAuthData(requesterId),
+          authData: getMockAuthData({ organizationId: requesterId }),
         })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplate.id));
@@ -102,7 +102,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
           documentId: singleAnswer.annotation!.docs[0].id,
         },
         getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(
@@ -120,7 +120,7 @@ describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
           documentId: singleAnswer.annotation!.docs[0].id,
         },
         getMockContext({
-          authData: getMockAuthData(purposeTemplate.creatorId),
+          authData: getMockAuthData({ organizationId: purposeTemplate.creatorId }),
         })
       )
     ).rejects.toThrowError(

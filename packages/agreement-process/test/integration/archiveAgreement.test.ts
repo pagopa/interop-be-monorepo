@@ -46,11 +46,7 @@ describe("archive agreement", () => {
     const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
 
-    const agreement = getMockAgreement(
-      eserviceId,
-      authData.organizationId,
-      randomArrayItem(agreementArchivableStates)
-    );
+    const agreement = getMockAgreement({ eserviceId: eserviceId, consumerId: authData.organizationId, state: randomArrayItem(agreementArchivableStates) });
 
     await addOneAgreement(agreement);
 
@@ -109,7 +105,7 @@ describe("archive agreement", () => {
     vi.setSystemTime(new Date());
 
     const delegateId = generateId<TenantId>();
-    const authData = getMockAuthData(delegateId);
+    const authData = getMockAuthData({ organizationId: delegateId });
 
     const agreement = {
       ...getMockAgreement(),
@@ -215,11 +211,7 @@ describe("archive agreement", () => {
     const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
 
-    const agreement = getMockAgreement(
-      eserviceId,
-      authData.organizationId,
-      randomArrayItem(agreementArchivableStates)
-    );
+    const agreement = getMockAgreement({ eserviceId: eserviceId, consumerId: authData.organizationId, state: randomArrayItem(agreementArchivableStates) });
 
     await addOneAgreement(agreement);
 
@@ -237,11 +229,7 @@ describe("archive agreement", () => {
     const authData = getMockAuthData();
     const eserviceId = generateId<EServiceId>();
 
-    const agreement = getMockAgreement(
-      eserviceId,
-      generateId<TenantId>(),
-      randomArrayItem(agreementArchivableStates)
-    );
+    const agreement = getMockAgreement({ eserviceId: eserviceId, consumerId: generateId<TenantId>(), state: randomArrayItem(agreementArchivableStates) });
 
     await addOneAgreement(agreement);
 
@@ -262,11 +250,7 @@ describe("archive agreement", () => {
         (s) => !agreementArchivableStates.includes(s)
       )
     );
-    const agreement = getMockAgreement(
-      eserviceId,
-      authData.organizationId,
-      notArchivableState
-    );
+    const agreement = getMockAgreement({ eserviceId: eserviceId, consumerId: authData.organizationId, state: notArchivableState });
 
     await addOneAgreement(agreement);
 

@@ -138,7 +138,7 @@ describe("createPurposeVersion", () => {
         dailyCalls: 24,
       },
       getMockContext({
-        authData: getMockAuthData(mockPurpose.consumerId, userId),
+        authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: userId }),
       })
     );
 
@@ -237,7 +237,7 @@ describe("createPurposeVersion", () => {
         dailyCalls: 24,
       },
       getMockContext({
-        authData: getMockAuthData(mockPurpose.consumerId, userId),
+        authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: userId }),
       })
     );
 
@@ -324,7 +324,7 @@ describe("createPurposeVersion", () => {
         dailyCalls: 4,
       },
       getMockContext({
-        authData: getMockAuthData(mockPurpose.consumerId, userId),
+        authData: getMockAuthData({ organizationId: mockPurpose.consumerId, userId: userId }),
       })
     );
 
@@ -411,7 +411,7 @@ describe("createPurposeVersion", () => {
     await addOneTenant(mockConsumer);
     await addOneTenant(mockProducer);
 
-    const authData = getMockAuthData(mockPurpose.consumerId);
+    const authData = getMockAuthData({ organizationId: mockPurpose.consumerId });
     const purposeVersionResponse = await purposeService.createPurposeVersion(
       mockPurpose.id,
       {
@@ -524,7 +524,7 @@ describe("createPurposeVersion", () => {
         dailyCalls: 24,
       },
       getMockContext({
-        authData: getMockAuthData(consumerDelegate.id, userId),
+        authData: getMockAuthData({ organizationId: consumerDelegate.id, userId: userId }),
       })
     );
 
@@ -674,7 +674,7 @@ describe("createPurposeVersion", () => {
         dailyCalls: 24,
       },
       getMockContext({
-        authData: getMockAuthData(consumerDelegate.id, userId),
+        authData: getMockAuthData({ organizationId: consumerDelegate.id, userId: userId }),
       })
     );
 
@@ -763,7 +763,7 @@ describe("createPurposeVersion", () => {
             dailyCalls: mockPurposeVersion.dailyCalls,
           },
           getMockContext({
-            authData: getMockAuthData(mockPurpose.consumerId),
+            authData: getMockAuthData({ organizationId: mockPurpose.consumerId }),
           })
         )
     ).rejects.toThrowError(unchangedDailyCalls(mockPurpose.id));
@@ -782,7 +782,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 1000,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       );
     }).rejects.toThrowError(tenantIsNotTheConsumer(mockEService.producerId));
   });
@@ -799,7 +799,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       );
     }).rejects.toThrowError(eserviceNotFound(mockEService.id));
   });
@@ -820,7 +820,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(anotherTenant.id) })
+        getMockContext({ authData: getMockAuthData({ organizationId: anotherTenant.id }) })
       );
     }).rejects.toThrowError(tenantIsNotTheConsumer(anotherTenant.id));
   });
@@ -837,7 +837,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       );
     }).rejects.toThrowError(
       agreementNotFound(mockEService.id, mockConsumer.id)
@@ -869,7 +869,7 @@ describe("createPurposeVersion", () => {
             dailyCalls: 20,
           },
           getMockContext({
-            authData: getMockAuthData(mockPurpose.consumerId),
+            authData: getMockAuthData({ organizationId: mockPurpose.consumerId }),
           })
         );
       }).rejects.toThrowError(
@@ -890,7 +890,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
       );
     }).rejects.toThrowError(tenantNotFound(mockConsumer.id));
   });
@@ -906,7 +906,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 20,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
     );
 
     const createdPurposeVersion =
@@ -936,7 +936,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 20,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
     );
 
     const createdPurposeVersion =
@@ -965,7 +965,7 @@ describe("createPurposeVersion", () => {
       {
         dailyCalls: 20,
       },
-      getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: mockPurpose.consumerId }) })
     );
 
     const createdPurposeVersion =
@@ -1016,7 +1016,7 @@ describe("createPurposeVersion", () => {
     const authData = getMockAuthData();
     const mockEService = getMockEService();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       eserviceId: mockEService.id,
       delegationId: generateId<DelegationId>(),
       consumerId: authData.organizationId,
@@ -1040,7 +1040,7 @@ describe("createPurposeVersion", () => {
 
   it("should throw tenantIsNotTheConsumer when the requester is a delegate for the eservice and there is no delegationId in the purpose", async () => {
     const delegatePurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose({ versions: [getMockPurposeVersion()] }),
       consumerId: mockConsumer.id,
       delegationId: undefined,
     };
@@ -1065,7 +1065,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       );
     }).rejects.toThrowError(tenantIsNotTheConsumer(delegation.delegateId));
   });
@@ -1109,7 +1109,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 20,
         },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       );
     }).rejects.toThrowError(
       tenantIsNotTheDelegatedConsumer(
@@ -1124,7 +1124,7 @@ describe("createPurposeVersion", () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: mockEService.id,
-      versions: [getMockPurposeVersion(purposeVersionState.archived)],
+      versions: [getMockPurposeVersion({ state: purposeVersionState.archived })],
     };
 
     await addOnePurpose(mockPurpose);
@@ -1135,7 +1135,7 @@ describe("createPurposeVersion", () => {
         {
           dailyCalls: 1000,
         },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       );
     }).rejects.toThrowError(purposeCannotBeUpdated(mockPurpose.id));
   });

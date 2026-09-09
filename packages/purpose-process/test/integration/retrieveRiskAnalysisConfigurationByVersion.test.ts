@@ -45,7 +45,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       await purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion,
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
       });
 
     expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -54,7 +54,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
     const mockEservice = { ...getMockEService(), mode: eserviceMode.receive };
     const kind = randomArrayItem(Object.values(tenantKind));
     const mockTenant = {
-      ...getMockTenant(mockEservice.producerId),
+      ...getMockTenant({ tenantId: mockEservice.producerId }),
       kind,
     };
     await addOneEService(mockEservice);
@@ -66,7 +66,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       await purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion,
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
       });
 
     expect(result).toEqual(getFormRulesByVersion(kind, riskAnalysisVersion));
@@ -81,7 +81,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
         eserviceId: randomId,
         riskAnalysisVersion: "1.0",
         ctx: getMockContext({
-          authData: getMockAuthData(mockTenant.id),
+          authData: getMockAuthData({ organizationId: mockTenant.id }),
         }),
       })
     ).rejects.toThrowError(eserviceNotFound(randomId));
@@ -96,7 +96,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
         eserviceId: mockEservice.id,
         riskAnalysisVersion: "1.0",
         ctx: getMockContext({
-          authData: getMockAuthData(randomTenantId),
+          authData: getMockAuthData({ organizationId: randomTenantId }),
         }),
       })
     ).rejects.toThrowError(tenantNotFound(randomTenantId));
@@ -115,7 +115,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
         eserviceId: mockEservice.id,
         riskAnalysisVersion: "1.0",
         ctx: getMockContext({
-          authData: getMockAuthData(mockTenant.id),
+          authData: getMockAuthData({ organizationId: mockTenant.id }),
         }),
       })
     ).rejects.toThrowError(tenantKindNotFound(mockTenant.id));
@@ -135,7 +135,7 @@ describe("retrieveRiskAnalysisConfigurationByVersion", async () => {
       purposeService.retrieveRiskAnalysisConfigurationByVersion({
         eserviceId: mockEservice.id,
         riskAnalysisVersion: wrongRiskAnalysisVersion,
-        ctx: getMockContext({ authData: getMockAuthData(mockTenant.id) }),
+        ctx: getMockContext({ authData: getMockAuthData({ organizationId: mockTenant.id }) }),
       })
     ).rejects.toThrowError(
       riskAnalysisConfigVersionNotFound(

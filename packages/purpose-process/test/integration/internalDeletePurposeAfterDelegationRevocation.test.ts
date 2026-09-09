@@ -79,7 +79,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
   it.each([purposeVersionState.draft, purposeVersionState.waitingForApproval])(
     "should write on event-store for the deletion of a purpose (%s version)",
     async (versionState) => {
-      const mockPurposeVersion = getMockPurposeVersion(versionState);
+      const mockPurposeVersion = getMockPurposeVersion({ state: versionState });
       const mockPurpose: Purpose = {
         ...getMockPurpose(),
         versions: [mockPurposeVersion],
@@ -150,7 +150,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
   )(
     "should throw purposeCannotBeDeleted if the purpose has a %s version ",
     async (state) => {
-      const mockPurposeVersion = getMockPurposeVersion(state);
+      const mockPurposeVersion = getMockPurposeVersion({ state: state });
 
       const mockPurpose: Purpose = {
         ...getMockPurpose(),
@@ -179,9 +179,7 @@ describe("internalDeletePurposeAfterDelegationRevocation", () => {
     }
   );
   it("should throw purposeDelegationNotFound when the purpose delegationId is not equal to the one passed", async () => {
-    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion(
-      purposeVersionState.draft
-    );
+    const mockPurposeVersion: PurposeVersion = getMockPurposeVersion({ state: purposeVersionState.draft });
     const mockPurpose: Purpose = {
       ...getMockPurpose(),
       versions: [mockPurposeVersion],

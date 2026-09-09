@@ -65,7 +65,7 @@ describe("reject descriptor", () => {
         eservice.id,
         descriptor.id,
         { rejectionReason: newRejectionReason.rejectionReason },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       );
 
     const writtenEvent = await readLastEserviceEvent(eservice.id);
@@ -106,7 +106,7 @@ describe("reject descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         { rejectionReason: "test" },
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -122,7 +122,7 @@ describe("reject descriptor", () => {
         eservice.id,
         mockDescriptor.id,
         { rejectionReason: "test" },
-        getMockContext({ authData: getMockAuthData(eservice.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)
@@ -174,7 +174,7 @@ describe("reject descriptor", () => {
         descriptor.id,
 
         { rejectionReason: "test" },
-        getMockContext({ authData: getMockAuthData(delegation.delegateId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: delegation.delegateId }) })
       )
     ).rejects.toThrowError(operationForbidden);
   });
@@ -202,7 +202,7 @@ describe("reject descriptor", () => {
           descriptor.id,
 
           { rejectionReason: "test" },
-          getMockContext({ authData: getMockAuthData(eservice.producerId) })
+          getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
         )
       ).rejects.toThrowError(notValidDescriptorState(descriptor.id, state));
     }

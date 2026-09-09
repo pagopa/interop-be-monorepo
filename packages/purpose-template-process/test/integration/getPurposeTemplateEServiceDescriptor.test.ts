@@ -34,7 +34,7 @@ describe("getPurposeTemplateEServiceDescriptor", async () => {
   const eservice1: EService = {
     ...getMockEService(),
     name: "Test e-service 1",
-    descriptors: [getMockDescriptor(descriptorState.published)],
+    descriptors: [getMockDescriptor({ state: descriptorState.published })],
   };
 
   const purposeTemplate1: PurposeTemplate = {
@@ -74,7 +74,7 @@ describe("getPurposeTemplateEServiceDescriptor", async () => {
       await purposeTemplateService.getPurposeTemplateEServiceDescriptor(
         purposeTemplate1.id,
         eservice1.id,
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       );
 
     expect(allPurposeTemplateEServiceDescriptors).toEqual(
@@ -89,7 +89,7 @@ describe("getPurposeTemplateEServiceDescriptor", async () => {
       purposeTemplateService.getPurposeTemplateEServiceDescriptor(
         notExistingId,
         eservice1.id,
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(notExistingId));
   });
@@ -107,7 +107,7 @@ describe("getPurposeTemplateEServiceDescriptor", async () => {
       purposeTemplateService.getPurposeTemplateEServiceDescriptor(
         purposeTemplateDraft.id,
         eservice1.id,
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).rejects.toThrowError(purposeTemplateNotFound(purposeTemplateDraft.id));
   });
@@ -117,7 +117,7 @@ describe("getPurposeTemplateEServiceDescriptor", async () => {
       purposeTemplateService.getPurposeTemplateEServiceDescriptor(
         purposeTemplate2.id,
         eservice1.id,
-        getMockContext({ authData: getMockAuthData(generateId<TenantId>()) })
+        getMockContext({ authData: getMockAuthData({ organizationId: generateId<TenantId>() }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorPurposeTemplateNotFound(

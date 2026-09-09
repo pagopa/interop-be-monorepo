@@ -29,7 +29,7 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
   const assignee = getMockTenant();
 
   const certifiedAttributeISTAT: Attribute = {
-    ...getMockAttribute(attributeKind.certified),
+    ...getMockAttribute({ kind: attributeKind.certified }),
     name: "Certified ISTAT Attribute",
     origin: "ISTAT",
   };
@@ -83,7 +83,7 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
 
   it("should throw attributeOriginUndefined when the certified discrete attribute has undefined origin", async () => {
     const certifiedAttributeWithUndefinedOrigin: Attribute = {
-      ...getMockAttribute(attributeKind.certified),
+      ...getMockAttribute({ kind: attributeKind.certified }),
       origin: undefined,
     };
     await addOneAttribute(certifiedAttributeWithUndefinedOrigin);
@@ -109,7 +109,7 @@ describe("handleCertifiedDiscreteAttributeAssignedRevokedUpdatedToAssignee", () 
   it("should throw certifierTenantNotFound when the certifier tenant is not found", async () => {
     const unknownCertifierId = generateId();
     const certifiedAttributeWithUnknownCertifier: Attribute = {
-      ...getMockAttribute(attributeKind.certified),
+      ...getMockAttribute({ kind: attributeKind.certified }),
       origin: unknownCertifierId,
     };
     await addOneAttribute(certifiedAttributeWithUnknownCertifier);

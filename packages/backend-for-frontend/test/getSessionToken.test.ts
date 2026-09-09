@@ -143,7 +143,7 @@ const authorizationService = authorizationServiceBuilder(
   rateLimiterMock
 );
 
-const authData = getMockAuthData(generateId<TenantId>());
+const authData = getMockAuthData({ organizationId: generateId<TenantId>() });
 const headers = {
   "X-Correlation-Id": generateId<CorrelationId>(),
   "X-Forwarded-For": "test-ip",

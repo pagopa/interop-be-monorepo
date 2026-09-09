@@ -145,7 +145,7 @@ const setupConfirmationScenario = async (overrides?: {
 }> => {
   const purpose: Purpose = {
     ...getMockPurpose(),
-    versions: [getMockPurposeVersion(purposeVersionState.active)],
+    versions: [getMockPurposeVersion({ state: purposeVersionState.active })],
   };
   const consumerClientId = generateId<ClientId>();
   const eServiceId = generateId<EServiceId>();

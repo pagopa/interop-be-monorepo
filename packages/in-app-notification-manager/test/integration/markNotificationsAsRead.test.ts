@@ -28,7 +28,7 @@ describe("markNotificationsAsRead", () => {
       notificationsList.map((notification) => notification.id),
       getMockContext({
         authData: {
-          ...getMockAuthData(tenantId),
+          ...getMockAuthData({ organizationId: tenantId }),
           userId,
         },
       })

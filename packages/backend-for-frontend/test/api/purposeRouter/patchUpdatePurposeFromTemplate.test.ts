@@ -25,9 +25,9 @@ describe("API POST /purposeTemplates/{purposeTemplateId}/purposes/{purposeId} te
   const mockPurposeUpdateContent =
     getMockBffApiPatchPurposeUpdateFromTemplateContent();
   const mockPurposeVersionResource = getMockBffApiPurposeVersionResource();
-  const mockPurpose = getMockPurpose([
+  const mockPurpose = getMockPurpose({ versions: [
     { ...getMockPurposeVersion(), id: mockPurposeVersionResource.versionId },
-  ]);
+  ] });
   const purposeTemplateId = generateId<PurposeTemplateId>();
   const purposeId = mockPurposeVersionResource.purposeId;
 

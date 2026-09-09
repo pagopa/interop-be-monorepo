@@ -15,7 +15,7 @@ import { getMockBffApiPurposeVersionResource } from "../../mockUtils.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API POST /purposes/{purposeId}/clone test", () => {
-  const mockPurpose = getMockPurpose([getMockPurposeVersion()]);
+  const mockPurpose = getMockPurpose({ versions: [getMockPurposeVersion()] });
   const mockPurposeVersionResource = getMockBffApiPurposeVersionResource(
     mockPurpose.id,
     mockPurpose.versions[0].id

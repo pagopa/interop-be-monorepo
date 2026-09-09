@@ -203,9 +203,9 @@ describe("activate agreement", () => {
         const producer: Tenant = getMockTenant();
         const consumerId: TenantId = generateId();
 
-        const certifiedAttribute = getMockAttribute(attributeKind.certified);
-        const declaredAttribute = getMockAttribute(attributeKind.declared);
-        const verifiedAttribute = getMockAttribute(attributeKind.verified);
+        const certifiedAttribute = getMockAttribute({ kind: attributeKind.certified });
+        const declaredAttribute = getMockAttribute({ kind: attributeKind.declared });
+        const verifiedAttribute = getMockAttribute({ kind: attributeKind.verified });
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
@@ -287,7 +287,7 @@ describe("activate agreement", () => {
         };
 
         const consumer: Tenant = {
-          ...getMockTenant(consumerId),
+          ...getMockTenant({ tenantId: consumerId }),
           selfcareId: generateId(),
           attributes: [
             validTenantCertifiedAttribute,
@@ -376,9 +376,7 @@ describe("activate agreement", () => {
     it("Agreement Pending, valid certified discrete attribute -- success case: populates certifiedDiscreteAttributes on the activated agreement", async () => {
       config.featureFlagAttributeCertifiedDiscrete = true;
       const producer: Tenant = getMockTenant();
-      const certifiedDiscreteAttribute = getMockAttribute(
-        attributeKind.certified
-      );
+      const certifiedDiscreteAttribute = getMockAttribute({ kind: attributeKind.certified });
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -440,7 +438,7 @@ describe("activate agreement", () => {
         verifiedAttributes: [],
       };
 
-      const authData = getMockAuthData(producer.id);
+      const authData = getMockAuthData({ organizationId: producer.id });
 
       await addOneAgreement(agreement);
       await addOneTenant(producer);
@@ -479,9 +477,7 @@ describe("activate agreement", () => {
     it("Agreement Pending, valid certified discrete attribute -- feature flag disabled: does not populate certifiedDiscreteAttributes", async () => {
       config.featureFlagAttributeCertifiedDiscrete = false;
       const producer: Tenant = getMockTenant();
-      const certifiedDiscreteAttribute = getMockAttribute(
-        attributeKind.certified
-      );
+      const certifiedDiscreteAttribute = getMockAttribute({ kind: attributeKind.certified });
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -543,7 +539,7 @@ describe("activate agreement", () => {
         verifiedAttributes: [],
       };
 
-      const authData = getMockAuthData(producer.id);
+      const authData = getMockAuthData({ organizationId: producer.id });
 
       await addOneAgreement(agreement);
       await addOneTenant(producer);
@@ -602,7 +598,7 @@ describe("activate agreement", () => {
         ],
       };
 
-      const authData = getMockAuthData(producer.id);
+      const authData = getMockAuthData({ organizationId: producer.id });
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -728,7 +724,7 @@ describe("activate agreement", () => {
         attributes: [consumerInvalidAttribute],
       };
 
-      const authData = getMockAuthData(producer.id);
+      const authData = getMockAuthData({ organizationId: producer.id });
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
         state: randomArrayItem(agreementActivationAllowedDescriptorStates),
@@ -779,7 +775,7 @@ describe("activate agreement", () => {
 
     it("Agreement Pending, Requester === Consumer -- error case: throws tenantIsNotTheProducer", async () => {
       const consumerId = generateId<TenantId>();
-      const authData = getMockAuthData(consumerId);
+      const authData = getMockAuthData({ organizationId: consumerId });
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -797,7 +793,7 @@ describe("activate agreement", () => {
 
     it("Agreement Pending, Requester === DelegateConsumer -- error case: throws tenantIsNotTheDelegate", async () => {
       const delegateId = generateId<TenantId>();
-      const authData = getMockAuthData(delegateId);
+      const authData = getMockAuthData({ organizationId: delegateId });
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.pending,
@@ -825,7 +821,7 @@ describe("activate agreement", () => {
 
     it("Agreement Pending, Requester === Producer and active producer delegation exists -- error case: throws tenantIsNotTheDelegateProducer", async () => {
       const producerId = generateId<TenantId>();
-      const authData = getMockAuthData(producerId);
+      const authData = getMockAuthData({ organizationId: producerId });
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.pending,
@@ -859,7 +855,7 @@ describe("activate agreement", () => {
 
     it("Agreement Pending expected -- error case: throws agreementNotInExpectedState", async () => {
       const consumerId = generateId<TenantId>();
-      const authData = getMockAuthData(consumerId);
+      const authData = getMockAuthData({ organizationId: consumerId });
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -1090,7 +1086,7 @@ describe("activate agreement", () => {
         ],
       };
 
-      const authData = getMockAuthData(consumerAndProducer.id);
+      const authData = getMockAuthData({ organizationId: consumerAndProducer.id });
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -1213,7 +1209,7 @@ describe("activate agreement", () => {
       };
 
       const delegateConsumerAndProducer: Tenant = getMockTenant();
-      const authData = getMockAuthData(delegateConsumerAndProducer.id);
+      const authData = getMockAuthData({ organizationId: delegateConsumerAndProducer.id });
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),
@@ -1623,9 +1619,7 @@ describe("activate agreement", () => {
           config.featureFlagAttributeCertifiedDiscrete =
             featureFlagAttributeCertifiedDiscrete;
 
-          const certifiedDiscreteAttribute = getMockAttribute(
-            attributeKind.certified
-          );
+          const certifiedDiscreteAttribute = getMockAttribute({ kind: attributeKind.certified });
           const tenantDiscreteAttribute: CertifiedDiscreteTenantAttribute = {
             ...getMockCertifiedDiscreteTenantAttribute(
               certifiedDiscreteAttribute.id
@@ -2208,7 +2202,7 @@ describe("activate agreement", () => {
 
     it("Agreement Suspended, Requester === Producer and active producer delegation exists -- error case: throws tenantIsNotTheDelegate", async () => {
       const producerId = generateId<TenantId>();
-      const authData = getMockAuthData(producerId);
+      const authData = getMockAuthData({ organizationId: producerId });
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.suspended,
@@ -2237,7 +2231,7 @@ describe("activate agreement", () => {
 
     it("Agreement Suspended, Requester === Consumer and active consumer delegation exists -- error case: throws tenantIsNotTheDelegate", async () => {
       const consumerId = generateId<TenantId>();
-      const authData = getMockAuthData(consumerId);
+      const authData = getMockAuthData({ organizationId: consumerId });
       const agreement: Agreement = {
         ...getMockAgreement(),
         state: agreementState.suspended,
@@ -2266,7 +2260,7 @@ describe("activate agreement", () => {
 
     it("Agreement Suspended expected -- error case: throws agreementNotInExpectedState", async () => {
       const consumerId = generateId<TenantId>();
-      const authData = getMockAuthData(consumerId);
+      const authData = getMockAuthData({ organizationId: consumerId });
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -2313,11 +2307,7 @@ describe("activate agreement", () => {
 
     it("should throw an tenantNotAllowed error when the requester is not the Consumer or Producer or Delegated Consumer or Delegate Producer or Delegate Consumer", async () => {
       const authData = getMockAuthData();
-      const agreement: Agreement = getMockAgreement(
-        generateId<EServiceId>(),
-        generateId<TenantId>(),
-        agreementState.suspended
-      );
+      const agreement: Agreement = getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: agreementState.suspended });
 
       const producerDelegation = getMockDelegation({
         kind: delegationKind.delegatedProducer,
@@ -2355,7 +2345,7 @@ describe("activate agreement", () => {
       "should throw an agreementNotInExpectedState error when the Agreement is not in an activable state - agreement state: %s",
       async (agreementState) => {
         const consumerId = generateId<TenantId>();
-        const authData = getMockAuthData(consumerId);
+        const authData = getMockAuthData({ organizationId: consumerId });
 
         const agreement: Agreement = {
           ...getMockAgreement(),
@@ -2384,7 +2374,7 @@ describe("activate agreement", () => {
 
     it("should throw an eServiceNotFound error when the EService does not exist", async () => {
       const consumerId = generateId<TenantId>();
-      const authData = getMockAuthData(consumerId);
+      const authData = getMockAuthData({ organizationId: consumerId });
 
       const agreement: Agreement = {
         ...getMockAgreement(),
@@ -2403,7 +2393,7 @@ describe("activate agreement", () => {
     it("should throw a descriptorNotFound error when the Descriptor does not exist", async () => {
       const consumerId = generateId<TenantId>();
       const producerId = generateId<TenantId>();
-      const authData = getMockAuthData(producerId);
+      const authData = getMockAuthData({ organizationId: producerId });
 
       const eservice: EService = {
         ...getMockEService(),
@@ -2439,7 +2429,7 @@ describe("activate agreement", () => {
       async (descriptorState) => {
         const consumerId = generateId<TenantId>();
         const producerId = generateId<TenantId>();
-        const authData = getMockAuthData(producerId);
+        const authData = getMockAuthData({ organizationId: producerId });
 
         const descriptor: Descriptor = {
           ...getMockDescriptorPublished(),
@@ -2482,7 +2472,7 @@ describe("activate agreement", () => {
     it("should throw a tenantNotFound error when the Consumer does not exist", async () => {
       const consumerId = generateId<TenantId>();
       const producer = getMockTenant();
-      const authData = getMockAuthData(producer.id);
+      const authData = getMockAuthData({ organizationId: producer.id });
 
       const descriptor: Descriptor = {
         ...getMockDescriptorPublished(),

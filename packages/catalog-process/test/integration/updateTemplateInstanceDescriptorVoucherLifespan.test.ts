@@ -54,7 +54,7 @@ describe("update descriptor", () => {
       eservice.id,
       descriptor.id,
       1000,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).toMatchObject({
@@ -90,7 +90,7 @@ describe("update descriptor", () => {
       eservice.id,
       descriptor.id,
       1000,
-      getMockContext({ authData: getMockAuthData(eservice.producerId) })
+      getMockContext({ authData: getMockAuthData({ organizationId: eservice.producerId }) })
     );
     const writtenEvent = await readLastEserviceEvent(eservice.id);
     expect(writtenEvent).not.toMatchObject({
@@ -107,7 +107,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         1000,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(eServiceNotFound(mockEService.id));
   });
@@ -124,7 +124,7 @@ describe("update descriptor", () => {
         mockEService.id,
         mockDescriptor.id,
         1000,
-        getMockContext({ authData: getMockAuthData(mockEService.producerId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: mockEService.producerId }) })
       )
     ).rejects.toThrowError(
       eServiceDescriptorNotFound(eservice.id, mockDescriptor.id)

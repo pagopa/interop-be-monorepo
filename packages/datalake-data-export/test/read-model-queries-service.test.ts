@@ -76,22 +76,14 @@ describe("read-model-queries.service", () => {
 
     it("should return all eServices", async () => {
       const eservicesData = [
-        getMockEService(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          getMockDescriptorList().map((d) => ({
+        getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: getMockDescriptorList().map((d) => ({
             ...d,
             state: randomArrayItem(validEserviceDescriptorStates),
-          }))
-        ),
-        getMockEService(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          getMockDescriptorList().map((d) => ({
+          })) }),
+        getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: getMockDescriptorList().map((d) => ({
             ...d,
             state: randomArrayItem(validEserviceDescriptorStates),
-          }))
-        ),
+          })) }),
       ];
       await seedEServices(eservicesData);
 
@@ -101,7 +93,7 @@ describe("read-model-queries.service", () => {
 
     it("should not return draft descriptors in the e-service", async () => {
       const eservicesData = [
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
+        getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [
           {
             ...getMockDescriptor(),
             id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f2"),
@@ -119,7 +111,7 @@ describe("read-model-queries.service", () => {
               declared: [],
             },
           },
-        ]),
+        ] }),
       ];
 
       await seedEServices(eservicesData);
@@ -132,7 +124,7 @@ describe("read-model-queries.service", () => {
 
     it("should not return waiting for approval descriptors in the e-service", async () => {
       const eservicesData = [
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
+        getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [
           {
             ...getMockDescriptor(),
             id: unsafeBrandId("a9c705d9-ecdb-47ff-bcd2-667495b111f2"),
@@ -150,7 +142,7 @@ describe("read-model-queries.service", () => {
               declared: [],
             },
           },
-        ]),
+        ] }),
       ];
 
       await seedEServices(eservicesData);
@@ -168,12 +160,12 @@ describe("read-model-queries.service", () => {
 
     it("should not return eServices with only one descriptor with Draft state", async () => {
       const eservicesData = [
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-          getMockDescriptor(randomArrayItem(validEserviceDescriptorStates)),
-        ]),
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-          getMockDescriptor(descriptorState.draft),
-        ]),
+        getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [
+          getMockDescriptor({ state: randomArrayItem(validEserviceDescriptorStates) }),
+        ] }),
+        getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [
+          getMockDescriptor({ state: descriptorState.draft }),
+        ] }),
       ];
 
       await seedEServices(eservicesData);
@@ -185,10 +177,10 @@ describe("read-model-queries.service", () => {
 
     it("should not return eServices with no descriptors", async () => {
       const eservicesData = [
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), [
-          getMockDescriptor(descriptorState.published),
-        ]),
-        getMockEService(generateId<EServiceId>(), generateId<TenantId>(), []),
+        getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [
+          getMockDescriptor({ state: descriptorState.published }),
+        ] }),
+        getMockEService({ eserviceId: generateId<EServiceId>(), producerId: generateId<TenantId>(), descriptors: [] }),
       ];
 
       await seedEServices(eservicesData);
@@ -206,16 +198,8 @@ describe("read-model-queries.service", () => {
 
     it("should return all agreements", async () => {
       const agreementsData = [
-        getMockAgreement(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          randomArrayItem(validAgreementStates)
-        ),
-        getMockAgreement(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          randomArrayItem(validAgreementStates)
-        ),
+        getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: randomArrayItem(validAgreementStates) }),
+        getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: randomArrayItem(validAgreementStates) }),
       ];
       await seedAgreements(agreementsData);
 
@@ -230,16 +214,8 @@ describe("read-model-queries.service", () => {
 
     it("should not return agreements in 'Draft' state", async () => {
       const agreementsData = [
-        getMockAgreement(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          randomArrayItem(validAgreementStates)
-        ),
-        getMockAgreement(
-          generateId<EServiceId>(),
-          generateId<TenantId>(),
-          agreementState.draft
-        ),
+        getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: randomArrayItem(validAgreementStates) }),
+        getMockAgreement({ eserviceId: generateId<EServiceId>(), consumerId: generateId<TenantId>(), state: agreementState.draft }),
       ];
 
       await seedAgreements(agreementsData);
@@ -258,12 +234,12 @@ describe("read-model-queries.service", () => {
 
     it("should return all purposes", async () => {
       const purposesData = [
-        getMockPurpose([
-          getMockPurposeVersion(randomArrayItem(validPurposeVersionStates)),
-        ]),
-        getMockPurpose([
-          getMockPurposeVersion(randomArrayItem(validPurposeVersionStates)),
-        ]),
+        getMockPurpose({ versions: [
+          getMockPurposeVersion({ state: randomArrayItem(validPurposeVersionStates) }),
+        ] }),
+        getMockPurpose({ versions: [
+          getMockPurposeVersion({ state: randomArrayItem(validPurposeVersionStates) }),
+        ] }),
       ];
 
       await seedPurposes(purposesData);
@@ -279,13 +255,13 @@ describe("read-model-queries.service", () => {
 
     it("should not return purposes with only one version in 'Draft' or 'WaitingForApproval' state", async () => {
       const purposesData = [
-        getMockPurpose([
-          getMockPurposeVersion(randomArrayItem(validPurposeVersionStates)),
-        ]),
-        getMockPurpose([
-          getMockPurposeVersion(purposeVersionState.waitingForApproval),
-        ]),
-        getMockPurpose([getMockPurposeVersion(purposeVersionState.draft)]),
+        getMockPurpose({ versions: [
+          getMockPurposeVersion({ state: randomArrayItem(validPurposeVersionStates) }),
+        ] }),
+        getMockPurpose({ versions: [
+          getMockPurposeVersion({ state: purposeVersionState.waitingForApproval }),
+        ] }),
+        getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.draft })] }),
       ];
 
       await seedPurposes(purposesData);
@@ -298,7 +274,7 @@ describe("read-model-queries.service", () => {
 
     it("should not return purposes with no versions", async () => {
       const purposesData = [
-        getMockPurpose([getMockPurposeVersion(purposeVersionState.active)]),
+        getMockPurpose({ versions: [getMockPurposeVersion({ state: purposeVersionState.active })] }),
         getMockPurpose(),
       ];
 

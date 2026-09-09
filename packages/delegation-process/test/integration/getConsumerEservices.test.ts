@@ -53,7 +53,7 @@ describe("getConsumerEservices", () => {
   });
 
   const agreementDelegator1Eservice1 = {
-    ...getMockAgreement(eservice1.id, delegatorId1, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice1.id, consumerId: delegatorId1, state: agreementState.active }),
     producerId: eservice1.producerId,
   };
 
@@ -66,7 +66,7 @@ describe("getConsumerEservices", () => {
   });
 
   const agreementDelegator1Eservice2 = {
-    ...getMockAgreement(eservice2.id, delegatorId1, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice2.id, consumerId: delegatorId1, state: agreementState.active }),
     producerId: eservice2.producerId,
   };
 
@@ -79,7 +79,7 @@ describe("getConsumerEservices", () => {
   });
 
   const agreementDelegator1Eservice3 = {
-    ...getMockAgreement(eservice3.id, delegatorId1, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice3.id, consumerId: delegatorId1, state: agreementState.active }),
     producerId: eservice3.producerId,
   };
 
@@ -92,7 +92,7 @@ describe("getConsumerEservices", () => {
   });
 
   const agreementDelegator1Eservice4 = {
-    ...getMockAgreement(eservice4.id, delegatorId1, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice4.id, consumerId: delegatorId1, state: agreementState.active }),
     producerId: eservice4.producerId,
   };
 
@@ -105,7 +105,7 @@ describe("getConsumerEservices", () => {
   });
 
   const agreementDelegator1Eservice5 = {
-    ...getMockAgreement(eservice5.id, delegatorId1, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice5.id, consumerId: delegatorId1, state: agreementState.active }),
     producerId: eservice5.producerId,
   };
 
@@ -118,11 +118,7 @@ describe("getConsumerEservices", () => {
   });
 
   const invalidAgreementDelegator1Eservice6 = {
-    ...getMockAgreement(
-      eservice6.id,
-      delegatorId1,
-      randomArrayItem(agreementInvalidStates)
-    ),
+    ...getMockAgreement({ eserviceId: eservice6.id, consumerId: delegatorId1, state: randomArrayItem(agreementInvalidStates) }),
     producerId: eservice6.producerId,
   };
 
@@ -137,7 +133,7 @@ describe("getConsumerEservices", () => {
   });
 
   const agreementDelegator2Eservice1 = {
-    ...getMockAgreement(eservice1.id, delegatorId2, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice1.id, consumerId: delegatorId2, state: agreementState.active }),
     producerId: eservice1.producerId,
   };
 
@@ -152,7 +148,7 @@ describe("getConsumerEservices", () => {
   });
 
   const agreementDelegator1Delegate2Eservice1 = {
-    ...getMockAgreement(eservice1.id, delegatorId1, agreementState.active),
+    ...getMockAgreement({ eserviceId: eservice1.id, consumerId: delegatorId1, state: agreementState.active }),
     producerId: eservice1.producerId,
   };
 
@@ -191,7 +187,7 @@ describe("getConsumerEservices", () => {
           offset: 1,
           limit: 1,
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
@@ -213,7 +209,7 @@ describe("getConsumerEservices", () => {
           offset: 0,
           limit: 50,
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
@@ -239,7 +235,7 @@ describe("getConsumerEservices", () => {
           offset: 0,
           limit: 50,
         },
-        getMockContext({ authData: getMockAuthData(requesterId) })
+        getMockContext({ authData: getMockAuthData({ organizationId: requesterId }) })
       )
     ).toEqual({
       results: [
