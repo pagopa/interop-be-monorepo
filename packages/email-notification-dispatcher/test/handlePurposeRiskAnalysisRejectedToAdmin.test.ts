@@ -9,6 +9,8 @@ import {
   getMockUserNotificationConfig,
 } from "pagopa-interop-commons-test";
 import {
+  EService,
+  Tenant,
   generateId,
   missingKafkaMessageDataError,
   PurposeEventEnvelope,
@@ -34,8 +36,8 @@ import {
 
 describe("purposeRiskAnalysisRejectedToAdmin", () => {
   const notificationType = "purposeRiskAnalysisRejectedToAdmin";
-  const consumer = { ...getMockTenant(), mails: [getMockTenantMail()] };
-  const eservice = { ...getMockEService(), name: "E-service test" };
+  const consumer: Tenant = { ...getMockTenant(), mails: [getMockTenantMail()] };
+  const eservice: EService = { ...getMockEService(), name: "E-service test" };
   const adminConfig: UserNotificationConfig = {
     ...getMockUserNotificationConfig(),
     tenantId: consumer.id,
