@@ -5,6 +5,8 @@ import {
   getMockTenant,
 } from "pagopa-interop-commons-test";
 import {
+  EService,
+  Purpose,
   EServiceId,
   generateId,
   missingKafkaMessageDataError,
@@ -27,13 +29,13 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
   const purposeId = generateId<PurposeId>();
   const reviewerIds = [generateId<UserId>(), generateId<UserId>()];
   const unrelatedUserId = generateId<UserId>();
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     name: "E-service test",
   };
   const consumer = getMockTenant(consumerId);
-  const purpose = {
+  const purpose: Purpose = {
     ...getMockPurpose(),
     id: purposeId,
     eserviceId,
