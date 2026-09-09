@@ -62,6 +62,117 @@ describe("clientService", () => {
     });
   });
 
+  it("propagates failures from individual tenant lookups", async () => {
+    const client = getMockedApiConsumerFullClient({ purposes: [] });
+    const error = new Error("Tenant lookup failed");
+    const getTenant = vi.fn().mockRejectedValue(error);
+    const mockClients = {
+      authorizationClient: {
+        client: { getClient: vi.fn().mockResolvedValue(client) },
+      },
+      tenantProcessClient: {
+        tenant: {
+          getTenants: vi.fn().mockResolvedValue({ results: [], totalCount: 0 }),
+          getTenant,
+        },
+      },
+    } as unknown as PagoPAInteropBeClients;
+    const ctx = getBffMockContext(
+      getMockContext({ authData: getMockAuthData() })
+    );
+
+    await expect(
+      clientServiceBuilder(mockClients).getClientById(client.id, ctx)
+    ).rejects.toBe(error);
+    expect(getTenant).toHaveBeenCalledExactlyOnceWith({
+      headers: ctx.headers,
+      params: { id: client.consumerId },
+    });
+  });
+
+  it.each(["consumer", "producer", "both"])(
+    "enriches client details when %s has no selfcareId",
+    async (missingTenant) => {
+      const purpose = getMockedApiPurpose();
+      const client = getMockedApiConsumerFullClient({ purposes: [purpose.id] });
+      const eservice = { ...getMockedApiEservice(), id: purpose.eserviceId };
+      const consumer = {
+        ...getMockedApiTenant(),
+        id: client.consumerId,
+        selfcareId: missingTenant === "producer" ? generateId() : undefined,
+      };
+      const producer = {
+        ...getMockedApiTenant(),
+        id: eservice.producerId,
+        selfcareId: missingTenant === "consumer" ? generateId() : undefined,
+      };
+      const tenants = [consumer, producer];
+      const listedTenants = tenants.filter((tenant) => tenant.selfcareId);
+      const getTenant = vi
+        .fn()
+        .mockImplementation(({ params: { id } }) =>
+          Promise.resolve(tenants.find((tenant) => tenant.id === id))
+        );
+      const mockClients = {
+        authorizationClient: {
+          client: { getClient: vi.fn().mockResolvedValue(client) },
+        },
+        purposeProcessClient: {
+          getPurposes: vi
+            .fn()
+            .mockResolvedValue({ results: [purpose], totalCount: 1 }),
+        },
+        catalogProcessClient: {
+          getEServices: vi
+            .fn()
+            .mockResolvedValue({ results: [eservice], totalCount: 1 }),
+        },
+        tenantProcessClient: {
+          tenant: {
+            getTenants: vi.fn().mockResolvedValue({
+              results: listedTenants,
+              totalCount: listedTenants.length,
+            }),
+            getTenant,
+          },
+        },
+      } as unknown as PagoPAInteropBeClients;
+      const ctx = getBffMockContext(
+        getMockContext({ authData: getMockAuthData() })
+      );
+
+      const result = await clientServiceBuilder(mockClients).getClientById(
+        client.id,
+        ctx
+      );
+
+      expect(result.consumer).toEqual({ id: consumer.id, name: consumer.name });
+      expect(result.purposes).toEqual([
+        {
+          purposeId: purpose.id,
+          title: purpose.title,
+          eservice: {
+            id: eservice.id,
+            name: eservice.name,
+            producer: {
+              id: producer.id,
+              name: producer.name,
+              kind: producer.kind,
+            },
+          },
+        },
+      ]);
+      const omittedTenants = tenants.filter((tenant) => !tenant.selfcareId);
+      expect(getTenant).toHaveBeenCalledTimes(omittedTenants.length);
+      for (const tenant of omittedTenants) {
+        expect(getTenant).toHaveBeenCalledWith({
+          headers: ctx.headers,
+          params: { id: tenant.id },
+        });
+      }
+    }
+  );
+
   it("retrieves paginated client purpose data in bulk and preserves purpose order", async () => {
     const purposes = Array.from({ length: 51 }, (_, index) => ({
       ...getMockedApiPurpose(),

@@ -450,7 +450,21 @@ async function enhanceClient(
   const eservicesById = new Map(
     eservices.map((eservice) => [eservice.id, eservice])
   );
-  const tenantsById = new Map(tenants.map((tenant) => [tenant.id, tenant]));
+  const retrievedTenantIds = new Set(tenants.map((tenant) => tenant.id));
+  // The list endpoint excludes tenants without selfcareId; individual lookups do not.
+  const missingTenants = await Promise.all(
+    tenantIds
+      .filter((tenantId) => !retrievedTenantIds.has(tenantId))
+      .map((tenantId) =>
+        apiClients.tenantProcessClient.tenant.getTenant({
+          headers: ctx.headers,
+          params: { id: tenantId },
+        })
+      )
+  );
+  const tenantsById = new Map(
+    [...tenants, ...missingTenants].map((tenant) => [tenant.id, tenant])
+  );
   const consumer = tenantsById.get(client.consumerId);
   if (!consumer) {
     throw tenantNotFound(client.consumerId);
