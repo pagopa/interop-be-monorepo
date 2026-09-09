@@ -12327,7 +12327,8 @@ components:
       required:
         - id
         - eventType
-        - eventTimestamp - eserviceTemplateId
+        - eventTimestamp
+        - eserviceTemplateId
     EServiceTemplateEvents:
       type: object
       additionalProperties: false
@@ -13691,7 +13692,6 @@ components:
         - name
         - description
         - technology
-        - descriptors
         - mode
     EServiceDraftUpdateSeed:
       type: object
@@ -13787,9 +13787,7 @@ components:
       required:
         - id
         - version
-        - docs
         - state
-        - creationDate
         - audience
         - voucherLifespan
         - dailyCallsPerConsumer
@@ -14187,7 +14185,6 @@ components:
         - id
         - version
         - state
-        - creationDate
         - voucherLifespan
     EServiceTemplateVersionState:
       type: string
@@ -15250,11 +15247,8 @@ components:
           type: string
       required:
         - id
-        - certifier
         - externalId
-        - attributes
         - createdAt
-        - mails
         - name
     TargetTenantKind:
       type: string
