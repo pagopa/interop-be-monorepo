@@ -1,34 +1,22 @@
 import { AxiosError, InternalAxiosRequestConfig } from "axios";
-import { genericLogger, WithLogger } from "pagopa-interop-commons";
 import { getMockAuthData, getMockContext } from "pagopa-interop-commons-test";
-import {
-  ClientId,
-  commonErrorCodes,
-  generateId,
-  Problem,
-  PurposeId,
-  serviceErrorCode,
-  serviceName,
-} from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { generateId, Problem } from "pagopa-interop-models";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PagoPAInteropBeClients } from "../src/clients/clientsProvider.js";
+import {
+  EVENT_CONFLICT_MAX_ATTEMPTS,
+  EVENT_CONFLICT_RETRY_DELAY_MS,
+} from "../src/config/constants.js";
 import { clientServiceBuilder } from "../src/services/clientService.js";
-import { BffAppContext } from "../src/utilities/context.js";
+import { getBffMockContext } from "./utils.js";
 
 describe("addClientPurpose", () => {
-  const clientId = generateId<ClientId>();
-  const purposeId = generateId<PurposeId>();
-  const appContext = getMockContext({ authData: getMockAuthData() });
-  const ctx: WithLogger<BffAppContext> = {
-    ...appContext,
-    headers: {
-      "X-Correlation-Id": appContext.correlationId,
-      Authorization: "authorization",
-      "X-Forwarded-For": "x-forwarded-for",
-    },
-    logger: genericLogger,
-  };
+  const clientId = generateId();
+  const purposeId = generateId();
+  const ctx = getBffMockContext(
+    getMockContext({ authData: getMockAuthData() })
+  );
 
   const addClientPurpose = vi.fn();
   const mockClients = {
@@ -37,13 +25,14 @@ describe("addClientPurpose", () => {
         addClientPurpose,
       },
     },
-    selfcareV2UserClient: {},
-    inAppNotificationManagerClient: {},
   } as unknown as PagoPAInteropBeClients;
 
   const clientService = clientServiceBuilder(mockClients);
 
-  const axiosError = (problem: Problem): AxiosError<Problem> =>
+  const axiosError = (
+    problem: Problem,
+    data: unknown = problem
+  ): AxiosError<Problem> =>
     new AxiosError(
       "Downstream error",
       String(problem.status),
@@ -51,13 +40,15 @@ describe("addClientPurpose", () => {
       undefined,
       {
         status: problem.status,
-        data: problem,
+        data: data as Problem,
         statusText: problem.title,
         config: {} as InternalAxiosRequestConfig,
         headers: {},
       }
     );
 
+  // Literal codes pin the wire format of authorization-process (006)
+  // independently from the constants under test.
   const eventConflictProblem: Problem = {
     type: "about:blank",
     title: "Conflict",
@@ -66,14 +57,37 @@ describe("addClientPurpose", () => {
     correlationId: ctx.correlationId,
     errors: [
       {
-        code: `${serviceErrorCode[serviceName.AUTHORIZATION_PROCESS]}-${commonErrorCodes.eventConflictError}`,
+        code: "006-10034",
         detail: "Request conflicts with an ongoing operation. Please retry.",
       },
     ],
   };
 
+  const purposeAlreadyLinkedProblem: Problem = {
+    ...eventConflictProblem,
+    errors: [
+      {
+        code: "006-0013",
+        detail: `Purpose ${purposeId} is already linked to client ${clientId}`,
+      },
+    ],
+  };
+
+  // The retry sleeps between attempts. Fake timers keep the tests fast
+  // and let the exhaustion case run all attempts.
+  const runAllRetries = async (): Promise<void> => {
+    await vi.advanceTimersByTimeAsync(
+      EVENT_CONFLICT_RETRY_DELAY_MS * (EVENT_CONFLICT_MAX_ATTEMPTS - 1)
+    );
+  };
+
   beforeEach(() => {
+    vi.useFakeTimers();
     addClientPurpose.mockReset();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("should retry authorization event conflicts and complete the association", async () => {
@@ -81,27 +95,51 @@ describe("addClientPurpose", () => {
       .mockRejectedValueOnce(axiosError(eventConflictProblem))
       .mockResolvedValueOnce(undefined);
 
-    await expect(
+    const result = expect(
       clientService.addClientPurpose(clientId, { purposeId }, ctx)
     ).resolves.toBeUndefined();
+    await runAllRetries();
+    await result;
 
     expect(addClientPurpose).toHaveBeenCalledTimes(2);
-    expect(addClientPurpose).toHaveBeenCalledWith(
+    expect(addClientPurpose).toHaveBeenNthCalledWith(
+      2,
       { purposeId },
       { params: { clientId }, headers: ctx.headers }
     );
   });
 
+  it("should stop after the configured attempts and rethrow the last conflict", async () => {
+    const lastConflict = axiosError(eventConflictProblem);
+    addClientPurpose.mockRejectedValue(lastConflict);
+
+    const result = expect(
+      clientService.addClientPurpose(clientId, { purposeId }, ctx)
+    ).rejects.toBe(lastConflict);
+    await runAllRetries();
+    await result;
+
+    expect(addClientPurpose).toHaveBeenCalledTimes(EVENT_CONFLICT_MAX_ATTEMPTS);
+  });
+
   it("should not retry other conflicts", async () => {
-    const purposeAlreadyLinked: Problem = {
-      ...eventConflictProblem,
-      errors: [{ code: "006-0008", detail: "Purpose already linked" }],
-    };
-    addClientPurpose.mockRejectedValue(axiosError(purposeAlreadyLinked));
+    const conflict = axiosError(purposeAlreadyLinkedProblem);
+    addClientPurpose.mockRejectedValue(conflict);
 
     await expect(
       clientService.addClientPurpose(clientId, { purposeId }, ctx)
-    ).rejects.toBeInstanceOf(AxiosError);
+    ).rejects.toBe(conflict);
+
+    expect(addClientPurpose).toHaveBeenCalledTimes(1);
+  });
+
+  it("should not retry a conflict without a problem body", async () => {
+    const conflict = axiosError(eventConflictProblem, null);
+    addClientPurpose.mockRejectedValue(conflict);
+
+    await expect(
+      clientService.addClientPurpose(clientId, { purposeId }, ctx)
+    ).rejects.toBe(conflict);
 
     expect(addClientPurpose).toHaveBeenCalledTimes(1);
   });
