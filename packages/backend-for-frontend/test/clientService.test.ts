@@ -21,6 +21,47 @@ import { clientServiceBuilder } from "../src/services/clientService.js";
 import { getBffMockContext } from "./utils.js";
 
 describe("clientService", () => {
+  it("skips purpose and catalog retrieval for an empty client with unrelated visible purposes", async () => {
+    const client = getMockedApiConsumerFullClient({ purposes: [] });
+    const consumer = { ...getMockedApiTenant(), id: client.consumerId };
+    const getPurposes = vi.fn().mockResolvedValue({
+      results: [getMockedApiPurpose()],
+      totalCount: 1,
+    } satisfies purposeApi.Purposes);
+    const getEServices = vi
+      .fn()
+      .mockResolvedValue({ results: [], totalCount: 0 });
+    const getTenants = vi.fn().mockResolvedValue({
+      results: [consumer],
+      totalCount: 1,
+    } satisfies tenantApi.Tenants);
+    const mockClients = {
+      authorizationClient: {
+        client: { getClient: vi.fn().mockResolvedValue(client) },
+      },
+      purposeProcessClient: { getPurposes },
+      catalogProcessClient: { getEServices },
+      tenantProcessClient: { tenant: { getTenants } },
+    } as unknown as PagoPAInteropBeClients;
+    const ctx = getBffMockContext(
+      getMockContext({ authData: getMockAuthData() })
+    );
+
+    const result = await clientServiceBuilder(mockClients).getClientById(
+      client.id,
+      ctx
+    );
+
+    expect(result.purposes).toEqual([]);
+    expect(result.consumer).toEqual({ id: consumer.id, name: consumer.name });
+    expect(getPurposes).not.toHaveBeenCalled();
+    expect(getEServices).not.toHaveBeenCalled();
+    expect(getTenants).toHaveBeenCalledExactlyOnceWith({
+      headers: ctx.headers,
+      queries: { tenantIds: [consumer.id], offset: 0, limit: 50 },
+    });
+  });
+
   it("retrieves paginated client purpose data in bulk and preserves purpose order", async () => {
     const purposes = Array.from({ length: 51 }, (_, index) => ({
       ...getMockedApiPurpose(),

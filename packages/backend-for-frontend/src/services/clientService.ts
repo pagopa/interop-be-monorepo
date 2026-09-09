@@ -410,12 +410,14 @@ async function enhanceClient(
           ctx.correlationId
         )
       : Promise.resolve(undefined),
-    getAllFromPaginated((offset, limit) =>
-      apiClients.purposeProcessClient.getPurposes({
-        headers: ctx.headers,
-        queries: { clientId: client.id, offset, limit },
-      })
-    ),
+    client.purposes.length === 0
+      ? Promise.resolve([])
+      : getAllFromPaginated((offset, limit) =>
+          apiClients.purposeProcessClient.getPurposes({
+            headers: ctx.headers,
+            queries: { clientId: client.id, offset, limit },
+          })
+        ),
   ]);
   const eserviceIds = Array.from(
     new Set(retrievedPurposes.map((purpose) => purpose.eserviceId))
