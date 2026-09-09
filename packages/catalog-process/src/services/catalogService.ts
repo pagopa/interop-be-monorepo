@@ -2355,10 +2355,6 @@ export function catalogServiceBuilder(
       );
 
       assertRequesterIsProducer(eservice.data.producerId, authData);
-      await assertNoExistingProducerDelegationInActiveOrPendingState(
-        eservice.data.id,
-        readModelService
-      );
 
       const currentDate = new Date();
       const suffix = ` - clone - ${dateAtRomeZone(currentDate)} ${timeAtRomeZone(currentDate)}`;
