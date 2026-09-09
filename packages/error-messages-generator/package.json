@@ -14,7 +14,9 @@
   "dependencies": {
     "xlsx": "catalog:",
     "ts-pattern": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "pagopa-interop-models": "workspace:*",
+    "pagopa-interop-commons": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",

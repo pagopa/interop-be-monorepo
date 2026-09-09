@@ -3040,6 +3040,12 @@ importers:
 
   packages/error-messages-generator:
     dependencies:
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
