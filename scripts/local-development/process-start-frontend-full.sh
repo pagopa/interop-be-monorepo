@@ -4,6 +4,7 @@ set -euo pipefail
 REPOSITORY_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RUNTIME_ROOT="$REPOSITORY_ROOT/.local-development"
 PID_FILE="$RUNTIME_ROOT/frontend-full.pids"
+STATUS_FILE="$RUNTIME_ROOT/frontend-full.status"
 START_DELAY_SECONDS="${INTEROP_SERVICE_START_DELAY_SECONDS:-2}"
 BACKEND_WATCH="${INTEROP_BACKEND_WATCH:-false}"
 PIDS=()
@@ -56,12 +57,26 @@ cd "$REPOSITORY_ROOT"
 mkdir -p "$RUNTIME_ROOT"
 : > "$PID_FILE"
 
+printf 'building\n' > "$STATUS_FILE"
+echo "Building local backend dependencies"
+build_filters=()
+for service in "${SERVICES[@]}"; do
+  build_filters+=("--filter=$service^...")
+done
+# Match Turbo start's ^build dependency preparation while leaving service
+# sources to tsx. Turbo reuses cached outputs when the branch has not changed.
+pnpm exec turbo run build "${build_filters[@]}" --concurrency=2
+echo "Local backend dependencies are ready"
+
 export SELFCARE_V2_URL="${SELFCARE_V2_URL:-http://localhost:8006}"
 export SELFCARE_V2_API_KEY="${SELFCARE_V2_API_KEY:-local-selfcare-key}"
 export DYNAMO_DB_ENDPOINT="${DYNAMO_DB_ENDPOINT:-http://localhost:8085}"
 export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=192}"
 
+printf 'infrastructure\n' > "$STATUS_FILE"
 pnpm local:infra:start
+
+printf 'starting\n' > "$STATUS_FILE"
 
 for service in "${SERVICES[@]}"; do
   echo "Starting $service"
@@ -80,4 +95,6 @@ for service in "${SERVICES[@]}"; do
   sleep "$START_DELAY_SECONDS"
 done
 
+printf 'running\n' > "$STATUS_FILE"
+echo "All local backend processes are running"
 wait
