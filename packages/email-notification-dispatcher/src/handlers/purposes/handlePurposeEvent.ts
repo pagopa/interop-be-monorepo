@@ -8,6 +8,7 @@ import { HandlerParams } from "../../models/handlerParams.js";
 import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
 import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
+import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
 import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
 import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
 import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
@@ -161,6 +162,33 @@ export async function handlePurposeEvent(
       ]
     )
     .with(
+      { type: "PurposeRiskAnalysisWorkflowCreated" },
+      ({ data: { purpose, newReviewersToNotify }, type }) =>
+        handlePurposeRiskAnalysisAssignedForSigningToReviewer({
+          purposeV2Msg: purpose,
+          reviewerIds: newReviewersToNotify,
+          eventType: type,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
+      { type: "PurposeRiskAnalysisSubmitted" },
+      ({ data: { purpose }, type }) =>
+        handlePurposeRiskAnalysisAssignedForSigningToReviewer({
+          purposeV2Msg: purpose,
+          reviewerIds:
+            purpose?.reviewerWorkflow?.reviewers.map(({ id }) => id) ?? [],
+          eventType: type,
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })
+    )
+    .with(
       {
         type: P.union(
           "DraftPurposeDeleted",
@@ -177,10 +205,8 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisWorkflowCreated",
           "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSelfAssigned",
-          "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
           "PurposeRiskAnalysisFormEdited"
