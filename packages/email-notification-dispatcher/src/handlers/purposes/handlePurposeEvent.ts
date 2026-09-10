@@ -8,6 +8,7 @@ import { HandlerParams } from "../../models/handlerParams.js";
 import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
 import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
+import { handlePurposePublishedWithRiskAnalysisToReviewer } from "./handlePurposePublishedWithRiskAnalysisToReviewer.js";
 import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
 import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
 import { handlePurposeRiskAnalysisAssignmentRemovedToReviewer } from "./handlePurposeRiskAnalysisAssignmentRemovedToReviewer.js";
@@ -163,7 +164,25 @@ export async function handlePurposeEvent(
           templateService,
           correlationId,
         })),
+        ...(await handlePurposePublishedWithRiskAnalysisToReviewer({
+          purposeV2Msg: purpose,
+          eventType: "PurposeWaitingForApproval",
+          logger,
+          readModelService,
+          templateService,
+          correlationId,
+        })),
       ]
+    )
+    .with({ type: "PurposeActivated" }, ({ data: { purpose }, type }) =>
+      handlePurposePublishedWithRiskAnalysisToReviewer({
+        purposeV2Msg: purpose,
+        eventType: type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
     .with(
       { type: "PurposeRiskAnalysisWorkflowCreated" },
@@ -212,7 +231,6 @@ export async function handlePurposeEvent(
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
-          "PurposeActivated",
           "PurposeVersionOverQuotaUnsuspended",
           "WaitingForApprovalPurposeVersionDeleted",
           "NewPurposeVersionActivated",
