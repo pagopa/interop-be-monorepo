@@ -13,6 +13,11 @@ export type EserviceNewVersionApprovedRejectedToDelegateEventType =
   | "EServiceDescriptorRejectedByDelegator";
 
 export const inAppTemplates = {
+  purposeRiskAnalysisSignedToAdmin: (
+    purposeTitle: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeTitle} associata all'e-service ${eserviceName} è stata approvata.`,
   purposeRiskAnalysisSignedToReviewer: (
     purposeName: string,
     eserviceName: string
