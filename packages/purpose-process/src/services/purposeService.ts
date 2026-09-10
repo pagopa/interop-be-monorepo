@@ -583,15 +583,19 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
       }
 
-      if (seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns) {
-        if (seed.reviewerIds.length > 0) {
-          throw reviewersNotAllowedForReviewMode(purposeId);
-        }
-      } else {
-        if (seed.reviewerIds.length === 0) {
-          throw missingReviewers(purposeId);
-        }
+      const isSelfAssignmentMode =
+        seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns;
+      const hasRequestedReviewers = seed.reviewerIds.length > 0;
 
+      if (isSelfAssignmentMode && hasRequestedReviewers) {
+        throw reviewersNotAllowedForReviewMode(purposeId);
+      }
+
+      if (!isSelfAssignmentMode && !hasRequestedReviewers) {
+        throw missingReviewers(purposeId);
+      }
+
+      if (!isSelfAssignmentMode) {
         const consumer = await retrieveTenant(
           purpose.data.consumerId,
           readModelService
@@ -745,22 +749,22 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotFound(purposeId);
       }
 
-      const isReviewerWritesSignable = match([
-        purpose.data.reviewMode,
-        workflow.signingState,
-      ])
+      const isReviewerWritesSignable = match({
+        reviewMode: purpose.data.reviewMode,
+        signingState: workflow.signingState,
+      })
         .with(
-          [
-            riskAnalysisReviewMode.adminWritesReviewerSigns,
-            riskAnalysisSigningState.submitted,
-          ],
+          {
+            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.submitted,
+          },
           () => false
         )
         .with(
-          [
-            riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-            riskAnalysisSigningState.assigned,
-          ],
+          {
+            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.assigned,
+          },
           () => true
         )
         .otherwise(() => {
@@ -2781,28 +2785,22 @@ type RiskAnalysisReviewAssignment = {
   reviewerIds: string[];
 };
 
-type RiskAnalysisAssignmentOutcome = {
-  reviewerWorkflow: ReviewerWorkflow | undefined;
-  newReviewersToNotify: UserId[];
-  oldReviewersToNotify: UserId[];
-};
+const isReviewerWritingMode = (
+  reviewMode: RiskAnalysisReviewMode | undefined
+): boolean => reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
 
-type RiskAnalysisAssignmentContext = {
-  purpose: WithMetadata<Purpose>;
-  previousReviewMode: RiskAnalysisReviewMode | undefined;
-  previousReviewers: RiskAnalysisReviewer[];
-  requestedReviewers: UserId[];
-  addedReviewers: UserId[];
-  alreadyNotifiedReviewerIds: UserId[];
-  removedReviewersToNotify: UserId[];
-  now: Date;
-};
+const hasSameReviewerIds = (
+  previousReviewerIds: UserId[],
+  requestedReviewerIds: UserId[]
+): boolean =>
+  previousReviewerIds.length === requestedReviewerIds.length &&
+  previousReviewerIds.every((id) => requestedReviewerIds.includes(id));
 
 /**
  * Reviewers already in the workflow keep their stamp; joining reviewers get
  * the supplied stamp when they acquire an action to perform.
  */
-const preserveExistingReviewerStamps = (
+const evaluateReviewerStamps = (
   reviewerIds: UserId[],
   previousReviewers: RiskAnalysisReviewer[],
   sentAt: Date | undefined
@@ -2822,6 +2820,23 @@ const preserveExistingReviewerStamps = (
           : sentAt,
     };
   });
+};
+
+type RiskAnalysisAssignmentContext = {
+  purpose: WithMetadata<Purpose>;
+  previousReviewMode: RiskAnalysisReviewMode | undefined;
+  previousReviewers: RiskAnalysisReviewer[];
+  requestedReviewers: UserId[];
+  addedReviewers: UserId[];
+  alreadyNotifiedReviewerIds: UserId[];
+  removedReviewersToNotify: UserId[];
+  now: Date;
+};
+
+type RiskAnalysisAssignmentOutcome = {
+  reviewerWorkflow: ReviewerWorkflow | undefined;
+  newReviewersToNotify: UserId[];
+  oldReviewersToNotify: UserId[];
 };
 
 const transitionToAdminWritesAdminSigns = ({
@@ -2855,7 +2870,7 @@ const transitionToAdminWritesReviewerSigns = ({
       return {
         reviewerWorkflow: {
           ...previousWorkflow,
-          reviewers: preserveExistingReviewerStamps(
+          reviewers: evaluateReviewerStamps(
             requestedReviewers,
             previousReviewers,
             shouldNotifyAddedReviewers ? now : undefined
@@ -2890,7 +2905,7 @@ const transitionToReviewerWritesReviewerSigns = ({
   match(previousReviewMode)
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
       reviewerWorkflow: {
-        reviewers: preserveExistingReviewerStamps(
+        reviewers: evaluateReviewerStamps(
           requestedReviewers,
           previousReviewers,
           now
@@ -2941,8 +2956,7 @@ function assignRiskAnalysisReviewerLogic(
 
   const assignmentIsUnchanged =
     previousReviewMode === review.reviewMode &&
-    previousReviewerIds.length === requestedReviewers.length &&
-    previousReviewerIds.every((id) => requestedReviewers.includes(id));
+    hasSameReviewerIds(previousReviewerIds, requestedReviewers);
 
   if (assignmentIsUnchanged) {
     return { event: undefined, updatedPurpose: purpose.data };
@@ -2974,7 +2988,7 @@ function assignRiskAnalysisReviewerLogic(
     now,
   };
 
-  const outcome = match(review.reviewMode)
+  const transitionOutcome = match(review.reviewMode)
     .returnType<RiskAnalysisAssignmentOutcome>()
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
       transitionToAdminWritesAdminSigns(transitionContext)
@@ -2987,46 +3001,45 @@ function assignRiskAnalysisReviewerLogic(
     )
     .exhaustive();
 
-  const reviewerWritingDutyChanges =
-    (previousReviewMode ===
-      riskAnalysisReviewMode.reviewerWritesReviewerSigns) !==
-    (review.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns);
+  const reviewerWritingModeChanged =
+    isReviewerWritingMode(previousReviewMode) !==
+    isReviewerWritingMode(review.reviewMode);
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
-    riskAnalysisForm: reviewerWritingDutyChanges
+    riskAnalysisForm: reviewerWritingModeChanged
       ? undefined
       : purpose.data.riskAnalysisForm,
     reviewMode: review.reviewMode,
-    reviewerWorkflow: outcome.reviewerWorkflow,
+    reviewerWorkflow: transitionOutcome.reviewerWorkflow,
     updatedAt: now,
-  };
-
-  const eventPayload = {
-    purpose: updatedPurpose,
-    version: purpose.metadata.version,
-    correlationId,
   };
 
   const event = match(review.reviewMode)
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
       toCreateEventPurposeRiskAnalysisSelfAssigned({
-        ...eventPayload,
-        oldReviewersToNotify: outcome.oldReviewersToNotify,
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+        oldReviewersToNotify: transitionOutcome.oldReviewersToNotify,
       })
     )
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
       toCreateEventPurposeRiskAnalysisWorkflowCreated({
-        ...eventPayload,
-        newReviewersToNotify: outcome.newReviewersToNotify,
-        oldReviewersToNotify: outcome.oldReviewersToNotify,
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+        newReviewersToNotify: transitionOutcome.newReviewersToNotify,
+        oldReviewersToNotify: transitionOutcome.oldReviewersToNotify,
       })
     )
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
       toCreateEventPurposeRiskAnalysisAssigned({
-        ...eventPayload,
-        newReviewersToNotify: outcome.newReviewersToNotify,
-        oldReviewersToNotify: outcome.oldReviewersToNotify,
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+        newReviewersToNotify: transitionOutcome.newReviewersToNotify,
+        oldReviewersToNotify: transitionOutcome.oldReviewersToNotify,
       })
     )
     .exhaustive();

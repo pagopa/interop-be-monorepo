@@ -35,6 +35,7 @@ import {
   fromReviewerWorkflowV2,
   ReviewerWorkflowV2,
   RiskAnalysisSigningStateV2,
+  riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
 import { describe, expect, it, vi } from "vitest";
@@ -105,24 +106,22 @@ const reviewersFor = (reviewMode: RiskAnalysisReviewMode): UserId[] =>
 function previousReviewerWorkflow(
   previousReviewMode: RiskAnalysisReviewMode | undefined,
   previousReviewers: UserId[],
-  signingState: RiskAnalysisSigningState = RiskAnalysisSigningState.Values
-    .Draft,
-  notifiedReviewerIds: UserId[] = []
+  signingState: RiskAnalysisSigningState = riskAnalysisSigningState.draft,
+  alreadyNotifiedReviewerIds: UserId[] = []
 ): ReviewerWorkflow | undefined {
   return match(previousReviewMode)
-    .returnType<ReviewerWorkflow | undefined>()
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
       reviewers: previousReviewers.map((id) => ({
         id,
         sentToReviewerAt: previousSentToReviewerAt,
       })),
-      signingState: RiskAnalysisSigningState.Values.Assigned,
+      signingState: riskAnalysisSigningState.assigned,
       sentToReviewerAt: previousSentToReviewerAt,
     }))
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () => ({
       reviewers: previousReviewers.map((id) => ({
         id,
-        sentToReviewerAt: notifiedReviewerIds.includes(id)
+        sentToReviewerAt: alreadyNotifiedReviewerIds.includes(id)
           ? previousSentToReviewerAt
           : undefined,
       })),
@@ -142,13 +141,13 @@ async function addPurposeInReviewMode({
   previousReviewers,
   riskAnalysisForm,
   signingState,
-  notifiedReviewerIds,
+  alreadyNotifiedReviewerIds,
 }: {
   previousReviewMode: RiskAnalysisReviewMode | undefined;
   previousReviewers: UserId[];
   riskAnalysisForm?: PurposeRiskAnalysisForm;
   signingState?: RiskAnalysisSigningState;
-  notifiedReviewerIds?: UserId[];
+  alreadyNotifiedReviewerIds?: UserId[];
 }): Promise<Purpose> {
   const mockEService = getMockEService();
   const mockTenant = getMockTenant();
@@ -163,7 +162,7 @@ async function addPurposeInReviewMode({
       previousReviewMode,
       previousReviewers,
       signingState,
-      notifiedReviewerIds
+      alreadyNotifiedReviewerIds
     ),
   };
 
@@ -174,6 +173,65 @@ async function addPurposeInReviewMode({
   mockSelfcareV2ClientCall([mockSelfCareUser]);
 
   return mockPurpose;
+}
+
+type AssignmentEventType =
+  | "PurposeRiskAnalysisSelfAssigned"
+  | "PurposeRiskAnalysisWorkflowCreated"
+  | "PurposeRiskAnalysisAssigned";
+
+async function expectAssignmentEvent({
+  purposeId,
+  purpose,
+  type,
+  newReviewersToNotify = [],
+  oldReviewersToNotify = [],
+}: {
+  purposeId: PurposeId;
+  purpose: Purpose;
+  type: AssignmentEventType;
+  newReviewersToNotify?: UserId[];
+  oldReviewersToNotify?: UserId[];
+}): Promise<void> {
+  const writtenEvent = await readLastPurposeEvent(purposeId);
+
+  expect(writtenEvent).toMatchObject({
+    stream_id: purposeId,
+    version: "1",
+    type,
+    event_version: 2,
+  });
+
+  const writtenPayload = match(type)
+    .with("PurposeRiskAnalysisSelfAssigned", () =>
+      decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisSelfAssignedV2,
+        payload: writtenEvent.data,
+      })
+    )
+    .with("PurposeRiskAnalysisWorkflowCreated", () =>
+      decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisWorkflowCreatedV2,
+        payload: writtenEvent.data,
+      })
+    )
+    .with("PurposeRiskAnalysisAssigned", () =>
+      decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisAssignedV2,
+        payload: writtenEvent.data,
+      })
+    )
+    .exhaustive();
+
+  const expectedPayload = {
+    purpose: toPurposeV2(purpose),
+    oldReviewersToNotify,
+    ...(type === "PurposeRiskAnalysisSelfAssigned"
+      ? {}
+      : { newReviewersToNotify }),
+  };
+
+  expect(writtenPayload).toEqual(expectedPayload);
 }
 
 describe("assignRiskAnalysisReviewer", () => {
@@ -460,306 +518,416 @@ describe("assignRiskAnalysisReviewer", () => {
     vi.useRealTimers();
   });
 
+  it("should throw purposeNotFound if the purpose doesn't exist", async () => {
+    const randomId: PurposeId = generateId();
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        randomId,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData() })
+      )
+    ).rejects.toThrow(purposeNotFound(randomId));
+  });
+
+  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    const otherOrganizationId = generateId<TenantId>();
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData(otherOrganizationId) })
+      )
+    ).rejects.toThrow(tenantIsNotTheConsumer(otherOrganizationId));
+  });
+
+  it("should throw reviewerWorkflowConflict if the risk analysis has already been signed", async () => {
+    const reviewerId = generateId<UserId>();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      reviewerWorkflow: {
+        reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
+        signingState: RiskAnalysisSigningState.Values.Signed,
+        signedBy: generateId<UserId>(),
+      },
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [generateId()],
+        },
+        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+      )
+    ).rejects.toThrow(reviewerWorkflowConflict(mockPurpose.id));
+  });
+
   it.each([
     {
-      description: "never assigned -> ReviewerWritesReviewerSigns",
-      previousReviewMode: undefined,
-      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-    },
-    {
-      description: "AdminWritesAdminSigns -> ReviewerWritesReviewerSigns",
+      description: "A: adminWritesAdminSigns -> adminWritesReviewerSigns",
       previousReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-    },
-    {
-      description: "AdminWritesReviewerSigns -> ReviewerWritesReviewerSigns",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-    },
-    {
-      description: "ReviewerWritesReviewerSigns -> AdminWritesReviewerSigns",
-      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      previousReviewers: [],
       requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      alreadyNotifiedReviewerIds: [],
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
     },
     {
-      description: "ReviewerWritesReviewerSigns -> AdminWritesAdminSigns",
-      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-    },
-  ])(
-    "should reset the risk analysis form when the writer changes ($description)",
-    async ({ previousReviewMode, requestedReviewMode }) => {
-      const mockPurpose = await addPurposeInReviewMode({
-        previousReviewMode,
-        previousReviewers: previousReviewerIds,
-        riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
-      });
-
-      const { data: updatedPurpose } =
-        await purposeService.assignRiskAnalysisReviewer(
-          mockPurpose.id,
-          {
-            reviewMode: requestedReviewMode,
-            reviewerIds: reviewersFor(requestedReviewMode),
-          },
-          getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-        );
-
-      expect(updatedPurpose.riskAnalysisForm).toBeUndefined();
-    }
-  );
-
-  it.each([
-    {
-      description: "never assigned -> AdminWritesAdminSigns",
-      previousReviewMode: undefined,
-      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-    },
-    {
-      description: "never assigned -> AdminWritesReviewerSigns",
-      previousReviewMode: undefined,
-      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-    },
-    {
-      description: "AdminWritesAdminSigns -> AdminWritesReviewerSigns",
+      description: "B: adminWritesAdminSigns -> reviewerWritesReviewerSigns",
       previousReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-    },
-    {
-      description: "AdminWritesReviewerSigns -> AdminWritesReviewerSigns",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-    },
-    {
-      description: "AdminWritesReviewerSigns -> AdminWritesAdminSigns",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-    },
-    {
-      description: "ReviewerWritesReviewerSigns -> ReviewerWritesReviewerSigns",
-      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      previousReviewers: [],
       requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-    },
-  ])(
-    "should keep the risk analysis form when the writer does not change ($description)",
-    async ({ previousReviewMode, requestedReviewMode }) => {
-      const riskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
-      const mockPurpose = await addPurposeInReviewMode({
-        previousReviewMode,
-        previousReviewers: previousReviewerIds,
-        riskAnalysisForm,
-      });
-
-      const { data: updatedPurpose } =
-        await purposeService.assignRiskAnalysisReviewer(
-          mockPurpose.id,
-          {
-            reviewMode: requestedReviewMode,
-            reviewerIds: reviewersFor(requestedReviewMode),
-          },
-          getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-        );
-
-      expect(updatedPurpose.riskAnalysisForm).toEqual(riskAnalysisForm);
-    }
-  );
-
-  it.each([
-    {
-      signingState: RiskAnalysisSigningState.Values.Submitted,
-      shouldStampAddedReviewer: true,
+      signingState: riskAnalysisSigningState.assigned,
+      alreadyNotifiedReviewerIds: [],
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: true,
     },
     {
-      signingState: RiskAnalysisSigningState.Values.Rejected,
-      shouldStampAddedReviewer: false,
+      description: "C-draft: adminWritesReviewerSigns -> adminWritesAdminSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.draft,
+      alreadyNotifiedReviewerIds: [],
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "C-submitted: adminWritesReviewerSigns -> adminWritesAdminSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.submitted,
+      alreadyNotifiedReviewerIds: previousReviewerIds,
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: previousReviewerIds,
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "C-rejected-partial: adminWritesReviewerSigns -> adminWritesAdminSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      alreadyNotifiedReviewerIds: [keptReviewerId],
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [keptReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description: "D: reviewerWritesReviewerSigns -> adminWritesAdminSigns",
+      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.assigned,
+      alreadyNotifiedReviewerIds: previousReviewerIds,
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: previousReviewerIds,
+      shouldResetForm: true,
+    },
+    {
+      description:
+        "E-draft: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      alreadyNotifiedReviewerIds: [],
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-draft-partial: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      alreadyNotifiedReviewerIds: [keptReviewerId],
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-rejected: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      alreadyNotifiedReviewerIds: previousReviewerIds,
+      expectedSigningState: riskAnalysisSigningState.rejected,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-rejected-partial: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      alreadyNotifiedReviewerIds: [removedReviewerId],
+      expectedSigningState: riskAnalysisSigningState.rejected,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-rejected-unnotified: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      alreadyNotifiedReviewerIds: [],
+      expectedSigningState: riskAnalysisSigningState.rejected,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "E-submitted: adminWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.submitted,
+      alreadyNotifiedReviewerIds: previousReviewerIds,
+      expectedSigningState: riskAnalysisSigningState.submitted,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      expectedNewReviewersToNotify: [addedReviewerId],
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "F: reviewerWritesReviewerSigns -> reviewerWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.assigned,
+      alreadyNotifiedReviewerIds: previousReviewerIds,
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      expectedNewReviewersToNotify: [addedReviewerId],
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: false,
+    },
+    {
+      description:
+        "G-draft: adminWritesReviewerSigns -> reviewerWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      alreadyNotifiedReviewerIds: [],
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: true,
+    },
+    {
+      description:
+        "G-rejected: adminWritesReviewerSigns -> reviewerWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.rejected,
+      alreadyNotifiedReviewerIds: [removedReviewerId],
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [removedReviewerId],
+      shouldResetForm: true,
+    },
+    {
+      description: "H: reviewerWritesReviewerSigns -> adminWritesReviewerSigns",
+      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      previousReviewers: previousReviewerIds,
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.assigned,
+      alreadyNotifiedReviewerIds: previousReviewerIds,
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: previousReviewerIds,
+      shouldResetForm: true,
+    },
+    {
+      description: "I: undefined -> adminWritesAdminSigns",
+      previousReviewMode: undefined,
+      previousReviewers: [],
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+      signingState: riskAnalysisSigningState.draft,
+      alreadyNotifiedReviewerIds: [],
+      expectedSigningState: undefined,
+      expectedEventType: "PurposeRiskAnalysisSelfAssigned",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description: "J: undefined -> adminWritesReviewerSigns",
+      previousReviewMode: undefined,
+      previousReviewers: [],
+      requestedReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.draft,
+      alreadyNotifiedReviewerIds: [],
+      expectedSigningState: riskAnalysisSigningState.draft,
+      expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
+      expectedNewReviewersToNotify: [],
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: false,
+    },
+    {
+      description: "K: undefined -> reviewerWritesReviewerSigns",
+      previousReviewMode: undefined,
+      previousReviewers: [],
+      requestedReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      signingState: riskAnalysisSigningState.assigned,
+      alreadyNotifiedReviewerIds: [],
+      expectedSigningState: riskAnalysisSigningState.assigned,
+      expectedEventType: "PurposeRiskAnalysisAssigned",
+      expectedNewReviewersToNotify: requestedReviewerIds,
+      expectedOldReviewersToNotify: [],
+      shouldResetForm: true,
     },
   ])(
-    "should preserve the mode 2 workflow in $signingState when reviewers change",
-    async ({ signingState, shouldStampAddedReviewer }) => {
+    "should apply the complete assignment transition ($description)",
+    async ({
+      description,
+      previousReviewMode,
+      previousReviewers,
+      requestedReviewMode,
+      signingState,
+      alreadyNotifiedReviewerIds,
+      expectedSigningState,
+      expectedEventType,
+      expectedNewReviewersToNotify,
+      expectedOldReviewersToNotify,
+      shouldResetForm,
+    }) => {
       vi.useFakeTimers();
       const now = new Date();
       vi.setSystemTime(now);
 
-      const mockPurpose = await addPurposeInReviewMode({
-        previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        previousReviewers: previousReviewerIds,
-        signingState,
-        notifiedReviewerIds: [keptReviewerId, removedReviewerId],
-      });
-
-      const { data: updatedPurpose } =
-        await purposeService.assignRiskAnalysisReviewer(
-          mockPurpose.id,
-          {
-            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-            reviewerIds: requestedReviewerIds,
-          },
-          getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-        );
-
-      expect(updatedPurpose.reviewerWorkflow).toEqual({
-        reviewers: [
-          {
-            id: keptReviewerId,
-            sentToReviewerAt: previousSentToReviewerAt,
-          },
-          {
-            id: addedReviewerId,
-            sentToReviewerAt: shouldStampAddedReviewer ? now : undefined,
-          },
-        ],
-        signingState,
-        sentToReviewerAt: undefined,
-      } satisfies ReviewerWorkflow);
-
-      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
-      const writtenPayload = decodeProtobufPayload({
-        messageType: PurposeRiskAnalysisWorkflowCreatedV2,
-        payload: writtenEvent.data,
-      });
-
-      expect(writtenPayload).toEqual({
-        purpose: toPurposeV2(updatedPurpose),
-        newReviewersToNotify: shouldStampAddedReviewer ? [addedReviewerId] : [],
-        oldReviewersToNotify: [removedReviewerId],
-      });
-
-      vi.useRealTimers();
-    }
-  );
-
-  it("should reset the risk analysis form when the workflow is removed from ReviewerWritesReviewerSigns", async () => {
-    const mockPurpose = await addPurposeInReviewMode({
-      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      previousReviewers: previousReviewerIds,
-      riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
-    });
-
-    const { data: updatedPurpose } =
-      await purposeService.assignRiskAnalysisReviewer(
-        mockPurpose.id,
-        {
-          reviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-          reviewerIds: [],
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      );
-
-    expect(updatedPurpose.riskAnalysisForm).toBeUndefined();
-    expect(updatedPurpose.reviewerWorkflow).toBeUndefined();
-
-    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockPurpose.id,
-      version: "1",
-      type: "PurposeRiskAnalysisSelfAssigned",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: PurposeRiskAnalysisSelfAssignedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload.purpose?.riskAnalysisForm).toBeUndefined();
-    expect(writtenPayload.oldReviewersToNotify).toEqual(
-      mockPurpose.reviewerWorkflow?.reviewers.map((reviewer) => reviewer.id)
-    );
-  });
-
-  it.each([
-    {
-      description: "never assigned -> AdminWritesReviewerSigns",
-      previousReviewMode: undefined,
-      previousReviewers: [],
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
-    },
-    {
-      description: "AdminWritesAdminSigns -> AdminWritesReviewerSigns",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-      previousReviewers: [],
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
-    },
-    {
-      description: "AdminWritesReviewerSigns -> AdminWritesReviewerSigns",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      previousReviewers: previousReviewerIds,
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
-    },
-    {
-      description:
-        "AdminWritesReviewerSigns -> AdminWritesReviewerSigns, removed reviewer never notified",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      previousReviewers: previousReviewerIds,
-      notifiedReviewerIds: [keptReviewerId],
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
-    },
-    {
-      description: "ReviewerWritesReviewerSigns -> AdminWritesReviewerSigns",
-      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      previousReviewers: previousReviewerIds,
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: previousReviewerIds,
-    },
-  ])(
-    "should emit PurposeRiskAnalysisWorkflowCreated with the reviewers to notify ($description)",
-    async ({
-      previousReviewMode,
-      previousReviewers,
-      expectedNewReviewersToNotify,
-      expectedOldReviewersToNotify,
-    }) => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-
+      const riskAnalysisForm = getMockValidRiskAnalysisForm(tenantKind.PA);
       const mockPurpose = await addPurposeInReviewMode({
         previousReviewMode,
         previousReviewers,
+        riskAnalysisForm,
+        signingState,
+        alreadyNotifiedReviewerIds: alreadyNotifiedReviewerIds,
       });
 
       const { data: updatedPurpose } =
         await purposeService.assignRiskAnalysisReviewer(
           mockPurpose.id,
           {
-            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-            reviewerIds: requestedReviewerIds,
+            reviewMode: requestedReviewMode,
+            reviewerIds: reviewersFor(requestedReviewMode),
           },
           getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
         );
 
-      expect(updatedPurpose.reviewMode).toEqual(
-        riskAnalysisReviewMode.adminWritesReviewerSigns
+      expect(updatedPurpose.reviewMode).toBe(requestedReviewMode);
+      expect(updatedPurpose.riskAnalysisForm).toEqual(
+        shouldResetForm ? undefined : riskAnalysisForm
       );
-      expect(updatedPurpose.reviewerWorkflow).toEqual({
-        reviewers: requestedReviewerIds.map((id) => ({
-          id,
+
+      expect(updatedPurpose.reviewerWorkflow?.signingState, description).toBe(
+        expectedSigningState
+      );
+      expect(
+        updatedPurpose.reviewerWorkflow?.reviewers.map(
+          (reviewer) => reviewer.id
+        ) ?? []
+      ).toEqual(reviewersFor(requestedReviewMode));
+
+      const isMode2ToMode2Transition =
+        previousReviewMode ===
+          riskAnalysisReviewMode.adminWritesReviewerSigns &&
+        requestedReviewMode === riskAnalysisReviewMode.adminWritesReviewerSigns;
+      const isSubmittedOrRejected =
+        signingState === riskAnalysisSigningState.submitted ||
+        signingState === riskAnalysisSigningState.rejected;
+
+      // In mode 2, reviewer timestamps determine who has already been notified.
+      if (isMode2ToMode2Transition && isSubmittedOrRejected) {
+        expect(updatedPurpose.reviewerWorkflow).toEqual({
+          reviewers: [
+            {
+              id: keptReviewerId,
+              sentToReviewerAt: alreadyNotifiedReviewerIds.includes(
+                keptReviewerId
+              )
+                ? previousSentToReviewerAt
+                : undefined,
+            },
+            {
+              id: addedReviewerId,
+              sentToReviewerAt:
+                signingState === riskAnalysisSigningState.submitted
+                  ? now
+                  : undefined,
+            },
+          ],
+          signingState,
           sentToReviewerAt: undefined,
-        })),
-        signingState: RiskAnalysisSigningState.Values.Draft,
-        sentToReviewerAt: undefined,
-      } satisfies ReviewerWorkflow);
+        } satisfies ReviewerWorkflow);
+      }
 
-      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
-
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockPurpose.id,
-        version: "1",
-        type: "PurposeRiskAnalysisWorkflowCreated",
-        event_version: 2,
-      });
-
-      const writtenPayload = decodeProtobufPayload({
-        messageType: PurposeRiskAnalysisWorkflowCreatedV2,
-        payload: writtenEvent.data,
-      });
-
-      expect(writtenPayload).toEqual({
-        purpose: toPurposeV2(updatedPurpose),
+      await expectAssignmentEvent({
+        purposeId: mockPurpose.id,
+        purpose: updatedPurpose,
+        type: expectedEventType as AssignmentEventType,
         newReviewersToNotify: expectedNewReviewersToNotify,
         oldReviewersToNotify: expectedOldReviewersToNotify,
       });
@@ -767,244 +935,6 @@ describe("assignRiskAnalysisReviewer", () => {
       vi.useRealTimers();
     }
   );
-
-  it.each([
-    {
-      description: "never assigned -> ReviewerWritesReviewerSigns",
-      previousReviewMode: undefined,
-      previousReviewers: [],
-      expectedNewReviewersToNotify: requestedReviewerIds,
-      expectedOldReviewersToNotify: [],
-    },
-    {
-      description: "AdminWritesAdminSigns -> ReviewerWritesReviewerSigns",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-      previousReviewers: [],
-      expectedNewReviewersToNotify: requestedReviewerIds,
-      expectedOldReviewersToNotify: [],
-    },
-    {
-      description:
-        "AdminWritesReviewerSigns -> ReviewerWritesReviewerSigns, removed reviewer never notified",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      previousReviewers: previousReviewerIds,
-      notifiedReviewerIds: [],
-      expectedNewReviewersToNotify: requestedReviewerIds,
-      expectedOldReviewersToNotify: [],
-    },
-    {
-      description:
-        "AdminWritesReviewerSigns -> ReviewerWritesReviewerSigns, removed reviewer already notified",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      previousReviewers: previousReviewerIds,
-      notifiedReviewerIds: [removedReviewerId],
-      expectedNewReviewersToNotify: requestedReviewerIds,
-      expectedOldReviewersToNotify: [removedReviewerId],
-    },
-    {
-      description: "ReviewerWritesReviewerSigns -> ReviewerWritesReviewerSigns",
-      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      previousReviewers: previousReviewerIds,
-      expectedNewReviewersToNotify: [addedReviewerId],
-      expectedOldReviewersToNotify: [removedReviewerId],
-    },
-  ])(
-    "should emit PurposeRiskAnalysisAssigned with the reviewers to notify ($description)",
-    async ({
-      previousReviewMode,
-      previousReviewers,
-      notifiedReviewerIds,
-      expectedNewReviewersToNotify,
-      expectedOldReviewersToNotify,
-    }) => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-
-      const mockPurpose = await addPurposeInReviewMode({
-        previousReviewMode,
-        previousReviewers,
-        notifiedReviewerIds,
-      });
-
-      const { data: updatedPurpose } =
-        await purposeService.assignRiskAnalysisReviewer(
-          mockPurpose.id,
-          {
-            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-            reviewerIds: requestedReviewerIds,
-          },
-          getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-        );
-
-      expect(updatedPurpose.reviewMode).toEqual(
-        riskAnalysisReviewMode.reviewerWritesReviewerSigns
-      );
-      expect(updatedPurpose.reviewerWorkflow).toEqual({
-        reviewers: requestedReviewerIds.map((id) => ({
-          id,
-          sentToReviewerAt:
-            previousReviewMode ===
-              riskAnalysisReviewMode.reviewerWritesReviewerSigns &&
-            previousReviewers.includes(id)
-              ? previousSentToReviewerAt
-              : new Date(),
-        })),
-        signingState: RiskAnalysisSigningState.Values.Assigned,
-        sentToReviewerAt: undefined,
-      } satisfies ReviewerWorkflow);
-
-      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
-
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockPurpose.id,
-        version: "1",
-        type: "PurposeRiskAnalysisAssigned",
-        event_version: 2,
-      });
-
-      const writtenPayload = decodeProtobufPayload({
-        messageType: PurposeRiskAnalysisAssignedV2,
-        payload: writtenEvent.data,
-      });
-
-      expect(writtenPayload).toEqual({
-        purpose: toPurposeV2(updatedPurpose),
-        newReviewersToNotify: expectedNewReviewersToNotify,
-        oldReviewersToNotify: expectedOldReviewersToNotify,
-      });
-
-      vi.useRealTimers();
-    }
-  );
-
-  it.each([
-    {
-      description:
-        "AdminWritesReviewerSigns -> AdminWritesAdminSigns, never notified",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      notifiedReviewerIds: [],
-      expectedOldReviewersToNotify: [],
-    },
-    {
-      description:
-        "AdminWritesReviewerSigns -> AdminWritesAdminSigns, already notified",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      notifiedReviewerIds: previousReviewerIds,
-      expectedOldReviewersToNotify: previousReviewerIds,
-    },
-    {
-      description:
-        "AdminWritesReviewerSigns -> AdminWritesAdminSigns, partially notified",
-      previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      notifiedReviewerIds: [keptReviewerId],
-      expectedOldReviewersToNotify: [keptReviewerId],
-    },
-    {
-      description: "ReviewerWritesReviewerSigns -> AdminWritesAdminSigns",
-      previousReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      notifiedReviewerIds: previousReviewerIds,
-      expectedOldReviewersToNotify: previousReviewerIds,
-    },
-  ])(
-    "should emit PurposeRiskAnalysisSelfAssigned with reviewers to notify ($description)",
-    async ({
-      previousReviewMode,
-      notifiedReviewerIds,
-      expectedOldReviewersToNotify,
-    }) => {
-      vi.useFakeTimers();
-      vi.setSystemTime(new Date());
-
-      const mockPurpose = await addPurposeInReviewMode({
-        previousReviewMode,
-        previousReviewers: previousReviewerIds,
-        notifiedReviewerIds,
-      });
-
-      const { data: updatedPurpose } =
-        await purposeService.assignRiskAnalysisReviewer(
-          mockPurpose.id,
-          {
-            reviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-            reviewerIds: [],
-          },
-          getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-        );
-
-      expect(updatedPurpose.reviewMode).toEqual(
-        riskAnalysisReviewMode.adminWritesAdminSigns
-      );
-      expect(updatedPurpose.reviewerWorkflow).toBeUndefined();
-
-      const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
-
-      expect(writtenEvent).toMatchObject({
-        stream_id: mockPurpose.id,
-        version: "1",
-        type: "PurposeRiskAnalysisSelfAssigned",
-        event_version: 2,
-      });
-
-      const writtenPayload = decodeProtobufPayload({
-        messageType: PurposeRiskAnalysisSelfAssignedV2,
-        payload: writtenEvent.data,
-      });
-
-      expect(writtenPayload).toEqual({
-        purpose: toPurposeV2(updatedPurpose),
-        oldReviewersToNotify: expectedOldReviewersToNotify,
-      });
-
-      vi.useRealTimers();
-    }
-  );
-
-  it("should emit PurposeRiskAnalysisSelfAssigned when a never assigned purpose is set to AdminWritesAdminSigns", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date());
-
-    const mockPurpose = await addPurposeInReviewMode({
-      previousReviewMode: undefined,
-      previousReviewers: [],
-    });
-
-    const { data: updatedPurpose, metadata } =
-      await purposeService.assignRiskAnalysisReviewer(
-        mockPurpose.id,
-        {
-          reviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
-          reviewerIds: [],
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      );
-
-    expect(updatedPurpose.reviewMode).toEqual(
-      riskAnalysisReviewMode.adminWritesAdminSigns
-    );
-    expect(updatedPurpose.reviewerWorkflow).toBeUndefined();
-    expect(metadata.version).toBe(1);
-
-    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
-
-    expect(writtenEvent).toMatchObject({
-      stream_id: mockPurpose.id,
-      version: "1",
-      type: "PurposeRiskAnalysisSelfAssigned",
-      event_version: 2,
-    });
-
-    const writtenPayload = decodeProtobufPayload({
-      messageType: PurposeRiskAnalysisSelfAssignedV2,
-      payload: writtenEvent.data,
-    });
-
-    expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(updatedPurpose),
-      oldReviewersToNotify: [],
-    });
-
-    vi.useRealTimers();
-  });
 
   it.each([
     {
@@ -1108,7 +1038,7 @@ describe("assignRiskAnalysisReviewer", () => {
           { reviewMode: requestedReviewMode, reviewerIds: [] },
           getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
         )
-      ).rejects.toThrowError(missingReviewers(mockPurpose.id));
+      ).rejects.toThrow(missingReviewers(mockPurpose.id));
     }
   );
 
@@ -1127,42 +1057,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(reviewersNotAllowedForReviewMode(mockPurpose.id));
-  });
-
-  it("should throw purposeNotFound if the purpose doesn't exist", async () => {
-    const randomId: PurposeId = generateId();
-    expect(
-      purposeService.assignRiskAnalysisReviewer(
-        randomId,
-        {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId()],
-        },
-        getMockContext({ authData: getMockAuthData() })
-      )
-    ).rejects.toThrowError(purposeNotFound(randomId));
-  });
-
-  it("should throw tenantIsNotTheConsumer if the requester is not the consumer", async () => {
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-    };
-
-    await addOnePurpose(mockPurpose);
-
-    const otherOrganizationId = generateId<TenantId>();
-
-    expect(
-      purposeService.assignRiskAnalysisReviewer(
-        mockPurpose.id,
-        {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId()],
-        },
-        getMockContext({ authData: getMockAuthData(otherOrganizationId) })
-      )
-    ).rejects.toThrowError(tenantIsNotTheConsumer(otherOrganizationId));
+    ).rejects.toThrow(reviewersNotAllowedForReviewMode(mockPurpose.id));
   });
 
   it("should throw missingSelfcareId if the consumer tenant has no selfcareId", async () => {
@@ -1187,7 +1082,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(missingSelfcareId(mockTenant.id));
+    ).rejects.toThrow(missingSelfcareId(mockTenant.id));
   });
 
   it("should throw userWithoutReviewerPrivileges if the reviewer is not a reviewer in selfcare", async () => {
@@ -1216,9 +1111,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(
-      userWithoutReviewerPrivileges(mockTenant.id, reviewerId)
-    );
+    ).rejects.toThrow(userWithoutReviewerPrivileges(mockTenant.id, reviewerId));
   });
 
   it("should throw purposeFromTemplateCannotBeModified if the purpose is from a template", async () => {
@@ -1239,7 +1132,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       purposeFromTemplateCannotBeModified(mockPurpose.id, purposeTemplateId)
     );
   });
@@ -1261,7 +1154,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(
+    ).rejects.toThrow(
       reviewerWorkflowNotAllowedForDelegatedPurpose(mockPurpose.id)
     );
   });
@@ -1288,9 +1181,7 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(
-      reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id)
-    );
+    ).rejects.toThrow(reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id));
   });
 
   it("should throw purposeNotInDraftState if the purpose is not in draft state", async () => {
@@ -1309,32 +1200,6 @@ describe("assignRiskAnalysisReviewer", () => {
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
-    ).rejects.toThrowError(purposeNotInDraftState(mockPurpose.id));
-  });
-
-  it("should throw reviewerWorkflowConflict if the risk analysis has already been signed", async () => {
-    const reviewerId = generateId<UserId>();
-    const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerWorkflow: {
-        reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
-        signingState: RiskAnalysisSigningState.Values.Signed,
-        signedBy: generateId<UserId>(),
-      },
-    };
-
-    await addOnePurpose(mockPurpose);
-
-    expect(
-      purposeService.assignRiskAnalysisReviewer(
-        mockPurpose.id,
-        {
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId()],
-        },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
-      )
-    ).rejects.toThrowError(reviewerWorkflowConflict(mockPurpose.id));
+    ).rejects.toThrow(purposeNotInDraftState(mockPurpose.id));
   });
 });
