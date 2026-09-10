@@ -13,6 +13,7 @@ import {
   toEServiceTemplateV2,
   EServiceTemplateAddedV2,
   generateId,
+  hyperlinkDetectionError,
   eserviceMode,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
@@ -214,4 +215,36 @@ describe("create eservice template", () => {
       )
     ).rejects.toThrowError(inconsistentDailyCalls());
   });
+  it.each([
+    {
+      label: "name",
+      override: { name: "Template https://evil.example.com" },
+      text: "Template https://evil.example.com",
+    },
+    {
+      label: "description",
+      override: { description: "details at www.evil.example.com" },
+      text: "details at www.evil.example.com",
+    },
+    {
+      label: "intendedTarget",
+      override: { intendedTarget: "target: http://evil.example.com" },
+      text: "target: http://evil.example.com",
+    },
+  ])(
+    "should throw hyperlinkDetectionError when template $label contains a hyperlink",
+    async ({ override, text }) => {
+      await expect(
+        eserviceTemplateService.createEServiceTemplate(
+          eserviceTemplateToApiEServiceTemplateSeed({
+            ...mockEServiceTemplate,
+            ...override,
+          }),
+          getMockContext({
+            authData: getMockAuthData(mockEServiceTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(hyperlinkDetectionError(text));
+    }
+  );
 });

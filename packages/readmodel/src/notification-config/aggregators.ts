@@ -151,6 +151,13 @@ export const aggregateUserNotificationConfig = ({
     purposeOverQuotaStateToConsumer: enabledInAppNotifications.includes(
       "purposeOverQuotaStateToConsumer"
     ),
+    eserviceArchivingRequestedToDelegator: enabledInAppNotifications.includes(
+      "eserviceArchivingRequestedToDelegator"
+    ),
+    eserviceArchivingApprovedRejectedToDelegate:
+      enabledInAppNotifications.includes(
+        "eserviceArchivingApprovedRejectedToDelegate"
+      ),
   };
   const emailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: enabledEmailNotifications.includes(
@@ -232,6 +239,13 @@ export const aggregateUserNotificationConfig = ({
     purposeOverQuotaStateToConsumer: enabledEmailNotifications.includes(
       "purposeOverQuotaStateToConsumer"
     ),
+    eserviceArchivingRequestedToDelegator: enabledEmailNotifications.includes(
+      "eserviceArchivingRequestedToDelegator"
+    ),
+    eserviceArchivingApprovedRejectedToDelegate:
+      enabledEmailNotifications.includes(
+        "eserviceArchivingApprovedRejectedToDelegate"
+      ),
   };
 
   return {

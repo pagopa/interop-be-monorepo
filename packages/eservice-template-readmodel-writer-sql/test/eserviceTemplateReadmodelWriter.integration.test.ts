@@ -14,7 +14,6 @@ import {
   EServiceTemplateVersionDocumentUpdatedV2,
   EServiceTemplateVersionInterfaceAddedV2,
   EServiceTemplateVersionInterfaceDeletedV2,
-  EServiceTemplateVersionInterfaceUpdatedV2,
   EServiceTemplateVersionPublishedV2,
   EServiceTemplateVersionQuotasUpdatedV2,
   EServiceTemplateVersionSuspendedV2,
@@ -541,57 +540,6 @@ describe("database test", async () => {
         stream_id: mockEServiceTemplate.id,
         version: 2,
         type: "EServiceTemplateVersionDocumentAdded",
-        event_version: 2,
-        data: payload,
-        log_date: new Date(),
-      };
-      await handleMessageV2(message, eserviceTemplateWriterService);
-
-      const retrievedEservice =
-        await eserviceTemplateReadModelService.getEServiceTemplateById(
-          mockEServiceTemplate.id
-        );
-
-      expect(retrievedEservice?.data).toStrictEqual(updatedEServiceTemplate);
-      expect(retrievedEservice?.metadata).toStrictEqual({ version: 2 });
-    });
-
-    it("EServiceTemplateVersionInterfaceUpdated", async () => {
-      const descriptorInterface = getMockDocument();
-      const draftEServiceTemplateVersion: EServiceTemplateVersion = {
-        ...getMockEServiceTemplateVersion(),
-        state: eserviceTemplateVersionState.draft,
-        interface: descriptorInterface,
-      };
-      const eserviceTemplate: EServiceTemplate = {
-        ...mockEServiceTemplate,
-        versions: [draftEServiceTemplateVersion],
-      };
-      await eserviceTemplateWriterService.upsertEServiceTemplate(
-        eserviceTemplate,
-        1
-      );
-
-      const updatedInterface: Document = {
-        ...descriptorInterface,
-        prettyName: "updated pretty name",
-      };
-      const updatedEServiceTemplate: EServiceTemplate = {
-        ...eserviceTemplate,
-        versions: [
-          { ...draftEServiceTemplateVersion, interface: updatedInterface },
-        ],
-      };
-      const payload: EServiceTemplateVersionInterfaceUpdatedV2 = {
-        eserviceTemplate: toEServiceTemplateV2(updatedEServiceTemplate),
-        eserviceTemplateVersionId: draftEServiceTemplateVersion.id,
-        documentId: updatedInterface.id,
-      };
-      const message: EServiceTemplateEventEnvelope = {
-        sequence_num: 1,
-        stream_id: mockEServiceTemplate.id,
-        version: 2,
-        type: "EServiceTemplateVersionInterfaceUpdated",
         event_version: 2,
         data: payload,
         log_date: new Date(),

@@ -4,7 +4,7 @@ info:
   description: PDND Interoperability API for machine-to-machine interaction with
     interoperability features
   x-summary: PDND Interoperability API
-  version: "3.1.1"
+  version: "3.2.0"
   contact:
     name: API Support
     url: "https://github.com/pagopa/pdnd-interop-frontend/issues"
@@ -1394,6 +1394,124 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/CertifiedAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /certifiedDiscreteAttributes:
+    get:
+      tags:
+        - attributes
+      summary: List Certified Discrete Attributes
+      description: Retrieve a list of Certified Discrete Attributes
+      operationId: getCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Certified Discrete Attributes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - attributes
+      summary: Create a certified Discrete Attribute
+      description: |
+        Create a certified Discrete Attribute
+        The Attribute must
+          - have a unique name across all Attributes in the Platform
+          - have a unique code across certified Discrete Attributes owned by the requester
+      operationId: createCertifiedDiscreteAttribute
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertifiedDiscreteAttributeSeed"
+      responses:
+        "201":
+          description: Certified Discrete Attribute created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /certifiedDiscreteAttributes/{attributeId}:
+    parameters:
+      - name: attributeId
+        in: path
+        description: The ID of the Attribute to retrieve
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    get:
+      tags:
+        - attributes
+      summary: Retrieve a certified Discrete Attribute
+      description: Retrieve a certified Discrete Attribute
+      operationId: getCertifiedDiscreteAttribute
+      responses:
+        "200":
+          description: Certified Discrete attribute retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CertifiedDiscreteAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -2901,6 +3019,385 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/approveDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Approve a delegated archiving request for an E-Service
+      operationId: approveDelegatedEServiceArchiving
+      description: Allows the owner (delegator) to approve a delegate's archiving request.
+      responses:
+        "200":
+          description: Delegated archiving request approved.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /eservices/{eserviceId}/rejectDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Reject a delegated archiving request for an E-Service
+      operationId: rejectDelegatedEServiceArchiving
+      description: Allows the owner (delegator) to reject a delegate's archiving request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedEServiceArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request rejected.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+  /eservices/{eserviceId}/submitDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Submit a delegated archiving request for an E-Service
+      operationId: submitDelegatedEServiceArchiving
+      description: Allows a delegate to request the archiving of the specified E-Service. The owner must then approve or reject the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegateEServiceArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request submitted.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - eservices
+      summary: Cancel a delegated archiving request for an E-Service
+      operationId: cancelDelegatedEServiceArchiving
+      description: Allows a delegate to cancel a previously submitted archiving request for the specified E-Service.
+      responses:
+        "200":
+          description: Delegated archiving request canceled.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EService"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/submitDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Submit a delegated archiving request for an E-Service
+      operationId: submitDelegatedDescriptorArchiving
+      description: Allows a delegate to request the archiving of the specified Descriptor. The owner must then approve or reject the request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DelegateGracePeriodDaysSeed"
+      responses:
+        "200":
+          description: Delegated archiving request submitted.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - eservices
+      summary: Cancel a delegated archiving request for an E-Service
+      operationId: cancelDelegatedDescriptorArchiving
+      description: Allows a delegate to cancel a previously submitted archiving request for the specified Descriptor.
+      responses:
+        "200":
+          description: Delegated archiving request canceled.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/approveDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Approve a delegated archiving request for an E-Service Descriptor
+      operationId: approveDelegatedDescriptorArchiving
+      description: Allows the owner (delegator) to approve a delegate's descriptor archiving request, starting the regular archiving grace period.
+      responses:
+        "200":
+          description: Delegated archiving request approved.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/rejectDelegatedArchiving:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: the eservice id
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: descriptorId
+        in: path
+        description: the descriptor Id
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eservices
+      summary: Reject a delegated archiving request for an E-Service Descriptor
+      operationId: rejectDelegatedDescriptorArchiving
+      description: Allows the owner (delegator) to reject a delegate's descriptor archiving request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RejectDelegatedDescriptorArchivingSeed"
+      responses:
+        "200":
+          description: Delegated archiving request rejected.
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptor"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
         "429":
           $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/delegation:
@@ -4411,7 +4908,7 @@ paths:
       tags:
         - eservices
       summary: List E-Service Descriptor Certified Attributes
-      description: Retrieve a list of E-Service Descriptor Certified Attributes
+      description: Retrieve a list containing only E-Service Descriptor Certified Attributes
       operationId: getEServiceDescriptorCertifiedAttributes
       parameters:
         - $ref: "#/components/parameters/OffsetParam"
@@ -4423,6 +4920,55 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceDescriptorCertifiedAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+    get:
+      tags:
+        - eservices
+      summary: List E-Service Descriptor Certified Discrete Attributes
+      description: Retrieve a list containing only E-Service Descriptor Certified Discrete Attributes
+      operationId: getEServiceDescriptorCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: E-Service Descriptors Certified Discrete Attributes retrieved
+          content: 
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributes"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -4582,6 +5128,73 @@ paths:
           description:
             E-Service Descriptor Certified Attribute assigned to the Attribute
             Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+      - name: groupIndex
+        in: path
+        description: The index of the group of attributes
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+    post:
+      tags:
+        - eservices
+      summary: Assign E-Service Descriptor Certified Discrete Attributes to a specific
+        Attribute Group
+      description: Assign a set of Certified Discrete Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Descriptor
+      operationId: assignEServiceDescriptorCertifiedDiscreteAttributesToGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroupSeed"
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Discrete Attribute assigned to the
+            Attribute Group
           content:
             application/json:
               schema:
@@ -4858,6 +5471,71 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes/{attributeId}:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+      - name: groupIndex
+        in: path
+        description: The index of the group to which the Attribute belongs
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - name: attributeId
+        in: path
+        description: The ID of the Certified Discrete Attribute
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    delete:
+      tags:
+        - eservices
+      summary: Delete an E-Service Descriptor Certified Discrete Attribute from a specific
+        Attribute Group
+      description: |
+        Delete a specific Certified Discrete Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Descriptor.
+        If the deleted attribute is the last one in the group, the entire group will be removed.
+      operationId: deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup
+      responses:
+        "200":
+          description: E-Service Descriptor Certified Discrete Attribute deleted from Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eservices/{eserviceId}/descriptors/{descriptorId}/verifiedAttributes/groups/{groupIndex}/attributes/{attributeId}:
     parameters:
       - name: eserviceId
@@ -5022,6 +5700,61 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceDescriptorCertifiedAttributesGroup"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eservices/{eserviceId}/descriptors/{descriptorId}/certifiedDiscreteAttributes/groups:
+    parameters:
+      - name: eserviceId
+        in: path
+        description: The E-Service ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/EServiceId"
+      - name: descriptorId
+        in: path
+        description: The ID of the Descriptor
+        required: true
+        schema:
+          $ref: "#/components/schemas/DescriptorId"
+    post:
+      tags:
+        - eservices
+      summary: Create a Certified Discrete Attributes Group for an E-Service Descriptor
+      description: Create a new group of Certified Discrete Attributes for an E-Service
+        Descriptor in Draft state
+      operationId: createEServiceDescriptorCertifiedDiscreteAttributesGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroupSeed"
+      responses:
+        "201":
+          description: Certified Discrete Attributes Group created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -6354,6 +7087,56 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/certifiedDiscreteAttributes:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID of the Version
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - eserviceTemplates
+      summary: List E-Service Template Version Certified Discrete Attributes
+      description: Retrieve a list of E-Service Template Version Certified Discrete Attributes
+      operationId: getEServiceTemplateVersionCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: E-Service Template Version Certified Discrete Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/declaredAttributes:
     parameters:
       - name: templateId
@@ -6498,6 +7281,74 @@ paths:
           description:
             E-Service Descriptor Certified Attribute assigned to the Attribute
             Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: groupIndex
+        in: path
+        description: The index of the group of attributes
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Assign E-Service Template Version Certified Discrete Attribute to a specific
+        Attribute Group
+      description: Assign a set of Certified Discrete Attributes to the indicated Attribute
+        Group (identified by groupIndex) of an E-Service Template Version
+      operationId: assignEServiceTemplateVersionCertifiedDiscreteAttributesToGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed"
+      responses:
+        "200":
+          description: E-Service Template Version Certified Discrete Attribute assigned to the 
+            Attribute Group
           content:
             application/json:
               schema:
@@ -6735,6 +7586,73 @@ paths:
           $ref: "#/components/responses/NotFound"
         "429":
           $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/certifiedDiscreteAttributes/groups/{groupIndex}/attributes/{attributeId}:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: groupIndex
+        in: path
+        description: The index of the group to which the Attribute belongs
+        required: true
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+      - name: attributeId
+        in: path
+        description: The ID of the Certified Discrete Attribute
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    delete:
+      tags:
+        - eserviceTemplates
+      summary: Delete an E-Service Template Certified Discrete Attribute from a specific
+        Attribute Group
+      description: |
+        Delete a specific Certified Discrete Attribute from the indicated Attribute Group (identified by groupIndex) of an E-Service Template Version.
+        If the deleted attribute is the last one in the group, the entire group will be removed.
+      operationId: deleteEServiceTemplateVersionCertifiedDiscreteAttributeFromGroup
+      responses:
+        "200":
+          description: E-Service Template Version Certified Discrete Attribute deleted from
+            Attribute Group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VoidObject"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
   /eserviceTemplates/{templateId}/versions/{versionId}/verifiedAttributes/groups/{groupIndex}/attributes/{attributeId}:
     parameters:
       - name: templateId
@@ -6906,6 +7824,62 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttributesGroup"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /eserviceTemplates/{templateId}/versions/{versionId}/certifiedDiscreteAttributes/groups:
+    parameters:
+      - name: templateId
+        in: path
+        description: The E-Service Template ID of the Version
+        required: true
+        schema:
+          $ref: "#/components/schemas/TemplateId"
+      - name: versionId
+        in: path
+        description: The ID of the Version
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - eserviceTemplates
+      summary: Create Certified Discrete Attributes Group for E-Service Template Version
+      description: Create a new group of Certified Discrete Attributes for an E-Service
+        Template Version in Draft state
+      operationId: createEServiceTemplateVersionCertifiedDiscreteAttributesGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed"
+      responses:
+        "201":
+          description: Certified Discrete Attributes Group created for E-Service Template Version
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttributesGroup"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -8347,6 +9321,198 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TenantCertifiedAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /tenants/{tenantId}/certifiedDiscreteAttributes:
+    parameters:
+      - name: tenantId
+        in: path
+        description: The Tenant ID of the Certified Discrete Attributes
+        required: true
+        schema:
+          $ref: "#/components/schemas/TenantId"
+    get:
+      tags:
+        - tenants
+      summary: List Tenant Certified Discrete Attributes
+      description: Retrieve a list of Certified Discrete Attributes assigned to the Tenant
+      operationId: getTenantCertifiedDiscreteAttributes
+      parameters:
+        - $ref: "#/components/parameters/OffsetParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Tenant Certified Discrete Attributes retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttributes"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    post:
+      tags:
+        - tenants
+      summary: Assign a Certified Discrete Attribute to a Tenant
+      description: Assign a Certified Discrete Attribute to a Tenant
+      operationId: assignTenantCertifiedDiscreteAttribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantCertifiedDiscreteAttributeSeed"
+        required: true
+      responses:
+        "200":
+          description: Certified Discrete Attribute assigned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+  /tenants/{tenantId}/certifiedDiscreteAttributes/{attributeId}:
+    parameters:
+      - name: tenantId
+        in: path
+        description: The Tenant ID of the Certified Discrete Attribute
+        required: true
+        schema:
+          $ref: "#/components/schemas/TenantId"
+      - name: attributeId
+        in: path
+        description: The Certified Discrete Attribute ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/AttributeId"
+    patch:
+      tags:
+        - tenants
+      summary: Replace the Certified Discrete Attribute from a Tenant
+      description: Replace the Certified Discrete Attribute from a Tenant
+      operationId: replaceTenantCertifiedDiscreteAttribute
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTenantCertifiedDiscreteAttributeSeed"
+        required: true
+      responses:
+        "200":
+          description: Certified Discrete Attribute updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Name Conflict
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+          headers:
+            X-Rate-Limit-Limit:
+              $ref: "#/components/headers/RateLimitLimitHeader"
+            X-Rate-Limit-Remaining:
+              $ref: "#/components/headers/RateLimitRemainingHeader"
+            X-Rate-Limit-Interval:
+              $ref: "#/components/headers/RateLimitIntervalHeader"
+            Digest:
+              $ref: "#/components/headers/IntegrityRest02DigestHeader"
+            Agid-JWT-Signature:
+              $ref: "#/components/headers/IntegrityRest02AgidJwtSignatureHeader"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+    delete:
+      tags:
+        - tenants
+      summary: Revoke a Certified Discrete Attribute from a Tenant
+      description: Revoke a Certified Discrete Attribute from a Tenant
+      operationId: revokeTenantCertifiedDiscreteAttribute
+      responses:
+        "200":
+          description: Certified Discrete Attribute revoked
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
           headers:
             X-Rate-Limit-Limit:
               $ref: "#/components/headers/RateLimitLimitHeader"
@@ -11044,10 +12210,8 @@ components:
             - ESERVICE_DESCRIPTOR_DOCUMENT_UPDATED
             - ESERVICE_DESCRIPTOR_DOCUMENT_DELETED
             - ESERVICE_DESCRIPTOR_INTERFACE_ADDED
-            - ESERVICE_DESCRIPTOR_INTERFACE_UPDATED
             - ESERVICE_DESCRIPTOR_INTERFACE_DELETED
             - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
-            - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
             - ESERVICE_DESCRIPTOR_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_RISK_ANALYSIS_ADDED
             - ESERVICE_RISK_ANALYSIS_UPDATED
@@ -11077,9 +12241,19 @@ components:
             - ESERVICE_ARCHIVING_SCHEDULED
             - ESERVICE_ARCHIVING_CANCELED
             - ESERVICE_ARCHIVING_COMPLETED
+            - ESERVICE_ARCHIVING_REQUESTED_BY_DELEGATE
+            - ESERVICE_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR
+            - ESERVICE_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR
+            - ESERVICE_ARCHIVING_REQUEST_CANCELED_BY_DELEGATE
+            - ESERVICE_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION
             - ESERVICE_DESCRIPTOR_ARCHIVING_SCHEDULED
             - ESERVICE_DESCRIPTOR_ARCHIVING_CANCELED
             - ESERVICE_DESCRIPTOR_ARCHIVING_COMPLETED
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUESTED_BY_DELEGATE
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_REJECTED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_APPROVED_BY_DELEGATOR
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_DELEGATE
+            - ESERVICE_DESCRIPTOR_ARCHIVING_REQUEST_CANCELED_BY_REVOKED_DELEGATION
             - MAINTENANCE_ESERVICE_PERSONAL_DATA_FLAG_RESET
             - MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED
         eventTimestamp:
@@ -11137,9 +12311,7 @@ components:
             - ESERVICE_TEMPLATE_VERSION_DOCUMENT_UPDATED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_ADDED
             - ESERVICE_TEMPLATE_VERSION_INTERFACE_DELETED
-            - ESERVICE_TEMPLATE_VERSION_INTERFACE_UPDATED
             - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_ADDED
-            - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_UPDATED
             - ESERVICE_TEMPLATE_VERSION_ASYNC_EXCHANGE_CALLBACK_INTERFACE_DELETED
             - ESERVICE_TEMPLATE_VERSION_PUBLISHED
             - ESERVICE_TEMPLATE_VERSION_QUOTAS_UPDATED
@@ -11596,6 +12768,36 @@ components:
       required:
         - groupIndex
         - attribute
+    EServiceTemplateVersionCertifiedDiscreteAttribute:
+      type: object
+      description: Represents an E-Service Template Version Certified Discrete attribute with
+        the index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+      required:
+        - groupIndex
+        - attribute
+    EServiceDescriptorCertifiedDiscreteAttribute:
+      type: object
+      description: Represents an E-Service Descriptor Certified Discrete attribute with the
+        index of its attribute group.
+      properties:
+        groupIndex:
+          type: integer
+          format: int32
+          minimum: 0
+          description: The index of the group to which the attribute belongs.
+        attribute:
+          $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+      required:
+        - groupIndex
+        - attribute
     EServiceDescriptorDeclaredAttribute:
       type: object
       description:
@@ -11671,6 +12873,71 @@ components:
             format: uuid
       required:
         - attributeIds
+    EServiceDescriptorCertifiedDiscreteAttributesGroupSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+                format: uuid
+              discreteConfig:
+                $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfigSeed"
+            required:
+              - id
+              - discreteConfig
+      required:
+        - attributes
+    EServiceTemplateVersionCertifiedDiscreteAttributesGroupSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              id:
+                type: string
+                format: uuid
+              discreteConfig:
+                $ref: "#/components/schemas/EServiceAttributeCertifiedDiscreteConfigSeed"
+            required:
+              - id
+              - discreteConfig
+      required:
+        - attributes
+    AttributeCertifiedDiscreteComparator:
+      type: string
+      enum:
+        - GT
+        - LT
+        - EQ
+        - GTE
+        - LTE
+        - NE
+    EServiceAttributeCertifiedDiscreteConfigSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        threshold:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+        comparator:
+          $ref: "#/components/schemas/AttributeCertifiedDiscreteComparator"
+      required:
+        - threshold
+        - comparator
     EServiceDescriptorAttributeSeed:
       type: object
       additionalProperties: false
@@ -11723,6 +12990,19 @@ components:
       required:
         - results
         - pagination
+    EServiceDescriptorCertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
     EServiceTemplateVersionCertifiedAttributes:
       type: object
       additionalProperties: false
@@ -11731,6 +13011,19 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    EServiceTemplateVersionCertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttribute"
         pagination:
           $ref: "#/components/schemas/Pagination"
       required:
@@ -11746,6 +13039,16 @@ components:
             $ref: "#/components/schemas/EServiceDescriptorCertifiedAttribute"
       required:
         - attributes
+    EServiceDescriptorCertifiedDiscreteAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceDescriptorCertifiedDiscreteAttribute"
+      required:
+        - attributes
     EServiceTemplateVersionCertifiedAttributesGroup:
       type: object
       additionalProperties: false
@@ -11754,6 +13057,16 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/EServiceTemplateVersionCertifiedAttribute"
+      required:
+        - attributes
+    EServiceTemplateVersionCertifiedDiscreteAttributesGroup:
+      type: object
+      additionalProperties: false
+      properties:
+        attributes:
+          type: array
+          items:
+            $ref: "#/components/schemas/EServiceTemplateVersionCertifiedDiscreteAttribute"
       required:
         - attributes
     EServiceDescriptorDeclaredAttributes:
@@ -11860,6 +13173,68 @@ components:
       required:
         - attributeIds
     CertifiedAttributeSeed:
+      type: object
+      additionalProperties: false
+      description: Models the attribute registry entry as payload response
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 500
+        description:
+          type: string
+          minLength: 1
+          maxLength: 500
+        code:
+          type: string
+          minLength: 1
+          maxLength: 64
+          description: The identifier of the attribute on the source registry
+      required:
+        - description
+        - name
+        - code
+    CertifiedDiscreteAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          description: The identifier of the attribute on the source registry
+        description:
+          type: string
+        origin:
+          type: string
+          description: Identifier of the origin of this attribute, e.g. "ISTAT"
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - description
+        - code
+        - origin
+        - createdAt
+    CertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CertifiedDiscreteAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    CertifiedDiscreteAttributeSeed:
       type: object
       additionalProperties: false
       description: Models the attribute registry entry as payload response
@@ -12306,6 +13681,10 @@ components:
           type: string
         asyncExchange:
           type: boolean
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedEServiceArchivingRequest"
       required:
         - id
         - producerId
@@ -12401,6 +13780,10 @@ components:
           $ref: "#/components/schemas/ArchivingSchedule"
         asyncExchangeProperties:
           $ref: "#/components/schemas/AsyncExchangeProperties"
+        delegatedArchivingRequest:
+          type: array
+          items:
+            $ref: "#/components/schemas/DelegatedDescriptorArchivingRequest"
       required:
         - id
         - version
@@ -12413,6 +13796,57 @@ components:
         - dailyCallsTotal
         - agreementApprovalPolicy
         - serverUrls
+    DelegatedDescriptorArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+    DelegatedEServiceArchivingRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - requestedAt
+        - requesterId
+        - gracePeriodDays
+        - archivingReason
+      properties:
+        requestedAt:
+          type: string
+          format: date-time
+        acceptedAt:
+          type: string
+          format: date-time
+        rejectedAt:
+          type: string
+          format: date-time
+        rejectionReason:
+          type: string
+        requesterId:
+          type: string
+          format: uuid
+        gracePeriodDays:
+          $ref: "#/components/schemas/GracePeriodDays"
+        archivingReason:
+          type: string
     ArchivingSchedule:
       type: object
       additionalProperties: false
@@ -13740,6 +15174,53 @@ components:
           $ref: "#/components/schemas/GracePeriodDays"
       required:
         - archivingReason
+    RejectDelegatedEServiceArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for an owner to reject a delegated archiving request
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 1
+      required:
+        - rejectionReason
+    RejectDelegatedDescriptorArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Seed for an owner to reject a delegated descriptor archiving request
+      properties:
+        rejectionReason:
+          type: string
+          minLength: 1
+      required:
+        - rejectionReason
+    DelegateGracePeriodDays:
+      description: Number of days for the archiving grace period, explicitly chosen by the delegate requesting the archiving
+      type: integer
+      format: int32
+      enum: [30, 60, 90, 120]
+    DelegateGracePeriodDaysSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        gracePeriodDays:
+          $ref: "#/components/schemas/DelegateGracePeriodDays"
+      required:
+        - gracePeriodDays
+    DelegateEServiceArchivingSeed:
+      type: object
+      additionalProperties: false
+      description: Archiving Reason and Grace Period Days
+      properties:
+        archivingReason:
+          type: string
+          minLength: 10
+          maxLength: 250
+        gracePeriodDays:
+          $ref: "#/components/schemas/DelegateGracePeriodDays"
+      required:
+        - archivingReason
+        - gracePeriodDays
     Tenant:
       description: Tenant model
       type: object
@@ -13885,6 +15366,67 @@ components:
           format: uuid
       required:
         - id
+    TenantCertifiedDiscreteAttribute:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        assignedAt:
+          type: string
+          format: date-time
+        revokedAt:
+          type: string
+          format: date-time
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - assignedAt
+        - discreteValue
+    TenantCertifiedDiscreteAttributes:
+      type: object
+      additionalProperties: false
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/TenantCertifiedDiscreteAttribute"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+      required:
+        - results
+        - pagination
+    TenantCertifiedDiscreteAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          format: uuid
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - id
+        - certifiedDiscreteValue
+    UpdateTenantCertifiedDiscreteAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
+        - certifiedDiscreteValue
     TenantDeclaredAttribute:
       type: object
       additionalProperties: false

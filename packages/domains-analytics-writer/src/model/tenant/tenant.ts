@@ -1,21 +1,5 @@
-import { createSelectSchema } from "drizzle-zod";
-import { tenantInReadmodelTenant } from "pagopa-interop-readmodel-models";
+import { TenantSchema } from "pagopa-interop-kpi-models";
 import { z } from "zod";
-
-import { TenantCertifiedAttributeSchema } from "./tenantCertifiedAttribute.js";
-import { TenantCertifiedDiscreteAttributeSchema } from "./tenantCertifiedDiscreteAttribute.js";
-import { TenantDeclaredAttributeSchema } from "./tenantDeclaredAttribute.js";
-import { TenantFeatureSchema } from "./tenantFeature.js";
-import { TenantMailSchema } from "./tenantMail.js";
-import { TenantRemoteIdSchema } from "./tenantRemoteId.js";
-import { TenantVerifiedAttributeSchema } from "./tenantVerifiedAttribute.js";
-import { TenantVerifiedAttributeRevokerSchema } from "./tenantVerifiedAttributeRevoker.js";
-import { TenantVerifiedAttributeVerifierSchema } from "./tenantVerifiedAttributeVerifier.js";
-
-export const TenantSchema = createSelectSchema(tenantInReadmodelTenant).extend({
-  deleted: z.boolean().default(false).optional(),
-});
-export type TenantSchema = z.infer<typeof TenantSchema>;
 
 export const TenantSelfcareIdSchema = TenantSchema.pick({
   id: true,
@@ -30,19 +14,3 @@ export const TenantDeletingSchema = TenantSchema.pick({
   deleted: true,
 });
 export type TenantDeletingSchema = z.infer<typeof TenantDeletingSchema>;
-
-export const TenantItemsSchema = z.object({
-  tenantSQL: TenantSchema,
-  mailsSQL: z.array(TenantMailSchema),
-  certifiedAttributesSQL: z.array(TenantCertifiedAttributeSchema),
-  declaredAttributesSQL: z.array(TenantDeclaredAttributeSchema),
-  verifiedAttributesSQL: z.array(TenantVerifiedAttributeSchema),
-  verifiedAttributeVerifiersSQL: z.array(TenantVerifiedAttributeVerifierSchema),
-  verifiedAttributeRevokersSQL: z.array(TenantVerifiedAttributeRevokerSchema),
-  featuresSQL: z.array(TenantFeatureSchema),
-  remoteIdsSQL: z.array(TenantRemoteIdSchema),
-  certifiedDiscreteAttributesSQL: z.array(
-    TenantCertifiedDiscreteAttributeSchema
-  ),
-});
-export type TenantItemsSchema = z.infer<typeof TenantItemsSchema>;

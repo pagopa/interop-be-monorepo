@@ -53,6 +53,8 @@ describe("createUserNotificationConfig", () => {
     producerKeychainKeyAddedDeletedToClientUsers: false,
     purposeQuotaAdjustmentRequestToProducer: false,
     purposeOverQuotaStateToConsumer: false,
+    eserviceArchivingRequestedToDelegator: false,
+    eserviceArchivingApprovedRejectedToDelegate: false,
   };
   const defaultEmailConfig: NotificationConfig = {
     agreementSuspendedUnsuspendedToProducer: false,
@@ -79,6 +81,8 @@ describe("createUserNotificationConfig", () => {
     producerKeychainKeyAddedDeletedToClientUsers: false,
     purposeQuotaAdjustmentRequestToProducer: false,
     purposeOverQuotaStateToConsumer: false,
+    eserviceArchivingRequestedToDelegator: false,
+    eserviceArchivingApprovedRejectedToDelegate: false,
   };
   beforeAll(async () => {
     vi.useFakeTimers();

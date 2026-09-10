@@ -85,6 +85,7 @@ export const purposeTables: PurposeDbTable[] = [
   PurposeDbTable.purpose_risk_analysis_form,
   PurposeDbTable.purpose_risk_analysis_answer,
   PurposeDbTable.purpose_version_signed_document,
+  PurposeDbTable.purpose_risk_analysis_reviewer,
 ];
 
 export const delegationTables: DelegationDbTable[] = [

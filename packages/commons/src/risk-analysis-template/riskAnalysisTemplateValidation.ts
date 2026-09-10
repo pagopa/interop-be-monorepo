@@ -13,6 +13,7 @@ import {
   buildLabel,
   formRules,
 } from "../risk-analysis/rules/riskAnalysisFormRulesProvider.js";
+import { containsHyperlink } from "../utils/regexpUtils.js";
 import {
   RiskAnalysisFormTemplateToValidate,
   RiskAnalysisTemplateAnswerToValidate,
@@ -30,6 +31,7 @@ import {
   unexpectedRiskAnalysisTemplateDependencyEditableError,
   unexpectedRiskAnalysisTemplateDependencyValueError,
   unexpectedRiskAnalysisTemplateFieldError,
+  unexpectedRiskAnalysisTemplateFieldHyperlinkError,
   unexpectedRiskAnalysisTemplateFieldValueError,
   unexpectedRiskAnalysisTemplateRulesVersionError,
   validTemplateResult,
@@ -280,14 +282,18 @@ function validateAnswerValue(
   const hasValues = answer.values.length > 0;
 
   return match(rule)
-    .with({ dataType: "freeText" }, (freeTextRule) =>
-      validateFreeTextAnswer(
+    .with({ dataType: "freeText" }, (freeTextRule) => [
+      ...validateFreeTextAnswer(
         freeTextRule,
         hasValues,
         hasSuggestions,
         answer.editable
-      )
-    )
+      ),
+      ...validateFreeTextAnswerSuggestionsHaveNoHyperlinks(
+        freeTextRule,
+        answer.suggestedValues
+      ),
+    ])
 
     .with({ dataType: P.not("freeText") }, (nonFreeTextRule) =>
       validateNonFreeTextAnswer(
@@ -328,6 +334,15 @@ function validateFreeTextAnswer(
 
   // Free text answers must have suggested values, not be editable and not have values
   return [];
+}
+
+function validateFreeTextAnswerSuggestionsHaveNoHyperlinks(
+  rule: ValidationRule,
+  suggestedValues: string[]
+): RiskAnalysisTemplateValidationIssue[] {
+  return suggestedValues.some(containsHyperlink)
+    ? [unexpectedRiskAnalysisTemplateFieldHyperlinkError(rule.fieldName)]
+    : [];
 }
 
 function validateNonFreeTextAnswer(
@@ -470,18 +485,24 @@ const validatePersonalDataFlag = ({
       formRules.PRIVATE_1_0,
       () => []
     )
-    .with(formRules.PA_3_1, formRules.PRIVATE_2_0, () => {
-      if (
-        personalDataInPurposeTemplate !== personalDataInRiskAnalysisTemplate
-      ) {
-        return [
-          incompatiblePurposeTemplatePersonalDataError(
-            personalDataInRiskAnalysisTemplate,
-            personalDataInPurposeTemplate
-          ),
-        ];
+    .with(
+      formRules.PA_3_1,
+      formRules.PA_3_2,
+      formRules.PRIVATE_2_0,
+      formRules.PRIVATE_2_1,
+      () => {
+        if (
+          personalDataInPurposeTemplate !== personalDataInRiskAnalysisTemplate
+        ) {
+          return [
+            incompatiblePurposeTemplatePersonalDataError(
+              personalDataInRiskAnalysisTemplate,
+              personalDataInPurposeTemplate
+            ),
+          ];
+        }
+        return [];
       }
-      return [];
-    })
+    )
     .exhaustive();
 };
