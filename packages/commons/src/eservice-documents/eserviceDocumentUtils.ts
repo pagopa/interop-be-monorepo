@@ -481,7 +481,7 @@ export const verifyAndCreateImportedDocument = async <T>(
     prettyName: string;
     path: string;
   },
-  kind: "INTERFACE" | "DOCUMENT",
+  kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE",
   createDocumentHandler: (
     documentId: string,
     fileName: string,
