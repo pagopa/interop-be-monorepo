@@ -17,7 +17,7 @@ import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/errors.js";
 import {
   digestNotificationTypeToUiSection,
-  notificationTypeToUiSection,
+  getNotificationDeepLink,
 } from "../model/modelMappingUtils.js";
 import { fromBffAppContext } from "../utilities/context.js";
 
@@ -53,7 +53,10 @@ const emailDeeplinkRouters = (
       const notificationType = NotificationType.parse(
         req.params.notificationType
       );
-      const redirectPath = `${notificationTypeToUiSection[notificationType]}/${req.params.entityId}`;
+      const redirectPath = getNotificationDeepLink(
+        notificationType,
+        req.params.entityId
+      );
       const redirectUrl = buildTokenExchangeUrl(
         req.query.selfcareId,
         redirectPath
