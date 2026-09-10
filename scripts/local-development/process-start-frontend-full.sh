@@ -50,12 +50,35 @@ stop_children() {
   rm -f "$PID_FILE"
 }
 
-trap stop_children EXIT
-trap 'exit 0' INT TERM
+finish() {
+  local exit_code=$?
+  trap - CHLD EXIT
+  if (( exit_code != 0 )); then
+    printf 'failed\n' > "$STATUS_FILE"
+    echo "Backend startup or runtime failed (exit code $exit_code)" >&2
+  else
+    printf 'stopped\n' > "$STATUS_FILE"
+  fi
+  stop_children
+  exit "$exit_code"
+}
+
+check_children() {
+  local index exit_code
+  for index in "${!PIDS[@]}"; do
+    if ! kill -0 "${PIDS[$index]}" 2>/dev/null; then
+      if wait "${PIDS[$index]}"; then exit_code=0; else exit_code=$?; fi
+      echo "${SERVICES[$index]} exited unexpectedly (exit code $exit_code)" >&2
+      exit 1
+    fi
+  done
+}
 
 cd "$REPOSITORY_ROOT"
 mkdir -p "$RUNTIME_ROOT"
 : > "$PID_FILE"
+trap finish EXIT
+trap 'exit 0' INT TERM
 
 printf 'building\n' > "$STATUS_FILE"
 echo "Building local backend dependencies"
@@ -77,6 +100,7 @@ printf 'infrastructure\n' > "$STATUS_FILE"
 pnpm local:infra:start
 
 printf 'starting\n' > "$STATUS_FILE"
+trap check_children CHLD
 
 for service in "${SERVICES[@]}"; do
   echo "Starting $service"
@@ -95,6 +119,7 @@ for service in "${SERVICES[@]}"; do
   sleep "$START_DELAY_SECONDS"
 done
 
+check_children
 printf 'running\n' > "$STATUS_FILE"
 echo "All local backend processes are running"
 wait
