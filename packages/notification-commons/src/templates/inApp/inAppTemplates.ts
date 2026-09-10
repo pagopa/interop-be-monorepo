@@ -34,6 +34,11 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente ${producerName} ti ha assegnato un'analisi del rischio da compilare e approvare per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
+  purposeRiskAnalysisRejectedToAdmin: (
+    purposeTitle: string,
+    eserviceName: string
+  ): string =>
+    `L'analisi del rischio per la finalità ${purposeTitle} associata all'e-service ${eserviceName} è stata rifiutata.`,
   // agreements - erogazione
   agreementSubmittedToProducer: (
     consumerName: string,
