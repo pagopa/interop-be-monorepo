@@ -50,6 +50,7 @@ import {
   clientTables,
   producerKeychainTables,
   getMockRsaKey,
+  getMockEcKey,
 } from "./utils.js";
 
 describe("Authorization messages consumers - handleAuthorizationMessageV1", () => {
@@ -365,6 +366,66 @@ describe("Authorization messages consumers - handleAuthorizationMessageV1", () =
 
     expect(storedKey?.userId).toBe(userId);
     expect(storedKey?.metadataVersion).toBe(3);
+  });
+
+  it("KeyRelationshipToUserMigrated: skips EC keys filtered out from client keys", async () => {
+    const userId: UserId = generateId<UserId>();
+    const previousUserId: UserId = generateId<UserId>();
+    const key: Key = getMockEcKey(previousUserId);
+
+    const client = toClientV1({
+      ...mockClient,
+      users: [previousUserId, userId],
+      keys: [],
+    });
+
+    const payloadAdd: ClientAddedV1 = { client };
+    const payloadKeysAdded: KeysAddedV1 = {
+      clientId: client.id,
+      keys: [
+        {
+          keyId: key.kid,
+          value: toKeyV1(key),
+        },
+      ],
+    };
+    const payloadMigration: KeyRelationshipToUserMigratedV1 = {
+      clientId: client.id,
+      keyId: key.kid,
+      userId,
+    };
+
+    const addMsg: AuthorizationEventEnvelopeV1 = {
+      ...mockMessage,
+      type: "ClientAdded",
+      data: payloadAdd,
+    };
+
+    const keysAddedMsg: AuthorizationEventEnvelopeV1 = {
+      ...mockMessage,
+      version: 2,
+      type: "KeysAdded",
+      data: payloadKeysAdded,
+    };
+
+    const migrationMsg: AuthorizationEventEnvelopeV1 = {
+      ...mockMessage,
+      version: 3,
+      type: "KeyRelationshipToUserMigrated",
+      data: payloadMigration,
+    };
+
+    await handleAuthorizationMessageV1(
+      [addMsg, keysAddedMsg, migrationMsg],
+      dbContext
+    );
+
+    const storedKey = await getOneFromDb(dbContext, ClientDbTable.client_key, {
+      clientId: client.id,
+      kid: key.kid,
+    });
+
+    expect(storedKey).toBeUndefined();
   });
 
   it("ClientAdded: should throw error when client is missing", async () => {

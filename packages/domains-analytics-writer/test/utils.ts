@@ -316,3 +316,14 @@ export const getMockRsaKey = (userId: UserId): Key => {
 
   return { ...getMockKey(), encodedPem, userId };
 };
+
+export const getMockEcKey = (userId: UserId): Key => {
+  const publicKey = crypto.generateKeyPairSync("ec", {
+    namedCurve: "P-256",
+  }).publicKey;
+  const encodedPem = Buffer.from(
+    publicKey.export({ type: "spki", format: "pem" })
+  ).toString("base64url");
+
+  return { ...getMockKey(), encodedPem, userId };
+};

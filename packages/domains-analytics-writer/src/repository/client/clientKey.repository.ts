@@ -16,7 +16,6 @@ import {
 } from "../../model/db/index.js";
 import {
   buildColumnSet,
-  generateMergeQuery,
   generateStagingDeleteQuery,
 } from "../../utils/sqlQueryHelper.js";
 import { createRepository } from "../createRepository.js";
@@ -72,14 +71,14 @@ export function clientKeyRepository(conn: DBConnection) {
 
     async mergeKeyUserMigration(t: ITask<unknown>): Promise<void> {
       try {
-        const mergeQuery = generateMergeQuery(
-          ClientKeyUserMigrationSchema,
-          schemaName,
-          tableName,
-          ["clientId", "kid"],
-          keyRelationshipTableName
-        );
-        await t.none(mergeQuery);
+        await t.none(`
+          UPDATE ${schemaName}.${tableName} AS target
+          SET user_id = source.user_id,
+              metadata_version = source.metadata_version
+          FROM ${stagingTableName} AS source
+          WHERE target.client_id = source.client_id
+            AND target.kid = source.kid;
+        `);
       } catch (error: unknown) {
         throw genericInternalError(
           `Error merging staging table ${stagingTableName} into ${schemaName}.${tableName}: ${error}`
