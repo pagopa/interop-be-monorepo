@@ -15,6 +15,7 @@ import {
   UserNotificationConfigUpdatedV2,
   toUserNotificationConfigV2,
   NotificationType,
+  NotificationConfig,
   UserRole,
   userRole,
 } from "pagopa-interop-models";
@@ -138,6 +139,76 @@ describe("updateUserNotificationConfig", () => {
     // Extra config to check that the correct one is updated
     await addOneUserNotificationConfig(getMockUserNotificationConfig());
   });
+
+  const reviewerConfig: NotificationConfig = {
+    ...NotificationConfig.parse(
+      Object.fromEntries(NotificationType.options.map((type) => [type, false]))
+    ),
+    purposeRiskAnalysisAssignedForSigningToReviewer: true,
+    purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: true,
+    purposePublishedWithRiskAnalysisToReviewer: true,
+    draftPurposeDeletedWithRiskAnalysisToReviewer: true,
+    purposeRiskAnalysisAssignmentRemovedToReviewer: true,
+    purposeRiskAnalysisSignedToReviewer: true,
+  };
+  const reviewerSeed: notificationConfigApi.UserNotificationConfigUpdateSeed = {
+    ...userNotificationConfigSeed,
+    inAppConfig: reviewerConfig,
+    emailConfig: reviewerConfig,
+  };
+
+  it("should allow a reviewer to enable all reviewer notifications on both channels", async () => {
+    await addOneUserNotificationConfig({
+      ...userNotificationConfig,
+      userRoles: [userRole.REVIEWER_ROLE],
+    });
+
+    const result = await notificationConfigService.updateUserNotificationConfig(
+      reviewerSeed,
+      getMockContext({
+        authData: getMockAuthData(tenantId, userId, [authRole.REVIEWER_ROLE]),
+      })
+    );
+
+    expect(result).toMatchObject({
+      ...reviewerSeed,
+      userRoles: [userRole.REVIEWER_ROLE],
+    });
+    const writtenEvent = await readLastNotificationConfigEvent(result.id);
+    expect(writtenEvent.type).toBe("UserNotificationConfigUpdated");
+    expect(
+      decodeProtobufPayload({
+        messageType: UserNotificationConfigUpdatedV2,
+        payload: writtenEvent.data,
+      })
+    ).toEqual({ userNotificationConfig: toUserNotificationConfigV2(result) });
+  });
+
+  it.each<[NotificationType, "inAppConfig" | "emailConfig"]>([
+    ["purposeRiskAnalysisSignedToAdmin", "inAppConfig"],
+    ["purposeRiskAnalysisSignedToAdmin", "emailConfig"],
+    ["purposeRiskAnalysisRejectedToAdmin", "inAppConfig"],
+    ["purposeRiskAnalysisRejectedToAdmin", "emailConfig"],
+  ])(
+    "should reject a reviewer enabling %s in %s",
+    async (notificationType, channel) => {
+      await expect(
+        notificationConfigService.updateUserNotificationConfig(
+          {
+            ...reviewerSeed,
+            [channel]: { ...reviewerConfig, [notificationType]: true },
+          },
+          getMockContext({
+            authData: getMockAuthData(tenantId, userId, [
+              authRole.REVIEWER_ROLE,
+            ]),
+          })
+        )
+      ).rejects.toThrowError(
+        notificationConfigNotAllowedForUserRoles(userId, tenantId)
+      );
+    }
+  );
 
   it("should write on event-store for the update of a user's existing notification configuration", async () => {
     await addOneUserNotificationConfig(userNotificationConfig);
