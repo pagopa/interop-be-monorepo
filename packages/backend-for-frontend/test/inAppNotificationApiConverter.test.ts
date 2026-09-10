@@ -272,37 +272,52 @@ describe("toBffApiNotificationsCountBySection", () => {
 });
 
 describe("toBffApiNotification", () => {
-  it("should include entityId in deepLink for standard notification types", () => {
-    const notification: inAppNotificationApi.Notification = {
-      id: "notification-id",
-      tenantId: "tenant-id",
-      userId: "user-id",
-      body: "Test notification body",
-      entityId: "entity-uuid",
-      notificationType: "agreementManagementToProducer",
-      createdAt: "2024-01-01T00:00:00.000Z",
-      readAt: null,
-    };
+  it.each<[inAppNotificationApi.Notification["notificationType"], string]>([
+    ["agreementManagementToProducer", "/erogazione/richieste/entity-uuid"],
+    ["purposeActivatedRejectedToConsumer", "/fruizione/finalita/entity-uuid"],
+  ])(
+    "should include entityId in deepLink for %s",
+    (notificationType, deepLink) => {
+      const notification: inAppNotificationApi.Notification = {
+        id: "notification-id",
+        tenantId: "tenant-id",
+        userId: "user-id",
+        body: "Test notification body",
+        entityId: "entity-uuid",
+        notificationType,
+        createdAt: "2024-01-01T00:00:00.000Z",
+        readAt: null,
+      };
 
-    const result = toBffApiNotification(notification);
+      const result = toBffApiNotification(notification);
 
-    expect(result.deepLink).toBe("/erogazione/richieste/entity-uuid");
-  });
+      expect(result.deepLink).toBe(deepLink);
+    }
+  );
 
-  it("should NOT include entityId in deepLink for certifiedVerifiedAttributeAssignedRevokedToAssignee", () => {
-    const notification: inAppNotificationApi.Notification = {
-      id: "notification-id",
-      tenantId: "tenant-id",
-      userId: "user-id",
-      body: "Test notification body",
-      entityId: "attribute-uuid",
-      notificationType: "certifiedVerifiedAttributeAssignedRevokedToAssignee",
-      createdAt: "2024-01-01T00:00:00.000Z",
-      readAt: null,
-    };
+  it.each<[inAppNotificationApi.Notification["notificationType"], string]>([
+    [
+      "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+      "/aderente/anagrafica",
+    ],
+    ["draftPurposeDeletedWithRiskAnalysisToReviewer", "/analisi-del-rischio"],
+  ])(
+    "should omit entityId from deepLink for %s",
+    (notificationType, deepLink) => {
+      const notification: inAppNotificationApi.Notification = {
+        id: "notification-id",
+        tenantId: "tenant-id",
+        userId: "user-id",
+        body: "Test notification body",
+        entityId: "entity-uuid",
+        notificationType,
+        createdAt: "2024-01-01T00:00:00.000Z",
+        readAt: null,
+      };
 
-    const result = toBffApiNotification(notification);
+      const result = toBffApiNotification(notification);
 
-    expect(result.deepLink).toBe("/aderente/anagrafica");
-  });
+      expect(result.deepLink).toBe(deepLink);
+    }
+  );
 });
