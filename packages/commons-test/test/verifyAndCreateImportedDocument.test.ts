@@ -7,7 +7,7 @@ import {
   contentTooLargeError,
   generateId,
   genericError,
-  invalidInterfaceFileDetected,
+  invalidServerUrl,
   Technology,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi } from "vitest";
@@ -152,7 +152,7 @@ describe("verifyAndCreateImportedDocument", () => {
       }),
     },
   ])(
-    "should throw invalidInterfaceFileDetected for an imported REST interface with $description",
+    "should throw invalidServerUrl for an imported REST interface with $description",
     async ({ fileContent }) => {
       const filePath = "test.openapi.3.0.2.json";
       const zipEntry = createMockZipEntry(fileContent, filePath);
@@ -178,7 +178,7 @@ describe("verifyAndCreateImportedDocument", () => {
           genericLogger
         )
       ).rejects.toThrow(
-        invalidInterfaceFileDetected({
+        invalidServerUrl({
           id: eservice.id,
           isEserviceTemplate: false,
         })
