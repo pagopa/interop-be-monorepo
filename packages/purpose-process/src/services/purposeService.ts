@@ -110,6 +110,7 @@ import {
   reviewerWorkflowConflict,
   missingReviewers,
   reviewersNotAllowedForReviewMode,
+  purposeMetadataVersionMismatch,
 } from "../model/domain/errors.js";
 import {
   toCreateEventDraftPurposeDeleted,
@@ -723,6 +724,7 @@ export function purposeServiceBuilder(
     },
     async signRiskAnalysis(
       purposeId: PurposeId,
+      { metadataVersionToSign }: purposeApi.RiskAnalysisSignSeed,
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<WithMetadata<Purpose>> {
       logger.info(`Signing risk analysis for Purpose ${purposeId}`);
@@ -732,6 +734,14 @@ export function purposeServiceBuilder(
       const purpose = await retrievePurpose(purposeId, readModelService);
 
       assertRequesterIsConsumer(purpose.data, authData);
+
+      if (metadataVersionToSign !== purpose.metadata.version) {
+        throw purposeMetadataVersionMismatch(
+          purposeId,
+          metadataVersionToSign,
+          purpose.metadata.version
+        );
+      }
 
       const workflow = purpose.data.reviewerWorkflow;
 

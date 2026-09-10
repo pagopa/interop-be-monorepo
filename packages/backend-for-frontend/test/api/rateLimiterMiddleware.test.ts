@@ -24,9 +24,10 @@ describe("rateLimiterMiddleware", () => {
       .send();
   // ^ using GET /purposes/:purposeId as a dummy endpoint to test the middleware
 
-  services.purposeService.getPurpose = vi
-    .fn()
-    .mockResolvedValue(getMockBffApiPurpose());
+  services.purposeService.getPurpose = vi.fn().mockResolvedValue({
+    data: getMockBffApiPurpose(),
+    metadata: { version: 0 },
+  });
 
   const mockRateLimitByOrganization = vi.fn();
   mockRateLimiter.rateLimitByOrganization = mockRateLimitByOrganization;

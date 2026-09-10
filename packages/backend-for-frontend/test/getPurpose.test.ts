@@ -89,6 +89,7 @@ describe("getPurpose — reviewer enrichment", () => {
   };
 
   const mockPurposeId = generateId<PurposeId>();
+  const purposeMetadata = { version: 1 };
   const basePurpose: purposeApi.Purpose = {
     id: mockPurposeId,
     eserviceId: eservice.id,
@@ -126,7 +127,8 @@ describe("getPurpose — reviewer enrichment", () => {
 
   const purposeService = purposeServiceBuilder(
     {
-      purposeProcessClient: { getPurpose: mockGetPurpose },
+      purposeProcessClient: {},
+      purposeProcessClientWithMetadata: { getPurpose: mockGetPurpose },
       purposeTemplateProcessClient: { getPurposeTemplate: vi.fn() },
       catalogProcessClient: { getEServiceById: mockGetEServiceById },
       tenantProcessClient: mockTenantProcessClient,
@@ -147,7 +149,10 @@ describe("getPurpose — reviewer enrichment", () => {
     mockGetAgreements.mockReset();
     mockGetUserInfoUsingGET.mockReset();
 
-    mockGetPurpose.mockResolvedValue(basePurpose);
+    mockGetPurpose.mockResolvedValue({
+      data: basePurpose,
+      metadata: purposeMetadata,
+    });
     mockGetEServiceById.mockResolvedValue(eservice);
     mockGetTenant.mockImplementation(
       ({ params }: { params: { id: string } }) =>
@@ -168,7 +173,7 @@ describe("getPurpose — reviewer enrichment", () => {
 
     const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
-    expect(result.reviewerWorkflow?.reviewers).toEqual([
+    expect(result.data.reviewerWorkflow?.reviewers).toEqual([
       {
         userId: reviewerId,
         name: "Name",
@@ -176,6 +181,7 @@ describe("getPurpose — reviewer enrichment", () => {
         sentToReviewerAt,
       },
     ]);
+    expect(result.metadata).toEqual(purposeMetadata);
     expect(mockGetUserInfoUsingGET).toHaveBeenCalledOnce();
     expect(mockGetUserInfoUsingGET).toHaveBeenCalledWith(
       expect.objectContaining({ params: { id: reviewerId } })
@@ -193,7 +199,7 @@ describe("getPurpose — reviewer enrichment", () => {
 
       const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
-      expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
+      expect(result.data.reviewerWorkflow?.reviewers).toBeUndefined();
       expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
     }
   );
@@ -213,18 +219,21 @@ describe("getPurpose — reviewer enrichment", () => {
 
       const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
-      expect(result.reviewerWorkflow?.reviewers).toBeUndefined();
+      expect(result.data.reviewerWorkflow?.reviewers).toBeUndefined();
       expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
     }
   );
 
   it("should return empty reviewers array when there are no reviewers (consumer)", async () => {
     mockGetPurpose.mockResolvedValue({
-      ...basePurpose,
-      reviewerWorkflow: {
-        ...basePurpose.reviewerWorkflow!,
-        reviewers: [],
+      data: {
+        ...basePurpose,
+        reviewerWorkflow: {
+          ...basePurpose.reviewerWorkflow!,
+          reviewers: [],
+        },
       },
+      metadata: purposeMetadata,
     });
 
     const authData: UIAuthData = {
@@ -235,14 +244,17 @@ describe("getPurpose — reviewer enrichment", () => {
 
     const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
-    expect(result.reviewerWorkflow?.reviewers).toEqual([]);
+    expect(result.data.reviewerWorkflow?.reviewers).toEqual([]);
     expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
   });
 
   it("should return undefined reviewerWorkflow when purpose has no reviewerWorkflow", async () => {
     mockGetPurpose.mockResolvedValue({
-      ...basePurpose,
-      reviewerWorkflow: undefined,
+      data: {
+        ...basePurpose,
+        reviewerWorkflow: undefined,
+      },
+      metadata: purposeMetadata,
     });
 
     const authData: UIAuthData = {
@@ -253,7 +265,7 @@ describe("getPurpose — reviewer enrichment", () => {
 
     const result = await purposeService.getPurpose(mockPurposeId, ctx);
 
-    expect(result.reviewerWorkflow).toBeUndefined();
+    expect(result.data.reviewerWorkflow).toBeUndefined();
     expect(mockGetUserInfoUsingGET).not.toHaveBeenCalled();
   });
 });
