@@ -1,13 +1,19 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { authorizationApi, bffApi } from "pagopa-interop-api-clients";
-import { WithLogger } from "pagopa-interop-commons";
+import {
+  authorizationApi,
+  bffApi,
+  catalogApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
+import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
 
 import {
   toAuthorizationKeySeed,
   toBffApiCompactProducerKeychain,
 } from "../api/authorizationApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { eServiceNotFound } from "../model/errors.js";
 import { BffAppContext } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
 import { decorateKey } from "./clientService.js";
@@ -363,14 +369,35 @@ async function enhanceProducerKeychain(
   ctx: WithLogger<BffAppContext>
 ): Promise<bffApi.ProducerKeychain> {
   assertProducerKeychainVisibilityIsFull(producerKeychain);
-  const producer = await apiClients.tenantProcessClient.tenant.getTenant({
-    params: { id: producerKeychain.producerId },
-    headers: ctx.headers,
-  });
+  const [producer, eservices] = await Promise.all([
+    apiClients.tenantProcessClient.tenant.getTenant({
+      params: { id: producerKeychain.producerId },
+      headers: ctx.headers,
+    }),
+    producerKeychain.eservices.length === 0
+      ? Promise.resolve([])
+      : getAllFromPaginated((offset, limit) =>
+          apiClients.catalogProcessClient.getEServices({
+            queries: {
+              eservicesIds: producerKeychain.eservices,
+              offset,
+              limit,
+            },
+            headers: ctx.headers,
+          })
+        ),
+  ]);
 
-  const eservices = await Promise.all(
-    producerKeychain.eservices.map((p) => enhanceEService(apiClients, p, ctx))
+  const eservicesById = new Map(
+    eservices.map((eservice) => [eservice.id, eservice])
   );
+  const enhancedEServices = producerKeychain.eservices.map((eserviceId) => {
+    const eservice = eservicesById.get(eserviceId);
+    if (!eservice) {
+      throw eServiceNotFound(eserviceId);
+    }
+    return enhanceEService(eservice, producer);
+  });
 
   return {
     id: producerKeychain.id,
@@ -381,25 +408,14 @@ async function enhanceProducerKeychain(
       id: producer.id,
       name: producer.name,
     },
-    eservices,
+    eservices: enhancedEServices,
   };
 }
 
-async function enhanceEService(
-  { catalogProcessClient, tenantProcessClient }: PagoPAInteropBeClients,
-  eserviceId: string,
-  { headers }: WithLogger<BffAppContext>
-): Promise<bffApi.CompactEService> {
-  const eservice = await catalogProcessClient.getEServiceById({
-    params: { eServiceId: eserviceId },
-    headers,
-  });
-
-  const producer = await tenantProcessClient.tenant.getTenant({
-    params: { id: eservice.producerId },
-    headers,
-  });
-
+function enhanceEService(
+  eservice: catalogApi.EService,
+  producer: tenantApi.Tenant
+): bffApi.CompactEService {
   return {
     id: eservice.id,
     name: eservice.name,
