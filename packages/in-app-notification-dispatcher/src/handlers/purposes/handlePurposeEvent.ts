@@ -8,6 +8,7 @@ import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToCons
 import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
 import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
 import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
+import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 
@@ -132,7 +133,6 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSelfAssigned",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
@@ -145,6 +145,16 @@ export async function handlePurposeEvent(
         );
         return [];
       }
+    )
+    .with(
+      { type: "PurposeRiskAnalysisAssigned" },
+      ({ data: { purpose, newReviewersToNotify } }) =>
+        handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer(
+          purpose,
+          newReviewersToNotify,
+          logger,
+          readModelService
+        )
     )
     .exhaustive();
 }
