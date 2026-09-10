@@ -353,7 +353,7 @@ export function authorizationServiceBuilder(db: DBContext) {
         `Staging data merged into target tables for ClientKeyUserMigration`
       );
 
-      await clientKeyRepo.clean();
+      await clientKeyRepo.cleanKeyUserMigration();
 
       genericLogger.info(`Staging table cleaned for ClientKeyUserMigration`);
     },
