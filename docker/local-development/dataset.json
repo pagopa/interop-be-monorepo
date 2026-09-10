@@ -1,0 +1,168 @@
+{
+  "version": 1,
+  "product": {
+    "id": "prod-interop",
+    "title": "PDND Interoperabilita"
+  },
+  "tenants": [
+    {
+      "key": "comune",
+      "name": "Comune Demo",
+      "contactEmail": "interop@comune.demo",
+      "selfcareId": "00000000-0000-4000-8000-000000000001",
+      "institutionType": "PA",
+      "externalId": { "origin": "IPA", "value": "COMUNE-DEMO" }
+    },
+    {
+      "key": "provider",
+      "name": "Provider Demo",
+      "contactEmail": "interop@provider.demo",
+      "selfcareId": "00000000-0000-4000-8000-000000000002",
+      "institutionType": "PA",
+      "externalId": { "origin": "IPA", "value": "PROVIDER-DEMO" }
+    },
+    {
+      "key": "impresa",
+      "name": "Impresa Demo",
+      "contactEmail": "interop@impresa.demo",
+      "selfcareId": "00000000-0000-4000-8000-000000000003",
+      "institutionType": "PRV",
+      "externalId": { "origin": "LOCAL", "value": "IMPRESA-DEMO" }
+    },
+    {
+      "key": "certificatore",
+      "name": "Certificatore Demo",
+      "contactEmail": "interop@certificatore.demo",
+      "selfcareId": "00000000-0000-4000-8000-000000000004",
+      "institutionType": "PA",
+      "externalId": { "origin": "IPA", "value": "CERTIFICATORE-DEMO" }
+    }
+  ],
+  "users": [
+    {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "key": "admin",
+      "memberships": [
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000001",
+          "roles": ["admin"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000002",
+          "roles": ["admin"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000003",
+          "roles": ["admin"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000004",
+          "roles": ["admin"]
+        }
+      ],
+      "name": "Utente",
+      "surname": "Admin",
+      "email": "admin@local.test"
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "key": "api",
+      "memberships": [
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000001",
+          "roles": ["api"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000002",
+          "roles": ["api"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000003",
+          "roles": ["api"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000004",
+          "roles": ["api"]
+        }
+      ],
+      "name": "Utente",
+      "surname": "API",
+      "email": "api@local.test"
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "key": "security",
+      "memberships": [
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000001",
+          "roles": ["security"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000002",
+          "roles": ["security"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000003",
+          "roles": ["security"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000004",
+          "roles": ["security"]
+        }
+      ],
+      "name": "Utente",
+      "surname": "Security",
+      "email": "security@local.test"
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000004",
+      "key": "reviewer",
+      "memberships": [
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000001",
+          "roles": ["reviewer"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000002",
+          "roles": ["reviewer"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000003",
+          "roles": ["reviewer"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000004",
+          "roles": ["reviewer"]
+        }
+      ],
+      "name": "Utente",
+      "surname": "Reviewer",
+      "email": "reviewer@local.test"
+    },
+    {
+      "id": "10000000-0000-4000-8000-000000000005",
+      "key": "viewer",
+      "memberships": [
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000001",
+          "roles": ["viewer"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000002",
+          "roles": ["viewer"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000003",
+          "roles": ["viewer"]
+        },
+        {
+          "tenantSelfcareId": "00000000-0000-4000-8000-000000000004",
+          "roles": ["viewer"]
+        }
+      ],
+      "name": "Utente",
+      "surname": "Viewer",
+      "email": "viewer@local.test"
+    }
+  ]
+}

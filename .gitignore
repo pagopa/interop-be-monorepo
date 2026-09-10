@@ -55,6 +55,9 @@ docker/dynamo-db-data
 .turbo
 
 .env.local
+# Generated full-stack seed state and local JWTs
+.local-development/
+.pnpm-store/
 ## Ignore pnpm-lock.yaml files in packages, to prevent committing them
 packages/**/pnpm-lock.yaml
 
