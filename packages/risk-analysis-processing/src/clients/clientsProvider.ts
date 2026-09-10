@@ -3,6 +3,7 @@ import {
   eserviceTemplateApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
+
 import { config } from "../configs/config.js";
 
 type PagoPAInteropBeClients = {

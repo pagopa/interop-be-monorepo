@@ -7,6 +7,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
+
 import { ProducerJWKKeyWriterService } from "./producerJWKKeyWriterService.js";
 
 export async function handleMessageV2(

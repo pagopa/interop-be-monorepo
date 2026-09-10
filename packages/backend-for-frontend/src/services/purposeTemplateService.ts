@@ -20,13 +20,12 @@ import {
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { TenantProcessClient } from "../clients/clientsProvider.js";
-import { BffAppContext } from "../utilities/context.js";
-import { config } from "../config/config.js";
+
+import { toCompactDescriptor } from "../api/catalogApiConverter.js";
+import { toBffCompactEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
 import {
   toBffCatalogPurposeTemplate,
   toBffCreatorPurposeTemplate,
-  toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor,
   toBffPurposeTemplate,
   toBffPurposeTemplateWithCompactCreator,
   toBffLinkableEService,
@@ -34,6 +33,8 @@ import {
   toCompactPurposeTemplateEService,
   toCompactPurposeTemplateEServiceTemplate,
 } from "../api/purposeTemplateApiConverter.js";
+import { TenantProcessClient } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   eserviceDescriptorNotFound,
   eServiceNotFound,
@@ -41,8 +42,7 @@ import {
   eserviceTemplateVersionNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { toCompactDescriptor } from "../api/catalogApiConverter.js";
-import { toBffCompactEServiceTemplateVersion } from "../api/eserviceTemplateApiConverter.js";
+import { BffAppContext } from "../utilities/context.js";
 
 const FETCH_ALL_PAGE = 50;
 
@@ -273,50 +273,6 @@ export function purposeTemplateServiceBuilder(
 
       return { id: result.id };
     },
-    async linkEServiceToPurposeTemplate(
-      purposeTemplateId: PurposeTemplateId,
-      eserviceId: string,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<bffApi.EServiceDescriptorPurposeTemplate> {
-      logger.info(
-        `Linking e-service ${eserviceId} to purpose template ${purposeTemplateId}`
-      );
-
-      const result = await purposeTemplateClient.linkEServicesToPurposeTemplate(
-        {
-          eserviceIds: [eserviceId],
-        },
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-
-      return result[0];
-    },
-    async unlinkEServicesFromPurposeTemplate(
-      purposeTemplateId: PurposeTemplateId,
-      eserviceId: string,
-      { logger, headers }: WithLogger<BffAppContext>
-    ): Promise<void> {
-      logger.info(
-        `Unlinking e-service ${eserviceId} from purpose template ${purposeTemplateId}`
-      );
-
-      await purposeTemplateClient.unlinkEServicesFromPurposeTemplate(
-        {
-          eserviceIds: [eserviceId],
-        },
-        {
-          params: {
-            id: purposeTemplateId,
-          },
-          headers,
-        }
-      );
-    },
     async linkResourceToPurposeTemplate(
       purposeTemplateId: PurposeTemplateId,
       body: bffApi.LinkableResourceRequest,
@@ -506,85 +462,6 @@ export function purposeTemplateServiceBuilder(
           offset,
           limit,
           totalCount: catalogPurposeTemplatesResponse.totalCount,
-        },
-      };
-    },
-    async getPurposeTemplateEServiceDescriptors({
-      purposeTemplateId,
-      producerIds,
-      eserviceName,
-      offset,
-      limit,
-      ctx,
-    }: {
-      purposeTemplateId: string;
-      producerIds: string[];
-      eserviceName?: string;
-      offset: number;
-      limit: number;
-      ctx: WithLogger<BffAppContext>;
-    }): Promise<bffApi.EServiceDescriptorsPurposeTemplate> {
-      const { headers, logger } = ctx;
-
-      logger.info(
-        `Retrieving e-service descriptors linked to purpose template ${purposeTemplateId} with eserviceName ${eserviceName}, producerIds ${producerIds.toString()}, offset ${offset}, limit ${limit}`
-      );
-
-      const purposeTemplateEServiceDescriptorsResponse =
-        await purposeTemplateClient.getPurposeTemplateEServices({
-          headers,
-          params: {
-            id: purposeTemplateId,
-          },
-          queries: {
-            producerIds,
-            eserviceName,
-            limit,
-            offset,
-          },
-        });
-
-      const producersById = new Map<string, tenantApi.Tenant>();
-      const results = await Promise.all(
-        purposeTemplateEServiceDescriptorsResponse.results.map(
-          async (eserviceDescriptor) => {
-            const { eserviceId, descriptorId } = eserviceDescriptor;
-
-            const eservice = await catalogProcessClient.getEServiceById({
-              headers,
-              params: { eServiceId: eserviceId },
-            });
-
-            const descriptor = eservice.descriptors.find(
-              (d) => d.id === descriptorId
-            );
-            if (!descriptor) {
-              throw eserviceDescriptorNotFound(eservice.id, descriptorId);
-            }
-
-            const producer =
-              producersById.get(eservice.producerId) ||
-              (await tenantProcessClient.tenant.getTenant({
-                headers,
-                params: { id: eservice.producerId },
-              }));
-            producersById.set(eservice.producerId, producer);
-
-            return toBffEServiceDescriptorPurposeTemplateWithCompactEServiceAndDescriptor(
-              eserviceDescriptor,
-              toCompactPurposeTemplateEService(eservice, producer),
-              toCompactDescriptor(descriptor)
-            );
-          }
-        )
-      );
-
-      return {
-        results,
-        pagination: {
-          offset,
-          limit,
-          totalCount: purposeTemplateEServiceDescriptorsResponse.totalCount,
         },
       };
     },

@@ -1,10 +1,10 @@
-import { describe, expect, it } from "vitest";
 import {
   EServiceId,
   generateId,
   makeProducerKeychainPlatformStatesPK,
   ProducerKeychainId,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
 
 describe("keys test", () => {
   it("makeProducerKeychainPlatformStatesPK", () => {

@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockEService,
@@ -15,17 +14,18 @@ import {
   AgreementId,
   toAgreementV2,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
 import {
   getNotificationRecipients,
   tenantNotFound,
   inAppTemplates,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
+
 import {
   AgreementSuspendedUnsuspendedEventType,
   handleAgreementSuspendedUnsuspended,
 } from "../src/handlers/agreements/handleAgreementSuspendedUnsuspended.js";
-
 import {
   addOneAgreement,
   addOneEService,

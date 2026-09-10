@@ -2,8 +2,8 @@ import {
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
 } from "pagopa-interop-commons";
-import { z } from "zod";
 import { InAppNotificationDBConfig } from "pagopa-interop-commons";
+import { z } from "zod";
 
 const InAppNotificationManagerConfig = CommonHTTPServiceConfig.and(
   ApplicationAuditProducerConfig

@@ -1,4 +1,12 @@
 import {
+  bffApi,
+  catalogApi,
+  purposeApi,
+  purposeTemplateApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
+import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
+import {
   WithLogger,
   FileManager,
   removeDuplicates,
@@ -17,18 +25,19 @@ import {
   RiskAnalysisId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
+import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import {
-  bffApi,
-  catalogApi,
-  purposeApi,
-  purposeTemplateApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
+  toBffApiPurposeVersion,
+  toBffApiRiskAnalysisForm,
+} from "../api/purposeApiConverter.js";
+import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 import {
   DelegationProcessClient,
   PagoPAInteropBeClients,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   agreementNotFound,
   eserviceDescriptorNotFound,
@@ -36,17 +45,9 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { BffAppContext, Headers } from "../utilities/context.js";
-import { config } from "../config/config.js";
-import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
-import {
-  toBffApiPurposeVersion,
-  toBffApiRiskAnalysisForm,
-} from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
-import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";

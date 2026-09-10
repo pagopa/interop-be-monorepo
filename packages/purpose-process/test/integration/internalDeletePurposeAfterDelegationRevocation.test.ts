@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it } from "vitest";
+import {
+  getMockPurpose,
+  decodeProtobufPayload,
+  getMockPurposeVersion,
+  getMockDelegation,
+  getMockContextInternal,
+} from "pagopa-interop-commons-test";
 import {
   DelegationId,
   Purpose,
@@ -13,13 +19,8 @@ import {
   purposeVersionState,
   toPurposeV2,
 } from "pagopa-interop-models";
-import {
-  getMockPurpose,
-  decodeProtobufPayload,
-  getMockPurposeVersion,
-  getMockDelegation,
-  getMockContextInternal,
-} from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+
 import {
   purposeNotFound,
   purposeCannotBeDeleted,

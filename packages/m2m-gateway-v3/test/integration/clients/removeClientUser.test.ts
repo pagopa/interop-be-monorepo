@@ -1,13 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  getMockedApiConsumerFullClient,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  getMockedApiConsumerFullClient,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -15,9 +19,6 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("removeClientUser", () => {

@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from "vitest";
 import {
   getMockAttribute,
   getMockCertifiedTenantAttribute,
@@ -15,7 +14,13 @@ import {
   genericError,
   TenantId,
 } from "pagopa-interop-models";
+import { describe, it, expect, vi } from "vitest";
 
+import { PublicEService, PublicTenant } from "../src/models/models.js";
+import {
+  convertEservicesToCSV,
+  convertTenantsToCSV,
+} from "../src/services/dtdCatalogExporterService.js";
 import {
   addOneEService,
   addOneTenant,
@@ -23,11 +28,6 @@ import {
   dtdCatalogExporterService,
   getExportedDtdPublicCatalogFromJson,
 } from "./utils.js";
-import { PublicEService, PublicTenant } from "../src/models/models.js";
-import {
-  convertEservicesToCSV,
-  convertTenantsToCSV,
-} from "../src/services/dtdCatalogExporterService.js";
 
 const sortDeclaredAttributesGroups = (
   eservice: PublicEService

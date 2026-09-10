@@ -1,17 +1,17 @@
 import {
-  TenantAttributeV2,
-  TenantEventEnvelopeV2,
-  TenantFeatureV2,
-  TenantV2,
-} from "pagopa-interop-models";
-import {
   TenantEvent as OutboundTenantEvent,
   TenantV2 as OutboundTenantV2,
   TenantFeatureV2 as OutboundTenantFeatureV2,
   TenantAttributeV2 as OutboundTenantAttributeV2,
 } from "@pagopa/interop-outbound-models";
-import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+import {
+  TenantAttributeV2,
+  TenantEventEnvelopeV2,
+  TenantFeatureV2,
+  TenantV2,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toOutboundTenantFeaturesV1(
   feature: TenantFeatureV2

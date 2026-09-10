@@ -1,7 +1,7 @@
 import { lt, or } from "drizzle-orm";
 import { Logger } from "pagopa-interop-commons";
-import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-models";
 import { DrizzleReturnType } from "pagopa-interop-readmodel-models";
+import { scheduledNotification } from "pagopa-interop-scheduled-notification-db-models";
 
 export const deleteOldNotifications = async (
   db: DrizzleReturnType,

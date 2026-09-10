@@ -1,6 +1,5 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
-import { describe, expect, it } from "vitest";
 import {
   fileManagerCopyError,
   fileManagerDeleteError,
@@ -10,6 +9,8 @@ import {
   genericLogger,
   streamToString,
 } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import { fileManager, s3Bucket } from "./utils.js";
 
 describe("FileManager tests", async () => {

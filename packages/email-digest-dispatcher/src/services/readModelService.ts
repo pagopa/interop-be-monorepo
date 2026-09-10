@@ -54,6 +54,7 @@ import {
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
 } from "pagopa-interop-readmodel-models";
+
 import { config } from "../config/config.js";
 
 const SECTION_LIST_LIMIT = 5;

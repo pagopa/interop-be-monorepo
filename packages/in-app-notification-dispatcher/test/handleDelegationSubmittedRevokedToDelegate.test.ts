@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, Mock } from "vitest";
 import {
   getMockContext,
   getMockTenant,
@@ -18,6 +17,7 @@ import {
   tenantNotFound,
   getNotificationRecipients,
 } from "pagopa-interop-notification-commons";
+import { describe, it, expect, beforeEach, Mock } from "vitest";
 
 import { handleDelegationSubmittedRevokedToDelegate } from "../src/handlers/delegations/handleDelegationSubmittedRevokedToDelegate.js";
 import {

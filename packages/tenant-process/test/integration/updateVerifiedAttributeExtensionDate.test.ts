@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
 import {
+  getMockContextInternal,
+  getMockTenant,
+} from "pagopa-interop-commons-test";
+import {
   generateId,
   protobufDecoder,
   Tenant,
@@ -9,10 +13,7 @@ import {
   toTenantV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import {
-  getMockContextInternal,
-  getMockTenant,
-} from "pagopa-interop-commons-test";
+
 import {
   tenantNotFound,
   expirationDateNotFoundInVerifier,

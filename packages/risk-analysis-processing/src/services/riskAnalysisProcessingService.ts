@@ -1,10 +1,12 @@
-import { CorrelationId, EServiceTemplateId } from "pagopa-interop-models";
 import type {
   catalogApi,
   eserviceTemplateApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
+
 import { RefreshableInteropToken } from "pagopa-interop-commons";
+import { CorrelationId, EServiceTemplateId } from "pagopa-interop-models";
+
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

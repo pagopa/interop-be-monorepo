@@ -1,3 +1,8 @@
+import { delegationApi } from "pagopa-interop-api-clients";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -6,14 +11,10 @@ import {
   loggerMiddleware,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { delegationApi } from "pagopa-interop-api-clients";
-import delegationRouter from "./routers/DelegationRouter.js";
+
 import { config } from "./config/config.js";
+import delegationRouter from "./routers/DelegationRouter.js";
 import { DelegationService } from "./services/delegationService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

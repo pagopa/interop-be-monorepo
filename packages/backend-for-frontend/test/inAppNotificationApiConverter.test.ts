@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect } from "vitest";
 import { inAppNotificationApi, bffApi } from "pagopa-interop-api-clients";
+import { describe, it, expect } from "vitest";
+
 import {
   toBffApiNotificationsCountBySection,
   toBffApiNotification,

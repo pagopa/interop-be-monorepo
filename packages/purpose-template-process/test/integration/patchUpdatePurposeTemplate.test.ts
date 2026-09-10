@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockContextM2MAdmin,
@@ -16,12 +17,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import {
-  addOnePurposeTemplate,
-  purposeTemplateService,
-  readLastPurposeTemplateEvent,
-} from "../integrationUtils.js";
+
 import {
   invalidFreeOfChargeReason,
   missingFreeOfChargeReason,
@@ -29,6 +25,11 @@ import {
   purposeTemplateNotFound,
   purposeTemplateNotInExpectedStates,
 } from "../../src/model/domain/errors.js";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+  readLastPurposeTemplateEvent,
+} from "../integrationUtils.js";
 
 describe("patch update purpose template", () => {
   const mockPurposeTemplate: PurposeTemplate = {

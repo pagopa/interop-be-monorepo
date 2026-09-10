@@ -10,9 +10,10 @@ import {
   purposeVersionState,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import { generateM2MEventId } from "../../utils/uuidv7.js";
+
 import { Delegations } from "../../models/delegations.js";
 import { purposeVersionNotFoundInPurpose } from "../../models/errors.js";
+import { generateM2MEventId } from "../../utils/uuidv7.js";
 
 export function createPurposeM2MEvent(
   purpose: Purpose,

@@ -1,9 +1,10 @@
+import { AuthData } from "pagopa-interop-commons";
 import {
   getMockAuthData,
   getMockClient,
   getMockContext,
   getMockKey,
-} from "pagopa-interop-commons-test/src/testUtils.js";
+} from "pagopa-interop-commons-test";
 import {
   Client,
   Key,
@@ -12,7 +13,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { AuthData } from "pagopa-interop-commons";
+
 import {
   clientNotFound,
   tenantNotAllowedOnClient,

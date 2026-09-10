@@ -1,16 +1,17 @@
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockDocument,
   getMockEServiceTemplate,
   getMockEServiceTemplateVersion,
 } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
-import { genericLogger } from "pagopa-interop-commons";
 import {
   EServiceTemplate,
   EServiceTemplateVersion,
   WithMetadata,
 } from "pagopa-interop-models";
 import { upsertEServiceTemplate } from "pagopa-interop-readmodel/testUtils";
+import { describe, expect, it } from "vitest";
+
 import { compare } from "../src/utils.js";
 import {
   addOneEServiceTemplate,

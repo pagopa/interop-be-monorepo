@@ -15,10 +15,12 @@ import {
   UserId,
   fromPurposeV2,
   generateId,
+  hyperlinkDetectionError,
   riskAnalysisReviewMode,
   riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
 import {
   purposeNotFound,
   rejectNotAllowedInCurrentMode,
@@ -230,5 +232,32 @@ describe("rejectRiskAnalysis", () => {
         })
       )
     ).rejects.toThrowError(requesterIsNotDesignatedReviewer(mockPurpose.id));
+  });
+
+  it("should throw hyperlinkDetectionError when the rejectionReason contains a hyperlink", async () => {
+    const reviewerId: UserId = generateId();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      reviewerWorkflow: {
+        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        reviewerIds: [reviewerId],
+        signingState: riskAnalysisSigningState.submitted,
+        sentToReviewerAt: new Date(),
+      },
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    const rejectionReason = "see https://evil.example.com";
+
+    await expect(
+      purposeService.rejectRiskAnalysis(
+        mockPurpose.id,
+        { rejectionReason },
+        getMockContext({
+          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+        })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(rejectionReason));
   });
 });

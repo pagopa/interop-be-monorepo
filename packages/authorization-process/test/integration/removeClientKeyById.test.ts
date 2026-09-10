@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it } from "vitest";
+import { userRole } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockClient,
@@ -7,6 +7,7 @@ import {
   getMockKey,
   getMockTenant,
 } from "pagopa-interop-commons-test";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   Client,
   ClientKeyDeletedV2,
@@ -15,8 +16,8 @@ import {
   generateId,
   toClientV2,
 } from "pagopa-interop-models";
-import { userRole } from "pagopa-interop-commons";
-import { getMockAuthData } from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+
 import {
   clientNotFound,
   clientKeyNotFound,

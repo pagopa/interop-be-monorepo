@@ -1,4 +1,10 @@
-import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  decodeProtobufPayload,
+  getMockAuthData,
+  getMockContext,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
 import {
   ProducerKeychain,
   ProducerKeychainAddedV2,
@@ -8,15 +14,10 @@ import {
   toProducerKeychainV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  decodeProtobufPayload,
-  getMockAuthData,
-  getMockContext,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import { authorizationService, postgresDB } from "../integrationUtils.js";
+import { describe, it, vi, beforeAll, afterAll, expect } from "vitest";
+
 import { duplicatedMembersInSeed } from "../../src/model/domain/errors.js";
+import { authorizationService, postgresDB } from "../integrationUtils.js";
 
 describe("createProducerKeychain", () => {
   const organizationId: TenantId = generateId();

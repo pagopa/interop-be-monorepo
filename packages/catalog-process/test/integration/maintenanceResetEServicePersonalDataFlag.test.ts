@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import {
+  getMockContextMaintenance,
+  getMockDescriptorPublished,
+  getMockEService,
+  readLastEventByStreamId,
+} from "pagopa-interop-commons-test";
+import {
   MaintenanceEServicePersonalDataFlagResetV2,
   EService,
   protobufDecoder,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { describe, it, expect, beforeAll, vi, afterAll } from "vitest";
-import {
-  getMockContextMaintenance,
-  getMockDescriptorPublished,
-  getMockEService,
-  readLastEventByStreamId,
-} from "pagopa-interop-commons-test";
+
 import {
   eserviceInDraftState,
   eServiceNotFound,

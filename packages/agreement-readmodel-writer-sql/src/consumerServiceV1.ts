@@ -1,4 +1,3 @@
-import { match } from "ts-pattern";
 import {
   AgreementEventEnvelopeV1,
   fromAgreementV1,
@@ -6,6 +5,8 @@ import {
   fromAgreementDocumentV1,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { AgreementWriterService } from "./agreementWriterService.js";
 
 export async function handleMessageV1(

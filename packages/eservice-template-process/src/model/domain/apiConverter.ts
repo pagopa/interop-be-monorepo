@@ -1,3 +1,4 @@
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   AgreementApprovalPolicy,
   Technology,
@@ -13,7 +14,6 @@ import {
   CompactOrganization,
   genericInternalError,
 } from "pagopa-interop-models";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { match } from "ts-pattern";
 
 export function technologyToApiTechnology(

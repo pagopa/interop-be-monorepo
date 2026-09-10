@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { parse } from "csv";
 import {
   Logger,
@@ -6,15 +7,15 @@ import {
   waitForReadModelMetadataVersion,
 } from "pagopa-interop-commons";
 import { CorrelationId, Tenant, WithMetadata } from "pagopa-interop-models";
+import { Readable } from "stream";
+
+import { ISTAT_ATTRIBUTE_SEED, SUMMARY_AGE_CODE } from "../config/constants.js";
 import { InteropContext } from "../model/interopContextModel.js";
 import { JobStats } from "../model/istatModel.js";
-import { TenantProcessService } from "./tenantProcessService.js";
-import { IstatClient } from "./istatClient.js";
 import { AttributeProcessService } from "./attributeProcessService.js";
-import { ISTAT_ATTRIBUTE_SEED, SUMMARY_AGE_CODE } from "../config/constants.js";
+import { IstatClient } from "./istatClient.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
-import { Readable } from "stream";
-import { isAxiosError } from "axios";
+import { TenantProcessService } from "./tenantProcessService.js";
 
 type PollingConfig = {
   defaultPollingMaxRetries: number;

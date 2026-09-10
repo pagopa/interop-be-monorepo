@@ -1,5 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/no-identical-functions */
+import { authRole } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockDescriptorPublished,
@@ -8,7 +9,6 @@ import {
   getMockTenant,
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
 import {
   CorrelationId,
   EService,
@@ -24,12 +24,13 @@ import {
   toPurposeV2,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { match } from "ts-pattern";
 import {
   eserviceNotFound,
   tenantNotFound,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleNewPurposeVersionWaitingForApprovalToProducer } from "../src/handlers/purposes/handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import {
   addOneEService,

@@ -10,6 +10,7 @@ import {
   primaryKey,
   index,
 } from "drizzle-orm/pg-core";
+
 import {
   readmodelAgreement,
   readmodelAttribute,
@@ -493,6 +494,7 @@ export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
         withTimezone: true,
         mode: "string",
       }).notNull(),
+      gracePeriodDays: integer("grace_period_days").notNull(),
     },
     (table) => [
       foreignKey({
@@ -516,6 +518,53 @@ export const eserviceDescriptorArchivingScheduleInReadmodelCatalog =
       primaryKey({
         columns: [table.eserviceId, table.descriptorId],
         name: "eservice_descriptor_archiving_schedule_pkey",
+      }),
+    ]
+  );
+
+export const eserviceDescriptorArchivingRequestInReadmodelCatalog =
+  readmodelCatalog.table(
+    "eservice_descriptor_archiving_request",
+    {
+      id: uuid().primaryKey().notNull(),
+      eserviceId: uuid("eservice_id").notNull(),
+      metadataVersion: integer("metadata_version").notNull(),
+      descriptorId: uuid("descriptor_id"), // if we archive the e-service, this will be null
+      gracePeriodDays: integer("grace_period_days").notNull(),
+      requesterId: uuid("requester_id").notNull(),
+      requestedAt: timestamp("requested_at", {
+        withTimezone: true,
+        mode: "string",
+      }).notNull(),
+      acceptedAt: timestamp("accepted_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
+      rejectedAt: timestamp("rejected_at", {
+        withTimezone: true,
+        mode: "string",
+      }),
+      rejectionReason: varchar("rejection_reason"),
+      archivingReason: varchar("archiving_reason"),
+    },
+    (table) => [
+      foreignKey({
+        columns: [table.eserviceId],
+        foreignColumns: [eserviceInReadmodelCatalog.id],
+        name: "eservice_descriptor_archiving_request_eservice_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.descriptorId],
+        foreignColumns: [eserviceDescriptorInReadmodelCatalog.id],
+        name: "eservice_descriptor_archiving_request_descriptor_id_fkey",
+      }).onDelete("cascade"),
+      foreignKey({
+        columns: [table.eserviceId, table.metadataVersion],
+        foreignColumns: [
+          eserviceInReadmodelCatalog.id,
+          eserviceInReadmodelCatalog.metadataVersion,
+        ],
+        name: "eservice_descriptor_archiving_eservice_id_metadata_version_fkey1",
       }),
     ]
   );

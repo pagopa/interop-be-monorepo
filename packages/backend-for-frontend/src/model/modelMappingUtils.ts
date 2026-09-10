@@ -5,6 +5,7 @@ import {
   NotificationType,
 } from "pagopa-interop-models";
 import { z } from "zod";
+
 import {
   fromApiTenantMail,
   toBffTenantMail,
@@ -49,6 +50,42 @@ export function getValidDescriptor(
   return eservice.descriptors.filter(
     (d) => !invalidDescriptorState.includes(d.state)
   );
+}
+
+export function getLastArchivingRequest(
+  eservice: catalogApi.EService,
+  descriptors: catalogApi.EServiceDescriptor[]
+): bffApi.DelegatedArchivingRequest | undefined {
+  const descriptorRequests: bffApi.DelegatedArchivingRequest[] = descriptors
+    .map((d) =>
+      d.delegatedArchivingRequest
+        ? d.delegatedArchivingRequest.map((req) => ({
+            ...req,
+            descriptorId: d.id,
+          }))
+        : []
+    )
+    .flat();
+
+  const archivingRequests = descriptorRequests.concat(
+    (eservice.delegatedArchivingRequest ?? []).map((req) => ({
+      ...req,
+      descriptorId: undefined,
+    }))
+  );
+
+  const lastRequest = archivingRequests
+    ?.sort(
+      (a, b) =>
+        new Date(a.requestedAt).getTime() - new Date(b.requestedAt).getTime()
+    )
+    .at(-1);
+
+  if (!lastRequest || lastRequest.acceptedAt) {
+    return undefined;
+  }
+
+  return lastRequest;
 }
 
 export function getLatestTenantContactEmail(
@@ -109,6 +146,8 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
     purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
+    eserviceArchivingRequestedToDelegator: "/erogazione/e-service",
+    eserviceArchivingApprovedRejectedToDelegate: "/erogazione/e-service",
   } as const;
 
 export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
@@ -147,6 +186,8 @@ export const notificationTypeToCategory: Record<NotificationType, Category> = {
   producerKeychainKeyAddedDeletedToClientUsers: "AttributesAndKeys",
   purposeQuotaAdjustmentRequestToProducer: "Providers",
   purposeOverQuotaStateToConsumer: "Subscribers",
+  eserviceArchivingRequestedToDelegator: "Delegations",
+  eserviceArchivingApprovedRejectedToDelegate: "Delegations",
 };
 
 export const categoryToNotificationTypes: Record<Category, NotificationType[]> =

@@ -1,11 +1,12 @@
-import { describe, test, expect } from "vitest";
+import { logger } from "pagopa-interop-commons";
 import {
   TenantId,
   CorrelationId,
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { logger } from "pagopa-interop-commons";
+import { describe, test, expect } from "vitest";
+
 import { digestDataServiceBuilder } from "../src/services/digestDataService.js";
 import {
   readModelService,

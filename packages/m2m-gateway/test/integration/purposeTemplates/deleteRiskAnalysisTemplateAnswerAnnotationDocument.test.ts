@@ -1,14 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  getMockedApiPurposeTemplate,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   generateId,
   pollingMaxRetriesExceeded,
   RiskAnalysisTemplateAnswerAnnotationDocumentId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import {
-  getMockedApiPurposeTemplate,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -16,10 +20,7 @@ import {
   mockPollingResponse,
   purposeTemplateService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 
 describe("deleteRiskAnalysisTemplateAnswerAnnotationDocument", () => {
   const mockApiPurposeTemplate = getMockWithMetadata(

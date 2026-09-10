@@ -19,6 +19,7 @@ import {
   PurposeTemplateV2,
   PurposeTemplateEventEnvelopeV2,
 } from "pagopa-interop-models";
+
 import { purposeEServiceNotFound } from "../models/errors.js";
 
 export function assertEServiceExistsInEvent(

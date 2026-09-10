@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   agreementInReadmodelAgreement,
   attributeInReadmodelAttribute,
@@ -16,22 +15,23 @@ import {
   purposeTemplateInReadmodelPurposeTemplate,
   purposeTemplateEserviceDescriptorInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
+import { z } from "zod";
 
-import { AttributeDeletingSchema } from "../attribute/attribute.js";
-import { EserviceDeletingSchema } from "../catalog/eservice.js";
-import { EserviceTemplateDeletingSchema } from "../eserviceTemplate/eserviceTemplate.js";
-import { TenantDeletingSchema } from "../tenant/tenant.js";
-import { TenantMailDeletingSchema } from "../tenant/tenantMail.js";
 import { AgreementDeletingSchema } from "../agreement/agreement.js";
+import { AttributeDeletingSchema } from "../attribute/attribute.js";
 import { ClientDeletingSchema } from "../authorization/client.js";
-import { ClientUserDeletingSchema } from "../authorization/clientUser.js";
-import { ClientPurposeDeletingSchema } from "../authorization/clientPurpose.js";
 import { ClientKeyDeletingSchema } from "../authorization/clientKey.js";
-import { PurposeDeletingSchema } from "../purpose/purpose.js";
-import { EserviceDescriptorDocumentOrInterfaceDeletingSchema } from "../catalog/eserviceDescriptorInterface.js";
+import { ClientPurposeDeletingSchema } from "../authorization/clientPurpose.js";
+import { ClientUserDeletingSchema } from "../authorization/clientUser.js";
 import { ProducerKeychainDeletingSchema } from "../authorization/producerKeychain.js";
+import { EserviceDeletingSchema } from "../catalog/eservice.js";
+import { EserviceDescriptorDocumentOrInterfaceDeletingSchema } from "../catalog/eserviceDescriptorInterface.js";
+import { EserviceTemplateDeletingSchema } from "../eserviceTemplate/eserviceTemplate.js";
+import { PurposeDeletingSchema } from "../purpose/purpose.js";
 import { PurposeTemplateDeletingSchema } from "../purposeTemplate/purposeTemplate.js";
 import { PurposeTemplateEServiceDescriptorDeletingSchema } from "../purposeTemplate/purposeTemplateEserviceDescriptor.js";
+import { TenantDeletingSchema } from "../tenant/tenant.js";
+import { TenantMailDeletingSchema } from "../tenant/tenantMail.js";
 
 export const DeletingDbTableConfig = {
   attribute_deleting_table: AttributeDeletingSchema,

@@ -13,11 +13,12 @@ import {
   UserNotificationConfig,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
+
+import { userNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 import {
   addOneUserNotificationConfig,
   notificationConfigService,
 } from "../integrationUtils.js";
-import { userNotificationConfigNotFound } from "../../src/model/domain/errors.js";
 
 describe("getUserNotificationConfig", () => {
   const tenantId: TenantId = generateId();

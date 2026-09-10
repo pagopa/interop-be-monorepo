@@ -10,12 +10,13 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceDescriptorPurposeTemplateNotFound,
   purposeTemplateNotFound,
 } from "../../src/model/domain/errors.js";
 import { api, purposeTemplateService } from "../vitest.api.setup.js";
-import { eserviceDescriptorPurposeTemplateToApiEServiceDescriptorPurposeTemplate } from "../../src/model/domain/apiConverter.js";
 
 describe("API GET /purposeTemplates/:id/eservices/:eserviceId", () => {
   const purposeTemplateId = generateId<PurposeTemplateId>();

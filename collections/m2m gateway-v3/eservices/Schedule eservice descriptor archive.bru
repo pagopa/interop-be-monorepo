@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{host-m2m-gw}}/eservices/:eserviceId/descriptors/:descriptorId/scheduleArchive
-  body: none
+  body: json
   auth: none
 }
 
@@ -17,4 +17,10 @@ params:path {
 
 headers {
   Authorization: {{JWT-M2M-ADMIN}}
+}
+
+body:json {
+  {
+    "gracePeriodDays": 60
+  }
 }

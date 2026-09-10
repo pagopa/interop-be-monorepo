@@ -1,13 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  cannotDeleteLastEServiceDescriptor,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -15,13 +22,7 @@ import {
   eserviceService,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
-import {
-  cannotDeleteLastEServiceDescriptor,
-  missingMetadata,
-} from "../../../src/model/errors.js";
 
 describe("deleteDraftEServiceDescriptor", () => {
   const mockApiEserviceDescriptor1 = getMockedApiEserviceDescriptor();

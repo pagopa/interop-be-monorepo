@@ -9,9 +9,10 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
-import { fromM2MGatewayAppContext } from "../utils/context.js";
 import { EventService } from "../services/eventService.js";
+import { fromM2MGatewayAppContext } from "../utils/context.js";
 
 const { M2M_ROLE, M2M_ADMIN_ROLE } = authRole;
 

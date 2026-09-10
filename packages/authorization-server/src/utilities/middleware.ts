@@ -1,11 +1,12 @@
-import { constants } from "http2";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { constants } from "http2";
 import {
   ExpressContext,
   fromAppContext,
   isFeatureFlagEnabled,
 } from "pagopa-interop-commons";
 import { featureFlagNotEnabled } from "pagopa-interop-models";
+
 import { config } from "../config/config.js";
 import { makeApiProblem } from "../model/domain/errors.js";
 

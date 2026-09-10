@@ -24,6 +24,7 @@ import {
   targetTenantKind,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
+
 import {
   addOneEService,
   addOneEServiceTemplate,

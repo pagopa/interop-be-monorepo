@@ -4,7 +4,7 @@ import {
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { dateToSeconds } from "pagopa-interop-commons";
 import {
   ClientId,
   DescriptorId,
@@ -17,7 +17,8 @@ import {
   PurposeId,
   TenantId,
 } from "pagopa-interop-models";
-import { dateToSeconds } from "pagopa-interop-commons";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import {
   createInteraction,
   readInteraction,

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { constants } from "http2";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { constants } from "http2";
 import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
@@ -17,6 +17,7 @@ import {
   unsafeBrandId,
   emptyErrorMapper,
 } from "pagopa-interop-models";
+
 import {
   toBffCatalogApiDescriptorDoc,
   toEserviceCatalogProcessQueryParams,
@@ -67,6 +68,7 @@ const catalogRouter = (
           req.query.consumersIds,
           req.query.delegated,
           req.query.personalData,
+          req.query.states,
           req.query.offset,
           req.query.limit,
           ctx
@@ -357,6 +359,7 @@ const catalogRouter = (
           await catalogService.scheduleArchiveEserviceDescriptor(
             unsafeBrandId(req.params.eServiceId),
             unsafeBrandId(req.params.descriptorId),
+            req.body,
             ctx
           );
           return res.status(204).send();
@@ -411,6 +414,182 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/eservices/:eServiceId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.approveDelegatedEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error approving delegated archiving request for eService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/rejectDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.rejectDelegatedEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error rejecting delegated archiving request for eService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.submitDelegatedEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error requesting archival for EService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eServiceId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.cancelDelegatedEServiceArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error canceling delegated archiving request for eService ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.submitDelegatedDescriptorArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error requesting archival for descriptor ${req.params.descriptorId} for eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eServiceId/descriptors/:descriptorId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.cancelDelegatedDescriptorArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error canceling delegated archiving request for descriptor ${req.params.descriptorId} of eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.approveDelegatedDescriptorArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error approving delegated archiving request for descriptor ${req.params.descriptorId} of eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eServiceId/descriptors/:descriptorId/rejectDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromBffAppContext(req.ctx, req.headers);
+        try {
+          await catalogService.rejectDelegatedDescriptorArchiving(
+            unsafeBrandId(req.params.eServiceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.body,
+            ctx
+          );
+          return res.status(204).send();
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error rejecting delegated archiving request for descriptor ${req.params.descriptorId} of eservice ${req.params.eServiceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .post(
       "/eservices/:eServiceId/descriptors/:descriptorId/agreementApprovalPolicy/update",
       async (req, res) => {

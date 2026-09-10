@@ -1,9 +1,10 @@
-import { z } from "zod";
 import {
   ApiError,
   CommonErrorCodes,
   genericError,
 } from "pagopa-interop-models";
+import { z } from "zod";
+
 import { ErrorCodes } from "../models/errors.js";
 
 const CatchableCodes = z.enum(["400", "403", "404", "409"]);

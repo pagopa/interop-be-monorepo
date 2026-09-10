@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/no-let */
 import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { handleDelegationDocument } from "../../src/handlers/handleDelegationDocument.js";
 import { calculateSha256Base64 } from "../../src/utils/checksum.js";
 

@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { FileManager, Logger } from "pagopa-interop-commons";
 import { stringify } from "csv-stringify/sync";
+import { FileManager, Logger } from "pagopa-interop-commons";
+
 import { config } from "../config/config.js";
 import { toPublicEService, toPublicTenant } from "../models/converters.js";
-import {
-  getAllEservicesAttributesIds,
-  getAllTenantsAttributesIds,
-  getAllTenantsIds,
-  sanitizeCsvField,
-} from "../utils/utils.js";
 import {
   PublicTenant,
   FlattenedPublicEService,
   PublicEService,
   FlattenedPublicTenant,
 } from "../models/models.js";
+import {
+  getAllEservicesAttributesIds,
+  getAllTenantsAttributesIds,
+  getAllTenantsIds,
+  sanitizeCsvField,
+} from "../utils/utils.js";
 import { GithubClient } from "./github-client.services.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 

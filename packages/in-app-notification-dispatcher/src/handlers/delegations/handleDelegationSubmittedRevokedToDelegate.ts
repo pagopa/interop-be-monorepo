@@ -1,18 +1,19 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   NewNotification,
   missingKafkaMessageDataError,
   fromDelegationV2,
   DelegationV2,
 } from "pagopa-interop-models";
-import { match } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   inAppTemplates,
   getNotificationRecipients,
   retrieveEservice,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type DelegationSubmittedRevokedToDelegateEventType =
   | "ProducerDelegationSubmitted"

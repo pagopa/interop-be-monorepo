@@ -1,7 +1,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
-import path from "path";
 import AdmZip from "adm-zip";
 import { catalogApi, eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { FileManager, Logger } from "pagopa-interop-commons";
@@ -11,10 +10,13 @@ import {
   generateId,
   genericError,
 } from "pagopa-interop-models";
+import path from "path";
+
+import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../config/constants.js";
 import { missingInterface } from "../model/errors.js";
-import { verifyExportEligibility } from "../services/validators.js";
-import { retrieveEserviceDescriptor } from "../services/catalogService.js";
 import { ConfigurationEservice } from "../model/types.js";
+import { retrieveEserviceDescriptor } from "../services/catalogService.js";
+import { verifyExportEligibility } from "../services/validators.js";
 
 /*
   FileDocumentsRegistry is a map that contains the following information:
@@ -83,6 +85,7 @@ function buildJsonConfig(
     description: eservice.description,
     technology: eservice.technology,
     mode: eservice.mode,
+    asyncExchange: eservice.asyncExchange,
     isSignalHubEnabled: eservice.isSignalHubEnabled,
     isConsumerDelegable: eservice.isConsumerDelegable,
     isClientAccessDelegable: eservice.isClientAccessDelegable,
@@ -91,6 +94,12 @@ function buildJsonConfig(
         prettyName: descriptor.interface.prettyName,
         path: descriptor.interface.name,
       },
+      asyncExchangeCallbackInterface:
+        descriptor.asyncExchangeCallbackInterface && {
+          prettyName: descriptor.asyncExchangeCallbackInterface.prettyName,
+          path: `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/${descriptor.asyncExchangeCallbackInterface.name}`,
+        },
+      asyncExchangeProperties: descriptor.asyncExchangeProperties,
       docs: descriptor.docs.map((doc) => {
         const uniqueName = getUniqueNameByDocumentId(
           fileDocumentRegistry,
@@ -184,6 +193,20 @@ export async function createDescriptorDocumentZipFile(
     `${zipFolderName}/${interfaceDocument.name}`,
     Buffer.from(interfaceFileContent.file)
   );
+
+  const asyncExchangeCallbackInterface =
+    descriptor.asyncExchangeCallbackInterface;
+  if (asyncExchangeCallbackInterface) {
+    const callbackInterfaceFile = await fileManager.get(
+      s3BucketName,
+      asyncExchangeCallbackInterface.path,
+      logger
+    );
+    zip.addFile(
+      `${zipFolderName}/${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/${asyncExchangeCallbackInterface.name}`,
+      Buffer.from(callbackInterfaceFile)
+    );
+  }
 
   // Add descriptor's document files to the zip
   const documentFilesContent: FileData[] = await Promise.all(

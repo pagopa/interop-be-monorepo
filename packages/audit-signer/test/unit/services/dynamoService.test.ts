@@ -1,12 +1,13 @@
 /* eslint-disable functional/no-let */
 import "../setup.js";
-import { describe, it, beforeEach, expect, vi, Mock } from "vitest";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import {
   signatureServiceBuilder,
   SignatureReference,
   genericLogger,
 } from "pagopa-interop-commons";
+import { describe, it, beforeEach, expect, vi, Mock } from "vitest";
+
 import { config } from "../../../src/config/config.js";
 
 describe("signatureServiceBuilder", () => {

@@ -17,6 +17,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, afterAll, beforeAll } from "vitest";
+
 import {
   attributeNotFound,
   tenantNotFoundByExternalId,

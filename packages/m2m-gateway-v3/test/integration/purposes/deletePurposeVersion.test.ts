@@ -1,13 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  pollingMaxRetriesExceeded,
-  unsafeBrandId,
-} from "pagopa-interop-models";
 import {
   getMockedApiPurpose,
   getMockedApiPurposeVersion,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import {
+  pollingMaxRetriesExceeded,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { missingMetadata } from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -15,9 +19,6 @@ import {
   mockPollingResponse,
   purposeService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import { missingMetadata } from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("deletePurposeVersion", () => {

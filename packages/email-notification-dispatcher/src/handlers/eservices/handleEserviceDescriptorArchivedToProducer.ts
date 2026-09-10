@@ -1,3 +1,4 @@
+import { dateAtRomeZone } from "pagopa-interop-commons";
 import {
   DescriptorId,
   EmailNotificationMessagePayload,
@@ -15,9 +16,9 @@ import {
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
-import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
-import { dateAtRomeZone } from "pagopa-interop-commons";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToProducer";
 
@@ -81,7 +82,7 @@ export async function handleEserviceDescriptorArchivedToProducer(
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
         archivingDate,
-        ctaLabel: `Visualizza e-service`,
+        ctaLabel: `Accedi a PDND`,
         selfcareId: t.selfcareId,
         bffUrl: config.bffUrl,
       }),

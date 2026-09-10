@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   Descriptor,
@@ -11,8 +12,6 @@ import {
   Tenant,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   getNotificationRecipients,
   inAppTemplates,
@@ -20,6 +19,8 @@ import {
   retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type ArchivingEventType =

@@ -3,6 +3,7 @@ import {
   NotificationType,
   UserRole,
 } from "pagopa-interop-models";
+
 import { authRole } from "../auth/authorization.js";
 
 const {
@@ -203,6 +204,22 @@ export const notificationAdmittedRoles = {
     [ADMIN_ROLE]: true,
     [API_ROLE]: false,
     [SECURITY_ROLE]: true,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
+  eserviceArchivingRequestedToDelegator: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: true,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
+  eserviceArchivingApprovedRejectedToDelegate: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: true,
+    [SECURITY_ROLE]: false,
     [SUPPORT_ROLE]: false,
     [REVIEWER_ROLE]: false,
     [VIEWER_ROLE]: false,

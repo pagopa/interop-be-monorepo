@@ -1,5 +1,5 @@
-import { constants } from "http2";
 import { Response } from "express";
+import { constants } from "http2";
 import {
   AuthServerAppContext,
   logger,
@@ -14,6 +14,7 @@ import {
   TenantId,
   tooManyRequestsError,
 } from "pagopa-interop-models";
+
 import { ErrorCodes, makeApiProblem } from "../model/domain/errors.js";
 import { asyncAuthorizationServerErrorMapper } from "./asyncErrorMappers.js";
 import { authorizationServerErrorMapper } from "./errorMappers.js";

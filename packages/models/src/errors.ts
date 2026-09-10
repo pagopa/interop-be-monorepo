@@ -1,9 +1,10 @@
 /* eslint-disable max-classes-per-file */
+import { AxiosError, isAxiosError } from "axios";
 import { constants } from "http2";
 import { P, match } from "ts-pattern";
 import { z, ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { AxiosError, isAxiosError } from "axios";
+
 import { CorrelationId } from "./brandedIds.js";
 import { serviceErrorCode, ServiceName } from "./services.js";
 
@@ -15,6 +16,7 @@ const {
   HTTP_STATUS_TOO_MANY_REQUESTS,
   HTTP_STATUS_INTERNAL_SERVER_ERROR,
   HTTP_STATUS_NOT_IMPLEMENTED,
+  HTTP_STATUS_CONFLICT,
 } = constants;
 
 export const emptyErrorMapper = (): number => HTTP_STATUS_INTERNAL_SERVER_ERROR;
@@ -314,9 +316,12 @@ export const commonErrorCodes = {
   contentTooLargeError: "10031",
   invalidPdfSignatureError: "10032",
   invalidFileUploadError: "10033",
+  eventConflictError: "10034",
 } as const;
 
 export type CommonErrorCodes = keyof typeof commonErrorCodes;
+
+export const PG_DUPLICATE_KEY_ERROR = "23505";
 
 export function parseErrorMessage(error: unknown): string {
   if (error instanceof ZodError) {
@@ -414,10 +419,34 @@ export function tokenGenerationError(
 
 export function hyperlinkDetectionError(
   text: string
-): InternalError<CommonErrorCodes> {
-  return new InternalError({
+): ApiError<CommonErrorCodes> {
+  return new ApiError({
     code: "hyperlinkDetectionError",
-    detail: `Hyperlink detection error for text ${text}`,
+    title: "Hyperlink not allowed",
+    detail: `Hyperlink detected in text ${text}`,
+  });
+}
+
+export function eventConflictError(
+  correlationId?: string,
+  streamId?: string,
+  streamVersion?: number
+): ApiError<CommonErrorCodes> {
+  const correlationIdPrefix = correlationId ? `[CID=${correlationId}]` : "";
+  const streamVersionPrefix =
+    streamVersion !== undefined ? `[SV=${streamVersion}]` : "";
+  const streamIdPrefix = streamId ? `[SID=${streamId}]` : "";
+
+  const prefixes = [
+    correlationIdPrefix,
+    streamVersionPrefix,
+    streamIdPrefix,
+  ].join(" ");
+
+  return new ApiError({
+    title: "Conflict",
+    code: "eventConflictError",
+    detail: `${prefixes} Request conflicts with an ongoing operation on the same resource. Please retry.`,
   });
 }
 
@@ -491,6 +520,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
   match(code)
     .with(
       "badRequestError",
+      "hyperlinkDetectionError",
       "invalidPdfSignatureError",
       "invalidFileUploadError",
       "invalidContentTypeDetected",
@@ -505,6 +535,7 @@ const defaultCommonErrorMapper = (code: CommonErrorCodes): number =>
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .with("tooManyRequestsError", () => HTTP_STATUS_TOO_MANY_REQUESTS)
+    .with("eventConflictError", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export function authenticationSaslFailed(

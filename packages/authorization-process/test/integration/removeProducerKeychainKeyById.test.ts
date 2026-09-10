@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it } from "vitest";
+import { userRole } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockProducerKeychain,
@@ -7,6 +7,7 @@ import {
   getMockTenant,
   getMockContext,
 } from "pagopa-interop-commons-test";
+import { getMockAuthData } from "pagopa-interop-commons-test";
 import {
   ProducerKeychainKeyDeletedV2,
   Key,
@@ -15,8 +16,8 @@ import {
   ProducerKeychain,
   toProducerKeychainV2,
 } from "pagopa-interop-models";
-import { userRole } from "pagopa-interop-commons";
-import { getMockAuthData } from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+
 import {
   producerKeychainNotFound,
   producerKeyNotFound,

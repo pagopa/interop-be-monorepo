@@ -5,6 +5,12 @@ import {
 } from "pagopa-interop-api-clients";
 import { RefreshableInteropToken } from "pagopa-interop-commons";
 import {
+  getMockEService,
+  getMockEServiceTemplate,
+  getMockPurpose,
+  getMockValidRiskAnalysis,
+} from "pagopa-interop-commons-test";
+import {
   CorrelationId,
   EServiceTemplate,
   generateId,
@@ -31,12 +37,6 @@ import {
   mockRiskAnalysisWithoutTenantKind,
   readModelService,
 } from "./utils.js";
-import {
-  getMockEService,
-  getMockEServiceTemplate,
-  getMockPurpose,
-  getMockValidRiskAnalysis,
-} from "pagopa-interop-commons-test";
 
 describe("riskAnalysisProcessingService", () => {
   const testCorrelationId: CorrelationId = generateId();

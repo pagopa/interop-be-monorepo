@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
+import { userRole } from "pagopa-interop-commons";
 import {
   getMockPurposeVersion,
   getMockPurpose,
@@ -26,8 +28,7 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
-import { selfcareV2ClientApi } from "pagopa-interop-api-clients";
-import { userRole } from "pagopa-interop-commons";
+
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,

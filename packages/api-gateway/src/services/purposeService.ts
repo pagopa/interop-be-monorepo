@@ -1,30 +1,31 @@
 import {
-  getAllFromPaginated,
-  M2MAuthData,
-  WithLogger,
-} from "pagopa-interop-commons";
-import {
   agreementApi,
   apiGatewayApi,
   catalogApi,
   delegationApi,
   purposeApi,
 } from "pagopa-interop-api-clients";
+import {
+  getAllFromPaginated,
+  M2MAuthData,
+  WithLogger,
+} from "pagopa-interop-commons";
 import { operationForbidden } from "pagopa-interop-models";
-import { ApiGatewayAppContext } from "../utilities/context.js";
+
 import {
   toApiGatewayPurpose,
   toPurposeProcessGetPurposesQueryParams,
 } from "../api/purposeApiConverter.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import { purposeNotFound } from "../models/errors.js";
+import { ApiGatewayAppContext } from "../utilities/context.js";
+import { getAllAgreements } from "./agreementService.js";
 import {
   assertIsEserviceProducer,
   assertIsEserviceDelegateProducer,
   assertOnlyOneActiveProducerDelegationForEserviceExists,
   assertOnlyOneAgreementForEserviceAndConsumerExists,
 } from "./validators.js";
-import { getAllAgreements } from "./agreementService.js";
 
 export async function getAllPurposes(
   purposeProcessClient: purposeApi.PurposeProcessClient,

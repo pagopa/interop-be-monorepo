@@ -1,12 +1,13 @@
-import request from "supertest";
 import { bffApi } from "pagopa-interop-api-clients";
-import { describe, beforeEach, vi, it, expect } from "vitest";
-import { featureFlagNotEnabled, generateId } from "pagopa-interop-models";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
+import { featureFlagNotEnabled, generateId } from "pagopa-interop-models";
+import request from "supertest";
+import { describe, beforeEach, vi, it, expect } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
-import { services, api } from "../../vitest.api.setup.js";
 import { tenantNotAllowed } from "../../../src/model/errors.js";
+import { services, api } from "../../vitest.api.setup.js";
 
 describe("API POST /tools/validateTokenGeneration", () => {
   const mockRequest: bffApi.AccessTokenRequest = {

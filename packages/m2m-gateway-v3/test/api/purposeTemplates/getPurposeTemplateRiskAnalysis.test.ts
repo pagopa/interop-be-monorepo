@@ -1,16 +1,17 @@
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiPurposeTemplate,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { unsafeBrandId } from "pagopa-interop-models";
-import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiRiskAnalysisFormTemplate } from "../../../src/api/riskAnalysisFormTemplateApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import { purposeTemplateRiskAnalysisFormNotFound } from "../../../src/model/errors.js";
+import { api, mockPurposeTemplateService } from "../../vitest.api.setup.js";
 
 describe("GET /purposeTemplates/:purposeTemplateId/risAnalysis router test", () => {
   const authorizedRoles: AuthRole[] = [

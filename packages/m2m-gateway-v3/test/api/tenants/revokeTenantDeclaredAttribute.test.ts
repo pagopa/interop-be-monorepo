@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiDeclaredTenantAttribute,
@@ -12,16 +12,17 @@ import {
   generateId,
   pollingMaxRetriesExceeded,
 } from "pagopa-interop-models";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, mockTenantService } from "../../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiTenantDeclaredAttribute } from "../../../src/api/tenantApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   missingMetadata,
   tenantDeclaredAttributeNotFound,
 } from "../../../src/model/errors.js";
-import { toM2MGatewayApiTenantDeclaredAttribute } from "../../../src/api/tenantApiConverter.js";
-import { config } from "../../../src/config/config.js";
+import { api, mockTenantService } from "../../vitest.api.setup.js";
 
 describe("DELETE /tenants/:tenantId/declaredAttributes/:attributeId router test", () => {
   const mockApiResponse = getMockedApiDeclaredTenantAttribute();

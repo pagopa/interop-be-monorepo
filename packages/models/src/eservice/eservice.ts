@@ -1,4 +1,5 @@
 import z from "zod";
+
 import {
   AttributeId,
   DescriptorId,
@@ -157,10 +158,21 @@ export const ArchivingScope = z.enum([
 ]);
 export type ArchivingScope = z.infer<typeof ArchivingScope>;
 
+export const gracePeriodDays = [30, 60, 90, 120] as const;
+export const GracePeriodDays = z.union([
+  z.literal(gracePeriodDays[0]),
+  z.literal(gracePeriodDays[1]),
+  z.literal(gracePeriodDays[2]),
+  z.literal(gracePeriodDays[3]),
+]);
+
+export type GracePeriodDays = z.infer<typeof GracePeriodDays>;
+
 export const ArchivingSchedule = z.object({
   archivableOn: z.coerce.date(),
   startedAt: z.coerce.date(),
   scope: ArchivingScope,
+  gracePeriodDays: GracePeriodDays,
 });
 
 export type ArchivingSchedule = z.infer<typeof ArchivingSchedule>;
@@ -172,6 +184,26 @@ export const AsyncExchangeProperties = z.object({
   maxResultSet: z.number().int(),
 });
 export type AsyncExchangeProperties = z.infer<typeof AsyncExchangeProperties>;
+
+export const DelegatedDescriptorArchivingRequest = z.object({
+  requestedAt: z.coerce.date(),
+  acceptedAt: z.coerce.date().optional(),
+  rejectedAt: z.coerce.date().optional(),
+  rejectionReason: z.string().optional(),
+  requesterId: TenantId,
+  gracePeriodDays: GracePeriodDays,
+});
+export type DelegatedDescriptorArchivingRequest = z.infer<
+  typeof DelegatedDescriptorArchivingRequest
+>;
+
+export const DelegatedEServiceArchivingRequest =
+  DelegatedDescriptorArchivingRequest.extend({
+    archivingReason: z.string(),
+  });
+export type DelegatedEServiceArchivingRequest = z.infer<
+  typeof DelegatedEServiceArchivingRequest
+>;
 
 export const Descriptor = z.object({
   id: DescriptorId,
@@ -198,6 +230,9 @@ export const Descriptor = z.object({
   archivingSchedule: ArchivingSchedule.optional(),
   asyncExchangeCallbackInterface: Document.optional(),
   asyncExchangeProperties: AsyncExchangeProperties.optional(),
+  delegatedArchivingRequest: z
+    .array(DelegatedDescriptorArchivingRequest)
+    .optional(),
 });
 export type Descriptor = z.infer<typeof Descriptor>;
 
@@ -229,6 +264,9 @@ export const EService = z.object({
   instanceLabel: z.string().optional(),
   archivingReason: z.string().optional(),
   asyncExchange: z.boolean().optional(),
+  delegatedArchivingRequest: z
+    .array(DelegatedEServiceArchivingRequest)
+    .optional(),
 });
 
 export type EService = z.infer<typeof EService>;

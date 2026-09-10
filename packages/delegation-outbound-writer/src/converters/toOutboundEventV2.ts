@@ -1,19 +1,19 @@
 import {
-  DelegationEventEnvelopeV2,
-  DelegationV2,
-  DelegationContractDocumentV2,
-  DelegationStampV2,
-  DelegationStampsV2,
-} from "pagopa-interop-models";
-import {
   DelegationEvent as OutboundDelegationEvent,
   DelegationV2 as OutboundDelegationV2,
   DelegationContractDocumentV2 as OutboundDelegationContractDocumentV2,
   DelegationStampV2 as OutboundDelegationStampV2,
   DelegationStampsV2 as OutboundDelegationStampsV2,
 } from "@pagopa/interop-outbound-models";
-import { match } from "ts-pattern";
 import { Exact } from "pagopa-interop-commons";
+import {
+  DelegationEventEnvelopeV2,
+  DelegationV2,
+  DelegationContractDocumentV2,
+  DelegationStampV2,
+  DelegationStampsV2,
+} from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 function toOuboundDelegationContractDocumentV2(
   document: DelegationContractDocumentV2

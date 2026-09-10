@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   DescriptorId,
   EServiceDescriptorStateV2,
@@ -12,6 +11,8 @@ import {
   technology,
   toEServiceV2,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { toCatalogItemEventNotification } from "../src/models/catalog/catalogItemEventNotificationConverter.js";
 
 const descriptorId: DescriptorId = generateId();
@@ -75,9 +76,7 @@ const eservice = toEServiceV2({
 });
 
 const getEnvelope = (
-  type:
-    | "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded"
-    | "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated"
+  type: "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded"
 ): EServiceEventEnvelopeV2 => ({
   sequence_num: 1,
   stream_id: eserviceId,
@@ -136,24 +135,6 @@ describe("toCatalogItemEventNotification", () => {
           asyncExchangeCallbackInterfaceDocument.uploadDate.toISOString(),
       },
       isInterface: true,
-      serverUrls: [],
-    });
-  });
-
-  it("should convert async exchange callback interface updated events using the callback interface document", () => {
-    const result = toCatalogItemEventNotification(
-      getEnvelope("EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated")
-    );
-
-    expect(result).toEqual({
-      eServiceId: eserviceId,
-      descriptorId,
-      documentId: asyncExchangeCallbackInterfaceId,
-      updatedDocument: {
-        ...asyncExchangeCallbackInterfaceDocument,
-        uploadDate:
-          asyncExchangeCallbackInterfaceDocument.uploadDate.toISOString(),
-      },
       serverUrls: [],
     });
   });

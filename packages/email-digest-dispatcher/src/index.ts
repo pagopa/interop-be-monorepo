@@ -1,28 +1,29 @@
 import { initProducer } from "kafka-iam-auth";
 import { buildHTMLTemplateService, logger } from "pagopa-interop-commons";
-import { makeDrizzleConnection } from "pagopa-interop-readmodel";
 import {
   CorrelationId,
   generateId,
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { makeDrizzleConnection } from "pagopa-interop-readmodel";
+
 import { config } from "./config/config.js";
+import { makeDigestTrackingDbConnection } from "./model/digestTrackingDb.js";
+import { digestDataServiceBuilder } from "./services/digestDataService.js";
+import { digestTrackingServiceBuilder } from "./services/digestTrackingService.js";
+import { emailProducerServiceBuilder } from "./services/emailProducerService.js";
 import {
   readModelServiceBuilder,
   DigestUser,
 } from "./services/readModelService.js";
-import { digestDataServiceBuilder } from "./services/digestDataService.js";
 import { digestTemplateServiceBuilder } from "./services/templateService.js";
-import { emailProducerServiceBuilder } from "./services/emailProducerService.js";
-import { makeDigestTrackingDbConnection } from "./model/digestTrackingDb.js";
-import { digestTrackingServiceBuilder } from "./services/digestTrackingService.js";
-import { createResultsCollector } from "./utils/resultsCollector.js";
-import { processUserWithTenantData } from "./utils/processUserWithTenantData.js";
 import {
   getVisibleSections,
   hasVisibleDigestContent,
 } from "./utils/digestAdmittedRoles.js";
+import { processUserWithTenantData } from "./utils/processUserWithTenantData.js";
+import { createResultsCollector } from "./utils/resultsCollector.js";
 
 const correlationId = generateId<CorrelationId>();
 const log = logger({

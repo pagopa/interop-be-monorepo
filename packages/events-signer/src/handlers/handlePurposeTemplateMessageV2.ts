@@ -1,7 +1,12 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable sonarjs/cognitive-complexity */
 
-import { match, P } from "ts-pattern";
+import {
+  FileManager,
+  logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   fromPurposeTemplateStateV2,
@@ -9,12 +14,8 @@ import {
   missingKafkaMessageDataError,
   PurposeTemplateEventV2,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  logger,
-  SafeStorageService,
-  SignatureServiceBuilder,
-} from "pagopa-interop-commons";
+import { match, P } from "ts-pattern";
+
 import { PurposeTemplateEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 

@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
-import pg from "pg";
 import { logger } from "pagopa-interop-commons";
+import pg from "pg";
+
 import { config } from "./config/config.js";
 import { deleteOldM2MEvents } from "./deleteOldM2MEvents.js";
 

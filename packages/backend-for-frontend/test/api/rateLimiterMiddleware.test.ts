@@ -1,15 +1,16 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
-import { generateId } from "pagopa-interop-models";
+import { authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   mockTokenOrganizationId,
 } from "pagopa-interop-commons-test";
-import { authRole } from "pagopa-interop-commons";
+import { generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { api, mockRateLimiter, services } from "../vitest.api.setup.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../src/config/appBasePath.js";
 import { getMockBffApiPurpose } from "../mockUtils.js";
+import { api, mockRateLimiter, services } from "../vitest.api.setup.js";
 
 /*
   Testing only the rateLimiterMiddleware, not the rate limiter itself,

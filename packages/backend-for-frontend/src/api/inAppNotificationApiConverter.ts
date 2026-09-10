@@ -1,6 +1,7 @@
 import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import { bffApi } from "pagopa-interop-api-clients";
 import { NotificationType } from "pagopa-interop-models";
+
 import {
   notificationTypeToCategory,
   notificationTypesWithoutEntityIdInDeepLink,

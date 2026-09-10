@@ -1,12 +1,13 @@
-import { describe, it, expect, vi, Mock, beforeEach } from "vitest";
+import { S3ServiceException } from "@aws-sdk/client-s3";
+import { Message } from "@aws-sdk/client-sqs";
 import {
   FileManager,
   RefreshableInteropToken,
   SafeStorageService,
 } from "pagopa-interop-commons";
-import { Message } from "@aws-sdk/client-sqs";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
-import { S3ServiceException } from "@aws-sdk/client-s3";
+import { describe, it, expect, vi, Mock, beforeEach } from "vitest";
+
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
 
 const mockFileManager: Partial<FileManager> = {

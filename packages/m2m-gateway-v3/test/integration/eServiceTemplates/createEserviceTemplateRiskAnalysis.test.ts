@@ -1,18 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   eserviceTemplateApi,
   m2mGatewayApiV3,
 } from "pagopa-interop-api-clients";
 import {
-  pollingMaxRetriesExceeded,
-  tenantKind,
-  unsafeBrandId,
-} from "pagopa-interop-models";
-import {
   getMockedApiEServiceTemplate,
   getMockValidEServiceTemplateRiskAnalysis,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import {
+  pollingMaxRetriesExceeded,
+  tenantKind,
+  unsafeBrandId,
+} from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  eserviceTemplateRiskAnalysisNotFound,
+  missingMetadata,
+} from "../../../src/model/errors.js";
 import {
   eserviceTemplateService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -20,12 +27,6 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import {
-  eserviceTemplateRiskAnalysisNotFound,
-  missingMetadata,
-} from "../../../src/model/errors.js";
 import {
   buildEserviceTemplateRiskAnalysisSeed,
   getMockM2MAdminAppContext,

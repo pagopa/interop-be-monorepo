@@ -1,8 +1,4 @@
-/*
-  NOTE: Temporary file to hold all the models imported from github packages
-  This file will be removed once all models are converted from scala.
- */
-import { z } from "zod";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   DescriptorState,
   AgreementState,
@@ -13,7 +9,11 @@ import {
   EServiceTemplateId,
   Technology,
 } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
+/*
+  NOTE: Temporary file to hold all the models imported from github packages
+  This file will be removed once all models are converted from scala.
+ */
+import { z } from "zod";
 
 export type PersonalDataFilter = bffApi.PersonalDataFilter | undefined;
 

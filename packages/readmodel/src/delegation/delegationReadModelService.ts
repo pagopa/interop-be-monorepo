@@ -12,6 +12,7 @@ import {
   delegationStampInReadmodelDelegation,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
+
 import {
   aggregateDelegation,
   aggregateDelegationArray,

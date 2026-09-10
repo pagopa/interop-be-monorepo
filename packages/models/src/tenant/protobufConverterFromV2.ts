@@ -1,5 +1,6 @@
 import { createHash } from "crypto";
 import { match } from "ts-pattern";
+
 import { DelegationId, unsafeBrandId } from "../brandedIds.js";
 import { genericError } from "../errors.js";
 import {

@@ -1,5 +1,6 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
@@ -12,16 +13,16 @@ import {
   emptyErrorMapper,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { bffApi } from "pagopa-interop-api-clients";
-import { PurposeService } from "../services/purposeService.js";
+
 import { makeApiProblem } from "../model/errors.js";
+import { PurposeService } from "../services/purposeService.js";
+import { fromBffAppContext } from "../utilities/context.js";
 import {
   getRiskAnalysisAssignmentsErrorMapper,
   getPurposesErrorMapper,
   reversePurposeUpdateErrorMapper,
   getPurposeErrorMapper,
 } from "../utilities/errorMappers.js";
-import { fromBffAppContext } from "../utilities/context.js";
 
 const purposeRouter = (
   ctx: ZodiosContext,

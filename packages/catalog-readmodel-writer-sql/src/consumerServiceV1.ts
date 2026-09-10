@@ -1,4 +1,3 @@
-import { match } from "ts-pattern";
 import {
   EServiceEventEnvelopeV1,
   fromDescriptorV1,
@@ -7,6 +6,8 @@ import {
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+
 import { CatalogWriterService } from "./catalogWriterService.js";
 
 export async function handleMessageV1(

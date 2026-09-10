@@ -1,3 +1,4 @@
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   ExternalId,
   Tenant,
@@ -14,8 +15,8 @@ import {
   TenantFeatureType,
   tenantFeatureType,
 } from "pagopa-interop-models";
-import { tenantApi } from "pagopa-interop-api-clients";
 import { match, P } from "ts-pattern";
+
 import { invalidTenantFeature } from "./errors.js";
 
 function toApiTenantKind(input: TenantKind): tenantApi.TenantKind {

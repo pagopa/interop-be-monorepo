@@ -1,3 +1,4 @@
+import { EachMessagePayload } from "kafkajs";
 import { FileManager, Logger } from "pagopa-interop-commons";
 import {
   descriptorState,
@@ -6,7 +7,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { EachMessagePayload } from "kafkajs";
+
 import { exportInterface } from "./interfaceExporter.js";
 
 export async function exportInterfaceV1(

@@ -17,9 +17,9 @@ import {
   retrieveAttribute,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { TenantHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
+import { TenantHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType =
   "certifiedVerifiedAttributeAssignedRevokedToAssignee";

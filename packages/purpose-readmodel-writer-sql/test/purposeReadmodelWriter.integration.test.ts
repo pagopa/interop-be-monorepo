@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
   getMockPurpose,
   getMockPurposeVersion,
@@ -42,6 +41,8 @@ import {
   purposeVersionState,
   toPurposeV2,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { handleMessageV1 } from "../src/purposeConsumerServiceV1.js";
 import { handleMessageV2 } from "../src/purposeConsumerServiceV2.js";
 import { purposeReadModelService, purposeWriterService } from "./utils.js";

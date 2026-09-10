@@ -1,4 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
+import {
+  getMockTenantNotificationConfig,
+  getMockUserNotificationConfig,
+} from "pagopa-interop-commons-test";
 import {
   NotificationConfigEventEnvelope,
   TenantNotificationConfig,
@@ -17,11 +21,8 @@ import {
   toUserRoleV2,
   userRole,
 } from "pagopa-interop-models";
-import {
-  getMockTenantNotificationConfig,
-  getMockUserNotificationConfig,
-} from "pagopa-interop-commons-test/index.js";
-import { genericLogger } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   notificationConfigReadModelService,
@@ -210,6 +211,10 @@ describe("database test", async () => {
             !initialInAppConfig.purposeQuotaAdjustmentRequestToProducer,
           purposeOverQuotaStateToConsumer:
             !initialInAppConfig.purposeOverQuotaStateToConsumer,
+          eserviceArchivingRequestedToDelegator:
+            !initialInAppConfig.eserviceArchivingRequestedToDelegator,
+          eserviceArchivingApprovedRejectedToDelegate:
+            !initialInAppConfig.eserviceArchivingApprovedRejectedToDelegate,
         },
         emailConfig: {
           agreementSuspendedUnsuspendedToProducer:
@@ -260,6 +265,10 @@ describe("database test", async () => {
             !initialEmailConfig.purposeQuotaAdjustmentRequestToProducer,
           purposeOverQuotaStateToConsumer:
             !initialEmailConfig.purposeOverQuotaStateToConsumer,
+          eserviceArchivingRequestedToDelegator:
+            !initialEmailConfig.eserviceArchivingRequestedToDelegator,
+          eserviceArchivingApprovedRejectedToDelegate:
+            !initialEmailConfig.eserviceArchivingApprovedRejectedToDelegate,
         },
       };
 

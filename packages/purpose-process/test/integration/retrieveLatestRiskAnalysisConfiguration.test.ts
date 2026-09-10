@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { getLatestVersionFormRules } from "pagopa-interop-commons";
 import {
   getMockContext,
   getMockTenant,
@@ -11,7 +12,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
-import { getLatestVersionFormRules } from "pagopa-interop-commons";
+
 import {
   tenantKindNotFound,
   tenantNotFound,

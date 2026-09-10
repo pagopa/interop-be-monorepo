@@ -1,7 +1,8 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { inject, afterEach } from "vitest";
 import { EService } from "pagopa-interop-models";
 import { upsertEService } from "pagopa-interop-readmodel/testUtils";
+import { inject, afterEach } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

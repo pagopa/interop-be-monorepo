@@ -1,4 +1,3 @@
-import { describe, test, expect, beforeEach } from "vitest";
 import {
   DescriptorId,
   EServiceId,
@@ -6,6 +5,8 @@ import {
   Tenant,
   descriptorState,
 } from "pagopa-interop-models";
+import { describe, test, expect, beforeEach } from "vitest";
+
 import {
   readModelService,
   addOneTenant,

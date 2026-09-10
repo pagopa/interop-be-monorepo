@@ -1,4 +1,8 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import {
+  getMockEService,
+  getMockDescriptor,
+  getMockPurposeTemplate,
+} from "pagopa-interop-commons-test";
 import {
   DescriptorId,
   EServiceId,
@@ -8,17 +12,8 @@ import {
   PurposeTemplate,
   EService,
 } from "pagopa-interop-models";
-import {
-  getMockEService,
-  getMockDescriptor,
-  getMockPurposeTemplate,
-} from "pagopa-interop-commons-test";
-import {
-  associationEServicesForPurposeTemplateFailed,
-  associationBetweenEServiceAndPurposeTemplateAlreadyExists,
-  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
-} from "../../src/model/domain/errors.js";
-import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
+import { describe, expect, it, vi, beforeEach } from "vitest";
+
 import {
   eserviceAlreadyAssociatedError,
   eserviceNotAssociatedError,
@@ -29,6 +24,12 @@ import {
   unexpectedAssociationEServiceError,
   unexpectedEServiceError,
 } from "../../src/errors/purposeTemplateValidationErrors.js";
+import {
+  associationEServicesForPurposeTemplateFailed,
+  associationBetweenEServiceAndPurposeTemplateAlreadyExists,
+  associationBetweenEServiceAndPurposeTemplateDoesNotExist,
+} from "../../src/model/domain/errors.js";
+import { ReadModelServiceSQL } from "../../src/services/readModelServiceSQL.js";
 import {
   ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_ASSOCIATION,
   ALLOWED_DESCRIPTOR_STATES_FOR_PURPOSE_TEMPLATE_ESERVICE_DISASSOCIATION,

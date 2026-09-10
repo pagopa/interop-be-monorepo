@@ -1,9 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
-import { generateToken } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
+import { generateToken } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
-import { api, mockPurposeService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   purposeVersionDocumentNotFound,
@@ -15,6 +15,7 @@ import {
   testExpectedMultipartResponse,
   testMultipartResponseParser,
 } from "../../multipartTestUtils.js";
+import { api, mockPurposeService } from "../../vitest.api.setup.js";
 
 describe("GET /purposes/:purposeId/versions/:versionId/document router test", () => {
   const mockDownloadedDocument = getMockDownloadedDocument();

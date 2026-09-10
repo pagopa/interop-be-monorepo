@@ -1,5 +1,10 @@
 /* eslint-disable functional/immutable-data */
-import { match, P } from "ts-pattern";
+import {
+  FileManager,
+  logger,
+  SafeStorageService,
+  SignatureServiceBuilder,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   EServiceEventV2,
@@ -7,12 +12,8 @@ import {
   generateId,
   missingKafkaMessageDataError,
 } from "pagopa-interop-models";
-import {
-  FileManager,
-  logger,
-  SafeStorageService,
-  SignatureServiceBuilder,
-} from "pagopa-interop-commons";
+import { match, P } from "ts-pattern";
+
 import { CatalogEventData } from "../models/eventTypes.js";
 import { processAndArchiveFiles } from "../utils/fileProcessor.js";
 
@@ -48,6 +49,11 @@ export const handleCatalogMessageV2 = async (
             "EServiceDescriptorArchivingScheduled",
             "EServiceDescriptorArchivingCanceled",
             "EServiceDescriptorArchivingCompleted",
+            "EServiceDescriptorArchivingRequestedByDelegate",
+            "EServiceDescriptorArchivingRequestRejectedByDelegator",
+            "EServiceDescriptorArchivingRequestApprovedByDelegator",
+            "EServiceDescriptorArchivingRequestCanceledByDelegate",
+            "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
             "MaintenanceEServiceDescriptorUnarchived"
           ),
         },
@@ -78,7 +84,12 @@ export const handleCatalogMessageV2 = async (
           type: P.union(
             "EServiceArchivingScheduled",
             "EServiceArchivingCanceled",
-            "EServiceArchivingCompleted"
+            "EServiceArchivingCompleted",
+            "EServiceArchivingRequestedByDelegate",
+            "EServiceArchivingRequestRejectedByDelegator",
+            "EServiceArchivingRequestApprovedByDelegator",
+            "EServiceArchivingRequestCanceledByDelegate",
+            "EServiceArchivingRequestCanceledByRevokedDelegation"
           ),
         },
         (event) => {
@@ -111,12 +122,10 @@ export const handleCatalogMessageV2 = async (
             "EServiceDraftDescriptorDeleted",
             "EServiceDescriptorInterfaceAdded",
             "EServiceDescriptorDocumentAdded",
-            "EServiceDescriptorInterfaceUpdated",
             "EServiceDescriptorDocumentUpdated",
             "EServiceDescriptorInterfaceDeleted",
             "EServiceDescriptorDocumentDeleted",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
-            "EServiceDescriptorAsyncExchangeCallbackInterfaceUpdated",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "EServiceRiskAnalysisAdded",
             "EServiceRiskAnalysisUpdated",

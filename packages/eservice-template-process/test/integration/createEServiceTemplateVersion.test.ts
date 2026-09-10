@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -24,7 +25,7 @@ import {
   attributeKind,
 } from "pagopa-interop-models";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
+
 import {
   attributeDiscreteConfigNotAllowed,
   attributeNotFound,

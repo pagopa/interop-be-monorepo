@@ -1,6 +1,6 @@
+import { KMSClient } from "@aws-sdk/client-kms";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
-import { KMSClient } from "@aws-sdk/client-kms";
 import { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   ZodiosContext,
@@ -10,6 +10,7 @@ import {
   authRole,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
 import { EserviceService } from "../services/eserviceService.js";
 import { fromM2MGatewayAppContext } from "../utils/context.js";
@@ -168,6 +169,220 @@ const eserviceRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post(
+      "/eservices/:eserviceId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eservice =
+            await eserviceService.approveDelegatedEServiceArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              ctx
+            );
+          return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error approving delegated archiving request for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/rejectDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eservice =
+            await eserviceService.rejectDelegatedEServiceArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              req.body,
+              ctx
+            );
+          return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error rejecting delegated archiving request for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const eservice =
+            await eserviceService.submitDelegatedEServiceArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              req.body,
+              ctx
+            );
+          return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error submitting delegated archiving for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eserviceId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const eservice =
+            await eserviceService.cancelDelegatedEServiceArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              ctx
+            );
+          return res.status(200).send(m2mGatewayApiV3.EService.parse(eservice));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting delegated archiving for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const descriptor =
+            await eserviceService.submitDelegatedDescriptorArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.EServiceDescriptor.parse(descriptor));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error submitting delegated archiving for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/submitDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const descriptor =
+            await eserviceService.cancelDelegatedDescriptorArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.EServiceDescriptor.parse(descriptor));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error deleting delegated archiving for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/approveDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const descriptor =
+            await eserviceService.approveDelegatedDescriptorArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.EServiceDescriptor.parse(descriptor));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error approving delegated archiving request for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/rejectDelegatedArchiving",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+
+          const descriptor =
+            await eserviceService.rejectDelegatedDescriptorArchiving(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(200)
+            .send(m2mGatewayApiV3.EServiceDescriptor.parse(descriptor));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            emptyErrorMapper,
+            ctx,
+            `Error rejecting delegated archiving request for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .patch("/eservices/:eserviceId/delegation", async (req, res) => {
       const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
 
@@ -876,6 +1091,7 @@ const eserviceRouter = (
             await eserviceService.scheduleArchiveEserviceDescriptor(
               unsafeBrandId(req.params.eserviceId),
               unsafeBrandId(req.params.descriptorId),
+              req.body,
               ctx
             );
           return res
@@ -1073,6 +1289,37 @@ const eserviceRouter = (
       }
     )
     .get(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedDiscreteAttributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ROLE, M2M_ADMIN_ROLE]);
+          const attributes =
+            await eserviceService.getEserviceDescriptorCertifiedDiscreteAttributes(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              { limit: req.query.limit, offset: req.query.offset },
+              ctx
+            );
+          return res
+            .status(200)
+            .send(
+              m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributes.parse(
+                attributes
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            getEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error retrieving certified discrete attributes for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .get(
       "/eservices/:eserviceId/descriptors/:descriptorId/declaredAttributes",
       async (req, res) => {
         const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
@@ -1165,6 +1412,37 @@ const eserviceRouter = (
         }
       }
     )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedDiscreteAttributes/groups",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          const attributesGroup =
+            await eserviceService.createEServiceDescriptorCertifiedDiscreteAttributesGroup(
+              unsafeBrandId(req.params.eserviceId),
+              unsafeBrandId(req.params.descriptorId),
+              req.body,
+              ctx
+            );
+          return res
+            .status(201)
+            .send(
+              m2mGatewayApiV3.EServiceDescriptorCertifiedDiscreteAttributesGroup.parse(
+                attributesGroup
+              )
+            );
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            createEServiceDescriptorAttributeGroupsErrorMapper,
+            ctx,
+            `Error creating certified discrete attributes group for descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
     .patch(
       "/eservices/:eserviceId/descriptors/:descriptorId/certifiedAttributes/groups/:groupIndex/attributes/:attributeId",
       async (req, res) => {
@@ -1211,6 +1489,31 @@ const eserviceRouter = (
             deleteEServiceDescriptorAttributeFromGroupErrorMapper,
             ctx,
             `Error deleting certified attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .delete(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedDiscreteAttributes/groups/:groupIndex/attributes/:attributeId",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceService.deleteEServiceDescriptorCertifiedDiscreteAttributeFromGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            unsafeBrandId(req.params.attributeId),
+            ctx
+          );
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            deleteEServiceDescriptorAttributeFromGroupErrorMapper,
+            ctx,
+            `Error deleting certified discrete attribute ${req.params.attributeId} from group ${req.params.groupIndex} for descriptor ${req.params.descriptorId} of eservice ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }
@@ -1348,6 +1651,31 @@ const eserviceRouter = (
             assignEServiceDescriptorAttributesErrorMapper,
             ctx,
             `Error assigning certified attributes to descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/eservices/:eserviceId/descriptors/:descriptorId/certifiedDiscreteAttributes/groups/:groupIndex/attributes",
+      async (req, res) => {
+        const ctx = fromM2MGatewayAppContext(req.ctx, req.headers);
+        try {
+          validateAuthorization(ctx, [M2M_ADMIN_ROLE]);
+          await eserviceService.assignEServiceDescriptorCertifiedDiscreteAttributesToGroup(
+            unsafeBrandId(req.params.eserviceId),
+            unsafeBrandId(req.params.descriptorId),
+            req.params.groupIndex,
+            req.body,
+            ctx
+          );
+          return res.status(200).send({});
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            assignEServiceDescriptorAttributesErrorMapper,
+            ctx,
+            `Error assigning certified discrete attributes to descriptor with id ${req.params.descriptorId} for eservice with id ${req.params.eserviceId}`
           );
           return res.status(errorRes.status).send(errorRes);
         }

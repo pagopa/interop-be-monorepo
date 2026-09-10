@@ -1,13 +1,14 @@
 /* eslint-disable max-params */
-import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { inject, afterEach, expect } from "vitest";
 import {
   AppContext,
   genericLogger,
   UIAuthData,
   WithLogger,
 } from "pagopa-interop-commons";
+import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { ApiError, TenantId, UserId } from "pagopa-interop-models";
+import { inject, afterEach, expect } from "vitest";
+
 import { BffAppContext } from "../src/utilities/context.js";
 
 const { cleanup, fileManager } = await setupTestContainersVitest(

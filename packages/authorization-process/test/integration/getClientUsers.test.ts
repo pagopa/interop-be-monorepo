@@ -2,7 +2,7 @@ import {
   getMockAuthData,
   getMockClient,
   getMockContext,
-} from "pagopa-interop-commons-test/src/testUtils.js";
+} from "pagopa-interop-commons-test";
 import {
   Client,
   ClientId,
@@ -11,6 +11,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import {
   clientNotFound,
   tenantNotAllowedOnClient,

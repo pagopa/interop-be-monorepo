@@ -7,9 +7,10 @@ import {
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
 import { emptyErrorMapper } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
-import { fromBffAppContext } from "../utilities/context.js";
 import { AttributeService } from "../services/attributeService.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const attributeRouter = (
   ctx: ZodiosContext,
@@ -36,6 +37,29 @@ const attributeRouter = (
           emptyErrorMapper,
           ctx,
           `Error creating certified attribute with seed ${JSON.stringify(
+            req.body
+          )}`
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+
+    .post("/certifiedDiscreteAttributes", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+
+      try {
+        const result = await attributeService.createCertifiedDiscreteAttribute(
+          req.body,
+          ctx
+        );
+
+        return res.status(200).send(bffApi.Attribute.parse(result));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          emptyErrorMapper,
+          ctx,
+          `Error creating certified discrete attribute with seed ${JSON.stringify(
             req.body
           )}`
         );

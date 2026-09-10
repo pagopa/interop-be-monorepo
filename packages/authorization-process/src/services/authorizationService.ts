@@ -1,5 +1,25 @@
 import { JsonWebKey } from "crypto";
 import {
+  authorizationApi,
+  SelfcareV2InstitutionClient,
+} from "pagopa-interop-api-clients";
+import {
+  AppContext,
+  calculateKid,
+  createJWK,
+  DB,
+  eventRepository,
+  hasAtLeastOneUserRole,
+  InternalAuthData,
+  isUiAuthData,
+  M2MAdminAuthData,
+  M2MAuthData,
+  UIAuthData,
+  userRole,
+  validateNoHyperlinksSafe,
+  WithLogger,
+} from "pagopa-interop-commons";
+import {
   authorizationEventToBinaryData,
   Client,
   ClientId,
@@ -25,26 +45,12 @@ import {
   UserId,
   WithMetadata,
 } from "pagopa-interop-models";
-import {
-  AppContext,
-  calculateKid,
-  createJWK,
-  DB,
-  eventRepository,
-  hasAtLeastOneUserRole,
-  InternalAuthData,
-  isUiAuthData,
-  M2MAdminAuthData,
-  M2MAuthData,
-  UIAuthData,
-  userRole,
-  WithLogger,
-} from "pagopa-interop-commons";
-import {
-  authorizationApi,
-  SelfcareV2InstitutionClient,
-} from "pagopa-interop-api-clients";
 
+import {
+  ApiKeyUseToKeyUse,
+  clientJWKToApiClientJWK,
+  producerJWKToApiProducerJWK,
+} from "../model/domain/apiConverter.js";
 import {
   clientAdminAlreadyAssignedToUser,
   clientKeyNotFound,
@@ -95,15 +101,11 @@ import {
   toCreateEventProducerKeychainUserDeleted,
 } from "../model/domain/toEvent.js";
 import {
-  ApiKeyUseToKeyUse,
-  clientJWKToApiClientJWK,
-  producerJWKToApiProducerJWK,
-} from "../model/domain/apiConverter.js";
-import {
   GetClientsFilters,
   ProducerKeychainEServiceFlags,
   GetProducerKeychainsFilters,
 } from "./readModelService.js";
+import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 import {
   assertClientKeysCountIsBelowThreshold,
   assertKeyDoesNotAlreadyExist,
@@ -121,7 +123,6 @@ import {
   assertTenantHasSelfcareId,
   assertMembersAreUnique,
 } from "./validators.js";
-import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 const retrieveClient = async (
   clientId: ClientId,
@@ -268,6 +269,9 @@ export function authorizationServiceBuilder(
         `Creating CONSUMER client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
 
+      validateNoHyperlinksSafe(clientSeed.name);
+      validateNoHyperlinksSafe(clientSeed.description);
+
       assertMembersAreUnique(clientSeed.members);
 
       const client: Client = {
@@ -304,6 +308,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating API client ${clientSeed.name} for consumer ${authData.organizationId}"`
       );
+
+      validateNoHyperlinksSafe(clientSeed.name);
+      validateNoHyperlinksSafe(clientSeed.description);
 
       assertMembersAreUnique(clientSeed.members);
 
@@ -880,6 +887,9 @@ export function authorizationServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Key>> {
       logger.info(`Creating keys for client ${clientId}`);
+
+      validateNoHyperlinksSafe(keySeed.name);
+
       const client = await retrieveClient(clientId, readModelService);
       assertOrganizationIsClientConsumer(authData, client.data);
       assertClientKeysCountIsBelowThreshold(
@@ -1011,6 +1021,9 @@ export function authorizationServiceBuilder(
       logger.info(
         `Creating producer keychain ${producerKeychainSeed.name} for producer ${authData.organizationId}"`
       );
+
+      validateNoHyperlinksSafe(producerKeychainSeed.name);
+      validateNoHyperlinksSafe(producerKeychainSeed.description);
 
       assertMembersAreUnique(producerKeychainSeed.members);
 
@@ -1338,6 +1351,9 @@ export function authorizationServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Key>> {
       logger.info(`Creating keys for producer keychain ${producerKeychainId}`);
+
+      validateNoHyperlinksSafe(keySeed.name);
+
       const producerKeychain = await retrieveProducerKeychain(
         producerKeychainId,
         readModelService

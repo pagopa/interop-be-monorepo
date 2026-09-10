@@ -1,5 +1,16 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it } from "vitest";
+import {
+  getMockPurpose,
+  decodeProtobufPayload,
+  getMockPurposeVersion,
+  getMockAuthData,
+  getMockDelegation,
+  addSomeRandomDelegations,
+  getMockTenant,
+  getMockAgreement,
+  getMockContext,
+  getMockEService,
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   DelegationId,
@@ -17,18 +28,8 @@ import {
   tenantKind,
   toPurposeV2,
 } from "pagopa-interop-models";
-import {
-  getMockPurpose,
-  decodeProtobufPayload,
-  getMockPurposeVersion,
-  getMockAuthData,
-  getMockDelegation,
-  addSomeRandomDelegations,
-  getMockTenant,
-  getMockAgreement,
-  getMockContext,
-  getMockEService,
-} from "pagopa-interop-commons-test";
+import { describe, expect, it } from "vitest";
+
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,

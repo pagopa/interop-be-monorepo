@@ -1,8 +1,9 @@
-import { getMockTenant } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
+import { getMockTenant } from "pagopa-interop-commons-test";
 import { Tenant, WithMetadata, tenantKind } from "pagopa-interop-models";
 import { upsertTenant } from "pagopa-interop-readmodel/testUtils";
+import { describe, expect, it } from "vitest";
+
 import { compare } from "../src/utils.js";
 import {
   addOneTenant,

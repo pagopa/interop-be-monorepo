@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { UserNotificationConfig, generateId } from "pagopa-interop-models";
+import { notificationConfigApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockNotificationConfig,
@@ -7,16 +7,17 @@ import {
   mockTokenOrganizationId,
   mockTokenUserId,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
+import { UserNotificationConfig, generateId } from "pagopa-interop-models";
 import request from "supertest";
-import { notificationConfigApi } from "pagopa-interop-api-clients";
-import { api, notificationConfigService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { userNotificationConfigToApiUserNotificationConfig } from "../../src/model/domain/apiConverter.js";
-import { expectedUserIdAndOrganizationId } from "../utils.js";
 import {
   notificationConfigNotAllowedForUserRoles,
   userNotificationConfigNotFound,
 } from "../../src/model/domain/errors.js";
+import { expectedUserIdAndOrganizationId } from "../utils.js";
+import { api, notificationConfigService } from "../vitest.api.setup.js";
 
 describe("API POST /userNotificationConfigs test", () => {
   const userId = mockTokenUserId;

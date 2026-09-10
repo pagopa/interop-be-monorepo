@@ -1,4 +1,5 @@
 import type { m2mGatewayApiV3 } from "pagopa-interop-api-clients";
+
 import { type AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
@@ -10,6 +11,7 @@ import {
 import { ApiError, generateId, unsafeBrandId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, expect, it, vi } from "vitest";
+
 import { toM2MGatewayApiEService } from "../../../src/api/eserviceApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import {

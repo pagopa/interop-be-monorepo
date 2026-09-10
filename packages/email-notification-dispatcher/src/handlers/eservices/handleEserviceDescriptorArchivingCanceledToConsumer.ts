@@ -16,8 +16,9 @@ import {
   retrieveHTMLTemplate,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
-import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
+
 import { config } from "../../config/config.js";
+import { EServiceDescriptorHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 
@@ -92,7 +93,7 @@ export async function handleEserviceDescriptorArchivingCanceledToConsumer(
             eserviceName: eservice.name,
             eserviceVersion: descriptor.version,
             producerName: producer.name,
-            ctaLabel: `Visualizza e-service`,
+            ctaLabel: `Accedi a PDND`,
             selfcareId: t.selfcareId,
             bffUrl: config.bffUrl,
           }),

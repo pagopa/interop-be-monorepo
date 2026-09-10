@@ -1,7 +1,8 @@
 import { apiGatewayApi, notifierApi } from "pagopa-interop-api-clients";
 import { WithLogger } from "pagopa-interop-commons";
-import { ApiGatewayAppContext } from "../utilities/context.js";
+
 import { notifierEventsToApiGatewayEvents } from "../api/eventsApiConverter.js";
+import { ApiGatewayAppContext } from "../utilities/context.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function notifierEventsServiceBuilder(

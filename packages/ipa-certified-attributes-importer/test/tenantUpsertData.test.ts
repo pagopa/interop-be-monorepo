@@ -1,4 +1,3 @@
-import { expect, describe, it } from "vitest";
 import { getMockTenant } from "pagopa-interop-commons-test";
 import {
   ECONOMIC_ACCOUNT_COMPANIES_PUBLIC_SERVICE_IDENTIFIER,
@@ -9,6 +8,8 @@ import {
   generateId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import { expect, describe, it } from "vitest";
+
 import {
   ECONOMIC_ACCOUNT_COMPANIES_TYPOLOGY,
   PUBLIC_SERVICES_MANAGERS_TYPOLOGY,

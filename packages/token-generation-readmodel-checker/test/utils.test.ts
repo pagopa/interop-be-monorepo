@@ -44,6 +44,7 @@ import {
   TokenGenerationStatesConsumerClient,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { tokenGenerationReadModelServiceBuilder } from "../src/services/tokenGenerationReadModelService.js";
 import {
   compareReadModelAgreementsWithPlatformStates,

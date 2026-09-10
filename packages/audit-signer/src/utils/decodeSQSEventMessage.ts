@@ -1,5 +1,6 @@
-import { genericInternalError } from "pagopa-interop-models";
 import { Message } from "@aws-sdk/client-sqs";
+import { genericInternalError } from "pagopa-interop-models";
+
 import { S3BodySchema } from "../models/s3BodySchema.js";
 
 export function decodeSQSEventMessage(message: Message): string {

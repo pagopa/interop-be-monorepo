@@ -1,7 +1,8 @@
-import { fileURLToPath } from "url";
 import fs from "fs";
-import path from "path";
 import { HtmlTemplateService } from "pagopa-interop-commons";
+import path from "path";
+import { fileURLToPath } from "url";
+
 import {
   DigestSection,
   computeGroupFlags,

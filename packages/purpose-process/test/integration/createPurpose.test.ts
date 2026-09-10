@@ -2,6 +2,25 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { fail } from "assert";
+import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  expiredRulesVersionError,
+  rulesVersionNotFoundError,
+  unexpectedFieldHyperlinkError,
+} from "pagopa-interop-commons";
+import {
+  getMockValidRiskAnalysisForm,
+  decodeProtobufPayload,
+  getMockAgreement,
+  getMockEService,
+  getMockTenant,
+  getMockPurpose,
+  getMockDescriptor,
+  getMockAuthData,
+  getMockDelegation,
+  getMockContext,
+  getMockExpiredRiskAnalysisForm,
+} from "pagopa-interop-commons-test";
 import {
   Agreement,
   Descriptor,
@@ -20,26 +39,10 @@ import {
   TenantId,
   delegationKind,
   delegationState,
+  hyperlinkDetectionError,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
 import { describe, expect, it, vi } from "vitest";
-import {
-  getMockValidRiskAnalysisForm,
-  decodeProtobufPayload,
-  getMockAgreement,
-  getMockEService,
-  getMockTenant,
-  getMockPurpose,
-  getMockDescriptor,
-  getMockAuthData,
-  getMockDelegation,
-  getMockContext,
-  getMockExpiredRiskAnalysisForm,
-} from "pagopa-interop-commons-test";
-import {
-  expiredRulesVersionError,
-  rulesVersionNotFoundError,
-} from "pagopa-interop-commons";
+
 import {
   missingFreeOfChargeReason,
   tenantKindNotFound,
@@ -736,5 +739,70 @@ describe("createPurpose", () => {
         })
       )
     ).rejects.toThrowError(duplicatedPurposeTitle(purposeSeed.title));
+  });
+  it.each([
+    {
+      label: "title",
+      override: { title: "Purpose https://evil.example.com" },
+      text: "Purpose https://evil.example.com",
+    },
+    {
+      label: "description",
+      override: { description: "see www.evil.example.com" },
+      text: "see www.evil.example.com",
+    },
+    {
+      label: "freeOfChargeReason",
+      override: {
+        isFreeOfCharge: true,
+        freeOfChargeReason: "see https://evil.example.com",
+      },
+      text: "see https://evil.example.com",
+    },
+  ])(
+    "should throw hyperlinkDetectionError when purpose $label contains a hyperlink",
+    async ({ override, text }) => {
+      await expect(
+        purposeService.createPurpose(
+          { ...purposeSeed, ...override },
+          getMockContext({
+            authData: getMockAuthData(
+              unsafeBrandId<TenantId>(purposeSeed.consumerId)
+            ),
+          })
+        )
+      ).rejects.toThrowError(hyperlinkDetectionError(text));
+    }
+  );
+  it("should throw riskAnalysisValidationFailed with unexpectedFieldHyperlinkError when a freeText answer contains a hyperlink", async () => {
+    await addOneTenant(tenant);
+    await addOneAgreement(agreementEservice1);
+    await addOneEService(eService1);
+
+    const baseFormSeed = buildRiskAnalysisFormSeed(mockValidRiskAnalysisForm);
+    const freeTextField = "institutionalPurpose";
+    const seed: purposeApi.PurposeSeed = {
+      ...purposeSeed,
+      riskAnalysisForm: {
+        ...baseFormSeed,
+        answers: {
+          ...baseFormSeed.answers,
+          [freeTextField]: ["see https://evil.example.com for details"],
+        },
+      },
+    };
+
+    await expect(
+      purposeService.createPurpose(
+        seed,
+        getMockContext({
+          authData: getMockAuthData(unsafeBrandId<TenantId>(seed.consumerId)),
+        })
+      )
+    ).rejects.toThrowError(
+      riskAnalysisValidationFailed([
+        unexpectedFieldHyperlinkError(freeTextField),
+      ])
+    );
   });
 });

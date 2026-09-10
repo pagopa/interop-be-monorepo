@@ -6,6 +6,7 @@ import {
   verifyDPoPThumbprintMatch,
   verifyDPoPProof,
 } from "pagopa-interop-dpop-validation";
+
 import {
   dpopProofValidationFailed,
   dpopProofSignatureValidationFailed,

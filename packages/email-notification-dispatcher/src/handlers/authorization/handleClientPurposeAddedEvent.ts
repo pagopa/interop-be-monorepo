@@ -12,9 +12,9 @@ import {
   retrievePurpose,
   mapRecipientToEmailPayload,
 } from "pagopa-interop-notification-commons";
-import { ClientPurposeHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
+import { ClientPurposeHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "clientAddedRemovedToProducer";
 

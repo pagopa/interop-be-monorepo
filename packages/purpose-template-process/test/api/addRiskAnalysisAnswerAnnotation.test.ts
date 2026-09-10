@@ -1,6 +1,7 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { constants } from "http2";
+import { purposeTemplateApi } from "pagopa-interop-api-clients";
 import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
@@ -14,8 +15,7 @@ import {
 } from "pagopa-interop-models";
 import request from "supertest";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { purposeTemplateApi } from "pagopa-interop-api-clients";
-import { api, purposeTemplateService } from "../vitest.api.setup.js";
+
 import { purposeTemplateAnswerAnnotationToApiPurposeTemplateAnswerAnnotation } from "../../src/model/domain/apiConverter.js";
 import {
   purposeTemplateNotFound,
@@ -26,6 +26,7 @@ import {
   riskAnalysisTemplateValidationFailed,
   hyperlinkDetectionError,
 } from "../../src/model/domain/errors.js";
+import { api, purposeTemplateService } from "../vitest.api.setup.js";
 
 const {
   HTTP_STATUS_OK,

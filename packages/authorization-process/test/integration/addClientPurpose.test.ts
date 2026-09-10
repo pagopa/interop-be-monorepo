@@ -12,7 +12,6 @@ import {
   getMockPurposeVersion,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
 import {
   Agreement,
   Client,
@@ -29,6 +28,8 @@ import {
   toClientV2,
   ClientKind,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import {
   clientNotFound,
   purposeDelegationNotFound,

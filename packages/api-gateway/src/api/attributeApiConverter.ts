@@ -7,6 +7,7 @@ import {
 import { isDefined, removeDuplicateObjectsById } from "pagopa-interop-commons";
 import { genericInternalError } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import {
   verifiedAttributeToAttributeValidityState,
   certifiedAttributeToAttributeValidityState,

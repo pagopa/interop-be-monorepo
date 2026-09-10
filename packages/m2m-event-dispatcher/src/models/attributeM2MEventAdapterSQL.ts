@@ -1,5 +1,5 @@
-import { AttributeM2MEvent, dateToString } from "pagopa-interop-models";
 import { AttributeM2MEventSQL } from "pagopa-interop-m2m-event-db-models";
+import { AttributeM2MEvent, dateToString } from "pagopa-interop-models";
 
 export function toAttributeM2MEventSQL(
   event: AttributeM2MEvent

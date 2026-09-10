@@ -1,20 +1,21 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { AgreementId, generateId, unsafeBrandId } from "pagopa-interop-models";
+import { genericLogger } from "pagopa-interop-commons";
 import {
   getMockWithMetadata,
   getMockedApiAgreementDocument,
 } from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+import { AgreementId, generateId, unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 import {
   agreementService,
   expectApiClientGetToHaveBeenCalledWith,
   fileManager,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { config } from "../../../src/config/config.js";
-import { DownloadedDocument } from "../../../src/utils/fileDownload.js";
 import { expectDownloadedDocumentToBeEqual } from "../../multipartTestUtils.js";
 
 describe("downloadAgreementConsumerDocument", () => {

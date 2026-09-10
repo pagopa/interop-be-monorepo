@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurpose,
@@ -14,11 +15,11 @@ import {
   PurposeVersionId,
   generateId,
 } from "pagopa-interop-models";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { purposeNotFound } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 const mockRiskAnalysisDocumentPayload: PurposeVersionDocument = {
   id: generateId<PurposeVersionDocumentId>(),

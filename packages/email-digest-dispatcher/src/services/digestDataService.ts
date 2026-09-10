@@ -5,6 +5,7 @@ import {
   purposeVersionState,
   delegationState,
 } from "pagopa-interop-models";
+
 import {
   receivedAgreementsToBaseDigest,
   sentAgreementsToBaseDigest,

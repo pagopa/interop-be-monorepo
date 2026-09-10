@@ -1,10 +1,11 @@
-import { AgreementEventEnvelope, NewNotification } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { AgreementEventEnvelope, NewNotification } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handleAgreementActivatedRejectedToConsumer } from "./handleAgreementActivatedRejectedToConsumer.js";
 import { handleAgreementManagementToProducer } from "./handleAgreementManagementToProducer.js";
 import { handleAgreementSuspendedUnsuspended } from "./handleAgreementSuspendedUnsuspended.js";
-import { handleAgreementActivatedRejectedToConsumer } from "./handleAgreementActivatedRejectedToConsumer.js";
 
 export async function handleAgreementEvent(
   decodedMessage: AgreementEventEnvelope,

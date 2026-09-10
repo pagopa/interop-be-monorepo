@@ -20,6 +20,7 @@ import {
   EService,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
+
 import {
   eserviceTemplateWithoutPublishedVersion,
   eserviceTemplateNotFound,

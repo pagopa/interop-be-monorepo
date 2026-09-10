@@ -1,10 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
 import { delegationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockedApiDelegation,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
+import {
+  missingMetadata,
+  unexpectedDelegationKind,
+} from "../../../src/model/errors.js";
 import {
   delegationService,
   expectApiClientGetToHaveBeenCalledWith,
@@ -12,12 +19,6 @@ import {
   mockInteropBeClients,
   mockPollingResponse,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import {
-  missingMetadata,
-  unexpectedDelegationKind,
-} from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("createConsumerDelegation", () => {

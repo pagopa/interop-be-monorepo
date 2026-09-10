@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { genericLogger } from "pagopa-interop-commons";
 import { getMockDelegation } from "pagopa-interop-commons-test";
 import {
   DelegationEvent,
@@ -14,12 +14,13 @@ import {
   PurposeM2MEvent,
   EServiceM2MEvent,
 } from "pagopa-interop-models";
-import { genericLogger } from "pagopa-interop-commons";
 import { match, P } from "ts-pattern";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { handleDelegationEvent } from "../src/handlers/handleDelegationEvent.js";
-import { toPurposeM2MEventSQL } from "../src/models/purposeM2MEventAdapterSQL.js";
 import { toAgreementM2MEventSQL } from "../src/models/agreementM2MEventAdapterSQL.js";
 import { toEServiceM2MEventSQL } from "../src/models/eserviceM2MEventAdapterSQL.js";
+import { toPurposeM2MEventSQL } from "../src/models/purposeM2MEventAdapterSQL.js";
 import {
   getMockEventEnvelopeCommons,
   retrieveAllConsumerDelegationM2MEvents,

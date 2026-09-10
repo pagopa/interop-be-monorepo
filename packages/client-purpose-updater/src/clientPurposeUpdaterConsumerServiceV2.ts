@@ -1,4 +1,9 @@
 import {
+  getInteropHeaders,
+  logger,
+  RefreshableInteropToken,
+} from "pagopa-interop-commons";
+import {
   CorrelationId,
   generateId,
   missingKafkaMessageDataError,
@@ -6,11 +11,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import {
-  getInteropHeaders,
-  logger,
-  RefreshableInteropToken,
-} from "pagopa-interop-commons";
+
 import { getInteropBeClients } from "./clients/clientsProvider.js";
 
 const { authorizationClient } = getInteropBeClients();

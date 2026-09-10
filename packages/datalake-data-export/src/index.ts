@@ -1,8 +1,9 @@
 import { initFileManager, logger } from "pagopa-interop-commons";
 import { generateId, CorrelationId } from "pagopa-interop-models";
 import { makeDrizzleConnectionWithCleanup } from "pagopa-interop-readmodel";
-import { datalakeServiceBuilder } from "./services/datalakeService.js";
+
 import { config } from "./config/config.js";
+import { datalakeServiceBuilder } from "./services/datalakeService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const log = logger({

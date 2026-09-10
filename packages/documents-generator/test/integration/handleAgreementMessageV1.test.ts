@@ -1,18 +1,27 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable functional/no-let */
 
-import path from "path";
-import { fileURLToPath } from "url";
+import { addDays } from "date-fns";
 import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  vi,
-  afterEach,
-  beforeAll,
-  afterAll,
-} from "vitest";
+  RefreshableInteropToken,
+  dateAtRomeZone,
+  genericLogger,
+  timeAtRomeZone,
+} from "pagopa-interop-commons";
+import {
+  getMockAgreement,
+  getMockAgreementAttribute,
+  getMockAttribute,
+  getMockCertifiedTenantAttribute,
+  getMockDeclaredTenantAttribute,
+  getMockDelegation,
+  getMockDescriptorPublished,
+  getMockEService,
+  getMockEServiceAttribute,
+  getMockTenant,
+  getMockVerifiedTenantAttribute,
+  toAgreementV1,
+} from "pagopa-interop-commons-test";
 import {
   AgreementEventEnvelopeV1,
   AgreementId,
@@ -37,27 +46,27 @@ import {
   CorrelationId,
   unsafeBrandId,
 } from "pagopa-interop-models";
+import path from "path";
+import { fileURLToPath } from "url";
 import {
-  RefreshableInteropToken,
-  dateAtRomeZone,
-  genericLogger,
-  timeAtRomeZone,
-} from "pagopa-interop-commons";
+  describe,
+  it,
+  expect,
+  beforeEach,
+  vi,
+  afterEach,
+  beforeAll,
+  afterAll,
+} from "vitest";
+
+import { getInteropBeClients } from "../../src/clients/clientProvider.js";
+import { config } from "../../src/config/config.js";
+import { handleAgreementMessageV1 } from "../../src/handler/handleAgreementMessageV1.js";
+import { eServiceNotFound, tenantNotFound } from "../../src/model/errors.js";
 import {
-  getMockAgreement,
-  getMockAgreementAttribute,
-  getMockAttribute,
-  getMockCertifiedTenantAttribute,
-  getMockDeclaredTenantAttribute,
-  getMockDelegation,
-  getMockDescriptorPublished,
-  getMockEService,
-  getMockEServiceAttribute,
-  getMockTenant,
-  getMockVerifiedTenantAttribute,
-  toAgreementV1,
-} from "pagopa-interop-commons-test";
-import { addDays } from "date-fns";
+  ContractBuilder,
+  agreementContractBuilder,
+} from "../../src/service/agreement/agreementContractBuilder.js";
 import {
   cleanup,
   readModelService,
@@ -68,14 +77,6 @@ import {
   addOneAgreement,
   addOneAttribute,
 } from "../integrationUtils.js";
-import { handleAgreementMessageV1 } from "../../src/handler/handleAgreementMessageV1.js";
-import { config } from "../../src/config/config.js";
-import { eServiceNotFound, tenantNotFound } from "../../src/model/errors.js";
-import { getInteropBeClients } from "../../src/clients/clientProvider.js";
-import {
-  ContractBuilder,
-  agreementContractBuilder,
-} from "../../src/service/agreement/agreementContractBuilder.js";
 
 const mockAgreementId = generateId<AgreementId>();
 const mockEServiceId = generateId<EServiceId>();

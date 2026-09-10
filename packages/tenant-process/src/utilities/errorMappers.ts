@@ -2,6 +2,7 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as LocalErrorCodes } from "../model/domain/errors.js";
 
 type ErrorCodes = LocalErrorCodes | CommonErrorCodes;
@@ -93,6 +94,10 @@ export const addCertifiedAttributeErrorMapper = (
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .with("attributeDoesNotBelongToCertifier", () => HTTP_STATUS_FORBIDDEN)
     .with("certifiedAttributeAlreadyAssigned", () => HTTP_STATUS_BAD_REQUEST)
+    .with(
+      "certifiedDiscreteAttributeAlreadyAssigned",
+      () => HTTP_STATUS_CONFLICT
+    )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const addDeclaredAttributeErrorMapper = (
@@ -121,6 +126,19 @@ export const revokeCertifiedAttributeErrorMapper = (
     .with("attributeAlreadyRevoked", () => HTTP_STATUS_CONFLICT)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
+export const updateCertifiedDiscreteAttributeErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with("tenantNotFound", "attributeNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with(
+      "attributeDoesNotBelongToCertifier",
+      "tenantIsNotACertifier",
+      () => HTTP_STATUS_FORBIDDEN
+    )
+    .with("certifiedDiscreteAttributeRevoked", () => HTTP_STATUS_CONFLICT)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
 export const revokeDeclaredAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
@@ -129,7 +147,7 @@ export const revokeDeclaredAttributeErrorMapper = (
     .with("attributeNotFound", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
-export const getCertifiedAttributesErrorMapper = (
+export const getCertifiedAttributesByCertifierErrorMapper = (
   error: ApiError<ErrorCodes>
 ): number =>
   match(error.code)

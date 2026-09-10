@@ -1,8 +1,9 @@
-import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
 import { genericLogger } from "pagopa-interop-commons";
+import { getMockPurposeTemplate } from "pagopa-interop-commons-test";
 import { PurposeTemplate, WithMetadata } from "pagopa-interop-models";
 import { upsertPurposeTemplate } from "pagopa-interop-readmodel/testUtils";
+import { describe, expect, it } from "vitest";
+
 import { compare } from "../src/utils.js";
 import {
   addOnePurposeTemplate,

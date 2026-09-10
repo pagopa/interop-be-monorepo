@@ -28,6 +28,8 @@ import {
   SCP,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import { config } from "../config/config.js";
 import {
   expirationDateCannotBeInThePast,
   tenantNotFoundInVerifiers,
@@ -39,7 +41,6 @@ import {
   eServiceNotFound,
   descriptorNotFoundInEservice,
 } from "../model/domain/errors.js";
-import { config } from "../config/config.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
 export function assertVerifiedAttributeExistsInTenant(

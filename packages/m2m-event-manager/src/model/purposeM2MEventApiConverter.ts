@@ -1,6 +1,6 @@
 import { m2mEventApi } from "pagopa-interop-api-clients";
-import { match } from "ts-pattern";
 import { PurposeM2MEvent, PurposeM2MEventType } from "pagopa-interop-models";
+import { match } from "ts-pattern";
 
 export function toApiPurposeM2MEventType(
   eventType: PurposeM2MEventType

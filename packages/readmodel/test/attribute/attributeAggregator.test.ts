@@ -1,8 +1,9 @@
 import { getMockAttribute } from "pagopa-interop-commons-test";
-import { describe, it, expect } from "vitest";
 import { Attribute, WithMetadata } from "pagopa-interop-models";
-import { splitAttributeIntoObjectsSQL } from "../../src/attribute/splitters.js";
+import { describe, it, expect } from "vitest";
+
 import { aggregateAttribute } from "../../src/attribute/aggregators.js";
+import { splitAttributeIntoObjectsSQL } from "../../src/attribute/splitters.js";
 
 describe("Attribute aggregator", () => {
   it("should convert an Attribute SQL object into a business logic Attribute", () => {

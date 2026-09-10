@@ -14,15 +14,16 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  addOnePurposeTemplate,
-  purposeTemplateService,
-} from "../integrationUtils.js";
+
 import {
   purposeTemplateNotFound,
   riskAnalysisTemplateAnswerAnnotationDocumentNotFound,
   riskAnalysisTemplateAnswerNotFound,
 } from "../../src/model/domain/errors.js";
+import {
+  addOnePurposeTemplate,
+  purposeTemplateService,
+} from "../integrationUtils.js";
 
 describe("getRiskAnalysisTemplateAnswerAnnotationDocument", async () => {
   const riskAnalysisFormTemplate = getMockCompleteRiskAnalysisFormTemplate();

@@ -7,18 +7,19 @@ import {
   UserId,
 } from "pagopa-interop-models";
 import { P, match } from "ts-pattern";
+
 import { HandlerParams } from "../../models/handlerParams.js";
-import { handleProducerKeychainKeyDeleted } from "./handleProducerKeychainKeyDeleted.js";
-import { handleProducerKeychainNoKeysForAsyncEservice } from "./handleProducerKeychainNoKeysForAsyncEservice.js";
-import { handleClientKeyDeleted } from "./handleClientKeyDeleted.js";
-import { handleClientUserDeleted } from "./handleClientUserDeleted.js";
-import { handleProducerKeychainUserDeleted } from "./handleProducerKeychainUserDeleted.js";
+import { handleAsyncEserviceWithoutKeychain } from "./handleAsyncEserviceWithoutKeychain.js";
 import { handleClientKeyAdded } from "./handleClientKeyAdded.js";
+import { handleClientKeyDeleted } from "./handleClientKeyDeleted.js";
 import { handleClientPurposeAdded } from "./handleClientPurposeAddedEvent.js";
 import { handleClientPurposeRemoved } from "./handleClientPurposeRemovedEvent.js";
+import { handleClientUserDeleted } from "./handleClientUserDeleted.js";
 import { handleProducerKeychainEserviceAdded } from "./handleProducerKeychainEserviceAdded.js";
 import { handleProducerKeychainKeyAdded } from "./handleProducerKeychainKeyAdded.js";
-import { handleAsyncEserviceWithoutKeychain } from "./handleAsyncEserviceWithoutKeychain.js";
+import { handleProducerKeychainKeyDeleted } from "./handleProducerKeychainKeyDeleted.js";
+import { handleProducerKeychainNoKeysForAsyncEservice } from "./handleProducerKeychainNoKeysForAsyncEservice.js";
+import { handleProducerKeychainUserDeleted } from "./handleProducerKeychainUserDeleted.js";
 
 export async function handleAuthorizationEvent(
   params: HandlerParams<typeof AuthorizationEvent>

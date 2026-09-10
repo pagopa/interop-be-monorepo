@@ -1,6 +1,7 @@
 import { Buffer } from "buffer";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { genericInternalError } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
 import { calculateSha256Base64 } from "../../../src/utils/checksum.js";
 
 describe("calculateSha256Base64", () => {

@@ -1,6 +1,7 @@
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { runConsumer } from "kafka-iam-auth";
 import { EachMessagePayload } from "kafkajs";
 import { logger, decodeKafkaMessage } from "pagopa-interop-commons";
-import { runConsumer } from "kafka-iam-auth";
 import {
   AuthorizationEvent,
   CorrelationId,
@@ -8,9 +9,9 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { handleMessageV2 } from "./consumerServiceV2.js";
+
 import { config } from "./config/config.js";
+import { handleMessageV2 } from "./consumerServiceV2.js";
 
 const dynamoDBClient = new DynamoDBClient();
 

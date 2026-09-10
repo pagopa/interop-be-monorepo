@@ -14,6 +14,7 @@ import {
   tenantKind,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
+
 import {
   purposeTemplateNotFound,
   purposeTemplateRiskAnalysisFormNotFound,

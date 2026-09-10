@@ -1,6 +1,7 @@
 /* eslint-disable prefer-const */
 /* eslint-disable functional/no-let */
 import { EachMessagePayload } from "kafkajs";
+import { tenantApi } from "pagopa-interop-api-clients";
 import {
   getInteropHeaders,
   InteropTokenGenerator,
@@ -16,7 +17,7 @@ import {
   MockInstance,
   vi,
 } from "vitest";
-import { tenantApi } from "pagopa-interop-api-clients";
+
 import { tenantProcessClientBuilder } from "../src/clients/tenantProcessClient.js";
 import { config } from "../src/config/config.js";
 import { selfcareOnboardingProcessorBuilder } from "../src/services/selfcareOnboardingProcessor.js";

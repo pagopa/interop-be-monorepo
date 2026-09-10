@@ -24,6 +24,8 @@ import {
   delegationKind,
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeEach } from "vitest";
+
+import { apiAgreementApprovalPolicyToAgreementApprovalPolicy } from "../../src/model/domain/apiConverter.js";
 import {
   eServiceNotFound,
   eServiceDescriptorNotFound,
@@ -40,7 +42,6 @@ import {
   addOneDelegation,
   addOneEServiceTemplate,
 } from "../integrationUtils.js";
-import { apiAgreementApprovalPolicyToAgreementApprovalPolicy } from "../../src/model/domain/apiConverter.js";
 
 describe("patchUpdateDraftDescriptor", () => {
   const mockDescriptor = getMockDescriptor();

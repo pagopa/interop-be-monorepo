@@ -24,6 +24,7 @@ import {
   toPurposeTemplateV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
 import { config } from "../../src/config/config.js";
 import {
   eserviceTemplateNotAssociatedError,

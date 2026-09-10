@@ -1,4 +1,10 @@
 import {
+  getMockAuthData,
+  getMockClient,
+  getMockContext,
+  sortClient,
+} from "pagopa-interop-commons-test";
+import {
   Client,
   ClientId,
   TenantId,
@@ -6,12 +12,7 @@ import {
   generateId,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import {
-  getMockAuthData,
-  getMockClient,
-  getMockContext,
-  sortClient,
-} from "pagopa-interop-commons-test";
+
 import { clientNotFound } from "../../src/model/domain/errors.js";
 import { addOneClient, authorizationService } from "../integrationUtils.js";
 

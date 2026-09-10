@@ -11,6 +11,7 @@ import {
   tenantAttributeType,
 } from "pagopa-interop-models";
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
+
 import { certifiedDiscreteAttributeAlreadyAssigned } from "../../src/model/domain/errors.js";
 import {
   addOneAttribute,

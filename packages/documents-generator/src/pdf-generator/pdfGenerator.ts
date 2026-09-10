@@ -1,13 +1,13 @@
 /* eslint-disable functional/no-let */
-import path from "path";
-import { fileURLToPath } from "url";
+import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import {
   pdfGenerationError,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
   Tenant,
 } from "pagopa-interop-models";
+import path from "path";
 import puppeteer, { Browser } from "puppeteer";
-import { buildHTMLTemplateService } from "pagopa-interop-commons";
+import { fileURLToPath } from "url";
 
 export interface PDFGenerator {
   generate: (

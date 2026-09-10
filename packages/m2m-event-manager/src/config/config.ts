@@ -2,8 +2,8 @@ import {
   ApplicationAuditProducerConfig,
   CommonHTTPServiceConfig,
 } from "pagopa-interop-commons";
-import { z } from "zod";
 import { M2MEventSQLDbConfig } from "pagopa-interop-commons";
+import { z } from "zod";
 
 const M2MEventsManagerConfig = CommonHTTPServiceConfig.and(
   ApplicationAuditProducerConfig

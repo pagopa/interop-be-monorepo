@@ -1,19 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { authorizationApi, m2mGatewayApiV3 } from "pagopa-interop-api-clients";
 import {
   getMockWithMetadata,
   getMockedApiConsumerFullClient,
 } from "pagopa-interop-commons-test";
 import { generateId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   clientService,
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
   mockInteropBeClients,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
-import { toM2MGatewayApiConsumerClient } from "../../../src/api/clientApiConverter.js";
 
 describe("createClient", () => {
   const mockConsumerClient = getMockedApiConsumerFullClient({

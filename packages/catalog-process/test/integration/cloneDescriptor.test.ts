@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, FileManagerError } from "pagopa-interop-commons";
+import { dateAtRomeZone, timeAtRomeZone } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -28,7 +29,8 @@ import {
   EServiceTemplate,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
-import { dateAtRomeZone, timeAtRomeZone } from "pagopa-interop-commons";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNameDuplicateForProducer,
   eServiceNotFound,
@@ -36,7 +38,6 @@ import {
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneDelegation,
   addOneEService,
@@ -95,12 +96,30 @@ describe("clone descriptor", () => {
       interface: interfaceDocument,
       asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc,
       docs: [document1, document2],
+      rejectionReasons: [
+        { rejectionReason: "Some rejection reason", rejectedAt: new Date() },
+      ],
+      delegatedArchivingRequest: [
+        {
+          requestedAt: new Date(),
+          gracePeriodDays: 30,
+          requesterId: generateId(),
+        },
+      ],
     };
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
       personalData: true,
       asyncExchange: true,
+      delegatedArchivingRequest: [
+        {
+          requestedAt: new Date(),
+          gracePeriodDays: 30,
+          requesterId: generateId(),
+          archivingReason: "Some reason",
+        },
+      ],
     };
     await addOneEService(eservice);
 
@@ -226,6 +245,8 @@ describe("clone descriptor", () => {
         Number(writtenPayload.eservice?.descriptors[0].createdAt)
       ),
       docs: [expectedDocument1, expectedDocument2],
+      rejectionReasons: undefined,
+      delegatedArchivingRequest: undefined,
     };
 
     const expectedEService: EService = {
@@ -236,6 +257,7 @@ describe("clone descriptor", () => {
       )} ${timeAtRomeZone(cloneTimestamp)}`,
       descriptors: [expectedDescriptor],
       createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
+      delegatedArchivingRequest: undefined,
     };
     expect(writtenPayload).toEqual({
       sourceEservice: toEServiceV2(eservice),

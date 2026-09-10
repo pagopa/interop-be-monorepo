@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { interpolateTemplateSoapApiSpec } from "pagopa-interop-commons";
 import {
   generateId,
   interfaceExtractingInfoError,
 } from "pagopa-interop-models";
-import { interpolateTemplateSoapApiSpec } from "pagopa-interop-commons";
+import { describe, expect, it } from "vitest";
+
 import { getMockEService, readFileContent } from "../src/index.js";
 
 describe("interpolateTemplateSoapApiSpec", async () => {

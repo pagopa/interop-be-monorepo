@@ -1,18 +1,19 @@
-import { describe, it, expect, vi } from "vitest";
-import {
-  generateToken,
-  getMockedApiAttribute,
-} from "pagopa-interop-commons-test";
-import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
-import request from "supertest";
 import {
   attributeRegistryApi,
   m2mGatewayApi,
 } from "pagopa-interop-api-clients";
-import { api, mockAttributeService } from "../../vitest.api.setup.js";
+import { AuthRole, authRole, genericLogger } from "pagopa-interop-commons";
+import {
+  generateToken,
+  getMockedApiAttribute,
+} from "pagopa-interop-commons-test";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { toM2MGatewayApiVerifiedAttribute } from "../../../src/api/attributeApiConverter.js";
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { attributeNotFound } from "../../../src/model/errors.js";
-import { toM2MGatewayApiVerifiedAttribute } from "../../../src/api/attributeApiConverter.js";
+import { api, mockAttributeService } from "../../vitest.api.setup.js";
 
 describe("GET /verifiedAttributes/:attributeId router test", () => {
   const mockApiVerifiedAttribute = getMockedApiAttribute({
