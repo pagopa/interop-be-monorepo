@@ -341,5 +341,6 @@ const reviewerWorkflowToApiReviewerWorkflow = (
   })),
   signingState: signingStateToApiSigningState(workflow.signingState),
   signedBy: workflow.signedBy,
+  rejectedBy: workflow.rejectedBy,
   rejectionReason: workflow.rejectionReason,
 });

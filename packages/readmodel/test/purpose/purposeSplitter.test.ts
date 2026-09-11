@@ -58,6 +58,7 @@ describe("Purpose splitter", () => {
       ],
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
+      rejectedBy: generateId<UserId>(),
       rejectionReason: "Reviewer workflow rejection reason",
       sentToReviewerAt: new Date(),
     };
@@ -126,6 +127,7 @@ describe("Purpose splitter", () => {
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
+      reviewerWorkflowRejectedBy: reviewerWorkflow.rejectedBy!,
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
       reviewerWorkflowSentToReviewerAt: null,
     };
@@ -312,6 +314,7 @@ describe("Purpose splitter", () => {
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: null,
       reviewerWorkflowSignedBy: null,
+      reviewerWorkflowRejectedBy: null,
       reviewerWorkflowRejectionReason: null,
       reviewerWorkflowSentToReviewerAt: null,
     };
