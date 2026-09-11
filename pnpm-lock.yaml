@@ -96,9 +96,6 @@ catalogs:
     '@types/swagger-ui-express':
       specifier: 4.1.8
       version: 4.1.8
-    '@xmldom/xmldom':
-      specifier: 0.9.10
-      version: 0.9.10
     '@zodios/core':
       specifier: 10.9.6
       version: 10.9.6
@@ -291,9 +288,6 @@ catalogs:
     winston:
       specifier: 3.16.0
       version: 3.16.0
-    xml-crypto:
-      specifier: 6.0.1
-      version: 6.0.1
     yaml:
       specifier: 2.8.3
       version: 2.8.3
@@ -1330,9 +1324,6 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: 'catalog:'
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
-      '@xmldom/xmldom':
-        specifier: 'catalog:'
-        version: 0.9.10
       '@zodios/core':
         specifier: 'catalog:'
         version: 10.9.6(axios@1.18.0)(zod@3.23.8)
@@ -1351,9 +1342,6 @@ importers:
       express:
         specifier: 'catalog:'
         version: 4.20.0
-      fast-xml-parser:
-        specifier: 'catalog:'
-        version: 5.7.0
       pagopa-interop-agreement-lifecycle:
         specifier: workspace:*
         version: link:../agreement-lifecycle
@@ -1381,9 +1369,6 @@ importers:
       ts-pattern:
         specifier: 'catalog:'
         version: 5.2.0
-      xml-crypto:
-        specifier: 'catalog:'
-        version: 6.0.1
       yaml:
         specifier: 'catalog:'
         version: 2.8.3
@@ -8971,19 +8956,6 @@ packages:
   '@vue/shared@3.5.30':
     resolution: {integrity: sha512-YXgQ7JjaO18NeK2K9VTbDHaFy62WrObMa6XERNfNOkAhD1F1oDSf3ZJ7K6GqabZ0BvSDHajp8qfS5Sa2I9n8uQ==}
 
-  '@xmldom/is-dom-node@1.0.1':
-    resolution: {integrity: sha512-CJDxIgE5I0FH+ttq/Fxy6nRpxP70+e2O048EPe85J2use3XKdatVM7dDVvFNjQudd9B49NPoZ+8PG49zj4Er8Q==}
-    engines: {node: '>= 16'}
-
-  '@xmldom/xmldom@0.8.10':
-    resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
-    engines: {node: '>=10.0.0'}
-    deprecated: this version has critical issues, please update to the latest version
-
-  '@xmldom/xmldom@0.9.10':
-    resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
-    engines: {node: '>=14.6'}
-
   '@zodios/core@10.9.6':
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
@@ -12299,14 +12271,6 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-
-  xml-crypto@6.0.1:
-    resolution: {integrity: sha512-v05aU7NS03z4jlZ0iZGRFeZsuKO1UfEbbYiaeRMiATBFs6Jq9+wqKquEMTn4UTrYZ9iGD8yz3KT4L9o2iF682w==}
-    engines: {node: '>=16'}
-
-  xpath@0.0.33:
-    resolution: {integrity: sha512-NNXnzrkDrAzalLhIUc01jO2mOzXGXh1JwPgkihcLLzw98c0WgYDmmjSh1Kl3wzaxSVWMuA+fe0WTWOBDWCBmNA==}
-    engines: {node: '>=0.6.0'}
 
   xtend@4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}
@@ -15936,12 +15900,6 @@ snapshots:
       '@vue/shared': 3.5.30
 
   '@vue/shared@3.5.30': {}
-
-  '@xmldom/is-dom-node@1.0.1': {}
-
-  '@xmldom/xmldom@0.8.10': {}
-
-  '@xmldom/xmldom@0.9.10': {}
 
   '@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8)':
     dependencies:
@@ -19597,14 +19555,6 @@ snapshots:
   wrappy@1.0.2: {}
 
   ws@8.17.1: {}
-
-  xml-crypto@6.0.1:
-    dependencies:
-      '@xmldom/is-dom-node': 1.0.1
-      '@xmldom/xmldom': 0.8.10
-      xpath: 0.0.33
-
-  xpath@0.0.33: {}
 
   xtend@4.0.2: {}
 
