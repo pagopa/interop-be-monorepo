@@ -1,25 +1,59 @@
-name: Delete branch on PR close (unmerged)
-
-on:
-  pull_request:
-    types:
-      - "closed"
+name: Delete stale branches
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+on:
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch: {}
+
+env:
+  # Number of months of inactivity after which a branch is considered stale
+  STALE_MONTHS: 3
+  # Branches that must never be deleted
+  PROTECTED_BRANCHES: "main,develop"
+
 jobs:
-  delete-branch:
-    if: |
-      github.event.pull_request.merged == false &&
-      !contains(fromJSON('["develop", "main"]'), github.head_ref)
+  delete-stale-branches:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: read
     steps:
-      - name: Delete branch
-        run: |
-          gh api -X DELETE "repos/${{ github.repository }}/git/refs/heads/${{ github.head_ref }}"
+      - name: Delete stale branches
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          CUTOFF_EPOCH=$(date -d "-${STALE_MONTHS} months" +%s)
+
+          IFS=',' read -ra PROTECTED <<< "$PROTECTED_BRANCHES"
+
+          # Branches referenced by open PRs (draft PRs also have state=open)
+          OPEN_PR_BRANCHES=$(gh pr list --repo "$REPO" --state open --json headRefName --jq '.[].headRefName')
+
+          ALL_BRANCHES=$(gh api "repos/${REPO}/branches" --paginate --jq '.[].name')
+
+          for BRANCH in $ALL_BRANCHES; do
+            if printf '%s\n' "${PROTECTED[@]}" | grep -qx "$BRANCH"; then
+              echo "Skip (protected): $BRANCH"
+              continue
+            fi
+
+            if printf '%s\n' "$OPEN_PR_BRANCHES" | grep -qx "$BRANCH"; then
+              echo "Skip (open/draft PR): $BRANCH"
+              continue
+            fi
+
+            COMMIT_DATE=$(gh api "repos/${REPO}/branches/${BRANCH}" --jq '.commit.commit.committer.date')
+            COMMIT_EPOCH=$(date -d "$COMMIT_DATE" +%s)
+
+            if [ "$COMMIT_EPOCH" -lt "$CUTOFF_EPOCH" ]; then
+              echo "Deleting $BRANCH (last commit: $COMMIT_DATE)"
+              gh api -X DELETE "repos/${REPO}/git/refs/heads/${BRANCH}"
+            fi
+          done
