@@ -1313,3 +1313,39 @@ export const toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate =
     },
     correlationId,
   });
+
+export const toCreateEventEServicePendingDescriptorDeletedOnRevoke = (
+  version: number,
+  descriptorId: DescriptorId,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServicePendingDescriptorDeletedbyRevoke",
+    event_version: 2,
+    data: {
+      descriptorId,
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});
+
+export const toCreateEventEServiceDeletedOnRevoke = (
+  version: number,
+  eservice: EService,
+  correlationId: CorrelationId
+): CreateEvent<EServiceEvent> => ({
+  streamId: eservice.id,
+  version,
+  event: {
+    type: "EServiceDeletedbyRevoke",
+    event_version: 2,
+    data: {
+      eservice: toEServiceV2(eservice),
+    },
+  },
+  correlationId,
+});

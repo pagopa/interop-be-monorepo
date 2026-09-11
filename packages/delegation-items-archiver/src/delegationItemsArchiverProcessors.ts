@@ -11,6 +11,7 @@ import {
   Delegation,
   DelegationId,
   DescriptorId,
+  DescriptorState,
   purposeVersionState,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -91,6 +92,13 @@ export const processPurposes = async ({
   );
 };
 
+const isInPendingState = (
+  descriptorStates: DescriptorState | undefined
+): boolean =>
+  descriptorStates
+    ? descriptorStates === "Draft" || descriptorStates === "WaitingForApproval"
+    : false;
+
 const hasPendingArchivingRequest = (
   archivingRequests:
     | Array<
@@ -102,6 +110,42 @@ const hasPendingArchivingRequest = (
     (request) =>
       request.acceptedAt === undefined && request.rejectedAt === undefined
   ) ?? false;
+
+export const processEServicePendingDesriptors = async ({
+  readModelService,
+  catalogProcessClient,
+  headers,
+  delegation,
+}: {
+  readModelService: ReadModelServiceSQL;
+  catalogProcessClient: catalogApi.CatalogProcessClient;
+  headers: InteropHeaders;
+  delegation: Delegation;
+}): Promise<void> => {
+  const eservice = await readModelService.getEService(delegation.eserviceId);
+
+  if (!eservice) {
+    return;
+  }
+
+  const descriptorsIdInDraftOrWaitingForApprovalState = eservice.descriptors
+    .filter((descriptor) => isInPendingState(descriptor.state))
+    .map((descriptor) => descriptor.id)
+    .at(0);
+
+  if (descriptorsIdInDraftOrWaitingForApprovalState) {
+    await catalogProcessClient.internalDeleteDelegatedPendingDescriptor(
+      undefined,
+      {
+        params: {
+          eServiceId: eservice.id,
+          descriptorId: descriptorsIdInDraftOrWaitingForApprovalState,
+        },
+        headers,
+      }
+    );
+  }
+};
 
 export const processEServiceArchivingRequests = async ({
   readModelService,
