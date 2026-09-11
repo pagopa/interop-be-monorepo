@@ -96,9 +96,6 @@ catalogs:
     '@types/swagger-ui-express':
       specifier: 4.1.8
       version: 4.1.8
-    '@xmldom/xmldom':
-      specifier: 0.9.10
-      version: 0.9.10
     '@zodios/core':
       specifier: 10.9.6
       version: 10.9.6
@@ -1327,9 +1324,6 @@ importers:
       '@aws-sdk/util-dynamodb':
         specifier: 'catalog:'
         version: 3.840.0(@aws-sdk/client-dynamodb@3.840.0)
-      '@xmldom/xmldom':
-        specifier: 'catalog:'
-        version: 0.9.10
       '@zodios/core':
         specifier: 'catalog:'
         version: 10.9.6(axios@1.18.0)(zod@3.23.8)
@@ -1348,9 +1342,6 @@ importers:
       express:
         specifier: 'catalog:'
         version: 4.20.0
-      fast-xml-parser:
-        specifier: 'catalog:'
-        version: 5.7.0
       pagopa-interop-agreement-lifecycle:
         specifier: workspace:*
         version: link:../agreement-lifecycle
@@ -8965,10 +8956,6 @@ packages:
   '@vue/shared@3.5.30':
     resolution: {integrity: sha512-YXgQ7JjaO18NeK2K9VTbDHaFy62WrObMa6XERNfNOkAhD1F1oDSf3ZJ7K6GqabZ0BvSDHajp8qfS5Sa2I9n8uQ==}
 
-  '@xmldom/xmldom@0.9.10':
-    resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
-    engines: {node: '>=14.6'}
-
   '@zodios/core@10.9.6':
     resolution: {integrity: sha512-aH4rOdb3AcezN7ws8vDgBfGboZMk2JGGzEq/DtW65MhnRxyTGRuLJRWVQ/2KxDgWvV2F5oTkAS+5pnjKbl0n+A==}
     peerDependencies:
@@ -15913,8 +15900,6 @@ snapshots:
       '@vue/shared': 3.5.30
 
   '@vue/shared@3.5.30': {}
-
-  '@xmldom/xmldom@0.9.10': {}
 
   '@zodios/core@10.9.6(axios@1.18.0)(zod@3.23.8)':
     dependencies:
