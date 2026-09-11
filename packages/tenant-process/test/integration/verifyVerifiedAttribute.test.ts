@@ -26,6 +26,7 @@ import {
   delegationState,
   delegationKind,
   AttributeId,
+  DelegationId,
   TenantVerifier,
   TenantRevoker,
 } from "pagopa-interop-models";
@@ -57,6 +58,7 @@ import {
 describe("verifyVerifiedAttribute", async () => {
   const targetTenant = getMockTenant();
   const requesterTenant = getMockTenant();
+  const delegateTenant = getMockTenant();
 
   const tenantAttributeSeedId = generateId<AttributeId>();
 
@@ -95,7 +97,8 @@ describe("verifyVerifiedAttribute", async () => {
   const delegation = getMockDelegation({
     kind: delegationKind.delegatedProducer,
     eserviceId: eService1.id,
-    delegateId: requesterTenant.id,
+    delegatorId: requesterTenant.id,
+    delegateId: delegateTenant.id,
     state: delegationState.active,
   });
 
@@ -126,6 +129,7 @@ describe("verifyVerifiedAttribute", async () => {
       await addOneEService(eService1);
       await addOneAgreement(agreementEservice1);
       if (hasDelegation) {
+        await addOneTenant(delegateTenant);
         await addOneDelegation(delegation);
       }
 
@@ -135,8 +139,13 @@ describe("verifyVerifiedAttribute", async () => {
             tenantId: targetTenant.id,
             attributeId: tenantAttributeSeedId,
             agreementId: agreementEservice1.id,
+            delegationId: hasDelegation ? delegation.id : undefined,
           },
-          getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+          getMockContext({
+            authData: getMockAuthData(
+              hasDelegation ? delegateTenant.id : requesterTenant.id
+            ),
+          })
         );
 
       const writtenEvent = await readLastEventByStreamId(
@@ -198,7 +207,7 @@ describe("verifyVerifiedAttribute", async () => {
     },
   ])(
     "Should verify the VerifiedAttribute if verifiedTenantAttribute exist $desc",
-    async (hasDelegation) => {
+    async ({ hasDelegation }) => {
       const mockVerifier = getMockTenant();
       const mockRevoker = getMockTenant();
       const mockVerifiedBy: TenantVerifier = {
@@ -234,6 +243,7 @@ describe("verifyVerifiedAttribute", async () => {
       await addOneEService(eService1);
       await addOneAgreement(agreementEservice1);
       if (hasDelegation) {
+        await addOneTenant(delegateTenant);
         await addOneDelegation(delegation);
       }
 
@@ -243,8 +253,13 @@ describe("verifyVerifiedAttribute", async () => {
             tenantId: tenantWithVerifiedAttribute.id,
             attributeId: tenantAttributeSeedId,
             agreementId: agreementEservice1.id,
+            delegationId: hasDelegation ? delegation.id : undefined,
           },
-          getMockContext({ authData: getMockAuthData(requesterTenant.id) })
+          getMockContext({
+            authData: getMockAuthData(
+              hasDelegation ? delegateTenant.id : requesterTenant.id
+            ),
+          })
         );
       const writtenEvent = await readLastEventByStreamId(
         tenantWithVerifiedAttribute.id,
@@ -294,6 +309,46 @@ describe("verifyVerifiedAttribute", async () => {
       });
     }
   );
+
+  it.each([
+    { desc: "does not provide", delegationId: undefined },
+    { desc: "provides an incorrect", delegationId: generateId<DelegationId>() },
+  ])(
+    "Should throw attributeVerificationNotAllowed if a producer delegate $desc delegationId",
+    async ({ delegationId }) => {
+      const delegateTenant = getMockTenant();
+      const producerDelegation = getMockDelegation({
+        kind: delegationKind.delegatedProducer,
+        delegatorId: requesterTenant.id,
+        delegateId: delegateTenant.id,
+        eserviceId: eService1.id,
+        state: delegationState.active,
+      });
+
+      await addOneTenant(targetTenant);
+      await addOneTenant(requesterTenant);
+      await addOneTenant(delegateTenant);
+      await addOneAttribute(attribute);
+      await addOneEService(eService1);
+      await addOneAgreement(agreementEservice1);
+      await addOneDelegation(producerDelegation);
+
+      await expect(
+        tenantService.verifyVerifiedAttribute(
+          {
+            tenantId: targetTenant.id,
+            attributeId: tenantAttributeSeedId,
+            agreementId: agreementEservice1.id,
+            delegationId,
+          },
+          getMockContext({ authData: getMockAuthData(delegateTenant.id) })
+        )
+      ).rejects.toThrowError(
+        attributeVerificationNotAllowed(targetTenant.id, tenantAttributeSeedId)
+      );
+    }
+  );
+
   it("Should throw tenantNotFound if the tenant doesn't exist", async () => {
     await addOneEService(eService1);
     await addOneAgreement(agreementEservice1);

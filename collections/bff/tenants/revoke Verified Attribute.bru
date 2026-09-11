@@ -6,7 +6,7 @@ meta {
 
 delete {
   url: {{host-bff}}/tenants/:tenantId/attributes/verified/:attributeId
-  body: none
+  body: json
   auth: none
 }
 
@@ -17,6 +17,13 @@ params:path {
 
 headers {
   Authorization: {{JWT}}
+}
+
+body:json {
+  {
+    "agreementId": "{{agreementId}}",
+    "delegationId": "{{delegationId}}"
+  }
 }
 
 docs {

@@ -7,7 +7,6 @@ import {
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import {
-  AgreementId,
   AttributeId,
   generateId,
   Tenant,
@@ -31,8 +30,9 @@ import { api, tenantService } from "../vitest.api.setup.js";
 
 describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test", () => {
   const tenant: Tenant = getMockTenant();
-  const defaultBody: { agreementId: AgreementId } = {
+  const defaultBody: tenantApi.revokeVerifiedAttribute_Body = {
     agreementId: generateId(),
+    delegationId: generateId(),
   };
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
@@ -46,7 +46,7 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     token: string,
     tenantId: TenantId = tenant.id,
     attributeId: AttributeId = generateId(),
-    body: { agreementId: AgreementId } = defaultBody
+    body: tenantApi.revokeVerifiedAttribute_Body = defaultBody
   ) =>
     request(api)
       .delete(`/tenants/${tenantId}/attributes/verified/${attributeId}`)
@@ -67,6 +67,15 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
+      );
+      expect(tenantService.revokeVerifiedAttribute).toHaveBeenLastCalledWith(
+        {
+          tenantId: tenant.id,
+          attributeId: expect.any(String),
+          agreementId: defaultBody.agreementId,
+          delegationId: defaultBody.delegationId,
+        },
+        expect.anything()
       );
     }
   );
@@ -112,6 +121,7 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     { attributeId: "invalid" as AttributeId },
     { body: {} },
     { body: { agreementId: "invalid" } },
+    { body: { ...defaultBody, delegationId: "invalid" } },
     { body: { ...defaultBody, extraField: 1 } },
   ])(
     "Should return 400 if passed invalid data: %s",
@@ -121,7 +131,7 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
         token,
         tenantId,
         attributeId,
-        body as { agreementId: AgreementId }
+        body as tenantApi.revokeVerifiedAttribute_Body
       );
       expect(res.status).toBe(400);
     }

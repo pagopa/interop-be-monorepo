@@ -1,12 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
+import { bffApi } from "pagopa-interop-api-clients";
 import { authRole } from "pagopa-interop-commons";
 import { generateToken } from "pagopa-interop-commons-test";
-import {
-  AgreementId,
-  AttributeId,
-  TenantId,
-  generateId,
-} from "pagopa-interop-models";
+import { AttributeId, TenantId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
@@ -14,8 +10,9 @@ import { appBasePath } from "../../../src/config/appBasePath.js";
 import { api, clients } from "../../vitest.api.setup.js";
 
 describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test", () => {
-  const defaultBody: { agreementId: AgreementId } = {
+  const defaultBody: bffApi.revokeVerifiedAttribute_Body = {
     agreementId: generateId(),
+    delegationId: generateId(),
   };
 
   beforeEach(() => {
@@ -28,7 +25,7 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     token: string,
     tenantId: TenantId = generateId(),
     attributeId: AttributeId = generateId(),
-    body: { agreementId: AgreementId } = defaultBody
+    body: bffApi.revokeVerifiedAttribute_Body = defaultBody
   ) =>
     request(api)
       .delete(
@@ -42,6 +39,9 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
+    expect(
+      clients.tenantProcessClient.tenantAttribute.revokeVerifiedAttribute
+    ).toHaveBeenCalledWith(defaultBody, expect.anything());
   });
 
   it.each([
@@ -49,6 +49,7 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
     { attributeId: "invalid" as AttributeId },
     { body: {} },
     { body: { agreementId: "invalid" } },
+    { body: { ...defaultBody, delegationId: "invalid" } },
     { body: { ...defaultBody, extraField: 1 } },
   ])(
     "Should return 400 if passed invalid data: %s",
@@ -58,7 +59,7 @@ describe("API DELETE /tenants/{tenantId}/attributes/verified/{attributeId} test"
         token,
         tenantId,
         attributeId,
-        body as { agreementId: AgreementId }
+        body as bffApi.revokeVerifiedAttribute_Body
       );
       expect(res.status).toBe(400);
     }
