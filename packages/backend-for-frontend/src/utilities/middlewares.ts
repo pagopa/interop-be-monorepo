@@ -9,6 +9,24 @@ import { unauthorizedError } from "pagopa-interop-models";
 
 import { makeApiProblem } from "../model/errors.js";
 
+/**
+ * Exposes the matched route on the context, to scope the user facing error copy.
+ * `req.route` is populated only once the route matches, i.e. after this
+ * middleware has run, so the value is resolved lazily when the context is read
+ * inside the route handler.
+ */
+export function endpointContextMiddleware(): ZodiosRouterContextRequestHandler<ExpressContext> {
+  return (req, _res, next) => {
+    Object.defineProperty(req.ctx, "endpoint", {
+      configurable: true,
+      enumerable: true,
+      get: () =>
+        req.route ? `${req.method.toUpperCase()} ${req.route.path}` : undefined,
+    });
+    return next();
+  };
+}
+
 export function uiAuthDataValidationMiddleware(): ZodiosRouterContextRequestHandler<ExpressContext> {
   return async (req, res, next) => {
     // We assume that:
