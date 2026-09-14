@@ -74,6 +74,7 @@ export type UiSection =
   | "/fruizione"
   | "/fruizione/richieste"
   | "/fruizione/finalita"
+  | "/analisi-del-rischio"
   | "/catalogo-e-service"
   | "/aderente"
   | "/aderente/deleghe"
@@ -114,15 +115,28 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
       "/fruizione/finalita",
     purposePublishedWithRiskAnalysisToReviewer: "/fruizione/finalita",
-    draftPurposeDeletedWithRiskAnalysisToReviewer: "/fruizione/finalita",
+    draftPurposeDeletedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
     purposeRiskAnalysisAssignmentRemovedToReviewer: "/fruizione/finalita",
     purposeRiskAnalysisSignedToReviewer: "/fruizione/finalita",
     purposeRiskAnalysisSignedToAdmin: "/fruizione/finalita",
     purposeRiskAnalysisRejectedToAdmin: "/fruizione/finalita",
   } as const;
 
-export const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
-  new Set(["certifiedVerifiedAttributeAssignedRevokedToAssignee"]);
+const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
+  new Set([
+    "certifiedVerifiedAttributeAssignedRevokedToAssignee",
+    "draftPurposeDeletedWithRiskAnalysisToReviewer",
+  ]);
+
+export function getNotificationDeepLink(
+  notificationType: NotificationType,
+  entityId: string
+): string {
+  const section = notificationTypeToUiSection[notificationType];
+  return notificationTypesWithoutEntityIdInDeepLink.has(notificationType)
+    ? section
+    : `${section}/${entityId}`;
+}
 
 export const Category = z.enum([
   "Subscribers",

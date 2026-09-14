@@ -2,6 +2,7 @@ import {
   EmailNotificationMessagePayload,
   PurposeEvent,
 } from "pagopa-interop-models";
+import { getRiskAnalysisAssignmentRecipients } from "pagopa-interop-notification-commons";
 import { P, match } from "ts-pattern";
 
 import { HandlerParams } from "../../models/handlerParams.js";
@@ -162,32 +163,29 @@ export async function handlePurposeEvent(
         })),
       ]
     )
-    .with(
-      { type: "PurposeRiskAnalysisWorkflowCreated" },
-      ({ data: { purpose, newReviewersToNotify }, type }) =>
-        handlePurposeRiskAnalysisAssignedForSigningToReviewer({
-          purposeV2Msg: purpose,
-          reviewerIds: newReviewersToNotify,
-          eventType: type,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+    .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, (event) =>
+      handlePurposeRiskAnalysisAssignedForSigningToReviewer({
+        purposeV2Msg: event.data.purpose,
+        reviewerIds:
+          getRiskAnalysisAssignmentRecipients(event).signingReviewerIds,
+        eventType: event.type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
-    .with(
-      { type: "PurposeRiskAnalysisSubmitted" },
-      ({ data: { purpose }, type }) =>
-        handlePurposeRiskAnalysisAssignedForSigningToReviewer({
-          purposeV2Msg: purpose,
-          reviewerIds:
-            purpose?.reviewerWorkflow?.reviewers.map(({ id }) => id) ?? [],
-          eventType: type,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+    .with({ type: "PurposeRiskAnalysisSubmitted" }, (event) =>
+      handlePurposeRiskAnalysisAssignedForSigningToReviewer({
+        purposeV2Msg: event.data.purpose,
+        reviewerIds:
+          getRiskAnalysisAssignmentRecipients(event).signingReviewerIds,
+        eventType: event.type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
     .with(
       {

@@ -115,14 +115,16 @@ message MaintenancePurposeRiskAnalysisSetTenantKindV2 {
 
 message PurposeRiskAnalysisWorkflowCreatedV2 {
   PurposeV2 purpose = 1;
-  repeated string newReviewersToNotify = 2;
-  repeated string oldReviewersToNotify = 3;
+  repeated string addedReviewers = 2;
+  repeated RiskAnalysisReviewerV2 removedReviewers = 3;
+  optional RiskAnalysisReviewModeV2 previousReviewMode = 4;
 }
 
 message PurposeRiskAnalysisAssignedV2 {
   PurposeV2 purpose = 1;
-  repeated string newReviewersToNotify = 2;
-  repeated string oldReviewersToNotify = 3;
+  repeated string addedReviewers = 2;
+  repeated RiskAnalysisReviewerV2 removedReviewers = 3;
+  optional RiskAnalysisReviewModeV2 previousReviewMode = 4;
 }
 
 message PurposeRiskAnalysisSubmittedV2 {
@@ -143,5 +145,6 @@ message PurposeRiskAnalysisFormEditedV2 {
 
 message PurposeRiskAnalysisSelfAssignedV2 {
   PurposeV2 purpose = 1;
-  repeated string oldReviewersToNotify = 2;
+  repeated RiskAnalysisReviewerV2 removedReviewers = 2;
+  optional RiskAnalysisReviewModeV2 previousReviewMode = 3;
 }
