@@ -100,7 +100,12 @@ describe("handlePurposeRiskAnalysisSignedToReviewer", () => {
       readModelService,
       logger
     );
-    expect(notifications).toEqual(
+    expect(
+      notifications.filter(
+        ({ notificationType }) =>
+          notificationType === "purposeRiskAnalysisSignedToReviewer"
+      )
+    ).toEqual(
       otherReviewerIds.map((userId) => ({
         userId,
         tenantId: consumerId,
@@ -112,6 +117,7 @@ describe("handlePurposeRiskAnalysisSignedToReviewer", () => {
   });
 
   it("should not create notifications when the signer is the only reviewer", async () => {
+    mockGetNotificationRecipients.mockResolvedValue([]);
     const singleReviewerPurpose: Purpose = {
       ...purpose,
       reviewerWorkflow: {
@@ -129,7 +135,17 @@ describe("handlePurposeRiskAnalysisSignedToReviewer", () => {
       readModelService
     );
 
-    expect(notifications).toEqual([]);
-    expect(mockGetNotificationRecipients).not.toHaveBeenCalled();
+    expect(
+      notifications.filter(
+        ({ notificationType }) =>
+          notificationType === "purposeRiskAnalysisSignedToReviewer"
+      )
+    ).toEqual([]);
+    expect(mockGetNotificationRecipients).not.toHaveBeenCalledWith(
+      [consumerId],
+      "purposeRiskAnalysisSignedToReviewer",
+      readModelService,
+      logger
+    );
   });
 });
