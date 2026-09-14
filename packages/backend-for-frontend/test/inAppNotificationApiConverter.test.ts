@@ -275,6 +275,10 @@ describe("toBffApiNotification", () => {
   it.each<[inAppNotificationApi.Notification["notificationType"], string]>([
     ["agreementManagementToProducer", "/erogazione/richieste/entity-uuid"],
     ["purposeActivatedRejectedToConsumer", "/fruizione/finalita/entity-uuid"],
+    [
+      "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer",
+      "/analisi-del-rischio/entity-uuid",
+    ],
   ])(
     "should include entityId in deepLink for %s",
     (notificationType, deepLink) => {

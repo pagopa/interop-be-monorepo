@@ -20,6 +20,10 @@ describe("API GET /emailDeepLink/:notificationType/:entityId", () => {
       .query(selfcareId ? { selfcareId } : {});
 
   it.each<[NotificationType, string]>([
+    [
+      "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer",
+      `/analisi-del-rischio/${entityId}`,
+    ],
     ["draftPurposeDeletedWithRiskAnalysisToReviewer", "/analisi-del-rischio"],
     [
       "certifiedVerifiedAttributeAssignedRevokedToAssignee",
