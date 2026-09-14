@@ -152,7 +152,7 @@ describe("risk analysis assignment recipients", () => {
       ).toEqual({
         signingReviewerIds: sign,
         writingReviewerIds: write,
-        removedReviewerIds: remove,
+        assignmentRemovedReviewerIds: remove,
       });
     }
   );
@@ -174,7 +174,7 @@ describe("risk analysis assignment recipients", () => {
         ).toEqual({
           signingReviewerIds: [],
           writingReviewerIds: mode === writing ? ["x", "y"] : [],
-          removedReviewerIds: [],
+          assignmentRemovedReviewerIds: [],
         });
       }
     }
@@ -219,7 +219,7 @@ describe("risk analysis assignment recipients", () => {
       ).toEqual({
         signingReviewerIds: [],
         writingReviewerIds: write,
-        removedReviewerIds: remove,
+        assignmentRemovedReviewerIds: remove,
       });
     }
   );
@@ -247,7 +247,7 @@ describe("risk analysis assignment recipients", () => {
     expect(getRiskAnalysisAssignmentRecipients(event)).toEqual({
       signingReviewerIds: ["x", "y"],
       writingReviewerIds: [],
-      removedReviewerIds: [],
+      assignmentRemovedReviewerIds: [],
     });
   });
 
@@ -259,7 +259,7 @@ describe("risk analysis assignment recipients", () => {
     ).toEqual({
       signingReviewerIds: [],
       writingReviewerIds: [],
-      removedReviewerIds: [],
+      assignmentRemovedReviewerIds: [],
     });
   });
 

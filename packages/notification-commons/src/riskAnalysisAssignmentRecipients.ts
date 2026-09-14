@@ -22,7 +22,7 @@ type AssignmentEvent = Extract<
 type AssignmentRecipients = {
   signingReviewerIds: string[];
   writingReviewerIds: string[];
-  removedReviewerIds: string[];
+  assignmentRemovedReviewerIds: string[];
 };
 
 export function getRiskAnalysisAssignmentRecipients(
@@ -34,68 +34,76 @@ export function getRiskAnalysisAssignmentRecipients(
   const purpose = fromPurposeV2(event.data.purpose);
   const reviewerIds =
     purpose.reviewerWorkflow?.reviewers.map(({ id }) => id) ?? [];
-  const empty: AssignmentRecipients = {
+  const baseRecipients: AssignmentRecipients = {
     signingReviewerIds: [],
     writingReviewerIds: [],
-    removedReviewerIds: [],
+    assignmentRemovedReviewerIds:
+      event.type === "PurposeRiskAnalysisSubmitted"
+        ? []
+        : event.data.removedReviewers
+            .filter(({ sentToReviewerAt }) => sentToReviewerAt !== undefined)
+            .map(({ id }) => id),
   };
 
   return match(event)
     .with({ type: "PurposeRiskAnalysisSubmitted" }, () => ({
-      ...empty,
+      ...baseRecipients,
       signingReviewerIds: reviewerIds,
     }))
-    .with(
-      { type: "PurposeRiskAnalysisSelfAssigned" },
-      { type: "PurposeRiskAnalysisWorkflowCreated" },
-      { type: "PurposeRiskAnalysisAssigned" },
-      ({ type, data }) => {
-        const removedReviewerIds = data.removedReviewers
-          .filter(({ sentToReviewerAt }) => sentToReviewerAt !== undefined)
-          .map(({ id }) => id);
-        if (type === "PurposeRiskAnalysisSelfAssigned") {
-          return { ...empty, removedReviewerIds };
-        }
-        const previousMode =
-          data.previousReviewMode === undefined
-            ? undefined
-            : fromRiskAnalysisReviewModeV2(data.previousReviewMode);
-        const state = purpose.reviewerWorkflow?.signingState;
-        const mode = purpose.reviewMode;
-        const confirmedReviewerIds = reviewerIds.filter(
-          (id) => !data.addedReviewers.includes(id)
-        );
-
-        if (
-          mode === riskAnalysisReviewMode.reviewerWritesReviewerSigns &&
-          state === riskAnalysisSigningState.assigned
-        ) {
-          return {
-            ...empty,
-            writingReviewerIds:
-              previousMode === mode ? data.addedReviewers : reviewerIds,
-            removedReviewerIds,
-          };
-        }
-        if (mode === riskAnalysisReviewMode.adminWritesReviewerSigns) {
-          return {
-            ...empty,
-            signingReviewerIds:
-              state === riskAnalysisSigningState.submitted
-                ? data.addedReviewers
-                : [],
-            // A confirmed writer loses their writing duty even though their id
-            // is absent from the structural diff. The new workflow resets its stamp.
-            removedReviewerIds:
-              previousMode ===
-                riskAnalysisReviewMode.reviewerWritesReviewerSigns &&
-              state === riskAnalysisSigningState.draft
-                ? [...removedReviewerIds, ...confirmedReviewerIds]
-                : removedReviewerIds,
-          };
-        }
-        return { ...empty, removedReviewerIds };
+    .with({ type: "PurposeRiskAnalysisSelfAssigned" }, () => baseRecipients)
+    .with({ type: "PurposeRiskAnalysisAssigned" }, ({ data }) => {
+      if (
+        purpose.reviewMode !==
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns ||
+        purpose.reviewerWorkflow?.signingState !==
+          riskAnalysisSigningState.assigned
+      ) {
+        return baseRecipients;
       }
-    )
+      const previousMode =
+        data.previousReviewMode === undefined
+          ? undefined
+          : fromRiskAnalysisReviewModeV2(data.previousReviewMode);
+      return {
+        ...baseRecipients,
+        writingReviewerIds:
+          previousMode === purpose.reviewMode
+            ? data.addedReviewers
+            : reviewerIds,
+      };
+    })
+    .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, ({ data }) => {
+      if (
+        purpose.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+      ) {
+        return baseRecipients;
+      }
+      const previousMode =
+        data.previousReviewMode === undefined
+          ? undefined
+          : fromRiskAnalysisReviewModeV2(data.previousReviewMode);
+      const state = purpose.reviewerWorkflow?.signingState;
+      const confirmedReviewerIds = reviewerIds.filter(
+        (id) => !data.addedReviewers.includes(id)
+      );
+
+      return {
+        ...baseRecipients,
+        signingReviewerIds:
+          state === riskAnalysisSigningState.submitted
+            ? data.addedReviewers
+            : [],
+        // Confirmed writers lose their writing assignment on a mode change,
+        // even though they remain in the workflow and their timestamps are reset.
+        assignmentRemovedReviewerIds:
+          previousMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns &&
+          state === riskAnalysisSigningState.draft
+            ? [
+                ...baseRecipients.assignmentRemovedReviewerIds,
+                ...confirmedReviewerIds,
+              ]
+            : baseRecipients.assignmentRemovedReviewerIds,
+      };
+    })
     .exhaustive();
 }
