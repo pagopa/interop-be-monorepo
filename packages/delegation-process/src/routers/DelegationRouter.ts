@@ -265,7 +265,7 @@ const delegationRouter = (
 
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .json(
             delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );
@@ -385,7 +385,7 @@ const delegationRouter = (
 
         setMetadataVersionHeader(res, metadata);
         return res
-          .status(200)
+          .status(201)
           .json(
             delegationApi.Delegation.parse(delegationToApiDelegation(data))
           );

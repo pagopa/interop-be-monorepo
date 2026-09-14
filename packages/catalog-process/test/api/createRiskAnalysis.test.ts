@@ -71,12 +71,12 @@ describe("API /eservices/{eServiceId}/riskAnalysis authorization test", () => {
     authRole.M2M_ADMIN_ROLE,
   ];
   it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
+    "Should return 201 for user with role %s",
     async (role) => {
       const token = generateToken(role);
       const res = await makeRequest(token, mockEService.id);
 
-      expect(res.status).toBe(200);
+      expect(res.status).toBe(201);
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
         serviceResponse.metadata.version.toString()
