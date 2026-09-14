@@ -340,7 +340,7 @@ Do not derive UI labels from component or prop names.
 
 If multiple errors share the same reproduction flow, document the shared flow once and reference it from the other rows, describing only the relevant difference.
 
-If executable reproduction steps cannot be established, reconsider the `CAN HAPPEN` verdict rather than inventing steps.
+If you are not entirely sure whether the error can actually happen through the UI, reconsider the `CAN HAPPEN` verdict rather than inventing reproduction steps, erring on the side of `CAN HAPPEN`.
 
 ## Output structure
 
