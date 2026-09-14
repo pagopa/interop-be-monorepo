@@ -2,12 +2,14 @@ import {
   EmailNotificationMessagePayload,
   PurposeEvent,
 } from "pagopa-interop-models";
+import { getRiskAnalysisAssignmentRecipients } from "pagopa-interop-notification-commons";
 import { P, match } from "ts-pattern";
 
 import { HandlerParams } from "../../models/handlerParams.js";
 import { handleNewPurposeVersionWaitingForApprovalToConsumer } from "./handleNewPurposeVersionWaitingForApprovalToConsumer.js";
 import { handleNewPurposeVersionWaitingForApprovalToProducer } from "./handleNewPurposeVersionWaitingForApprovalToProducer.js";
 import { handlePurposeArchived } from "./handlePurposeArchived.js";
+import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
 import { handlePurposeVersionActivatedFirstVersion } from "./handlePurposeVersionActivatedFirstVersion.js";
 import { handlePurposeVersionActivatedOtherVersion } from "./handlePurposeVersionActivatedOtherVersion.js";
 import { handlePurposeVersionRejectedFirstVersion } from "./handlePurposeVersionRejectedFirstVersion.js";
@@ -160,6 +162,30 @@ export async function handlePurposeEvent(
         })),
       ]
     )
+    .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, (event) =>
+      handlePurposeRiskAnalysisAssignedForSigningToReviewer({
+        purposeV2Msg: event.data.purpose,
+        reviewerIds:
+          getRiskAnalysisAssignmentRecipients(event).signingReviewerIds,
+        eventType: event.type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
+    .with({ type: "PurposeRiskAnalysisSubmitted" }, (event) =>
+      handlePurposeRiskAnalysisAssignedForSigningToReviewer({
+        purposeV2Msg: event.data.purpose,
+        reviewerIds:
+          getRiskAnalysisAssignmentRecipients(event).signingReviewerIds,
+        eventType: event.type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
+    )
     .with(
       {
         type: P.union(
@@ -177,10 +203,8 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisWorkflowCreated",
           "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSelfAssigned",
-          "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
           "PurposeRiskAnalysisFormEdited"

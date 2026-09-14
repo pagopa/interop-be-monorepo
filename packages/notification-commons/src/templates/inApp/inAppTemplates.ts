@@ -321,6 +321,12 @@ export const inAppTemplates = {
     eserviceName: string
   ): string =>
     `L'ente erogatore ${producerName} ha rifiutato la finalità ${purposeName} che il tuo ente ha inoltrato per l'e-service ${eserviceName}.`,
+  purposeRiskAnalysisAssignedForSigningToReviewer: (
+    producerName: string,
+    purposeName: string,
+    eserviceName: string
+  ): string =>
+    `L'ente ${producerName} ti ha assegnato un'analisi del rischio da approvare per la finalità ${purposeName} associata all'e-service ${eserviceName}.`,
   purposeQuotaAdjustmentNewVersionToProducer: (
     consumerName: string,
     purposeName: string,
