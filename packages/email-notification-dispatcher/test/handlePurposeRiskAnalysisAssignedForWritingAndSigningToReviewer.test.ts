@@ -16,6 +16,9 @@ import {
   NotificationType,
   Purpose,
   PurposeEventEnvelope,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
+  RiskAnalysisReviewModeV2,
   Tenant,
   TenantId,
   toPurposeV2,
@@ -121,9 +124,21 @@ describe("handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer", () =
       event_version: 2,
       type: "PurposeRiskAnalysisAssigned",
       data: {
-        purpose: toPurposeV2(purpose),
-        newReviewersToNotify: reviewerIds,
-        oldReviewersToNotify: [removedReviewer.id],
+        purpose: toPurposeV2({
+          ...purpose,
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerWorkflow: {
+            reviewers: [...reviewerIds, unchangedReviewer.id].map((id) => ({
+              id,
+              sentToReviewerAt: new Date(),
+            })),
+            signingState: riskAnalysisSigningState.assigned,
+          },
+        }),
+        previousReviewMode:
+          RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS,
+        addedReviewers: reviewerIds,
+        removedReviewers: [{ id: removedReviewer.id, sentToReviewerAt: 1n }],
       },
       sequence_num: 1,
       stream_id: purpose.id,

@@ -66,11 +66,6 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
 
-      const reviewers = [
-        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-      ];
-
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [purposeVersion1, purposeVersion2, purposeVersion3],
@@ -83,7 +78,10 @@ describe("Purpose queries", () => {
         purposeTemplateId: generateId<PurposeTemplateId>(),
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewers,
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",
@@ -207,11 +205,6 @@ describe("Purpose queries", () => {
         suspendedAt: new Date(),
       };
 
-      const reviewers = [
-        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-      ];
-
       const purpose: Purpose = {
         ...getMockPurpose(),
         versions: [purposeVersion1, purposeVersion2, purposeVersion3],
@@ -224,7 +217,10 @@ describe("Purpose queries", () => {
         purposeTemplateId: generateId<PurposeTemplateId>(),
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewers,
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",

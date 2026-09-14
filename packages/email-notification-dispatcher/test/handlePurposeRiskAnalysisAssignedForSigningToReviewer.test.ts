@@ -17,6 +17,8 @@ import {
   Purpose,
   PurposeEventEnvelope,
   riskAnalysisSigningState,
+  riskAnalysisReviewMode,
+  RiskAnalysisReviewModeV2,
   Tenant,
   TenantId,
   toPurposeV2,
@@ -165,14 +167,26 @@ describe("handlePurposeRiskAnalysisAssignedForSigningToReviewer", () => {
     });
   });
 
-  it("should email only newReviewersToNotify for a workflow-created event", async () => {
+  it("should email only added reviewers for a submitted workflow-created event", async () => {
     const decodedMessage: PurposeEventEnvelope = {
       event_version: 2,
       type: "PurposeRiskAnalysisWorkflowCreated",
       data: {
-        purpose: toPurposeV2(purpose),
-        newReviewersToNotify: reviewerIds,
-        oldReviewersToNotify: [unrelatedUser.id],
+        purpose: toPurposeV2({
+          ...purpose,
+          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+          reviewerWorkflow: {
+            reviewers: reviewerIds.map((id) => ({
+              id,
+              sentToReviewerAt: new Date(),
+            })),
+            signingState: riskAnalysisSigningState.submitted,
+          },
+        }),
+        previousReviewMode:
+          RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS,
+        addedReviewers: reviewerIds,
+        removedReviewers: [{ id: unrelatedUser.id, sentToReviewerAt: 1n }],
       },
       sequence_num: 1,
       stream_id: purpose.id,
