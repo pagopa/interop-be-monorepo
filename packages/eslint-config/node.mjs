@@ -56,7 +56,7 @@ export default [
         },
       ],
       "complexity": "off",
-      "max-lines-per-function": "off",
+      "max-lines-per-function": "warn",
       "perfectionist/sort-array-includes": "off",
       "perfectionist/sort-classes": "off",
       "perfectionist/sort-decorators": "off",
