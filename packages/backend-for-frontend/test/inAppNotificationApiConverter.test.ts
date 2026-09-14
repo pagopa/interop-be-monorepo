@@ -274,6 +274,21 @@ describe("toBffApiNotificationsCountBySection", () => {
 describe("toBffApiNotification", () => {
   it.each<[inAppNotificationApi.Notification["notificationType"], string]>([
     ["agreementManagementToProducer", "/erogazione/richieste/entity-uuid"],
+    [
+      "purposeRiskAnalysisAssignedForSigningToReviewer",
+      "/analisi-del-rischio/entity-uuid",
+    ],
+    [
+      "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer",
+      "/analisi-del-rischio/entity-uuid",
+    ],
+    [
+      "purposePublishedWithRiskAnalysisToReviewer",
+      "/analisi-del-rischio/entity-uuid",
+    ],
+    ["purposeRiskAnalysisSignedToReviewer", "/analisi-del-rischio/entity-uuid"],
+    ["purposeRiskAnalysisSignedToAdmin", "/fruizione/finalita/entity-uuid"],
+    ["purposeRiskAnalysisRejectedToAdmin", "/fruizione/finalita/entity-uuid"],
     ["purposeActivatedRejectedToConsumer", "/fruizione/finalita/entity-uuid"],
   ])(
     "should include entityId in deepLink for %s",
@@ -301,6 +316,7 @@ describe("toBffApiNotification", () => {
       "/aderente/anagrafica",
     ],
     ["draftPurposeDeletedWithRiskAnalysisToReviewer", "/analisi-del-rischio"],
+    ["purposeRiskAnalysisAssignmentRemovedToReviewer", "/analisi-del-rischio"],
   ])(
     "should omit entityId from deepLink for %s",
     (notificationType, deepLink) => {

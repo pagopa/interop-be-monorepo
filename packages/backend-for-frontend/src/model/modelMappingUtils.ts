@@ -147,13 +147,13 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     producerKeychainKeyAddedDeletedToClientUsers: "/erogazione/portachiavi",
     purposeQuotaAdjustmentRequestToProducer: "/erogazione/finalita",
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
-    purposeRiskAnalysisAssignedForSigningToReviewer: "/fruizione/finalita",
+    purposeRiskAnalysisAssignedForSigningToReviewer: "/analisi-del-rischio",
     purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
-      "/fruizione/finalita",
-    purposePublishedWithRiskAnalysisToReviewer: "/fruizione/finalita",
+      "/analisi-del-rischio",
+    purposePublishedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
     draftPurposeDeletedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
-    purposeRiskAnalysisAssignmentRemovedToReviewer: "/fruizione/finalita",
-    purposeRiskAnalysisSignedToReviewer: "/fruizione/finalita",
+    purposeRiskAnalysisAssignmentRemovedToReviewer: "/analisi-del-rischio",
+    purposeRiskAnalysisSignedToReviewer: "/analisi-del-rischio",
     purposeRiskAnalysisSignedToAdmin: "/fruizione/finalita",
     purposeRiskAnalysisRejectedToAdmin: "/fruizione/finalita",
     eserviceArchivingRequestedToDelegator: "/erogazione/e-service",
@@ -164,6 +164,7 @@ const notificationTypesWithoutEntityIdInDeepLink: Set<NotificationType> =
   new Set([
     "certifiedVerifiedAttributeAssignedRevokedToAssignee",
     "draftPurposeDeletedWithRiskAnalysisToReviewer",
+    "purposeRiskAnalysisAssignmentRemovedToReviewer",
   ]);
 
 export function getNotificationDeepLink(
