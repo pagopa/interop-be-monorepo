@@ -1016,3 +1016,16 @@ export const cancelDelegatedEServiceArchivingErrorMapper = (
       () => HTTP_STATUS_BAD_REQUEST
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const internalDeleteDelegatedPendingDescriptorErrorMapper = (
+  error: ApiError<ErrorCodes>
+): number =>
+  match(error.code)
+    .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with("notValidDescriptor", () => HTTP_STATUS_BAD_REQUEST)
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
+    .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
