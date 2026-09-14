@@ -15,6 +15,7 @@ export * from "./repositories/db.js";
 export * from "./risk-analysis/index.js";
 export * from "./risk-analysis-template/index.js";
 export * from "./router/index.js";
+export * from "./sanitization/index.js";
 export * from "./templating/htmlTemplateService.js";
 export * from "./types/index.js";
 export * from "./utils/arrays.js";
