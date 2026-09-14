@@ -1,11 +1,7 @@
-import type {
-  catalogApi,
-  eserviceTemplateApi,
-  purposeApi,
-} from "pagopa-interop-api-clients";
+import type { purposeApi } from "pagopa-interop-api-clients";
 
 import { RefreshableInteropToken } from "pagopa-interop-commons";
-import { CorrelationId, EServiceTemplateId } from "pagopa-interop-models";
+import { CorrelationId } from "pagopa-interop-models";
 
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -18,51 +14,12 @@ const getHeaders = (correlationId: CorrelationId, token: string) => ({
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function riskAnalysisProcessingServiceBuilder(
   readModelService: ReadModelServiceSQL,
-  catalogProcessClient: catalogApi.CatalogProcessClient,
   purposeProcessClient: purposeApi.PurposeProcessClient,
-  eserviceTemplateProcessClient: eserviceTemplateApi.EServiceTemplateProcessClient,
   refreshableToken: RefreshableInteropToken,
   correlationId: CorrelationId
 ) {
   return {
-    async processEServiceRiskAnalyses(): Promise<{
-      processed: {
-        eservices: number;
-        riskAnalyses: number;
-      };
-    }> {
-      const token = (await refreshableToken.get()).serialized;
-      const headers = getHeaders(correlationId, token);
-
-      const eservices =
-        await readModelService.getAllReadModelEServicesWithEmptyTenantKindRAs();
-
-      let riskAnalysisCount = 0;
-      for (const singleEService of eservices) {
-        for (const riskAnalysis of singleEService.riskAnalysis) {
-          await catalogProcessClient.fixEServiceRiskAnalysisTenantKind(
-            undefined,
-            {
-              headers,
-              params: {
-                eServiceId: singleEService.id,
-                riskAnalysisId: riskAnalysis.id,
-              },
-            }
-          );
-
-          riskAnalysisCount += 1;
-        }
-      }
-
-      return {
-        processed: {
-          eservices: eservices.length,
-          riskAnalyses: riskAnalysisCount,
-        },
-      };
-    },
-    async processPurposeRiskAnalyses(): Promise<{
+    async processPurposeReviewerWorkflows(): Promise<{
       processed: {
         riskAnalyses: number;
       };
@@ -70,58 +27,19 @@ export function riskAnalysisProcessingServiceBuilder(
       const token = (await refreshableToken.get()).serialized;
       const headers = getHeaders(correlationId, token);
 
-      const purposes =
-        await readModelService.getAllReadModelPurposesWithoutTenantKind();
+      const purposeIds =
+        await readModelService.getAllReadModelPurposeIdsWithLegacyReviewMode();
 
-      for (const singlePurpose of purposes) {
-        await purposeProcessClient.fixPurposeRiskAnalysisTenantKind(undefined, {
+      for (const purposeId of purposeIds) {
+        await purposeProcessClient.fixReviewerWorkflow(undefined, {
           headers,
           params: {
-            purposeId: singlePurpose.id,
+            purposeId,
           },
         });
       }
 
-      return { processed: { riskAnalyses: purposes.length } };
-    },
-    async processEServiceTemplateRiskAnalyses(
-      templates: EServiceTemplateId[]
-    ): Promise<{
-      processed: {
-        eserviceTemplates: number;
-        riskAnalyses: number;
-      };
-    }> {
-      const token = (await refreshableToken.get()).serialized;
-      const headers = getHeaders(correlationId, token);
-
-      const eserviceTemplates =
-        await readModelService.getReadModelEServiceTemplates(templates);
-
-      let riskAnalysisCount = 0;
-      for (const singleEServiceTemplate of eserviceTemplates) {
-        for (const riskAnalysis of singleEServiceTemplate.riskAnalysis) {
-          await eserviceTemplateProcessClient.fixEServiceTemplateRiskAnalysisTenantKind(
-            undefined,
-            {
-              headers,
-              params: {
-                templateId: singleEServiceTemplate.id,
-                riskAnalysisId: riskAnalysis.id,
-              },
-            }
-          );
-
-          riskAnalysisCount += 1;
-        }
-      }
-
-      return {
-        processed: {
-          eserviceTemplates: eserviceTemplates.length,
-          riskAnalyses: riskAnalysisCount,
-        },
-      };
+      return { processed: { riskAnalyses: purposeIds.length } };
     },
   };
 }
