@@ -100,7 +100,7 @@ describe("handleDraftPurposeDeletedWithRiskAnalysisToReviewer", () => {
       {
         userId: notifiedReviewerId,
         tenantId: consumerId,
-        body: "L'amministratore ha eliminato la finalità Finalità test associata all'e-service E-service test con analisi del rischio approvata da te.",
+        body: "L'amministratore ha eliminato la finalità Finalità test associata all'e-service E-service test con analisi del rischio che ti era stata assegnata.",
         notificationType: "draftPurposeDeletedWithRiskAnalysisToReviewer",
         entityId: purposeId,
       },
