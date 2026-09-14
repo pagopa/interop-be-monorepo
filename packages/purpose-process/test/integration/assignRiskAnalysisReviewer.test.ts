@@ -82,8 +82,8 @@ function mockSelfcareV2ClientCall(
 
 /**
  * Reviewer sets shared by the transition tests: the request keeps one reviewer,
- * drops another and adds a new one, so that the notification lists carried by
- * the events can be told apart from the plain reviewer lists.
+ * drops another and adds a new one, so that the structural diff carried by the
+ * events can be told apart from the plain reviewer lists.
  */
 const keptReviewerId = generateId<UserId>();
 const removedReviewerId = generateId<UserId>();
@@ -184,14 +184,16 @@ async function expectAssignmentEvent({
   purposeId,
   purpose,
   type,
-  newReviewersToNotify = [],
-  oldReviewersToNotify = [],
+  addedReviewers = [],
+  removedReviewerIds = [],
+  previousReviewMode,
 }: {
   purposeId: PurposeId;
   purpose: Purpose;
   type: AssignmentEventType;
-  newReviewersToNotify?: UserId[];
-  oldReviewersToNotify?: UserId[];
+  addedReviewers?: UserId[];
+  removedReviewerIds?: UserId[];
+  previousReviewMode?: RiskAnalysisReviewMode;
 }): Promise<void> {
   const writtenEvent = await readLastPurposeEvent(purposeId);
 
@@ -202,36 +204,49 @@ async function expectAssignmentEvent({
     event_version: 2,
   });
 
-  const writtenPayload = match(type)
-    .with("PurposeRiskAnalysisSelfAssigned", () =>
-      decodeProtobufPayload({
-        messageType: PurposeRiskAnalysisSelfAssignedV2,
-        payload: writtenEvent.data,
-      })
-    )
-    .with("PurposeRiskAnalysisWorkflowCreated", () =>
-      decodeProtobufPayload({
-        messageType: PurposeRiskAnalysisWorkflowCreatedV2,
-        payload: writtenEvent.data,
-      })
-    )
-    .with("PurposeRiskAnalysisAssigned", () =>
-      decodeProtobufPayload({
-        messageType: PurposeRiskAnalysisAssignedV2,
-        payload: writtenEvent.data,
-      })
-    )
-    .exhaustive();
-
-  const expectedPayload = {
-    purpose: toPurposeV2(purpose),
-    oldReviewersToNotify,
-    ...(type === "PurposeRiskAnalysisSelfAssigned"
+  const expectedPreviousReviewMode =
+    previousReviewMode === undefined
+      ? undefined
+      : toPurposeV2({ ...purpose, reviewMode: previousReviewMode }).reviewMode;
+  const expectedPurpose = {
+    id: purpose.id,
+    ...(purpose.reviewMode === undefined
       ? {}
-      : { newReviewersToNotify }),
+      : { reviewMode: toPurposeV2(purpose).reviewMode }),
+  };
+  const expectCommonPayload = (payload: {
+    purpose?: { id: string; reviewMode?: unknown };
+    removedReviewers: { id: string; sentToReviewerAt?: bigint }[];
+  }): void => {
+    expect(payload.purpose).toMatchObject(expectedPurpose);
+    expect(payload.removedReviewers.map(({ id }) => id)).toEqual(
+      removedReviewerIds
+    );
   };
 
-  expect(writtenPayload).toEqual(expectedPayload);
+  if (type === "PurposeRiskAnalysisSelfAssigned") {
+    const payload = decodeProtobufPayload({
+      messageType: PurposeRiskAnalysisSelfAssignedV2,
+      payload: writtenEvent.data,
+    });
+    expectCommonPayload(payload);
+    expect(payload.previousReviewMode).toBe(expectedPreviousReviewMode);
+    return;
+  }
+
+  const payload =
+    type === "PurposeRiskAnalysisWorkflowCreated"
+      ? decodeProtobufPayload({
+          messageType: PurposeRiskAnalysisWorkflowCreatedV2,
+          payload: writtenEvent.data,
+        })
+      : decodeProtobufPayload({
+          messageType: PurposeRiskAnalysisAssignedV2,
+          payload: writtenEvent.data,
+        });
+  expectCommonPayload(payload);
+  expect(payload.addedReviewers).toEqual(addedReviewers);
+  expect(payload.previousReviewMode).toBe(expectedPreviousReviewMode);
 }
 
 describe("assignRiskAnalysisReviewer", () => {
@@ -332,11 +347,12 @@ describe("assignRiskAnalysisReviewer", () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
-      newReviewersToNotify: reviewerIds,
-      oldReviewersToNotify: [],
+    expect(writtenPayload.purpose).toMatchObject({
+      id: expectedPurpose.id,
+      reviewMode: toPurposeV2(expectedPurpose).reviewMode,
     });
+    expect(writtenPayload.addedReviewers).toEqual(reviewerIds);
+    expect(writtenPayload.removedReviewers).toEqual([]);
 
     vi.useRealTimers();
   });
@@ -417,11 +433,12 @@ describe("assignRiskAnalysisReviewer", () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload).toEqual({
-      purpose: toPurposeV2(expectedPurpose),
-      newReviewersToNotify: [],
-      oldReviewersToNotify: [],
+    expect(writtenPayload.purpose).toMatchObject({
+      id: expectedPurpose.id,
+      reviewMode: toPurposeV2(expectedPurpose).reviewMode,
     });
+    expect(writtenPayload.addedReviewers).toEqual(reviewerIds);
+    expect(writtenPayload.removedReviewers).toEqual([]);
 
     vi.useRealTimers();
   });
@@ -511,8 +528,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
-      newReviewersToNotify: reviewerIds,
-      oldReviewersToNotify: [],
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
     });
 
     vi.useRealTimers();
@@ -590,8 +607,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [],
       expectedSigningState: riskAnalysisSigningState.draft,
       expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: requestedReviewerIds,
+      expectedRemovedReviewerIds: [],
       shouldResetForm: false,
     },
     {
@@ -603,8 +620,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [],
       expectedSigningState: riskAnalysisSigningState.assigned,
       expectedEventType: "PurposeRiskAnalysisAssigned",
-      expectedNewReviewersToNotify: requestedReviewerIds,
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: requestedReviewerIds,
+      expectedRemovedReviewerIds: [],
       shouldResetForm: true,
     },
     {
@@ -616,8 +633,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [],
       expectedSigningState: undefined,
       expectedEventType: "PurposeRiskAnalysisSelfAssigned",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: [],
+      expectedRemovedReviewerIds: previousReviewerIds,
       shouldResetForm: false,
     },
     {
@@ -630,8 +647,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: previousReviewerIds,
       expectedSigningState: undefined,
       expectedEventType: "PurposeRiskAnalysisSelfAssigned",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: previousReviewerIds,
+      expectedAddedReviewers: [],
+      expectedRemovedReviewerIds: previousReviewerIds,
       shouldResetForm: false,
     },
     {
@@ -644,8 +661,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [keptReviewerId],
       expectedSigningState: undefined,
       expectedEventType: "PurposeRiskAnalysisSelfAssigned",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [keptReviewerId],
+      expectedAddedReviewers: [],
+      expectedRemovedReviewerIds: previousReviewerIds,
       shouldResetForm: false,
     },
     {
@@ -657,8 +674,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: previousReviewerIds,
       expectedSigningState: undefined,
       expectedEventType: "PurposeRiskAnalysisSelfAssigned",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: previousReviewerIds,
+      expectedAddedReviewers: [],
+      expectedRemovedReviewerIds: previousReviewerIds,
       shouldResetForm: true,
     },
     {
@@ -671,8 +688,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [],
       expectedSigningState: riskAnalysisSigningState.draft,
       expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: false,
     },
     {
@@ -685,8 +702,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [keptReviewerId],
       expectedSigningState: riskAnalysisSigningState.draft,
       expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: false,
     },
     {
@@ -699,8 +716,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: previousReviewerIds,
       expectedSigningState: riskAnalysisSigningState.rejected,
       expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [removedReviewerId],
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: false,
     },
     {
@@ -713,8 +730,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [removedReviewerId],
       expectedSigningState: riskAnalysisSigningState.rejected,
       expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [removedReviewerId],
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: false,
     },
     {
@@ -727,8 +744,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [],
       expectedSigningState: riskAnalysisSigningState.rejected,
       expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: false,
     },
     {
@@ -741,8 +758,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: previousReviewerIds,
       expectedSigningState: riskAnalysisSigningState.submitted,
       expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
-      expectedNewReviewersToNotify: [addedReviewerId],
-      expectedOldReviewersToNotify: [removedReviewerId],
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: false,
     },
     {
@@ -755,8 +772,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: previousReviewerIds,
       expectedSigningState: riskAnalysisSigningState.assigned,
       expectedEventType: "PurposeRiskAnalysisAssigned",
-      expectedNewReviewersToNotify: [addedReviewerId],
-      expectedOldReviewersToNotify: [removedReviewerId],
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: false,
     },
     {
@@ -769,8 +786,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [],
       expectedSigningState: riskAnalysisSigningState.assigned,
       expectedEventType: "PurposeRiskAnalysisAssigned",
-      expectedNewReviewersToNotify: requestedReviewerIds,
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: true,
     },
     {
@@ -783,8 +800,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [removedReviewerId],
       expectedSigningState: riskAnalysisSigningState.assigned,
       expectedEventType: "PurposeRiskAnalysisAssigned",
-      expectedNewReviewersToNotify: requestedReviewerIds,
-      expectedOldReviewersToNotify: [removedReviewerId],
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: true,
     },
     {
@@ -796,8 +813,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: previousReviewerIds,
       expectedSigningState: riskAnalysisSigningState.draft,
       expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: previousReviewerIds,
+      expectedAddedReviewers: [addedReviewerId],
+      expectedRemovedReviewerIds: [removedReviewerId],
       shouldResetForm: true,
     },
     {
@@ -809,8 +826,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [],
       expectedSigningState: undefined,
       expectedEventType: "PurposeRiskAnalysisSelfAssigned",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: [],
+      expectedRemovedReviewerIds: [],
       shouldResetForm: false,
     },
     {
@@ -822,8 +839,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [],
       expectedSigningState: riskAnalysisSigningState.draft,
       expectedEventType: "PurposeRiskAnalysisWorkflowCreated",
-      expectedNewReviewersToNotify: [],
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: requestedReviewerIds,
+      expectedRemovedReviewerIds: [],
       shouldResetForm: false,
     },
     {
@@ -835,8 +852,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds: [],
       expectedSigningState: riskAnalysisSigningState.assigned,
       expectedEventType: "PurposeRiskAnalysisAssigned",
-      expectedNewReviewersToNotify: requestedReviewerIds,
-      expectedOldReviewersToNotify: [],
+      expectedAddedReviewers: requestedReviewerIds,
+      expectedRemovedReviewerIds: [],
       shouldResetForm: true,
     },
   ])(
@@ -850,8 +867,8 @@ describe("assignRiskAnalysisReviewer", () => {
       alreadyNotifiedReviewerIds,
       expectedSigningState,
       expectedEventType,
-      expectedNewReviewersToNotify,
-      expectedOldReviewersToNotify,
+      expectedAddedReviewers,
+      expectedRemovedReviewerIds,
       shouldResetForm,
     }) => {
       vi.useFakeTimers();
@@ -899,7 +916,7 @@ describe("assignRiskAnalysisReviewer", () => {
         signingState === riskAnalysisSigningState.submitted ||
         signingState === riskAnalysisSigningState.rejected;
 
-      // In mode 2, reviewer timestamps determine who has already been notified.
+      // In mode 2, reviewer timestamps preserve whether an action was sent.
       if (isMode2ToMode2Transition && isSubmittedOrRejected) {
         expect(updatedPurpose.reviewerWorkflow).toEqual({
           reviewers: [
@@ -924,12 +941,36 @@ describe("assignRiskAnalysisReviewer", () => {
         } satisfies ReviewerWorkflow);
       }
 
+      if (
+        previousReviewMode ===
+          riskAnalysisReviewMode.adminWritesReviewerSigns &&
+        requestedReviewMode ===
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns
+      ) {
+        expect(updatedPurpose.reviewerWorkflow?.reviewers).toEqual([
+          { id: keptReviewerId, sentToReviewerAt: now },
+          { id: addedReviewerId, sentToReviewerAt: now },
+        ]);
+      }
+
+      if (
+        previousReviewMode ===
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns &&
+        requestedReviewMode === riskAnalysisReviewMode.adminWritesReviewerSigns
+      ) {
+        expect(updatedPurpose.reviewerWorkflow?.reviewers).toEqual([
+          { id: keptReviewerId, sentToReviewerAt: undefined },
+          { id: addedReviewerId, sentToReviewerAt: undefined },
+        ]);
+      }
+
       await expectAssignmentEvent({
         purposeId: mockPurpose.id,
         purpose: updatedPurpose,
         type: expectedEventType as AssignmentEventType,
-        newReviewersToNotify: expectedNewReviewersToNotify,
-        oldReviewersToNotify: expectedOldReviewersToNotify,
+        addedReviewers: expectedAddedReviewers,
+        removedReviewerIds: expectedRemovedReviewerIds,
+        previousReviewMode,
       });
 
       vi.useRealTimers();
@@ -1035,7 +1076,10 @@ describe("assignRiskAnalysisReviewer", () => {
       expect(
         purposeService.assignRiskAnalysisReviewer(
           mockPurpose.id,
-          { reviewMode: requestedReviewMode, reviewerIds: [] },
+          {
+            reviewMode: requestedReviewMode,
+            reviewerIds: [],
+          },
           getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
         )
       ).rejects.toThrow(missingReviewers(mockPurpose.id));
