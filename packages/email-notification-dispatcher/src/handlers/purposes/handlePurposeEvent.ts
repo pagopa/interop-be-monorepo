@@ -182,7 +182,7 @@ export async function handlePurposeEvent(
           readModelService,
           templateService,
           correlationId,
-          reviewerIds: recipients.removedReviewerIds,
+          reviewerIds: recipients.assignmentRemovedReviewerIds,
           eventType: event.type,
         })),
       ];
@@ -247,7 +247,7 @@ export async function handlePurposeEvent(
           readModelService,
           templateService,
           correlationId,
-          reviewerIds: recipients.removedReviewerIds,
+          reviewerIds: recipients.assignmentRemovedReviewerIds,
           eventType: event.type,
         })),
       ];
@@ -256,7 +256,8 @@ export async function handlePurposeEvent(
       handlePurposeRiskAnalysisAssignmentRemovedToReviewer({
         purposeV2Msg: event.data.purpose,
         reviewerIds:
-          getRiskAnalysisAssignmentRecipients(event).removedReviewerIds,
+          getRiskAnalysisAssignmentRecipients(event)
+            .assignmentRemovedReviewerIds,
         eventType: event.type,
         logger,
         readModelService,

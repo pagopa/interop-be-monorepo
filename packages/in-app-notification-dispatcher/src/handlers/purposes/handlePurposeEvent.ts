@@ -36,7 +36,7 @@ export async function handlePurposeEvent(
         )),
         ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
           event.data.purpose,
-          recipients.removedReviewerIds,
+          recipients.assignmentRemovedReviewerIds,
           logger,
           readModelService,
           event.type
@@ -164,7 +164,7 @@ export async function handlePurposeEvent(
         )),
         ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
           event.data.purpose,
-          recipients.removedReviewerIds,
+          recipients.assignmentRemovedReviewerIds,
           logger,
           readModelService,
           event.type
@@ -174,7 +174,7 @@ export async function handlePurposeEvent(
     .with({ type: "PurposeRiskAnalysisSelfAssigned" }, (event) =>
       handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
         event.data.purpose,
-        getRiskAnalysisAssignmentRecipients(event).removedReviewerIds,
+        getRiskAnalysisAssignmentRecipients(event).assignmentRemovedReviewerIds,
         logger,
         readModelService,
         event.type
