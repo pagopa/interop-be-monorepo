@@ -1,11 +1,13 @@
-import { S3ServiceException } from "@aws-sdk/client-s3";
 import { Message } from "@aws-sdk/client-sqs";
 import {
   FileManager,
+  FileManagerError,
+  fileManagerStoreBytesError,
   RefreshableInteropToken,
   SafeStorageService,
 } from "pagopa-interop-commons";
 import { SignatureServiceBuilder } from "pagopa-interop-commons";
+import { InternalError } from "pagopa-interop-models";
 import { describe, it, expect, vi, Mock, beforeEach } from "vitest";
 
 import { sqsMessageHandler } from "../src/handlers/sqsMessageHandler.js";
@@ -35,12 +37,12 @@ const mockSafeStorageService: SafeStorageService = {
   downloadFileContent: vi.fn(),
 };
 
-describe("sqsMessageHandler - S3 409 Conflict", () => {
+describe("sqsMessageHandler - S3 store failure", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("should handle S3 409 Conflict gracefully for RISK_ANALYSIS_DOCUMENT", async () => {
+  it("should retry the message when the file manager fails to store the signed file", async () => {
     const sqsMessageBody = {
       version: "0",
       id: "6e902b1c-7f55-4074-a036-749e75551f33",
@@ -51,7 +53,7 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       region: "eu-central-1",
       resources: ["arn:aws:s3:::some-bucket"],
       detail: {
-        key: "conflict-file.pdf",
+        key: "document.pdf",
         versionId: "12345",
         documentType: "INTEROP_LEGAL_FACTS",
         documentStatus: "SAVED",
@@ -77,18 +79,15 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       mockFileContent
     );
 
-    // Simula S3 409 Conflict
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const conflictError = new S3ServiceException({} as any);
-    // eslint-disable-next-line functional/immutable-data
-    conflictError.$metadata = { httpStatusCode: 409 };
-    // eslint-disable-next-line functional/immutable-data
-    conflictError.name = "Conflict";
+    // The file manager wraps every S3 failure into a FileManagerError.
     (mockFileManager.resumeOrStoreBytes as Mock).mockRejectedValueOnce(
-      conflictError
+      fileManagerStoreBytesError(
+        "path/to/document_signed.pdf",
+        "signed-documents-bucket",
+        new Error("AccessDenied")
+      )
     );
 
-    // Mock of signature read
     (mockDbService.readSignatureReferenceById as Mock).mockResolvedValueOnce({
       id: sqsMessageBody.id,
       key: sqsMessageBody.detail.key,
@@ -98,36 +97,25 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       subObjectId: "sub-object-id",
       streamId: "stream-id",
       correlationId: "corr-id",
-      fileName: "conflict-file.pdf",
+      fileName: "document.pdf",
       path: "path/to",
     });
 
-    (mockDbService.deleteSignatureReference as Mock).mockResolvedValueOnce(
-      void 0
-    );
-
-    // Mock metadata function
-    vi.mock("../src/utils/metadata/riskAnalysis.js", () => ({
-      addPurposeRiskAnalysisSignedDocument: vi
-        .fn()
-        .mockResolvedValue(undefined),
-    }));
-
-    await sqsMessageHandler(
+    const error = await sqsMessageHandler(
       sqsMessagePayload,
       mockFileManager as FileManager,
       mockDbService,
       mockSafeStorageService,
       mockRefreshableToken
-    );
+    ).catch((e) => e);
 
-    // Check that resumeOrStoreBytes has been called
-    expect(mockFileManager.resumeOrStoreBytes).toHaveBeenCalled();
+    expect(error).toBeInstanceOf(FileManagerError);
+    // A FileManagerError is an InternalError, so the SQS runner keeps the
+    // message and retries it instead of stopping the consumer.
+    expect(error).toBeInstanceOf(InternalError);
 
-    // Verify that the signature was deleted despite the 409
-    expect(mockDbService.deleteSignatureReference).toHaveBeenCalledWith(
-      sqsMessageBody.detail.key,
-      expect.any(Object)
-    );
+    // The signature reference stays in place, so a later delivery can complete
+    // the flow.
+    expect(mockDbService.deleteSignatureReference).not.toHaveBeenCalled();
   });
 });
