@@ -113,7 +113,6 @@ type BFFServices = {
   agreementService: AgreementService;
   attributeService: AttributeService;
   authorizationService: AuthorizationService;
-  authorizationServiceForSupport: AuthorizationService;
   catalogService: CatalogService;
   clientService: ClientService;
   delegationService: DelegationService;
@@ -159,12 +158,6 @@ export async function createServices(
       interopTokenGenerator,
       clients.tenantProcessClient,
       authorizationServiceAllowList,
-      redisRateLimiter
-    ),
-    authorizationServiceForSupport: authorizationServiceBuilder(
-      interopTokenGenerator,
-      clients.tenantProcessClient,
-      config.tenantAllowedOrigins,
       redisRateLimiter
     ),
     catalogService: catalogServiceBuilder(
