@@ -139,6 +139,7 @@ describe("handleDraftPurposeDeletedWithRiskAnalysisToReviewer", () => {
     expect(messages[0].email.subject).toBe(
       "Finalità eliminata con analisi del rischio assegnata a te"
     );
+    expect(messages[0].email.body).toContain("Visualizza analisi del rischio");
     expect(messages[0].email.body.replace(/\s+/g, " ")).toContain(
       "L'amministratore ha eliminato la finalità Finalità test associata all'e-service E-service test con analisi del rischio che ti era stata assegnata. Non la vedrai più nella sezione Analisi del rischio."
     );
