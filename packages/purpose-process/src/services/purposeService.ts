@@ -2818,33 +2818,24 @@ type RiskAnalysisAssignmentContext = {
   previousReviewers: RiskAnalysisReviewer[];
   requestedReviewers: UserId[];
   addedReviewers: UserId[];
-  alreadyNotifiedReviewerIds: UserId[];
-  removedReviewersToNotify: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
   now: Date;
 };
 
 type RiskAnalysisAssignmentOutcome = {
   reviewerWorkflow: ReviewerWorkflow | undefined;
-  newReviewersToNotify: UserId[];
-  oldReviewersToNotify: UserId[];
 };
 
-const transitionToAdminWritesAdminSigns = ({
-  alreadyNotifiedReviewerIds,
-}: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome => ({
-  reviewerWorkflow: undefined,
-  newReviewersToNotify: [],
-  oldReviewersToNotify: alreadyNotifiedReviewerIds,
-});
+const transitionToAdminWritesAdminSigns =
+  (): RiskAnalysisAssignmentOutcome => ({
+    reviewerWorkflow: undefined,
+  });
 
 const transitionToAdminWritesReviewerSigns = ({
   purpose,
   previousReviewMode,
   previousReviewers,
   requestedReviewers,
-  addedReviewers,
-  alreadyNotifiedReviewerIds,
-  removedReviewersToNotify,
   now,
 }: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
   match(previousReviewMode)
@@ -2854,7 +2845,7 @@ const transitionToAdminWritesReviewerSigns = ({
         throw reviewerWorkflowNotFound(purpose.data.id);
       }
 
-      const shouldNotifyAddedReviewers =
+      const shouldSetAddedReviewerSentAt =
         previousWorkflow.signingState === riskAnalysisSigningState.submitted;
 
       return {
@@ -2863,12 +2854,10 @@ const transitionToAdminWritesReviewerSigns = ({
           reviewers: evaluateReviewerStamps(
             requestedReviewers,
             previousReviewers,
-            shouldNotifyAddedReviewers ? now : undefined
+            shouldSetAddedReviewerSentAt ? now : undefined
           ),
           sentToReviewerAt: undefined,
         },
-        newReviewersToNotify: shouldNotifyAddedReviewers ? addedReviewers : [],
-        oldReviewersToNotify: removedReviewersToNotify,
       };
     })
     .otherwise(() => ({
@@ -2880,16 +2869,12 @@ const transitionToAdminWritesReviewerSigns = ({
         signingState: riskAnalysisSigningState.draft,
         sentToReviewerAt: undefined,
       },
-      newReviewersToNotify: [],
-      oldReviewersToNotify: alreadyNotifiedReviewerIds,
     }));
 
 const transitionToReviewerWritesReviewerSigns = ({
   previousReviewMode,
   previousReviewers,
   requestedReviewers,
-  addedReviewers,
-  removedReviewersToNotify,
   now,
 }: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
   match(previousReviewMode)
@@ -2903,8 +2888,6 @@ const transitionToReviewerWritesReviewerSigns = ({
         signingState: riskAnalysisSigningState.assigned,
         sentToReviewerAt: undefined,
       },
-      newReviewersToNotify: addedReviewers,
-      oldReviewersToNotify: removedReviewersToNotify,
     }))
     .otherwise(() => ({
       reviewerWorkflow: {
@@ -2915,8 +2898,6 @@ const transitionToReviewerWritesReviewerSigns = ({
         signingState: riskAnalysisSigningState.assigned,
         sentToReviewerAt: undefined,
       },
-      newReviewersToNotify: requestedReviewers,
-      oldReviewersToNotify: removedReviewersToNotify,
     }));
 
 /**
@@ -2925,9 +2906,9 @@ const transitionToReviewerWritesReviewerSigns = ({
  * AdminWritesAdminSigns has no reviewer workflow and an undefined previous
  * mode is a purpose that was never assigned.
  *
- * Each branch declares the resulting reviewer workflow and who must be
- * notified. The risk analysis form and event are derived once from that
- * outcome after selecting the transition.
+ * Each branch declares the resulting reviewer workflow. The risk analysis
+ * form and structural event diff are derived once after selecting the
+ * transition.
  */
 function assignRiskAnalysisReviewerLogic(
   purpose: WithMetadata<Purpose>,
@@ -2955,14 +2936,8 @@ function assignRiskAnalysisReviewerLogic(
   const addedReviewers = requestedReviewers.filter(
     (id) => !previousReviewerIds.includes(id)
   );
-  const removedReviewers = previousReviewerIds.filter(
-    (id) => !requestedReviewers.includes(id)
-  );
-  const alreadyNotifiedReviewerIds = previousReviewers
-    .filter((reviewer) => reviewer.sentToReviewerAt !== undefined)
-    .map((reviewer) => reviewer.id);
-  const removedReviewersToNotify = alreadyNotifiedReviewerIds.filter((id) =>
-    removedReviewers.includes(id)
+  const removedReviewers = previousReviewers.filter(
+    (reviewer) => !requestedReviewers.includes(reviewer.id)
   );
 
   const now = new Date();
@@ -2973,15 +2948,14 @@ function assignRiskAnalysisReviewerLogic(
     previousReviewers,
     requestedReviewers,
     addedReviewers,
-    alreadyNotifiedReviewerIds,
-    removedReviewersToNotify,
+    removedReviewers,
     now,
   };
 
   const transitionOutcome = match(review.reviewMode)
     .returnType<RiskAnalysisAssignmentOutcome>()
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
-      transitionToAdminWritesAdminSigns(transitionContext)
+      transitionToAdminWritesAdminSigns()
     )
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
       transitionToAdminWritesReviewerSigns(transitionContext)
@@ -3011,7 +2985,8 @@ function assignRiskAnalysisReviewerLogic(
         purpose: updatedPurpose,
         version: purpose.metadata.version,
         correlationId,
-        oldReviewersToNotify: transitionOutcome.oldReviewersToNotify,
+        removedReviewers,
+        previousReviewMode,
       })
     )
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
@@ -3019,8 +2994,9 @@ function assignRiskAnalysisReviewerLogic(
         purpose: updatedPurpose,
         version: purpose.metadata.version,
         correlationId,
-        newReviewersToNotify: transitionOutcome.newReviewersToNotify,
-        oldReviewersToNotify: transitionOutcome.oldReviewersToNotify,
+        addedReviewers,
+        removedReviewers,
+        previousReviewMode,
       })
     )
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
@@ -3028,8 +3004,9 @@ function assignRiskAnalysisReviewerLogic(
         purpose: updatedPurpose,
         version: purpose.metadata.version,
         correlationId,
-        newReviewersToNotify: transitionOutcome.newReviewersToNotify,
-        oldReviewersToNotify: transitionOutcome.oldReviewersToNotify,
+        addedReviewers,
+        removedReviewers,
+        previousReviewMode,
       })
     )
     .exhaustive();

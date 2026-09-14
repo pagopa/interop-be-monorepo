@@ -567,12 +567,14 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
 
 export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
   purpose,
-  oldReviewersToNotify,
+  removedReviewers,
+  previousReviewMode,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  oldReviewersToNotify: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
+  previousReviewMode?: RiskAnalysisReviewMode;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -581,7 +583,14 @@ export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
   event: {
     type: "PurposeRiskAnalysisSelfAssigned",
     event_version: 2,
-    data: { purpose: toPurposeV2(purpose), oldReviewersToNotify },
+    data: {
+      purpose: toPurposeV2(purpose),
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousReviewMode:
+        previousReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousReviewMode),
+    },
   },
   correlationId,
 });
