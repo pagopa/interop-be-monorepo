@@ -88,7 +88,7 @@ describe("API POST /agreements/{agreementId}/approve test", () => {
         mockAgreement.id,
         agreementState.draft
       ),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     { error: agreementActivationFailed(mockAgreement.id), expectedStatus: 400 },
     {
@@ -194,7 +194,7 @@ describe("API POST /agreements/{agreementId}/unsuspend test", () => {
         mockAgreement.id,
         agreementState.draft
       ),
-      expectedStatus: 400,
+      expectedStatus: 409,
     },
     { error: agreementActivationFailed(mockAgreement.id), expectedStatus: 400 },
     {
