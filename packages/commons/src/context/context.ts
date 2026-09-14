@@ -18,6 +18,7 @@ import {
 import { AuthData } from "../auth/authData.js";
 import { parseCorrelationIdHeader } from "../auth/headers.js";
 import { genericLogger, Logger, logger } from "../logging/index.js";
+import { strictJsonBodyParser } from "../router/jsonBodyParser.js";
 
 export type AppContext<A extends AuthData = AuthData> = {
   serviceName: string;
@@ -34,6 +35,19 @@ export type AuthServerAppContext = AppContext & {
 };
 
 export const zodiosCtx = zodiosContext();
+const zodiosApp = zodiosCtx.app.bind(zodiosCtx);
+
+const strictZodiosApp: typeof zodiosCtx.app = (api, options = {}) => {
+  const app = zodiosApp(api, { ...options, enableJsonBodyParser: false });
+
+  if (options.enableJsonBodyParser !== false) {
+    app.use(strictJsonBodyParser());
+  }
+
+  return app;
+};
+
+zodiosCtx.app = strictZodiosApp;
 export type ZodiosContext = NonNullable<typeof zodiosCtx>;
 export type ExpressContext = NonNullable<typeof zodiosCtx.context>;
 
