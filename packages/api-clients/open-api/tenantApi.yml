@@ -396,6 +396,16 @@ paths:
           default: []
         explode: false
       - in: query
+        name: tenantIds
+        description: comma separated sequence of tenant IDs
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+          default: []
+        explode: false
+      - in: query
         name: externalIdOrigin
         schema:
           type: string
