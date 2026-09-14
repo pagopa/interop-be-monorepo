@@ -12,6 +12,7 @@ import {
 } from "pagopa-interop-commons";
 import {
   DelegationContractDocument,
+  emptyErrorMapper,
   EServiceId,
   TenantId,
   unsafeBrandId,
@@ -27,7 +28,6 @@ import {
 import { makeApiProblem } from "../model/domain/errors.js";
 import { DelegationService } from "../services/delegationService.js";
 import {
-  getDelegationsErrorMapper,
   getDelegationByIdErrorMapper,
   getDelegationContractErrorMapper,
   createProducerDelegationErrorMapper,
@@ -35,9 +35,6 @@ import {
   approveDelegationErrorMapper,
   rejectDelegationErrorMapper,
   revokeDelegationErrorMapper,
-  getConsumerDelegatorsErrorMapper,
-  getConsumerEservicesErrorMapper,
-  getConsumerDelegatorsWithAgreementsErrorMapper,
   generateDelegationContractErrorMapper,
   generateDelegationSignedContractErrorMapper,
 } from "../utilities/errorMappers.js";
@@ -109,7 +106,7 @@ const delegationRouter = (
           })
         );
       } catch (error) {
-        const errorRes = makeApiProblem(error, getDelegationsErrorMapper, ctx);
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
 
         return res.status(errorRes.status).send(errorRes);
       }
@@ -509,11 +506,7 @@ const delegationRouter = (
           .status(200)
           .send(delegationApi.CompactTenants.parse(delegators));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getConsumerDelegatorsErrorMapper,
-          ctx
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
 
         return res.status(errorRes.status).send(errorRes);
       }
@@ -547,11 +540,7 @@ const delegationRouter = (
           .status(200)
           .send(delegationApi.CompactTenants.parse(delegators));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getConsumerDelegatorsWithAgreementsErrorMapper,
-          ctx
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
 
         return res.status(errorRes.status).send(errorRes);
       }
@@ -584,11 +573,7 @@ const delegationRouter = (
           .status(200)
           .send(delegationApi.CompactEServices.parse(eservices));
       } catch (error) {
-        const errorRes = makeApiProblem(
-          error,
-          getConsumerEservicesErrorMapper,
-          ctx
-        );
+        const errorRes = makeApiProblem(error, emptyErrorMapper, ctx);
 
         return res.status(errorRes.status).send(errorRes);
       }
