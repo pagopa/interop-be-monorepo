@@ -113,7 +113,7 @@ export const notificationTypeToUiSection: Record<NotificationType, UiSection> =
     purposeOverQuotaStateToConsumer: "/fruizione/finalita",
     purposeRiskAnalysisAssignedForSigningToReviewer: "/fruizione/finalita",
     purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
-      "/fruizione/finalita",
+      "/analisi-del-rischio",
     purposePublishedWithRiskAnalysisToReviewer: "/fruizione/finalita",
     draftPurposeDeletedWithRiskAnalysisToReviewer: "/analisi-del-rischio",
     purposeRiskAnalysisAssignmentRemovedToReviewer: "/fruizione/finalita",
