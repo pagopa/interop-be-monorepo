@@ -11,6 +11,7 @@ import {
   DelegationId,
   TenantId,
   delegationKind,
+  delegationState,
   generateId,
 } from "pagopa-interop-models";
 import request from "supertest";
@@ -88,7 +89,9 @@ describe("API POST /producer/delegations/:delegationId/approve test", () => {
       expectedStatus: 404,
     },
     {
-      error: incorrectState(mockDelegation.id, "Active", "WaitingForApproval"),
+      error: incorrectState(mockDelegation.id, "Active", [
+        delegationState.waitingForApproval,
+      ]),
       expectedStatus: 409,
     },
   ])(
