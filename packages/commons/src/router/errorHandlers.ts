@@ -7,6 +7,7 @@ import {
   genericError,
   makeApiProblemBuilder,
   parseErrorMessage,
+  ProblemSchema,
 } from "pagopa-interop-models";
 import { z } from "zod";
 import { fromZodIssue } from "zod-validation-error";
@@ -26,6 +27,31 @@ function isMultipartRequestError(error: unknown): boolean {
     error instanceof multer.MulterError ||
     (error instanceof Error && error.message.startsWith("Multipart:"))
   );
+}
+
+// explicit charset: integrityRest02Middleware signs the header before express appends it
+export const problemContentType = "application/problem+json; charset=utf-8";
+
+// keep as the first app.use: it only patches the responses it sees
+export function problemContentTypeMiddleware(
+  _req: express.Request,
+  res: Response,
+  next: NextFunction
+): void {
+  const send = res.send.bind(res);
+
+  // eslint-disable-next-line functional/immutable-data
+  res.send = (body?: unknown): Response => {
+    if (
+      res.statusCode >= constants.HTTP_STATUS_BAD_REQUEST &&
+      ProblemSchema.safeParse(body).success
+    ) {
+      res.type(problemContentType);
+    }
+    return send(body);
+  };
+
+  next();
 }
 
 export function zodiosValidationErrorToApiProblem(
@@ -64,6 +90,10 @@ export function errorsToApiProblemsMiddleware(
   }
 
   const ctx = fromAppContext(req.ctx);
+
+  // covers problems sent before the wrapper patches res.send (e.g. by the json
+  // body parser zodiosCtx.app() registers first)
+  res.type(problemContentType);
 
   if (isMultipartRequestError(error)) {
     ctx.logger.warn(`Bad multipart request: ${parseErrorMessage(error)}`);

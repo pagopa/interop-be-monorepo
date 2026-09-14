@@ -12,6 +12,7 @@ import {
   healthRouter,
   loggerMiddleware,
   multerMiddleware,
+  problemContentTypeMiddleware,
   rateLimiterMiddleware as rateLimiterMiddlewareBuilder,
   zodiosCtx,
 } from "pagopa-interop-commons";
@@ -86,6 +87,7 @@ export async function createApp(
   } = services;
 
   const app = zodiosCtx.app();
+  app.use(problemContentTypeMiddleware);
   app.use(
     express.json({ type: ["application/json", "application/merge-patch+json"] })
   );
