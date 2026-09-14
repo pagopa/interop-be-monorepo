@@ -1,65 +1,65 @@
-# delegation-process
+**# delegation-process**
 
-## 1. `GET /delegations`
-
-TODO
-
-## 2. `GET /delegations/:delegationId`
+**## 1. `GET /delegations`**
 
 TODO
 
-## 3. `GET /delegations/:delegationId/contracts/:contractId`
+**## 2. `GET /delegations/:delegationId`**
 
 TODO
 
-## 4. `POST /internal/delegations/:delegationId/contract`
+**## 3. `GET /delegations/:delegationId/contracts/:contractId`**
 
 TODO
 
-## 5. `POST /internal/delegations/:delegationId/signedContract`
+**## 4. `POST /internal/delegations/:delegationId/contract`**
 
 TODO
 
-## 6. `POST /producer/delegations`
+**## 5. `POST /internal/delegations/:delegationId/signedContract`**
 
 TODO
 
-## 7. `POST /producer/delegations/:delegationId/approve`
+**## 6. `POST /producer/delegations`**
 
 TODO
 
-## 8. `POST /producer/delegations/:delegationId/reject`
+**## 7. `POST /producer/delegations/:delegationId/approve`**
 
 TODO
 
-## 9. `DELETE /producer/delegations/:delegationId`
+**## 8. `POST /producer/delegations/:delegationId/reject`**
 
 TODO
 
-## 10. `POST /consumer/delegations`
+**## 9. `DELETE /producer/delegations/:delegationId`**
 
 TODO
 
-## 11. `POST /consumer/delegations/:delegationId/approve`
+**## 10. `POST /consumer/delegations`**
 
 TODO
 
-## 12. `POST /consumer/delegations/:delegationId/reject`
+**## 11. `POST /consumer/delegations/:delegationId/approve`**
 
 TODO
 
-## 13. `DELETE /consumer/delegations/:delegationId`
+**## 12. `POST /consumer/delegations/:delegationId/reject`**
 
 TODO
 
-## 14. `GET /consumer/delegators`
+**## 13. `DELETE /consumer/delegations/:delegationId`**
 
 TODO
 
-## 15. `GET /consumer/delegatorsWithAgreements`
+**## 14. `GET /consumer/delegators`**
 
 TODO
 
-## 16. `GET /consumer/eservices`
+**## 15. `GET /consumer/delegatorsWithAgreements`**
+
+TODO
+
+**## 16. `GET /consumer/eservices`**
 
 TODO
