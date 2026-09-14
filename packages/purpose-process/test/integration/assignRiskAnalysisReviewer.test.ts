@@ -145,8 +145,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
-      newReviewersToNotify: reviewerIds,
-      oldReviewersToNotify: [],
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
     });
 
     vi.useRealTimers();
@@ -230,8 +230,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
-      newReviewersToNotify: [],
-      oldReviewersToNotify: [],
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
     });
 
     vi.useRealTimers();
@@ -321,8 +321,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
-      newReviewersToNotify: reviewerIds,
-      oldReviewersToNotify: [],
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
     });
 
     vi.useRealTimers();

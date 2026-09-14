@@ -619,17 +619,21 @@ export function purposeServiceBuilder(
         isReviewerWrites
           ? toCreateEventPurposeRiskAnalysisAssigned({
               purpose: updatedPurpose,
-              newReviewersToNotify: seed.reviewerIds.map((id) =>
+              addedReviewers: seed.reviewerIds.map((id) =>
                 unsafeBrandId<UserId>(id)
               ),
-              oldReviewersToNotify: [],
+              removedReviewers: [],
+              previousReviewMode: undefined,
               version: purpose.metadata.version,
               correlationId,
             })
           : toCreateEventPurposeRiskAnalysisWorkflowCreated({
               purpose: updatedPurpose,
-              newReviewersToNotify: [],
-              oldReviewersToNotify: [],
+              addedReviewers: seed.reviewerIds.map((id) =>
+                unsafeBrandId<UserId>(id)
+              ),
+              removedReviewers: [],
+              previousReviewMode: undefined,
               version: purpose.metadata.version,
               correlationId,
             })
