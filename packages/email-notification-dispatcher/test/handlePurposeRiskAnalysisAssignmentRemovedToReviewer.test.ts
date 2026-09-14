@@ -15,6 +15,9 @@ import {
   NotificationType,
   Purpose,
   PurposeEventEnvelope,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
+  RiskAnalysisReviewModeV2,
   Tenant,
   TenantId,
   toPurposeV2,
@@ -116,8 +119,17 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
         event_version: 2,
         type: "PurposeRiskAnalysisSelfAssigned",
         data: {
-          purpose: toPurposeV2(purpose),
-          oldReviewersToNotify: reviewerIds,
+          purpose: toPurposeV2({
+            ...purpose,
+            reviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+            reviewerWorkflow: undefined,
+          }),
+          previousReviewMode:
+            RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS,
+          removedReviewers: reviewerIds.map((id) => ({
+            id,
+            sentToReviewerAt: 1n,
+          })),
         },
         sequence_num: 1,
         stream_id: purpose.id,
@@ -131,9 +143,21 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
         event_version: 2,
         type: "PurposeRiskAnalysisWorkflowCreated",
         data: {
-          purpose: toPurposeV2(purpose),
-          newReviewersToNotify: [unrelatedUser.id],
-          oldReviewersToNotify: reviewerIds,
+          purpose: toPurposeV2({
+            ...purpose,
+            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            reviewerWorkflow: {
+              reviewers: [{ id: unrelatedUser.id }],
+              signingState: riskAnalysisSigningState.draft,
+            },
+          }),
+          previousReviewMode:
+            RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS,
+          addedReviewers: [unrelatedUser.id],
+          removedReviewers: reviewerIds.map((id) => ({
+            id,
+            sentToReviewerAt: 1n,
+          })),
         },
         sequence_num: 1,
         stream_id: purpose.id,
@@ -147,9 +171,21 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
         event_version: 2,
         type: "PurposeRiskAnalysisAssigned",
         data: {
-          purpose: toPurposeV2(purpose),
-          newReviewersToNotify: [unrelatedUser.id],
-          oldReviewersToNotify: reviewerIds,
+          purpose: toPurposeV2({
+            ...purpose,
+            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            reviewerWorkflow: {
+              reviewers: [{ id: unrelatedUser.id }],
+              signingState: riskAnalysisSigningState.assigned,
+            },
+          }),
+          previousReviewMode:
+            RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS,
+          addedReviewers: [unrelatedUser.id],
+          removedReviewers: reviewerIds.map((id) => ({
+            id,
+            sentToReviewerAt: 1n,
+          })),
         },
         sequence_num: 1,
         stream_id: purpose.id,
@@ -160,7 +196,7 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
   ];
 
   it.each(events)(
-    "should email only oldReviewersToNotify for a $name event",
+    "should email only previously informed removed reviewers for a $name event",
     async ({ event }) => {
       const allMessages = await handlePurposeEvent({
         decodedMessage: event,
