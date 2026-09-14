@@ -102,7 +102,7 @@ export async function exportInterfaceV2(
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "MaintenanceEServiceDescriptorUnarchived",
           "EServicePendingDescriptorDeletedByRevoke",
-          "EServiceDeletedbyRevoke"
+          "EServiceDeletedByRevoke"
         ),
       },
       () => undefined

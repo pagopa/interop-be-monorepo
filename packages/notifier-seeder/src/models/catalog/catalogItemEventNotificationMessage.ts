@@ -43,7 +43,7 @@ const eventV2TypeMapper = (
     )
     .with(
       "EServiceDeleted",
-      "EServiceDeletedbyRevoke",
+      "EServiceDeletedByRevoke",
       () => "catalog_item_deleted"
     )
     .with("EServiceCloned", () => "cloned_catalog_item_added")

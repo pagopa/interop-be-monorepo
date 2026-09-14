@@ -84,7 +84,7 @@ async function handleEServiceEventV2(
             "EServiceArchivingRequestCanceledByDelegate",
             "EServiceArchivingRequestCanceledByRevokedDelegation",
             "MaintenanceEServicePersonalDataFlagReset",
-            "EServiceDeletedbyRevoke"
+            "EServiceDeletedByRevoke"
           ),
         },
         async (event) => {

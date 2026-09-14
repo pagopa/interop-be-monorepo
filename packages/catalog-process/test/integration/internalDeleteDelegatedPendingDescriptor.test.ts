@@ -155,7 +155,7 @@ describe("delete pending delegated descriptor after delegation revoke", () => {
       expect(writtenEvent).toMatchObject({
         stream_id: eservice.id,
         version: "2",
-        type: "EServiceDeletedbyRevoke",
+        type: "EServiceDeletedByRevoke",
         event_version: 2,
       });
     }

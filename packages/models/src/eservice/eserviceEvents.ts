@@ -381,7 +381,7 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
     .with({ type: "EServicePendingDescriptorDeletedByRevoke" }, ({ data }) =>
       EServicePendingDescriptorDeletedByRevokeV2.toBinary(data)
     )
-    .with({ type: "EServiceDeletedbyRevoke" }, ({ data }) =>
+    .with({ type: "EServiceDeletedByRevoke" }, ({ data }) =>
       EServiceDeletedByRevokeV2.toBinary(data)
     )
     .exhaustive();
@@ -814,7 +814,7 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceDeletedbyRevoke"),
+    type: z.literal("EServiceDeletedByRevoke"),
     data: protobufDecoder(EServiceDeletedByRevokeV2),
   }),
 ]);

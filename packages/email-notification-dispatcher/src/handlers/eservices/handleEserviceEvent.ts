@@ -473,7 +473,7 @@ export async function handleEServiceEvent(
           "EServiceArchivingRequestCanceledByRevokedDelegation",
           "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
           "EServicePendingDescriptorDeletedByRevoke",
-          "EServiceDeletedbyRevoke"
+          "EServiceDeletedByRevoke"
         ),
       },
       () => {

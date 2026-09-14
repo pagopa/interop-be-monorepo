@@ -1341,7 +1341,7 @@ export const toCreateEventEServiceDeletedOnRevoke = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServiceDeletedbyRevoke",
+    type: "EServiceDeletedByRevoke",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),

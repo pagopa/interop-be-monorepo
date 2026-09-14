@@ -244,7 +244,7 @@ export function toOutboundEventV2(
       { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
       { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
       { type: "EServicePendingDescriptorDeletedByRevoke" },
-      { type: "EServiceDeletedbyRevoke" },
+      { type: "EServiceDeletedByRevoke" },
       () => undefined
     )
     .with(

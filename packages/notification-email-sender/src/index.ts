@@ -179,7 +179,7 @@ export async function handleCatalogMessage(
           "MaintenanceEServicePersonalDataFlagReset",
           "MaintenanceEServiceDescriptorUnarchived",
           "EServicePendingDescriptorDeletedByRevoke",
-          "EServiceDeletedbyRevoke"
+          "EServiceDeletedByRevoke"
         ),
       },
       () => {
