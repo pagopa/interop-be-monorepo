@@ -61,6 +61,18 @@ You should see the event being processed by the consumer and the read model bein
 
 You can verify this by using PgAdmin, which is being started alongside the consumer and is available at http://localhost:8082. That can be used to inspect the event store.
 
+## Turborepo telemetry
+
+Turborepo collects anonymous usage [telemetry](https://turborepo.com/docs/telemetry) by default.
+
+In CI it is disabled via the `TURBO_TELEMETRY_DISABLED=1` environment variable.
+
+To disable it for your local machine, run once:
+
+```
+pnpm turbo telemetry disable
+```
+
 ## Licensing
 
 This project is licensed under the terms of the **European Union Public Licence version 1.2 (EUPL-1.2)**.
