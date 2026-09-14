@@ -143,15 +143,13 @@ export async function handlePurposeEvent(
         return [];
       }
     )
-    .with(
-      { type: "PurposeRiskAnalysisAssigned" },
-      ({ data: { purpose, newReviewersToNotify } }) =>
-        handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer(
-          purpose,
-          newReviewersToNotify,
-          logger,
-          readModelService
-        )
+    .with({ type: "PurposeRiskAnalysisAssigned" }, (event) =>
+      handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer(
+        event.data.purpose,
+        getRiskAnalysisAssignmentRecipients(event).writingReviewerIds,
+        logger,
+        readModelService
+      )
     )
     .exhaustive();
 }
