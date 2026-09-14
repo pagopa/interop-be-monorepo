@@ -84,6 +84,8 @@ import {
   EServiceDescriptorArchivingRequestCanceledByDelegateV2,
   EServiceDescriptorArchivingRequestedByDelegateV2,
   EServiceDescriptorArchivingRequestRejectedByDelegatorV2,
+  EServicePendingDescriptorDeletedbyRevokeV2,
+  EServiceDeletedbyRevokeV2,
 } from "../gen/v2/eservice/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 
@@ -375,6 +377,12 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
       ({ data }) =>
         EServiceDescriptorArchivingRequestRejectedByDelegatorV2.toBinary(data)
+    )
+    .with({ type: "EServicePendingDescriptorDeletedbyRevoke" }, ({ data }) =>
+      EServicePendingDescriptorDeletedbyRevokeV2.toBinary(data)
+    )
+    .with({ type: "EServiceDeletedbyRevoke" }, ({ data }) =>
+      EServiceDeletedbyRevokeV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -798,6 +806,16 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
     data: protobufDecoder(
       EServiceDescriptorArchivingRequestCanceledByDelegateV2
     ),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServicePendingDescriptorDeletedbyRevoke"),
+    data: protobufDecoder(EServicePendingDescriptorDeletedbyRevokeV2),
+  }),
+  z.object({
+    event_version: z.literal(2),
+    type: z.literal("EServiceDeletedbyRevoke"),
+    data: protobufDecoder(EServiceDeletedbyRevokeV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;

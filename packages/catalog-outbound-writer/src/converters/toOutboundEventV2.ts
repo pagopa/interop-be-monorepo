@@ -113,6 +113,7 @@ export function toOutboundEventV2(
       { type: "EServiceArchivingRequestApprovedByDelegator" },
       { type: "EServiceArchivingRequestRejectedByDelegator" },
       { type: "EServiceArchivingRequestCanceledByDelegate" },
+      { type: "EServiceDeletedbyRevoke" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -175,6 +176,7 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
       { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
       { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
+      { type: "EServicePendingDescriptorDeletedbyRevoke" },
 
       (msg) => ({
         event_version: msg.event_version,

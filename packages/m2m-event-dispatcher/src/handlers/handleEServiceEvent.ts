@@ -145,7 +145,9 @@ async function handleEServiceEventV2(
             "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
-            "MaintenanceEServiceDescriptorUnarchived"
+            "MaintenanceEServiceDescriptorUnarchived",
+            "EServicePendingDescriptorDeletedbyRevoke",
+            "EServiceDeletedbyRevoke"
           ),
         },
         async (event) => {

@@ -100,7 +100,9 @@ export async function exportInterfaceV2(
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
-          "MaintenanceEServiceDescriptorUnarchived"
+          "MaintenanceEServiceDescriptorUnarchived",
+          "EServicePendingDescriptorDeletedbyRevoke",
+          "EServiceDeletedbyRevoke"
         ),
       },
       () => undefined

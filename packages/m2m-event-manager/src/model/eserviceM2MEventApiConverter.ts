@@ -208,6 +208,11 @@ function toApiEServiceM2MEventType(
       "MaintenanceEServiceDescriptorUnarchived",
       () => "MAINTENANCE_ESERVICE_DESCRIPTOR_UNARCHIVED"
     )
+    .with(
+      "EServicePendingDescriptorDeletedbyRevoke",
+      () => "ESERVICE_PENDING_DESCRIPTOR_DELETED_BY_REVOKE"
+    )
+    .with("EServiceDeletedbyRevoke", () => "ESERVICE_DELETED_BY_REVOKE")
     .exhaustive();
 }
 
