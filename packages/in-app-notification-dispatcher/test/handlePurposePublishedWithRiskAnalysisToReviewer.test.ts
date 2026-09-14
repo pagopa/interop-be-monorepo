@@ -43,6 +43,7 @@ describe("handlePurposePublishedWithRiskAnalysisToReviewer", () => {
     reviewerWorkflow: {
       reviewers: reviewerIds.map((id) => ({ id })),
       signingState: riskAnalysisSigningState.signed,
+      signedBy: reviewerIds[0],
     },
   };
   const eservice: EService = {
@@ -76,7 +77,7 @@ describe("handlePurposePublishedWithRiskAnalysisToReviewer", () => {
   });
 
   it.each(["PurposeActivated", "PurposeWaitingForApproval"] as const)(
-    "should notify all current reviewers once for %s",
+    "should notify the signer and other reviewers without attributing approval to everyone for %s",
     async (type) => {
       mockGetNotificationRecipients.mockResolvedValue([
         ...reviewerIds.map((userId) => ({ userId, tenantId: consumerId })),
@@ -107,7 +108,7 @@ describe("handlePurposePublishedWithRiskAnalysisToReviewer", () => {
         reviewerIds.map((userId) => ({
           userId,
           tenantId: consumerId,
-          body: "L'amministratore ha pubblicato la finalità Finalità test associata all'e-service E-service test con analisi del rischio approvata da te.",
+          body: "L'amministratore ha pubblicato la finalità Finalità test associata all'e-service E-service test con analisi del rischio che ti era stata assegnata.",
           notificationType: "purposePublishedWithRiskAnalysisToReviewer",
           entityId: purposeId,
         }))

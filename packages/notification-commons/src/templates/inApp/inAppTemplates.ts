@@ -405,7 +405,7 @@ export const inAppTemplates = {
     purposeName: string,
     eserviceName: string
   ): string =>
-    `L'amministratore ha pubblicato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio approvata da te.`,
+    `L'amministratore ha pubblicato la finalità ${purposeName} associata all'e-service ${eserviceName} con analisi del rischio che ti era stata assegnata.`,
   purposeQuotaAdjustmentNewVersionToProducer: (
     consumerName: string,
     purposeName: string,
