@@ -13,6 +13,9 @@ import {
   generateId,
   missingKafkaMessageDataError,
   PurposeEventEnvelope,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
+  RiskAnalysisReviewModeV2,
   PurposeId,
   TenantId,
   toPurposeV2,
@@ -108,9 +111,21 @@ describe("handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer", () =
       event_version: 2,
       type: "PurposeRiskAnalysisAssigned",
       data: {
-        purpose: toPurposeV2(purpose),
-        newReviewersToNotify: reviewerIds,
-        oldReviewersToNotify: [removedReviewerId],
+        purpose: toPurposeV2({
+          ...purpose,
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerWorkflow: {
+            reviewers: [...reviewerIds, unchangedReviewerId].map((id) => ({
+              id,
+              sentToReviewerAt: new Date(),
+            })),
+            signingState: riskAnalysisSigningState.assigned,
+          },
+        }),
+        previousReviewMode:
+          RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS,
+        addedReviewers: reviewerIds,
+        removedReviewers: [{ id: removedReviewerId, sentToReviewerAt: 1n }],
       },
       sequence_num: 1,
       stream_id: purposeId,
