@@ -14,6 +14,8 @@ import {
   PurposeEventEnvelope,
   PurposeId,
   riskAnalysisSigningState,
+  riskAnalysisReviewMode,
+  RiskAnalysisReviewModeV2,
   Tenant,
   TenantId,
   toPurposeV2,
@@ -93,7 +95,7 @@ describe("handlePurposeRiskAnalysisAssignedForSigningToReviewer", () => {
     expect(mockGetNotificationRecipients).not.toHaveBeenCalled();
   });
 
-  it("should notify only newReviewersToNotify for a workflow-created event", async () => {
+  it("should notify only added reviewers for a submitted workflow-created event", async () => {
     mockGetNotificationRecipients.mockResolvedValue([
       ...reviewerIds.map((userId) => ({ userId, tenantId: consumerId })),
       { userId: unrelatedUserId, tenantId: consumerId },
@@ -103,9 +105,21 @@ describe("handlePurposeRiskAnalysisAssignedForSigningToReviewer", () => {
       event_version: 2,
       type: "PurposeRiskAnalysisWorkflowCreated",
       data: {
-        purpose: toPurposeV2(purpose),
-        newReviewersToNotify: reviewerIds,
-        oldReviewersToNotify: [unrelatedUserId],
+        purpose: toPurposeV2({
+          ...purpose,
+          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+          reviewerWorkflow: {
+            reviewers: reviewerIds.map((id) => ({
+              id,
+              sentToReviewerAt: new Date(),
+            })),
+            signingState: riskAnalysisSigningState.submitted,
+          },
+        }),
+        previousReviewMode:
+          RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS,
+        addedReviewers: reviewerIds,
+        removedReviewers: [{ id: unrelatedUserId, sentToReviewerAt: 1n }],
       },
       sequence_num: 1,
       stream_id: purposeId,
