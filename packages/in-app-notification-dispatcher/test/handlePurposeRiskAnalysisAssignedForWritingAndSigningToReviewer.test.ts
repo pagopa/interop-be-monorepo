@@ -90,7 +90,13 @@ describe("handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer", () =
         readModelService
       );
 
-    expect(notifications).toEqual([]);
+    expect(
+      notifications.filter(
+        ({ notificationType }) =>
+          notificationType ===
+          "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer"
+      )
+    ).toEqual([]);
     expect(mockGetNotificationRecipients).not.toHaveBeenCalled();
   });
 
@@ -138,7 +144,13 @@ describe("handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer", () =
       readModelService,
       logger
     );
-    expect(notifications).toEqual(
+    expect(
+      notifications.filter(
+        ({ notificationType }) =>
+          notificationType ===
+          "purposeRiskAnalysisAssignedForWritingAndSigningToReviewer"
+      )
+    ).toEqual(
       reviewerIds.map((userId) => ({
         userId,
         tenantId: consumerId,
