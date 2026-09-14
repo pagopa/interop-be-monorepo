@@ -32,13 +32,8 @@ const notificationConfigRouter = (
   ctx: ZodiosContext,
   notificationConfigService: NotificationConfigService
 ): ZodiosRouter<ZodiosEndpointDefinitions, ExpressContext> => {
-  const {
-    ADMIN_ROLE,
-    API_ROLE,
-    INTERNAL_ROLE,
-    REVIEWER_ROLE,
-    SECURITY_ROLE,
-  } = authRole;
+  const { ADMIN_ROLE, API_ROLE, INTERNAL_ROLE, REVIEWER_ROLE, SECURITY_ROLE } =
+    authRole;
 
   return ctx
     .router(notificationConfigApi.processApi.api, {
