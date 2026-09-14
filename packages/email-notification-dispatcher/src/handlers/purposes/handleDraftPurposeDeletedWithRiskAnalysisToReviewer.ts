@@ -70,7 +70,7 @@ export async function handleDraftPurposeDeletedWithRiskAnalysisToReviewer({
         entityId: purpose.id,
         purposeTitle: purpose.title,
         eserviceName: eservice.name,
-        ctaLabel: "Visualizza finalità",
+        ctaLabel: "Visualizza analisi del rischio",
         selfcareId: consumer.selfcareId,
         bffUrl: config.bffUrl,
       }),
