@@ -145,3 +145,7 @@ message PurposeRiskAnalysisSelfAssignedV2 {
   PurposeV2 purpose = 1;
   repeated string oldReviewersToNotify = 2;
 }
+
+message MaintenancePurposeRiskAnalysisFixReviewerWorkflowV2 {
+  PurposeV2 purpose = 1;
+}
