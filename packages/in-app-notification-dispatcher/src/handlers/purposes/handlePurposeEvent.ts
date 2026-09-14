@@ -24,28 +24,25 @@ export async function handlePurposeEvent(
       logger.info(`Skipping V1 event ${decodedMessage.type} message`);
       return [];
     })
-    .with(
-      { type: "PurposeRiskAnalysisWorkflowCreated" },
-      async ({
-        data: { purpose, newReviewersToNotify, oldReviewersToNotify },
-        type,
-      }) => [
+    .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, async (event) => {
+      const recipients = getRiskAnalysisAssignmentRecipients(event);
+      return [
         ...(await handlePurposeRiskAnalysisAssignedForSigningToReviewer(
-          purpose,
-          newReviewersToNotify,
+          event.data.purpose,
+          recipients.signingReviewerIds,
           logger,
           readModelService,
-          type
+          event.type
         )),
         ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
-          purpose,
-          oldReviewersToNotify,
+          event.data.purpose,
+          recipients.removedReviewerIds,
           logger,
           readModelService,
-          type
+          event.type
         )),
-      ]
-    )
+      ];
+    })
     .with({ type: "PurposeRiskAnalysisSubmitted" }, (event) =>
       handlePurposeRiskAnalysisAssignedForSigningToReviewer(
         event.data.purpose,
@@ -156,37 +153,32 @@ export async function handlePurposeEvent(
         return [];
       }
     )
-    .with(
-      { type: "PurposeRiskAnalysisAssigned" },
-      async ({
-        data: { purpose, newReviewersToNotify, oldReviewersToNotify },
-        type,
-      }) => [
+    .with({ type: "PurposeRiskAnalysisAssigned" }, async (event) => {
+      const recipients = getRiskAnalysisAssignmentRecipients(event);
+      return [
         ...(await handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer(
-          purpose,
-          newReviewersToNotify,
+          event.data.purpose,
+          recipients.writingReviewerIds,
           logger,
           readModelService
         )),
         ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
-          purpose,
-          oldReviewersToNotify,
+          event.data.purpose,
+          recipients.removedReviewerIds,
           logger,
           readModelService,
-          type
+          event.type
         )),
-      ]
-    )
-    .with(
-      { type: "PurposeRiskAnalysisSelfAssigned" },
-      ({ data: { purpose, oldReviewersToNotify }, type }) =>
-        handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
-          purpose,
-          oldReviewersToNotify,
-          logger,
-          readModelService,
-          type
-        )
+      ];
+    })
+    .with({ type: "PurposeRiskAnalysisSelfAssigned" }, (event) =>
+      handlePurposeRiskAnalysisAssignmentRemovedToReviewer(
+        event.data.purpose,
+        getRiskAnalysisAssignmentRecipients(event).removedReviewerIds,
+        logger,
+        readModelService,
+        event.type
+      )
     )
     .exhaustive();
 }
