@@ -919,7 +919,7 @@ describe("assignRiskAnalysisReviewer", () => {
         signingState === riskAnalysisSigningState.submitted ||
         signingState === riskAnalysisSigningState.rejected;
 
-      // In mode 2, reviewer timestamps preserve whether an action was sent.
+      // When remaining in mode 2, preserve the notification timestamp for reviewers already notified.
       if (isMode2ToMode2Transition && isSubmittedOrRejected) {
         expect(updatedPurpose.reviewerWorkflow).toEqual({
           reviewers: [
@@ -944,28 +944,35 @@ describe("assignRiskAnalysisReviewer", () => {
         } satisfies ReviewerWorkflow);
       }
 
-      if (
-        previousReviewMode ===
-          riskAnalysisReviewMode.adminWritesReviewerSigns &&
-        requestedReviewMode ===
-          riskAnalysisReviewMode.reviewerWritesReviewerSigns
-      ) {
-        expect(updatedPurpose.reviewerWorkflow?.reviewers).toEqual([
-          { id: keptReviewerId, sentToReviewerAt: now },
-          { id: addedReviewerId, sentToReviewerAt: now },
-        ]);
-      }
-
-      if (
-        previousReviewMode ===
-          riskAnalysisReviewMode.reviewerWritesReviewerSigns &&
-        requestedReviewMode === riskAnalysisReviewMode.adminWritesReviewerSigns
-      ) {
-        expect(updatedPurpose.reviewerWorkflow?.reviewers).toEqual([
-          { id: keptReviewerId, sentToReviewerAt: undefined },
-          { id: addedReviewerId, sentToReviewerAt: undefined },
-        ]);
-      }
+      match({ previousReviewMode, requestedReviewMode })
+        .with(
+          {
+            previousReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            requestedReviewMode:
+              riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          },
+          () => {
+            expect(updatedPurpose.reviewerWorkflow?.reviewers).toEqual([
+              { id: keptReviewerId, sentToReviewerAt: now },
+              { id: addedReviewerId, sentToReviewerAt: now },
+            ]);
+          }
+        )
+        .with(
+          {
+            previousReviewMode:
+              riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            requestedReviewMode:
+              riskAnalysisReviewMode.adminWritesReviewerSigns,
+          },
+          () => {
+            expect(updatedPurpose.reviewerWorkflow?.reviewers).toEqual([
+              { id: keptReviewerId, sentToReviewerAt: undefined },
+              { id: addedReviewerId, sentToReviewerAt: undefined },
+            ]);
+          }
+        )
+        .otherwise(() => undefined);
 
       await expectAssignmentEvent({
         purposeId: mockPurpose.id,
