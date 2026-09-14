@@ -1420,7 +1420,11 @@ export function agreementServiceBuilder(
     },
     async archiveAgreement(
       agreementId: AgreementId,
-      { authData, correlationId, logger }: WithLogger<AppContext<UIAuthData>>
+      {
+        authData,
+        correlationId,
+        logger,
+      }: WithLogger<AppContext<UIAuthData | M2MAdminAuthData>>
     ): Promise<WithMetadata<Agreement>> {
       logger.info(`Archiving agreement ${agreementId}`);
 
