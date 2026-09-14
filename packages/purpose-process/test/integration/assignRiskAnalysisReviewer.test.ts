@@ -81,8 +81,7 @@ function mockSelfcareV2ClientCall(
 }
 
 /**
- * Reviewer sets shared by the transition tests: the request keeps one reviewer,
- * drops another and adds a new one, so that the structural diff carried by the
+    })
  * events can be told apart from the plain reviewer lists.
  */
 const keptReviewerId = generateId<UserId>();
@@ -217,36 +216,40 @@ async function expectAssignmentEvent({
   const expectCommonPayload = (payload: {
     purpose?: { id: string; reviewMode?: unknown };
     removedReviewers: { id: string; sentToReviewerAt?: bigint }[];
+    previousReviewMode?: unknown;
   }): void => {
     expect(payload.purpose).toMatchObject(expectedPurpose);
     expect(payload.removedReviewers.map(({ id }) => id)).toEqual(
       removedReviewerIds
     );
+    expect(payload.previousReviewMode).toBe(expectedPreviousReviewMode);
   };
 
-  if (type === "PurposeRiskAnalysisSelfAssigned") {
-    const payload = decodeProtobufPayload({
-      messageType: PurposeRiskAnalysisSelfAssignedV2,
-      payload: writtenEvent.data,
-    });
-    expectCommonPayload(payload);
-    expect(payload.previousReviewMode).toBe(expectedPreviousReviewMode);
-    return;
-  }
-
-  const payload =
-    type === "PurposeRiskAnalysisWorkflowCreated"
-      ? decodeProtobufPayload({
-          messageType: PurposeRiskAnalysisWorkflowCreatedV2,
-          payload: writtenEvent.data,
-        })
-      : decodeProtobufPayload({
-          messageType: PurposeRiskAnalysisAssignedV2,
-          payload: writtenEvent.data,
-        });
-  expectCommonPayload(payload);
-  expect(payload.addedReviewers).toEqual(addedReviewers);
-  expect(payload.previousReviewMode).toBe(expectedPreviousReviewMode);
+  match(type)
+    .with("PurposeRiskAnalysisSelfAssigned", () => {
+      const payload = decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisSelfAssignedV2,
+        payload: writtenEvent.data,
+      });
+      expectCommonPayload(payload);
+    })
+    .with("PurposeRiskAnalysisWorkflowCreated", () => {
+      const payload = decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisWorkflowCreatedV2,
+        payload: writtenEvent.data,
+      });
+      expectCommonPayload(payload);
+      expect(payload.addedReviewers).toEqual(addedReviewers);
+    })
+    .with("PurposeRiskAnalysisAssigned", () => {
+      const payload = decodeProtobufPayload({
+        messageType: PurposeRiskAnalysisAssignedV2,
+        payload: writtenEvent.data,
+      });
+      expectCommonPayload(payload);
+      expect(payload.addedReviewers).toEqual(addedReviewers);
+    })
+    .exhaustive();
 }
 
 describe("assignRiskAnalysisReviewer", () => {
