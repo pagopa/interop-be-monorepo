@@ -12,6 +12,7 @@ import {
   getMockDescriptor,
   getMockDocument,
   getMockAgreement,
+  sortRiskAnalysisCollections,
 } from "pagopa-interop-commons-test";
 import {
   Descriptor,
@@ -181,14 +182,16 @@ describe("publish descriptor", () => {
       ],
     };
 
-    expect(publishDescriptorResponse).toEqual({
-      data: expectedEservice,
-      metadata: { version: parseInt(writtenEvent.version, 10) },
+    expect(publishDescriptorResponse.metadata).toEqual({
+      version: parseInt(writtenEvent.version, 10),
     });
-    expect(writtenPayload).toEqual({
-      descriptorId: descriptor.id,
-      eservice: toEServiceV2(expectedEservice),
-    });
+    expect(sortRiskAnalysisCollections(publishDescriptorResponse.data)).toEqual(
+      sortRiskAnalysisCollections(expectedEservice)
+    );
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+      sortRiskAnalysisCollections(toEServiceV2(expectedEservice))
+    );
   });
 
   it("should write on event-store for the submission of the descriptor by the delegate", async () => {
@@ -261,10 +264,10 @@ describe("publish descriptor", () => {
       ],
     });
 
-    expect(writtenPayload).toEqual({
-      descriptorId: descriptor.id,
-      eservice: expectedEservice,
-    });
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+      sortRiskAnalysisCollections(expectedEservice)
+    );
   });
 
   it.each([descriptorState.published, descriptorState.suspended])(
@@ -827,14 +830,16 @@ describe("publish descriptor", () => {
       ],
     };
 
-    expect(publishDescriptorResponse).toEqual({
-      data: expectedEservice,
-      metadata: { version: parseInt(writtenEvent.version, 10) },
+    expect(publishDescriptorResponse.metadata).toEqual({
+      version: parseInt(writtenEvent.version, 10),
     });
-    expect(writtenPayload).toEqual({
-      descriptorId: descriptor.id,
-      eservice: toEServiceV2(expectedEservice),
-    });
+    expect(sortRiskAnalysisCollections(publishDescriptorResponse.data)).toEqual(
+      sortRiskAnalysisCollections(expectedEservice)
+    );
+    expect(writtenPayload.descriptorId).toEqual(descriptor.id);
+    expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+      sortRiskAnalysisCollections(toEServiceV2(expectedEservice))
+    );
   });
 
   it("should throw audienceCannotBeEmpty if the descriptor audience is an empty array", async () => {
@@ -1150,11 +1155,15 @@ describe("publish descriptor", () => {
       descriptors: [expectedDescriptor1, expectedDescriptor2],
     };
 
-    expect(publishDescriptorResponse).toEqual({
-      data: expectedEservice,
-      metadata: { version: parseInt(writtenEvent.version, 10) },
+    expect(publishDescriptorResponse.metadata).toEqual({
+      version: parseInt(writtenEvent.version, 10),
     });
+    expect(sortRiskAnalysisCollections(publishDescriptorResponse.data)).toEqual(
+      sortRiskAnalysisCollections(expectedEservice)
+    );
     expect(writtenPayload.descriptorId).toEqual(descriptor2.id);
-    expect(writtenPayload.eservice).toEqual(toEServiceV2(expectedEservice));
+    expect(sortRiskAnalysisCollections(writtenPayload.eservice)).toEqual(
+      sortRiskAnalysisCollections(toEServiceV2(expectedEservice))
+    );
   });
 });
