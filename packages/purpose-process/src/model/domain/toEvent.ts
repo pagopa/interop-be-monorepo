@@ -6,6 +6,10 @@ import {
   PurposeEventV2,
   PurposeId,
   PurposeVersionId,
+  RiskAnalysisReviewer,
+  RiskAnalysisReviewMode,
+  toRiskAnalysisReviewModeV2,
+  toRiskAnalysisReviewerV2,
   toPurposeV2,
   UserId,
 } from "pagopa-interop-models";
@@ -497,14 +501,16 @@ export const toCreateEventRiskAnalysisSignedDocumentGenerated = ({
 
 export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
   purpose,
-  newReviewersToNotify,
-  oldReviewersToNotify,
+  addedReviewers,
+  removedReviewers,
+  previousReviewMode,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  newReviewersToNotify: UserId[];
-  oldReviewersToNotify: UserId[];
+  addedReviewers: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
+  previousReviewMode?: RiskAnalysisReviewMode;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -515,8 +521,12 @@ export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
     event_version: 2,
     data: {
       purpose: toPurposeV2(purpose),
-      newReviewersToNotify,
-      oldReviewersToNotify,
+      addedReviewers,
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousReviewMode:
+        previousReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousReviewMode),
     },
   },
   correlationId,
@@ -524,14 +534,16 @@ export const toCreateEventPurposeRiskAnalysisWorkflowCreated = ({
 
 export const toCreateEventPurposeRiskAnalysisAssigned = ({
   purpose,
-  newReviewersToNotify,
-  oldReviewersToNotify,
+  addedReviewers,
+  removedReviewers,
+  previousReviewMode,
   version,
   correlationId,
 }: {
   purpose: Purpose;
-  newReviewersToNotify: UserId[];
-  oldReviewersToNotify: UserId[];
+  addedReviewers: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
+  previousReviewMode?: RiskAnalysisReviewMode;
   version: number;
   correlationId: CorrelationId;
 }): CreateEvent<PurposeEventV2> => ({
@@ -542,8 +554,12 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
     event_version: 2,
     data: {
       purpose: toPurposeV2(purpose),
-      newReviewersToNotify,
-      oldReviewersToNotify,
+      addedReviewers,
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousReviewMode:
+        previousReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousReviewMode),
     },
   },
   correlationId,
