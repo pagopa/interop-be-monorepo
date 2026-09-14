@@ -2,6 +2,7 @@ import {
   EmailNotificationMessagePayload,
   PurposeEvent,
 } from "pagopa-interop-models";
+import { getRiskAnalysisAssignmentRecipients } from "pagopa-interop-notification-commons";
 import { P, match } from "ts-pattern";
 
 import { HandlerParams } from "../../models/handlerParams.js";
@@ -185,45 +186,40 @@ export async function handlePurposeEvent(
         correlationId,
       })
     )
-    .with(
-      { type: "PurposeRiskAnalysisWorkflowCreated" },
-      async ({
-        data: { purpose, newReviewersToNotify, oldReviewersToNotify },
-        type,
-      }) => [
+    .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, async (event) => {
+      const recipients = getRiskAnalysisAssignmentRecipients(event);
+      return [
         ...(await handlePurposeRiskAnalysisAssignedForSigningToReviewer({
-          purposeV2Msg: purpose,
-          reviewerIds: newReviewersToNotify,
-          eventType: type,
+          purposeV2Msg: event.data.purpose,
           logger,
           readModelService,
           templateService,
           correlationId,
+          reviewerIds: recipients.signingReviewerIds,
+          eventType: event.type,
         })),
         ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer({
-          purposeV2Msg: purpose,
-          reviewerIds: oldReviewersToNotify,
-          eventType: type,
+          purposeV2Msg: event.data.purpose,
           logger,
           readModelService,
           templateService,
           correlationId,
+          reviewerIds: recipients.assignmentRemovedReviewerIds,
+          eventType: event.type,
         })),
-      ]
-    )
-    .with(
-      { type: "PurposeRiskAnalysisSubmitted" },
-      ({ data: { purpose }, type }) =>
-        handlePurposeRiskAnalysisAssignedForSigningToReviewer({
-          purposeV2Msg: purpose,
-          reviewerIds:
-            purpose?.reviewerWorkflow?.reviewers.map(({ id }) => id) ?? [],
-          eventType: type,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+      ];
+    })
+    .with({ type: "PurposeRiskAnalysisSubmitted" }, (event) =>
+      handlePurposeRiskAnalysisAssignedForSigningToReviewer({
+        purposeV2Msg: event.data.purpose,
+        reviewerIds:
+          getRiskAnalysisAssignmentRecipients(event).signingReviewerIds,
+        eventType: event.type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
     .with(
       {
@@ -251,45 +247,42 @@ export async function handlePurposeEvent(
         return [];
       }
     )
-    .with(
-      { type: "PurposeRiskAnalysisAssigned" },
-      async ({
-        data: { purpose, newReviewersToNotify, oldReviewersToNotify },
-        type,
-      }) => [
+    .with({ type: "PurposeRiskAnalysisAssigned" }, async (event) => {
+      const recipients = getRiskAnalysisAssignmentRecipients(event);
+      return [
         ...(await handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer(
           {
-            purposeV2Msg: purpose,
-            reviewerIds: newReviewersToNotify,
+            purposeV2Msg: event.data.purpose,
             logger,
             readModelService,
             templateService,
             correlationId,
+            reviewerIds: recipients.writingReviewerIds,
           }
         )),
         ...(await handlePurposeRiskAnalysisAssignmentRemovedToReviewer({
-          purposeV2Msg: purpose,
-          reviewerIds: oldReviewersToNotify,
-          eventType: type,
+          purposeV2Msg: event.data.purpose,
           logger,
           readModelService,
           templateService,
           correlationId,
+          reviewerIds: recipients.assignmentRemovedReviewerIds,
+          eventType: event.type,
         })),
-      ]
-    )
-    .with(
-      { type: "PurposeRiskAnalysisSelfAssigned" },
-      ({ data: { purpose, oldReviewersToNotify }, type }) =>
-        handlePurposeRiskAnalysisAssignmentRemovedToReviewer({
-          purposeV2Msg: purpose,
-          reviewerIds: oldReviewersToNotify,
-          eventType: type,
-          logger,
-          readModelService,
-          templateService,
-          correlationId,
-        })
+      ];
+    })
+    .with({ type: "PurposeRiskAnalysisSelfAssigned" }, (event) =>
+      handlePurposeRiskAnalysisAssignmentRemovedToReviewer({
+        purposeV2Msg: event.data.purpose,
+        reviewerIds:
+          getRiskAnalysisAssignmentRecipients(event)
+            .assignmentRemovedReviewerIds,
+        eventType: event.type,
+        logger,
+        readModelService,
+        templateService,
+        correlationId,
+      })
     )
     .with(
       { type: "PurposeRiskAnalysisSigned" },

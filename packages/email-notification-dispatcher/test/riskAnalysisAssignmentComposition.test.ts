@@ -10,6 +10,9 @@ import {
 import {
   generateId,
   PurposeEventEnvelope,
+  riskAnalysisReviewMode,
+  riskAnalysisSigningState,
+  RiskAnalysisReviewModeV2,
   toPurposeV2,
   UserId,
 } from "pagopa-interop-models";
@@ -140,9 +143,30 @@ describe("risk analysis assignment notification composition", () => {
           event_version: 2,
           type,
           data: {
-            purpose: toPurposeV2(purpose),
-            newReviewersToNotify: hasNew ? [newReviewerId] : [],
-            oldReviewersToNotify: hasOld ? [oldReviewerId] : [],
+            purpose: toPurposeV2({
+              ...purpose,
+              reviewMode:
+                type === "PurposeRiskAnalysisAssigned"
+                  ? riskAnalysisReviewMode.reviewerWritesReviewerSigns
+                  : riskAnalysisReviewMode.adminWritesReviewerSigns,
+              reviewerWorkflow: {
+                reviewers: hasNew
+                  ? [{ id: newReviewerId, sentToReviewerAt: new Date() }]
+                  : [],
+                signingState:
+                  type === "PurposeRiskAnalysisAssigned"
+                    ? riskAnalysisSigningState.assigned
+                    : riskAnalysisSigningState.submitted,
+              },
+            }),
+            previousReviewMode:
+              type === "PurposeRiskAnalysisAssigned"
+                ? RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS
+                : RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS,
+            addedReviewers: hasNew ? [newReviewerId] : [],
+            removedReviewers: hasOld
+              ? [{ id: oldReviewerId, sentToReviewerAt: 1n }]
+              : [],
           },
           sequence_num: 1,
           stream_id: purpose.id,
