@@ -55,7 +55,7 @@ export default [
           destructuredArrayIgnorePattern: "^_",
         },
       ],
-      "complexity": "off",
+      "complexity": "warn",
       "max-lines-per-function": "off",
       "perfectionist/sort-array-includes": "off",
       "perfectionist/sort-classes": "off",
