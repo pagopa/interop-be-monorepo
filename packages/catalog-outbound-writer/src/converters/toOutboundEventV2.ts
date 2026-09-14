@@ -113,7 +113,6 @@ export function toOutboundEventV2(
       { type: "EServiceArchivingRequestApprovedByDelegator" },
       { type: "EServiceArchivingRequestRejectedByDelegator" },
       { type: "EServiceArchivingRequestCanceledByDelegate" },
-      { type: "EServiceDeletedbyRevoke" },
       (msg) => ({
         event_version: msg.event_version,
         type: msg.type,
@@ -176,7 +175,6 @@ export function toOutboundEventV2(
       { type: "EServiceDescriptorArchivingRequestApprovedByDelegator" },
       { type: "EServiceDescriptorArchivingRequestRejectedByDelegator" },
       { type: "EServiceDescriptorArchivingRequestCanceledByDelegate" },
-      { type: "EServicePendingDescriptorDeletedbyRevoke" },
 
       (msg) => ({
         event_version: msg.event_version,
@@ -245,6 +243,8 @@ export function toOutboundEventV2(
       // TODO: Propagate this event when @pagopa/interop-outbound-models is updated
       { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
       { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
+      { type: "EServicePendingDescriptorDeletedbyRevoke" },
+      { type: "EServiceDeletedbyRevoke" },
       () => undefined
     )
     .with(
