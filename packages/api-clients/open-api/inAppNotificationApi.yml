@@ -516,6 +516,14 @@ components:
         - producerKeychainKeyAddedDeletedToClientUsers
         - purposeQuotaAdjustmentRequestToProducer
         - purposeOverQuotaStateToConsumer
+        - purposeRiskAnalysisAssignedForSigningToReviewer
+        - purposeRiskAnalysisAssignedForWritingAndSigningToReviewer
+        - purposePublishedWithRiskAnalysisToReviewer
+        - draftPurposeDeletedWithRiskAnalysisToReviewer
+        - purposeRiskAnalysisAssignmentRemovedToReviewer
+        - purposeRiskAnalysisSignedToReviewer
+        - purposeRiskAnalysisSignedToAdmin
+        - purposeRiskAnalysisRejectedToAdmin
     NotificationsByType:
       type: object
       additionalProperties: false
@@ -593,6 +601,30 @@ components:
               type: integer
               format: int32
             purposeOverQuotaStateToConsumer:
+              type: integer
+              format: int32
+            purposeRiskAnalysisAssignedForSigningToReviewer:
+              type: integer
+              format: int32
+            purposeRiskAnalysisAssignedForWritingAndSigningToReviewer:
+              type: integer
+              format: int32
+            purposePublishedWithRiskAnalysisToReviewer:
+              type: integer
+              format: int32
+            draftPurposeDeletedWithRiskAnalysisToReviewer:
+              type: integer
+              format: int32
+            purposeRiskAnalysisAssignmentRemovedToReviewer:
+              type: integer
+              format: int32
+            purposeRiskAnalysisSignedToReviewer:
+              type: integer
+              format: int32
+            purposeRiskAnalysisSignedToAdmin:
+              type: integer
+              format: int32
+            purposeRiskAnalysisRejectedToAdmin:
               type: integer
               format: int32
         totalCount:

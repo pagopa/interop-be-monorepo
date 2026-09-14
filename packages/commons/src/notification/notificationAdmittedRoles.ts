@@ -208,9 +208,72 @@ export const notificationAdmittedRoles = {
     [REVIEWER_ROLE]: false,
     [VIEWER_ROLE]: false,
   },
+  purposeRiskAnalysisAssignedForSigningToReviewer: {
+    [ADMIN_ROLE]: false,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: true,
+    [VIEWER_ROLE]: false,
+  },
+  purposeRiskAnalysisAssignedForWritingAndSigningToReviewer: {
+    [ADMIN_ROLE]: false,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: true,
+    [VIEWER_ROLE]: false,
+  },
+  purposePublishedWithRiskAnalysisToReviewer: {
+    [ADMIN_ROLE]: false,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: true,
+    [VIEWER_ROLE]: false,
+  },
+  draftPurposeDeletedWithRiskAnalysisToReviewer: {
+    [ADMIN_ROLE]: false,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: true,
+    [VIEWER_ROLE]: false,
+  },
+  purposeRiskAnalysisAssignmentRemovedToReviewer: {
+    [ADMIN_ROLE]: false,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: true,
+    [VIEWER_ROLE]: false,
+  },
+  purposeRiskAnalysisSignedToReviewer: {
+    [ADMIN_ROLE]: false,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: true,
+    [VIEWER_ROLE]: false,
+  },
+  purposeRiskAnalysisSignedToAdmin: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
+  purposeRiskAnalysisRejectedToAdmin: {
+    [ADMIN_ROLE]: true,
+    [API_ROLE]: false,
+    [SECURITY_ROLE]: false,
+    [SUPPORT_ROLE]: false,
+    [REVIEWER_ROLE]: false,
+    [VIEWER_ROLE]: false,
+  },
 } as const satisfies Record<NotificationType, Record<UserRole, boolean>> &
   Record<NotificationType, Record<typeof SUPPORT_ROLE, false>> & // To ensure that SUPPORT_ROLE cannot receive any notification
-  Record<NotificationType, Record<typeof REVIEWER_ROLE, false>> & // To ensure that REVIEWER_ROLE cannot receive any notification
   Record<NotificationType, Record<typeof VIEWER_ROLE, false>>; // To ensure that VIEWER_ROLE cannot receive any notification
 
 export const isNotificationConfigAllowedForUserRoles = (
