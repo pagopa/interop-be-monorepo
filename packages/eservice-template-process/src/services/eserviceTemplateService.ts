@@ -122,6 +122,7 @@ import {
   assertIsReceiveTemplate,
   assertIsDraftEServiceTemplate,
   assertRequesterEServiceTemplateCreator,
+  assertEServiceTemplateVisibleToRequester,
   assertNoDraftEServiceTemplateVersions,
   versionStatesNotAllowingDocumentOperations,
   assertConsistentDailyCalls,
@@ -953,6 +954,7 @@ export function eserviceTemplateServiceBuilder(
         readModelService
       );
 
+      assertEServiceTemplateVisibleToRequester(eserviceTemplate.data, authData);
       assertRequesterEServiceTemplateCreator(
         eserviceTemplate.data.creatorId,
         authData
@@ -2151,6 +2153,7 @@ export function eserviceTemplateServiceBuilder(
         templateId,
         readModelService
       );
+      assertEServiceTemplateVisibleToRequester(eserviceTemplate.data, authData);
       assertRequesterEServiceTemplateCreator(
         eserviceTemplate.data.creatorId,
         authData
