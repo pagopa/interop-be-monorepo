@@ -243,7 +243,7 @@ export function toOutboundEventV2(
       // TODO: Propagate this event when @pagopa/interop-outbound-models is updated
       { type: "EServiceArchivingRequestCanceledByRevokedDelegation" },
       { type: "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation" },
-      { type: "EServicePendingDescriptorDeletedbyRevoke" },
+      { type: "EServicePendingDescriptorDeletedByRevoke" },
       { type: "EServiceDeletedbyRevoke" },
       () => undefined
     )

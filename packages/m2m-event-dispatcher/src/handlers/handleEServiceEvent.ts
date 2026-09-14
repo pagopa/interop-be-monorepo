@@ -147,7 +147,7 @@ async function handleEServiceEventV2(
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "MaintenanceEServiceDescriptorUnarchived",
-            "EServicePendingDescriptorDeletedbyRevoke"
+            "EServicePendingDescriptorDeletedByRevoke"
           ),
         },
         async (event) => {

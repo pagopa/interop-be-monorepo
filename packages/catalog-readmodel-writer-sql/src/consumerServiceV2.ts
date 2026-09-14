@@ -86,7 +86,7 @@ export async function handleMessageV2(
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "MaintenanceEServiceDescriptorUnarchived",
-          "EServicePendingDescriptorDeletedbyRevoke",
+          "EServicePendingDescriptorDeletedByRevoke",
           "EServiceDeletedbyRevoke"
         ),
       },

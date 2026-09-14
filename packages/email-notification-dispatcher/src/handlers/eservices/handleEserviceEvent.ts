@@ -472,7 +472,7 @@ export async function handleEServiceEvent(
           "MaintenanceEServiceDescriptorUnarchived",
           "EServiceArchivingRequestCanceledByRevokedDelegation",
           "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
-          "EServicePendingDescriptorDeletedbyRevoke",
+          "EServicePendingDescriptorDeletedByRevoke",
           "EServiceDeletedbyRevoke"
         ),
       },

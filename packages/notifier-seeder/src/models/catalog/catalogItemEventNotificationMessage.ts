@@ -38,7 +38,7 @@ const eventV2TypeMapper = (
     )
     .with(
       "EServiceDraftDescriptorDeleted",
-      "EServicePendingDescriptorDeletedbyRevoke",
+      "EServicePendingDescriptorDeletedByRevoke",
       () => "catalog_item_with_descriptors_deleted"
     )
     .with(

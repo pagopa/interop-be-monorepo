@@ -101,7 +101,7 @@ export async function exportInterfaceV2(
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
           "MaintenanceEServiceDescriptorUnarchived",
-          "EServicePendingDescriptorDeletedbyRevoke",
+          "EServicePendingDescriptorDeletedByRevoke",
           "EServiceDeletedbyRevoke"
         ),
       },
