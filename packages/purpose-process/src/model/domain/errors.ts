@@ -79,12 +79,21 @@ const errorCodes = {
   missingSelfcareId: "0058",
   reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
-  reviewersNotAllowedForReviewMode: "0061",
+  duplicatedReviewersInSeed: "0061",
+  reviewersNotAllowedForReviewMode: "0062",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function duplicatedReviewersInSeed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "The reviewer IDs must be unique",
+    code: "duplicatedReviewersInSeed",
+    title: "Duplicated reviewers in seed",
+  });
+}
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({

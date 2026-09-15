@@ -25,6 +25,7 @@ import {
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -182,6 +183,7 @@ import {
   assertRiskAnalysisTenantKindMatch,
   assertRequesterIsConsumer,
   assertRiskAnalysisFormEditableInCurrentReviewMode,
+  assertReviewerIdsAreUnique,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -594,6 +596,8 @@ export function purposeServiceBuilder(
         throw missingReviewers(purposeId);
       }
 
+      assertReviewerIdsAreUnique(seed.reviewerIds);
+
       if (!isSelfAssignmentMode) {
         const consumer = await retrieveTenant(
           purpose.data.consumerId,
@@ -819,6 +823,8 @@ export function purposeServiceBuilder(
     ): Promise<WithMetadata<Purpose>> {
       logger.info(`Rejecting risk analysis for Purpose ${purposeId}`);
 
+      validateNoHyperlinksSafe(rejectionReason);
+
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
 
       const purpose = await retrievePurpose(purposeId, readModelService);
@@ -963,6 +969,8 @@ export function purposeServiceBuilder(
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
+
+      validateNoHyperlinksSafe(rejectionReason);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
@@ -1834,6 +1842,11 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
       );
+
+      validateNoHyperlinksSafe(purposeSeed.title);
+      validateNoHyperlinksSafe(purposeSeed.description);
+      validateNoHyperlinksSafe(purposeSeed.freeOfChargeReason ?? undefined);
+
       const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
       const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
 
@@ -1925,6 +1938,11 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating Purpose for EService ${seed.eserviceId}, Consumer ${seed.consumerId}`
       );
+
+      validateNoHyperlinksSafe(seed.title);
+      validateNoHyperlinksSafe(seed.description);
+      validateNoHyperlinksSafe(seed.freeOfChargeReason ?? undefined);
+
       const riskAnalysisId: RiskAnalysisId = unsafeBrandId(seed.riskAnalysisId);
       const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
@@ -2162,6 +2180,8 @@ export function purposeServiceBuilder(
     ): Promise<WithMetadata<Purpose>> {
       logger.info(`Creating Purpose from Template ${purposeTemplateId}`);
 
+      validateNoHyperlinksSafe(body.title);
+
       const consumerId = unsafeBrandId<TenantId>(body.consumerId);
       const eserviceId = unsafeBrandId<EServiceId>(body.eserviceId);
 
@@ -2182,6 +2202,11 @@ export function purposeServiceBuilder(
       const purposeTemplate = await retrievePublishedPurposeTemplate(
         purposeTemplateId,
         readModelService
+      );
+
+      validateNoHyperlinksSafe(purposeTemplate.purposeDescription);
+      validateNoHyperlinksSafe(
+        purposeTemplate.purposeFreeOfChargeReason ?? undefined
       );
 
       assertValidPurposeTenantKind(
@@ -2353,6 +2378,8 @@ export function purposeServiceBuilder(
       logger.info(
         `Partial updating draft Purpose ${purposeId} created by Purpose template ${purposeTemplateId}`
       );
+
+      validateNoHyperlinksSafe(purposeUpdateContent.title);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const lastDraftVersion = retrieveDraftPurposeVersion(purpose.data);
@@ -2615,6 +2642,10 @@ const performUpdatePurpose = async (
 
   void (rest satisfies Record<string, never>);
   // ^ To make sure we extract all the updated fields, even optional ones
+
+  validateNoHyperlinksSafe(title);
+  validateNoHyperlinksSafe(description);
+  validateNoHyperlinksSafe(freeOfChargeReason ?? undefined);
 
   const { mode } = modeAndUpdateContent;
 

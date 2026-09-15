@@ -7,6 +7,7 @@ import {
   getMockTenant,
   getMockAuthData,
   randomArrayItem,
+  getMockDescriptor,
 } from "pagopa-interop-commons-test";
 import {
   AttributeId,
@@ -21,6 +22,7 @@ import {
   tenantAttributeType,
   toDelegationV2,
   WithMetadata,
+  Descriptor,
 } from "pagopa-interop-models";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -32,6 +34,7 @@ import {
   delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
   tenantNotFound,
+  eserviceAlreadyArchived,
 } from "../../src/model/domain/errors.js";
 import {
   activeDelegationStates,
@@ -598,5 +601,48 @@ describe.each([
         getMockContext({ authData })
       )
     ).rejects.toThrowError(tenantNotAllowedToDelegation(delegate.id, kind));
+  });
+
+  it("Should throw eserviceAlreadyArchived error if the eservice is archived", async () => {
+    const delegatorId = generateId<TenantId>();
+    const authData = getMockAuthData(delegatorId);
+    const delegator = {
+      ...getMockTenant(delegatorId),
+      externalId: {
+        origin: "IPA",
+        value: "test",
+      },
+    };
+
+    const delegate = {
+      ...getMockTenant(),
+      features: [
+        {
+          type: kind,
+          availabilityTimestamp: new Date(),
+        },
+      ],
+    };
+
+    const archivedDescriptor: Descriptor = getMockDescriptor("Archived");
+    const eservice = {
+      ...getMockEService(generateId<EServiceId>(), delegatorId),
+      isConsumerDelegable: true,
+      descriptors: [archivedDescriptor],
+    };
+
+    await addOneTenant(delegate);
+    await addOneTenant(delegator);
+    await addOneEservice(eservice);
+
+    await expect(
+      createFn(
+        {
+          delegateId: delegate.id,
+          eserviceId: eservice.id,
+        },
+        getMockContext({ authData })
+      )
+    ).rejects.toThrowError(eserviceAlreadyArchived(eservice.id));
   });
 });

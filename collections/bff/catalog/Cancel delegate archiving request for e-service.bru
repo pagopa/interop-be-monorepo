@@ -1,0 +1,20 @@
+meta {
+  name: Cancel delegate archiving request for an E-Service
+  type: http
+  seq: 46
+}
+
+delete {
+  url: {{host-bff}}/eservices/:eServiceId/submitDelegatedArchiving
+  body: json
+  auth: none
+}
+
+params:path {
+  eserviceId: {{eserviceId}}
+}
+
+headers {
+  Authorization: {{JWT}}
+  X-Correlation-Id: {{correlation-id}}
+}
