@@ -1387,16 +1387,15 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "429":
           $ref: "#/components/responses/TooManyRequests"
-  "/catalog/query":
     post:
       tags:
         - eservices
       summary: Query the EServices catalog
-      description: Retrieves the EServices catalog matching the given filters (Catalogo Privato)
+      description: Retrieves the EServices catalog matching the given filters
       operationId: getFilteredEServicesCatalog
       requestBody:
         required: true
-        description: Catalogo Privato catalog query filters
+        description: Catalog catalog query filters
         content:
           application/json:
             schema:
@@ -15142,7 +15141,7 @@ components:
     CatalogFilterPayload:
       type: object
       additionalProperties: false
-      description: Filters for the Catalogo Privato catalog query
+      description: Filters for the Catalog catalog query
       required:
         - offset
         - limit
@@ -15206,7 +15205,7 @@ components:
             format: uuid
     EServiceSortBy:
       type: string
-      description: Sort criteria for the Catalogo Privato catalog query
+      description: Sort criteria for the Catalog catalog query
       enum:
         - NAME_ASC
         - NAME_DESC

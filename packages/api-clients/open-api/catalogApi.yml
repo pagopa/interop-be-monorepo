@@ -205,7 +205,7 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "409":
           $ref: "#/components/responses/Conflict"
-  /eservices/query:
+  /catalog:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
     post:
@@ -215,10 +215,10 @@ paths:
         - process
       summary: Query a list of E-Service
       operationId: getFilteredEServices
-      description: Retrieves a paginated list of E-Services matching the given filters (Catalogo Privato)
+      description: Retrieves a paginated list of E-Services matching the given filters
       requestBody:
         required: true
-        description: Catalogo Privato e-service query filters
+        description: Catalog e-service query filters
         content:
           application/json:
             schema:
@@ -3975,7 +3975,7 @@ components:
     EServicesFilterPayload:
       type: object
       additionalProperties: false
-      description: Filters for the Catalogo Privato e-service query
+      description: Filters for the Catalog e-service query
       required:
         - offset
         - limit
@@ -4039,7 +4039,7 @@ components:
             format: uuid
     EServiceSortBy:
       type: string
-      description: Sort criteria for the Catalogo Privato e-service query
+      description: Sort criteria for the Catalog e-service query
       enum:
         - NAME_ASC
         - NAME_DESC
