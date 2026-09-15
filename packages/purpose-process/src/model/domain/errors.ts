@@ -63,7 +63,6 @@ const errorCodes = {
   riskAnalysisTenantKindMismatch: "0042",
   unableToDetermineTenantKind: "0043",
   reviewerWorkflowConflict: "0044",
-  missingReviewers: "0045",
   reviewerWorkflowNotFound: "0046",
   reviewerWorkflowNotSubmittable: "0047",
   submitNotAllowedForReviewMode: "0048",
@@ -80,8 +79,9 @@ const errorCodes = {
   reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
   duplicatedReviewersInSeed: "0061",
-  reviewersNotAllowedForReviewMode: "0062",
-  purposeMetadataVersionMismatch: "0063",
+  missingReviewers: "0062",
+  reviewersNotAllowedForReviewMode: "0063",
+  purposeMetadataVersionMismatch: "0064",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
