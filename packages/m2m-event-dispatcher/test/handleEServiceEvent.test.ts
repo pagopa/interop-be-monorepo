@@ -99,7 +99,7 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceArchivingRequestApprovedByDelegator",
                   "EServiceArchivingRequestCanceledByDelegate",
                   "EServiceArchivingRequestCanceledByRevokedDelegation",
-                  "EServiceDeletedByRevoke"
+                  "EServiceDeletedByRevokedDelegation"
                 ),
                 async () => [
                   {
@@ -130,7 +130,7 @@ describe("handleEServiceEvent test", async () => {
                   "EServiceDescriptorArchivingRequestApprovedByDelegator",
                   "EServiceDescriptorArchivingRequestCanceledByDelegate",
                   "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
-                  "EServicePendingDescriptorDeletedByRevoke"
+                  "EServicePendingDescriptorDeletedByRevokedDelegation"
                 ),
                 async () => [
                   {

@@ -323,12 +323,12 @@ message EServiceDescriptorArchivingRequestCanceledByRevokedDelegationV2 {
   EServiceV2 eservice = 2;
 }
 
-message EServicePendingDescriptorDeletedByRevokeV2 {
+message EServicePendingDescriptorDeletedByRevokedDelegationV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }
 
-message EServiceDeletedByRevokeV2 {
+message EServiceDeletedByRevokedDelegationV2 {
   EServiceV2 eservice = 2;
 }
 

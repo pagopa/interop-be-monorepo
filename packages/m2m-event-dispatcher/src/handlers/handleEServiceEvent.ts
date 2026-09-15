@@ -84,7 +84,7 @@ async function handleEServiceEventV2(
             "EServiceArchivingRequestCanceledByDelegate",
             "EServiceArchivingRequestCanceledByRevokedDelegation",
             "MaintenanceEServicePersonalDataFlagReset",
-            "EServiceDeletedByRevoke"
+            "EServiceDeletedByRevokedDelegation"
           ),
         },
         async (event) => {
@@ -147,7 +147,7 @@ async function handleEServiceEventV2(
             "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
             "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
             "MaintenanceEServiceDescriptorUnarchived",
-            "EServicePendingDescriptorDeletedByRevoke"
+            "EServicePendingDescriptorDeletedByRevokedDelegation"
           ),
         },
         async (event) => {

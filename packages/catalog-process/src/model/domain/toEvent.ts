@@ -1323,7 +1323,7 @@ export const toCreateEventEServicePendingDescriptorDeletedOnRevoke = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServicePendingDescriptorDeletedByRevoke",
+    type: "EServicePendingDescriptorDeletedByRevokedDelegation",
     event_version: 2,
     data: {
       descriptorId,
@@ -1341,7 +1341,7 @@ export const toCreateEventEServiceDeletedOnRevoke = (
   streamId: eservice.id,
   version,
   event: {
-    type: "EServiceDeletedByRevoke",
+    type: "EServiceDeletedByRevokedDelegation",
     event_version: 2,
     data: {
       eservice: toEServiceV2(eservice),

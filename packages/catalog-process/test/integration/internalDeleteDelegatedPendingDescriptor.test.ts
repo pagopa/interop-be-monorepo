@@ -10,7 +10,7 @@ import {
   Descriptor,
   descriptorState,
   EService,
-  EServicePendingDescriptorDeletedByRevokeV2,
+  EServicePendingDescriptorDeletedByRevokedDelegationV2,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { expect, describe, it } from "vitest";
@@ -57,12 +57,12 @@ describe("delete pending delegated descriptor after delegation revoke", () => {
       expect(writtenEvent).toMatchObject({
         stream_id: eservice.id,
         version: "1",
-        type: "EServicePendingDescriptorDeletedByRevoke",
+        type: "EServicePendingDescriptorDeletedByRevokedDelegation",
         event_version: 2,
       });
 
       const writtenPayload = decodeProtobufPayload({
-        messageType: EServicePendingDescriptorDeletedByRevokeV2,
+        messageType: EServicePendingDescriptorDeletedByRevokedDelegationV2,
         payload: writtenEvent.data,
       });
 
@@ -155,7 +155,7 @@ describe("delete pending delegated descriptor after delegation revoke", () => {
       expect(writtenEvent).toMatchObject({
         stream_id: eservice.id,
         version: "2",
-        type: "EServiceDeletedByRevoke",
+        type: "EServiceDeletedByRevokedDelegation",
         event_version: 2,
       });
     }

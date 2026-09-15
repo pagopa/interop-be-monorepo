@@ -84,8 +84,8 @@ import {
   EServiceDescriptorArchivingRequestCanceledByDelegateV2,
   EServiceDescriptorArchivingRequestedByDelegateV2,
   EServiceDescriptorArchivingRequestRejectedByDelegatorV2,
-  EServicePendingDescriptorDeletedByRevokeV2,
-  EServiceDeletedByRevokeV2,
+  EServicePendingDescriptorDeletedByRevokedDelegationV2,
+  EServiceDeletedByRevokedDelegationV2,
 } from "../gen/v2/eservice/events.js";
 import { protobufDecoder } from "../protobuf/protobuf.js";
 
@@ -378,11 +378,11 @@ export function catalogEventToBinaryDataV2(event: EServiceEventV2): Uint8Array {
       ({ data }) =>
         EServiceDescriptorArchivingRequestRejectedByDelegatorV2.toBinary(data)
     )
-    .with({ type: "EServicePendingDescriptorDeletedByRevoke" }, ({ data }) =>
-      EServicePendingDescriptorDeletedByRevokeV2.toBinary(data)
+    .with({ type: "EServicePendingDescriptorDeletedByRevokedDelegation" }, ({ data }) =>
+      EServicePendingDescriptorDeletedByRevokedDelegationV2.toBinary(data)
     )
-    .with({ type: "EServiceDeletedByRevoke" }, ({ data }) =>
-      EServiceDeletedByRevokeV2.toBinary(data)
+    .with({ type: "EServiceDeletedByRevokedDelegation" }, ({ data }) =>
+      EServiceDeletedByRevokedDelegationV2.toBinary(data)
     )
     .exhaustive();
 }
@@ -809,13 +809,13 @@ export const EServiceEventV2 = z.discriminatedUnion("type", [
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServicePendingDescriptorDeletedByRevoke"),
-    data: protobufDecoder(EServicePendingDescriptorDeletedByRevokeV2),
+    type: z.literal("EServicePendingDescriptorDeletedByRevokedDelegation"),
+    data: protobufDecoder(EServicePendingDescriptorDeletedByRevokedDelegationV2),
   }),
   z.object({
     event_version: z.literal(2),
-    type: z.literal("EServiceDeletedByRevoke"),
-    data: protobufDecoder(EServiceDeletedByRevokeV2),
+    type: z.literal("EServiceDeletedByRevokedDelegation"),
+    data: protobufDecoder(EServiceDeletedByRevokedDelegationV2),
   }),
 ]);
 export type EServiceEventV2 = z.infer<typeof EServiceEventV2>;

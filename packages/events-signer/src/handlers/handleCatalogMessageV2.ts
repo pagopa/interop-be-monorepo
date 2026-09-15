@@ -152,8 +152,8 @@ export const handleCatalogMessageV2 = async (
             "EServicePersonalDataFlagUpdatedByTemplateUpdate",
             "EServiceInstanceLabelUpdated",
             "MaintenanceEServicePersonalDataFlagReset",
-            "EServicePendingDescriptorDeletedByRevoke",
-            "EServiceDeletedByRevoke"
+            "EServicePendingDescriptorDeletedByRevokedDelegation",
+            "EServiceDeletedByRevokedDelegation"
           ),
         },
         (event) => {
