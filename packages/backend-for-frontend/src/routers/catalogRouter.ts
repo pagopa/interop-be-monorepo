@@ -60,6 +60,22 @@ const catalogRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
+    .post("/catalog", async (req, res) => {
+      const ctx = fromBffAppContext(req.ctx, req.headers);
+      try {
+        const response = await catalogService.getFilteredCatalog(ctx, req.body);
+
+        return res.status(200).send(bffApi.CatalogEServices.parse(response));
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          bffGetCatalogErrorMapper,
+          ctx,
+          "Error retrieving filtered Catalog EServices"
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
     .get("/producers/eservices", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
