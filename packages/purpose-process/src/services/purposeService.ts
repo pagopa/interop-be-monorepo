@@ -177,6 +177,7 @@ import {
   assertRiskAnalysisTenantKindMatch,
   assertRequesterIsConsumer,
   assertRiskAnalysisFormEditableInCurrentReviewMode,
+  assertReviewerIdsAreUnique,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -577,6 +578,8 @@ export function purposeServiceBuilder(
 
       const isReviewerWrites =
         seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
+
+      assertReviewerIdsAreUnique(seed.reviewerIds);
 
       const consumer = await retrieveTenant(
         purpose.data.consumerId,

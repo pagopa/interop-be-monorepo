@@ -38,6 +38,7 @@ import {
   purposeFromTemplateCannotBeModified,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
+  duplicatedReviewersInSeed,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -312,6 +313,43 @@ describe("assignRiskAnalysisReviewer", () => {
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
     });
+
+    vi.useRealTimers();
+  });
+
+  it("should throw duplicatedReviewersInSeed for duplicate reviewers", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const mockPurposeVersion = getMockPurposeVersion();
+    const mockEService = getMockEService();
+    const mockTenant = getMockTenant();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([mockPurposeVersion]),
+      eserviceId: mockEService.id,
+      consumerId: mockTenant.id,
+    };
+
+    await addOneEService(mockEService);
+    await addOneTenant(mockTenant);
+    await addOnePurpose(mockPurpose);
+
+    const reviewerId = generateId<UserId>();
+
+    const ctx = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId),
+    });
+
+    await expect(
+      purposeService.assignRiskAnalysisReviewer(
+        mockPurpose.id,
+        {
+          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          reviewerIds: [reviewerId, reviewerId],
+        },
+        ctx
+      )
+    ).rejects.toEqual(duplicatedReviewersInSeed());
 
     vi.useRealTimers();
   });

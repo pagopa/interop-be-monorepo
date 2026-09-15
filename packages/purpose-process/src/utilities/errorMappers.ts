@@ -373,6 +373,7 @@ export const assignRiskAnalysisReviewerErrorMapper = (
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
     .with(
       "userWithoutReviewerPrivileges",
+      "duplicatedReviewersInSeed",
       "purposeFromTemplateCannotBeModified",
       "reviewerWorkflowNotAllowedForDelegatedPurpose",
       "reviewerWorkflowNotAllowedForReceiveMode",
