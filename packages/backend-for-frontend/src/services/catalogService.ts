@@ -378,6 +378,35 @@ export function catalogServiceBuilder(
       };
       return response;
     },
+    getFilteredCatalog: async (
+      ctx: WithLogger<BffAppContext>,
+      filters: bffApi.CatalogFilterPayload
+    ): Promise<bffApi.CatalogEServices> => {
+      ctx.logger.info(
+        `Retrieving filtered EServices, offset = ${filters.offset}, limit = ${filters.limit}`
+      );
+      const requesterId = ctx.authData.organizationId;
+      const eservicesResponse: catalogApi.EServices =
+        await catalogProcessClient.getFilteredEServices(filters, {
+          headers: ctx.headers,
+        });
+
+      const results = await enhanceCatalogEservices(
+        eservicesResponse.results,
+        tenantProcessClient,
+        inAppNotificationManagerClient,
+        ctx,
+        requesterId
+      );
+      return {
+        results,
+        pagination: {
+          offset: filters.offset,
+          limit: filters.limit,
+          totalCount: eservicesResponse.totalCount,
+        },
+      };
+    },
     getProducerEServiceDescriptor: async (
       eserviceId: EServiceId,
       descriptorId: DescriptorId,
