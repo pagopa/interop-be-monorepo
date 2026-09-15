@@ -406,12 +406,15 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
     });
 
     vi.useRealTimers();
