@@ -1147,8 +1147,8 @@ const eservicesRouter = (
         return res.status(errorRes.status).send(errorRes);
       }
     })
-    .post(
-      "/internal/eservices/:eServiceId/descriptors/:descriptorId/deletePending",
+    .delete(
+      "/internal/eservices/:eServiceId/descriptors/:descriptorId/pending",
       async (req, res) => {
         const ctx = fromAppContext(req.ctx);
 

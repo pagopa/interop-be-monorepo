@@ -1367,8 +1367,8 @@ paths:
           $ref: "#/components/responses/NotFound"
         "409":
           $ref: "#/components/responses/Conflict"
-  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/deletePending:
-    post:
+  /internal/eservices/{eServiceId}/descriptors/{descriptorId}/pending:
+    delete:
       security:
         - bearerAuth: []
       tags:

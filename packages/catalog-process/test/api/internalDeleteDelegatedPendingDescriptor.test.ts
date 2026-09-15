@@ -85,7 +85,7 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/delete
     },
     {
       error: notValidDescriptorState(descriptor.id, descriptor.state),
-      expectedStatus: 400,
+      expectedStatus: 403,
     },
   ])(
     "Should return $expectedStatus for $error.code",
