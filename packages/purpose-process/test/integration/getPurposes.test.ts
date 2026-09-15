@@ -817,6 +817,49 @@ describe("getPurposes", async () => {
     });
   });
 
+  it("should paginate purposes with the same title in a deterministic order", async () => {
+    const equalTitlePurposes = [
+      "00000000-0000-0000-0000-000000000003",
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000002",
+    ].map(
+      (id): Purpose => ({
+        ...getMockPurpose(),
+        id: unsafeBrandId(id),
+        title: "Same title",
+        consumerId: consumerId1,
+        eserviceId: mockEService1ByTenant1.id,
+      })
+    );
+    const clientWithEqualTitlePurposes = getMockClient({
+      consumerId: consumerId1,
+      purposes: equalTitlePurposes.map(({ id }) => id),
+    });
+    await Promise.all(equalTitlePurposes.map(addOnePurpose));
+    await addOneClient(clientWithEqualTitlePurposes);
+
+    const pages = await Promise.all(
+      equalTitlePurposes.map((_, offset) =>
+        purposeService.getPurposes(
+          {
+            eservicesIds: [],
+            consumersIds: [],
+            producersIds: [],
+            clientId: clientWithEqualTitlePurposes.id,
+            states: [],
+            excludeDraft: undefined,
+          },
+          { offset, limit: 1 },
+          getMockContext({ authData: getMockAuthData(consumerId1) })
+        )
+      )
+    );
+
+    expect(pages.flatMap(({ results }) => results.map(({ id }) => id))).toEqual(
+      equalTitlePurposes.map(({ id }) => id).toSorted()
+    );
+  });
+
   it("should not get purposes if they don't exist", async () => {
     const result = await purposeService.getPurposes(
       {
