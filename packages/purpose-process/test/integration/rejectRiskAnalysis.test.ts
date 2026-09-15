@@ -236,11 +236,10 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
