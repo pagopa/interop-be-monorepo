@@ -4,6 +4,16 @@
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit"
   },
+  "eslint.validate": [
+    "typescript",
+    "javascript"
+  ],
+  "eslint.run": "onType",
+  "eslint.workingDirectories": [
+    {
+      "pattern": "./packages/*/"
+    }
+  ],
   "typescript.tsdk": "packages/commons/node_modules/typescript/lib",
   "files.watcherExclude": {
     "**/target": true
