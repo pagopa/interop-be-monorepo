@@ -14,6 +14,7 @@ import {
   invalidClaim,
   SelfcareId,
   TenantId,
+  UserId,
   userRole,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
@@ -33,7 +34,36 @@ const validSelfcareId = generateId<SelfcareId>();
 const selfcareIdNotFound = generateId<SelfcareId>();
 const selfcareIdTokenLoginNotAllowed = generateId<SelfcareId>();
 
-const validIdentityToken = "validIdentityToken";
+const identityTokenJti = "identity-token-jti";
+const identityTokenUid = generateId<UserId>();
+
+const b64UrlEncode = (payload: object): string =>
+  Buffer.from(JSON.stringify(payload)).toString("base64url");
+
+// The signature is irrelevant, verifyJwtToken is mocked below
+const jwtShapedIdentityToken = (claims: object): string =>
+  [
+    b64UrlEncode({ alg: "RS256", typ: "JWT" }),
+    b64UrlEncode(claims),
+    "signature",
+  ].join(".");
+
+const validIdentityToken = jwtShapedIdentityToken({
+  jti: identityTokenJti,
+  uid: identityTokenUid,
+});
+
+// Not among the tokens known by the verifyJwtToken mock, so its verification fails
+const unverifiableIdentityTokenJti = "unverifiable-identity-token-jti";
+const unverifiableIdentityToken = jwtShapedIdentityToken({
+  jti: unverifiableIdentityTokenJti,
+  uid: identityTokenUid,
+});
+
+const identityTokenWithForgingClaims = jwtShapedIdentityToken({
+  jti: `${identityTokenJti}\nForged log line`,
+  uid: identityTokenUid,
+});
 
 const identityTokenTenantNotFound = "identityTokenTenantNotFound";
 const identityTokenTenantLoginNotAllowed = "identityTokenTenantLoginNotAllowed";
@@ -156,6 +186,8 @@ const mockContext = {
 
 afterEach(() => {
   verifyJwtTokenMockFn.mockClear();
+  // The context logger is shared, its spies must not leak into other tests
+  vi.restoreAllMocks();
 });
 
 describe("getSessionToken", async () => {
@@ -221,6 +253,73 @@ describe("getSessionToken", async () => {
       )
     ).rejects.toThrowError(
       tenantLoginNotAllowed(selfcareIdTokenLoginNotAllowed)
+    );
+  });
+
+  it("should log the jti and uid claims of the identity token", async () => {
+    const loggerSpy = vi.spyOn(mockContext.logger, "info");
+
+    await authorizationService.getSessionToken(validIdentityToken, mockContext);
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `[JTI=${identityTokenJti}][UID=${identityTokenUid}]`
+      )
+    );
+  });
+
+  it("should log the identity token claims before verifying it, so that failed exchanges are traced too", async () => {
+    const loggerSpy = vi.spyOn(mockContext.logger, "info");
+
+    await expect(
+      authorizationService.getSessionToken(
+        unverifiableIdentityToken,
+        mockContext
+      )
+    ).rejects.toThrowError();
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      expect.stringContaining(
+        `[JTI=${unverifiableIdentityTokenJti}][UID=${identityTokenUid}]`
+      )
+    );
+  });
+
+  it("should not log identity token claims that could forge log lines", async () => {
+    const infoSpy = vi.spyOn(mockContext.logger, "info");
+
+    await expect(
+      authorizationService.getSessionToken(
+        identityTokenWithForgingClaims,
+        mockContext
+      )
+    ).rejects.toThrowError();
+
+    // The jti carries a newline, so it is discarded, while the uid is still logged
+    expect(infoSpy).toHaveBeenCalledWith(
+      expect.stringContaining(`[JTI=undefined][UID=${identityTokenUid}]`)
+    );
+    expect(infoSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining("Forged log line")
+    );
+  });
+
+  it("should not fail the exchange when the identity token claims cannot be read", async () => {
+    const loggerSpy = vi.spyOn(mockContext.logger, "warn");
+
+    // This token is not JWT shaped: the exchange must still fail on its own
+    // validation, not on the logging
+    await expect(
+      authorizationService.getSessionToken(
+        identityTokenTenantLoginNotAllowed,
+        mockContext
+      )
+    ).rejects.toThrowError(
+      tenantLoginNotAllowed(selfcareIdTokenLoginNotAllowed)
+    );
+
+    expect(loggerSpy).toHaveBeenCalledWith(
+      "No loggable jti and uid claims in the identity token"
     );
   });
 });
