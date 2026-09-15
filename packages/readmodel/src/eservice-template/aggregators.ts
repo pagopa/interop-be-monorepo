@@ -76,28 +76,34 @@ export const aggregateEServiceTemplateVersion = ({
     certified: certifiedAttributesSQL,
     verified: verifiedAttributesSQL,
     declared: declaredAttributesSQL,
-  } = attributesSQL.reduce(
-    (acc, attributeSQL) =>
-      match(AttributeKind.parse(attributeSQL.kind))
-        .with(attributeKind.certified, attributeKind.certifiedDiscrete, () => ({
-          ...acc,
-          certified: [...acc.certified, attributeSQL],
-        }))
-        .with(attributeKind.declared, () => ({
-          ...acc,
-          declared: [...acc.declared, attributeSQL],
-        }))
-        .with(attributeKind.verified, () => ({
-          ...acc,
-          verified: [...acc.verified, attributeSQL],
-        }))
-        .exhaustive(),
-    {
-      certified: new Array<EServiceTemplateVersionAttributeSQL>(),
-      declared: new Array<EServiceTemplateVersionAttributeSQL>(),
-      verified: new Array<EServiceTemplateVersionAttributeSQL>(),
-    }
-  );
+  } = [...attributesSQL]
+    .sort((attr1, attr2) => attr1.groupId - attr2.groupId)
+    .reduce(
+      (acc, attributeSQL) =>
+        match(AttributeKind.parse(attributeSQL.kind))
+          .with(
+            attributeKind.certified,
+            attributeKind.certifiedDiscrete,
+            () => ({
+              ...acc,
+              certified: [...acc.certified, attributeSQL],
+            })
+          )
+          .with(attributeKind.declared, () => ({
+            ...acc,
+            declared: [...acc.declared, attributeSQL],
+          }))
+          .with(attributeKind.verified, () => ({
+            ...acc,
+            verified: [...acc.verified, attributeSQL],
+          }))
+          .exhaustive(),
+      {
+        certified: new Array<EServiceTemplateVersionAttributeSQL>(),
+        declared: new Array<EServiceTemplateVersionAttributeSQL>(),
+        verified: new Array<EServiceTemplateVersionAttributeSQL>(),
+      }
+    );
   const certifiedAttributes = templateAttributesSQLtoTemplateAttributes(
     certifiedAttributesSQL
   );
