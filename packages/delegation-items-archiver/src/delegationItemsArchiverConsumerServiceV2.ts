@@ -21,7 +21,7 @@ import { match } from "ts-pattern";
 import {
   processAgreement,
   processEServiceArchivingRequests,
-  processEServicePendingDesriptors,
+  processEServicePendingDescriptors,
   processPurposes,
 } from "./delegationItemsArchiverProcessors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -100,7 +100,7 @@ export async function handleMessageV2({
         correlationId,
       });
 
-      await processEServicePendingDesriptors({
+      await processEServicePendingDescriptors({
         readModelService,
         catalogProcessClient,
         headers,

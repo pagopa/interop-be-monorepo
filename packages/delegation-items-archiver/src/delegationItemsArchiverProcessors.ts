@@ -111,7 +111,7 @@ const hasPendingArchivingRequest = (
       request.acceptedAt === undefined && request.rejectedAt === undefined
   ) ?? false;
 
-export const processEServicePendingDesriptors = async ({
+export const processEServicePendingDescriptors = async ({
   readModelService,
   catalogProcessClient,
   headers,
