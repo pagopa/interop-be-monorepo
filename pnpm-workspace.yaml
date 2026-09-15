@@ -41,7 +41,6 @@ catalog:
   "@types/ssh2-sftp-client": 9.0.5
   "@types/supertest": 6.0.3
   "@types/swagger-ui-express": 4.1.8
-  "@xmldom/xmldom": 0.9.10
   "@zodios/core": 10.9.6
   "@zodios/express": 10.6.1
   adm-zip: 0.6.0
@@ -106,7 +105,6 @@ catalog:
   uuid: 14.0.0
   vitest: 4.1.0
   winston: 3.16.0
-  xml-crypto: 6.0.1
   yaml: 2.8.3
   zod: 3.23.8
   zod-validation-error: 3.3.0

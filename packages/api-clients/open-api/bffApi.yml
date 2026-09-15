@@ -2,7 +2,7 @@ openapi: 3.0.3
 info:
   title: Backend for Frontend Micro Service
   description: Interop BFF implementation
-  version: "1.0"
+  version: "2.0"
   contact:
     name: API Support
     url: "http://www.example.com/support"
@@ -10187,80 +10187,6 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "404":
           $ref: "#/components/responses/NotFound"
-  /support:
-    post:
-      tags:
-        - authorization
-      security: []
-      operationId: samlLoginCallback
-      description: This route is used to redirect support flow to the dedicated page
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: "#/components/schemas/GoogleSAMLPayload"
-      responses:
-        "302":
-          description: Redirection in case of success SAML validation or error
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "400":
-          $ref: "#/components/responses/BadRequest"
-  /session/saml2/tokens:
-    post:
-      tags:
-        - support
-      summary: Returns the generated token
-      description: Returns the generated token
-      operationId: getSaml2Token
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/SAMLTokenRequest"
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SessionToken"
-          headers:
-            "X-Rate-Limit-Limit":
-              schema:
-                type: integer
-                format: int32
-              description: Max allowed requests within time interval
-            "X-Rate-Limit-Remaining":
-              schema:
-                type: integer
-                format: int32
-              description: Remaining requests within time interval
-            "X-Rate-Limit-Interval":
-              schema:
-                type: integer
-                format: int32
-              description: Time interval in milliseconds. Allowed requests will be constantly replenished during the interval. At the end of the interval the max allowed requests will be available
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "404":
-          $ref: "#/components/responses/NotFound"
   /producerKeychains:
     post:
       tags:
@@ -13780,32 +13706,6 @@ components:
           type: string
       required:
         - rejectionReason
-    GoogleSAMLPayload:
-      type: object
-      additionalProperties: false
-      properties:
-        SAMLResponse:
-          type: string
-          description: SAML response
-        RelayState:
-          type: string
-          nullable: true
-      required:
-        - SAMLResponse
-    SAMLTokenRequest:
-      type: object
-      additionalProperties: false
-      properties:
-        saml2:
-          type: string
-          description: SAML
-        tenantId:
-          type: string
-          format: uuid
-          description: tenant id
-      required:
-        - saml2
-        - tenantId
     AccessTokenRequest:
       type: object
       additionalProperties: false
