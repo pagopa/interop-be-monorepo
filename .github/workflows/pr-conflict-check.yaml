@@ -10,8 +10,8 @@ on:
     types: [synchronize, ready_for_review]
 
 concurrency:
-  group: conflict-check-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  group: conflict-check-${{ github.event.pull_request.base.ref || github.ref_name }}
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -70,7 +70,7 @@ jobs:
               if (detail.mergeable_state === 'unknown') continue;
 
               const marker = '<!-- conflict-bot -->';
-              const { data: comments } = await github.rest.issues.listComments({
+              const comments = await github.paginate(github.rest.issues.listComments, {
                 owner,
                 repo,
                 issue_number: pr.number,
