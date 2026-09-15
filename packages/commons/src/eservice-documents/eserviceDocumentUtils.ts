@@ -256,7 +256,7 @@ export const interpolateTemplateSoapApiSpec = async (
     ...(server.description ? { "wsdl:documentation": server.description } : {}),
   }));
 
-  // eslint-disable-next-line functional/immutable-data
+  // eslint-disable-next-line functional/immutable-data, interop/require-type-for-object
   const interpolatedJsonApi = {
     ...jsonApi,
     "wsdl:definitions": {
