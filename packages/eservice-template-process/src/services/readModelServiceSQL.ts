@@ -24,6 +24,7 @@ import {
   Attribute,
   AttributeId,
   AttributeKind,
+  ESERVICE_INSTANCE_NAME_SEPARATOR,
   EServiceTemplate,
   EServiceTemplateId,
   ListResult,
@@ -345,7 +346,7 @@ export function readModelServiceBuilderSQL({
                     ne(eserviceInReadmodelCatalog.id, templateInstances.id),
                     sql`${eserviceInReadmodelCatalog.name} ILIKE CASE
                       WHEN ${templateInstances.instanceLabel} IS NOT NULL
-                        THEN ${escapedNewName} || ' - ' || ${templateInstances.instanceLabel}
+                        THEN ${escapedNewName} || ${ESERVICE_INSTANCE_NAME_SEPARATOR} || ${templateInstances.instanceLabel}
                       ELSE ${escapedNewName}
                     END ESCAPE '\\'`
                   )
