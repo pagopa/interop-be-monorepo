@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable functional/immutable-data */
+import { AttributeSchema } from "pagopa-interop-kpi-models";
 import {
   AttributeEventEnvelope,
   fromAttributeV1,
@@ -10,7 +11,6 @@ import { match } from "ts-pattern";
 import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
-import { AttributeSchema } from "../../model/attribute/attribute.js";
 import { attributeServiceBuilder } from "../../service/attributeService.js";
 
 export async function handleAttributeMessageV1(

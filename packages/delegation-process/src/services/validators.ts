@@ -11,6 +11,7 @@ import {
   DelegationKind,
   DelegationState,
   delegationState,
+  descriptorState,
   EService,
   EServiceId,
   operationForbidden,
@@ -33,6 +34,7 @@ import {
   operationRestrictedToDelegator,
   delegationNotAllowedForTenant,
   tenantNotAllowedToDelegation,
+  eserviceAlreadyArchived,
 } from "../model/domain/errors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
 
@@ -201,5 +203,15 @@ export const assertNoDelegationRelatedAgreementExists = async (
       agreement.eserviceId,
       agreement.consumerId
     );
+  }
+};
+
+export const assertEserviceIsNotArchived = (eservice: EService): void => {
+  const latestDescriptor = [...eservice.descriptors].sort(
+    (a, b) => Number(a.version) - Number(b.version)
+  )[eservice.descriptors.length - 1];
+
+  if (latestDescriptor?.state === descriptorState.archived) {
+    throw eserviceAlreadyArchived(eservice.id);
   }
 };
