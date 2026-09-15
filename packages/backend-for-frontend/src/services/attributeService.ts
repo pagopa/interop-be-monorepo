@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { attributeRegistryApi, bffApi } from "pagopa-interop-api-clients";
-import { getAllFromPaginated, WithLogger } from "pagopa-interop-commons";
+import {
+  assertFeatureFlagEnabled,
+  getAllFromPaginated,
+  WithLogger,
+} from "pagopa-interop-commons";
 
 import {
   toApiCertifiedAttributeProcessSeed,
@@ -9,6 +13,7 @@ import {
   toCompactAttribute,
 } from "../api/attributeApiConverter.js";
 import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import { BffAppContext } from "../utilities/context.js";
 
 export async function getAllBulkAttributes(
@@ -50,6 +55,8 @@ export function attributeServiceBuilder(
       seed: bffApi.AttributeSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<bffApi.Attribute> {
+      assertFeatureFlagEnabled(config, "featureFlagAttributeCertifiedDiscrete");
+
       logger.info(
         `Creating certified discrete attribute with name ${seed.name}`
       );
