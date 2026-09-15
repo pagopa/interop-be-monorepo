@@ -33,12 +33,12 @@ import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
-  multipleReviewersNotAllowed,
   userWithoutReviewerPrivileges,
   missingSelfcareId,
   purposeFromTemplateCannotBeModified,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
+  duplicatedReviewersInSeed,
 } from "../../src/model/domain/errors.js";
 import {
   addOnePurpose,
@@ -130,20 +130,24 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
     };
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
     });
 
     vi.useRealTimers();
@@ -211,20 +215,206 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: undefined,
+      })),
       signingState: RiskAnalysisSigningState.Values.Draft,
-      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(expectedPurpose),
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
+    });
+
+    vi.useRealTimers();
+  });
+
+  it("should write on event-store when multiple reviewers are assigned", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const mockPurposeVersion = getMockPurposeVersion();
+    const mockEService = getMockEService();
+    const mockTenant = getMockTenant();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([mockPurposeVersion]),
+      eserviceId: mockEService.id,
+      consumerId: mockTenant.id,
+    };
+
+    await addOneEService(mockEService);
+    await addOneTenant(mockTenant);
+    await addOnePurpose(mockPurpose);
+
+    const reviewerIds = [generateId<UserId>(), generateId<UserId>()];
+
+    mockSelfcareV2ClientCall([mockSelfCareUser]);
+
+    const ctx = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId),
+    });
+
+    await purposeService.assignRiskAnalysisReviewer(
+      mockPurpose.id,
+      {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds,
+      },
+      ctx
+    );
+
+    expect(
+      selfcareV2Client.getInstitutionUsersByProductUsingGET
+    ).toHaveBeenCalledTimes(reviewerIds.length);
+
+    reviewerIds.forEach((reviewerId) => {
+      expect(
+        selfcareV2Client.getInstitutionUsersByProductUsingGET
+      ).toHaveBeenCalledWith({
+        params: { institutionId: mockTenant.selfcareId },
+        queries: {
+          userId: reviewerId,
+          productRoles: userRole.REVIEWER_ROLE,
+        },
+        headers: {
+          "X-Correlation-Id": ctx.correlationId,
+        },
+      });
+    });
+
+    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "PurposeRiskAnalysisAssigned",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeRiskAnalysisAssignedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedReviewerWorkflow: ReviewerWorkflow = {
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
+      signingState: RiskAnalysisSigningState.Values.Assigned,
+    };
+
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      reviewerWorkflow: expectedReviewerWorkflow,
+      updatedAt: new Date(),
+    };
+
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
+    });
+
+    vi.useRealTimers();
+  });
+
+  it("should write on event-store when multiple reviewers are assigned", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const mockPurposeVersion = getMockPurposeVersion();
+    const mockEService = getMockEService();
+    const mockTenant = getMockTenant();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([mockPurposeVersion]),
+      eserviceId: mockEService.id,
+      consumerId: mockTenant.id,
+    };
+
+    await addOneEService(mockEService);
+    await addOneTenant(mockTenant);
+    await addOnePurpose(mockPurpose);
+
+    const reviewerIds = [generateId<UserId>(), generateId<UserId>()];
+
+    mockSelfcareV2ClientCall([mockSelfCareUser]);
+
+    const ctx = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId),
+    });
+
+    await purposeService.assignRiskAnalysisReviewer(
+      mockPurpose.id,
+      {
+        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        reviewerIds,
+      },
+      ctx
+    );
+
+    expect(
+      selfcareV2Client.getInstitutionUsersByProductUsingGET
+    ).toHaveBeenCalledTimes(reviewerIds.length);
+
+    reviewerIds.forEach((reviewerId) => {
+      expect(
+        selfcareV2Client.getInstitutionUsersByProductUsingGET
+      ).toHaveBeenCalledWith({
+        params: { institutionId: mockTenant.selfcareId },
+        queries: {
+          userId: reviewerId,
+          productRoles: userRole.REVIEWER_ROLE,
+        },
+        headers: {
+          "X-Correlation-Id": ctx.correlationId,
+        },
+      });
+    });
+
+    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+
+    expect(writtenEvent).toMatchObject({
+      stream_id: mockPurpose.id,
+      version: "1",
+      type: "PurposeRiskAnalysisAssigned",
+      event_version: 2,
+    });
+
+    const writtenPayload = decodeProtobufPayload({
+      messageType: PurposeRiskAnalysisAssignedV2,
+      payload: writtenEvent.data,
+    });
+
+    const expectedReviewerWorkflow: ReviewerWorkflow = {
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
+      signingState: RiskAnalysisSigningState.Values.Assigned,
+    };
+
+    const expectedPurpose: Purpose = {
+      ...mockPurpose,
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      reviewerWorkflow: expectedReviewerWorkflow,
+      updatedAt: new Date(),
+    };
+
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
     });
 
     vi.useRealTimers();
@@ -272,10 +462,8 @@ describe("assignRiskAnalysisReviewer", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       eserviceId: mockEService.id,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [unsafeBrandId(generateId())],
+        reviewers: [{ id: unsafeBrandId(generateId()) }],
         signingState: RiskAnalysisSigningState.Values.Draft,
-        sentToReviewerAt: undefined,
       },
     };
 
@@ -294,26 +482,41 @@ describe("assignRiskAnalysisReviewer", () => {
     ).rejects.toThrowError(reviewerWorkflowConflict(mockPurpose.id));
   });
 
-  it("should throw multipleReviewersNotAllowed if more than one reviewer are provided", async () => {
+  it("should throw duplicatedReviewersInSeed for duplicate reviewers", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date());
+
+    const mockPurposeVersion = getMockPurposeVersion();
     const mockEService = getMockEService();
+    const mockTenant = getMockTenant();
     const mockPurpose: Purpose = {
-      ...getMockPurpose([getMockPurposeVersion()]),
+      ...getMockPurpose([mockPurposeVersion]),
       eserviceId: mockEService.id,
+      consumerId: mockTenant.id,
     };
 
     await addOneEService(mockEService);
+    await addOneTenant(mockTenant);
     await addOnePurpose(mockPurpose);
 
-    expect(
+    const reviewerId = generateId<UserId>();
+
+    const ctx = getMockContext({
+      authData: getMockAuthData(mockPurpose.consumerId),
+    });
+
+    await expect(
       purposeService.assignRiskAnalysisReviewer(
         mockPurpose.id,
         {
           reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-          reviewerIds: [generateId(), generateId()],
+          reviewerIds: [reviewerId, reviewerId],
         },
-        getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
+        ctx
       )
-    ).rejects.toThrowError(multipleReviewersNotAllowed(mockPurpose.id));
+    ).rejects.toEqual(duplicatedReviewersInSeed());
+
+    vi.useRealTimers();
   });
 
   it("should throw missingSelfcareId if the consumer tenant has no selfcareId", async () => {

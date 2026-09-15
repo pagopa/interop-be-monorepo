@@ -50,13 +50,15 @@ describe("Purpose aggregator", () => {
         riskAnalysisForm: purposeRiskAnalysisForm,
         versions: [purposeVersion],
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-          reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
           signingState: riskAnalysisSigningState.signed,
           signedBy: generateId<UserId>(),
           rejectionReason: "Reviewer workflow rejection reason",
-          sentToReviewerAt: new Date(),
         },
       },
       metadata: { version: 1 },

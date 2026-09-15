@@ -15,6 +15,7 @@ import {
   tenantKind,
   PurposeTemplateId,
   UserId,
+  riskAnalysisReviewMode,
   riskAnalysisSigningState,
 } from "pagopa-interop-models";
 import { aggregatePurpose } from "pagopa-interop-readmodel";
@@ -75,13 +76,15 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewMode: "AdminWritesReviewerSigns",
-          reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",
-          sentToReviewerAt: new Date(),
         },
       };
 
@@ -212,13 +215,15 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
+        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewMode: "AdminWritesReviewerSigns",
-          reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",
-          sentToReviewerAt: new Date(),
         },
       };
 

@@ -172,7 +172,7 @@ const getReviewerIdFilter = (
           .where(
             and(
               isNotNull(
-                purposeInReadmodelPurpose.reviewerWorkflowSentToReviewerAt
+                riskAnalysisReviewerInReadmodelPurpose.sentToReviewerAt
               ),
               eq(
                 riskAnalysisReviewerInReadmodelPurpose.purposeId,

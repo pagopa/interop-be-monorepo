@@ -371,10 +371,11 @@ export const assignRiskAnalysisReviewerErrorMapper = (
     .with("purposeNotFound", () => HTTP_STATUS_NOT_FOUND)
     .with("tenantIsNotTheConsumer", () => HTTP_STATUS_FORBIDDEN)
     .with("reviewerWorkflowConflict", () => HTTP_STATUS_CONFLICT)
-    .with("multipleReviewersNotAllowed", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "userWithoutReviewerPrivileges",
+      "duplicatedReviewersInSeed",
       "purposeFromTemplateCannotBeModified",
+      "purposeNotInDraftState",
       "reviewerWorkflowNotAllowedForDelegatedPurpose",
       "reviewerWorkflowNotAllowedForReceiveMode",
       () => HTTP_STATUS_BAD_REQUEST
