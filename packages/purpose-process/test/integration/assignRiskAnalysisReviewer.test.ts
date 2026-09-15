@@ -341,7 +341,6 @@ describe("assignRiskAnalysisReviewer", () => {
         sentToReviewerAt: new Date(),
       })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
@@ -351,9 +350,10 @@ describe("assignRiskAnalysisReviewer", () => {
       updatedAt: new Date(),
     };
 
-    expect(writtenPayload.purpose).toMatchObject({
-      id: expectedPurpose.id,
-      reviewMode: toPurposeV2(expectedPurpose).reviewMode,
+    expect(writtenPayload).toEqual({
+      purpose: toPurposeV2(expectedPurpose),
+      addedReviewers: reviewerIds,
+      removedReviewers: [],
     });
     expect(writtenPayload.addedReviewers).toEqual(reviewerIds);
     expect(writtenPayload.removedReviewers).toEqual([]);
@@ -520,7 +520,6 @@ describe("assignRiskAnalysisReviewer", () => {
         sentToReviewerAt: new Date(),
       })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: undefined,
     };
 
     const expectedPurpose: Purpose = {
