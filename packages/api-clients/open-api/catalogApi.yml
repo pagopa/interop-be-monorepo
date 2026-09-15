@@ -218,7 +218,7 @@ paths:
       description: Retrieves a paginated list of E-Services matching the given filters
       requestBody:
         required: true
-        description: Catalog e-service query filters
+        description: E-service query filters
         content:
           application/json:
             schema:
@@ -3975,7 +3975,7 @@ components:
     EServicesFilterPayload:
       type: object
       additionalProperties: false
-      description: Filters for the Catalog e-service query
+      description: Filters for the e-service query
       required:
         - offset
         - limit
@@ -4039,7 +4039,7 @@ components:
             format: uuid
     EServiceSortBy:
       type: string
-      description: Sort criteria for the Catalog e-service query
+      description: Sort criteria for the e-service query
       enum:
         - NAME_ASC
         - NAME_DESC

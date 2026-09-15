@@ -1395,7 +1395,7 @@ paths:
       operationId: getFilteredEServicesCatalog
       requestBody:
         required: true
-        description: Catalog catalog query filters
+        description: Catalog query filters
         content:
           application/json:
             schema:
@@ -15141,7 +15141,7 @@ components:
     CatalogFilterPayload:
       type: object
       additionalProperties: false
-      description: Filters for the Catalog catalog query
+      description: Filters for the catalog query
       required:
         - offset
         - limit
@@ -15205,7 +15205,7 @@ components:
             format: uuid
     EServiceSortBy:
       type: string
-      description: Sort criteria for the Catalog catalog query
+      description: Sort criteria for the catalog query
       enum:
         - NAME_ASC
         - NAME_DESC
