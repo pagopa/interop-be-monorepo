@@ -48,6 +48,7 @@ const errorCodes = {
   asyncExchangeReceiveTemplateNotAllowed: "0038",
   missingAsyncExchangeCallbackInterface: "0039",
   attributeDiscreteConfigNotAllowed: "0040",
+  interfaceDocumentNotUpdatable: "0041",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -297,6 +298,17 @@ export function eserviceTemplateDocumentNotFound(
     detail: `Document ${documentId} not found in version ${eserviceTemplateVersionId} of template ${eserviceTemplateId}`,
     code: "eserviceTemplateDocumentNotFound",
     title: "Document not found",
+  });
+}
+
+export function interfaceDocumentNotUpdatable(
+  eserviceTemplateVersionId: EServiceTemplateVersionId,
+  documentId: string
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Document ${documentId} is the interface or the async exchange callback interface of version ${eserviceTemplateVersionId} and cannot be updated`,
+    code: "interfaceDocumentNotUpdatable",
+    title: "Interface document not updatable",
   });
 }
 

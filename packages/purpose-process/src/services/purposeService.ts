@@ -25,6 +25,7 @@ import {
   isFeatureFlagEnabled,
   ownership,
   riskAnalysisFormToRiskAnalysisFormToValidate,
+  validateNoHyperlinksSafe,
 } from "pagopa-interop-commons";
 import {
   Agreement,
@@ -183,6 +184,7 @@ import {
   assertRiskAnalysisTenantKindMatch,
   assertRequesterIsConsumer,
   assertRiskAnalysisFormEditableInCurrentReviewMode,
+  assertReviewerIdsAreUnique,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -583,15 +585,21 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotAllowedForReceiveMode(purposeId);
       }
 
-      if (seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns) {
-        if (seed.reviewerIds.length > 0) {
-          throw reviewersNotAllowedForReviewMode(purposeId);
-        }
-      } else {
-        if (seed.reviewerIds.length === 0) {
-          throw missingReviewers(purposeId);
-        }
+      const isSelfAssignmentMode =
+        seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns;
+      const hasRequestedReviewers = seed.reviewerIds.length > 0;
 
+      if (isSelfAssignmentMode && hasRequestedReviewers) {
+        throw reviewersNotAllowedForReviewMode(purposeId);
+      }
+
+      if (!isSelfAssignmentMode && !hasRequestedReviewers) {
+        throw missingReviewers(purposeId);
+      }
+
+      assertReviewerIdsAreUnique(seed.reviewerIds);
+
+      if (!isSelfAssignmentMode) {
         const consumer = await retrieveTenant(
           purpose.data.consumerId,
           readModelService
@@ -746,22 +754,22 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotFound(purposeId);
       }
 
-      const isReviewerWritesSignable = match([
-        purpose.data.reviewMode,
-        workflow.signingState,
-      ])
+      const isReviewerWritesSignable = match({
+        reviewMode: purpose.data.reviewMode,
+        signingState: workflow.signingState,
+      })
         .with(
-          [
-            riskAnalysisReviewMode.adminWritesReviewerSigns,
-            riskAnalysisSigningState.submitted,
-          ],
+          {
+            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.submitted,
+          },
           () => false
         )
         .with(
-          [
-            riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-            riskAnalysisSigningState.assigned,
-          ],
+          {
+            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            signingState: riskAnalysisSigningState.assigned,
+          },
           () => true
         )
         .otherwise(() => {
@@ -828,6 +836,8 @@ export function purposeServiceBuilder(
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<WithMetadata<Purpose>> {
       logger.info(`Rejecting risk analysis for Purpose ${purposeId}`);
+
+      validateNoHyperlinksSafe(rejectionReason);
 
       assertFeatureFlagEnabled(config, "featureFlagNewOperators");
 
@@ -974,6 +984,8 @@ export function purposeServiceBuilder(
       { correlationId, authData, logger }: WithLogger<AppContext<UIAuthData>>
     ): Promise<void> {
       logger.info(`Rejecting Version ${versionId} in Purpose ${purposeId}`);
+
+      validateNoHyperlinksSafe(rejectionReason);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const eservice = await retrieveEService(
@@ -1845,6 +1857,11 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating Purpose for EService ${purposeSeed.eserviceId} and Consumer ${purposeSeed.consumerId}`
       );
+
+      validateNoHyperlinksSafe(purposeSeed.title);
+      validateNoHyperlinksSafe(purposeSeed.description);
+      validateNoHyperlinksSafe(purposeSeed.freeOfChargeReason ?? undefined);
+
       const eserviceId = unsafeBrandId<EServiceId>(purposeSeed.eserviceId);
       const consumerId = unsafeBrandId<TenantId>(purposeSeed.consumerId);
 
@@ -1936,6 +1953,11 @@ export function purposeServiceBuilder(
       logger.info(
         `Creating Purpose for EService ${seed.eserviceId}, Consumer ${seed.consumerId}`
       );
+
+      validateNoHyperlinksSafe(seed.title);
+      validateNoHyperlinksSafe(seed.description);
+      validateNoHyperlinksSafe(seed.freeOfChargeReason ?? undefined);
+
       const riskAnalysisId: RiskAnalysisId = unsafeBrandId(seed.riskAnalysisId);
       const eserviceId: EServiceId = unsafeBrandId(seed.eserviceId);
       const consumerId: TenantId = unsafeBrandId(seed.consumerId);
@@ -2173,6 +2195,8 @@ export function purposeServiceBuilder(
     ): Promise<WithMetadata<Purpose>> {
       logger.info(`Creating Purpose from Template ${purposeTemplateId}`);
 
+      validateNoHyperlinksSafe(body.title);
+
       const consumerId = unsafeBrandId<TenantId>(body.consumerId);
       const eserviceId = unsafeBrandId<EServiceId>(body.eserviceId);
 
@@ -2193,6 +2217,11 @@ export function purposeServiceBuilder(
       const purposeTemplate = await retrievePublishedPurposeTemplate(
         purposeTemplateId,
         readModelService
+      );
+
+      validateNoHyperlinksSafe(purposeTemplate.purposeDescription);
+      validateNoHyperlinksSafe(
+        purposeTemplate.purposeFreeOfChargeReason ?? undefined
       );
 
       assertValidPurposeTenantKind(
@@ -2364,6 +2393,8 @@ export function purposeServiceBuilder(
       logger.info(
         `Partial updating draft Purpose ${purposeId} created by Purpose template ${purposeTemplateId}`
       );
+
+      validateNoHyperlinksSafe(purposeUpdateContent.title);
 
       const purpose = await retrievePurpose(purposeId, readModelService);
       const lastDraftVersion = retrieveDraftPurposeVersion(purpose.data);
@@ -2627,6 +2658,10 @@ const performUpdatePurpose = async (
   void (rest satisfies Record<string, never>);
   // ^ To make sure we extract all the updated fields, even optional ones
 
+  validateNoHyperlinksSafe(title);
+  validateNoHyperlinksSafe(description);
+  validateNoHyperlinksSafe(freeOfChargeReason ?? undefined);
+
   const { mode } = modeAndUpdateContent;
 
   if (title && title !== purpose.data.title) {
@@ -2786,28 +2821,22 @@ type RiskAnalysisReviewAssignment = {
   reviewerIds: string[];
 };
 
-type RiskAnalysisAssignmentOutcome = {
-  reviewerWorkflow: ReviewerWorkflow | undefined;
-  newReviewersToNotify: UserId[];
-  oldReviewersToNotify: UserId[];
-};
+const isReviewerWritingMode = (
+  reviewMode: RiskAnalysisReviewMode | undefined
+): boolean => reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
 
-type RiskAnalysisAssignmentContext = {
-  purpose: WithMetadata<Purpose>;
-  previousReviewMode: RiskAnalysisReviewMode | undefined;
-  previousReviewers: RiskAnalysisReviewer[];
-  requestedReviewers: UserId[];
-  addedReviewers: UserId[];
-  alreadyNotifiedReviewerIds: UserId[];
-  removedReviewersToNotify: UserId[];
-  now: Date;
-};
+const hasSameReviewerIds = (
+  previousReviewerIds: UserId[],
+  requestedReviewerIds: UserId[]
+): boolean =>
+  previousReviewerIds.length === requestedReviewerIds.length &&
+  previousReviewerIds.every((id) => requestedReviewerIds.includes(id));
 
 /**
  * Reviewers already in the workflow keep their stamp; joining reviewers get
  * the supplied stamp when they acquire an action to perform.
  */
-const preserveExistingReviewerStamps = (
+const evaluateReviewerStamps = (
   reviewerIds: UserId[],
   previousReviewers: RiskAnalysisReviewer[],
   sentAt: Date | undefined
@@ -2829,22 +2858,30 @@ const preserveExistingReviewerStamps = (
   });
 };
 
-const transitionToAdminWritesAdminSigns = ({
-  alreadyNotifiedReviewerIds,
-}: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome => ({
-  reviewerWorkflow: undefined,
-  newReviewersToNotify: [],
-  oldReviewersToNotify: alreadyNotifiedReviewerIds,
-});
+type RiskAnalysisAssignmentContext = {
+  purpose: WithMetadata<Purpose>;
+  previousReviewMode: RiskAnalysisReviewMode | undefined;
+  previousReviewers: RiskAnalysisReviewer[];
+  requestedReviewers: UserId[];
+  addedReviewers: UserId[];
+  removedReviewers: RiskAnalysisReviewer[];
+  now: Date;
+};
+
+type RiskAnalysisAssignmentOutcome = {
+  reviewerWorkflow: ReviewerWorkflow | undefined;
+};
+
+const transitionToAdminWritesAdminSigns =
+  (): RiskAnalysisAssignmentOutcome => ({
+    reviewerWorkflow: undefined,
+  });
 
 const transitionToAdminWritesReviewerSigns = ({
   purpose,
   previousReviewMode,
   previousReviewers,
   requestedReviewers,
-  addedReviewers,
-  alreadyNotifiedReviewerIds,
-  removedReviewersToNotify,
   now,
 }: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
   match(previousReviewMode)
@@ -2854,21 +2891,19 @@ const transitionToAdminWritesReviewerSigns = ({
         throw reviewerWorkflowNotFound(purpose.data.id);
       }
 
-      const shouldNotifyAddedReviewers =
+      const shouldSetAddedReviewerSentAt =
         previousWorkflow.signingState === riskAnalysisSigningState.submitted;
 
       return {
         reviewerWorkflow: {
           ...previousWorkflow,
-          reviewers: preserveExistingReviewerStamps(
+          reviewers: evaluateReviewerStamps(
             requestedReviewers,
             previousReviewers,
-            shouldNotifyAddedReviewers ? now : undefined
+            shouldSetAddedReviewerSentAt ? now : undefined
           ),
           sentToReviewerAt: undefined,
         },
-        newReviewersToNotify: shouldNotifyAddedReviewers ? addedReviewers : [],
-        oldReviewersToNotify: removedReviewersToNotify,
       };
     })
     .otherwise(() => ({
@@ -2880,22 +2915,18 @@ const transitionToAdminWritesReviewerSigns = ({
         signingState: riskAnalysisSigningState.draft,
         sentToReviewerAt: undefined,
       },
-      newReviewersToNotify: [],
-      oldReviewersToNotify: alreadyNotifiedReviewerIds,
     }));
 
 const transitionToReviewerWritesReviewerSigns = ({
   previousReviewMode,
   previousReviewers,
   requestedReviewers,
-  addedReviewers,
-  removedReviewersToNotify,
   now,
 }: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
   match(previousReviewMode)
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
       reviewerWorkflow: {
-        reviewers: preserveExistingReviewerStamps(
+        reviewers: evaluateReviewerStamps(
           requestedReviewers,
           previousReviewers,
           now
@@ -2903,8 +2934,6 @@ const transitionToReviewerWritesReviewerSigns = ({
         signingState: riskAnalysisSigningState.assigned,
         sentToReviewerAt: undefined,
       },
-      newReviewersToNotify: addedReviewers,
-      oldReviewersToNotify: removedReviewersToNotify,
     }))
     .otherwise(() => ({
       reviewerWorkflow: {
@@ -2915,8 +2944,6 @@ const transitionToReviewerWritesReviewerSigns = ({
         signingState: riskAnalysisSigningState.assigned,
         sentToReviewerAt: undefined,
       },
-      newReviewersToNotify: requestedReviewers,
-      oldReviewersToNotify: removedReviewersToNotify,
     }));
 
 /**
@@ -2925,9 +2952,9 @@ const transitionToReviewerWritesReviewerSigns = ({
  * AdminWritesAdminSigns has no reviewer workflow and an undefined previous
  * mode is a purpose that was never assigned.
  *
- * Each branch declares the resulting reviewer workflow and who must be
- * notified. The risk analysis form and event are derived once from that
- * outcome after selecting the transition.
+ * Each branch declares the resulting reviewer workflow. The risk analysis
+ * form and structural event diff are derived once after selecting the
+ * transition.
  */
 function assignRiskAnalysisReviewerLogic(
   purpose: WithMetadata<Purpose>,
@@ -2946,8 +2973,7 @@ function assignRiskAnalysisReviewerLogic(
 
   const assignmentIsUnchanged =
     previousReviewMode === review.reviewMode &&
-    previousReviewerIds.length === requestedReviewers.length &&
-    previousReviewerIds.every((id) => requestedReviewers.includes(id));
+    hasSameReviewerIds(previousReviewerIds, requestedReviewers);
 
   if (assignmentIsUnchanged) {
     return { event: undefined, updatedPurpose: purpose.data };
@@ -2956,14 +2982,8 @@ function assignRiskAnalysisReviewerLogic(
   const addedReviewers = requestedReviewers.filter(
     (id) => !previousReviewerIds.includes(id)
   );
-  const removedReviewers = previousReviewerIds.filter(
-    (id) => !requestedReviewers.includes(id)
-  );
-  const alreadyNotifiedReviewerIds = previousReviewers
-    .filter((reviewer) => reviewer.sentToReviewerAt !== undefined)
-    .map((reviewer) => reviewer.id);
-  const removedReviewersToNotify = alreadyNotifiedReviewerIds.filter((id) =>
-    removedReviewers.includes(id)
+  const removedReviewers = previousReviewers.filter(
+    (reviewer) => !requestedReviewers.includes(reviewer.id)
   );
 
   const now = new Date();
@@ -2974,15 +2994,14 @@ function assignRiskAnalysisReviewerLogic(
     previousReviewers,
     requestedReviewers,
     addedReviewers,
-    alreadyNotifiedReviewerIds,
-    removedReviewersToNotify,
+    removedReviewers,
     now,
   };
 
-  const outcome = match(review.reviewMode)
+  const transitionOutcome = match(review.reviewMode)
     .returnType<RiskAnalysisAssignmentOutcome>()
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
-      transitionToAdminWritesAdminSigns(transitionContext)
+      transitionToAdminWritesAdminSigns()
     )
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
       transitionToAdminWritesReviewerSigns(transitionContext)
@@ -2992,46 +3011,48 @@ function assignRiskAnalysisReviewerLogic(
     )
     .exhaustive();
 
-  const reviewerWritingDutyChanges =
-    (previousReviewMode ===
-      riskAnalysisReviewMode.reviewerWritesReviewerSigns) !==
-    (review.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns);
+  const reviewerWritingModeChanged =
+    isReviewerWritingMode(previousReviewMode) !==
+    isReviewerWritingMode(review.reviewMode);
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
-    riskAnalysisForm: reviewerWritingDutyChanges
+    riskAnalysisForm: reviewerWritingModeChanged
       ? undefined
       : purpose.data.riskAnalysisForm,
     reviewMode: review.reviewMode,
-    reviewerWorkflow: outcome.reviewerWorkflow,
+    reviewerWorkflow: transitionOutcome.reviewerWorkflow,
     updatedAt: now,
-  };
-
-  const eventPayload = {
-    purpose: updatedPurpose,
-    version: purpose.metadata.version,
-    correlationId,
   };
 
   const event = match(review.reviewMode)
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
       toCreateEventPurposeRiskAnalysisSelfAssigned({
-        ...eventPayload,
-        oldReviewersToNotify: outcome.oldReviewersToNotify,
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+        removedReviewers,
+        previousReviewMode,
       })
     )
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
       toCreateEventPurposeRiskAnalysisWorkflowCreated({
-        ...eventPayload,
-        newReviewersToNotify: outcome.newReviewersToNotify,
-        oldReviewersToNotify: outcome.oldReviewersToNotify,
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+        addedReviewers,
+        removedReviewers,
+        previousReviewMode,
       })
     )
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
       toCreateEventPurposeRiskAnalysisAssigned({
-        ...eventPayload,
-        newReviewersToNotify: outcome.newReviewersToNotify,
-        oldReviewersToNotify: outcome.oldReviewersToNotify,
+        purpose: updatedPurpose,
+        version: purpose.metadata.version,
+        correlationId,
+        addedReviewers,
+        removedReviewers,
+        previousReviewMode,
       })
     )
     .exhaustive();

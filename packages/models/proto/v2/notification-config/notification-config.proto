@@ -31,6 +31,8 @@ message NotificationConfigV2 {
   bool purposeOverQuotaStateToConsumer = 23;
   bool clientKeyConsumerAddedDeletedToClientUsers = 24;
   bool eserviceStateChangedToProducer = 25;
+  bool eserviceArchivingRequestedToDelegator = 26;
+  bool eserviceArchivingApprovedRejectedToDelegate = 27;
 }
 
 message TenantNotificationConfigV2 {
