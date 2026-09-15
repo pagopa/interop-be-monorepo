@@ -397,10 +397,11 @@ describe("assignRiskAnalysisReviewer", () => {
     });
 
     const expectedReviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-      reviewerIds: reviewerIds.map((id) => unsafeBrandId(id)),
+      reviewers: reviewerIds.map((id) => ({
+        id: unsafeBrandId(id),
+        sentToReviewerAt: new Date(),
+      })),
       signingState: RiskAnalysisSigningState.Values.Assigned,
-      sentToReviewerAt: new Date(),
     };
 
     const expectedPurpose: Purpose = {
