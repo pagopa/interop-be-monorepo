@@ -310,6 +310,11 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
                   ),
                 }
               : {}),
+            ...(purposeSQL.reviewerWorkflowSignedAt
+              ? {
+                  signedAt: stringToDate(purposeSQL.reviewerWorkflowSignedAt),
+                }
+              : {}),
             ...(purposeSQL.reviewerWorkflowRejectedBy
               ? {
                   rejectedBy: unsafeBrandId<UserId>(

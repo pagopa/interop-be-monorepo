@@ -144,6 +144,9 @@ describe("signRiskAnalysis", () => {
       sortPurpose(updatedPurpose)
     );
 
+    expect(updatedPurpose.reviewerWorkflow?.signedBy).toEqual(reviewerId);
+    expect(updatedPurpose.reviewerWorkflow?.signedAt).toEqual(new Date());
+
     vi.useRealTimers();
   });
 

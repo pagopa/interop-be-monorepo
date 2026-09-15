@@ -181,6 +181,7 @@ export const fromReviewerWorkflowV2 = (
         })),
   signingState: fromRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy ? unsafeBrandId<UserId>(input.signedBy) : undefined,
+  signedAt: bigIntToDate(input.signedAt),
   rejectedBy: input.rejectedBy
     ? unsafeBrandId<UserId>(input.rejectedBy)
     : undefined,
