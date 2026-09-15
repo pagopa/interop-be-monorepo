@@ -14,6 +14,7 @@ import {
   PurposeVersionStampsV2,
   PurposeVersionSignedDocumentV2,
   ReviewerWorkflowV2,
+  RiskAnalysisReviewerV2,
   RiskAnalysisReviewModeV2,
   RiskAnalysisSigningStateV2,
 } from "../gen/v2/purpose/purpose.js";
@@ -31,6 +32,7 @@ import {
   PurposeVersionState,
   purposeVersionState,
   ReviewerWorkflow,
+  RiskAnalysisReviewer,
   RiskAnalysisReviewMode,
   riskAnalysisReviewMode,
   RiskAnalysisSigningState,
@@ -133,6 +135,8 @@ export const fromRiskAnalysisReviewModeV2 = (
   input: RiskAnalysisReviewModeV2
 ): RiskAnalysisReviewMode => {
   switch (input) {
+    case RiskAnalysisReviewModeV2.ADMIN_WRITES_ADMIN_SIGNS:
+      return riskAnalysisReviewMode.adminWritesAdminSigns;
     case RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS:
       return riskAnalysisReviewMode.reviewerWritesReviewerSigns;
     case RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS:
@@ -157,11 +161,24 @@ export const fromRiskAnalysisSigningStateV2 = (
   }
 };
 
+export const fromRiskAnalysisReviewerV2 = (
+  input: RiskAnalysisReviewerV2
+): RiskAnalysisReviewer => ({
+  id: unsafeBrandId<UserId>(input.id),
+  sentToReviewerAt: bigIntToDate(input.sentToReviewerAt),
+});
+
 export const fromReviewerWorkflowV2 = (
   input: ReviewerWorkflowV2
 ): ReviewerWorkflow => ({
-  reviewMode: fromRiskAnalysisReviewModeV2(input.reviewMode),
-  reviewerIds: input.reviewerIds.map(unsafeBrandId<UserId>),
+  // Events emitted before the reviewers field existed only carry their ids
+  reviewers:
+    input.reviewers.length > 0
+      ? input.reviewers.map(fromRiskAnalysisReviewerV2)
+      : input.reviewerIds.map((id) => ({
+          id: unsafeBrandId<UserId>(id),
+          sentToReviewerAt: bigIntToDate(input.sentToReviewerAt),
+        })),
   signingState: fromRiskAnalysisSigningStateV2(input.signingState),
   signedBy: input.signedBy ? unsafeBrandId<UserId>(input.signedBy) : undefined,
   rejectionReason: input.rejectionReason,
@@ -185,6 +202,10 @@ export const fromPurposeV2 = (input: PurposeV2): Purpose => ({
   purposeTemplateId: input.purposeTemplateId
     ? unsafeBrandId<PurposeTemplateId>(input.purposeTemplateId)
     : undefined,
+  reviewMode:
+    input.reviewMode !== undefined
+      ? fromRiskAnalysisReviewModeV2(input.reviewMode)
+      : undefined,
   reviewerWorkflow: input.reviewerWorkflow
     ? fromReviewerWorkflowV2(input.reviewerWorkflow)
     : undefined,

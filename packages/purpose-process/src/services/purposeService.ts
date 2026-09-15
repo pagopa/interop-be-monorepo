@@ -55,6 +55,7 @@ import {
   Tenant,
   TenantId,
   TenantKind,
+  UserId,
   WithMetadata,
   eserviceMode,
   generateId,
@@ -601,16 +602,19 @@ export function purposeServiceBuilder(
       );
 
       const reviewerWorkflow: ReviewerWorkflow = {
-        reviewMode: seed.reviewMode,
-        reviewerIds: seed.reviewerIds.map((id) => unsafeBrandId(id)),
+        reviewers: seed.reviewerIds.map((id) => ({
+          id: unsafeBrandId(id),
+          sentToReviewerAt: isReviewerWrites ? new Date() : undefined,
+        })),
         signingState: isReviewerWrites
           ? RiskAnalysisSigningState.Values.Assigned
           : RiskAnalysisSigningState.Values.Draft,
-        sentToReviewerAt: isReviewerWrites ? new Date() : undefined,
+        sentToReviewerAt: undefined,
       };
 
       const updatedPurpose: Purpose = {
         ...purpose.data,
+        reviewMode: seed.reviewMode,
         reviewerWorkflow,
         updatedAt: new Date(),
       };
@@ -619,11 +623,21 @@ export function purposeServiceBuilder(
         isReviewerWrites
           ? toCreateEventPurposeRiskAnalysisAssigned({
               purpose: updatedPurpose,
+              addedReviewers: seed.reviewerIds.map((id) =>
+                unsafeBrandId<UserId>(id)
+              ),
+              removedReviewers: [],
+              previousReviewMode: undefined,
               version: purpose.metadata.version,
               correlationId,
             })
           : toCreateEventPurposeRiskAnalysisWorkflowCreated({
               purpose: updatedPurpose,
+              addedReviewers: seed.reviewerIds.map((id) =>
+                unsafeBrandId<UserId>(id)
+              ),
+              removedReviewers: [],
+              previousReviewMode: undefined,
               version: purpose.metadata.version,
               correlationId,
             })
@@ -656,7 +670,8 @@ export function purposeServiceBuilder(
       }
 
       if (
-        workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+        purpose.data.reviewMode !==
+        riskAnalysisReviewMode.adminWritesReviewerSigns
       ) {
         throw submitNotAllowedForReviewMode(purposeId);
       }
@@ -699,9 +714,12 @@ export function purposeServiceBuilder(
           : purpose.data.riskAnalysisForm,
         reviewerWorkflow: {
           ...workflow,
+          reviewers: workflow.reviewers.map((reviewer) => ({
+            ...reviewer,
+            sentToReviewerAt: now,
+          })),
           signingState: riskAnalysisSigningState.submitted,
           rejectionReason: undefined,
-          sentToReviewerAt: now,
         },
         updatedAt: now,
       };
@@ -737,7 +755,10 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotFound(purposeId);
       }
 
-      const isReviewerWritesSignable = match(workflow)
+      const isReviewerWritesSignable = match({
+        reviewMode: purpose.data.reviewMode,
+        signingState: workflow.signingState,
+      })
         .with(
           {
             reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
@@ -756,7 +777,9 @@ export function purposeServiceBuilder(
           throw reviewerWorkflowNotInSignableState(purposeId);
         });
 
-      if (!workflow.reviewerIds.includes(authData.userId)) {
+      if (
+        !workflow.reviewers.some((reviewer) => reviewer.id === authData.userId)
+      ) {
         throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
@@ -831,12 +854,15 @@ export function purposeServiceBuilder(
       }
 
       if (
-        workflow.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+        purpose.data.reviewMode !==
+        riskAnalysisReviewMode.adminWritesReviewerSigns
       ) {
         throw rejectNotAllowedInCurrentMode(purposeId);
       }
 
-      if (!workflow.reviewerIds.includes(authData.userId)) {
+      if (
+        !workflow.reviewers.some((reviewer) => reviewer.id === authData.userId)
+      ) {
         throw requesterIsNotDesignatedReviewer(purposeId);
       }
 
@@ -885,7 +911,7 @@ export function purposeServiceBuilder(
       }
 
       if (
-        workflow.reviewMode !==
+        purpose.data.reviewMode !==
         riskAnalysisReviewMode.reviewerWritesReviewerSigns
       ) {
         throw editNotAllowedForReviewMode(purposeId);
@@ -895,7 +921,9 @@ export function purposeServiceBuilder(
         throw reviewerWorkflowNotEditable(purposeId);
       }
 
-      if (!workflow.reviewerIds.includes(authData.userId)) {
+      if (
+        !workflow.reviewers.some((reviewer) => reviewer.id === authData.userId)
+      ) {
         throw requesterIsNotDesignatedReviewer(purposeId);
       }
 

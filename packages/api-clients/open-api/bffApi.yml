@@ -15772,6 +15772,8 @@ components:
         rulesetExpiration:
           type: string
           format: date-time
+        reviewMode:
+          $ref: "#/components/schemas/RiskAnalysisReviewMode"
         reviewerWorkflow:
           $ref: "#/components/schemas/ReviewerWorkflow"
       required:
@@ -18988,6 +18990,7 @@ components:
       type: string
       description: Risk analysis review mode
       enum:
+        - ADMIN_WRITES_ADMIN_SIGNS
         - ADMIN_WRITES_REVIEWER_SIGNS
         - REVIEWER_WRITES_REVIEWER_SIGNS
     RiskAnalysisSigningState:
@@ -18999,22 +19002,24 @@ components:
         - SUBMITTED
         - SIGNED
         - REJECTED
+    Reviewer:
+      description: A designated reviewer enriched with its user details
+      allOf:
+        - $ref: "#/components/schemas/CompactUser"
+        - type: object
+          properties:
+            sentToReviewerAt:
+              type: string
+              format: date-time
     ReviewerWorkflow:
       type: object
       additionalProperties: false
       description: Reviewer workflow state for a purpose risk analysis
       properties:
-        reviewMode:
-          $ref: "#/components/schemas/RiskAnalysisReviewMode"
-        reviewerIds:
-          type: array
-          items:
-            type: string
-            format: uuid
         reviewers:
           type: array
           items:
-            $ref: "#/components/schemas/CompactUser"
+            $ref: "#/components/schemas/Reviewer"
         signingState:
           $ref: "#/components/schemas/RiskAnalysisSigningState"
         signedBy:
@@ -19022,12 +19027,7 @@ components:
           format: uuid
         rejectionReason:
           type: string
-        sentToReviewerAt:
-          type: string
-          format: date-time
       required:
-        - reviewMode
-        - reviewerIds
         - signingState
     RiskAnalysisAssignmentSeed:
       type: object
@@ -19044,7 +19044,6 @@ components:
           minItems: 1
       required:
         - reviewMode
-        - reviewerIds
     RiskAnalysisSubmissionSeed:
       type: object
       additionalProperties: false
