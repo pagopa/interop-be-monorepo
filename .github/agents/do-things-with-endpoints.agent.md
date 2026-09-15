@@ -321,6 +321,8 @@ If an error cannot be reached through a normal UI interaction, explicitly state 
 
 Do not simply write "the UI prevents it".
 
+If you are not entirely sure whether the error can actually happen through the UI, reconsider the `CAN HAPPEN` verdict rather than inventing reproduction steps, erring on the side of `CAN HAPPEN`.
+
 ## Reproduction steps
 
 Every `CAN HAPPEN` error must contain executable UI reproduction steps.
@@ -340,7 +342,32 @@ Do not derive UI labels from component or prop names.
 
 If multiple errors share the same reproduction flow, document the shared flow once and reference it from the other rows, describing only the relevant difference.
 
-If you are not entirely sure whether the error can actually happen through the UI, reconsider the `CAN HAPPEN` verdict rather than inventing reproduction steps, erring on the side of `CAN HAPPEN`.
+## Resolution steps
+
+Each documented error must have clear and actionable resolution steps.
+
+The resolution steps should include:
+
+```text
+🟢 Easy resolution
+1. ...
+2. ...
+3. ...
+```
+
+For instance, if a resolution step involves changing a configuration, provide the exact configuration key and value to be modified; if a resolution steps involves simply reloading the page, specify that clearly.
+
+There may be some cases where no resolution is possible; in such cases, clearly state the reason why a resolution cannot be provided.
+
+Provide also a level of difficulty for the resolution as a whole:
+
+```text
+🟢 Easy resolution
+🟡 Medium resolution
+🔴 Impossible resolution
+```
+
+Where Easy would be for simply reloading the page, for instance; Medium would be for more involved steps (like changing configuration settings or updating input fields); Impossible would be when no resolution is possible and can only be solved by external intervention (e.g., contacting support or waiting for a backend fix).
 
 ## Output structure
 
@@ -353,9 +380,9 @@ The exact error-table format is:
 
 Service: `createEService` → `innerCreateEService`. Mapper: `createEServiceErrorMapper`. Roles: `ADMIN_ROLE`, `API_ROLE`, `M2M_ADMIN_ROLE`.
 
-| Error | Code | Status | When it happens | Reachable from the FE? | Steps to reproduce (UI) |
-| ----- | ---- | ------ | --------------- | ---------------------- | ----------------------- |
-| ...   | ...  | ...    | ...             | ...                    | ...                     |
+| Error | Code | Status | When it happens | Reachable from the FE? | Steps to reproduce (UI) | Resolution steps |
+| ----- | ---- | ------ | --------------- | ---------------------- | ----------------------- | ---------------- |
+| ...   | ...  | ...    | ...             | ...                    | ...                     | ...              |
 ```
 
 Endpoints whose mapper is `emptyErrorMapper` have no non-500 mapper errors and should be handled according to the error-mapping workflow.
