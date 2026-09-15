@@ -79,6 +79,8 @@ const errorCodes = {
   reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
   duplicatedReviewersInSeed: "0061",
+  missingReviewers: "0062",
+  reviewersNotAllowedForReviewMode: "0063",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -706,5 +708,23 @@ export function reviewerWorkflowNotAllowedForReceiveMode(
     detail: `Reviewer workflow is not allowed for purpose ${purposeId} because the eservice is in receive mode`,
     code: "reviewerWorkflowNotAllowedForReceiveMode",
     title: "Reviewer workflow not allowed for receive mode",
+  });
+}
+
+export function missingReviewers(purposeId: PurposeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `At least one reviewer must be provided for purpose ${purposeId} when the review mode is not AdminWritesAdminSigns`,
+    code: "missingReviewers",
+    title: "Missing reviewers",
+  });
+}
+
+export function reviewersNotAllowedForReviewMode(
+  purposeId: PurposeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `No reviewer can be provided for purpose ${purposeId} when the review mode is AdminWritesAdminSigns`,
+    code: "reviewersNotAllowedForReviewMode",
+    title: "Reviewers not allowed for review mode",
   });
 }
