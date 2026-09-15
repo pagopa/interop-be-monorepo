@@ -1,5 +1,5 @@
 import { dateAtRomeZone } from "pagopa-interop-commons";
-import { EService, EServiceTemplate } from "pagopa-interop-models";
+import { EService } from "pagopa-interop-models";
 import { match } from "ts-pattern";
 
 export type DelegationApprovedRejectedToDelegatorEventType =
@@ -335,14 +335,10 @@ export const inAppTemplates = {
   ): string =>
     `L'ente ${creatorName} ha pubblicato una nuova versione ${eserviceTemplateVersion} del template "${eserviceTemplateName}".`,
   eserviceTemplateNameChangedToInstantiator: (
-    eserviceTemplate: EServiceTemplate,
-    oldName: string | undefined
+    oldEserviceName: string,
+    newEserviceName: string
   ): string =>
-    `Ti informiamo che il tuo e-service ${
-      oldName ?? eserviceTemplate.id
-    } è stato rinominato in ${
-      eserviceTemplate.name
-    } in quanto è stato modificato il template e-service da cui lo hai generato.`,
+    `Ti informiamo che il tuo e-service "${oldEserviceName}" è stato rinominato in "${newEserviceName}" poiché il nome del suo template di origine è stato modificato.`,
   eserviceTemplateStatusChangedToInstantiator: (
     eserviceTemplateName: string,
     creatorName: string
