@@ -1,4 +1,3 @@
-/* eslint-disable fp/no-delete */
 import { generateMock } from "@anatine/zod-mock";
 import { fail } from "assert";
 import crypto from "crypto";
@@ -104,7 +103,6 @@ import {
   EServiceTemplateAttributeCertifiedDiscrete,
   EServiceAttributeCertifiedDiscreteConfig,
   attributeCertifiedDiscreteComparator,
-  tenantAttributeType,
   eserviceTemplateVersionState,
   agreementApprovalPolicy,
   EServiceTemplateVersionState,
@@ -282,17 +280,20 @@ export const getMockEService = ({
   descriptors?: Descriptor[];
   templateId?: EServiceTemplateId;
 } = {}): EService => ({
+  ...generateMock(EService),
   id: eserviceId,
-  name: "eService name",
-  description: "eService description",
-  createdAt: new Date(),
   producerId,
-  technology: technology.rest,
   descriptors,
   riskAnalysis: [],
-  mode: "Deliver",
-  ...(templateId && { templateId }),
-  ...(templateId && { instanceLabel: "instance 001" }),
+  isSignalHubEnabled: undefined,
+  isConsumerDelegable: undefined,
+  isClientAccessDelegable: undefined,
+  personalData: undefined,
+  archivingReason: undefined,
+  asyncExchange: undefined,
+  ...(templateId
+    ? { templateId, instanceLabel: "instance 001" }
+    : { templateId: undefined, instanceLabel: undefined }),
 });
 
 export const getMockVerifiedTenantAttribute = (
@@ -319,11 +320,8 @@ export const getMockDeclaredTenantAttribute = (
 export const getMockCertifiedDiscreteTenantAttribute = (
   attributeId: AttributeId = generateId<AttributeId>()
 ): CertifiedDiscreteTenantAttribute => ({
+  ...generateMock(CertifiedDiscreteTenantAttribute),
   id: attributeId,
-  type: tenantAttributeType.CERTIFIED_DISCRETE,
-  assignmentTimestamp: new Date(),
-  revocationTimestamp: undefined,
-  discreteValue: 42,
 });
 
 export const getMockTenantRemoteId = (): TenantRemoteId => ({
@@ -361,18 +359,16 @@ export const getMockTenant = ({
   tenantId?: TenantId;
   attributes?: TenantAttribute[];
 } = {}): Tenant => ({
-  name: "A tenant",
+  ...generateMock(Tenant),
   id: tenantId,
-  createdAt: new Date(),
   attributes,
-  selfcareId: generateId(),
-  onboardedAt: new Date(),
-  externalId: {
-    value: generateId(),
-    origin: "IPA",
-  },
   features: [],
   mails: [],
+  kind: undefined,
+  updatedAt: undefined,
+  subUnitType: undefined,
+  selfcareInstitutionType: undefined,
+  remoteIds: undefined,
 });
 
 export const getMockTenantMail = (
@@ -393,30 +389,41 @@ export const getMockAgreementStamp = (): AgreementStamp => ({
 
 export const getMockAgreementStamps = (): AgreementStamps => {
   const stamps = generateMock(AgreementStamps);
-  delete stamps.submission?.delegationId;
-  delete stamps.activation?.delegationId;
-  delete stamps.rejection?.delegationId;
-  delete stamps.suspensionByConsumer?.delegationId;
-  delete stamps.suspensionByProducer?.delegationId;
-  delete stamps.upgrade?.delegationId;
-  delete stamps.archiving?.delegationId;
-  return stamps;
+  const withoutDelegation = (
+    stamp: AgreementStamp | undefined
+  ): AgreementStamp | undefined =>
+    stamp ? { who: stamp.who, when: stamp.when } : undefined;
+
+  return {
+    submission: withoutDelegation(stamps.submission),
+    activation: withoutDelegation(stamps.activation),
+    rejection: withoutDelegation(stamps.rejection),
+    suspensionByConsumer: withoutDelegation(stamps.suspensionByConsumer),
+    suspensionByProducer: withoutDelegation(stamps.suspensionByProducer),
+    upgrade: withoutDelegation(stamps.upgrade),
+    archiving: withoutDelegation(stamps.archiving),
+  };
 };
 
 export const getMockAgreement = ({
   eserviceId = generateId<EServiceId>(),
+  descriptorId = generateId<DescriptorId>(),
+  producerId = generateId<TenantId>(),
   consumerId = generateId<TenantId>(),
   state = agreementState.draft,
 }: {
   eserviceId?: EServiceId;
+  descriptorId?: DescriptorId;
+  producerId?: TenantId;
   consumerId?: TenantId;
   state?: AgreementState;
 } = {}): Agreement => ({
   ...generateMock(Agreement),
   eserviceId,
+  descriptorId,
+  producerId,
   consumerId,
   state,
-  certifiedDiscreteAttributes: [],
   stamps: getMockAgreementStamps(),
 });
 
@@ -434,7 +441,7 @@ export const getMockAttribute = ({
     id,
     name: generateMock(z.string()),
     kind,
-    description: "attribute description",
+    description: generateMock(z.string()),
     creationTime: new Date(),
   };
 };
@@ -448,7 +455,7 @@ export const getMockCertifiedAttribute = (
   code: generateId(),
   origin: generateId(),
   kind,
-  description: "attribute description",
+  description: generateMock(z.string()),
   creationTime: new Date(),
 });
 
@@ -457,15 +464,15 @@ export const getMockPurpose = ({
 }: {
   versions?: PurposeVersion[];
 } = {}): Purpose => ({
-  id: generateId(),
-  eserviceId: generateId(),
-  consumerId: generateId(),
+  ...generateMock(Purpose),
   versions,
-  title: "Purpose 1 - test",
-  description: "Test purpose - description",
-  createdAt: new Date(),
-  isFreeOfCharge: true,
-  freeOfChargeReason: "test",
+  delegationId: undefined,
+  suspendedByConsumer: undefined,
+  suspendedByProducer: undefined,
+  riskAnalysisForm: undefined,
+  updatedAt: undefined,
+  purposeTemplateId: undefined,
+  reviewerWorkflow: undefined,
 });
 
 export const getMockPurposeTemplate = (
@@ -474,13 +481,13 @@ export const getMockPurposeTemplate = (
   handlesPersonalData: boolean = true
 ): PurposeTemplate => ({
   id: generateId(),
-  targetDescription: "Purpose template target description",
+  targetDescription: generateMock(z.string()),
   targetTenantKind: tenantKind.PA,
   creatorId,
   state,
   createdAt: new Date(),
-  purposeTitle: "Purpose template title",
-  purposeDescription: "Purpose template description",
+  purposeTitle: generateMock(z.string()),
+  purposeDescription: generateMock(z.string()),
   purposeIsFreeOfCharge: false,
   handlesPersonalData,
 });
@@ -533,23 +540,24 @@ export const getMockDescriptor = ({
 }: {
   state?: DescriptorState;
 } = {}): Descriptor => ({
-  id: generateId(),
-  version: "1",
-  docs: [],
+  ...generateMock(Descriptor),
   state,
-  audience: ["pagopa.it"],
-  voucherLifespan: 60,
-  dailyCallsPerConsumer: 10,
-  dailyCallsTotal: 1000,
-  createdAt: new Date(),
-  serverUrls: ["pagopa.it"],
-  serverUrlsDescriptions: [],
-  agreementApprovalPolicy: "Automatic",
+  docs: [],
   attributes: {
     certified: [],
     verified: [],
     declared: [],
   },
+  interface: undefined,
+  rejectionReasons: undefined,
+  templateVersionRef: undefined,
+  archivingSchedule: undefined,
+  asyncExchangeCallbackInterface: undefined,
+  asyncExchangeProperties: undefined,
+  publishedAt: undefined,
+  suspendedAt: undefined,
+  deprecatedAt: undefined,
+  archivedAt: undefined,
   ...(state === descriptorState.archived ? { archivedAt: new Date() } : {}),
   ...(state === descriptorState.suspended ? { suspendedAt: new Date() } : {}),
   ...(state === descriptorState.deprecated ? { deprecatedAt: new Date() } : {}),
@@ -690,7 +698,7 @@ export const getMockAuthData = ({
   userId,
   userRoles,
   externalId: {
-    value: "123456",
+    value: generateId(),
     origin: "IPA",
   },
   selfcareId: generateId(),
@@ -1096,7 +1104,7 @@ export const getMockEServiceTemplateVersion = (
 ): EServiceTemplateVersion => ({
   id: eserviceTemplateVersionId,
   version: 1,
-  description: "eService template version description",
+  description: generateMock(z.string()),
   createdAt: new Date(),
   attributes: {
     certified: [],
@@ -1116,9 +1124,9 @@ export const getMockEServiceTemplate = (
 ): EServiceTemplate => ({
   id: eserviceTemplateId,
   creatorId,
-  name: "eService template name",
-  intendedTarget: "eService template intended target",
-  description: "eService template description",
+  name: generateMock(z.string()),
+  intendedTarget: generateMock(z.string()),
+  description: generateMock(z.string()),
   createdAt: new Date(),
   technology: technology.rest,
   versions,
@@ -1585,9 +1593,9 @@ export const getMockSessionClaims = (
     name: "My Org",
     roles: roles.map((r) => ({ role: r })),
   },
-  name: "A generic user",
-  family_name: "Family name",
-  email: "randomEmailforTest@tester.com",
+  name: generateMock(z.string()),
+  family_name: generateMock(z.string()),
+  email: generateMock(z.string().email()),
   "user-roles": roles,
   organizationId: generateId(),
   selfcareId: generateId(),

@@ -2,6 +2,18 @@ import pagopa from "@pagopa/eslint-config";
 
 const commonRestrictedImports = ["**/dist/**"];
 
+// Names of the mock factories exported by pagopa-interop-commons-test.
+// Redefining any of these locally in a test file creates a "shadow" that
+// silently diverges from the shared mock: it must be imported (or re-exported)
+// from commons-test instead. Regenerate with:
+//   grep -oE 'export const (getMock[A-Za-z0-9]+)' \
+//     packages/commons-test/src/testUtils.ts | sed 's/export const //' | sort -u
+const commonsTestMockNames =
+  "getMockAgreement|getMockAgreementAttribute|getMockAgreementContract|getMockAgreementDocument|getMockAgreementStamp|getMockAgreementStamps|getMockAttribute|getMockAuthData|getMockCertifiedAttribute|getMockCertifiedDiscreteTenantAttribute|getMockCertifiedTenantAttribute|getMockClient|getMockClientAssertion|getMockClientJWKKey|getMockContext|getMockContextInternal|getMockContextM2M|getMockContextM2MAdmin|getMockContextMaintenance|getMockDPoPProof|getMockDeclaredTenantAttribute|getMockDelegation|getMockDelegationDocument|getMockDelegationSignedDocument|getMockDescriptor|getMockDescriptorArchiving|getMockDescriptorList|getMockDescriptorPublished|getMockDescriptorRejectionReason|getMockDocument|getMockEService|getMockEServiceAttribute|getMockEServiceAttributeCertifiedDiscrete|getMockEServiceAttributeCertifiedDiscreteConfig|getMockEServiceAttributes|getMockEServiceTemplate|getMockEServiceTemplateAttribute|getMockEServiceTemplateAttributeCertifiedDiscrete|getMockEServiceTemplateVersion|getMockKey|getMockNotificationConfig|getMockPlatformStatesAgreementEntry|getMockPlatformStatesClientEntry|getMockProducerJWKKey|getMockProducerKeychain|getMockPurpose|getMockPurposeTemplate|getMockPurposeVersion|getMockPurposeVersionDocument|getMockPurposeVersionSignedDocument|getMockPurposeVersionStamps|getMockSessionClaims|getMockTenant|getMockTenantMail|getMockTenantNotificationConfig|getMockTenantRemoteId|getMockTokenGenStatesApiClient|getMockTokenGenStatesConsumerClient|getMockUserNotificationConfig|getMockVerifiedTenantAttribute|getMockWithMetadata|getMockedPdfBuffer";
+
+const noShadowedMockMessage =
+  "Do not redefine a mock already exported by pagopa-interop-commons-test. Import it (or re-export it with `export { ... } from \"pagopa-interop-commons-test\"`) instead of shadowing it locally.";
+
 // Stub plugins so that legacy eslint-disable comments referencing
 // rules from plugins removed in v5 don't cause "Definition not found" errors.
 const noopRule = { meta: { type: "suggestion" }, create: () => ({}) };
@@ -99,6 +111,17 @@ export default [
     files: ["**/test/**/*.ts"],
     rules: {
       "@typescript-eslint/no-non-null-assertion": "off",
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: `ExportNamedDeclaration > VariableDeclaration > VariableDeclarator[id.name=/^(${commonsTestMockNames})$/]`,
+          message: noShadowedMockMessage,
+        },
+        {
+          selector: `ExportNamedDeclaration > FunctionDeclaration[id.name=/^(${commonsTestMockNames})$/]`,
+          message: noShadowedMockMessage,
+        },
+      ],
     },
   },
   {

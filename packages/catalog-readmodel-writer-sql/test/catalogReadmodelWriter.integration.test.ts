@@ -5,6 +5,8 @@ import {
   toDocumentV1,
   toDescriptorV1,
   getMockDocument,
+  getMockEService,
+  getMockDescriptor,
 } from "pagopa-interop-commons-test";
 import {
   AttributeId,
@@ -50,9 +52,7 @@ import {
   MovedAttributesFromEserviceToDescriptorsV1,
   RiskAnalysis,
   descriptorState,
-  eserviceMode,
   generateId,
-  technology,
   toEServiceV2,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
@@ -1679,35 +1679,4 @@ describe("database test", async () => {
       expect(retrievedEservice?.metadata).toEqual({ version: 2 });
     });
   });
-});
-
-export const getMockEService = (): EService => ({
-  id: generateId(),
-  name: "eservice name",
-  description: "eservice description",
-  createdAt: new Date(),
-  producerId: generateId(),
-  technology: technology.rest,
-  descriptors: [],
-  mode: eserviceMode.deliver,
-  riskAnalysis: [],
-});
-
-export const getMockDescriptor = (): Descriptor => ({
-  id: generateId(),
-  version: "1",
-  docs: [],
-  state: descriptorState.draft,
-  audience: [],
-  voucherLifespan: 60,
-  dailyCallsPerConsumer: 10,
-  dailyCallsTotal: 1000,
-  createdAt: new Date(),
-  serverUrls: ["pagopa.it"],
-  agreementApprovalPolicy: "Automatic",
-  attributes: {
-    certified: [],
-    verified: [],
-    declared: [],
-  },
 });
