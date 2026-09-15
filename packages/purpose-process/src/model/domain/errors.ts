@@ -81,6 +81,7 @@ const errorCodes = {
   duplicatedReviewersInSeed: "0061",
   missingReviewers: "0062",
   reviewersNotAllowedForReviewMode: "0063",
+  purposeMetadataVersionMismatch: "0064",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -726,5 +727,17 @@ export function reviewersNotAllowedForReviewMode(
     detail: `No reviewer can be provided for purpose ${purposeId} when the review mode is AdminWritesAdminSigns`,
     code: "reviewersNotAllowedForReviewMode",
     title: "Reviewers not allowed for review mode",
+  });
+}
+
+export function purposeMetadataVersionMismatch(
+  purposeId: PurposeId,
+  metadataVersionToSign: number,
+  currentMetadataVersion: number
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Cannot sign risk analysis for purpose ${purposeId}: requested metadata version ${metadataVersionToSign} does not match current metadata version ${currentMetadataVersion}`,
+    code: "purposeMetadataVersionMismatch",
+    title: "Purpose metadata version mismatch",
   });
 }
