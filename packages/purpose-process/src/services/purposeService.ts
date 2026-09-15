@@ -702,6 +702,7 @@ export function purposeServiceBuilder(
             sentToReviewerAt: now,
           })),
           signingState: riskAnalysisSigningState.submitted,
+          rejectedBy: undefined,
           rejectionReason: undefined,
           sentToReviewerAt: undefined,
         },
@@ -864,6 +865,7 @@ export function purposeServiceBuilder(
         reviewerWorkflow: {
           ...workflow,
           signingState: riskAnalysisSigningState.rejected,
+          rejectedBy: authData.userId,
           rejectionReason,
         },
         updatedAt: new Date(),

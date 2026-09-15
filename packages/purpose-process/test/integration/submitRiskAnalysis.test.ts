@@ -21,6 +21,7 @@ import {
   ReviewerWorkflow,
   unsafeBrandId,
   TenantId,
+  UserId,
   tenantKind,
   Tenant,
   EService,
@@ -133,6 +134,7 @@ describe("submitRiskAnalysis", () => {
         },
       ],
       signingState: riskAnalysisSigningState.rejected,
+      rejectedBy: generateId<UserId>(),
       rejectionReason: "some reason",
     };
 
@@ -178,6 +180,9 @@ describe("submitRiskAnalysis", () => {
     expect(writtenPayload).toEqual({
       purpose: toPurposeV2(updatedPurpose),
     });
+
+    expect(updatedPurpose.reviewerWorkflow?.rejectedBy).toBeUndefined();
+    expect(updatedPurpose.reviewerWorkflow?.rejectionReason).toBeUndefined();
 
     vi.useRealTimers();
   });

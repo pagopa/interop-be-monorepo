@@ -100,4 +100,5 @@ message ReviewerWorkflowV2 {
   optional string rejectionReason = 5;
   optional int64 sentToReviewerAt = 6;
   repeated RiskAnalysisReviewerV2 reviewers = 7;
+  optional string rejectedBy = 8;
 }
