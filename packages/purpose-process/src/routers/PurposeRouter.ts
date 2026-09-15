@@ -64,6 +64,7 @@ import {
   updatePurposeErrorMapper,
   updateReversePurposeErrorMapper,
   maintenanceFixRiskAnalysisErrorMapper,
+  maintenanceFixReviewerWorkflowErrorMapper,
 } from "../utilities/errorMappers.js";
 
 const purposeRouter = (
@@ -488,7 +489,35 @@ const purposeRouter = (
         } catch (error) {
           const errorRes = makeApiProblem(
             error,
-            maintenanceFixRiskAnalysisErrorMapper,
+              maintenanceFixRiskAnalysisErrorMapper,
+            ctx
+          );
+          return res.status(errorRes.status).send(errorRes);
+        }
+      }
+    )
+    .post(
+      "/maintenance/purposes/:purposeId/riskAnalysis/reviewerWorkflow/fix",
+      async (req, res) => {
+        const ctx = fromAppContext(req.ctx);
+
+        try {
+          validateAuthorization(ctx, [INTERNAL_ROLE]);
+
+          const { data, metadata } =
+            await purposeService.fixReviewerWorkflow(
+              unsafeBrandId(req.params.purposeId),
+              ctx
+            );
+
+          setMetadataVersionHeader(res, metadata);
+          return res
+            .status(200)
+            .send(purposeApi.Purpose.parse(purposeToApiPurpose(data)));
+        } catch (error) {
+          const errorRes = makeApiProblem(
+            error,
+            maintenanceFixReviewerWorkflowErrorMapper,
             ctx
           );
           return res.status(errorRes.status).send(errorRes);

@@ -81,6 +81,7 @@ const errorCodes = {
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
   reviewersNotAllowedForReviewMode: "0061",
   purposeMetadataVersionMismatch: "0062",
+  reviewModeNotFound: "0063",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -388,6 +389,14 @@ export function missingRiskAnalysis(
     detail: `Purpose ${purposeId} must contain a valid risk analysis`,
     code: "missingRiskAnalysis",
     title: "Missing risk analysis",
+  });
+}
+
+export function reviewModeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Purpose ${purposeId} does not contain a review mode`,
+    code: "reviewModeNotFound",
+    title: "Review mode not found",
   });
 }
 
