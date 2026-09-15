@@ -20,11 +20,11 @@ import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
-  multipleReviewersNotAllowed,
   userWithoutReviewerPrivileges,
   purposeFromTemplateCannotBeModified,
   reviewerWorkflowNotAllowedForDelegatedPurpose,
   reviewerWorkflowNotAllowedForReceiveMode,
+  duplicatedReviewersInSeed,
 } from "../../src/model/domain/errors.js";
 import { api, purposeService } from "../vitest.api.setup.js";
 
@@ -85,7 +85,7 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     { error: reviewerWorkflowConflict(mockPurpose.id), expectedStatus: 409 },
-    { error: multipleReviewersNotAllowed(mockPurpose.id), expectedStatus: 400 },
+    { error: duplicatedReviewersInSeed(), expectedStatus: 400 },
     {
       error: userWithoutReviewerPrivileges(generateId(), generateId()),
       expectedStatus: 400,

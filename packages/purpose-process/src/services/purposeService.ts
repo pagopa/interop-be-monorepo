@@ -95,7 +95,6 @@ import {
   unableToDetermineTenantKind,
   unchangedDailyCalls,
   reviewerWorkflowConflict,
-  multipleReviewersNotAllowed,
   reviewerWorkflowNotFound,
   reviewerWorkflowNotSubmittable,
   submitNotAllowedForReviewMode,
@@ -179,6 +178,7 @@ import {
   assertRiskAnalysisTenantKindMatch,
   assertRequesterIsConsumer,
   assertRiskAnalysisFormEditableInCurrentReviewMode,
+  assertReviewerIdsAreUnique,
 } from "./validators.js";
 
 const retrievePurpose = async (
@@ -580,9 +580,7 @@ export function purposeServiceBuilder(
       const isReviewerWrites =
         seed.reviewMode === riskAnalysisReviewMode.reviewerWritesReviewerSigns;
 
-      if (seed.reviewerIds.length > 1) {
-        throw multipleReviewersNotAllowed(purposeId);
-      }
+      assertReviewerIdsAreUnique(seed.reviewerIds);
 
       const consumer = await retrieveTenant(
         purpose.data.consumerId,

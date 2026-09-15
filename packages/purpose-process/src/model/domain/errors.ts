@@ -63,7 +63,6 @@ const errorCodes = {
   riskAnalysisTenantKindMismatch: "0042",
   unableToDetermineTenantKind: "0043",
   reviewerWorkflowConflict: "0044",
-  multipleReviewersNotAllowed: "0045",
   reviewerWorkflowNotFound: "0046",
   reviewerWorkflowNotSubmittable: "0047",
   submitNotAllowedForReviewMode: "0048",
@@ -79,11 +78,20 @@ const errorCodes = {
   missingSelfcareId: "0058",
   reviewerWorkflowNotAllowedForDelegatedPurpose: "0059",
   reviewerWorkflowNotAllowedForReceiveMode: "0060",
+  duplicatedReviewersInSeed: "0061",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
 
 export const makeApiProblem = makeApiProblemBuilder(errorCodes);
+
+export function duplicatedReviewersInSeed(): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: "The reviewer IDs must be unique",
+    code: "duplicatedReviewersInSeed",
+    title: "Duplicated reviewers in seed",
+  });
+}
 
 export function purposeNotFound(purposeId: PurposeId): ApiError<ErrorCodes> {
   return new ApiError({
@@ -549,16 +557,6 @@ export function reviewerWorkflowConflict(
     detail: `Purpose ${purposeId} already has a reviewer workflow that cannot be reassigned in its current state`,
     code: "reviewerWorkflowConflict",
     title: "Reviewer workflow conflict",
-  });
-}
-
-export function multipleReviewersNotAllowed(
-  purposeId: PurposeId
-): ApiError<ErrorCodes> {
-  return new ApiError({
-    detail: `Purpose ${purposeId} can't be assigned to multiple reviewers`,
-    code: "multipleReviewersNotAllowed",
-    title: "Multiple reviewers not allowed",
   });
 }
 
