@@ -21,6 +21,7 @@ import { match } from "ts-pattern";
 import {
   processAgreement,
   processEServiceArchivingRequests,
+  processEServicePendingDescriptors,
   processPurposes,
 } from "./delegationItemsArchiverProcessors.js";
 import { ReadModelServiceSQL } from "./readModelServiceSQL.js";
@@ -97,6 +98,13 @@ export async function handleMessageV2({
       const headers = getInteropHeaders({
         token,
         correlationId,
+      });
+
+      await processEServicePendingDescriptors({
+        readModelService,
+        catalogProcessClient,
+        headers,
+        delegation: fromDelegationV2(delegationMsg.data.delegation),
       });
 
       await processEServiceArchivingRequests({

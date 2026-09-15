@@ -471,7 +471,9 @@ export async function handleEServiceEvent(
           "MaintenanceEServicePersonalDataFlagReset",
           "MaintenanceEServiceDescriptorUnarchived",
           "EServiceArchivingRequestCanceledByRevokedDelegation",
-          "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation"
+          "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
+          "EServicePendingDescriptorDeletedByRevokedDelegation",
+          "EServiceDeletedByRevokedDelegation"
         ),
       },
       () => {
