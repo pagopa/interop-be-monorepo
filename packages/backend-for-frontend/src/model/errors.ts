@@ -1,9 +1,13 @@
 import {
   ApiError,
   AttributeId,
+  CommonErrorCodes,
+  CorrelationId,
   makeApiProblemBuilder,
   parseErrorMessage,
 } from "pagopa-interop-models";
+
+import { applyErrorCopy, UserFacingProblem } from "./errorCopy.js";
 
 const errorCodes = {
   purposeNotFound: "0001",
@@ -61,10 +65,36 @@ const errorCodes = {
 
 export type ErrorCodes = keyof typeof errorCodes;
 
-export const makeApiProblem = makeApiProblemBuilder(errorCodes, {
+const makeProblem = makeApiProblemBuilder(errorCodes, {
   problemErrorsPassthrough: true,
   forceGenericProblemOn500: true,
 });
+
+/**
+ * Builds the Problem returned to the frontend, replacing the message coming
+ * from the process services with the user facing copy, when available.
+ * The copy is returned in every available language, so that the frontend can
+ * pick the one matching the user locale.
+ */
+export function makeApiProblem(
+  error: unknown,
+  httpMapper: (apiError: ApiError<ErrorCodes | CommonErrorCodes>) => number,
+  context: {
+    logger: {
+      error: (message: string) => void;
+      warn: (message: string) => void;
+    };
+    correlationId: CorrelationId;
+    serviceName: string;
+    endpoint?: string;
+  },
+  operationalLogMessage?: string
+): UserFacingProblem {
+  return applyErrorCopy(
+    makeProblem(error, httpMapper, context, operationalLogMessage),
+    context.endpoint
+  );
+}
 
 export function selfcareEntityNotFilled(
   className: string,

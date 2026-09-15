@@ -18450,6 +18450,9 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/ProblemError"
+        userMessages:
+          description: User facing message, localized in all the available languages. Present only when the error has a user facing copy, identified by `type`.
+          $ref: "#/components/schemas/LocalizedMessage"
       required:
         - type
         - status
@@ -19083,6 +19086,23 @@ components:
       required:
         - code
         - detail
+    LocalizedMessage:
+      type: object
+      additionalProperties: false
+      properties:
+        it:
+          type: string
+          maxLength: 4096
+        en:
+          type: string
+          maxLength: 4096
+        fr:
+          type: string
+          maxLength: 4096
+      required:
+        - it
+        - en
+        - fr
   securitySchemes:
     bearerAuth:
       type: http
