@@ -205,6 +205,35 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "409":
           $ref: "#/components/responses/Conflict"
+  /eservices/query:
+    parameters:
+      - $ref: "#/components/parameters/CorrelationIdHeader"
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - process
+      summary: Query a list of E-Service
+      operationId: getFilteredEServices
+      description: Retrieves a paginated list of E-Services matching the given filters (Catalogo Privato)
+      requestBody:
+        required: true
+        description: Catalogo Privato e-service query filters
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EServicesFilterPayload"
+      responses:
+        "200":
+          description: A list of E-Service
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EServices"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /eservices/{eServiceId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -3943,6 +3972,101 @@ components:
       required:
         - results
         - totalCount
+    EServicesFilterPayload:
+      type: object
+      additionalProperties: false
+      description: Filters for the Catalogo Privato e-service query
+      required:
+        - offset
+        - limit
+      properties:
+        offset:
+          type: integer
+          format: int32
+          minimum: 0
+        limit:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 200
+        keyword:
+          type: string
+          description: Case-insensitive text search on e-service name, description and producer name
+        sortBy:
+          $ref: "#/components/schemas/EServiceSortBy"
+        onlyActiveEservices:
+          type: boolean
+          description: If true, excludes e-services whose relevant descriptor is SUSPENDED
+        onlyAvailableForRequester:
+          type: boolean
+          description: Filter by whether the requester satisfies the required certified attributes
+        subscribedByRequester:
+          type: boolean
+          description: Filter by presence of a valid agreement of the requester
+        onlyTemplateInstances:
+          type: boolean
+          description: If true, returns only e-services with a templateId
+        hasLinkedPurposeTemplates:
+          type: boolean
+          description: If true, returns only e-services with linked purpose templates
+        producerCategories:
+          type: array
+          description: Producer entity macro-categories
+          items:
+            $ref: "#/components/schemas/EServiceProducerCategory"
+        asyncExchange:
+          type: boolean
+          description: If true, returns only asynchronous/bulk e-services; if false, only synchronous ones
+        mode:
+          $ref: "#/components/schemas/EServiceMode"
+        onlySignalHubEnabled:
+          type: boolean
+          description: If true, returns only e-services with Signal Hub enabled
+        requesterDelegationRoles:
+          type: array
+          description: Filter by the requester role in producer delegations
+          items:
+            $ref: "#/components/schemas/RequesterDelegationRole"
+        templateId:
+          type: string
+          format: uuid
+          description: Returns only e-services belonging to the given template collection
+        producersIds:
+          type: array
+          description: Filter by producer tenant ids
+          items:
+            type: string
+            format: uuid
+    EServiceSortBy:
+      type: string
+      description: Sort criteria for the Catalogo Privato e-service query
+      enum:
+        - NAME_ASC
+        - NAME_DESC
+        - CREATED_AT_ASC
+        - CREATED_AT_DESC
+    RequesterDelegationRole:
+      type: string
+      description: Role of the requester in a producer delegation
+      enum:
+        - DELEGATE
+        - DELEGATOR
+    EServiceProducerCategory:
+      type: string
+      description: Producer entity macro-category, resolved backend-side to certified attribute codes
+      enum:
+        - ALTRE_PUBBLICHE_AMMINISTRAZIONI_LOCALI
+        - AZIENDE_OSPEDALIERE_ASL
+        - COMUNI
+        - PROVINCE_CITTA_METROPOLITANE
+        - PUBBLICHE_AMMINISTRAZIONI_CENTRALI
+        - ENTI_NAZIONALI_PREVIDENZA_ASSISTENZA
+        - REGIONI_PROVINCE_AUTONOME
+        - CONSORZI_ASSOCIAZIONI_REGIONALI
+        - SCUOLE
+        - UNIVERSITA_AFAM
+        - ISTITUTI_RICERCA
+        - STAZIONI_APPALTANTI_GESTORI_PUBBLICI_SERVIZI
     EServiceDoc:
       type: object
       additionalProperties: false
