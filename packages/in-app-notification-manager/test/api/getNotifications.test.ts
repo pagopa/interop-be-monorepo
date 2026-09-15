@@ -83,6 +83,7 @@ describe("API GET /notifications", () => {
 
   it("Should pass query parameters to the service", async () => {
     const token = generateToken(authRole.ADMIN_ROLE);
+    // eslint-disable-next-line interop/require-type-for-object
     const queryParams = {
       q: "search term",
       unread: false,

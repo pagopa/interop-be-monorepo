@@ -6,6 +6,7 @@ import {
 import {
   EServiceId,
   generateId,
+  Key,
   makeProducerKeychainPlatformStatesPK,
   ProducerKeychain,
   ProducerKeychainId,
@@ -66,7 +67,7 @@ describe("utils tests", () => {
 
   it("upsertProducerKeychainPlatformStatesEntriesByKid should write one entry per eservice", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
-    const key = { ...getMockKey(), producerKeychainId };
+    const key: Key = getMockKey();
     const eServiceId1: EServiceId = generateId();
     const eServiceId2: EServiceId = generateId();
 
@@ -131,7 +132,7 @@ describe("utils tests", () => {
   it("deleteProducerKeychainPlatformStatesEntriesByEServiceId should delete entries for all provided kids", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
     const eServiceId: EServiceId = generateId();
-    const key1 = { ...getMockKey(), producerKeychainId };
+    const key1 = getMockKey(); // TODO REVIEW THIS CHANGE
     const key2 = getMockKey();
 
     const producerKeychain: ProducerKeychain = {

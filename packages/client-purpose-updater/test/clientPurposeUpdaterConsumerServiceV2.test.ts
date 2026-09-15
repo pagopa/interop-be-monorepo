@@ -38,7 +38,7 @@ describe("PurposeArchived", () => {
 
   const testToken = "mockToken";
 
-  const testHeaders = {
+  const testHeaders: Record<string, string> = {
     "X-Correlation-Id": correlationId,
     Authorization: `Bearer ${testToken}`,
   };

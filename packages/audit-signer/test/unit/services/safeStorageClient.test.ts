@@ -18,6 +18,7 @@ const mockedAxios = axios as unknown as {
 };
 
 describe("SafeStorageApiClient", () => {
+  // eslint-disable-next-line interop/require-type-for-object
   const mockAxiosInstance = {
     post: vi.fn(),
     get: vi.fn(),
@@ -33,6 +34,7 @@ describe("SafeStorageApiClient", () => {
   });
 
   it("createFile should POST and return presigned URL info", async () => {
+    // eslint-disable-next-line interop/require-type-for-object
     const mockResponseData = {
       uploadMethod: "PUT",
       uploadUrl: "https://presigned-upload-url.com",

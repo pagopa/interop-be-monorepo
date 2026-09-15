@@ -729,7 +729,7 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and the purpose version in draft state is activated correctly", async () => {
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -814,7 +814,7 @@ describe("activatePurposeVersion", () => {
     });
   });
   it("should succeed when risk analysis is expired and the purpose version in draft state is activated correctly for eservice in receive mode", async () => {
-    const eservice = {
+    const eservice: EService = {
       ...mockEService,
       mode: eserviceMode.receive,
     };
@@ -882,22 +882,22 @@ describe("activatePurposeVersion", () => {
     });
   });
   it("should succeed when requester is Consumer Delegate and the eservice was created by a delegated tenant and the purpose version in draft state is activated correctly", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -1011,13 +1011,13 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should succeed when requester is Consumer Delegate and also the producer of the eservice and the purpose version in draft state is activated correctly", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
 
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -1168,7 +1168,7 @@ describe("activatePurposeVersion", () => {
   });
 
   it("should throw tenantKindNotFound if the purpose consumer has no kind", async () => {
-    const consumer = { ...mockConsumer, kind: undefined };
+    const consumer: Tenant = { ...mockConsumer, kind: undefined };
 
     const eservice: EService = {
       ...mockEService,

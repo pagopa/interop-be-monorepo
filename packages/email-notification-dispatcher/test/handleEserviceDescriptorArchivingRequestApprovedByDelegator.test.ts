@@ -71,7 +71,7 @@ describe("handleEserviceDescriptorArchivingRequestApprovedByDelegator", async ()
     getMockUser(delegateTenant.id),
     getMockUser(delegateTenant.id),
   ];
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: generateId<EServiceId>(),
     producerId: delegatorId,
