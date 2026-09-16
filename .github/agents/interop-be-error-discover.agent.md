@@ -1,110 +1,136 @@
 ---
 name: interop-be-error-discover
-description: Describe what this custom agent does and when to use it.
-argument-hint: A question about the endpoints or errors discovered by the generator.
-tools: ["execute", "read", "search"]
+description: Generates endpoint error documentation for a single Interop backend process.
+argument-hint: The process name to document, e.g. "catalog".
+tools: ["execute", "read", "edit", "search"]
 ---
 
-# Process endpoint data
+---
 
-## Purpose
+# Interop Backend Error Discovery
 
-This agent runs the endpoint discovery tool in the `error-messages-generator` package and processes the structured JSON output it produces.
+Generate `ENDPOINT-ERRORS.md` for the backend process specified by the user.
 
-## Working directory
+## Input
 
-The repository root is the `interop-be-monorepo` directory.
+The user must provide exactly one process name.
 
-The generator package is:
+For example:
 
-`packages/error-messages-generator`
+```text
+catalog
+```
 
-The JSON output schema is:
+The corresponding package is:
 
-`packages/error-messages-generator/output.schema.json`
+```text
+packages/[process-name]-process
+```
 
-## Step 1 — Run the generator
+If no process name is provided, ask the user for one.
 
-From the repository root, execute:
+## Step 1 — Run the endpoint generator
+
+From the repository root (`interop-be-monorepo`), execute:
 
 ```bash
 cd packages/error-messages-generator && npx tsx src/readRouter.ts
 ```
 
-The command writes its result as JSON to stdout.
-
-**Always execute the command. Do not attempt to reconstruct or infer its output from the source code.**
-
-Capture the complete stdout produced by the command.
+Capture the complete JSON output from stdout.
 
 If the command exits with a non-zero exit code:
 
-1. Stop processing.
+1. Stop.
 2. Report the command failure.
 3. Include the relevant error output.
 
-Do not continue using partially generated data.
+Do not continue using partial or inferred data.
 
-## Step 2 — Interpret the output
+## Step 2 — Read the output schema
 
-Before processing the command output, read:
+Read:
 
-`packages/error-messages-generator/output.schema.json`
+```text
+packages/error-messages-generator/output.schema.json
+```
 
-Treat this schema as the authoritative description of the JSON structure returned by the generator.
+Use this schema to interpret the generator output.
 
-The top-level output contains:
+The endpoints for the requested process are:
 
-- `output`: a map keyed by process name, whose values are arrays of backend `Endpoint` objects.
-- `bff`: an array of BFF endpoint objects.
+```text
+output[process-name]
+```
 
-An `Endpoint` contains information about:
+If the requested process does not exist in the generator output, stop and report the problem.
 
-- HTTP method and path
-- source router file
+## Step 3 — Process each endpoint
+
+Iterate over every endpoint in:
+
+```text
+output[process-name]
+```
+
+in the order in which they appear.
+
+For each endpoint, invoke the `interop-be-mapping-errors` skill.
+
+Pass the skill:
+
+1. The process name.
+2. The complete endpoint object from the generator output.
+
+The skill is responsible for analysing that endpoint and adding its documentation to:
+
+```text
+packages/[process-name]-process/ENDPOINT-ERRORS.md
+```
+
+Do not independently perform the endpoint-error analysis in this agent. Delegate it to the skill.
+
+### Important
+
+The endpoint object supplied to the skill already contains:
+
+- HTTP method
+- path
+- router file
 - OpenAPI metadata
-- backend service implementation
-- error mapper and its errors
-- authorization roles
-- corresponding BFF endpoints
+- service metadata
+- mapper metadata
+- mapped errors
+- roles
+- matching BFF endpoints
 
-A `BffEndpoint` contains information about:
+Do not rediscover this information before invoking the skill.
 
-- HTTP method and path
-- source router file
-- OpenAPI metadata
-- BFF service implementation
-- backend processes called by that service
+## Step 4 — Continue through all endpoints
 
-Use the actual JSON returned by the command as the source of truth for all subsequent processing.
+Invoke the skill once for every endpoint in `output[process-name]`.
 
-Do not invent fields or values that are not present in the command output.
+Do not skip endpoints unless the skill explicitly reports that an endpoint should not have a section, such as an endpoint using `emptyErrorMapper`.
 
-## Step 3 — Answer the user's question
+If a skill invocation fails:
 
-Use the JSON output produced in Step 1 to answer the user's question.
+1. Stop processing.
+2. Report which endpoint failed.
+3. Report the error returned by the skill.
+4. Do not silently continue with the remaining endpoints.
 
-The user's question is the task for this agent.
+## Step 5 — Final verification
 
-Base the answer on the actual command output and the schema described in
-`packages/error-messages-generator/output.schema.json`.
+After all endpoint skill invocations have completed, verify that:
 
-Do not invent information that is not present in the generated output.
+```text
+packages/[process-name]-process/ENDPOINT-ERRORS.md
+```
 
-If the generated data is insufficient to answer the question, clearly state that
-the available data does not contain the required information.
+exists.
+
+Report the generated file and the process that was documented.
 
 ## Never
 
-- Do not use python to process the command output.
-
-## Error handling
-
-Stop and report an error if:
-
-- the generator command fails;
-- stdout cannot be parsed as JSON;
-- the output does not have the expected structure described by `output.schema.json`;
-- required information needed for the requested processing is missing.
-
-When reporting an error, identify the specific problem and, where possible, the affected process, endpoint, or field.
+- Do not use python
