@@ -106,12 +106,12 @@ describe("getEServiceTemplateInstances", () => {
     const templateId = generateId<EServiceTemplateId>();
     const producerId1 = generateId<TenantId>();
     const producerId2 = generateId<TenantId>();
-    const eservices = [
+    const eservices: catalogApi.EService[] = [
       { ...getMockedApiEservice(), producerId: producerId1 },
       { ...getMockedApiEservice(), producerId: producerId2 },
       { ...getMockedApiEservice(), producerId: producerId1 },
     ];
-    const tenants = [
+    const tenants: tenantApi.Tenant[] = [
       {
         ...getMockedApiTenant(),
         id: producerId1,
@@ -165,8 +165,10 @@ describe("getEServiceTemplateInstances", () => {
   it("reuses producer-name tenants without additional downstream calls", async () => {
     const templateId = generateId<EServiceTemplateId>();
     const producerId = generateId<TenantId>();
-    const eservices = [{ ...getMockedApiEservice(), producerId }];
-    const tenants = [
+    const eservices: catalogApi.EService[] = [
+      { ...getMockedApiEservice(), producerId },
+    ];
+    const tenants: tenantApi.Tenant[] = [
       {
         ...getMockedApiTenant(),
         id: producerId,
@@ -205,8 +207,10 @@ describe("getEServiceTemplateInstances", () => {
   it("retrieves a producer without selfcareId through the single-tenant endpoint", async () => {
     const templateId = generateId<EServiceTemplateId>();
     const producerId = generateId<TenantId>();
-    const eservices = [{ ...getMockedApiEservice(), producerId }];
-    const producer = {
+    const eservices: catalogApi.EService[] = [
+      { ...getMockedApiEservice(), producerId },
+    ];
+    const producer: tenantApi.Tenant = {
       ...getMockedApiTenant(),
       id: producerId,
       name: "Producer without selfcareId",
@@ -241,12 +245,12 @@ describe("getMyEServiceTemplateInstances", () => {
   it("retrieves the producer once in bulk for all instances", async () => {
     const templateId = generateId<EServiceTemplateId>();
     const producerId = generateId<TenantId>();
-    const eservices = [
+    const eservices: catalogApi.EService[] = [
       { ...getMockedApiEservice(), producerId },
       { ...getMockedApiEservice(), producerId },
       { ...getMockedApiEservice(), producerId },
     ];
-    const tenants = [
+    const tenants: tenantApi.Tenant[] = [
       {
         ...getMockedApiTenant(),
         id: producerId,
@@ -287,11 +291,11 @@ describe("getMyEServiceTemplateInstances", () => {
   it("retrieves a producer without selfcareId once through the single-tenant endpoint", async () => {
     const templateId = generateId<EServiceTemplateId>();
     const producerId = generateId<TenantId>();
-    const eservices = [
+    const eservices: catalogApi.EService[] = [
       { ...getMockedApiEservice(), producerId },
       { ...getMockedApiEservice(), producerId },
     ];
-    const producer = {
+    const producer: tenantApi.Tenant = {
       ...getMockedApiTenant(),
       id: producerId,
       name: "My producer without selfcareId",
