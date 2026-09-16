@@ -63,7 +63,7 @@ const catalogRouter = (
     .post("/catalog", async (req, res) => {
       const ctx = fromBffAppContext(req.ctx, req.headers);
       try {
-        const response = await catalogService.getFilteredCatalog(ctx, req.body);
+        const response = await catalogService.queryCatalog(ctx, req.body);
 
         return res.status(200).send(bffApi.CatalogEServices.parse(response));
       } catch (error) {

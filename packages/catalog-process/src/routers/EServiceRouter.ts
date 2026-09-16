@@ -207,10 +207,7 @@ const eservicesRouter = (
           VIEWER_ROLE,
         ]);
 
-        const catalogs = await catalogService.getFilteredEServices(
-          req.body,
-          ctx
-        );
+        const catalogs = await catalogService.queryEServices(req.body, ctx);
 
         return res.status(200).send(
           catalogApi.EServices.parse({

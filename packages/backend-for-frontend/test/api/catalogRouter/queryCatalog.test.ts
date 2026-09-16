@@ -33,7 +33,7 @@ describe("API POST /catalog", () => {
   };
 
   beforeEach(() => {
-    services.catalogService.getFilteredCatalog = vi
+    services.catalogService.queryCatalog = vi
       .fn()
       .mockResolvedValue(mockApiCatalogEServices);
   });
@@ -71,7 +71,7 @@ describe("API POST /catalog", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      services.catalogService.getFilteredCatalog = vi
+      services.catalogService.queryCatalog = vi
         .fn()
         .mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);

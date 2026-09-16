@@ -1042,7 +1042,7 @@ export function catalogServiceBuilder(
       };
     },
 
-    async getFilteredEServices(
+    async queryEServices(
       filters: catalogApi.EServicesFilterPayload,
       {
         authData,
@@ -1050,19 +1050,10 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EService>> {
       logger.info(
-        `Getting filtered EServices, limit = ${filters.limit}, offset = ${filters.offset}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}`
       );
-      const eservicesList = await readModelService.getEServices(
+      const eservicesList = await readModelService.queryEServices(
         authData,
-        {
-          eservicesIds: [],
-          producersIds: [],
-          consumersIds: [],
-          attributesIds: [],
-          states: [],
-          agreementStates: [],
-          templatesIds: [],
-        },
         filters.offset,
         filters.limit
       );
