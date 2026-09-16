@@ -177,6 +177,9 @@ catalogs:
     htmlparser2:
       specifier: 9.1.0
       version: 9.1.0
+    http2:
+      specifier: 3.3.7
+      version: 3.3.7
     istextorbinary:
       specifier: 9.5.0
       version: 9.5.0
@@ -3040,6 +3043,9 @@ importers:
 
   packages/error-messages-generator:
     dependencies:
+      http2:
+        specifier: 'catalog:'
+        version: 3.3.7
       pagopa-interop-commons:
         specifier: workspace:*
         version: link:../commons
@@ -10458,6 +10464,11 @@ packages:
     resolution: {integrity: sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig==}
     engines: {node: '>= 14'}
 
+  http2@3.3.7:
+    resolution: {integrity: sha512-puSi8M8WNlFJm9Pk4c/Mbz9Gwparuj3gO9/RRO5zv6piQ0FY+9Qywp0PdWshYgsMJSalixFY7eC6oPu0zRxLAQ==}
+    engines: {node: '>=0.12.0 <9.0.0'}
+    deprecated: Use the built-in module in node 9.0.0 or newer, instead
+
   https-proxy-agent@5.0.1:
     resolution: {integrity: sha512-dFcAjpTQFgoLMzC2VwU+C/CbS7uRL0lWmxDITmqm7C+7F0Odmj6s9l6alZc6AELXhrnggM2CeWSXHGOdX2YtwA==}
     engines: {node: '>= 6'}
@@ -17644,6 +17655,8 @@ snapshots:
       debug: 4.4.3
     transitivePeerDependencies:
       - supports-color
+
+  http2@3.3.7: {}
 
   https-proxy-agent@5.0.1:
     dependencies:

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ErrorWithCode = z.object({
-  code: z.string(),
+  code: z.number().int(),
   message: z.string(),
 });
 
@@ -10,7 +10,7 @@ export type ErrorWithCode = z.infer<typeof ErrorWithCode>;
 export const ErrorMapper = z.object({
   name: z.string(),
   file: z.string(),
-  //   errors: z.array(ErrorWithCode),
+  errors: z.array(ErrorWithCode),
 });
 
 export type ErrorMapper = z.infer<typeof ErrorMapper>;

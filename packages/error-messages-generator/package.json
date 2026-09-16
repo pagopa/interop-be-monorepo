@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "tsx src/index.ts",
-    "catalog": "npx tsx src/readRouter.ts ~/code/pagopa/interop-be-monorepo/packages/catalog-process/src/routers/EServiceRouter.ts ~/code/pagopa/interop-be-monorepo/packages/api-clients/open-api/catalogApi.yml",
+    "catalog": "npx tsx src/readRouter.ts catalog",
+    "bff": "npx tsx src/readRouter.ts ~/code/pagopa/interop-be-monorepo/packages/backend-for-frontend/src/routers/catalogRouter.ts ~/code/pagopa/interop-be-monorepo/packages/api-clients/open-api/bffApi.yml",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,6 +14,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.29.3",
   "dependencies": {
+    "http2": "catalog:",
     "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
     "ts-pattern": "catalog:",

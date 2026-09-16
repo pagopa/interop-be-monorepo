@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { dirname, resolve, join } from "node:path";
 
 export function resolveImportPath(
   importPath: string,
@@ -84,3 +84,47 @@ export function findErrorMapperFile(
 
   return resolveImportPath(match[1], routerFileName);
 }
+
+export function hyphenToCamelCase(str: string): string {
+  if (str === "backend-for-frontend") {
+    return "bff";
+  }
+  return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+}
+
+export function bffFolder() {
+  const packagesFolder = resolve(join(process.cwd(), ".."));
+  return join(packagesFolder, "backend-for-frontend");
+}
+
+export function getRoutersAndOpenapiFiles(processName: string) {
+  const packagesFolder = resolve(join(process.cwd(), ".."));
+  const routerFolder = join(
+    packagesFolder,
+    processName === "backend-for-frontend"
+      ? "backend-for-frontend"
+      : `${processName}-process`,
+    "src",
+    "routers",
+  );
+  const routerTsFiles = readdirSync(routerFolder).filter((file) =>
+    file.endsWith(".ts"),
+  );
+
+  const openapiFolder = join(packagesFolder, "api-clients", "open-api");
+  const processApiFile = readdirSync(openapiFolder).find((file) =>
+    file.endsWith(`${hyphenToCamelCase(processName)}Api.yml`),
+  );
+
+  if (!processApiFile) {
+    throw new Error(`OpenAPI file for process "${processName}" not found`);
+  }
+
+  return {
+    routerTsFiles: routerTsFiles.map((file) => join(routerFolder, file)),
+    openapiFile: join(openapiFolder, processApiFile),
+  };
+}
+
+// 1. Prenderci tutti i file non duplicati del service del bff
+// 2. Andare a vedere se nel file esiste {process}(Process)?Client.{methodName}
