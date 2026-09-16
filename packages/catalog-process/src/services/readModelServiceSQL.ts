@@ -18,6 +18,7 @@ import { PgSelect } from "drizzle-orm/pg-core";
 import {
   ascLower,
   createListResult,
+  descLower,
   escapeSqlLike,
   ilikeEscaped,
   M2MAdminAuthData,
@@ -98,7 +99,11 @@ import {
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { match } from "ts-pattern";
 
-import { ApiGetEServicesFilters, Consumer } from "../model/domain/models.js";
+import {
+  ApiGetEServicesFilters,
+  Consumer,
+  EServiceSortBy,
+} from "../model/domain/models.js";
 import { activeDescriptorStates } from "./descriptorStates.js";
 import { hasRoleToAccessInactiveDescriptors } from "./validators.js";
 
@@ -143,6 +148,17 @@ const existsActiveDescriptor = (
         )
       )
   );
+
+// The id tie-break keeps pagination deterministic on equal names or dates.
+const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
+  match(sortBy)
+    .with("NAME_ASC", () => ascLower(eserviceInReadmodelCatalog.name))
+    .with("NAME_DESC", () => descLower(eserviceInReadmodelCatalog.name))
+    .with("CREATED_AT_ASC", () => asc(eserviceInReadmodelCatalog.createdAt))
+    .with("CREATED_AT_DESC", () => desc(eserviceInReadmodelCatalog.createdAt))
+    .exhaustive(),
+  asc(eserviceInReadmodelCatalog.id),
+];
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
@@ -602,7 +618,8 @@ export function readModelServiceBuilderSQL(
     },
     async queryEServices(
       offset: number,
-      limit: number
+      limit: number,
+      sortBy: EServiceSortBy
     ): Promise<ListResult<EService>> {
       return await readmodelDB.transaction(async (tx) => {
         const activeEservicesFilter = existsActiveDescriptor(tx);
@@ -612,10 +629,7 @@ export function readModelServiceBuilderSQL(
             .select({ id: eserviceInReadmodelCatalog.id })
             .from(eserviceInReadmodelCatalog)
             .where(activeEservicesFilter)
-            .orderBy(
-              ascLower(eserviceInReadmodelCatalog.name),
-              asc(eserviceInReadmodelCatalog.id)
-            )
+            .orderBy(...getEServicesOrderBy(sortBy))
             .limit(limit)
             .offset(offset),
           tx
