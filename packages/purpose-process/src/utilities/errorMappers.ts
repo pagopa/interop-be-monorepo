@@ -378,6 +378,8 @@ export const assignRiskAnalysisReviewerErrorMapper = (
       "purposeNotInDraftState",
       "reviewerWorkflowNotAllowedForDelegatedPurpose",
       "reviewerWorkflowNotAllowedForReceiveMode",
+      "missingReviewers",
+      "reviewersNotAllowedForReviewMode",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
@@ -423,7 +425,11 @@ export const signRiskAnalysisErrorMapper = (
       "tenantIsNotTheDelegatedConsumer",
       () => HTTP_STATUS_FORBIDDEN
     )
-    .with("reviewerWorkflowNotInSignableState", () => HTTP_STATUS_CONFLICT)
+    .with(
+      "reviewerWorkflowNotInSignableState",
+      "purposeMetadataVersionMismatch",
+      () => HTTP_STATUS_CONFLICT
+    )
     .with("featureFlagNotEnabled", () => HTTP_STATUS_NOT_IMPLEMENTED)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 

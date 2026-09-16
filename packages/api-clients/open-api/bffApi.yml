@@ -6063,6 +6063,12 @@ paths:
       operationId: signRiskAnalysis
       description: Sign/approve the risk analysis as a reviewer
       summary: Sign risk analysis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskAnalysisSignSeed"
+        required: true
       responses:
         "204":
           description: Risk analysis signed
@@ -6433,6 +6439,11 @@ paths:
         "200":
           description: Purpose requested
           headers:
+            "X-Metadata-Version":
+              schema:
+                type: integer
+                format: int32
+              description: The version of the retrieved purpose
             "X-Rate-Limit-Limit":
               schema:
                 type: integer
@@ -19025,6 +19036,9 @@ components:
         signedBy:
           type: string
           format: uuid
+        rejectedBy:
+          type: string
+          format: uuid
         rejectionReason:
           type: string
       required:
@@ -19053,6 +19067,17 @@ components:
           $ref: "#/components/schemas/RiskAnalysisFormSeed"
       required:
         - riskAnalysisForm
+    RiskAnalysisSignSeed:
+      type: object
+      additionalProperties: false
+      description: Payload to sign the latest version of a purpose risk analysis
+      properties:
+        metadataVersionToSign:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - metadataVersionToSign
     RiskAnalysisRejectionSeed:
       type: object
       additionalProperties: false

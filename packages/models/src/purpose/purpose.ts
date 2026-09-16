@@ -108,6 +108,7 @@ export const ReviewerWorkflow = z.object({
   reviewers: z.array(RiskAnalysisReviewer),
   signingState: RiskAnalysisSigningState,
   signedBy: UserId.optional(),
+  rejectedBy: UserId.optional(),
   rejectionReason: z.string().optional(),
   sentToReviewerAt: z.coerce.date().optional(),
 });

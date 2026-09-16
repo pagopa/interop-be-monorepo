@@ -565,6 +565,36 @@ export const toCreateEventPurposeRiskAnalysisAssigned = ({
   correlationId,
 });
 
+export const toCreateEventPurposeRiskAnalysisSelfAssigned = ({
+  purpose,
+  removedReviewers,
+  previousReviewMode,
+  version,
+  correlationId,
+}: {
+  purpose: Purpose;
+  removedReviewers: RiskAnalysisReviewer[];
+  previousReviewMode?: RiskAnalysisReviewMode;
+  version: number;
+  correlationId: CorrelationId;
+}): CreateEvent<PurposeEventV2> => ({
+  streamId: purpose.id,
+  version,
+  event: {
+    type: "PurposeRiskAnalysisSelfAssigned",
+    event_version: 2,
+    data: {
+      purpose: toPurposeV2(purpose),
+      removedReviewers: removedReviewers.map(toRiskAnalysisReviewerV2),
+      previousReviewMode:
+        previousReviewMode === undefined
+          ? undefined
+          : toRiskAnalysisReviewModeV2(previousReviewMode),
+    },
+  },
+  correlationId,
+});
+
 export const toCreateEventPurposeRiskAnalysisSubmitted = ({
   purpose,
   version,
