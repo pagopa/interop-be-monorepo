@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "tsx src/index.ts",
+    "catalog": "npx tsx src/readRouter.ts ~/code/pagopa/interop-be-monorepo/packages/catalog-process/src/routers/EServiceRouter.ts ~/code/pagopa/interop-be-monorepo/packages/api-clients/open-api/catalogApi.yml",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,16 +13,17 @@
   "license": "ISC",
   "packageManager": "pnpm@10.29.3",
   "dependencies": {
-    "xlsx": "catalog:",
-    "ts-pattern": "catalog:",
-    "zod": "catalog:",
+    "pagopa-interop-commons": "workspace:*",
     "pagopa-interop-models": "workspace:*",
-    "pagopa-interop-commons": "workspace:*"
+    "ts-pattern": "catalog:",
+    "xlsx": "catalog:",
+    "yaml": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "pagopa-interop-commons-test": "workspace:*",
     "eslint": "catalog:",
+    "pagopa-interop-commons-test": "workspace:*",
     "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:",
