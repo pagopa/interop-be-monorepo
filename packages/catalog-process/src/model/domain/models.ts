@@ -1,4 +1,4 @@
-import { bffApi } from "pagopa-interop-api-clients";
+import { bffApi, catalogApi } from "pagopa-interop-api-clients";
 import {
   DescriptorState,
   AgreementState,
@@ -16,6 +16,10 @@ import {
 import { z } from "zod";
 
 export type PersonalDataFilter = bffApi.PersonalDataFilter | undefined;
+
+export type EServiceSortBy = catalogApi.EServiceSortBy;
+
+export const defaultEServiceSortBy: EServiceSortBy = "CREATED_AT_DESC";
 
 export type ApiGetEServicesFilters = {
   eservicesIds: EServiceId[];
