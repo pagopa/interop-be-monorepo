@@ -1,72 +1,27 @@
-import { readFileSync } from "node:fs";
+import { readAllProcesses } from "./utils/readProcess";
 
-import { Endpoint } from "./models";
-import {
-  findServiceFile,
-  findErrorMapperFile,
-  getRoutersAndOpenapiFiles,
-} from "./utils/filePaths";
-import { findOpenApiOperation, getOpenApiDocument } from "./utils/openApi";
-import { getRegexEndpoints } from "./utils/regexHelper";
-import { findErrorMappings } from "./utils/errorReader";
-import { getBffEndpointsByRouter } from "./utils/bffEnricher";
+const results = readAllProcesses(false);
 
-function processRouter(fileName: string, yamlFile: string): Endpoint[] {
-  const out: Endpoint[] = [];
-  const file = readFileSync(fileName, "utf8");
-  const yamlFileContent = getOpenApiDocument(yamlFile);
+const bff = results.bff;
 
-  for (const match of getRegexEndpoints(file)) {
-    const { method, path, serviceName, serviceMethod, mapper, roles } = match;
-
-    const openApi = findOpenApiOperation(path, method, yamlFileContent);
-    const mapperFile = findErrorMapperFile(mapper, fileName);
-    out.push({
-      method,
-      path,
-      fileName,
-      openApi: {
-        operationId: openApi?.operationId ?? "NOT FOUND",
-        path: openApi?.path ?? "NOT FOUND",
-        fileName: yamlFile,
-      },
-      service: {
-        name: serviceName ?? "NOT FOUND",
-        method: serviceMethod ?? "NOT FOUND",
-        file: findServiceFile(serviceName, fileName),
-      },
-      mapper: {
-        name: mapper ?? "NOT FOUND",
-        file: mapperFile, // TODO: If emptyErrorMapper, get module path
-        errors: findErrorMappings(mapperFile, mapper),
-      },
-      roles,
-    });
-  }
-  return out;
-}
-
-function processProcess(processName: string): Endpoint[] {
-  const { routerTsFiles, openapiFile } = getRoutersAndOpenapiFiles(processName);
-  let allEndpoints: Endpoint[] = [];
-  for (const routerFile of routerTsFiles) {
-    allEndpoints = allEndpoints.concat(processRouter(routerFile, openapiFile));
-  }
-  return allEndpoints;
-}
-
-// const router = processProcess(process.argv[2]);
-const router = getBffEndpointsByRouter();
 console.log(
   JSON.stringify(
-    router.filter((r) => r.service.processes.length === 0),
+    bff.filter((r) => r.service.processes.length === 0),
     null,
     2,
   ),
 );
 console.log(
-  `With process: ${router.filter((r) => r.service.processes.length > 0).length}`,
+  `With process: ${bff.filter((r) => r.service.processes.length > 0).length}`,
 );
 console.log(
-  `Without process: ${router.filter((r) => r.service.processes.length === 0).length}`,
+  `Without process: ${bff.filter((r) => r.service.processes.length === 0).length}`,
 );
+const processNames = new Set(
+  bff
+    .map((r) => r.service.processes)
+    .flat()
+    .map((p) => p.process),
+);
+console.log(`Process names: ${Array.from(processNames).join(", ")}`);
+console.log(JSON.stringify(results.output, null, 2));

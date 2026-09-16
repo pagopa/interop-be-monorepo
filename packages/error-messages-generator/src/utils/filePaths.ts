@@ -97,8 +97,12 @@ export function bffFolder() {
   return join(packagesFolder, "backend-for-frontend");
 }
 
+export function getPackageFolder(): string {
+  return resolve(join(process.cwd(), ".."));
+}
+
 export function getRoutersAndOpenapiFiles(processName: string) {
-  const packagesFolder = resolve(join(process.cwd(), ".."));
+  const packagesFolder = getPackageFolder();
   const routerFolder = join(
     packagesFolder,
     processName === "backend-for-frontend"
@@ -126,5 +130,10 @@ export function getRoutersAndOpenapiFiles(processName: string) {
   };
 }
 
-// 1. Prenderci tutti i file non duplicati del service del bff
-// 2. Andare a vedere se nel file esiste {process}(Process)?Client.{methodName}
+export function getProcessPackages(): string[] {
+  const packagesFolder = getPackageFolder();
+
+  return readdirSync(packagesFolder, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && entry.name.endsWith("-process"))
+    .map((entry) => entry.name.slice(0, -"-process".length));
+}

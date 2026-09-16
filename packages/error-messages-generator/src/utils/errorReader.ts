@@ -8,6 +8,7 @@ const HTTP_STATUS_CODES: Record<string, number> = {
   HTTP_STATUS_FORBIDDEN: 403,
   HTTP_STATUS_INTERNAL_SERVER_ERROR: 500,
   HTTP_STATUS_NOT_FOUND: 404,
+  HTTP_STATUS_NOT_IMPLEMENTED: 501,
 };
 
 function findHttpStatusCode(statusConstant: string): number {

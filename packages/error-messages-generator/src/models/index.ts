@@ -19,6 +19,8 @@ export const Service = z.object({
   name: z.string(),
   method: z.string(),
   file: z.string(),
+  startLine: z.number().int().optional(),
+  endLine: z.number().int().optional(),
 });
 
 export type Service = z.infer<typeof Service>;
@@ -27,6 +29,8 @@ export const BffService = z.object({
   name: z.string(),
   method: z.string(),
   file: z.string(),
+  startLine: z.number().int().optional(),
+  endLine: z.number().int().optional(),
   processes: z.array(
     z.object({
       process: z.string(),
@@ -63,7 +67,7 @@ export const Endpoint = z.object({
   service: Service,
   mapper: ErrorMapper,
   roles: z.array(z.string()),
-  //   bffEndpoints: z.array(BffEndpoint),
+  bffEndpoints: z.array(BffEndpoint),
 });
 
 export type Endpoint = z.infer<typeof Endpoint>;

@@ -1,103 +1,45 @@
+import { match } from "ts-pattern";
 import { findServiceFile, getRoutersAndOpenapiFiles } from "./filePaths";
 import { getRegexEndpoints } from "./regexHelper";
 import { readFileSync } from "node:fs";
-import { BffEndpoint } from "../models";
+import { BffEndpoint, Endpoint } from "../models";
 import { findOpenApiOperation, getOpenApiDocument } from "./openApi";
 import { findProcessCalls } from "./bffProcessCalls";
+import { findServiceMethodLocation } from "./serviceFinder";
 
-type ProcessCall = {
-  client: string;
-  method: string;
-};
-
-function findMethodBody(file: string, methodName: string): string | undefined {
-  // Find:
-  //
-  // methodName: async (...) => {
-  //
-  // We deliberately don't try to parse the parameters.
-  const methodStartRegex = new RegExp(`\\b${methodName}\\s*:\\s*async\\b`);
-
-  const methodStartMatch = methodStartRegex.exec(file);
-
-  if (!methodStartMatch) {
-    return undefined;
-  }
-
-  const start = methodStartMatch.index;
-
-  // Find the first => { after the method name.
-  const bodyStartMatch = /=>\s*\{/.exec(file.slice(start));
-
-  if (!bodyStartMatch) {
-    return undefined;
-  }
-
-  const bodyStart = start + bodyStartMatch.index + bodyStartMatch[0].length - 1;
-
-  let depth = 0;
-
-  for (let i = bodyStart; i < file.length; i++) {
-    const char = file[i];
-
-    if (char === "{") {
-      depth++;
-    } else if (char === "}") {
-      depth--;
-
-      if (depth === 0) {
-        return file.slice(bodyStart + 1, i);
-      }
-    }
-  }
-
-  return undefined;
+// Process names: inAppNotificationManagerClient,
+//       selfcareV2InstitutionClient, selfcareV2UserClient,
+function solveProcessName(client: string): string {
+  return match(client)
+    .with("agreementProcessClient", () => "agreement")
+    .with("attributeClient", () => "attribute-registry")
+    .with("tenantProcessClient.tenant", () => "tenant")
+    .with("catalogProcessClient", () => "catalog")
+    .with("delegationProcessClient.delegation", () => "delegation")
+    .with(
+      "eserviceTemplateProcessClient",
+      "eserviceTemplateClient",
+      () => "eservice-template",
+    )
+    .with(
+      "authorizationClient.client",
+      "authorizationClient.producerKeychain",
+      () => "authorization",
+    )
+    .with(
+      "purposeTemplateProcessClient",
+      "purposeTemplateClient",
+      () => "purpose-template",
+    )
+    .with("purposeProcessClient", () => "purpose")
+    .with("notificationConfigClient", () => "notification-config")
+    .with(
+      "tenantProcessClient.tenantAttribute",
+      "tenantClient.tenant",
+      () => "tenant",
+    )
+    .otherwise(() => client);
 }
-
-// export function findProcessCalls(
-//   serviceFileName: string,
-//   serviceMethodName?: string,
-// ): ProcessCall[] {
-//   if (!serviceMethodName) {
-//     return [];
-//   }
-//   const file = readFileSync(serviceFileName, "utf8");
-
-//   /*
-//    * Find the specific service method:
-//    *
-//    * updateEServiceFlags: async (...) => {
-//    *   ...
-//    * }
-//    *
-//    * We capture everything between the opening `{` and the next
-//    * service-method definition.
-//    */
-
-//   const body = findMethodBody(file, serviceMethodName);
-
-//   if (!body) {
-//     return [];
-//   }
-
-//   //   console.log(serviceMethodName);
-//   //   console.log(body);
-//   //   console.log("---------------------------------");
-
-//   /*
-//    * Matches:
-//    *
-//    * catalogProcessClient.updateEServiceDelegationFlags(...)
-//    *
-//    * tenantProcessClient.tenant.updateTenantDelegatedFeatures(...)
-//    */
-//   const processCallRegex = /\b(\w+Client(?:\.\w+)*)\.(\w+)\s*\(/g;
-
-//   return [...body.matchAll(processCallRegex)].map(([, client, method]) => ({
-//     client,
-//     method,
-//   }));
-// }
 
 export function getBffEndpointsByRouter(): BffEndpoint[] {
   const files = getRoutersAndOpenapiFiles("backend-for-frontend");
@@ -110,6 +52,10 @@ export function getBffEndpointsByRouter(): BffEndpoint[] {
       const openApi = findOpenApiOperation(path, method, yamlFileContent);
       const serviceFile = findServiceFile(serviceName, routerFile);
       const processCalls = findProcessCalls(serviceFile, serviceMethod);
+      const serviceLocation = findServiceMethodLocation(
+        serviceFile,
+        serviceMethod,
+      );
       endpointsByRouter.push({
         method,
         path,
@@ -123,8 +69,10 @@ export function getBffEndpointsByRouter(): BffEndpoint[] {
           name: serviceName ?? "NOT FOUND",
           method: serviceMethod ?? "NOT FOUND",
           file: serviceFile,
+          startLine: serviceLocation?.startLine,
+          endLine: serviceLocation?.endLine,
           processes: processCalls.map(({ client, method }) => ({
-            process: client,
+            process: solveProcessName(client),
             method,
           })),
         },
@@ -132,4 +80,31 @@ export function getBffEndpointsByRouter(): BffEndpoint[] {
     }
   }
   return endpointsByRouter;
+}
+
+export function findBffEndpoints(
+  processName: string,
+  operationId: string,
+  endpoints: BffEndpoint[],
+): BffEndpoint[] {
+  return endpoints.filter(
+    (endpoint) =>
+      endpoint.service.processes.some(
+        (process) => process.process === processName,
+      ) && endpoint.openApi.operationId === operationId,
+  );
+}
+
+export function filterOutAlreadyFoundBffEndpoints(
+  processEndpoints: Record<string, Endpoint[]>,
+  bffEndpoints: BffEndpoint[],
+): BffEndpoint[] {
+  return bffEndpoints.filter(
+    (bffEndpoint) =>
+      !processEndpoints[bffEndpoint.service.processes[0].process]?.some(
+        (processEndpoint) =>
+          processEndpoint.path === bffEndpoint.path &&
+          processEndpoint.method === bffEndpoint.method,
+      ),
+  );
 }

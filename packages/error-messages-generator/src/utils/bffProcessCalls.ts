@@ -12,12 +12,20 @@ export function findProcessCalls(
   if (!serviceMethodName) {
     return [];
   }
+
   if (serviceFileName === "NOT FOUND") {
     return [];
   }
+
+  const source = ts.sys.readFile(serviceFileName);
+
+  if (!source) {
+    return [];
+  }
+
   const sourceFile = ts.createSourceFile(
     serviceFileName,
-    ts.sys.readFile(serviceFileName) ?? "",
+    source,
     ts.ScriptTarget.Latest,
     true,
     ts.ScriptKind.TS,
@@ -25,72 +33,30 @@ export function findProcessCalls(
 
   const result: ProcessCall[] = [];
 
-  function visit(node: ts.Node): void {
-    /*
-     * Look for:
-     *
-     * updateEServiceFlags: async (...) => { ... }
-     *
-     * This is a PropertyAssignment whose name is our service method.
-     */
-    if (
-      ts.isPropertyAssignment(node) &&
-      ts.isIdentifier(node.name) &&
-      node.name.text === serviceMethodName
-    ) {
-      const initializer = node.initializer;
-
-      if (
-        ts.isArrowFunction(initializer) ||
-        ts.isFunctionExpression(initializer)
-      ) {
-        findCalls(initializer.body);
-        return;
-      }
-    }
-
-    ts.forEachChild(node, visit);
-  }
-
   function findCalls(node: ts.Node): void {
-    function visitCall(child: ts.Node): void {
+    function visit(child: ts.Node): void {
       if (ts.isCallExpression(child)) {
-        const call = getProcessCall(child);
+        const processCall = getProcessCall(child);
 
-        if (call) {
-          result.push(call);
+        if (processCall) {
+          result.push(processCall);
         }
       }
 
-      ts.forEachChild(child, visitCall);
+      ts.forEachChild(child, visit);
     }
 
-    visitCall(node);
+    visit(node);
   }
 
   function getProcessCall(call: ts.CallExpression): ProcessCall | undefined {
-    let expression: ts.Expression = call.expression;
-
-    /*
-     * Walk backwards through:
-     *
-     * tenantProcessClient.tenant.updateTenantDelegatedFeatures()
-     *
-     * PropertyAccessExpression:
-     *   tenantProcessClient.tenant.updateTenantDelegatedFeatures
-     *
-     * We want:
-     *   client = tenantProcessClient.tenant
-     *   method = updateTenantDelegatedFeatures
-     */
-    if (!ts.isPropertyAccessExpression(expression)) {
+    if (!ts.isPropertyAccessExpression(call.expression)) {
       return undefined;
     }
 
-    const method = expression.name.text;
+    const method = call.expression.name.text;
 
-    expression = expression.expression;
-
+    let expression: ts.Expression = call.expression.expression;
     const clientParts: string[] = [];
 
     while (ts.isPropertyAccessExpression(expression)) {
@@ -114,6 +80,35 @@ export function findProcessCalls(
       client: clientParts.join("."),
       method,
     };
+  }
+
+  function visit(node: ts.Node): void {
+    // async updateTenantDelegatedFeatures(...) { ... }
+    if (
+      ts.isMethodDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === serviceMethodName
+    ) {
+      findCalls(node.body ?? node);
+      return;
+    }
+
+    // updateTenantDelegatedFeatures: async (...) => { ... }
+    if (
+      ts.isPropertyAssignment(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === serviceMethodName
+    ) {
+      if (
+        ts.isArrowFunction(node.initializer) ||
+        ts.isFunctionExpression(node.initializer)
+      ) {
+        findCalls(node.initializer.body);
+        return;
+      }
+    }
+
+    ts.forEachChild(node, visit);
   }
 
   visit(sourceFile);
