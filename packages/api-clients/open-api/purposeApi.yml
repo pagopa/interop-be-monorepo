@@ -1366,6 +1366,9 @@ components:
         signedBy:
           type: string
           format: uuid
+        signedAt:
+          type: string
+          format: date-time
         rejectedBy:
           type: string
           format: uuid
