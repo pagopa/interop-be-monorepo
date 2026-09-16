@@ -1277,14 +1277,6 @@ paths:
         "429":
           $ref: "#/components/responses/TooManyRequests"
   "/catalog":
-    parameters:
-      - name: personalData
-        description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
-        in: query
-        required: false
-        schema:
-          $ref: "#/components/schemas/PersonalDataFilter"
-
     get:
       tags:
         - eservices
@@ -1292,6 +1284,12 @@ paths:
       description: Retrieves EServices catalog
       operationId: getEServicesCatalog
       parameters:
+        - name: personalData
+          description: if "TRUE" only e-services that handle personal data will be returned, if "FALSE" only non-personal data e-services will be returned, if not present all e-services will be returned, if "DEFINED" all e-services with a defined personal data flag will be returned
+          in: query
+          required: false
+          schema:
+            $ref: "#/components/schemas/PersonalDataFilter"
         - in: query
           name: q
           description: Query to filter EServices by name
@@ -1392,7 +1390,7 @@ paths:
         - eservices
       summary: Query the EServices catalog
       description: Retrieves the EServices catalog matching the given filters
-      operationId: getFilteredEServicesCatalog
+      operationId: queryEServicesCatalog
       requestBody:
         required: true
         description: Catalog query filters
@@ -15163,7 +15161,7 @@ components:
         onlyActiveEservices:
           type: boolean
           description: If true, excludes e-services whose relevant descriptor is SUSPENDED
-        onlyAvailableForRequester:
+        availableForRequester:
           type: boolean
           description: Filter by whether the requester satisfies the required certified attributes
         subscribedByRequester:
@@ -15180,9 +15178,8 @@ components:
           description: Producer entity macro-categories
           items:
             $ref: "#/components/schemas/EServiceProducerCategory"
-        asyncExchange:
-          type: boolean
-          description: If true, returns only asynchronous/bulk e-services; if false, only synchronous ones
+        exchangeMode:
+          $ref: "#/components/schemas/EServiceExchangeMode"
         mode:
           $ref: "#/components/schemas/EServiceMode"
         onlySignalHubEnabled:
@@ -15211,6 +15208,12 @@ components:
         - NAME_DESC
         - CREATED_AT_ASC
         - CREATED_AT_DESC
+    EServiceExchangeMode:
+      type: string
+      description: Data exchange mode filter 
+      enum:
+        - SYNC
+        - ASYNC
     RequesterDelegationRole:
       type: string
       description: Role of the requester in a producer delegation
