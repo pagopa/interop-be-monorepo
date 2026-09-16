@@ -21,7 +21,7 @@ function normalizePath(path: string): string {
     .join("/");
 }
 
-export function getOpenApiDocument(openApiFileName: string): OpenApiDocument {
+export function readOpenApiDocument(openApiFileName: string): OpenApiDocument {
   const file = readFileSync(openApiFileName, "utf8");
   const openApi = parse(file) as OpenApiDocument;
   return openApi;

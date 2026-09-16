@@ -2,13 +2,13 @@ import { readFileSync } from "node:fs";
 
 import { Endpoint, BffEndpoint } from "../models";
 import { findServiceFile, findErrorMapperFile } from "./filePaths";
-import { findOpenApiOperation, getOpenApiDocument } from "./openApi";
-import { getRegexEndpoints } from "./regexHelper";
+import { findOpenApiOperation, readOpenApiDocument } from "./openApi";
+import { extractRouterEndpoints } from "./regexHelper";
 import { findErrorMappings } from "./errorReader";
 import { findServiceMethodLocation } from "./serviceFinder";
-import { findBffEndpoints } from "./bffEnricher";
+import { findBffEndpointsForProcess } from "./bffEnricher";
 
-export function readProcessRouter(
+export function readRouterEndpoints(
   fileName: string,
   yamlFile: string,
   processName: string,
@@ -16,9 +16,9 @@ export function readProcessRouter(
 ): Endpoint[] {
   const out: Endpoint[] = [];
   const file = readFileSync(fileName, "utf8");
-  const yamlFileContent = getOpenApiDocument(yamlFile);
+  const yamlFileContent = readOpenApiDocument(yamlFile);
 
-  for (const match of getRegexEndpoints(file)) {
+  for (const match of extractRouterEndpoints(file)) {
     const { method, path, serviceName, serviceMethod, mapper, roles } = match;
 
     const openApi = findOpenApiOperation(path, method, yamlFileContent);
@@ -28,7 +28,7 @@ export function readProcessRouter(
       serviceFilename,
       serviceMethod,
     );
-    const bff = findBffEndpoints(
+    const bff = findBffEndpointsForProcess(
       processName,
       openApi?.operationId ?? "NOT FOUND",
       bffEndpoints,

@@ -1,15 +1,15 @@
 import { match } from "ts-pattern";
 import { findServiceFile, getRoutersAndOpenapiFiles } from "./filePaths";
-import { getRegexEndpoints } from "./regexHelper";
+import { extractRouterEndpoints } from "./regexHelper";
 import { readFileSync } from "node:fs";
 import { BffEndpoint, Endpoint } from "../models";
-import { findOpenApiOperation, getOpenApiDocument } from "./openApi";
+import { findOpenApiOperation, readOpenApiDocument } from "./openApi";
 import { findProcessCalls } from "./bffProcessCalls";
 import { findServiceMethodLocation } from "./serviceFinder";
 
 // Process names: inAppNotificationManagerClient,
 //       selfcareV2InstitutionClient, selfcareV2UserClient,
-function solveProcessName(client: string): string {
+function resolveProcessName(client: string): string {
   return match(client)
     .with("agreementProcessClient", () => "agreement")
     .with("attributeClient", () => "attribute-registry")
@@ -41,13 +41,13 @@ function solveProcessName(client: string): string {
     .otherwise(() => client);
 }
 
-export function getBffEndpointsByRouter(): BffEndpoint[] {
+export function readBffEndpoints(): BffEndpoint[] {
   const files = getRoutersAndOpenapiFiles("backend-for-frontend");
   const endpointsByRouter: BffEndpoint[] = [];
-  const yamlFileContent = getOpenApiDocument(files.openapiFile);
+  const yamlFileContent = readOpenApiDocument(files.openapiFile);
   for (const routerFile of files.routerTsFiles) {
     const file = readFileSync(routerFile, "utf8");
-    for (const endpoint of getRegexEndpoints(file)) {
+    for (const endpoint of extractRouterEndpoints(file)) {
       const { method, path, serviceName, serviceMethod } = endpoint;
       const openApi = findOpenApiOperation(path, method, yamlFileContent);
       const serviceFile = findServiceFile(serviceName, routerFile);
@@ -72,7 +72,7 @@ export function getBffEndpointsByRouter(): BffEndpoint[] {
           startLine: serviceLocation?.startLine,
           endLine: serviceLocation?.endLine,
           processes: processCalls.map(({ client, method }) => ({
-            process: solveProcessName(client),
+            process: resolveProcessName(client),
             method,
           })),
         },
@@ -82,7 +82,7 @@ export function getBffEndpointsByRouter(): BffEndpoint[] {
   return endpointsByRouter;
 }
 
-export function findBffEndpoints(
+export function findBffEndpointsForProcess(
   processName: string,
   operationId: string,
   endpoints: BffEndpoint[],
@@ -95,7 +95,7 @@ export function findBffEndpoints(
   );
 }
 
-export function filterOutAlreadyFoundBffEndpoints(
+export function excludeDiscoveredBffEndpoints(
   processEndpoints: Record<string, Endpoint[]>,
   bffEndpoints: BffEndpoint[],
 ): BffEndpoint[] {

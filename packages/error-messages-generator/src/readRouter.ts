@@ -1,6 +1,6 @@
 import { readAllProcesses } from "./utils/readProcess";
 
-const results = readAllProcesses(false);
+const results = readAllProcesses();
 
 const bff = results.bff;
 

@@ -1,4 +1,4 @@
-type Output = {
+type RouterEndpoint = {
   method: string;
   path: string;
   serviceName?: string;
@@ -7,10 +7,10 @@ type Output = {
   roles: string[];
 };
 
-export function getRegexEndpoints(file: string): Output[] {
+export function extractRouterEndpoints(file: string): RouterEndpoint[] {
   const endpointRegex =
     /\.(get|post|put|patch|delete|options|head|trace)\(\s*"([^"]+)"([\s\S]*?)(?=\n\s*\.(?:get|post|put|patch|delete|options|head|trace)\(|$)/g;
-  const out: Output[] = [];
+  const out: RouterEndpoint[] = [];
   for (const match of file.matchAll(endpointRegex)) {
     const [, method, path, body] = match;
 

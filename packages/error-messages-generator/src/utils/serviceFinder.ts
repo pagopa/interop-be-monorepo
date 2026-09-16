@@ -1,4 +1,4 @@
-import ts from "typescript";
+import { findServiceMethod, parseTypeScriptFile } from "./typescript";
 
 type SourceLocation = {
   startLine: number;
@@ -13,65 +13,19 @@ export function findServiceMethodLocation(
     return undefined;
   }
 
-  const source = ts.sys.readFile(serviceFileName);
-
-  if (!source) {
+  const sourceFile = parseTypeScriptFile(serviceFileName);
+  if (!sourceFile) {
+    return undefined;
+  }
+  const method = findServiceMethod(sourceFile, serviceMethodName);
+  if (!method) {
     return undefined;
   }
 
-  const sourceFile = ts.createSourceFile(
-    serviceFileName,
-    source,
-    ts.ScriptTarget.Latest,
-    true,
-    ts.ScriptKind.TS,
-  );
-
-  let result: SourceLocation | undefined;
-
-  function visit(node: ts.Node): void {
-    if (result) {
-      return;
-    }
-
-    // async updateTenantDelegatedFeatures(...) { ... }
-    if (
-      ts.isMethodDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.name.text === serviceMethodName
-    ) {
-      result = {
-        startLine:
-          sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile))
-            .line + 1,
-        endLine:
-          sourceFile.getLineAndCharacterOfPosition(node.getEnd()).line + 1,
-      };
-
-      return;
-    }
-
-    // updateTenantDelegatedFeatures: async (...) => { ... }
-    if (
-      ts.isPropertyAssignment(node) &&
-      ts.isIdentifier(node.name) &&
-      node.name.text === serviceMethodName
-    ) {
-      result = {
-        startLine:
-          sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile))
-            .line + 1,
-        endLine:
-          sourceFile.getLineAndCharacterOfPosition(node.getEnd()).line + 1,
-      };
-
-      return;
-    }
-
-    ts.forEachChild(node, visit);
-  }
-
-  visit(sourceFile);
-
-  return result;
+  return {
+    startLine:
+      sourceFile.getLineAndCharacterOfPosition(method.getStart(sourceFile))
+        .line + 1,
+    endLine: sourceFile.getLineAndCharacterOfPosition(method.getEnd()).line + 1,
+  };
 }

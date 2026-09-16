@@ -1,10 +1,10 @@
 import { BffEndpoint, Endpoint } from "../models";
 import {
-  filterOutAlreadyFoundBffEndpoints,
-  getBffEndpointsByRouter,
+  excludeDiscoveredBffEndpoints,
+  readBffEndpoints,
 } from "./bffEnricher";
 import { getProcessPackages, getRoutersAndOpenapiFiles } from "./filePaths";
-import { readProcessRouter } from "./readProcessRouter";
+import { readRouterEndpoints } from "./readProcessRouter";
 
 export function readProcess(
   processName: string,
@@ -12,24 +12,26 @@ export function readProcess(
 ): { endpoints: Endpoint[]; bff: BffEndpoint[] } {
   const { routerTsFiles, openapiFile } = getRoutersAndOpenapiFiles(processName);
   let allEndpoints: Endpoint[] = [];
-  const bffEndpoints = bff ?? getBffEndpointsByRouter();
+  const bffEndpoints = bff ?? readBffEndpoints();
   for (const routerFile of routerTsFiles) {
     allEndpoints = allEndpoints.concat(
-      readProcessRouter(routerFile, openapiFile, processName, bffEndpoints),
+      readRouterEndpoints(routerFile, openapiFile, processName, bffEndpoints),
     );
   }
   return { endpoints: allEndpoints, bff: bffEndpoints };
 }
 
-export function readAllProcesses(filterOutBff: boolean) {
+export function readAllProcesses({
+  filterOutBff = false,
+}: { filterOutBff?: boolean } = {}) {
   const processNames = getProcessPackages();
-  const bff = getBffEndpointsByRouter();
+  const bff = readBffEndpoints();
   const output: Record<string, Endpoint[]> = {};
   for (const processName of processNames) {
     output[processName] = readProcess(processName, bff).endpoints;
   }
   return {
     output,
-    bff: filterOutBff ? filterOutAlreadyFoundBffEndpoints(output, bff) : bff,
+    bff: filterOutBff ? excludeDiscoveredBffEndpoints(output, bff) : bff,
   };
 }

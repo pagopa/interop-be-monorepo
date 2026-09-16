@@ -1,4 +1,9 @@
 import ts from "typescript";
+import {
+  findServiceMethod,
+  getServiceMethodBody,
+  parseTypeScriptFile,
+} from "./typescript";
 
 type ProcessCall = {
   client: string;
@@ -13,23 +18,16 @@ export function findProcessCalls(
     return [];
   }
 
+  const methodName = serviceMethodName;
+
   if (serviceFileName === "NOT FOUND") {
     return [];
   }
 
-  const source = ts.sys.readFile(serviceFileName);
-
-  if (!source) {
+  const sourceFile = parseTypeScriptFile(serviceFileName);
+  if (!sourceFile) {
     return [];
   }
-
-  const sourceFile = ts.createSourceFile(
-    serviceFileName,
-    source,
-    ts.ScriptTarget.Latest,
-    true,
-    ts.ScriptKind.TS,
-  );
 
   const result: ProcessCall[] = [];
 
@@ -82,36 +80,11 @@ export function findProcessCalls(
     };
   }
 
-  function visit(node: ts.Node): void {
-    // async updateTenantDelegatedFeatures(...) { ... }
-    if (
-      ts.isMethodDeclaration(node) &&
-      ts.isIdentifier(node.name) &&
-      node.name.text === serviceMethodName
-    ) {
-      findCalls(node.body ?? node);
-      return;
-    }
-
-    // updateTenantDelegatedFeatures: async (...) => { ... }
-    if (
-      ts.isPropertyAssignment(node) &&
-      ts.isIdentifier(node.name) &&
-      node.name.text === serviceMethodName
-    ) {
-      if (
-        ts.isArrowFunction(node.initializer) ||
-        ts.isFunctionExpression(node.initializer)
-      ) {
-        findCalls(node.initializer.body);
-        return;
-      }
-    }
-
-    ts.forEachChild(node, visit);
+  const method = findServiceMethod(sourceFile, methodName);
+  const methodBody = method && getServiceMethodBody(method);
+  if (methodBody) {
+    findCalls(methodBody);
   }
-
-  visit(sourceFile);
 
   return result;
 }

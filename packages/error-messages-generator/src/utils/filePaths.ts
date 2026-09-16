@@ -85,16 +85,11 @@ export function findErrorMapperFile(
   return resolveImportPath(match[1], routerFileName);
 }
 
-export function hyphenToCamelCase(str: string): string {
+export function toCamelCase(str: string): string {
   if (str === "backend-for-frontend") {
     return "bff";
   }
   return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
-}
-
-export function bffFolder() {
-  const packagesFolder = getPackageFolder();
-  return join(packagesFolder, "backend-for-frontend");
 }
 
 export function getPackageFolder(): string {
@@ -117,7 +112,7 @@ export function getRoutersAndOpenapiFiles(processName: string) {
 
   const openapiFolder = join(packagesFolder, "api-clients", "open-api");
   const processApiFile = readdirSync(openapiFolder).find((file) =>
-    file.endsWith(`${hyphenToCamelCase(processName)}Api.yml`),
+    file.endsWith(`${toCamelCase(processName)}Api.yml`),
   );
 
   if (!processApiFile) {
