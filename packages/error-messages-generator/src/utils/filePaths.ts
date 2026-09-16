@@ -93,12 +93,12 @@ export function hyphenToCamelCase(str: string): string {
 }
 
 export function bffFolder() {
-  const packagesFolder = resolve(join(process.cwd(), ".."));
+  const packagesFolder = getPackageFolder();
   return join(packagesFolder, "backend-for-frontend");
 }
 
 export function getPackageFolder(): string {
-  return resolve(join(process.cwd(), ".."));
+  return resolve(dirname(__filename), "..", "..", "..");
 }
 
 export function getRoutersAndOpenapiFiles(processName: string) {
