@@ -579,6 +579,77 @@ export function readModelServiceBuilderSQL(
         );
       });
     },
+    async queryEServices(
+      authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
+      offset: number,
+      limit: number
+    ): Promise<ListResult<EService>> {
+      return await readmodelDB.transaction(async (tx) => {
+        const visibilityFilter = hasRoleToAccessInactiveDescriptors(authData)
+          ? or(
+              existsValidDescriptor(tx),
+              eq(
+                eserviceInReadmodelCatalog.producerId,
+                authData.organizationId
+              ),
+              exists(
+                tx
+                  .select()
+                  .from(delegationInReadmodelDelegation)
+                  .where(
+                    and(
+                      eq(
+                        delegationInReadmodelDelegation.eserviceId,
+                        eserviceInReadmodelCatalog.id
+                      ),
+                      eq(
+                        delegationInReadmodelDelegation.delegateId,
+                        authData.organizationId
+                      ),
+                      inArray(delegationInReadmodelDelegation.state, [
+                        delegationState.active,
+                        delegationState.waitingForApproval,
+                      ]),
+                      eq(
+                        delegationInReadmodelDelegation.kind,
+                        delegationKind.delegatedProducer
+                      )
+                    )
+                  )
+              )
+            )
+          : existsValidDescriptor(tx);
+
+        const [pageIds, totalCount] = await Promise.all([
+          tx
+            .select({ id: eserviceInReadmodelCatalog.id })
+            .from(eserviceInReadmodelCatalog)
+            .where(visibilityFilter)
+            .orderBy(ascLower(eserviceInReadmodelCatalog.name))
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
+            .from(eserviceInReadmodelCatalog)
+            .where(visibilityFilter),
+        ]);
+
+        const ids = pageIds.map((e) => e.id);
+        if (ids.length === 0) {
+          return createListResult([], totalCount[0]?.count);
+        }
+
+        const eservices = await catalogReadModelService.getEServicesByFilter(
+          inArray(eserviceInReadmodelCatalog.id, ids)
+        );
+
+        const orderedEservices = ids
+          .map((id) => eservices.find((e) => e.id === id))
+          .filter((e): e is EService => e !== undefined);
+
+        return createListResult(orderedEservices, totalCount[0]?.count);
+      });
+    },
     async isEServiceNameAvailableForProducer({
       name,
       producerId,
