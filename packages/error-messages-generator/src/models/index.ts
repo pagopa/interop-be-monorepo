@@ -23,6 +23,20 @@ export const Service = z.object({
 
 export type Service = z.infer<typeof Service>;
 
+export const BffService = z.object({
+  name: z.string(),
+  method: z.string(),
+  file: z.string(),
+  processes: z.array(
+    z.object({
+      process: z.string(),
+      method: z.string(),
+    }),
+  ),
+});
+
+export type BffService = z.infer<typeof BffService>;
+
 export const BffEndpoint = z.object({
   method: z.string(),
   path: z.string(),
@@ -32,7 +46,7 @@ export const BffEndpoint = z.object({
     path: z.string(),
     fileName: z.string(),
   }),
-  service: Service,
+  service: BffService,
 });
 
 export type BffEndpoint = z.infer<typeof BffEndpoint>;

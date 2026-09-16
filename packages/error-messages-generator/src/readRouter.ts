@@ -57,4 +57,16 @@ function processProcess(processName: string): Endpoint[] {
 
 // const router = processProcess(process.argv[2]);
 const router = getBffEndpointsByRouter();
-console.log(JSON.stringify(router, null, 2));
+console.log(
+  JSON.stringify(
+    router.filter((r) => r.service.processes.length === 0),
+    null,
+    2,
+  ),
+);
+console.log(
+  `With process: ${router.filter((r) => r.service.processes.length > 0).length}`,
+);
+console.log(
+  `Without process: ${router.filter((r) => r.service.processes.length === 0).length}`,
+);
