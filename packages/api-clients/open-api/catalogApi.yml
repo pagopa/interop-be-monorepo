@@ -214,7 +214,7 @@ paths:
       tags:
         - process
       summary: Query a list of E-Service
-      operationId: getFilteredEServices
+      operationId: queryEServices
       description: Retrieves a paginated list of E-Services matching the given filters
       requestBody:
         required: true
@@ -3997,7 +3997,7 @@ components:
         onlyActiveEservices:
           type: boolean
           description: If true, excludes e-services whose relevant descriptor is SUSPENDED
-        onlyAvailableForRequester:
+        availableForRequester:
           type: boolean
           description: Filter by whether the requester satisfies the required certified attributes
         subscribedByRequester:
@@ -4014,9 +4014,8 @@ components:
           description: Producer entity macro-categories
           items:
             $ref: "#/components/schemas/EServiceProducerCategory"
-        asyncExchange:
-          type: boolean
-          description: If true, returns only asynchronous/bulk e-services; if false, only synchronous ones
+        exchangeMode:
+          $ref: "#/components/schemas/EServiceExchangeMode"
         mode:
           $ref: "#/components/schemas/EServiceMode"
         onlySignalHubEnabled:
@@ -4045,6 +4044,12 @@ components:
         - NAME_DESC
         - CREATED_AT_ASC
         - CREATED_AT_DESC
+    EServiceExchangeMode:
+      type: string
+      description: Data exchange mode filter
+      enum:
+        - SYNC
+        - ASYNC
     RequesterDelegationRole:
       type: string
       description: Role of the requester in a producer delegation
