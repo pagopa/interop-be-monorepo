@@ -51,11 +51,6 @@ describe("Purpose splitter", () => {
     const firstActivationAt = new Date();
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
-    const reviewers = [
-      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-      { id: generateId<UserId>(), sentToReviewerAt: new Date() },
-    ];
-
     const reviewerWorkflow: ReviewerWorkflow = {
       reviewers: [
         { id: generateId<UserId>(), sentToReviewerAt: new Date() },
