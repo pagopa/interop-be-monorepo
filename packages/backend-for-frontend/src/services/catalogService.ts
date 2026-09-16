@@ -378,16 +378,16 @@ export function catalogServiceBuilder(
       };
       return response;
     },
-    getFilteredCatalog: async (
+    queryCatalog: async (
       ctx: WithLogger<BffAppContext>,
       filters: bffApi.CatalogFilterPayload
     ): Promise<bffApi.CatalogEServices> => {
       ctx.logger.info(
-        `Retrieving filtered EServices, offset = ${filters.offset}, limit = ${filters.limit}`
+        `Querying EServices catalog, offset = ${filters.offset}, limit = ${filters.limit}`
       );
       const requesterId = ctx.authData.organizationId;
       const eservicesResponse: catalogApi.EServices =
-        await catalogProcessClient.getFilteredEServices(filters, {
+        await catalogProcessClient.queryEServices(filters, {
           headers: ctx.headers,
         });
 
