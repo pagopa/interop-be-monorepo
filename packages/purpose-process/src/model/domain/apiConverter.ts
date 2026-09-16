@@ -154,8 +154,10 @@ export const purposeToApiPurpose = (purpose: Purpose): purposeApi.Purpose => ({
   isFreeOfCharge: purpose.isFreeOfCharge,
   freeOfChargeReason: purpose.freeOfChargeReason,
   purposeTemplateId: purpose.purposeTemplateId,
-  reviewMode: purpose.reviewMode
-    ? reviewModeToApiReviewMode(purpose.reviewMode)
+  riskAnalysisReviewMode: purpose.riskAnalysisReviewMode
+    ? riskAnalysisReviewModeToApiRiskAnalysisReviewMode(
+        purpose.riskAnalysisReviewMode
+      )
     : undefined,
   reviewerWorkflow: purpose.reviewerWorkflow
     ? reviewerWorkflowToApiReviewerWorkflow(purpose.reviewerWorkflow)
@@ -292,7 +294,7 @@ export const apiReviewModeToReviewMode = (
     )
     .exhaustive();
 
-const reviewModeToApiReviewMode = (
+const riskAnalysisReviewModeToApiRiskAnalysisReviewMode = (
   mode: RiskAnalysisReviewMode
 ): purposeApi.RiskAnalysisReviewMode =>
   match<RiskAnalysisReviewMode, purposeApi.RiskAnalysisReviewMode>(mode)

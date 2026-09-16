@@ -54,7 +54,7 @@ function toOutboundPurposeV2(
     versions: purpose.versions.map(toOutboundPurposeVersionV2),
     riskAnalysisForm: undefined,
     purposeTemplateId: purpose.purposeTemplateId,
-    reviewMode: undefined, // TODO
+    riskAnalysisReviewMode: undefined, // TODO
     reviewerWorkflow: undefined, // TODO
   };
 }

@@ -22,7 +22,7 @@ import {
 } from "../model/domain/toEvent.js";
 
 export type RiskAnalysisReviewAssignment = {
-  reviewMode: RiskAnalysisReviewMode;
+  riskAnalysisReviewMode: RiskAnalysisReviewMode;
   reviewerIds: string[];
 };
 
@@ -169,7 +169,7 @@ export function assignRiskAnalysisReviewerLogic(
   event: CreateEvent<PurposeEventV2> | undefined;
   updatedPurpose: Purpose;
 } {
-  const previousReviewMode = purpose.data.reviewMode;
+  const previousReviewMode = purpose.data.riskAnalysisReviewMode;
   const previousReviewers = purpose.data.reviewerWorkflow?.reviewers ?? [];
   const previousReviewerIds = previousReviewers.map((reviewer) => reviewer.id);
   const requestedReviewers = (review?.reviewerIds ?? []).map((id) =>
@@ -177,7 +177,7 @@ export function assignRiskAnalysisReviewerLogic(
   );
 
   const assignmentIsUnchanged =
-    previousReviewMode === review.reviewMode &&
+    previousReviewMode === review.riskAnalysisReviewMode &&
     hasSameReviewerIds(previousReviewerIds, requestedReviewers);
 
   if (assignmentIsUnchanged) {
@@ -203,7 +203,7 @@ export function assignRiskAnalysisReviewerLogic(
     now,
   };
 
-  const transitionOutcome = match(review.reviewMode)
+  const transitionOutcome = match(review.riskAnalysisReviewMode)
     .returnType<RiskAnalysisAssignmentOutcome>()
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
       transitionToAdminWritesAdminSigns()
@@ -218,19 +218,19 @@ export function assignRiskAnalysisReviewerLogic(
 
   const reviewerWritingModeChanged =
     isReviewerWritingMode(previousReviewMode) !==
-    isReviewerWritingMode(review.reviewMode);
+    isReviewerWritingMode(review.riskAnalysisReviewMode);
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
     riskAnalysisForm: reviewerWritingModeChanged
       ? undefined
       : purpose.data.riskAnalysisForm,
-    reviewMode: review.reviewMode,
+    riskAnalysisReviewMode: review.riskAnalysisReviewMode,
     reviewerWorkflow: transitionOutcome.reviewerWorkflow,
     updatedAt: now,
   };
 
-  const event = match(review.reviewMode)
+  const event = match(review.riskAnalysisReviewMode)
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
       toCreateEventPurposeRiskAnalysisSelfAssigned({
         purpose: updatedPurpose,
