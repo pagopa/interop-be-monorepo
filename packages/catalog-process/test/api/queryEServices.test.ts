@@ -51,7 +51,7 @@ describe("API POST /catalog authorization test", () => {
     totalCount: mockResponse.totalCount,
   });
 
-  catalogService.getFilteredEServices = vi.fn().mockResolvedValue(mockResponse);
+  catalogService.queryEServices = vi.fn().mockResolvedValue(mockResponse);
 
   const body: catalogApi.EServicesFilterPayload = {
     offset: 0,
