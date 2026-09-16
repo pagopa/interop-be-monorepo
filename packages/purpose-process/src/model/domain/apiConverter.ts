@@ -274,7 +274,7 @@ export const remainingDailyCallsToApiRemainingDailyCalls = (
   remainingDailyCallsTotal: remainingDailyCalls.remainingDailyCallsTotal,
 });
 
-export const apiReviewModeToReviewMode = (
+export const apiRiskAnalysisReviewModeToRiskAnalysisReviewMode = (
   apiReviewMode: purposeApi.RiskAnalysisReviewMode
 ): RiskAnalysisReviewMode =>
   match<purposeApi.RiskAnalysisReviewMode, RiskAnalysisReviewMode>(
