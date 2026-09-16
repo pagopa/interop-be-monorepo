@@ -1421,7 +1421,6 @@ components:
           type: string
       required:
         - id
-        - certifier
         - externalId
         - features
         - attributes
