@@ -71,9 +71,7 @@ describe("API POST /catalog", () => {
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
-      services.catalogService.queryCatalog = vi
-        .fn()
-        .mockRejectedValue(error);
+      services.catalogService.queryCatalog = vi.fn().mockRejectedValue(error);
       const token = generateToken(authRole.ADMIN_ROLE);
       const res = await makeRequest(token);
       expect(res.status).toBe(expectedStatus);
@@ -91,12 +89,9 @@ describe("API POST /catalog", () => {
     { body: { offset: 0, limit: "invalid" } },
     { body: { ...defaultBody, sortBy: "invalid" } },
     { body: { ...defaultBody, producersIds: ["not-a-uuid"] } },
-  ])(
-    "Should return 400 if passed an invalid body $body",
-    async ({ body }) => {
-      const token = generateToken(authRole.ADMIN_ROLE);
-      const res = await makeRequest(token, body as typeof defaultBody);
-      expect(res.status).toBe(400);
-    }
-  );
+  ])("Should return 400 if passed an invalid body $body", async ({ body }) => {
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token, body as typeof defaultBody);
+    expect(res.status).toBe(400);
+  });
 });
