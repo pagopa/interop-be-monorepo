@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Endpoint details",
+  "type": "object",
+  "properties": {
+    "output": {
+      "type": "object",
+      "patternProperties": {
+        "[a-z-]+": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Endpoint"
+          }
+        }
+      }
+    },
+    "bff": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/BffEndpoint"
+      }
+    }
+  },
+  "definitions": {
+    "ErrorWithCode": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": ["code", "message"]
+    },
+    "ErrorMapper": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ErrorWithCode"
+          }
+        }
+      },
+      "required": ["name", "file"]
+    },
+    "Service": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "startLine": {
+          "type": "integer"
+        },
+        "endLine": {
+          "type": "integer"
+        }
+      },
+      "required": ["name", "method", "file"]
+    },
+    "BffProcess": {
+      "type": "object",
+      "properties": {
+        "process": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        }
+      },
+      "required": ["process", "method"]
+    },
+    "BffService": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "method": {
+          "type": "string"
+        },
+        "file": {
+          "type": "string"
+        },
+        "startLine": {
+          "type": "integer"
+        },
+        "endLine": {
+          "type": "integer"
+        },
+        "processes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BffProcess"
+          }
+        }
+      },
+      "required": ["name", "method", "file", "processes"]
+    },
+    "OpenApi": {
+      "type": "object",
+      "properties": {
+        "operationId": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        }
+      },
+      "required": ["operationId", "path", "fileName"]
+    },
+    "BffEndpoint": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "openApi": {
+          "$ref": "#/definitions/OpenApi"
+        },
+        "service": {
+          "$ref": "#/definitions/BffService"
+        }
+      },
+      "required": ["method", "path", "fileName", "openApi", "service"]
+    },
+    "Endpoint": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "fileName": {
+          "type": "string"
+        },
+        "openApi": {
+          "$ref": "#/definitions/OpenApi"
+        },
+        "service": {
+          "$ref": "#/definitions/Service"
+        },
+        "mapper": {
+          "$ref": "#/definitions/ErrorMapper"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "bffEndpoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/BffEndpoint"
+          }
+        }
+      },
+      "required": [
+        "method",
+        "path",
+        "fileName",
+        "openApi",
+        "service",
+        "mapper",
+        "roles",
+        "bffEndpoints"
+      ]
+    }
+  }
+}
