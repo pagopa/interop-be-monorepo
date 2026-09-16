@@ -220,13 +220,15 @@ async function expectAssignmentEvent({
   const expectCommonPayload = (payload: {
     purpose?: { id: string; riskAnalysisReviewMode?: unknown };
     removedReviewers: { id: string; sentToReviewerAt?: bigint }[];
-    previousReviewMode?: unknown;
+    previousRiskAnalysisReviewMode?: unknown;
   }): void => {
     expect(payload.purpose).toMatchObject(expectedPurpose);
     expect(payload.removedReviewers.map(({ id }) => id)).toEqual(
       removedReviewerIds
     );
-    expect(payload.previousReviewMode).toBe(expectedPreviousReviewMode);
+    expect(payload.previousRiskAnalysisReviewMode).toBe(
+      expectedPreviousReviewMode
+    );
   };
 
   match(type)
