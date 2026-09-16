@@ -1,4 +1,5 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, isAbsolute, resolve } from "node:path";
 import { z } from "zod";
 
 const ErrorMapper = z.object({
@@ -27,6 +28,87 @@ const Endpoint = z.object({
 
 type Endpoint = z.infer<typeof Endpoint>;
 
+function resolveImportPath(importPath: string, routerFileName: string): string {
+  const resolved = resolve(dirname(routerFileName), importPath);
+
+  const candidates = [
+    resolved,
+    resolved.replace(/\.js$/, ".ts"),
+    `${resolved}.ts`,
+    `${resolved}.tsx`,
+    `${resolved}/index.ts`,
+  ];
+
+  const existing = candidates.find(existsSync);
+
+  return existing ?? resolved;
+}
+
+function findServiceFile(
+  serviceName: string | undefined,
+  routerFileName: string,
+): string {
+  if (!serviceName) {
+    return "NOT FOUND";
+  }
+
+  const file = readFileSync(routerFileName, "utf8");
+
+  // Find:
+  //
+  // catalogService: CatalogService
+  //
+  // and capture CatalogService.
+  const parameterRegex = new RegExp(`\\b${serviceName}\\s*:\\s*(\\w+)`);
+
+  const parameterMatch = file.match(parameterRegex);
+
+  if (!parameterMatch) {
+    return "NOT FOUND";
+  }
+
+  const serviceType = parameterMatch[1];
+
+  // Find:
+  //
+  // import { CatalogService } from "../services/catalogService.js";
+  //
+  const importRegex = new RegExp(
+    `import\\s*\\{[^}]*\\b${serviceType}\\b[^}]*\\}\\s*from\\s*["']([^"']+)["']`,
+  );
+
+  const importMatch = file.match(importRegex);
+
+  if (!importMatch) {
+    return "NOT FOUND";
+  }
+
+  return resolveImportPath(importMatch[1], routerFileName);
+}
+
+function findErrorMapperFile(
+  mapperName: string | undefined,
+  routerFileName: string,
+): string {
+  if (!mapperName) {
+    return "NOT FOUND";
+  }
+
+  const file = readFileSync(routerFileName, "utf8");
+
+  const importRegex = new RegExp(
+    `import\\s*\\{[^}]*\\b${mapperName}\\b[^}]*\\}\\s*from\\s*["']([^"']+)["']`,
+  );
+
+  const match = file.match(importRegex);
+
+  if (!match) {
+    return "NOT FOUND";
+  }
+
+  return resolveImportPath(match[1], routerFileName);
+}
+
 function processRouter(fileName: string): Endpoint[] {
   const out: Endpoint[] = [];
   const file = readFileSync(fileName, "utf8");
@@ -37,7 +119,7 @@ function processRouter(fileName: string): Endpoint[] {
   for (const match of file.matchAll(endpointRegex)) {
     const [, method, path, body] = match;
 
-    const serviceMatch = body.match(/[a-zA-Z]+Service\.(\w+)\s*\(/);
+    const serviceMatch = body.match(/([a-zA-Z]\w*Service)\.(\w+)\s*\(/);
 
     const mapperMatch = body.match(/makeApiProblem\(\s*[\s\S]*?,\s*(\w+),/);
 
@@ -56,13 +138,13 @@ function processRouter(fileName: string): Endpoint[] {
       path,
       fileName,
       service: {
-        name: "TODO",
-        method: serviceMatch?.[1] ?? "NOT FOUND",
-        file: "TODO",
+        name: serviceMatch?.[1] ?? "NOT FOUND",
+        method: serviceMatch?.[2] ?? "NOT FOUND",
+        file: findServiceFile(serviceMatch?.[1], fileName),
       },
       mapper: {
         name: mapperMatch?.[1] ?? "NOT FOUND",
-        file: "TODO",
+        file: findErrorMapperFile(mapperMatch?.[1], fileName),
       },
       roles: roles ? roles.split(", ").map((role) => role.trim()) : [],
     });
