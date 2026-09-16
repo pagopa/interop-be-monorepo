@@ -15178,8 +15178,9 @@ components:
           description: Producer entity macro-categories
           items:
             $ref: "#/components/schemas/EServiceProducerCategory"
-        exchangeMode:
-          $ref: "#/components/schemas/EServiceExchangeMode"
+        asyncExchange:
+          type: boolean
+          description: If true, returns only asynchronous/bulk e-services; if false, only synchronous ones
         mode:
           $ref: "#/components/schemas/EServiceMode"
         onlySignalHubEnabled:
@@ -15208,12 +15209,6 @@ components:
         - NAME_DESC
         - CREATED_AT_ASC
         - CREATED_AT_DESC
-    EServiceExchangeMode:
-      type: string
-      description: Data exchange mode filter 
-      enum:
-        - SYNC
-        - ASYNC
     RequesterDelegationRole:
       type: string
       description: Role of the requester in a producer delegation
