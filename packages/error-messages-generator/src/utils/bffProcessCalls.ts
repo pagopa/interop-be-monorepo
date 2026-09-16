@@ -68,7 +68,7 @@ export function findProcessCalls(
 
     const rootClient = expression.text;
 
-    if (!rootClient.endsWith("Client")) {
+    if (!rootClient.endsWith("Client") && !rootClient.endsWith("Clients")) {
       return undefined;
     }
 
