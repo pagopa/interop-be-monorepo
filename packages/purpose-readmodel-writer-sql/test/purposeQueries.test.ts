@@ -83,7 +83,10 @@ describe("Purpose queries", () => {
         purposeTemplateId: generateId<PurposeTemplateId>(),
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewers,
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",
@@ -224,7 +227,10 @@ describe("Purpose queries", () => {
         purposeTemplateId: generateId<PurposeTemplateId>(),
         reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
-          reviewers,
+          reviewers: [
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+            { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+          ],
           signingState: riskAnalysisSigningState.submitted,
           signedBy: generateId<UserId>(),
           rejectionReason: "Test rejection reason",

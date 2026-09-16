@@ -27,6 +27,7 @@ import {
   agreementState,
   descriptorState,
   generateId,
+  hyperlinkDetectionError,
   purposeVersionState,
   tenantKind,
   toPurposeV2,
@@ -1467,5 +1468,33 @@ describe("createPurposeFromTemplate", () => {
     ).rejects.toThrowError(
       invalidPersonalData(eserviceOtherPersonalData.personalData)
     );
+  });
+
+  it("should throw hyperlinkDetectionError when the template purposeDescription contains a hyperlink", async () => {
+    const purposeDescription = "see https://evil.example.com";
+    const templateWithHyperlink: PurposeTemplate = {
+      ...mockPurposeTemplateWithValidRiskAnalysis,
+      purposeDescription,
+    };
+
+    await addOneTenant(tenant);
+    await addOneAgreement(activeAgreement);
+    await addOneEService(publishedEservice);
+    await addOnePurposeTemplate(templateWithHyperlink);
+    await addOnePurposeTemplateEServiceDescriptor(
+      purposeTemplateEServiceDescriptor1
+    );
+
+    await expect(
+      purposeService.createPurposeFromTemplate(
+        templateWithHyperlink.id,
+        purposeFromTemplateSeed,
+        getMockContext({
+          authData: getMockAuthData(
+            unsafeBrandId<TenantId>(purposeFromTemplateSeed.consumerId)
+          ),
+        })
+      )
+    ).rejects.toThrowError(hyperlinkDetectionError(purposeDescription));
   });
 });
