@@ -89,6 +89,45 @@ import {
   isInvalidDescriptor,
 } from "./validators.js";
 
+const retrieveTenantsByIds = async (
+  tenantIds: string[],
+  tenantProcessClient: TenantProcessClient,
+  headers: Headers
+): Promise<Map<string, tenantApi.Tenant>> => {
+  const uniqueTenantIds = Array.from(new Set(tenantIds));
+  if (uniqueTenantIds.length === 0) {
+    return new Map();
+  }
+
+  const tenants = await getAllFromPaginated((offset, limit) =>
+    tenantProcessClient.tenant.getTenants({
+      headers,
+      queries: {
+        tenantIds: uniqueTenantIds,
+        offset,
+        limit,
+      },
+    })
+  );
+
+  const tenantsMap = new Map(tenants.map((tenant) => [tenant.id, tenant]));
+  const tenantsWithoutSelfcareId = await Promise.all(
+    uniqueTenantIds
+      .filter((tenantId) => !tenantsMap.has(tenantId))
+      .map((tenantId) =>
+        tenantProcessClient.tenant.getTenant({
+          headers,
+          params: { id: tenantId },
+        })
+      )
+  );
+  tenantsWithoutSelfcareId.forEach((tenant) => {
+    tenantsMap.set(tenant.id, tenant);
+  });
+
+  return tenantsMap;
+};
+
 const enhanceCatalogEservices = async (
   eservices: catalogApi.EService[],
   tenantProcessClient: TenantProcessClient,
@@ -107,17 +146,11 @@ const enhanceCatalogEservices = async (
     ctx
   );
 
-  const tenants = await getAllFromPaginated((offset, limit) =>
-    tenantProcessClient.tenant.getTenants({
-      headers: ctx.headers,
-      queries: {
-        tenantIds: Array.from(tenantsIds),
-        offset,
-        limit,
-      },
-    })
+  const cachedTenants = await retrieveTenantsByIds(
+    Array.from(tenantsIds),
+    tenantProcessClient,
+    ctx.headers
   );
-  const cachedTenants = new Map(tenants.map((tenant) => [tenant.id, tenant]));
 
   const getCachedTenant = (tenantId: TenantId): tenantApi.Tenant => {
     const tenant = cachedTenants.get(tenantId);
@@ -1992,25 +2025,33 @@ export function catalogServiceBuilder(
         },
       });
 
-      const enhanceTemplateInstance = async (
-        eservice: catalogApi.EService
-      ): Promise<bffApi.EServiceTemplateInstance> => {
-        const producer =
-          tenantsMap.get(eservice.producerId) ??
-          (await tenantProcessClient.tenant.getTenant({
-            headers,
-            params: {
-              id: eservice.producerId,
-            },
-          }));
+      const missingProducerIds = results
+        .map((eservice) => eservice.producerId)
+        .filter((producerId) => !tenantsMap.has(producerId));
+      const retrievedTenants = await retrieveTenantsByIds(
+        missingProducerIds,
+        tenantProcessClient,
+        headers
+      );
+      retrievedTenants.forEach((tenant, tenantId) => {
+        tenantsMap.set(tenantId, tenant);
+      });
 
-        tenantsMap.set(eservice.producerId, producer);
-
-        return toBffEServiceTemplateInstance(eservice, producer);
+      const getProducer = (producerId: string): tenantApi.Tenant => {
+        const producer = tenantsMap.get(producerId);
+        if (!producer) {
+          throw tenantNotFound(producerId);
+        }
+        return producer;
       };
 
       return {
-        results: await Promise.all(results.map(enhanceTemplateInstance)),
+        results: results.map((eservice) =>
+          toBffEServiceTemplateInstance(
+            eservice,
+            getProducer(eservice.producerId)
+          )
+        ),
         pagination: {
           offset,
           limit,
@@ -2045,28 +2086,27 @@ export function catalogServiceBuilder(
         },
       });
 
-      const tenantsMap = new Map<string, tenantApi.Tenant>();
+      const tenantsMap = await retrieveTenantsByIds(
+        results.map((eservice) => eservice.producerId),
+        tenantProcessClient,
+        headers
+      );
 
-      const enhanceTemplateInstanceForProducer = async (
-        eservice: catalogApi.EService
-      ): Promise<bffApi.EServiceTemplateInstance> => {
-        const producer =
-          tenantsMap.get(eservice.producerId) ??
-          (await tenantProcessClient.tenant.getTenant({
-            headers,
-            params: {
-              id: eservice.producerId,
-            },
-          }));
-
-        tenantsMap.set(eservice.producerId, producer);
-
-        return toBffEServiceTemplateInstance(eservice, producer, true);
+      const getProducer = (producerId: string): tenantApi.Tenant => {
+        const producer = tenantsMap.get(producerId);
+        if (!producer) {
+          throw tenantNotFound(producerId);
+        }
+        return producer;
       };
 
       return {
-        results: await Promise.all(
-          results.map(enhanceTemplateInstanceForProducer)
+        results: results.map((eservice) =>
+          toBffEServiceTemplateInstance(
+            eservice,
+            getProducer(eservice.producerId),
+            true
+          )
         ),
         pagination: {
           offset,
