@@ -52,10 +52,14 @@ describe("Purpose splitter", () => {
     const riskAnalysisId = generateId<RiskAnalysisId>();
 
     const reviewerWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [generateId<UserId>(), generateId<UserId>()],
+      reviewers: [
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+        { id: generateId<UserId>(), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.signed,
       signedBy: generateId<UserId>(),
+      signedAt: new Date(),
+      rejectedBy: generateId<UserId>(),
       rejectionReason: "Reviewer workflow rejection reason",
       sentToReviewerAt: new Date(),
     };
@@ -91,6 +95,7 @@ describe("Purpose splitter", () => {
       riskAnalysisForm: purposeRiskAnalysisForm,
       versions: [purposeVersion],
       purposeTemplateId: generateId<PurposeTemplateId>(),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow,
     };
     const {
@@ -119,12 +124,14 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: purpose.purposeTemplateId!,
-      reviewerWorkflowReviewMode: reviewerWorkflow.reviewMode,
+      reviewMode: purpose.reviewMode!,
+      reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: reviewerWorkflow.signingState,
       reviewerWorkflowSignedBy: reviewerWorkflow.signedBy!,
+      reviewerWorkflowSignedAt: reviewerWorkflow.signedAt!.toISOString(),
+      reviewerWorkflowRejectedBy: reviewerWorkflow.rejectedBy!,
       reviewerWorkflowRejectionReason: reviewerWorkflow.rejectionReason!,
-      reviewerWorkflowSentToReviewerAt:
-        reviewerWorkflow.sentToReviewerAt!.toISOString(),
+      reviewerWorkflowSentToReviewerAt: null,
     };
 
     const expectedPurposeRiskAnalysisFormSQL: PurposeRiskAnalysisFormSQL = {
@@ -236,10 +243,11 @@ describe("Purpose splitter", () => {
       expectedPurposeVersionSignedDocumentSQL,
     ]);
     const expectedReviewersSQL: RiskAnalysisReviewerSQL[] =
-      reviewerWorkflow.reviewerIds.map((reviewerId) => ({
+      reviewerWorkflow.reviewers.map((reviewer) => ({
         purposeId: purpose.id,
         metadataVersion: 1,
-        reviewerId,
+        reviewerId: reviewer.id,
+        sentToReviewerAt: reviewer.sentToReviewerAt!.toISOString(),
       }));
     expect(reviewersSQL).toStrictEqual(expectedReviewersSQL);
   });
@@ -304,9 +312,12 @@ describe("Purpose splitter", () => {
       description: purpose.description,
       isFreeOfCharge: purpose.isFreeOfCharge,
       purposeTemplateId: null,
+      reviewMode: null,
       reviewerWorkflowReviewMode: null,
       reviewerWorkflowSigningState: null,
       reviewerWorkflowSignedBy: null,
+      reviewerWorkflowSignedAt: null,
+      reviewerWorkflowRejectedBy: null,
       reviewerWorkflowRejectionReason: null,
       reviewerWorkflowSentToReviewerAt: null,
     };

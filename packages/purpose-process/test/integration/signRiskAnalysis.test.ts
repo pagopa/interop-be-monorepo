@@ -28,6 +28,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   missingRiskAnalysis,
+  purposeMetadataVersionMismatch,
   purposeNotFound,
   requesterIsNotDesignatedReviewer,
   reviewerWorkflowNotFound,
@@ -61,11 +62,10 @@ describe("signRiskAnalysis", () => {
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       riskAnalysisForm: getMockValidRiskAnalysisForm(tenantKind.PA),
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -75,6 +75,7 @@ describe("signRiskAnalysis", () => {
 
     const { data: updatedPurpose } = await purposeService.signRiskAnalysis(
       mockPurpose.id,
+      { metadataVersionToSign: 0 },
       getMockContext({
         authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
       })
@@ -108,11 +109,10 @@ describe("signRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -120,6 +120,7 @@ describe("signRiskAnalysis", () => {
 
     const { data: updatedPurpose } = await purposeService.signRiskAnalysis(
       mockPurpose.id,
+      { metadataVersionToSign: 0 },
       getMockContext({
         authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
       })
@@ -143,6 +144,9 @@ describe("signRiskAnalysis", () => {
       sortPurpose(updatedPurpose)
     );
 
+    expect(updatedPurpose.reviewerWorkflow?.signedBy).toEqual(reviewerId);
+    expect(updatedPurpose.reviewerWorkflow?.signedAt).toEqual(new Date());
+
     vi.useRealTimers();
   });
 
@@ -152,6 +156,7 @@ describe("signRiskAnalysis", () => {
     expect(
       purposeService.signRiskAnalysis(
         randomId,
+        { metadataVersionToSign: 0 },
         getMockContext({ authData: getMockAuthData() })
       )
     ).rejects.toThrowError(purposeNotFound(randomId));
@@ -168,6 +173,7 @@ describe("signRiskAnalysis", () => {
     expect(
       purposeService.signRiskAnalysis(
         mockPurpose.id,
+        { metadataVersionToSign: 0 },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       )
     ).rejects.toThrowError(reviewerWorkflowNotFound(mockPurpose.id));
@@ -177,11 +183,10 @@ describe("signRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
         signingState: riskAnalysisSigningState.draft,
-        sentToReviewerAt: undefined,
       },
     };
 
@@ -190,6 +195,7 @@ describe("signRiskAnalysis", () => {
     expect(
       purposeService.signRiskAnalysis(
         mockPurpose.id,
+        { metadataVersionToSign: 0 },
         getMockContext({
           authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
         })
@@ -200,11 +206,10 @@ describe("signRiskAnalysis", () => {
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [generateId<UserId>()],
+        reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -213,6 +218,7 @@ describe("signRiskAnalysis", () => {
     expect(
       purposeService.signRiskAnalysis(
         mockPurpose.id,
+        { metadataVersionToSign: 0 },
         getMockContext({
           authData: getMockAuthData(
             mockPurpose.consumerId,
@@ -227,11 +233,10 @@ describe("signRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
       riskAnalysisForm: undefined,
     };
@@ -241,6 +246,7 @@ describe("signRiskAnalysis", () => {
     expect(
       purposeService.signRiskAnalysis(
         mockPurpose.id,
+        { metadataVersionToSign: 0 },
         getMockContext({
           authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
         })
@@ -255,11 +261,10 @@ describe("signRiskAnalysis", () => {
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
       riskAnalysisForm: getMockExpiredRiskAnalysisForm(tenantKind.PA),
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -270,10 +275,43 @@ describe("signRiskAnalysis", () => {
     await expect(
       purposeService.signRiskAnalysis(
         mockPurpose.id,
+        { metadataVersionToSign: 0 },
         getMockContext({
           authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
         })
       )
     ).rejects.toMatchObject({ code: "riskAnalysisValidationFailed" });
+  });
+
+  it("should block signing if the requested metadata version does not match the latest", async () => {
+    const reviewerId: UserId = generateId();
+    const mockPurpose: Purpose = {
+      ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      reviewerWorkflow: {
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
+        signingState: riskAnalysisSigningState.submitted,
+      },
+    };
+
+    await addOnePurpose(mockPurpose);
+
+    await expect(
+      purposeService.signRiskAnalysis(
+        mockPurpose.id,
+        { metadataVersionToSign: 1 },
+        getMockContext({
+          authData: getMockAuthData(mockPurpose.consumerId, reviewerId),
+        })
+      )
+    ).rejects.toThrowError(
+      purposeMetadataVersionMismatch(mockPurpose.id, 1, 0)
+    );
+
+    const writtenEvent = await readLastPurposeEvent(mockPurpose.id);
+    expect(writtenEvent).toMatchObject({
+      version: "0",
+      type: "PurposeAdded",
+    });
   });
 });

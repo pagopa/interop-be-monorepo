@@ -43,11 +43,10 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -80,6 +79,8 @@ describe("rejectRiskAnalysis", () => {
     expect(sortPurpose(fromPurposeV2(writtenPayload.purpose!))).toEqual(
       sortPurpose(updatedPurpose)
     );
+
+    expect(updatedPurpose.reviewerWorkflow?.rejectedBy).toEqual(reviewerId);
 
     vi.useRealTimers();
   });
@@ -123,11 +124,10 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -153,9 +153,9 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId }],
         signingState: riskAnalysisSigningState.draft,
       },
     };
@@ -180,11 +180,10 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -207,11 +206,10 @@ describe("rejectRiskAnalysis", () => {
   it("should throw requesterIsNotDesignatedReviewer if the requester is not in reviewerIds", async () => {
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [generateId<UserId>()],
+        reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 
@@ -238,11 +236,10 @@ describe("rejectRiskAnalysis", () => {
     const reviewerId: UserId = generateId();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
+      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-        reviewerIds: [reviewerId],
+        reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.submitted,
-        sentToReviewerAt: new Date(),
       },
     };
 

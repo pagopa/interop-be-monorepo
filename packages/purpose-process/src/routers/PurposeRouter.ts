@@ -533,7 +533,7 @@ const purposeRouter = (
             unsafeBrandId(req.params.purposeId),
             {
               reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
-              reviewerIds: req.body.reviewerIds,
+              reviewerIds: req.body.reviewerIds ?? [],
             },
             ctx
           );
@@ -590,6 +590,7 @@ const purposeRouter = (
         const { data: purpose, metadata } =
           await purposeService.signRiskAnalysis(
             unsafeBrandId(req.params.purposeId),
+            req.body,
             ctx
           );
 
