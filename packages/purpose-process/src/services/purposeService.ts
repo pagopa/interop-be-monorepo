@@ -581,8 +581,7 @@ export function purposeServiceBuilder(
       }
 
       const isSelfAssignmentMode =
-        seed.riskAnalysisReviewMode ===
-        riskAnalysisReviewMode.adminWritesAdminSigns;
+        seed.reviewMode === riskAnalysisReviewMode.adminWritesAdminSigns;
       const hasRequestedReviewers = seed.reviewerIds.length > 0;
 
       if (isSelfAssignmentMode && hasRequestedReviewers) {

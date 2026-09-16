@@ -22,7 +22,7 @@ import {
 } from "../model/domain/toEvent.js";
 
 export type RiskAnalysisReviewAssignment = {
-  riskAnalysisReviewMode: RiskAnalysisReviewMode;
+  reviewMode: RiskAnalysisReviewMode;
   reviewerIds: string[];
 };
 
@@ -177,7 +177,7 @@ export function assignRiskAnalysisReviewerLogic(
   );
 
   const assignmentIsUnchanged =
-    previousReviewMode === review.riskAnalysisReviewMode &&
+    previousReviewMode === review.reviewMode &&
     hasSameReviewerIds(previousReviewerIds, requestedReviewers);
 
   if (assignmentIsUnchanged) {
@@ -203,7 +203,7 @@ export function assignRiskAnalysisReviewerLogic(
     now,
   };
 
-  const transitionOutcome = match(review.riskAnalysisReviewMode)
+  const transitionOutcome = match(review.reviewMode)
     .returnType<RiskAnalysisAssignmentOutcome>()
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
       transitionToAdminWritesAdminSigns()
@@ -218,19 +218,19 @@ export function assignRiskAnalysisReviewerLogic(
 
   const reviewerWritingModeChanged =
     isReviewerWritingMode(previousReviewMode) !==
-    isReviewerWritingMode(review.riskAnalysisReviewMode);
+    isReviewerWritingMode(review.reviewMode);
 
   const updatedPurpose: Purpose = {
     ...purpose.data,
     riskAnalysisForm: reviewerWritingModeChanged
       ? undefined
       : purpose.data.riskAnalysisForm,
-    riskAnalysisReviewMode: review.riskAnalysisReviewMode,
+    riskAnalysisReviewMode: review.reviewMode,
     reviewerWorkflow: transitionOutcome.reviewerWorkflow,
     updatedAt: now,
   };
 
-  const event = match(review.riskAnalysisReviewMode)
+  const event = match(review.reviewMode)
     .with(riskAnalysisReviewMode.adminWritesAdminSigns, () =>
       toCreateEventPurposeRiskAnalysisSelfAssigned({
         purpose: updatedPurpose,
