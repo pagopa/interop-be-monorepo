@@ -25,7 +25,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { api, catalogService } from "../vitest.api.setup.js";
 
-describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/deletePending authorization test", () => {
+describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/pending authorization test", () => {
   const descriptor: Descriptor = {
     ...getMockDescriptor(),
     interface: getMockDocument(),
@@ -47,8 +47,8 @@ describe("API /internal/eservices/{eServiceId}/descriptors/{descriptorId}/delete
     descriptorId: DescriptorId
   ) =>
     request(api)
-      .post(
-        `/internal/eservices/${eServiceId}/descriptors/${descriptorId}/deletePending`
+      .delete(
+        `/internal/eservices/${eServiceId}/descriptors/${descriptorId}/pending`
       )
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
