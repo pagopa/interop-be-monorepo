@@ -105,13 +105,13 @@ const buildFixture = (
     voucherLifespan: 600,
     asyncExchangeProperties,
   };
-  const eservice = {
+  const eservice: EService  = {
     ...getMockEService(),
     asyncExchange: true,
     descriptors: [descriptor],
   };
   const purposeVersion = getMockPurposeVersion(purposeVersionState.active);
-  const purpose = {
+  const purpose: Purpose  = {
     ...getMockPurpose([purposeVersion]),
     eserviceId: eservice.id,
   };

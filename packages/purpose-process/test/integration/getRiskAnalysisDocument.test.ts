@@ -26,6 +26,8 @@ import {
   Agreement,
   agreementState,
   eserviceMode,
+  Tenant,
+  PurposeVersion,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -48,7 +50,7 @@ describe("getRiskAnalysisDocument", () => {
   it("should get the purpose version document (consumer)", async () => {
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -73,7 +75,7 @@ describe("getRiskAnalysisDocument", () => {
   it("should get the purpose version document (producer)", async () => {
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -98,7 +100,7 @@ describe("getRiskAnalysisDocument", () => {
   it("should get the purpose version document (delegate)", async () => {
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -130,19 +132,19 @@ describe("getRiskAnalysisDocument", () => {
     expect(result).toEqual(mockDocument);
   });
   it("should get the purpose version document created by the delegated consumer if the requester is an e-service delegated consumer", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -178,12 +180,12 @@ describe("getRiskAnalysisDocument", () => {
     expect(result).toEqual(mockDocument);
   });
   it("should get the purpose version document created by the delegated consumer if the requester is an e-service delegated producer", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -193,7 +195,7 @@ describe("getRiskAnalysisDocument", () => {
       ...getMockEService(),
       producerId: producer.id,
     };
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -237,7 +239,7 @@ describe("getRiskAnalysisDocument", () => {
     expect(result).toEqual(mockDocument);
   });
   it("should get the purpose version document created by the delegated consumer if the requester is an e-service producer", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -247,7 +249,7 @@ describe("getRiskAnalysisDocument", () => {
       ...getMockEService(),
       producerId: producer.id,
     };
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -281,7 +283,7 @@ describe("getRiskAnalysisDocument", () => {
     expect(result).toEqual(mockDocument);
   });
   it("should get the purpose version document created by the delegated consumer if the requester is an e-service consumer", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -290,7 +292,7 @@ describe("getRiskAnalysisDocument", () => {
     const mockEService: EService = {
       ...getMockEService(),
     };
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -325,22 +327,22 @@ describe("getRiskAnalysisDocument", () => {
     expect(result).toEqual(mockDocument);
   });
   it("should succeed, with purpose version document, when requester is Consumer Delegate and the eservice was created by a delegated producer", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -360,7 +362,7 @@ describe("getRiskAnalysisDocument", () => {
     };
 
     const mockDocument = getMockPurposeVersionDocument();
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -427,7 +429,7 @@ describe("getRiskAnalysisDocument", () => {
     const randomDocumentId: PurposeVersionDocumentId = generateId();
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -457,7 +459,7 @@ describe("getRiskAnalysisDocument", () => {
     const mockDocument = getMockPurposeVersionDocument();
     const randomDocumentId: PurposeVersionDocumentId = generateId();
     const mockEService = getMockEService();
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -491,7 +493,7 @@ describe("getRiskAnalysisDocument", () => {
     const randomTenantId: TenantId = generateId();
     const mockDocument = getMockPurposeVersionDocument();
     const mockEService = getMockEService();
-    const mockPurposeVersion = {
+    const mockPurposeVersion: PurposeVersion = {
       ...getMockPurposeVersion(),
       riskAnalysis: mockDocument,
     };
@@ -520,7 +522,7 @@ describe("getRiskAnalysisDocument", () => {
     async (delegationState) => {
       const mockDocument = getMockPurposeVersionDocument();
       const mockEService = getMockEService();
-      const mockPurposeVersion = {
+      const mockPurposeVersion: PurposeVersion = {
         ...getMockPurposeVersion(),
         riskAnalysis: mockDocument,
       };

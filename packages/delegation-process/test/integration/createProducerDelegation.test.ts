@@ -4,7 +4,7 @@ import {
   getMockTenant,
   getMockAuthData,
 } from "pagopa-interop-commons-test";
-import { generateId, TenantId } from "pagopa-interop-models";
+import { generateId, Tenant, TenantId } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
 
 import { differentEServiceProducer } from "../../src/model/domain/errors.js";
@@ -22,7 +22,7 @@ describe("create producer delegation", () => {
 
     const delegatorId = generateId<TenantId>();
     const authData = getMockAuthData(delegatorId);
-    const delegator = {
+    const delegator: Tenant = {
       ...getMockTenant(delegatorId),
       externalId: {
         origin: "IPA",
@@ -30,7 +30,7 @@ describe("create producer delegation", () => {
       },
     };
 
-    const delegate = {
+    const delegate: Tenant = {
       ...getMockTenant(),
       features: [
         {

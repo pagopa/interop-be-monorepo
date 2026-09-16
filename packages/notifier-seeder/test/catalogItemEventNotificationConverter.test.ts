@@ -1,9 +1,11 @@
 import {
   DescriptorId,
+  Document,
   EServiceDescriptorStateV2,
   EServiceDocumentId,
   EServiceEventEnvelopeV2,
   EServiceId,
+  EServiceV2,
   TenantId,
   descriptorState,
   eserviceMode,
@@ -21,7 +23,7 @@ const producerId: TenantId = generateId();
 const interfaceId: EServiceDocumentId = generateId();
 const asyncExchangeCallbackInterfaceId: EServiceDocumentId = generateId();
 
-const interfaceDocument = {
+const interfaceDocument: Document = {
   id: interfaceId,
   name: "interface.yaml",
   contentType: "application/yaml",
@@ -31,7 +33,7 @@ const interfaceDocument = {
   uploadDate: new Date("2026-05-22T08:00:00.000Z"),
 };
 
-const asyncExchangeCallbackInterfaceDocument = {
+const asyncExchangeCallbackInterfaceDocument: Document = {
   id: asyncExchangeCallbackInterfaceId,
   name: "callback.yaml",
   contentType: "application/yaml",
@@ -97,7 +99,7 @@ const getDescriptorStateEnvelope = (
     | typeof EServiceDescriptorStateV2.ARCHIVING
     | typeof EServiceDescriptorStateV2.ARCHIVING_SUSPENDED
 ): EServiceEventEnvelopeV2 => {
-  const eserviceWithDescriptorState = {
+  const eserviceWithDescriptorState: EServiceV2 = {
     ...eservice,
     descriptors: eservice.descriptors.map((descriptor) => ({
       ...descriptor,

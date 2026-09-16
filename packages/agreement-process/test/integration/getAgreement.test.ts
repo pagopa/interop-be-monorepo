@@ -36,7 +36,7 @@ describe("get agreement", () => {
     const consumer = getMockTenant();
     const producerDelegate = getMockTenant();
     const consumerDelegate = getMockTenant();
-    const eservice = {
+    const eservice: EService  = {
       ...getMockEService(),
       producerId: producer.id,
       consumerId: consumer.id,

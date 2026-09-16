@@ -30,6 +30,7 @@ import {
   purposeVersionState,
   DelegationId,
   PurposeTemplateId,
+  Tenant,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -56,12 +57,12 @@ const sortPurposeResponse = <T extends { data: Purpose; metadata: unknown }>(
 
 describe("getPurposeById", () => {
   it("should get the purpose if the requester is the active e-service producer", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
-    const mockEService = {
+    const mockEService: EService = {
       ...getMockEService(),
       producerId: producer.id,
     };
@@ -92,7 +93,7 @@ describe("getPurposeById", () => {
   });
 
   it("should get the purpose if the requester is the consumer", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -122,7 +123,7 @@ describe("getPurposeById", () => {
   });
 
   it("should get the purpose if the requester is the e-service delegate producer", async () => {
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -160,7 +161,7 @@ describe("getPurposeById", () => {
   });
 
   it("should throw tenantNotAllowed if the requester is not the producer, the consumer, or a delegate", async () => {
-    const mockTenant = {
+    const mockTenant: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -191,7 +192,7 @@ describe("getPurposeById", () => {
   )(
     "should throw tenantNotAllowed if the requester has a producer delegation with state %s with the e-service purpose",
     async (delegationState) => {
-      const producerDelegate = {
+      const producerDelegate: Tenant = {
         ...getMockTenant(),
         kind: tenantKind.PA,
       };
@@ -228,7 +229,7 @@ describe("getPurposeById", () => {
   );
 
   it("should get the purpose if the requester is the delegate consumer who created the purpose", async () => {
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -270,12 +271,12 @@ describe("getPurposeById", () => {
   });
 
   it("should get the purpose created by the delegate consumer if the requester is the e-service delegate producer", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -326,7 +327,7 @@ describe("getPurposeById", () => {
   });
 
   it("should get the purpose created by the delegate consumer if the requester is the e-service producer", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
@@ -368,13 +369,14 @@ describe("getPurposeById", () => {
   });
 
   it("should get the purpose created by the delegate consumer if the requester is the consumer", async () => {
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };
 
     const mockEService: EService = {
       ...getMockEService(),
+      producerId: generateId<TenantId>(),
     };
     const mockPurpose1: Purpose = {
       ...getMockPurpose(),
@@ -409,22 +411,22 @@ describe("getPurposeById", () => {
   });
 
   it("should get the purpose created by the delegate consumer when requester is a consumer delegate and the eservice was created by a delegate producer", async () => {
-    const producer = {
+    const producer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const producerDelegate = {
+    const producerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
     };
-    const consumerDelegate = {
+    const consumerDelegate: Tenant = {
       ...getMockTenant(),
       id: generateId<TenantId>(),
       kind: tenantKind.PA,
@@ -495,8 +497,8 @@ describe("getPurposeById", () => {
   });
 
   it("should throw tenantNotAllowed if the requester is a delegate for the eservice when retrieving a purpose created by the consumer", async () => {
-    const tenant = { ...getMockTenant(), kind: tenantKind.PA };
-    const eservice = getMockEService();
+    const tenant: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
+    const eservice: EService = getMockEService();
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
@@ -525,8 +527,8 @@ describe("getPurposeById", () => {
     ).rejects.toThrowError(tenantNotAllowed(purposeDelegation.delegateId));
   });
   it("should throw tenantNotAllowed if there exists a purpose delegation but the requester is not the purpose delegate", async () => {
-    const eservice = getMockEService();
-    const delegate = { ...getMockTenant(), kind: tenantKind.PA };
+    const eservice: EService = getMockEService();
+    const delegate: Tenant = { ...getMockTenant(), kind: tenantKind.PA };
     const purpose: Purpose = {
       ...getMockPurpose(),
       eserviceId: eservice.id,
@@ -578,7 +580,7 @@ describe("getPurposeById", () => {
   });
   it("should throw eserviceNotFound if the eservice doesn't exist", async () => {
     const notExistingId: EServiceId = generateId();
-    const consumer = {
+    const consumer: Tenant = {
       ...getMockTenant(),
       kind: tenantKind.PA,
     };

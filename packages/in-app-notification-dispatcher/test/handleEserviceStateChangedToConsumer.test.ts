@@ -40,7 +40,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
   const producerTenant = getMockTenant();
   const consumerTenant = getMockTenant();
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     producerId: producerTenant.id,
     descriptors: [
@@ -176,7 +176,7 @@ describe("handleEserviceStateChangedToConsumer", async () => {
   ])(
     "should generate notifications for EServiceDescriptorPublished for agreement in $state state (isNotified: $isNotified)",
     async ({ state, isNotified }) => {
-      const eservice = {
+      const eservice: EService = {
         ...getMockEService(),
         producerId: producerTenant.id,
         descriptors: [

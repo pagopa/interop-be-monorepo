@@ -63,7 +63,7 @@ describe("handleEServiceDescriptorArchivingRequestCanceledByDelegateToProducer",
     getMockUser(producerTenant.id),
     getMockUser(producerTenant.id),
   ];
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: generateId<EServiceId>(),
     producerId: producerId,

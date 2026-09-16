@@ -44,7 +44,7 @@ describe("handlePurposeOverQuotaToConsumer", () => {
     dailyCallsPerConsumer,
   };
 
-  const eservice = {
+  const eservice: EService = {
     ...getMockEService(),
     id: eserviceId,
     producerId,
@@ -54,7 +54,7 @@ describe("handlePurposeOverQuotaToConsumer", () => {
   const producerTenant = getMockTenant(producerId);
   const consumerTenant = getMockTenant(consumerId);
 
-  const purpose = {
+  const purpose: Purpose = {
     ...getMockPurpose([
       getMockPurposeVersion(purposeVersionState.waitingForApproval),
     ]),

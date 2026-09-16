@@ -6,6 +6,7 @@ import {
   makeApiProblemBuilder,
 } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   tenantNotificationConfigNotFound: "0001",
   userNotificationConfigNotFound: "0002",

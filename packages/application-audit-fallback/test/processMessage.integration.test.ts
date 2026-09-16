@@ -44,7 +44,7 @@ describe("Process message test", () => {
   });
 
   it("given invalid message, should throw an error", async () => {
-    const invalidMessage = {};
+    const invalidMessage: Message = {};
 
     try {
       await processMessage(invalidMessage);
