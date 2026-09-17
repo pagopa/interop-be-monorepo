@@ -76,7 +76,7 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers: [
             { id: generateId<UserId>(), sentToReviewerAt: new Date() },
@@ -215,7 +215,7 @@ describe("Purpose queries", () => {
         updatedAt: new Date(),
         freeOfChargeReason: "Test free of charge reason",
         purposeTemplateId: generateId<PurposeTemplateId>(),
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers: [
             { id: generateId<UserId>(), sentToReviewerAt: new Date() },

@@ -537,7 +537,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: assignedWorkflow,
     };
 
@@ -547,7 +547,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: submittedWorkflow,
     };
 
@@ -625,7 +625,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: submittedReviewer1Workflow,
     };
 
@@ -635,7 +635,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: submittedReviewer2Workflow,
     };
 
@@ -645,7 +645,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: assignedReviewer1Workflow,
     };
 
@@ -655,7 +655,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: assignedReviewer2Workflow,
     };
 

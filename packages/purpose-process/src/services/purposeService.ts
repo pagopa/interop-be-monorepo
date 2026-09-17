@@ -653,7 +653,7 @@ export function purposeServiceBuilder(
       }
 
       if (
-        purpose.data.reviewMode !==
+        purpose.data.riskAnalysisReviewMode !==
         riskAnalysisReviewMode.adminWritesReviewerSigns
       ) {
         throw submitNotAllowedForReviewMode(purposeId);
@@ -750,19 +750,21 @@ export function purposeServiceBuilder(
       }
 
       const isReviewerWritesSignable = match({
-        reviewMode: purpose.data.reviewMode,
+        riskAnalysisReviewMode: purpose.data.riskAnalysisReviewMode,
         signingState: workflow.signingState,
       })
         .with(
           {
-            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            riskAnalysisReviewMode:
+              riskAnalysisReviewMode.adminWritesReviewerSigns,
             signingState: riskAnalysisSigningState.submitted,
           },
           () => false
         )
         .with(
           {
-            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            riskAnalysisReviewMode:
+              riskAnalysisReviewMode.reviewerWritesReviewerSigns,
             signingState: riskAnalysisSigningState.assigned,
           },
           () => true
@@ -851,7 +853,7 @@ export function purposeServiceBuilder(
       }
 
       if (
-        purpose.data.reviewMode !==
+        purpose.data.riskAnalysisReviewMode !==
         riskAnalysisReviewMode.adminWritesReviewerSigns
       ) {
         throw rejectNotAllowedInCurrentMode(purposeId);
@@ -909,7 +911,7 @@ export function purposeServiceBuilder(
       }
 
       if (
-        purpose.data.reviewMode !==
+        purpose.data.riskAnalysisReviewMode !==
         riskAnalysisReviewMode.reviewerWritesReviewerSigns
       ) {
         throw editNotAllowedForReviewMode(purposeId);

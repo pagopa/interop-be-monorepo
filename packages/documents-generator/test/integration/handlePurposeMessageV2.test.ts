@@ -169,7 +169,7 @@ describe("handleDelegationMessageV2", () => {
       consumerId: mockAgreement.consumerId,
       eserviceId: mockEService.id,
       versions: [mockPurposeVersion],
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: mockReviewerId, sentToReviewerAt: new Date() }],
         signingState: "Signed",
