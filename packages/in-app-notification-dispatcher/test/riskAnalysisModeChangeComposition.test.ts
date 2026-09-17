@@ -81,7 +81,7 @@ describe("risk analysis mode change notification composition", () => {
         ...getMockPurpose(),
         consumerId: consumer.id,
         eserviceId: eservice.id,
-        reviewMode: toWriting
+        riskAnalysisReviewMode: toWriting
           ? riskAnalysisReviewMode.reviewerWritesReviewerSigns
           : riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
@@ -103,7 +103,7 @@ describe("risk analysis mode change notification composition", () => {
           : "PurposeRiskAnalysisWorkflowCreated",
         data: {
           purpose: toPurposeV2(purpose),
-          previousReviewMode: toWriting
+          previousRiskAnalysisReviewMode: toWriting
             ? RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS
             : RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS,
           addedReviewers: changeReviewers ? [added] : [],

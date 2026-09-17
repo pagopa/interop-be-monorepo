@@ -99,10 +99,10 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
         data: {
           purpose: toPurposeV2({
             ...purpose,
-            reviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+            riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
             reviewerWorkflow: undefined,
           }),
-          previousReviewMode:
+          previousRiskAnalysisReviewMode:
             RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS,
           removedReviewers: reviewerIds.map((id) => ({
             id,
@@ -123,13 +123,13 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
         data: {
           purpose: toPurposeV2({
             ...purpose,
-            reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
             reviewerWorkflow: {
               reviewers: [{ id: unrelatedUserId }],
               signingState: riskAnalysisSigningState.draft,
             },
           }),
-          previousReviewMode:
+          previousRiskAnalysisReviewMode:
             RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS,
           addedReviewers: [unrelatedUserId],
           removedReviewers: reviewerIds.map((id) => ({
@@ -151,13 +151,13 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
         data: {
           purpose: toPurposeV2({
             ...purpose,
-            reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            riskAnalysisReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
             reviewerWorkflow: {
               reviewers: [{ id: unrelatedUserId }],
               signingState: riskAnalysisSigningState.assigned,
             },
           }),
-          previousReviewMode:
+          previousRiskAnalysisReviewMode:
             RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS,
           addedReviewers: [unrelatedUserId],
           removedReviewers: reviewerIds.map((id) => ({
