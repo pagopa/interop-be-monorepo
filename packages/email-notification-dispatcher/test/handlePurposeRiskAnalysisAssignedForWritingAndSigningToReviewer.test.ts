@@ -126,7 +126,8 @@ describe("handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer", () =
       data: {
         purpose: toPurposeV2({
           ...purpose,
-          riskAnalysisReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          riskAnalysisReviewMode:
+            riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerWorkflow: {
             reviewers: [...reviewerIds, unchangedReviewer.id].map((id) => ({
               id,
