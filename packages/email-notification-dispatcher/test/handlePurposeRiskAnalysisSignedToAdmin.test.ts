@@ -131,7 +131,12 @@ describe("purposeRiskAnalysisSignedToAdmin", () => {
       }
       const notifications = await dispatch({
         ...event,
-        data: { purpose: toPurposeV2({ ...purpose, riskAnalysisReviewMode: reviewMode }) },
+        data: {
+          purpose: toPurposeV2({
+            ...purpose,
+            riskAnalysisReviewMode: reviewMode,
+          }),
+        },
       });
       expect(notifications).toHaveLength(2);
       expect(
