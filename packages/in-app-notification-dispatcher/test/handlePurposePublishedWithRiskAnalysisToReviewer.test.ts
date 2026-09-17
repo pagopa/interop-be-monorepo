@@ -39,7 +39,7 @@ describe("handlePurposePublishedWithRiskAnalysisToReviewer", () => {
     eserviceId,
     consumerId,
     title: "Finalità test",
-    reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+    riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
     reviewerWorkflow: {
       reviewers: reviewerIds.map((id) => ({ id })),
       signingState: riskAnalysisSigningState.signed,
