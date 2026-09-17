@@ -31,16 +31,16 @@ message NotificationConfigV2 {
   bool purposeOverQuotaStateToConsumer = 23;
   bool clientKeyConsumerAddedDeletedToClientUsers = 24;
   bool eserviceStateChangedToProducer = 25;
-  bool purposeRiskAnalysisAssignedForSigningToReviewer = 34;
-  bool purposeRiskAnalysisAssignedForWritingAndSigningToReviewer = 35;
+  bool eserviceArchivingRequestedToDelegator = 26;
+  bool eserviceArchivingApprovedRejectedToDelegate = 27;
   bool purposePublishedWithRiskAnalysisToReviewer = 28;
   bool draftPurposeDeletedWithRiskAnalysisToReviewer = 29;
   bool purposeRiskAnalysisAssignmentRemovedToReviewer = 30;
   bool purposeRiskAnalysisSignedToReviewer = 31;
   bool purposeRiskAnalysisSignedToAdmin = 32;
   bool purposeRiskAnalysisRejectedToAdmin = 33;
-  bool eserviceArchivingRequestedToDelegator = 26;
-  bool eserviceArchivingApprovedRejectedToDelegate = 27;
+  bool purposeRiskAnalysisAssignedForSigningToReviewer = 34;
+  bool purposeRiskAnalysisAssignedForWritingAndSigningToReviewer = 35;
 }
 
 message TenantNotificationConfigV2 {
