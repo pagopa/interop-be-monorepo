@@ -19015,13 +19015,21 @@ components:
         - REJECTED
     Reviewer:
       description: A designated reviewer enriched with its user details
-      allOf:
-        - $ref: "#/components/schemas/CompactUser"
-        - type: object
-          properties:
-            sentToReviewerAt:
-              type: string
-              format: date-time
+      type: object
+      additionalProperties: false
+      properties:
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        familyName:
+          type: string
+        sentToReviewerAt:
+          type: string
+          format: date-time
+      required:
+        - userId
     ReviewerWorkflow:
       type: object
       additionalProperties: false
