@@ -1,4 +1,5 @@
 /* eslint-disable functional/immutable-data */
+import { TenantItemsSchema } from "pagopa-interop-kpi-models";
 import {
   fromTenantV1,
   genericInternalError,
@@ -10,7 +11,6 @@ import { z } from "zod";
 
 import { DBContext } from "../../db/db.js";
 import {
-  TenantItemsSchema,
   TenantDeletingSchema,
   TenantSelfcareIdSchema,
 } from "../../model/tenant/tenant.js";

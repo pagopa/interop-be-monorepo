@@ -65,23 +65,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Attribute already assigned to Tenant
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       requestBody:
         content:
           application/json:
@@ -124,17 +112,9 @@ paths:
         "204":
           description: Updated Tenant
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "409":
-          description: Attribute already assigned to Tenant
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
     delete:
       tags:
         - internal
@@ -144,17 +124,9 @@ paths:
         "204":
           description: Updated Tenant
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Tenant Attribute Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /internal/origin/{tOrigin}/remoteId/{tRemoteId}/certifiedDiscreteAttributes/origin/{aOrigin}/externalId/{aExternalId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -205,23 +177,11 @@ paths:
         "204":
           description: Updated Tenant
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Tenant or Attribute Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Attribute already assigned to Tenant
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
     put:
       tags:
         - internal
@@ -245,17 +205,9 @@ paths:
         "204":
           description: Updated Tenant
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Tenant or Attribute Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
     delete:
       tags:
         - internal
@@ -265,17 +217,9 @@ paths:
         "204":
           description: Updated Tenant
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "404":
-          description: Tenant Attribute Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /m2m/tenants:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -294,17 +238,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
       requestBody:
         content:
           application/json:
@@ -341,23 +277,11 @@ paths:
         "204":
           description: Attribute revoked
         "400":
-          description: BadRequest
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /selfcare/tenants:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -376,11 +300,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ResourceId"
         "409":
-          description: Selfcare Id is already assigned and is different from the request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
       requestBody:
         content:
           application/json:
@@ -422,11 +342,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenants"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /producers:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -462,11 +378,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenants"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /tenants:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -519,11 +431,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenants"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
   /tenants/selfcare/{selfcareId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -547,11 +455,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "404":
-          description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{id}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -578,11 +482,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "404":
-          description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/origin/{origin}/code/{code}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -611,11 +511,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "404":
-          description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/attributes/certified:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -637,8 +533,10 @@ paths:
     get:
       tags:
         - tenant
-      operationId: getCertifiedAttributes
-      description: Retrieve the certified attributes
+      operationId: getCertifiedAttributesByCertifier
+      description: >-
+        Retrieves the certified attributes assigned by the requester tenant
+        acting as certifier, paired with the tenants they are assigned to.
       responses:
         "200":
           description: Certified Attributes retrieved
@@ -647,17 +545,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/CertifiedAttributes"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /tenants/{tenantId}/attributes/declared:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -690,17 +580,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/declared/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -734,23 +616,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant Attribute Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/verified:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -783,17 +653,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/verified/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -840,23 +702,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Attribute already revoked for the Tenant
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
     post:
       tags:
         - tenant
@@ -876,23 +726,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/verified/{attributeId}/verifier/{verifierId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -930,23 +768,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/verified/{attributeId}/verifiers:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -993,23 +819,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/TenantVerifiers"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/verified/{attributeId}/revokers:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1056,23 +870,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/TenantRevokers"
         "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/certified:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1105,17 +907,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/certified/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1149,17 +943,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/certifiedDiscrete:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1192,23 +978,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant Not Found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
         "409":
-          description: Attribute already assigned to the Tenant
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Conflict"
   /tenants/{tenantId}/attributes/certifiedDiscrete/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1232,6 +1006,39 @@ paths:
       operationId: revokeCertifiedDiscreteAttributeById
       description: Revoke a certified discrete attribute from a Tenant by the requester Tenant
       responses:
+        "200":
+          description: Updated Tenant
+          headers:
+            X-Metadata-Version:
+              $ref: "#/components/headers/MetadataVersionHeader"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tenant"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: Attribute already revoked for the Tenant
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/Problem"
+    put:
+      tags:
+        - tenantAttribute
+      operationId: updateCertifiedDiscreteAttributeById
+      description: Update the value of an assigned certified discrete attribute for a Tenant by the requester Tenant
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCertifiedDiscreteTenantAttributeSeed"
+        required: true
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
         "200":
           description: Updated Tenant
           headers:
@@ -1279,11 +1086,7 @@ paths:
         "204":
           description: Tenant Deleted
         "404":
-          description: Tenant not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       requestBody:
         content:
           application/json:
@@ -1308,11 +1111,7 @@ paths:
         "204":
           description: Tenant Updated
         "404":
-          description: Tenant not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
       requestBody:
         content:
           application/json:
@@ -1348,11 +1147,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Tenant"
         "404":
-          description: Tenant not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /maintenance/tenants/{tenantId}/remoteIds/{origin}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1379,23 +1174,11 @@ paths:
         "204":
           description: Remote id successfully deleted
         "400":
-          description: Bad request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/mails/{mailId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1422,17 +1205,9 @@ paths:
         "204":
           description: Tenant Mail Deleted
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/mails:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1459,23 +1234,11 @@ paths:
         "204":
           description: Tenant Mail Added
         "400":
-          description: Invalid input
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/BadRequest"
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
         "404":
-          description: Tenant not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/NotFound"
   /tenants/delegatedFeatures/update:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
@@ -1495,11 +1258,7 @@ paths:
         "204":
           description: Delegated features updated
         "403":
-          description: Forbidden
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/Problem"
+          $ref: "#/components/responses/Forbidden"
   /status:
     get:
       security: []
@@ -1516,6 +1275,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/Problem"
 components:
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
   headers:
     MetadataVersionHeader:
       description: The version number of the resource in the read model
@@ -1589,6 +1373,17 @@ components:
           maximum: 1000000000
       required:
         - id
+        - certifiedDiscreteValue
+    UpdateCertifiedDiscreteTenantAttributeSeed:
+      type: object
+      additionalProperties: false
+      properties:
+        certifiedDiscreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
+      required:
         - certifiedDiscreteValue
     TenantUnitType:
       type: string
@@ -1722,6 +1517,11 @@ components:
           format: date-time
       required:
         - availabilityTimestamp
+    CertifiedAttributeKind:
+      type: string
+      enum:
+        - CERTIFIED
+        - CERTIFIED_DISCRETE
     CertifiedAttribute:
       type: object
       additionalProperties: false
@@ -1736,11 +1536,19 @@ components:
           format: uuid
         attributeName:
           type: string
+        kind:
+          $ref: "#/components/schemas/CertifiedAttributeKind"
+        discreteValue:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 1000000000
       required:
         - id
         - name
         - attributeId
         - attributeName
+        - kind
     CertifiedAttributes:
       type: object
       additionalProperties: false

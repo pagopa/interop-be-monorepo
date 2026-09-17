@@ -234,7 +234,7 @@ export function tenantServiceBuilder(
         `Getting requester certified attributes with limit ${limit}, offset ${offset}`
       );
       const { results, totalCount } =
-        await tenantProcessClient.tenant.getCertifiedAttributes({
+        await tenantProcessClient.tenant.getCertifiedAttributesByCertifier({
           queries: {
             offset,
             limit,
@@ -456,6 +456,23 @@ export function tenantServiceBuilder(
       );
       await tenantProcessClient.tenantAttribute.revokeCertifiedDiscreteAttributeById(
         undefined,
+        {
+          params: { tenantId, attributeId },
+          headers,
+        }
+      );
+    },
+    async updateCertifiedDiscreteAttribute(
+      tenantId: TenantId,
+      attributeId: AttributeId,
+      seed: bffApi.UpdateCertifiedDiscreteTenantAttributeSeed,
+      { logger, headers }: WithLogger<BffAppContext>
+    ): Promise<void> {
+      logger.info(
+        `Updating certified discrete attribute ${attributeId} for tenant ${tenantId}`
+      );
+      await tenantProcessClient.tenantAttribute.updateCertifiedDiscreteAttributeById(
+        seed,
         {
           params: { tenantId, attributeId },
           headers,

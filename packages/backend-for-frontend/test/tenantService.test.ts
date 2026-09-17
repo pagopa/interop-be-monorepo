@@ -375,23 +375,60 @@ describe("tenantServiceBuilder.getCertifiedAttributes", () => {
 });
 
 describe("toBffApiRequesterCertifiedAttributes", () => {
-  it("should add the certified kind discriminator", () => {
+  const testCases: Array<{
+    inputKind: tenantApi.CertifiedAttributeKind;
+    expectedKind: bffApi.RequesterCertifiedAttribute["kind"];
+  }> = [
+    {
+      inputKind: "CERTIFIED",
+      expectedKind: tenantAttributeKind.certified,
+    },
+    {
+      inputKind: "CERTIFIED_DISCRETE",
+      expectedKind: tenantAttributeKind.certifiedDiscrete,
+    },
+  ];
+
+  it.each(testCases)(
+    "should preserve the $inputKind discriminator",
+    ({ inputKind, expectedKind }) => {
+      const input: tenantApi.CertifiedAttribute = {
+        id: generateId(),
+        name: "tenant",
+        attributeId: generateId(),
+        attributeName: "attribute",
+        kind: inputKind,
+      };
+
+      const result: bffApi.RequesterCertifiedAttribute =
+        toBffApiRequesterCertifiedAttributes(input);
+      bffApi.RequesterCertifiedAttribute.parse(result);
+
+      expect(result).toStrictEqual({
+        tenantId: input.id,
+        tenantName: input.name,
+        attributeId: input.attributeId,
+        attributeName: input.attributeName,
+        kind: expectedKind,
+        discreteValue: undefined,
+      });
+    }
+  );
+
+  it("should preserve the discreteValue of a discrete assignment", () => {
     const input: tenantApi.CertifiedAttribute = {
       id: generateId(),
       name: "tenant",
       attributeId: generateId(),
       attributeName: "attribute",
+      kind: "CERTIFIED_DISCRETE",
+      discreteValue: 42,
     };
 
-    const result = toBffApiRequesterCertifiedAttributes(input);
+    const result: bffApi.RequesterCertifiedAttribute =
+      toBffApiRequesterCertifiedAttributes(input);
     bffApi.RequesterCertifiedAttribute.parse(result);
 
-    expect(result).toStrictEqual({
-      tenantId: input.id,
-      tenantName: input.name,
-      attributeId: input.attributeId,
-      attributeName: input.attributeName,
-      kind: tenantAttributeKind.certified,
-    });
+    expect(result.discreteValue).toBe(input.discreteValue);
   });
 });
