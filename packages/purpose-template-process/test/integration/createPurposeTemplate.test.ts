@@ -17,6 +17,7 @@ import {
 } from "pagopa-interop-commons-test";
 import {
   generateId,
+  hyperlinkDetectionError,
   purposeTemplateState,
   PurposeTemplate,
   PurposeTemplateAddedV2,
@@ -244,6 +245,50 @@ describe("createPurposeTemplate", () => {
       )
     ).rejects.toThrowError(missingFreeOfChargeReason());
   });
+
+  const hyperlinkText = "Visit https://evil.example.com now";
+  it.each([
+    {
+      label: "purposeTitle",
+      seed: (): purposeTemplateApi.PurposeTemplateSeed => ({
+        ...purposeTemplateSeed,
+        purposeTitle: hyperlinkText,
+      }),
+    },
+    {
+      label: "purposeDescription",
+      seed: (): purposeTemplateApi.PurposeTemplateSeed => ({
+        ...purposeTemplateSeed,
+        purposeDescription: hyperlinkText,
+      }),
+    },
+    {
+      label: "targetDescription",
+      seed: (): purposeTemplateApi.PurposeTemplateSeed => ({
+        ...purposeTemplateSeed,
+        targetDescription: hyperlinkText,
+      }),
+    },
+    {
+      label: "purposeFreeOfChargeReason",
+      seed: (): purposeTemplateApi.PurposeTemplateSeed => ({
+        ...purposeTemplateSeed,
+        purposeFreeOfChargeReason: hyperlinkText,
+      }),
+    },
+  ])(
+    "should throw hyperlinkDetectionError if $label contains a hyperlink",
+    async ({ seed }) => {
+      await expect(
+        purposeTemplateService.createPurposeTemplate(
+          seed(),
+          getMockContext({
+            authData: getMockAuthData(mockPurposeTemplate.creatorId),
+          })
+        )
+      ).rejects.toThrowError(hyperlinkDetectionError(hyperlinkText));
+    }
+  );
 
   it("should throw purposeTemplateTitleConflict if purpose templates with same title already exist", async () => {
     const existingPurposeTemplate1: PurposeTemplate = {
