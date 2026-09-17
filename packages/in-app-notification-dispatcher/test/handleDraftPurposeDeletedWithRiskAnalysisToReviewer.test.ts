@@ -40,7 +40,7 @@ describe("handleDraftPurposeDeletedWithRiskAnalysisToReviewer", () => {
     eserviceId,
     consumerId,
     title: "Finalità test",
-    reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+    riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
     reviewerWorkflow: {
       reviewers: [
         { id: notifiedReviewerId, sentToReviewerAt: new Date() },
