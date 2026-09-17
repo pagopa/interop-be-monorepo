@@ -19030,6 +19030,8 @@ components:
           format: date-time
       required:
         - userId
+        - name
+        - familyName
     ReviewerWorkflow:
       type: object
       additionalProperties: false
