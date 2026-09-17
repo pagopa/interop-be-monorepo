@@ -41,7 +41,7 @@ function assignmentEvent({
   }
 > {
   const purpose = PurposeV2.create({
-    reviewMode: mode,
+    riskAnalysisReviewMode: mode,
     reviewerWorkflow:
       mode === admin
         ? undefined
@@ -52,7 +52,7 @@ function assignmentEvent({
   });
   const data = {
     purpose,
-    previousReviewMode: previousMode,
+    previousRiskAnalysisReviewMode: previousMode,
     removedReviewers: removed,
   };
   if (mode === admin) {
@@ -233,7 +233,7 @@ describe("risk analysis assignment recipients", () => {
       type: "PurposeRiskAnalysisSubmitted",
       data: {
         purpose: PurposeV2.create({
-          reviewMode: signing,
+          riskAnalysisReviewMode: signing,
           reviewerWorkflow: {
             signingState: submitted,
             reviewers: [
