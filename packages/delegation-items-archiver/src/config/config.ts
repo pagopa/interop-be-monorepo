@@ -1,6 +1,7 @@
 import {
   AgreementProcessServerConfig,
   PurposeProcessServerConfig,
+  CatalogProcessServerConfig,
   DelegationTopicConfig,
   KafkaConsumerConfig,
   ReadModelSQLDbConfig,
@@ -11,6 +12,7 @@ import { z } from "zod";
 const DelegationItemsArchiverConfig = AgreementProcessServerConfig.and(
   PurposeProcessServerConfig
 )
+  .and(CatalogProcessServerConfig)
   .and(DelegationTopicConfig)
   .and(TokenGenerationConfig)
   .and(KafkaConsumerConfig)

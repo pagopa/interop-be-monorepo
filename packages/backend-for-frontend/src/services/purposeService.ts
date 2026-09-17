@@ -23,6 +23,8 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   RiskAnalysisId,
+  WithMetadata,
+  genericError,
   unsafeBrandId,
 } from "pagopa-interop-models";
 
@@ -118,18 +120,25 @@ const enrichPurposeReviewerWorkflow = async (
 
   if (isConsumer && hasAdminOrViewerRole) {
     const reviewers = await Promise.all(
-      reviewerWorkflow.reviewerIds.map((reviewerId) =>
-        getSelfcareCompactUserById(
+      reviewerWorkflow.reviewers.map(async (reviewer) => ({
+        ...(await getSelfcareCompactUserById(
           selfcareV2UserClient,
-          reviewerId,
+          reviewer.id,
           selfcareId,
           correlationId
-        )
-      )
+        )),
+        sentToReviewerAt: reviewer.sentToReviewerAt,
+      }))
     );
     return { ...reviewerWorkflow, reviewers };
   }
-  return reviewerWorkflow;
+
+  // Reviewer details are disclosed only to the consumer, so the raw reviewers
+  // array is dropped for everyone else.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { reviewers: _reviewers, ...workflowWithoutReviewers } =
+    reviewerWorkflow;
+  return workflowWithoutReviewers;
 };
 
 const getCurrentVersion = (
@@ -152,6 +161,7 @@ const getCurrentVersion = (
 export function purposeServiceBuilder(
   {
     purposeProcessClient,
+    purposeProcessClientWithMetadata,
     purposeTemplateProcessClient,
     catalogProcessClient,
     tenantProcessClient,
@@ -342,6 +352,7 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
+      riskAnalysisReviewMode: purpose.riskAnalysisReviewMode,
       reviewerWorkflow: await enrichPurposeReviewerWorkflow(
         purpose.reviewerWorkflow,
         authData,
@@ -503,10 +514,11 @@ export function purposeServiceBuilder(
     },
     async signRiskAnalysis(
       purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisSignSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Signing risk analysis for purpose ${purposeId}`);
-      await purposeProcessClient.signRiskAnalysis(undefined, {
+      await purposeProcessClient.signRiskAnalysis(seed, {
         params: { purposeId },
         headers,
       });
@@ -931,7 +943,7 @@ export function purposeServiceBuilder(
     async getPurpose(
       id: PurposeId,
       ctx: WithLogger<BffAppContext>
-    ): Promise<bffApi.Purpose> {
+    ): Promise<WithMetadata<bffApi.Purpose>> {
       const { headers, authData, logger, correlationId } = ctx;
       logger.info(`Retrieving Purpose ${id}`);
       const notificationsPromise = filterUnreadNotifications(
@@ -939,12 +951,19 @@ export function purposeServiceBuilder(
         [id],
         ctx
       );
-      const purpose = await purposeProcessClient.getPurpose({
-        params: {
-          id,
-        },
-        headers,
-      });
+      const purposeWithMetadata =
+        await purposeProcessClientWithMetadata.getPurpose({
+          params: {
+            id,
+          },
+          headers,
+        });
+
+      if (purposeWithMetadata.metadata === undefined) {
+        throw genericError(`Missing metadata for purpose ${id}`);
+      }
+
+      const purpose = purposeWithMetadata.data;
 
       const eservice = await catalogProcessClient.getEServiceById({
         params: {
@@ -979,18 +998,21 @@ export function purposeServiceBuilder(
           })
         : undefined;
 
-      return await enhancePurpose(
-        authData,
-        purpose,
-        [eservice],
-        [producer],
-        [consumer],
-        purposeTemplate,
-        false,
-        headers,
-        correlationId,
-        notification
-      );
+      return {
+        data: await enhancePurpose(
+          authData,
+          purpose,
+          [eservice],
+          [producer],
+          [consumer],
+          purposeTemplate,
+          false,
+          headers,
+          correlationId,
+          notification
+        ),
+        metadata: purposeWithMetadata.metadata,
+      };
     },
     async retrieveLatestRiskAnalysisConfiguration(
       tenantKind: bffApi.TenantKind | undefined,

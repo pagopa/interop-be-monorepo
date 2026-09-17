@@ -129,13 +129,22 @@ describe("POST /purposeTemplates/:purposeTemplateId/riskAnalysis/annotationDocum
     }
   );
 
+  it("Should return 400 for invalidDocumentDetected error", async () => {
+    const error = invalidDocumentDetected(generateId());
+    mockPurposeTemplateService.uploadRiskAnalysisTemplateAnswerAnnotationDocument =
+      vi.fn().mockRejectedValue(error);
+    const token = generateToken(authRole.M2M_ADMIN_ROLE);
+    const res = await makeRequest(token, generateId(), mockFileUpload);
+
+    expect(res.status).toBe(400);
+  });
+
   it.each([
     missingMetadata(),
     pollingMaxRetriesExceeded(
       config.defaultPollingMaxRetries,
       config.defaultPollingRetryDelay
     ),
-    invalidDocumentDetected(generateId()),
   ])("Should return 500 in case of $code error", async (error) => {
     mockPurposeTemplateService.uploadRiskAnalysisTemplateAnswerAnnotationDocument =
       vi.fn().mockRejectedValue(error);
