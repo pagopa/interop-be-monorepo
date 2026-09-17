@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import crypto from "crypto";
 import { describe } from "node:test";
-import {
-  getMockClient,
-  getMockKey,
-} from "pagopa-interop-commons-test/index.js";
+import { getMockClient, getMockKey } from "pagopa-interop-commons-test";
 import {
   AuthorizationEventEnvelopeV1,
   Client,

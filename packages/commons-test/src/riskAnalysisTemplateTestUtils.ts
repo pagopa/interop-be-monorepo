@@ -21,9 +21,9 @@ import {
 import { match } from "ts-pattern";
 
 import {
-  validRiskAnalysis2_0_Private,
+  validRiskAnalysis2_1_Private,
   validRiskAnalysis3_0_Pa,
-  validRiskAnalysis3_1_Pa,
+  validRiskAnalysis3_2_Pa,
 } from "./riskAnalysisTestUtils.js";
 
 export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedForm =
@@ -149,9 +149,9 @@ export const validatedRiskAnalysisTemplate3_0_Pa: RiskAnalysisTemplateValidatedF
     ],
   };
 
-export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedForm =
+export const validatedRiskAnalysisTemplate3_2_Pa: RiskAnalysisTemplateValidatedForm =
   {
-    version: validRiskAnalysis3_1_Pa.version,
+    version: validRiskAnalysis3_2_Pa.version,
     singleAnswers: [
       {
         key: "purpose",
@@ -284,9 +284,9 @@ export const validatedRiskAnalysisTemplate3_1_Pa: RiskAnalysisTemplateValidatedF
     ],
   };
 
-export const validatedRiskAnalysisTemplate2_0_Private: RiskAnalysisTemplateValidatedForm =
+export const validatedRiskAnalysisTemplate2_1_Private: RiskAnalysisTemplateValidatedForm =
   {
-    version: validRiskAnalysis2_0_Private.version,
+    version: validRiskAnalysis2_1_Private.version,
     singleAnswers: [
       {
         key: "purpose",
@@ -413,12 +413,12 @@ export const getMockValidRiskAnalysisFormTemplate = (
   match(producerTenantKind)
     .with(tenantKind.PA, () =>
       riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
-        validatedRiskAnalysisTemplate3_1_Pa
+        validatedRiskAnalysisTemplate3_2_Pa
       )
     )
     .with(tenantKind.PRIVATE, tenantKind.GSP, tenantKind.SCP, () =>
       riskAnalysisValidatedFormTemplateToNewRiskAnalysisFormTemplate(
-        validatedRiskAnalysisTemplate2_0_Private
+        validatedRiskAnalysisTemplate2_1_Private
       )
     )
     .exhaustive();
