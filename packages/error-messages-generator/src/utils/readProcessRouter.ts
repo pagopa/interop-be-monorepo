@@ -13,6 +13,7 @@ export function readRouterEndpoints(
   yamlFile: string,
   processName: string,
   bffEndpoints: BffEndpoint[],
+  includeInternalAndMaintenance: boolean,
 ): Endpoint[] {
   const out: Endpoint[] = [];
   const file = readFileSync(fileName, "utf8");
@@ -33,6 +34,12 @@ export function readRouterEndpoints(
       openApi?.operationId ?? "NOT FOUND",
       bffEndpoints,
     );
+    if (
+      !includeInternalAndMaintenance &&
+      (path.includes("/internal") || path.includes("/maintenance"))
+    ) {
+      continue;
+    }
     out.push({
       method,
       path,

@@ -35,7 +35,9 @@ export function extractRouterEndpoints(file: string): RouterEndpoint[] {
       serviceName: serviceMatch?.[1],
       serviceMethod: serviceMatch?.[2],
       mapper: mapperMatch?.[1],
-      roles: roles ? roles.split(", ").map((role) => role.trim()) : [],
+      roles: (roles ? roles.split(", ").map((role) => role.trim()) : []).filter(
+        Boolean,
+      ),
     });
   }
   return out;

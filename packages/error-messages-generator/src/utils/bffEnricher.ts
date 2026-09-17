@@ -15,7 +15,13 @@ function resolveProcessName(client: string): string {
     .with("attributeClient", () => "attribute-registry")
     .with("tenantProcessClient.tenant", () => "tenant")
     .with("catalogProcessClient", () => "catalog")
-    .with("delegationProcessClient.delegation", () => "delegation")
+    .with(
+      "delegationProcessClient.delegation",
+      "delegationClients.delegation",
+      "delegationClients.producer",
+      "delegationClients.consumer",
+      () => "delegation",
+    )
     .with(
       "eserviceTemplateProcessClient",
       "eserviceTemplateClient",
@@ -101,7 +107,7 @@ export function excludeDiscoveredBffEndpoints(
 ): BffEndpoint[] {
   return bffEndpoints.filter(
     (bffEndpoint) =>
-      !processEndpoints[bffEndpoint.service.processes[0].process]?.some(
+      !processEndpoints[bffEndpoint.service.processes[0]?.process]?.some(
         (processEndpoint) =>
           processEndpoint.path === bffEndpoint.path &&
           processEndpoint.method === bffEndpoint.method,
