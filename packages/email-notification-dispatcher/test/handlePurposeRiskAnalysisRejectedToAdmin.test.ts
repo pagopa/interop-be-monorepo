@@ -64,7 +64,7 @@ describe("purposeRiskAnalysisRejectedToAdmin", () => {
     title: "Finalità test",
     consumerId: consumer.id,
     eserviceId: eservice.id,
-    reviewMode: "AdminWritesReviewerSigns",
+    riskAnalysisReviewMode: "AdminWritesReviewerSigns",
     reviewerWorkflow: {
       reviewers: [{ id: reviewerConfig.userId }],
       signingState: riskAnalysisSigningState.rejected,
