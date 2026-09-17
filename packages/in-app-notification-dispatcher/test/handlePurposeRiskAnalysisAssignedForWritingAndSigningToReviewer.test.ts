@@ -113,7 +113,7 @@ describe("handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer", () =
       data: {
         purpose: toPurposeV2({
           ...purpose,
-          reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+          riskAnalysisReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
           reviewerWorkflow: {
             reviewers: [...reviewerIds, unchangedReviewerId].map((id) => ({
               id,
@@ -122,7 +122,7 @@ describe("handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer", () =
             signingState: riskAnalysisSigningState.assigned,
           },
         }),
-        previousReviewMode:
+        previousRiskAnalysisReviewMode:
           RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS,
         addedReviewers: reviewerIds,
         removedReviewers: [{ id: removedReviewerId, sentToReviewerAt: 1n }],
