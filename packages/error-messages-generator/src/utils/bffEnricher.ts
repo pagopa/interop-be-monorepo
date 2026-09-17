@@ -52,7 +52,7 @@ function resolveProcessName(client: string): string {
     .otherwise(() => client);
 }
 
-export function readBffEndpoints(): BffEndpoint[] {
+export function readBffEndpoints(includeFrontend: boolean): BffEndpoint[] {
   const files = getRoutersAndOpenapiFiles("backend-for-frontend");
   const endpointsByRouter: BffEndpoint[] = [];
   const yamlFileContent = readOpenApiDocument(files.openapiFile);
@@ -67,23 +67,26 @@ export function readBffEndpoints(): BffEndpoint[] {
         serviceFile,
         serviceMethod,
       );
-      const frontendService = findPathInService(path, method);
+
       let frontendServiceWithStackCalls:
         | FrontendServiceFileWithStackCalls
         | undefined;
-      if (frontendService) {
-        const calls = findFunctionCalls(
-          frontendService.file,
-          frontendService.functionName,
-        );
-        frontendServiceWithStackCalls = {
-          fileName: frontendService.file,
-          functionName: frontendService.functionName,
-          stackCalls: calls.map(({ file, lineNumber }) => ({
-            fileName: file,
-            lineNumber,
-          })),
-        };
+      if (includeFrontend) {
+        const frontendService = findPathInService(path, method);
+        if (frontendService) {
+          const calls = findFunctionCalls(
+            frontendService.file,
+            frontendService.functionName,
+          );
+          frontendServiceWithStackCalls = {
+            fileName: frontendService.file,
+            functionName: frontendService.functionName,
+            stackCalls: calls.map(({ file, lineNumber }) => ({
+              fileName: file,
+              lineNumber,
+            })),
+          };
+        }
       }
       endpointsByRouter.push({
         method,

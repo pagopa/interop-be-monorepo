@@ -6,11 +6,12 @@ import { readRouterEndpoints } from "./readProcessRouter";
 export function readProcess(
   processName: string,
   includeInternalAndMaintenance: boolean,
+  includeFrontend: boolean,
   bff?: BffEndpoint[],
 ): { endpoints: Endpoint[]; bff: BffEndpoint[] } {
   const { routerTsFiles, openapiFile } = getRoutersAndOpenapiFiles(processName);
   let allEndpoints: Endpoint[] = [];
-  const bffEndpoints = bff ?? readBffEndpoints();
+  const bffEndpoints = bff ?? readBffEndpoints(includeFrontend);
   for (const routerFile of routerTsFiles) {
     allEndpoints = allEndpoints.concat(
       readRouterEndpoints(
@@ -28,14 +29,20 @@ export function readProcess(
 export function readAllProcesses({
   filterOutBff = false,
   includeInternalAndMaintenance = false,
-}: { filterOutBff?: boolean; includeInternalAndMaintenance?: boolean } = {}) {
+  includeFrontend = false,
+}: {
+  filterOutBff?: boolean;
+  includeInternalAndMaintenance?: boolean;
+  includeFrontend?: boolean;
+} = {}) {
   const processNames = getProcessPackages();
-  const bff = readBffEndpoints();
+  const bff = readBffEndpoints(includeFrontend);
   const output: Record<string, Endpoint[]> = {};
   for (const processName of processNames) {
     output[processName] = readProcess(
       processName,
       includeInternalAndMaintenance,
+      includeFrontend,
       bff,
     ).endpoints;
   }

@@ -22,6 +22,9 @@ const { values } = parseArgs({
     "include-internal-and-maintenance": {
       type: "boolean",
     },
+    "include-frontend": {
+      type: "boolean",
+    },
     limit: {
       type: "string",
     },
@@ -37,6 +40,7 @@ const showBff = values["show-bff"] ?? false;
 const prettyPrint = values["pretty-print"] ?? false;
 const includeInternalAndMaintenance =
   values["include-internal-and-maintenance"] ?? false;
+const includeFrontend = values["include-frontend"] ?? false;
 const outputPath = values.output;
 const limit = values.limit ? parseInt(values.limit, 10) : undefined;
 const offset = values.offset ? parseInt(values.offset, 10) : undefined;
@@ -44,6 +48,7 @@ const offset = values.offset ? parseInt(values.offset, 10) : undefined;
 const { output, bff } = readAllProcesses({
   filterOutBff: filterBff,
   includeInternalAndMaintenance: includeInternalAndMaintenance,
+  includeFrontend: includeFrontend,
 });
 
 let filteredOutput = {
