@@ -145,7 +145,7 @@ describe("risk analysis assignment notification composition", () => {
           data: {
             purpose: toPurposeV2({
               ...purpose,
-              reviewMode:
+              riskAnalysisReviewMode:
                 type === "PurposeRiskAnalysisAssigned"
                   ? riskAnalysisReviewMode.reviewerWritesReviewerSigns
                   : riskAnalysisReviewMode.adminWritesReviewerSigns,
@@ -159,7 +159,7 @@ describe("risk analysis assignment notification composition", () => {
                     : riskAnalysisSigningState.submitted,
               },
             }),
-            previousReviewMode:
+            previousRiskAnalysisReviewMode:
               type === "PurposeRiskAnalysisAssigned"
                 ? RiskAnalysisReviewModeV2.REVIEWER_WRITES_REVIEWER_SIGNS
                 : RiskAnalysisReviewModeV2.ADMIN_WRITES_REVIEWER_SIGNS,

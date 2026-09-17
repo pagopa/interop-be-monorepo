@@ -53,7 +53,7 @@ export function getRiskAnalysisAssignmentRecipients(
     .with({ type: "PurposeRiskAnalysisSelfAssigned" }, () => baseRecipients)
     .with({ type: "PurposeRiskAnalysisAssigned" }, ({ data }) => {
       if (
-        purpose.reviewMode !==
+        purpose.riskAnalysisReviewMode !==
           riskAnalysisReviewMode.reviewerWritesReviewerSigns ||
         purpose.reviewerWorkflow?.signingState !==
           riskAnalysisSigningState.assigned
@@ -61,27 +61,28 @@ export function getRiskAnalysisAssignmentRecipients(
         return baseRecipients;
       }
       const previousMode =
-        data.previousReviewMode === undefined
+        data.previousRiskAnalysisReviewMode === undefined
           ? undefined
-          : fromRiskAnalysisReviewModeV2(data.previousReviewMode);
+          : fromRiskAnalysisReviewModeV2(data.previousRiskAnalysisReviewMode);
       return {
         ...baseRecipients,
         writingReviewerIds:
-          previousMode === purpose.reviewMode
+          previousMode === purpose.riskAnalysisReviewMode
             ? data.addedReviewers
             : reviewerIds,
       };
     })
     .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, ({ data }) => {
       if (
-        purpose.reviewMode !== riskAnalysisReviewMode.adminWritesReviewerSigns
+        purpose.riskAnalysisReviewMode !==
+        riskAnalysisReviewMode.adminWritesReviewerSigns
       ) {
         return baseRecipients;
       }
       const previousMode =
-        data.previousReviewMode === undefined
+        data.previousRiskAnalysisReviewMode === undefined
           ? undefined
-          : fromRiskAnalysisReviewModeV2(data.previousReviewMode);
+          : fromRiskAnalysisReviewModeV2(data.previousRiskAnalysisReviewMode);
       const state = purpose.reviewerWorkflow?.signingState;
       const confirmedReviewerIds = reviewerIds.filter(
         (id) => !data.addedReviewers.includes(id)
