@@ -65,7 +65,7 @@ const evaluateReviewerStamps = (
 
 type RiskAnalysisAssignmentContext = {
   purpose: WithMetadata<Purpose>;
-  previousReviewMode: RiskAnalysisReviewMode | undefined;
+  previousRiskAnalysisReviewMode: RiskAnalysisReviewMode | undefined;
   previousReviewers: RiskAnalysisReviewer[];
   requestedReviewers: UserId[];
   addedReviewers: UserId[];
@@ -84,12 +84,12 @@ const transitionToAdminWritesAdminSigns =
 
 const transitionToAdminWritesReviewerSigns = ({
   purpose,
-  previousReviewMode,
+  previousRiskAnalysisReviewMode,
   previousReviewers,
   requestedReviewers,
   now,
 }: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
-  match(previousReviewMode)
+  match(previousRiskAnalysisReviewMode)
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () => {
       const previousWorkflow = purpose.data.reviewerWorkflow;
       if (previousWorkflow === undefined) {
@@ -123,12 +123,12 @@ const transitionToAdminWritesReviewerSigns = ({
     }));
 
 const transitionToReviewerWritesReviewerSigns = ({
-  previousReviewMode,
+  previousRiskAnalysisReviewMode,
   previousReviewers,
   requestedReviewers,
   now,
 }: RiskAnalysisAssignmentContext): RiskAnalysisAssignmentOutcome =>
-  match(previousReviewMode)
+  match(previousRiskAnalysisReviewMode)
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () => ({
       reviewerWorkflow: {
         reviewers: evaluateReviewerStamps(
@@ -169,7 +169,7 @@ export function assignRiskAnalysisReviewerLogic(
   event: CreateEvent<PurposeEventV2> | undefined;
   updatedPurpose: Purpose;
 } {
-  const previousReviewMode = purpose.data.reviewMode;
+  const previousRiskAnalysisReviewMode = purpose.data.riskAnalysisReviewMode;
   const previousReviewers = purpose.data.reviewerWorkflow?.reviewers ?? [];
   const previousReviewerIds = previousReviewers.map((reviewer) => reviewer.id);
   const requestedReviewers = (review?.reviewerIds ?? []).map((id) =>
@@ -177,7 +177,7 @@ export function assignRiskAnalysisReviewerLogic(
   );
 
   const assignmentIsUnchanged =
-    previousReviewMode === review.reviewMode &&
+    previousRiskAnalysisReviewMode === review.reviewMode &&
     hasSameReviewerIds(previousReviewerIds, requestedReviewers);
 
   if (assignmentIsUnchanged) {
@@ -195,7 +195,7 @@ export function assignRiskAnalysisReviewerLogic(
 
   const transitionContext: RiskAnalysisAssignmentContext = {
     purpose,
-    previousReviewMode,
+    previousRiskAnalysisReviewMode,
     previousReviewers,
     requestedReviewers,
     addedReviewers,
@@ -217,7 +217,7 @@ export function assignRiskAnalysisReviewerLogic(
     .exhaustive();
 
   const reviewerWritingModeChanged =
-    isReviewerWritingMode(previousReviewMode) !==
+    isReviewerWritingMode(previousRiskAnalysisReviewMode) !==
     isReviewerWritingMode(review.reviewMode);
 
   const updatedPurpose: Purpose = {
@@ -225,7 +225,7 @@ export function assignRiskAnalysisReviewerLogic(
     riskAnalysisForm: reviewerWritingModeChanged
       ? undefined
       : purpose.data.riskAnalysisForm,
-    reviewMode: review.reviewMode,
+    riskAnalysisReviewMode: review.reviewMode,
     reviewerWorkflow: transitionOutcome.reviewerWorkflow,
     updatedAt: now,
   };
@@ -237,7 +237,7 @@ export function assignRiskAnalysisReviewerLogic(
         version: purpose.metadata.version,
         correlationId,
         removedReviewers,
-        previousReviewMode,
+        previousRiskAnalysisReviewMode,
       })
     )
     .with(riskAnalysisReviewMode.adminWritesReviewerSigns, () =>
@@ -247,7 +247,7 @@ export function assignRiskAnalysisReviewerLogic(
         correlationId,
         addedReviewers,
         removedReviewers,
-        previousReviewMode,
+        previousRiskAnalysisReviewMode,
       })
     )
     .with(riskAnalysisReviewMode.reviewerWritesReviewerSigns, () =>
@@ -257,7 +257,7 @@ export function assignRiskAnalysisReviewerLogic(
         correlationId,
         addedReviewers,
         removedReviewers,
-        previousReviewMode,
+        previousRiskAnalysisReviewMode,
       })
     )
     .exhaustive();

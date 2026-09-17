@@ -76,8 +76,8 @@ export const notificationRouter = (
         validateAuthorization(ctx, [
           ADMIN_ROLE,
           API_ROLE,
-          SECURITY_ROLE,
           REVIEWER_ROLE,
+          SECURITY_ROLE,
         ]);
 
         const { limit, offset, q, unread, notificationTypes } = req.query;

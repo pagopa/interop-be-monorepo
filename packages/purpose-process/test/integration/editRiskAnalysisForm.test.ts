@@ -64,7 +64,8 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
@@ -154,7 +155,7 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId }],
         signingState: riskAnalysisSigningState.draft,
@@ -191,7 +192,8 @@ describe("editRiskAnalysisForm", () => {
         ...getMockPurpose([getMockPurposeVersion()]),
         consumerId: mockTenant.id,
         eserviceId: mockEService.id,
-        reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+        riskAnalysisReviewMode:
+          riskAnalysisReviewMode.reviewerWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
           signingState,
@@ -225,7 +227,8 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
@@ -258,7 +261,8 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: generateId<UserId>(), sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,
@@ -293,7 +297,8 @@ describe("editRiskAnalysisForm", () => {
       ...getMockPurpose([getMockPurposeVersion()]),
       consumerId: mockTenant.id,
       eserviceId: mockEService.id,
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: new Date() }],
         signingState: riskAnalysisSigningState.assigned,

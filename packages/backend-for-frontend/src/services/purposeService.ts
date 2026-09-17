@@ -352,7 +352,7 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
-      reviewMode: purpose.reviewMode,
+      riskAnalysisReviewMode: purpose.riskAnalysisReviewMode,
       reviewerWorkflow: await enrichPurposeReviewerWorkflow(
         purpose.reviewerWorkflow,
         authData,

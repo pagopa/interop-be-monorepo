@@ -50,7 +50,7 @@ describe("Purpose aggregator", () => {
         riskAnalysisForm: purposeRiskAnalysisForm,
         versions: [purposeVersion],
         purposeTemplateId: generateId<PurposeTemplateId>(),
-        reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+        riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
         reviewerWorkflow: {
           reviewers: [
             { id: generateId<UserId>(), sentToReviewerAt: new Date() },

@@ -15783,7 +15783,7 @@ components:
         rulesetExpiration:
           type: string
           format: date-time
-        reviewMode:
+        riskAnalysisReviewMode:
           $ref: "#/components/schemas/RiskAnalysisReviewMode"
         reviewerWorkflow:
           $ref: "#/components/schemas/ReviewerWorkflow"

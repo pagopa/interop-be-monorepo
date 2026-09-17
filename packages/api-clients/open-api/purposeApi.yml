@@ -1593,7 +1593,7 @@ components:
         purposeTemplateId:
           type: string
           format: uuid
-        reviewMode:
+        riskAnalysisReviewMode:
           $ref: "#/components/schemas/RiskAnalysisReviewMode"
         reviewerWorkflow:
           $ref: "#/components/schemas/ReviewerWorkflow"
