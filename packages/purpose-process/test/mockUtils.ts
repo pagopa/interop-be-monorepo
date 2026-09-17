@@ -9,7 +9,7 @@ import {
   getMockValidRiskAnalysisForm,
   validRiskAnalysis2_0_Private,
   getMockEService,
-  validatedRiskAnalysisTemplate3_1_Pa,
+  validatedRiskAnalysisTemplate3_2_Pa,
 } from "pagopa-interop-commons-test";
 import {
   Purpose,
@@ -187,7 +187,7 @@ export const getMockEServiceForPurposeFromTemplate = (
 });
 
 const validatedRiskAnalysisFormFromTemplate3_1_Pa: RiskAnalysisValidatedForm = {
-  version: validatedRiskAnalysisTemplate3_1_Pa.version,
+  version: validatedRiskAnalysisTemplate3_2_Pa.version,
   tenantKind: tenantKind.PA,
   singleAnswers: [
     {

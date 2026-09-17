@@ -41,7 +41,8 @@ const errorCodes = {
   invalidTenantFeature: "0031",
   certifiedDiscreteAttributeAlreadyAssigned: "0032",
   tenantNotFoundByRemoteId: "0033",
-  attributeAlreadyVerified: "0034",
+  certifiedDiscreteAttributeRevoked: "0034",
+  attributeAlreadyVerified: "0035",
 };
 
 export type ErrorCodes = keyof typeof errorCodes;
@@ -269,6 +270,16 @@ export function attributeAlreadyVerified(
   });
 }
 
+export function certifiedDiscreteAttributeRevoked(
+  tenantId: TenantId,
+  attributeId: AttributeId
+): ApiError<ErrorCodes> {
+  return new ApiError({
+    detail: `Certified Discrete Attribute ${attributeId} is revoked for tenant ${tenantId} and cannot be updated`,
+    code: "certifiedDiscreteAttributeRevoked",
+    title: "Certified discrete attribute revoked",
+  });
+}
 export function mailNotFound(mailId: string): ApiError<ErrorCodes> {
   return new ApiError({
     detail: `Mail ${mailId} not found`,
