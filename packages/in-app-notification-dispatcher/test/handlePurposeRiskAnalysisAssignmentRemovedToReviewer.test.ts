@@ -99,7 +99,8 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
         data: {
           purpose: toPurposeV2({
             ...purpose,
-            riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesAdminSigns,
+            riskAnalysisReviewMode:
+              riskAnalysisReviewMode.adminWritesAdminSigns,
             reviewerWorkflow: undefined,
           }),
           previousRiskAnalysisReviewMode:
@@ -123,7 +124,8 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
         data: {
           purpose: toPurposeV2({
             ...purpose,
-            riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+            riskAnalysisReviewMode:
+              riskAnalysisReviewMode.adminWritesReviewerSigns,
             reviewerWorkflow: {
               reviewers: [{ id: unrelatedUserId }],
               signingState: riskAnalysisSigningState.draft,
@@ -151,7 +153,8 @@ describe("handlePurposeRiskAnalysisAssignmentRemovedToReviewer", () => {
         data: {
           purpose: toPurposeV2({
             ...purpose,
-            riskAnalysisReviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+            riskAnalysisReviewMode:
+              riskAnalysisReviewMode.reviewerWritesReviewerSigns,
             reviewerWorkflow: {
               reviewers: [{ id: unrelatedUserId }],
               signingState: riskAnalysisSigningState.assigned,
