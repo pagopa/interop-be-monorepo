@@ -30,7 +30,7 @@ packages/[process-name]-process
 From the repository root, execute:
 
 ```bash
-cd packages/error-messages-generator && npx tsx src/readRouter.ts
+cd packages/error-messages-generator && npx tsx src/readRouter.ts --process [process-name]
 ```
 
 Capture the complete JSON output from stdout. If the command fails, stop and report the command and relevant error;

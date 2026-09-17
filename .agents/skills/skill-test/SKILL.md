@@ -39,8 +39,18 @@ Before analysing an endpoint, obtain its complete object from the `error-message
 repository root, run:
 
 ```bash
-cd packages/error-messages-generator && npx tsx src/readRouter.ts
+cd packages/error-messages-generator && npx tsx src/readRouter.ts --process [process-name]
 ```
+
+If you need to, you can also add a parameter `--output [output-path]` to specify where the JSON output should be written.
+
+If a limit and offset is also specified, pass the two as parameters:
+
+```bash
+cd packages/error-messages-generator && npx tsx src/readRouter.ts --process [process-name] --limit [N] --offset [M]
+```
+
+To help you achieve your goal, you can use a ./tmp directory to store the necessary files temporarily. The folder is inside `interop-be-monorepo` under `./tmp`.
 
 Use `output[process-name]` from the JSON output and preserve its router order. The generator output is authoritative
 for the endpoint metadata and, in particular, for the `Error` and `Status` columns. Each
@@ -79,10 +89,10 @@ Service: `createEService` → `innerCreateEService`. Mapper: `createEServiceErro
 
 - `POST /bff/eservices`
 
-| Error | Status | When it happens                                                                                                   | Reachable from the FE?                                                                                                                                                                    | Steps to reproduce (UI)                                                                                                                                                                                              |
-| ----- | ------ | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `createEServiceNameConflict` | 409 | The requester (producer) already owns an e-service with the same name (`assertEServiceNameAvailableForProducer`). | **CAN HAPPEN** — the name is free text, the FE has no guard on it.                                                                                                                        | **Data precondition:** you are `admin` of tenant A; A already owns an e-service named `N`.<br>1. Go to `/erogazione/e-service/crea/`.<br>2. Type `N` in _Nome dell’e-service_.<br>3. Click _Salva bozza e prosegui_. |
-| `organizationNotAllowedToProduce` | 403 | The requester tenant's `externalId.origin` is not in `config.producerAllowedOrigins`. | Cannot happen — `AuthGuard` blocks all `provider` routes unless `isOrganizationAllowedToProduce` (or `isSupport`, but `support` is not in the `authLevels` of `PROVIDE_ESERVICE_CREATE`). | — |
+| Error                             | Status | When it happens                                                                                                   | Reachable from the FE?                                                                                                                                                                    | Steps to reproduce (UI)                                                                                                                                                                                              | Resolution steps                                        |
+| --------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | --- |
+| `createEServiceNameConflict`      | 409    | The requester (producer) already owns an e-service with the same name (`assertEServiceNameAvailableForProducer`). | **CAN HAPPEN** — the name is free text, the FE has no guard on it.                                                                                                                        | **Data precondition:** you are `admin` of tenant A; A already owns an e-service named `N`.<br>1. Go to `/erogazione/e-service/crea/`.<br>2. Type `N` in _Nome dell’e-service_.<br>3. Click _Salva bozza e prosegui_. | 🟢 Easy resolution <br />1. The user refreshes the page |
+| `organizationNotAllowedToProduce` | 403    | The requester tenant's `externalId.origin` is not in `config.producerAllowedOrigins`.                             | Cannot happen — `AuthGuard` blocks all `provider` routes unless `isOrganizationAllowedToProduce` (or `isSupport`, but `support` is not in the `authLevels` of `PROVIDE_ESERVICE_CREATE`). | —                                                                                                                                                                                                                    | —                                                       |     |
 ```
 
 Rules for the cells:
@@ -107,7 +117,7 @@ hides the control, the guard, the normalisation — never just "the UI prevents 
 The reachability verdict claims the error is reachable; this column is the proof. Write it as something a
 tester can execute without reading any code.
 
-**Data precondition** — the state the environment must be in *before* step 1: the requester's role and tenant,
+**Data precondition** — the state the environment must be in _before_ step 1: the requester's role and tenant,
 the tenants and delegations involved, the state of the e-service / agreement / purpose / descriptor, and any
 feature flag. Name tenants `A`, `B`, `C` and reuse them in the steps. If no fixture is needed because the
 first step creates it, say so explicitly rather than omitting the line.
@@ -126,6 +136,37 @@ cell with a paraphrase of the mapper.
 Add a `>` note under a table for every error thrown inside the flow but **absent from the mapper**. Work out
 its real status with the fallback rule below before describing it — unmapped does not automatically mean 500.
 
+If you are not entirely sure whether the error can actually happen through the UI, reconsider the `CAN HAPPEN` verdict rather than inventing reproduction steps, erring on the side of `CAN HAPPEN`.
+
+## Resolution steps
+
+Each documented error must have clear and actionable resolution steps.
+
+The resolution steps should include:
+
+```text
+🟢 Easy resolution
+1. ...
+2. ...
+3. ...
+```
+
+For instance, if a resolution step involves changing a configuration, provide the exact configuration key and value to be modified; if a resolution steps involves simply reloading the page, specify that clearly.
+
+There may be some cases where no resolution is possible; in such cases, clearly state the reason why a resolution cannot be provided.
+
+Provide also a level of difficulty for the resolution as a whole:
+
+```text
+🟢 Easy resolution
+🟡 Medium resolution
+🔴 Impossible resolution
+```
+
+Where Easy would be for simply reloading the page, for instance; Medium would be for more involved steps (like changing configuration settings or updating input fields); Impossible would be when no resolution is possible and can only be solved by external intervention (e.g., contacting support or waiting for a backend fix).
+
+These steps must be present only for errors that can actually occur; do not document impossible errors except to mark them as such.
+
 ## Procedure
 
 1. **Generator output** — take the endpoint object from `output[process-name]`; it is authoritative for the
@@ -140,8 +181,8 @@ its real status with the fallback rule below before describing it — unmapped d
 4. **Frontend** — only if the endpoint is reachable from the UI. Trace in order:
    `route authLevels` → `AuthGuard` → the action that triggers the call (hidden? `disabled`?) → the form
    (field normalisation, forced values) → **the BFF**. The BFF matters twice: it may inject values the FE never
-   sends (`toCatalogCreateEServiceSeed` hardcodes the descriptor seed), and it may run the *same validation
-   first* and fail with its own error, making the downstream one unreachable (`retrieveEserviceDescriptor`
+   sends (`toCatalogCreateEServiceSeed` hardcodes the descriptor seed), and it may run the _same validation
+   first_ and fail with its own error, making the downstream one unreachable (`retrieveEserviceDescriptor`
    throws the BFF's own `eserviceDescriptorNotFound` before catalog is called).
    To find the call sites: grep the operation name in the FE's `api.generatedTypes.ts`, then the matching
    hook in `*.mutations.ts` / `*.queries.ts`, then that hook's usages.
@@ -155,29 +196,28 @@ When a service mapper returns 500 (via `.otherwise()`, an explicit 500 arm, or s
 `makeApiProblemBuilder` re-runs `defaultCommonErrorMapper` on the error code. `defaultCommonErrorMapper`
 recognises **common** codes only:
 
-| Code | Status |
-| --- | --- |
-| `badRequestError`, `invalidPdfSignatureError`, `invalidFileUploadError` | 400 |
-| `tokenVerificationFailed` | 401 |
-| `unauthorizedError`, `operationForbidden` | 403 |
-| `contentTooLargeError` | 413 |
-| `tooManyRequestsError` | 429 |
-| `featureFlagNotEnabled` | 501 |
-| anything else — including **every service-specific code** | 500 |
+| Code                                                                    | Status |
+| ----------------------------------------------------------------------- | ------ |
+| `badRequestError`, `invalidPdfSignatureError`, `invalidFileUploadError` | 400    |
+| `tokenVerificationFailed`                                               | 401    |
+| `unauthorizedError`, `operationForbidden`                               | 403    |
+| `contentTooLargeError`                                                  | 413    |
+| `tooManyRequestsError`                                                  | 429    |
+| `featureFlagNotEnabled`                                                 | 501    |
+| anything else — including **every service-specific code**               | 500    |
 
-So: an unmapped *service-specific* error is really a 500 and is worth reporting. An unmapped *common* error is
-not — `operationForbidden` returns 403 whether or not the mapper lists it, and `featureFlagNotEnabled` returns
-501. Check which kind you are looking at before writing the note.
+So: an unmapped _service-specific_ error is really a 500 and is worth reporting. An unmapped _common_ error is
+not — `operationForbidden` returns 403 whether or not the mapper lists it, and `featureFlagNotEnabled` returns 501. Check which kind you are looking at before writing the note.
 
 ## Common Mistakes
 
-| Mistake | Consequence |
-| --- | --- |
-| Documenting a generator error entry without finding its throw site | Rows describing behaviour that cannot occur. Dead entries are per-mapper, so re-check for every endpoint |
-| Assuming an unmapped error is a 500 | Wrong status for every common code. See the fallback section |
-| Writing `Cannot happen` without naming what prevents it | Unverifiable rows. Name the component, guard or normalisation |
-| Writing repro steps from component prop names | Labels that do not exist in the product. `nameField` renders as *Nome dell'e-service* — read `src/static/locales/it/*.json`, and mind the curly apostrophe |
-| Assuming the FE sends what the API type declares | The BFF fills in fields (e.g. `toCatalogCreateEServiceSeed` hardcodes `dailyCallsPerConsumer: 1`, `dailyCallsTotal: 10`), which neutralises whole validations |
+| Mistake                                                            | Consequence                                                                                                                                                   |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Documenting a generator error entry without finding its throw site | Rows describing behaviour that cannot occur. Dead entries are per-mapper, so re-check for every endpoint                                                      |
+| Assuming an unmapped error is a 500                                | Wrong status for every common code. See the fallback section                                                                                                  |
+| Writing `Cannot happen` without naming what prevents it            | Unverifiable rows. Name the component, guard or normalisation                                                                                                 |
+| Writing repro steps from component prop names                      | Labels that do not exist in the product. `nameField` renders as _Nome dell'e-service_ — read `src/static/locales/it/*.json`, and mind the curly apostrophe    |
+| Assuming the FE sends what the API type declares                   | The BFF fills in fields (e.g. `toCatalogCreateEServiceSeed` hardcodes `dailyCallsPerConsumer: 1`, `dailyCallsTotal: 10`), which neutralises whole validations |
 
 ## Verification Before Handing Over
 
@@ -188,4 +228,4 @@ not — `operationForbidden` returns 403 whether or not the mapper lists it, and
 - Each `CAN HAPPEN` has executable steps with a data precondition; each `Cannot happen` has `—`.
 - UI labels in the steps were read from the locale files, not invented from component names.
 - Unmapped errors were checked against `defaultCommonErrorMapper` before being called 500s.
-| `organizationNotAllowedToProduce` | 403 | The requester tenant's `externalId.origin` is not in `config.producerAllowedOrigins`.                             | Cannot happen — `AuthGuard` blocks all `provider` routes unless `isOrganizationAllowedToProduce` (or `isSupport`, but `support` is not in the `authLevels` of `PROVIDE_ESERVICE_CREATE`). | —                                                                                                                                                                                                                    |
+  | `organizationNotAllowedToProduce` | 403 | The requester tenant's `externalId.origin` is not in `config.producerAllowedOrigins`. | Cannot happen — `AuthGuard` blocks all `provider` routes unless `isOrganizationAllowedToProduce` (or `isSupport`, but `support` is not in the `authLevels` of `PROVIDE_ESERVICE_CREATE`). | — |
