@@ -2,10 +2,15 @@ import { match } from "ts-pattern";
 import { findServiceFile, getRoutersAndOpenapiFiles } from "./filePaths";
 import { extractRouterEndpoints } from "./regexHelper";
 import { readFileSync } from "node:fs";
-import { BffEndpoint, Endpoint } from "../models";
+import {
+  BffEndpoint,
+  Endpoint,
+  FrontendServiceFileWithStackCalls,
+} from "../models";
 import { findOpenApiOperation, readOpenApiDocument } from "./openApi";
 import { findProcessCalls } from "./bffProcessCalls";
 import { findServiceMethodLocation } from "./serviceFinder";
+import { findFunctionCalls, findPathInService } from "./frontendFinder";
 
 // Process names: inAppNotificationManagerClient,
 //       selfcareV2InstitutionClient, selfcareV2UserClient,
@@ -62,6 +67,24 @@ export function readBffEndpoints(): BffEndpoint[] {
         serviceFile,
         serviceMethod,
       );
+      const frontendService = findPathInService(path, method);
+      let frontendServiceWithStackCalls:
+        | FrontendServiceFileWithStackCalls
+        | undefined;
+      if (frontendService) {
+        const calls = findFunctionCalls(
+          frontendService.file,
+          frontendService.functionName,
+        );
+        frontendServiceWithStackCalls = {
+          fileName: frontendService.file,
+          functionName: frontendService.functionName,
+          stackCalls: calls.map(({ file, lineNumber }) => ({
+            fileName: file,
+            lineNumber,
+          })),
+        };
+      }
       endpointsByRouter.push({
         method,
         path,
@@ -82,6 +105,7 @@ export function readBffEndpoints(): BffEndpoint[] {
             method,
           })),
         },
+        frontendServiceFile: frontendServiceWithStackCalls,
       });
     }
   }

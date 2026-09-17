@@ -96,6 +96,76 @@ export function getPackageFolder(): string {
   return resolve(dirname(__filename), "..", "..", "..");
 }
 
+export function getFrontendFolder(): string {
+  return join(getPackageFolder(), "..", "..", "pdnd-interop-frontend");
+}
+
+function frontendExists(): boolean {
+  return existsSync(getFrontendFolder());
+}
+
+export function getFrontendSrcFolder(): string {
+  return join(getFrontendFolder(), "src");
+}
+
+export function getFrontendApiFolder(): string {
+  return join(getFrontendSrcFolder(), "api");
+}
+
+export function getFrontendServiceFileList(): string[] {
+  if (!frontendExists()) {
+    return [];
+  }
+  const apiFolder = getFrontendApiFolder();
+  // iterate the folders
+  const serviceFiles: string[] = [];
+  const folders = readdirSync(apiFolder, { withFileTypes: true }).filter(
+    (entry) => entry.isDirectory(),
+  );
+
+  for (const folder of folders) {
+    const folderPath = join(apiFolder, folder.name);
+    const tsFiles = readdirSync(folderPath)
+      .filter((file) => file.endsWith("services.ts"))
+      .map((file) => join(folderPath, file));
+    serviceFiles.push(...tsFiles);
+  }
+
+  return serviceFiles;
+}
+
+export function getFrontendTypescriptFiles(): string[] {
+  if (!frontendExists()) {
+    return [];
+  }
+  const srcFolder = getFrontendSrcFolder();
+  const tsFiles: string[] = [];
+
+  function visit(folder: string): void {
+    const entries = readdirSync(folder, { withFileTypes: true });
+
+    for (const entry of entries) {
+      const fullPath = join(folder, entry.name);
+
+      if (entry.isDirectory()) {
+        visit(fullPath);
+        continue;
+      }
+
+      if (
+        entry.isFile() &&
+        (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx"))
+      ) {
+        tsFiles.push(fullPath);
+      }
+    }
+  }
+
+  visit(srcFolder);
+
+  return tsFiles;
+}
+
 export function getRoutersAndOpenapiFiles(processName: string) {
   const packagesFolder = getPackageFolder();
   const routerFolder = join(

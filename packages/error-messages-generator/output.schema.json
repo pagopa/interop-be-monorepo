@@ -181,9 +181,50 @@
         "service": {
           "$ref": "#/definitions/BffService",
           "description": "BFF service implementation associated with the route."
+        },
+        "frontendServiceFile": {
+          "$ref": "#/definitions/FrontendServiceFileWithStackCalls",
+          "description": "Frontend service file containing the most likely stack calls related to this BFF endpoint."
         }
       },
       "required": ["method", "path", "fileName", "openApi", "service"]
+    },
+    "FrontendStackCall": {
+      "type": "object",
+      "description": "A call from the frontend stack to a backend service, including the BFF endpoint and the target process endpoint.",
+      "properties": {
+        "fileName": {
+          "type": "string",
+          "description": "Source file where the frontend stack call is declared."
+        },
+        "lineNumber": {
+          "type": "integer",
+          "description": "Line number in the source file where the frontend stack call is declared."
+        }
+      },
+      "required": ["fileName", "lineNumber"]
+    },
+    "FrontendServiceFileWithStackCalls": {
+      "type": "object",
+      "description": "A frontend service file containing stack calls.",
+      "properties": {
+        "fileName": {
+          "type": "string",
+          "description": "Path to the frontend service file."
+        },
+        "functionName": {
+          "type": "string",
+          "description": "Name of the function in the frontend service file containing the call to the backend-for-frontend endpoint."
+        },
+        "stackCalls": {
+          "type": "array",
+          "description": "List of frontend stack calls found in the file.",
+          "items": {
+            "$ref": "#/definitions/FrontendStackCall"
+          }
+        }
+      },
+      "required": ["fileName", "functionName", "stackCalls"]
     },
     "Endpoint": {
       "type": "object",

@@ -41,6 +41,29 @@ export const BffService = z.object({
 
 export type BffService = z.infer<typeof BffService>;
 
+const FrontendServiceFile = z.object({
+  file: z.string(),
+  functionName: z.string(),
+});
+
+export type FrontendServiceFile = z.infer<typeof FrontendServiceFile>;
+export const FrontendStackCall = z.object({
+  fileName: z.string(),
+  lineNumber: z.number().int(),
+});
+
+export type FrontendStackCall = z.infer<typeof FrontendStackCall>;
+
+export const FrontendServiceFileWithStackCalls = z.object({
+  fileName: z.string(),
+  functionName: z.string(),
+  stackCalls: z.array(FrontendStackCall),
+});
+
+export type FrontendServiceFileWithStackCalls = z.infer<
+  typeof FrontendServiceFileWithStackCalls
+>;
+
 export const BffEndpoint = z.object({
   method: z.string(),
   path: z.string(),
@@ -51,6 +74,8 @@ export const BffEndpoint = z.object({
     fileName: z.string(),
   }),
   service: BffService,
+  frontendServiceFile: FrontendServiceFileWithStackCalls.optional(),
+  // frontendCallLocations: z.array(FrontendServiceFile),
 });
 
 export type BffEndpoint = z.infer<typeof BffEndpoint>;

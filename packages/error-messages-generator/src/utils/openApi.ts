@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { parse } from "yaml";
 import type { OpenApiDocument } from "../models";
 
-function normalizePath(path: string): string {
+export function normalizePath(path: string): string {
   return path
     .split("/")
     .map((segment) => {
@@ -13,6 +13,10 @@ function normalizePath(path: string): string {
 
       // {eServiceId}
       if (segment.startsWith("{") && segment.endsWith("}")) {
+        return "{}";
+      }
+
+      if (segment.startsWith("${") && segment.endsWith("}")) {
         return "{}";
       }
 
