@@ -157,7 +157,7 @@ async function addPurposeInReviewMode({
     eserviceId: mockEService.id,
     consumerId: mockTenant.id,
     riskAnalysisForm,
-    reviewMode: previousReviewMode,
+    riskAnalysisReviewMode: previousReviewMode,
     reviewerWorkflow: previousReviewerWorkflow(
       previousReviewMode,
       previousReviewers,
@@ -207,23 +207,28 @@ async function expectAssignmentEvent({
   const expectedPreviousReviewMode =
     previousReviewMode === undefined
       ? undefined
-      : toPurposeV2({ ...purpose, reviewMode: previousReviewMode }).reviewMode;
+      : toPurposeV2({ ...purpose, riskAnalysisReviewMode: previousReviewMode })
+          .riskAnalysisReviewMode;
   const expectedPurpose = {
     id: purpose.id,
-    ...(purpose.reviewMode === undefined
+    ...(purpose.riskAnalysisReviewMode === undefined
       ? {}
-      : { reviewMode: toPurposeV2(purpose).reviewMode }),
+      : {
+          riskAnalysisReviewMode: toPurposeV2(purpose).riskAnalysisReviewMode,
+        }),
   };
   const expectCommonPayload = (payload: {
-    purpose?: { id: string; reviewMode?: unknown };
+    purpose?: { id: string; riskAnalysisReviewMode?: unknown };
     removedReviewers: { id: string; sentToReviewerAt?: bigint }[];
-    previousReviewMode?: unknown;
+    previousRiskAnalysisReviewMode?: unknown;
   }): void => {
     expect(payload.purpose).toMatchObject(expectedPurpose);
     expect(payload.removedReviewers.map(({ id }) => id)).toEqual(
       removedReviewerIds
     );
-    expect(payload.previousReviewMode).toBe(expectedPreviousReviewMode);
+    expect(payload.previousRiskAnalysisReviewMode).toBe(
+      expectedPreviousReviewMode
+    );
   };
 
   match(type)
@@ -345,7 +350,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
@@ -432,14 +438,15 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
 
     expect(writtenPayload.purpose).toMatchObject({
       id: expectedPurpose.id,
-      reviewMode: toPurposeV2(expectedPurpose).reviewMode,
+      riskAnalysisReviewMode:
+        toPurposeV2(expectedPurpose).riskAnalysisReviewMode,
     });
     expect(writtenPayload.addedReviewers).toEqual(reviewerIds);
     expect(writtenPayload.removedReviewers).toEqual([]);
@@ -524,7 +531,8 @@ describe("assignRiskAnalysisReviewer", () => {
 
     const expectedPurpose: Purpose = {
       ...mockPurpose,
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: expectedReviewerWorkflow,
       updatedAt: new Date(),
     };
@@ -578,7 +586,8 @@ describe("assignRiskAnalysisReviewer", () => {
     const reviewerId = generateId<UserId>();
     const mockPurpose: Purpose = {
       ...getMockPurpose([getMockPurposeVersion()]),
-      reviewMode: riskAnalysisReviewMode.reviewerWritesReviewerSigns,
+      riskAnalysisReviewMode:
+        riskAnalysisReviewMode.reviewerWritesReviewerSigns,
       reviewerWorkflow: {
         reviewers: [{ id: reviewerId, sentToReviewerAt: undefined }],
         signingState: RiskAnalysisSigningState.Values.Signed,
@@ -897,7 +906,7 @@ describe("assignRiskAnalysisReviewer", () => {
           getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
         );
 
-      expect(updatedPurpose.reviewMode).toBe(requestedReviewMode);
+      expect(updatedPurpose.riskAnalysisReviewMode).toBe(requestedReviewMode);
       expect(updatedPurpose.riskAnalysisForm).toEqual(
         shouldResetForm ? undefined : riskAnalysisForm
       );
@@ -1005,22 +1014,26 @@ describe("assignRiskAnalysisReviewer", () => {
     },
   ])(
     "should not write any event when the same assignment is requested again ($reviewMode)",
-    async ({ reviewMode, previousReviewers, requestedReviewers }) => {
+    async ({
+      reviewMode: requestedReviewMode,
+      previousReviewers,
+      requestedReviewers,
+    }) => {
       const mockPurpose = await addPurposeInReviewMode({
-        previousReviewMode: reviewMode,
+        previousReviewMode: requestedReviewMode,
         previousReviewers,
       });
 
       const result = await purposeService.assignRiskAnalysisReviewer(
         mockPurpose.id,
         {
-          reviewMode,
+          reviewMode: requestedReviewMode,
           reviewerIds: requestedReviewers,
         },
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       );
 
-      expect(result.data.reviewMode).toBe(reviewMode);
+      expect(result.data.riskAnalysisReviewMode).toBe(requestedReviewMode);
       expect(
         result.data.reviewerWorkflow?.reviewers.map(
           (reviewer) => reviewer.id
@@ -1064,7 +1077,7 @@ describe("assignRiskAnalysisReviewer", () => {
         getMockContext({ authData: getMockAuthData(mockPurpose.consumerId) })
       );
 
-    expect(updatedPurpose.reviewMode).toEqual(
+    expect(updatedPurpose.riskAnalysisReviewMode).toEqual(
       riskAnalysisReviewMode.adminWritesAdminSigns
     );
     expect(

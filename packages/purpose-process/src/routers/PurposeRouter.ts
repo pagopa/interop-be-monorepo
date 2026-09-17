@@ -24,7 +24,7 @@ import {
 import {
   apiPurposeSignedRiskAnalisysToPurposeSignedRiskAnalisys,
   apiPurposeVersionStateToPurposeVersionState,
-  apiReviewModeToReviewMode,
+  apiRiskAnalysisReviewModeToRiskAnalysisReviewMode,
   purposeToApiPurpose,
   purposeVersionDocumentToApiPurposeVersionDocument,
   purposeVersionSignedDocumentToApiPurposeVersionSignedDocument,
@@ -532,7 +532,9 @@ const purposeRouter = (
           await purposeService.assignRiskAnalysisReviewer(
             unsafeBrandId(req.params.purposeId),
             {
-              reviewMode: apiReviewModeToReviewMode(req.body.reviewMode),
+              reviewMode: apiRiskAnalysisReviewModeToRiskAnalysisReviewMode(
+                req.body.reviewMode
+              ),
               reviewerIds: req.body.reviewerIds ?? [],
             },
             ctx
