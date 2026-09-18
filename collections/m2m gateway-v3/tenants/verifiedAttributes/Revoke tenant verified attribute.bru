@@ -5,13 +5,14 @@ meta {
 }
 
 delete {
-  url: {{host-m2m-gw-v3}}/tenants/:tenantId/verifiedAttributes/:attributeId?agreementId={{agreementId}}
+  url: {{host-m2m-gw-v3}}/tenants/:tenantId/verifiedAttributes/:attributeId?agreementId={{agreementId}}&delegationId={{delegationId}}
   body: none
   auth: none
 }
 
 params:query {
   agreementId: {{agreementId}}
+  delegationId: {{delegationId}}
 }
 
 params:path {

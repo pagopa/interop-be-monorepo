@@ -19,3 +19,10 @@ headers {
   Authorization: {{JWT}}
   X-Correlation-Id: {{correlation-id}}
 }
+
+body:json {
+  {
+    "agreementId": "{{agreementId}}",
+    "delegationId": "{{delegationId}}"
+  }
+}
