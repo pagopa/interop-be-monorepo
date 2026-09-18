@@ -397,6 +397,7 @@ export const verifyClientAssertionSignature = async (
     // Why:
     // - it's the same function we use to create the public key when adding it to the client
     // - jose throws an error in case of keys with missing trailing newline, while crypto does not
+    // Uploads are sanitized since PIN-5568, but older keys are immutable.
     // See keyImport.test.ts
     // See also Jose docs, it accepts crypto KeyObject as well: https://github.com/panva/jose/blob/main/docs/types/types.KeyLike.md
     const publicKey = createPublicKey({ key: key.publicKey });
