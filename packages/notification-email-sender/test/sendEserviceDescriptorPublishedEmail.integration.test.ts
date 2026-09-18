@@ -11,6 +11,7 @@ import {
   getMockTenantMail,
 } from "pagopa-interop-commons-test";
 import {
+  Agreement,
   AgreementId,
   Descriptor,
   EService,
@@ -71,7 +72,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     };
     await addOneEService(eservice);
 
-    const agreement1 = {
+    const agreement1: Agreement = {
       ...getMockAgreement(),
       id: generateId<AgreementId>(),
       descriptorId: descriptor.id,
@@ -80,7 +81,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
       state: agreementState.active,
     };
 
-    const agreement2 = {
+    const agreement2: Agreement = {
       ...getMockAgreement(),
       id: generateId<AgreementId>(),
       descriptorId: descriptor.id,
@@ -89,7 +90,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
       state: agreementState.suspended,
     };
 
-    const agreement3 = {
+    const agreement3: Agreement = {
       ...getMockAgreement(),
       id: generateId<AgreementId>(),
       descriptorId: descriptor.id,
@@ -98,7 +99,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
       state: agreementState.archived,
     };
 
-    const agreement4 = {
+    const agreement4: Agreement = {
       ...getMockAgreement(),
       id: generateId<AgreementId>(),
       descriptorId: descriptor.id,
@@ -231,7 +232,7 @@ describe("sendEserviceDescriptorPublishedEmail", () => {
     };
     await addOneEService(eservice);
 
-    const agreement1 = {
+    const agreement1: Agreement = {
       ...getMockAgreement(),
       id: generateId<AgreementId>(),
       descriptorId: descriptor.id,

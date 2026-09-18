@@ -11,6 +11,7 @@ import {
   ProducerKeychainKeyAddedV2,
   ProducerKeychainKeyDeletedV2,
   toProducerKeychainV2,
+  Key,
 } from "pagopa-interop-models";
 import { describe, expect, it } from "vitest";
 
@@ -28,9 +29,9 @@ describe("Events V2", () => {
 
   it("ProducerKeychainKeyAdded", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
-    const mockKey = {
+    const mockKey: Key = {
       ...getMockKey(),
-      producerKeychainId,
+
       encodedPem: base64Key,
     };
 
@@ -63,9 +64,9 @@ describe("Events V2", () => {
   });
   it("ProducerKeychainKeyDeleted", async () => {
     const producerKeychainId: ProducerKeychainId = generateId();
-    const mockKey = {
+    const mockKey: Key = {
+      // TODO REVIEW THIS CHANGE
       ...getMockKey(),
-      producerKeychainId,
       encodedPem: base64Key,
     };
 

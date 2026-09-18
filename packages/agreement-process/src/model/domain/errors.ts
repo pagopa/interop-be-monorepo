@@ -11,6 +11,7 @@ import {
   DelegationId,
 } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   missingCertifiedAttributesError: "0001",
   agreementSubmissionFailed: "0002",

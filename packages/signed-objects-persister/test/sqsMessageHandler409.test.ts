@@ -67,6 +67,7 @@ describe("sqsMessageHandler - S3 409 Conflict", () => {
       Body: JSON.stringify(sqsMessageBody),
     };
 
+    // eslint-disable-next-line interop/require-type-for-object
     const mockFileReference = { download: { url: "http://mock-url.com/file" } };
     const mockFileContent = Buffer.from("test content");
 

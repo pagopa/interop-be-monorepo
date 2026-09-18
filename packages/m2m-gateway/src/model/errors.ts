@@ -19,6 +19,7 @@ import {
   TenantId,
 } from "pagopa-interop-models";
 
+// eslint-disable-next-line interop/require-type-for-object
 const errorCodes = {
   missingMetadata: "0002",
   unexpectedDelegationKind: "0003",

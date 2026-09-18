@@ -67,6 +67,7 @@ const makeDb = (
   const updateChain = (): any => ({
     set: (s: Record<string, unknown>) => ({
       where: (_w: unknown) => {
+        // eslint-disable-next-line interop/require-type-for-object
         const op = {
           returning: async () => {
             updates.push({ set: s, returning: true });

@@ -9,6 +9,7 @@ export const allowedOrigins = ["IPA", "ANAC", "IVASS", "INFOCAMERE"];
 export const selfcareUpsertTenantMock = (): Promise<tenantApi.ResourceId> =>
   Promise.resolve({ id: "tenant-id" });
 
+// eslint-disable-next-line interop/require-type-for-object
 export const correctInstitutionEventField = {
   institutionType: "PA",
   description: "Somewhere",
@@ -31,6 +32,7 @@ export const correctInstitutionEventField = {
   },
 };
 
+// eslint-disable-next-line interop/require-type-for-object
 export const correctEventPayload = {
   id: "cfb4f57f-8d93-4e30-8c87-37a29c3c6dac",
   institutionId: "b730fbb7-fffe-4090-a3ea-53ee7e07a4b9",

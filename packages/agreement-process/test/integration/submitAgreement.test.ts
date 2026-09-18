@@ -30,9 +30,11 @@ import {
   AgreementSubmittedV2,
   AgreementV2,
   Attribute,
+  Descriptor,
   DescriptorId,
   DescriptorState,
   EServiceId,
+  Tenant,
   TenantAttribute,
   TenantId,
   UserId,
@@ -920,7 +922,7 @@ describe("submit agreement", () => {
     "Requester === %s, should submit agreement with state ACTIVE when producer is equal to consumer, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements",
     async (requesterIs) => {
       const producerAndConsumerId = generateId<TenantId>();
-      const producer = {
+      const producer: Tenant = {
         ...getMockTenant(producerAndConsumerId),
         mails: [
           {
@@ -933,7 +935,7 @@ describe("submit agreement", () => {
       };
       const consumerNotesText = "This is a test";
 
-      const producerAndConsumer = {
+      const producerAndConsumer: Tenant = {
         ...getMockTenant(producerAndConsumerId),
         mails: [
           {
@@ -945,7 +947,7 @@ describe("submit agreement", () => {
         ],
       };
 
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
         attributes: {
@@ -1083,7 +1085,7 @@ describe("submit agreement", () => {
           const declaredAttribute = getMockAttribute(attributeKind.declared);
           const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
-          const descriptor = {
+          const descriptor: Descriptor = {
             ...getMockDescriptor(),
             state: descriptorState.published,
             attributes: {
@@ -1147,7 +1149,7 @@ describe("submit agreement", () => {
             delegationId: consumerDelegation?.id,
           };
 
-          const producerAndConsumer = {
+          const producerAndConsumer: Tenant = {
             ...getMockTenant(producerAndConsumerId, [
               validVerifiedTenantAttribute,
               validCertifiedTenantAttribute,
@@ -1203,7 +1205,7 @@ describe("submit agreement", () => {
               payload: actualAgreementData.data,
             }).agreement!;
 
-          const expectedAgreement = {
+          const expectedAgreement: Agreement = {
             ...agreement,
             state: agreementState.active,
             consumerNotes: consumerNotesText,
@@ -1256,7 +1258,7 @@ describe("submit agreement", () => {
     "Requester === %s, should submit agreement contract with new state ACTIVE when producer and consumer are different, and generate an AgreementActivated event and AgreementArchivedByUpgrade for related agreements",
     async (requesterIs) => {
       const consumerId = generateId<TenantId>();
-      const producer = {
+      const producer: Tenant = {
         ...getMockTenant(consumerId),
         mails: [
           {
@@ -1358,7 +1360,7 @@ describe("submit agreement", () => {
       // https://pagopa.atlassian.net/browse/IMN-623
       expect(submitAgreementResponse.data.contract).not.toBeDefined();
 
-      const expectedAgreement = {
+      const expectedAgreement: Agreement = {
         ...agreement,
         state: agreementState.active,
         consumerNotes: consumerNotesText,
@@ -1595,7 +1597,7 @@ describe("submit agreement", () => {
       const declaredAttribute = getMockAttribute(attributeKind.declared);
       const verifiedAttribute = getMockAttribute(attributeKind.verified);
 
-      const descriptor = {
+      const descriptor: Descriptor = {
         ...getMockDescriptor(),
         state: descriptorState.published,
         agreementApprovalPolicy: agreementApprovalPolicy.manual,
@@ -1707,7 +1709,7 @@ describe("submit agreement", () => {
 
       expect(submitAgreementResponse.data.contract).not.toBeDefined();
 
-      const expectedAgreement = {
+      const expectedAgreement: Agreement = {
         ...agreement,
         state: agreementState.pending,
         consumerNotes: consumerNotesText,
@@ -1850,7 +1852,7 @@ describe("submit agreement", () => {
       expect(submitAgreementResponse.data.contract).not.toBeDefined();
       expect(uploadedFiles.length).toEqual(0);
 
-      const expectedAgreement = {
+      const expectedAgreement: Agreement = {
         ...agreement,
         state: agreementState.pending,
         consumerNotes: consumerNotesText,
@@ -1909,7 +1911,7 @@ describe("submit agreement", () => {
             const declaredAttribute = getMockAttribute("Declared");
             const certifiedAttribute = getMockAttribute("Certified");
 
-            const descriptor = {
+            const descriptor: Descriptor = {
               ...getMockDescriptor(),
               state: descriptorState.published,
               attributes: {
@@ -1960,7 +1962,7 @@ describe("submit agreement", () => {
               delegationId: consumerDelegation?.id,
             };
 
-            const producerAndConsumer = {
+            const producerAndConsumer: Tenant = {
               ...getMockTenant(producerAndConsumerId, [
                 validVerifiedTenantAttribute,
                 validCertifiedTenantAttribute,
@@ -2064,7 +2066,7 @@ describe("submit agreement", () => {
             const declaredAttribute = getMockAttribute("Declared");
             const certifiedAttribute = getMockAttribute("Certified");
 
-            const descriptor = {
+            const descriptor: Descriptor = {
               ...getMockDescriptor(),
               state: descriptorState.published,
               attributes: {
@@ -2131,7 +2133,7 @@ describe("submit agreement", () => {
               delegationId: consumerDelegation?.id,
             };
 
-            const producerAndConsumer = {
+            const producerAndConsumer: Tenant = {
               ...getMockTenant(producerAndConsumerId, [
                 validVerifiedTenantAttribute,
                 validCertifiedTenantAttribute,
@@ -2243,7 +2245,7 @@ describe("submit agreement", () => {
             const declaredAttribute = getMockAttribute("Declared");
             const certifiedAttribute = getMockAttribute("Certified");
 
-            const descriptor = {
+            const descriptor: Descriptor = {
               ...getMockDescriptor(),
               state: descriptorState.published,
               agreementApprovalPolicy: agreementApprovalPolicy.automatic,
@@ -2295,7 +2297,7 @@ describe("submit agreement", () => {
               delegationId: consumerDelegation?.id,
             };
 
-            const consumer = {
+            const consumer: Tenant = {
               ...getMockTenant(consumerId, [
                 validVerifiedTenantAttribute,
                 validCertifiedTenantAttribute,
@@ -2392,7 +2394,7 @@ describe("submit agreement", () => {
             const declaredAttribute = getMockAttribute("Declared");
             const certifiedAttribute = getMockAttribute("Certified");
 
-            const descriptor = {
+            const descriptor: Descriptor = {
               ...getMockDescriptor(),
               state: descriptorState.published,
               agreementApprovalPolicy: agreementApprovalPolicy.manual,
@@ -2444,7 +2446,7 @@ describe("submit agreement", () => {
               delegationId: consumerDelegation?.id,
             };
 
-            const consumer = {
+            const consumer: Tenant = {
               ...getMockTenant(consumerId, [
                 validVerifiedTenantAttribute,
                 validCertifiedTenantAttribute,
