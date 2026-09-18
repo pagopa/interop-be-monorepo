@@ -232,11 +232,31 @@ describe("delete eserviceTemplate", () => {
     ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
   });
 
-  it("should throw operationForbidden if the requester is not the creator", async () => {
+  it("should throw eserviceTemplateNotFound if the requester is not the creator and the eserviceTemplate has only draft versions", async () => {
     await addOneEServiceTemplate(mockEServiceTemplate);
-    expect(
+    await expect(
       eserviceTemplateService.deleteEServiceTemplate(
         mockEServiceTemplate.id,
+        getMockContext({})
+      )
+    ).rejects.toThrowError(eserviceTemplateNotFound(mockEServiceTemplate.id));
+  });
+
+  it("should throw operationForbidden if the requester is not the creator and the eserviceTemplate has published versions", async () => {
+    const eserviceTemplate: EServiceTemplate = {
+      ...getMockEServiceTemplate(),
+      versions: [
+        {
+          ...getMockEServiceTemplateVersion(),
+          state: eserviceTemplateVersionState.published,
+          publishedAt: new Date(),
+        },
+      ],
+    };
+    await addOneEServiceTemplate(eserviceTemplate);
+    await expect(
+      eserviceTemplateService.deleteEServiceTemplate(
+        eserviceTemplate.id,
         getMockContext({})
       )
     ).rejects.toThrowError(operationForbidden);
