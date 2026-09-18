@@ -322,3 +322,13 @@ message EServiceDescriptorArchivingRequestCanceledByRevokedDelegationV2 {
   string descriptorId = 1;
   EServiceV2 eservice = 2;
 }
+
+message EServicePendingDescriptorDeletedByRevokedDelegationV2 {
+  string descriptorId = 1;
+  EServiceV2 eservice = 2;
+}
+
+message EServiceDeletedByRevokedDelegationV2 {
+  EServiceV2 eservice = 2;
+}
+

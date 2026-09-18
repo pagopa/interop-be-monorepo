@@ -100,7 +100,9 @@ export async function handleCatalogMessageV2(
             "EServiceArchivingRequestCanceledByRevokedDelegation",
             "EServiceDescriptorArchivingRequestCanceledByRevokedDelegation",
             "MaintenanceEServicePersonalDataFlagReset",
-            "MaintenanceEServiceDescriptorUnarchived"
+            "MaintenanceEServiceDescriptorUnarchived",
+            "EServicePendingDescriptorDeletedByRevokedDelegation",
+            "EServiceDeletedByRevokedDelegation"
           ),
         },
         (msg) => {

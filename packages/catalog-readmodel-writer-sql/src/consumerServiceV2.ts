@@ -85,7 +85,9 @@ export async function handleMessageV2(
           "MaintenanceEServicePersonalDataFlagReset",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
           "EServiceDescriptorAsyncExchangeCallbackInterfaceDeleted",
-          "MaintenanceEServiceDescriptorUnarchived"
+          "MaintenanceEServiceDescriptorUnarchived",
+          "EServicePendingDescriptorDeletedByRevokedDelegation",
+          "EServiceDeletedByRevokedDelegation"
         ),
       },
       async (message) => {

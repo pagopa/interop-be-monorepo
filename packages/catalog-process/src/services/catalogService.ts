@@ -196,6 +196,8 @@ import {
   toCreateEventEServiceDescriptorArchivingRequestApprovedByDelegator,
   toCreateEventEServiceArchivingRequestCanceledByDelegate,
   toCreateEventEServiceDescriptorArchivingRequestCanceledByDelegate,
+  toCreateEventEServicePendingDescriptorDeletedOnRevoke,
+  toCreateEventEServiceDeletedOnRevoke,
 } from "../model/domain/toEvent.js";
 import {
   appendArchivingRequest,
@@ -266,6 +268,7 @@ import {
   assertDelegatedDescriptorHasAtLeastOneArchivingRequests,
   assertDelegatedDescriptorHasActiveArchivingRequests,
   assertDelegatedArchivingRequestDelegationIsStillValid,
+  assertDescriptorIsInDraftOrWaitingForApprovalState,
 } from "./validators.js";
 
 const retrieveEService = async (
@@ -2493,6 +2496,52 @@ export function catalogServiceBuilder(
             );
 
       await repository.createEvent(event);
+    },
+    async internalDeleteDelegatedPendingDescriptor(
+      eserviceId: EServiceId,
+      descriptorId: DescriptorId,
+      { correlationId, logger }: WithLogger<AppContext<InternalAuthData>>
+    ): Promise<void> {
+      logger.info(
+        `Internal deleting delegated pending descriptor ${descriptorId} for EService ${eserviceId}`
+      );
+
+      const eservice = await retrieveEService(eserviceId, readModelService);
+      const descriptor = retrieveDescriptor(descriptorId, eservice);
+
+      assertDescriptorIsInDraftOrWaitingForApprovalState(descriptor);
+
+      const eserviceAfterDescriptorDeletion =
+        await deleteInactiveDescriptorLogic(
+          eservice.data,
+          descriptor,
+          fileManager,
+          logger
+        );
+
+      const descriptorDeletionEvent =
+        toCreateEventEServicePendingDescriptorDeletedOnRevoke(
+          eservice.metadata.version,
+          descriptorId,
+          eserviceAfterDescriptorDeletion,
+          correlationId
+        );
+
+      if (eserviceAfterDescriptorDeletion.descriptors.length === 0) {
+        const eserviceDeletionEvent = toCreateEventEServiceDeletedOnRevoke(
+          eservice.metadata.version + 1,
+          eserviceAfterDescriptorDeletion,
+          correlationId
+        );
+        await repository.createEvents([
+          descriptorDeletionEvent,
+          eserviceDeletionEvent,
+        ]);
+
+        return undefined;
+      } else {
+        await repository.createEvent(descriptorDeletionEvent);
+      }
     },
     async internalDeleteDelegatedArchivingRequest(
       eserviceId: EServiceId,
