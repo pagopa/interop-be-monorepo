@@ -11,6 +11,7 @@ import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQ
 import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
 import { handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForWritingAndSigningToReviewer.js";
 import { handlePurposeRiskAnalysisAssignmentRemovedToReviewer } from "./handlePurposeRiskAnalysisAssignmentRemovedToReviewer.js";
+import { handlePurposeRiskAnalysisSignedToAdmin } from "./handlePurposeRiskAnalysisSignedToAdmin.js";
 import { handlePurposeRiskAnalysisSignedToReviewer } from "./handlePurposeRiskAnalysisSignedToReviewer.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
@@ -180,12 +181,20 @@ export async function handlePurposeEvent(
         event.type
       )
     )
-    .with({ type: "PurposeRiskAnalysisSigned" }, ({ data: { purpose } }) =>
-      handlePurposeRiskAnalysisSignedToReviewer(
-        purpose,
-        logger,
-        readModelService
-      )
+    .with(
+      { type: "PurposeRiskAnalysisSigned" },
+      async ({ data: { purpose } }) => [
+        ...(await handlePurposeRiskAnalysisSignedToReviewer(
+          purpose,
+          logger,
+          readModelService
+        )),
+        ...(await handlePurposeRiskAnalysisSignedToAdmin(
+          purpose,
+          logger,
+          readModelService
+        )),
+      ]
     )
     .exhaustive();
 }
