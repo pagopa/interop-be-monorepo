@@ -4,10 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 
-function resolveImportPath(
-  importPath: string,
-  routerFileName: string
-): string {
+function resolveImportPath(importPath: string, routerFileName: string): string {
   const resolved = resolve(dirname(routerFileName), importPath);
 
   const candidates = [
