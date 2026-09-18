@@ -164,11 +164,16 @@ export const authenticationDPoPMiddleware: (
               "dpopProofSignatureValidationFailed",
               "dpopProofJtiAlreadyUsed",
               "dpopTokenBindingFailed",
-              () => 401
+              () => constants.HTTP_STATUS_UNAUTHORIZED
             )
-            .with("operationForbidden", () => 403)
-            .with("missingHeader", "badDPoPToken", "invalidClaim", () => 400)
-            .otherwise(() => 500),
+            .with("operationForbidden", () => constants.HTTP_STATUS_FORBIDDEN)
+            .with(
+              "missingHeader",
+              "badDPoPToken",
+              "invalidClaim",
+              () => constants.HTTP_STATUS_BAD_REQUEST
+            )
+            .otherwise(() => constants.HTTP_STATUS_INTERNAL_SERVER_ERROR),
         ctx
       );
       return res.status(problem.status).send(problem);
