@@ -16,6 +16,10 @@ Then install the dependencies with
 pnpm install
 ```
 
+For the complete frontend-oriented local backend, including persistent
+infrastructure, seed data, local tokens, and the Selfcare mock, see the
+[frontend local runtime guide](docs/frontend-local-runtime.md).
+
 ## How to run a single service in watch mode
 
 ```
