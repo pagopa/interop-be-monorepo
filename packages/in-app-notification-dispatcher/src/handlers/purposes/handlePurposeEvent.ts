@@ -1,5 +1,6 @@
 import { Logger } from "pagopa-interop-commons";
 import { PurposeEventEnvelope, NewNotification } from "pagopa-interop-models";
+import { getRiskAnalysisAssignmentRecipients } from "pagopa-interop-notification-commons";
 import { P, match } from "ts-pattern";
 
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
@@ -7,6 +8,7 @@ import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivat
 import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToConsumer.js";
 import { handlePurposeQuotaAdjustmentRequestToProducer } from "./handlePurposeQuotaAdjustmentRequestToProducer.js";
 import { handlePurposeQuotaAdjustmentResponseToConsumer } from "./handlePurposeQuotaAdjustmentResponseToConsumer.js";
+import { handlePurposeRiskAnalysisAssignedForSigningToReviewer } from "./handlePurposeRiskAnalysisAssignedForSigningToReviewer.js";
 import { handlePurposeStatusChangedToProducer } from "./handlePurposeStatusChangedToProducer.js";
 import { handlePurposeSuspendedUnsuspendedToConsumer } from "./handlePurposeSuspendedUnsuspendedToConsumer.js";
 
@@ -20,6 +22,24 @@ export async function handlePurposeEvent(
       logger.info(`Skipping V1 event ${decodedMessage.type} message`);
       return [];
     })
+    .with({ type: "PurposeRiskAnalysisWorkflowCreated" }, (event) =>
+      handlePurposeRiskAnalysisAssignedForSigningToReviewer(
+        event.data.purpose,
+        getRiskAnalysisAssignmentRecipients(event).signingReviewerIds,
+        logger,
+        readModelService,
+        event.type
+      )
+    )
+    .with({ type: "PurposeRiskAnalysisSubmitted" }, (event) =>
+      handlePurposeRiskAnalysisAssignedForSigningToReviewer(
+        event.data.purpose,
+        getRiskAnalysisAssignmentRecipients(event).signingReviewerIds,
+        logger,
+        readModelService,
+        event.type
+      )
+    )
     .with(
       {
         type: P.union(
@@ -109,10 +129,8 @@ export async function handlePurposeEvent(
           "RiskAnalysisDocumentGenerated",
           "RiskAnalysisSignedDocumentGenerated",
           "MaintenancePurposeRiskAnalysisSetTenantKind",
-          "PurposeRiskAnalysisWorkflowCreated",
           "PurposeRiskAnalysisAssigned",
           "PurposeRiskAnalysisSelfAssigned",
-          "PurposeRiskAnalysisSubmitted",
           "PurposeRiskAnalysisSigned",
           "PurposeRiskAnalysisRejected",
           "PurposeRiskAnalysisFormEdited"
