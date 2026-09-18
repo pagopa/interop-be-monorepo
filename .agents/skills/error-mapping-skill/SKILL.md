@@ -35,11 +35,11 @@ column was omitted for lack of the repository.
 1. The process package name.
 2. A list of endpoints, or "the first N endpoints in router order".
 
-Before analysing an endpoint, obtain its complete object from the `error-messages-generator` package. From the
+Before analysing an endpoint, obtain its complete object from the `tool-mapping-error-bff-process` package. From the
 repository root, run:
 
 ```bash
-cd packages/error-messages-generator && npx tsx src/readRouter.ts --process [process-name] --include-frontend
+cd packages/tool-mapping-error-bff-process && npx tsx src/index.ts --process [process-name] --include-frontend
 ```
 
 If you need to, you can also add a parameter `--output [output-path]` to specify where the JSON output should be written.
@@ -47,10 +47,14 @@ If you need to, you can also add a parameter `--output [output-path]` to specify
 If a limit and offset is also specified, pass the two as parameters:
 
 ```bash
-cd packages/error-messages-generator && npx tsx src/readRouter.ts --process [process-name] --include-frontend --limit [N] --offset [M]
+cd packages/tool-mapping-error-bff-process && npx tsx src/index.ts --process [process-name] --include-frontend --limit [N] --offset [M]
 ```
 
-To help you achieve your goal, you can use a ./tmp directory to store the necessary files temporarily. The folder is inside `interop-be-monorepo` under `./tmp`.
+To help you achieve your goal, store the generator's JSON output inside `./tmp/endpoint-map.json` (inside `interop-be-monorepo`). 
+
+**CRITICAL Execution Strategy (Batching):** 
+To prevent context saturation and avoid false positive UI hallucinations when processing processes with many endpoints, **do NOT analyze all endpoints in a single mental pass**. 
+Process the endpoints found in `./tmp/endpoint-map.json` in **batches of 3 to 5 endpoints at a time**.
 
 Use `output[process-name]` from the JSON output and preserve its router order. The generator output is authoritative
 for the endpoint metadata and, in particular, for the `Error` and `Status` columns. Each
@@ -79,6 +83,14 @@ list them once in a note at the top, do not give them a section. Section numbers
 documented sections only — skipped endpoints do not consume a number.
 
 ## Output Contract
+
+Write or update:
+
+```text
+packages/[process-name]-process/ENDPOINT-ERRORS.md
+```
+
+Preserve unrelated existing sections, avoid duplicate endpoint sections, and keep sections in generator order.
 
 One section per endpoint. This is the target shape — match it exactly:
 
@@ -138,7 +150,11 @@ cell with a paraphrase of the mapper.
 Add a `>` note under a table for every error thrown inside the flow but **absent from the mapper**. Work out
 its real status with the fallback rule below before describing it — unmapped does not automatically mean 500.
 
-If you are not entirely sure whether the error can actually happen through the UI, reconsider the `CAN HAPPEN` verdict rather than inventing reproduction steps, erring on the side of `CAN HAPPEN`.
+If you are not entirely sure whether the error can actually happen through the UI (e.g. because the FE code is complex or ambiguous), mark it as **CAN HAPPEN (UNVERIFIED)**. 
+
+In the "Steps to reproduce" column:
+- DO NOT invent UI steps or assume form fields are editable without checking.
+- State explicitly what needs manual verification (e.g. "Unverified: check if component X enforces client-side validation on field Y").
 
 ## Resolution steps
 
@@ -171,26 +187,16 @@ These steps must be present only for errors that can actually occur; do not docu
 
 ## Procedure
 
-1. **Generator output** — take the endpoint object from `output[process-name]`; it is authoritative for the
-   method, path, roles, service, mapper name, every `mapper.errors[]` entry (`Error` / `Status` columns), and
-   every `bffEndpoints[]` entry (`### BFF endpoints` section: one `- METHOD path` line per item, in array order).
-2. **Service** — read the method top to bottom, plus every helper it calls: `inner*` functions, `validators.ts`,
-   `versionGenerator.ts`, and asserts imported from `pagopa-interop-commons` (e.g. `assertFeatureFlagEnabled`
-   in `packages/commons/src/config/featureFlagsConfig.ts`). For each generator error entry, find the throw site
-   and its guard condition. If there is no reachable throw site, keep the row, mark it **dead mapper entry**.
-3. **Reverse check** — every error the service can throw that is missing from the generator's error list goes
-   into the note, with the status the fallback rule actually produces (see below).
-4. **Frontend** — only if the endpoint is reachable from the UI. Trace in order:
-   `route authLevels` → `AuthGuard` → the action that triggers the call (hidden? `disabled`?) → the form
-   (field normalisation, forced values) → **the BFF**. The BFF matters twice: it may inject values the FE never
-   sends (`toCatalogCreateEServiceSeed` hardcodes the descriptor seed), and it may run the _same validation
-   first_ and fail with its own error, making the downstream one unreachable (`retrieveEserviceDescriptor`
-   throws the BFF's own `eserviceDescriptorNotFound` before catalog is called).
-   To find the call sites: grep the operation name in the FE's `api.generatedTypes.ts`, then the matching
-   hook in `*.mutations.ts` / `*.queries.ts`, then that hook's usages.
-5. **Repro** — for each `CAN HAPPEN` row, turn the trace from step 4 into the steps. Pick up the UI labels
-   from `src/static/locales/it/*.json` and the entry point from `src/router/routes.tsx` while you are there;
-   going back for them later costs a second pass over the same files.
+## Procedure
+
+Process the endpoints from the generator JSON in **batches of 3 to 5 endpoints at a time** to ensure thorough tracing and avoid context saturation. Complete steps 1–5 for the current batch before reading the next set of endpoints.
+
+1. **Generator output** — take the endpoint object for the current batch from `output[process-name]`; it is authoritative for the method, path, roles, service, mapper name, every `mapper.errors[]` entry (`Error` / `Status` columns), and every `bffEndpoints[]` entry (`### BFF endpoints` section: one `- METHOD path` line per item, in array order).
+2. **Service** — read the method top to bottom, plus every helper it calls: `inner*` functions, `validators.ts`, `versionGenerator.ts`, and asserts imported from `pagopa-interop-commons` (e.g. `assertFeatureFlagEnabled` in `packages/commons/src/config/featureFlagsConfig.ts`). For each generator error entry, find the throw site and its guard condition. If there is no reachable throw site, keep the row, mark it **dead mapper entry**.
+3. **Reverse check** — every error the service can throw that is missing from the generator's error list goes into the note, with the status the fallback rule actually produces (see below).
+4. **Frontend** — only if the endpoint is reachable from the UI. Trace in order: `route authLevels` → `AuthGuard` → the action that triggers the call (hidden? `disabled`?) → the form (field normalisation, forced values) → **the BFF**. The BFF matters twice: it may inject values the FE never sends (`toCatalogCreateEServiceSeed` hardcodes the descriptor seed), and it may run the _same validation first_ and fail with its own error, making the downstream one unreachable (`retrieveEserviceDescriptor` throws the BFF's own `eserviceDescriptorNotFound` before catalog is called).
+   To find the call sites: grep the operation name in the FE's `api.generatedTypes.ts`, then the matching hook in `*.mutations.ts` / `*.queries.ts`, then that hook's usages.
+5. **Repro** — for each `CAN HAPPEN` row, turn the trace from step 4 into the steps. Pick up the UI labels from `src/static/locales/it/*.json` and the entry point from `src/router/routes.tsx` while you are there; going back for them later costs a second pass over the same files.
 
 ## The 500 Fallback Is Not Terminal
 
