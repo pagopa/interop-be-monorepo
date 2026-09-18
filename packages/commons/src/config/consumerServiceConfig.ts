@@ -30,11 +30,13 @@ export const KafkaBatchConsumerConfig = z
   .transform((c) => {
     const minBytes =
       c.AVERAGE_KAFKA_MESSAGE_SIZE_IN_BYTES * c.MESSAGES_TO_READ_PER_BATCH;
+    const maxBytes = Math.round(minBytes * 1.25);
     return {
       minBytes,
       maxWaitKafkaBatchMillis: c.MAX_WAIT_KAFKA_BATCH_MILLIS,
       sessionTimeoutMillis: Math.round(c.MAX_WAIT_KAFKA_BATCH_MILLIS * 1.5),
-      maxBytes: Math.round(minBytes * 1.25),
+      maxBytes,
+      maxBytesPerPartition: maxBytes,
     };
   });
 export type KafkaBatchConsumerConfig = z.infer<typeof KafkaBatchConsumerConfig>;
