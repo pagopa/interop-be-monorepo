@@ -132,6 +132,9 @@ catalogs:
     csv:
       specifier: 6.3.11
       version: 6.3.11
+    csv-parse:
+      specifier: 7.0.2
+      version: 7.0.2
     csv-stringify:
       specifier: 6.5.2
       version: 6.5.2
@@ -3016,6 +3019,55 @@ importers:
       '@types/node':
         specifier: 'catalog:'
         version: 20.19.9
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-commons-test:
+        specifier: workspace:*
+        version: link:../commons-test
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
+  packages/error-message-parser:
+    dependencies:
+      axios:
+        specifier: 'catalog:'
+        version: 1.18.0
+      csv-parse:
+        specifier: 'catalog:'
+        version: 7.0.2
+      pagopa-interop-commons:
+        specifier: workspace:*
+        version: link:../commons
+      pagopa-interop-models:
+        specifier: workspace:*
+        version: link:../models
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      adm-zip:
+        specifier: 'catalog:'
+        version: 0.6.0
+      date-fns:
+        specifier: 'catalog:'
+        version: 4.1.0
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
@@ -9485,6 +9537,9 @@ packages:
 
   csv-parse@5.6.0:
     resolution: {integrity: sha512-l3nz3euub2QMg5ouu5U09Ew9Wf6/wQ8I++ch1loQ0ljmzhmfZYrH9fflS22i/PQEvsPvxCwxgz5q7UB8K1JO4Q==}
+
+  csv-parse@7.0.2:
+    resolution: {integrity: sha512-uKZghv9UmPkMVLYy//KZ9HFAIJsl7wkhoEdIL0+rhuSY9pZQlhaeGEDPIe+/w7eh81MOql8Q/9+inAGWG6ZHYA==}
 
   csv-stringify@6.5.2:
     resolution: {integrity: sha512-RFPahj0sXcmUyjrObAK+DOWtMvMIFV328n4qZJhgX3x2RqkQgOTU2mCUmiFR0CzM6AzChlRSUErjiJeEt8BaQA==}
@@ -16508,6 +16563,8 @@ snapshots:
   csv-generate@4.4.2: {}
 
   csv-parse@5.6.0: {}
+
+  csv-parse@7.0.2: {}
 
   csv-stringify@6.5.2: {}
 

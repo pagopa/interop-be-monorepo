@@ -1,0 +1,5 @@
+Process,Error,BFF Endpoint,IT,EN,FR
+delegationProcess,delegationNotAllowedForTenant,POST /producers/delegations,La delega non è disponibile per questo ente,This tenant does not allow delegations,
+delegationProcess,incorrectState,POST /producers/delegations/:delegationId/approve,"La delega non è nello stato corretto, si prega di ricare la pagina",,
+tenantProcess,expirationDateCannotBeInThePast,POST /tenants/:tenantId/attributes/verified/:attributeId,La scadenza dell'attributo verificano non può essere nel passato,The expiration date for the verified attribute can't be in the past,La date d'expiration de l'attribut vérifié ne peut pas être antérieure à la date actuelle
+tenantProcess,certifiedAttributeAlreadyAssigned,POST /tenants/:tenantId/attributes/certified,L'attributo certificato è già stato assegnato all'ente,The certified attribute was already assigned to the tenant,
