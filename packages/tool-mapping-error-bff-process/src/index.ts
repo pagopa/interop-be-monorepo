@@ -1,4 +1,5 @@
 import { writeFileSync } from "node:fs";
+
 import { getCliArgs } from "./config/index.js";
 import { readAllProcesses } from "./utils/index.js";
 
@@ -20,7 +21,7 @@ function main() {
     includeFrontend: includeFrontend,
   });
 
-  let filteredOutput = {
+  const filteredOutput = {
     output: process ? { [process]: output[process] ?? [] } : output,
     bff: showBff ? bff : [],
   };
@@ -28,7 +29,7 @@ function main() {
   if (process && limit !== undefined) {
     filteredOutput.output[process] = filteredOutput.output[process].slice(
       offset ?? 0,
-      (offset ?? 0) + limit,
+      (offset ?? 0) + limit
     );
   }
 

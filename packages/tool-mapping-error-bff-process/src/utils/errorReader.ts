@@ -23,7 +23,7 @@ function findHttpStatusCode(statusConstant: string): number {
 
 export function findErrorMappings(
   fileName: string,
-  mapperName?: string,
+  mapperName?: string
 ): ErrorWithCode[] {
   if (
     mapperName === undefined ||
@@ -45,14 +45,14 @@ export function findErrorMappings(
    *     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
    */
   const mapperRegex = new RegExp(
-    `export\\s+const\\s+${mapperName}\\s*=\\s*[\\s\\S]*?match\\(error\\.code\\)([\\s\\S]*?)\\.otherwise\\(`,
+    `export\\s+const\\s+${mapperName}\\s*=\\s*[\\s\\S]*?match\\(error\\.code\\)([\\s\\S]*?)\\.otherwise\\(`
   );
 
   const mapperMatch = file.match(mapperRegex);
 
   if (!mapperMatch) {
     throw new Error(
-      `Could not find error mapper "${mapperName}" in "${fileName}"`,
+      `Could not find error mapper "${mapperName}" in "${fileName}"`
     );
   }
 
@@ -80,7 +80,7 @@ export function findErrorMappings(
     const [, argumentsPart, statusConstant] = match;
 
     const messages = [...argumentsPart.matchAll(/"([^"]+)"/g)].map(
-      (match) => match[1],
+      (match) => match[1]
     );
 
     const code = findHttpStatusCode(statusConstant);

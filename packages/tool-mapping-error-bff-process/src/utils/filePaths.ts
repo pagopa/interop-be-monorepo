@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 
 export function resolveImportPath(
   importPath: string,
-  routerFileName: string,
+  routerFileName: string
 ): string {
   const resolved = resolve(dirname(routerFileName), importPath);
 
@@ -25,7 +25,7 @@ export function resolveImportPath(
 
 export function findServiceFile(
   serviceName: string | undefined,
-  routerFileName: string,
+  routerFileName: string
 ): string {
   if (!serviceName) {
     return "NOT FOUND";
@@ -53,7 +53,7 @@ export function findServiceFile(
   // import { CatalogService } from "../services/catalogService.js";
   //
   const importRegex = new RegExp(
-    `import\\s*\\{[^}]*\\b${serviceType}\\b[^}]*\\}\\s*from\\s*["']([^"']+)["']`,
+    `import\\s*\\{[^}]*\\b${serviceType}\\b[^}]*\\}\\s*from\\s*["']([^"']+)["']`
   );
 
   const importMatch = file.match(importRegex);
@@ -67,7 +67,7 @@ export function findServiceFile(
 
 export function findErrorMapperFile(
   mapperName: string | undefined,
-  routerFileName: string,
+  routerFileName: string
 ): string {
   if (!mapperName) {
     return "NOT FOUND";
@@ -76,7 +76,7 @@ export function findErrorMapperFile(
   const file = readFileSync(routerFileName, "utf8");
 
   const importRegex = new RegExp(
-    `import\\s*\\{[^}]*\\b${mapperName}\\b[^}]*\\}\\s*from\\s*["']([^"']+)["']`,
+    `import\\s*\\{[^}]*\\b${mapperName}\\b[^}]*\\}\\s*from\\s*["']([^"']+)["']`
   );
 
   const match = file.match(importRegex);
@@ -123,7 +123,7 @@ export function getFrontendServiceFileList(): string[] {
   // iterate the folders
   const serviceFiles: string[] = [];
   const folders = readdirSync(apiFolder, { withFileTypes: true }).filter(
-    (entry) => entry.isDirectory(),
+    (entry) => entry.isDirectory()
   );
 
   for (const folder of folders) {
@@ -177,15 +177,15 @@ export function getRoutersAndOpenapiFiles(processName: string) {
       ? "backend-for-frontend"
       : `${processName}-process`,
     "src",
-    "routers",
+    "routers"
   );
   const routerTsFiles = readdirSync(routerFolder).filter((file) =>
-    file.endsWith(".ts"),
+    file.endsWith(".ts")
   );
 
   const openapiFolder = join(packagesFolder, "api-clients", "open-api");
   const processApiFile = readdirSync(openapiFolder).find((file) =>
-    file.endsWith(`${toCamelCase(processName)}Api.yml`),
+    file.endsWith(`${toCamelCase(processName)}Api.yml`)
   );
 
   if (!processApiFile) {
@@ -206,7 +206,7 @@ export function getProcessPackages(): string[] {
       (entry) =>
         entry.isDirectory() &&
         entry.name.endsWith("-process") &&
-        entry.name !== "tool-mapping-error-bff-process",
+        entry.name !== "tool-mapping-error-bff-process"
     )
     .map((entry) => entry.name.slice(0, -"-process".length));
 }

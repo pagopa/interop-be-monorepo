@@ -7,7 +7,7 @@ type SourceLocation = {
 
 export function findServiceMethodLocation(
   serviceFileName: string,
-  serviceMethodName?: string,
+  serviceMethodName?: string
 ): SourceLocation | undefined {
   if (!serviceMethodName || serviceFileName === "NOT FOUND") {
     return undefined;

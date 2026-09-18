@@ -1,5 +1,8 @@
 import { BffEndpoint, Endpoint } from "../models/index.js";
-import { excludeDiscoveredBffEndpoints, readBffEndpoints } from "./bffEnricher.js";
+import {
+  excludeDiscoveredBffEndpoints,
+  readBffEndpoints,
+} from "./bffEnricher.js";
 import { getProcessPackages, getRoutersAndOpenapiFiles } from "./filePaths.js";
 import { readRouterEndpoints } from "./readProcessRouter.js";
 
@@ -7,7 +10,7 @@ export function readProcess(
   processName: string,
   includeInternalAndMaintenance: boolean,
   includeFrontend: boolean,
-  bff?: BffEndpoint[],
+  bff?: BffEndpoint[]
 ): { endpoints: Endpoint[]; bff: BffEndpoint[] } {
   const { routerTsFiles, openapiFile } = getRoutersAndOpenapiFiles(processName);
   let allEndpoints: Endpoint[] = [];
@@ -19,8 +22,8 @@ export function readProcess(
         openapiFile,
         processName,
         bffEndpoints,
-        includeInternalAndMaintenance,
-      ),
+        includeInternalAndMaintenance
+      )
     );
   }
   return { endpoints: allEndpoints, bff: bffEndpoints };
@@ -43,7 +46,7 @@ export function readAllProcesses({
       processName,
       includeInternalAndMaintenance,
       includeFrontend,
-      bff,
+      bff
     ).endpoints;
   }
   return {

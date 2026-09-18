@@ -2,7 +2,9 @@ import ts from "typescript";
 
 type ServiceMethod = ts.MethodDeclaration | ts.PropertyAssignment;
 
-export function parseTypeScriptFile(fileName: string): ts.SourceFile | undefined {
+export function parseTypeScriptFile(
+  fileName: string
+): ts.SourceFile | undefined {
   const source = ts.sys.readFile(fileName);
 
   if (!source) {
@@ -14,13 +16,13 @@ export function parseTypeScriptFile(fileName: string): ts.SourceFile | undefined
     source,
     ts.ScriptTarget.Latest,
     true,
-    ts.ScriptKind.TS,
+    ts.ScriptKind.TS
   );
 }
 
 export function findServiceMethod(
   sourceFile: ts.SourceFile,
-  methodName: string,
+  methodName: string
 ): ServiceMethod | undefined {
   let result: ServiceMethod | undefined;
 
@@ -55,7 +57,7 @@ export function findServiceMethod(
 }
 
 export function getServiceMethodBody(
-  method: ServiceMethod,
+  method: ServiceMethod
 ): ts.Node | undefined {
   if (ts.isMethodDeclaration(method)) {
     return method.body ?? method;

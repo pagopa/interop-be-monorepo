@@ -1,16 +1,17 @@
-import { match } from "ts-pattern";
-import { findServiceFile, getRoutersAndOpenapiFiles } from "./filePaths.js";
-import { extractRouterEndpoints } from "./routerEndpoint.js";
 import { readFileSync } from "node:fs";
+import { match } from "ts-pattern";
+
 import {
   BffEndpoint,
   Endpoint,
   FrontendServiceFileWithStackCalls,
 } from "../models/index.js";
-import { findOpenApiOperation, readOpenApiDocument } from "./openApi.js";
 import { findProcessCalls } from "./bffProcessCalls.js";
-import { findServiceMethodLocation } from "./serviceFinder.js";
+import { findServiceFile, getRoutersAndOpenapiFiles } from "./filePaths.js";
 import { findFunctionCalls, findPathInService } from "./frontendFinder.js";
+import { findOpenApiOperation, readOpenApiDocument } from "./openApi.js";
+import { extractRouterEndpoints } from "./routerEndpoint.js";
+import { findServiceMethodLocation } from "./serviceFinder.js";
 
 // Process names: inAppNotificationManagerClient,
 //       selfcareV2InstitutionClient, selfcareV2UserClient,
@@ -25,29 +26,29 @@ function resolveProcessName(client: string): string {
       "delegationClients.delegation",
       "delegationClients.producer",
       "delegationClients.consumer",
-      () => "delegation",
+      () => "delegation"
     )
     .with(
       "eserviceTemplateProcessClient",
       "eserviceTemplateClient",
-      () => "eservice-template",
+      () => "eservice-template"
     )
     .with(
       "authorizationClient.client",
       "authorizationClient.producerKeychain",
-      () => "authorization",
+      () => "authorization"
     )
     .with(
       "purposeTemplateProcessClient",
       "purposeTemplateClient",
-      () => "purpose-template",
+      () => "purpose-template"
     )
     .with("purposeProcessClient", () => "purpose")
     .with("notificationConfigClient", () => "notification-config")
     .with(
       "tenantProcessClient.tenantAttribute",
       "tenantClient.tenant",
-      () => "tenant",
+      () => "tenant"
     )
     .otherwise(() => client);
 }
@@ -65,7 +66,7 @@ export function readBffEndpoints(includeFrontend: boolean): BffEndpoint[] {
       const processCalls = findProcessCalls(serviceFile, serviceMethod);
       const serviceLocation = findServiceMethodLocation(
         serviceFile,
-        serviceMethod,
+        serviceMethod
       );
 
       let frontendServiceWithStackCalls:
@@ -76,7 +77,7 @@ export function readBffEndpoints(includeFrontend: boolean): BffEndpoint[] {
         if (frontendService) {
           const calls = findFunctionCalls(
             frontendService.file,
-            frontendService.functionName,
+            frontendService.functionName
           );
           frontendServiceWithStackCalls = {
             fileName: frontendService.file,
@@ -118,26 +119,26 @@ export function readBffEndpoints(includeFrontend: boolean): BffEndpoint[] {
 export function findBffEndpointsForProcess(
   processName: string,
   operationId: string,
-  endpoints: BffEndpoint[],
+  endpoints: BffEndpoint[]
 ): BffEndpoint[] {
   return endpoints.filter(
     (endpoint) =>
       endpoint.service.processes.some(
-        (process) => process.process === processName,
-      ) && endpoint.openApi.operationId === operationId,
+        (process) => process.process === processName
+      ) && endpoint.openApi.operationId === operationId
   );
 }
 
 export function excludeDiscoveredBffEndpoints(
   processEndpoints: Record<string, Endpoint[]>,
-  bffEndpoints: BffEndpoint[],
+  bffEndpoints: BffEndpoint[]
 ): BffEndpoint[] {
   return bffEndpoints.filter(
     (bffEndpoint) =>
       !processEndpoints[bffEndpoint.service.processes[0]?.process]?.some(
         (processEndpoint) =>
           processEndpoint.path === bffEndpoint.path &&
-          processEndpoint.method === bffEndpoint.method,
-      ),
+          processEndpoint.method === bffEndpoint.method
+      )
   );
 }

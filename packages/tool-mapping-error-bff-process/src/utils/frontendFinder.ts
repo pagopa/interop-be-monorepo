@@ -1,12 +1,12 @@
+import { readFileSync } from "fs";
 import ts from "typescript";
 
+import { FrontendServiceFile } from "../models/index.js";
 import {
   getFrontendServiceFileList,
   getFrontendTypescriptFiles,
 } from "./filePaths.js";
 import { normalizePath } from "./openApi.js";
-import { FrontendServiceFile } from "../models/index.js";
-import { readFileSync } from "fs";
 
 const HTTP_METHODS = new Set([
   "get",
@@ -20,7 +20,7 @@ const HTTP_METHODS = new Set([
 
 export function findPathInService(
   path: string,
-  method: string,
+  method: string
 ): FrontendServiceFile | undefined {
   const serviceFiles = getFrontendServiceFileList();
 
@@ -39,7 +39,7 @@ export function findPathInService(
       source,
       ts.ScriptTarget.Latest,
       true,
-      ts.ScriptKind.TS,
+      ts.ScriptKind.TS
     );
 
     let result: FrontendServiceFile | undefined;
@@ -254,7 +254,7 @@ export type FunctionCall = {
 
 function findContainingFunctionName(
   sourceFile: ts.SourceFile,
-  position: number,
+  position: number
 ): string | undefined {
   let functionName: string | undefined;
 
@@ -295,7 +295,7 @@ function findContainingFunctionName(
 
 export function findFunctionCalls(
   serviceFileName: string,
-  functionName: string,
+  functionName: string
 ): FunctionCall[] {
   if (!functionName) {
     return [];
@@ -315,7 +315,7 @@ export function findFunctionCalls(
 
   const callRegex = new RegExp(
     `\\b${escapeRegExp(serviceObjectName)}\\s*\\.\\s*${escapeRegExp(functionName)}\\s*\\(`,
-    "g",
+    "g"
   );
 
   for (const file of files) {
@@ -343,7 +343,7 @@ export function findFunctionCalls(
       ) {
         const callerFunctionName = findContainingFunctionName(
           ts.createSourceFile(file, content, ts.ScriptTarget.Latest),
-          index,
+          index
         );
 
         if (!callerFunctionName) {
@@ -367,7 +367,7 @@ export function findFunctionCalls(
 
 function findServiceObjectName(
   file: string,
-  functionName: string,
+  functionName: string
 ): string | undefined {
   const objectRegex = /export\s+const\s+(\w+)\s*=\s*\{/g;
 
@@ -401,7 +401,7 @@ function findServiceObjectName(
      */
     const functionRegex = new RegExp(
       `(?:^|,)\\s*${escapeRegExp(functionName)}\\s*(?:,|$)`,
-      "m",
+      "m"
     );
 
     if (functionRegex.test(objectBody)) {

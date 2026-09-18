@@ -21,6 +21,7 @@
   "keywords": [],
   "devDependencies": {
     "eslint": "catalog:",
+    "pagopa-interop-eslint-config": "workspace:*",
     "tsx": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"

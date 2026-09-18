@@ -6557,6 +6557,9 @@ importers:
       eslint:
         specifier: 'catalog:'
         version: 9.39.2(jiti@2.6.1)
+      pagopa-interop-eslint-config:
+        specifier: workspace:*
+        version: link:../eslint-config
       tsx:
         specifier: 'catalog:'
         version: 4.19.1

@@ -1,19 +1,19 @@
 import { readFileSync } from "node:fs";
 
 import { Endpoint, BffEndpoint } from "../models/index.js";
+import { findBffEndpointsForProcess } from "./bffEnricher.js";
+import { findErrorMappings } from "./errorReader.js";
 import { findServiceFile, findErrorMapperFile } from "./filePaths.js";
 import { findOpenApiOperation, readOpenApiDocument } from "./openApi.js";
 import { extractRouterEndpoints } from "./routerEndpoint.js";
-import { findErrorMappings } from "./errorReader.js";
 import { findServiceMethodLocation } from "./serviceFinder.js";
-import { findBffEndpointsForProcess } from "./bffEnricher.js";
 
 export function readRouterEndpoints(
   fileName: string,
   yamlFile: string,
   processName: string,
   bffEndpoints: BffEndpoint[],
-  includeInternalAndMaintenance: boolean,
+  includeInternalAndMaintenance: boolean
 ): Endpoint[] {
   const out: Endpoint[] = [];
   const file = readFileSync(fileName, "utf8");
@@ -27,12 +27,12 @@ export function readRouterEndpoints(
     const serviceFilename = findServiceFile(serviceName, fileName);
     const serviceLocation = findServiceMethodLocation(
       serviceFilename,
-      serviceMethod,
+      serviceMethod
     );
     const bff = findBffEndpointsForProcess(
       processName,
       openApi?.operationId ?? "NOT FOUND",
-      bffEndpoints,
+      bffEndpoints
     );
     if (
       !includeInternalAndMaintenance &&

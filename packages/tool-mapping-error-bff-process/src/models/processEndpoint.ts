@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-import { OpenApiLocation } from "./openApi.js";
 import { BffEndpoint } from "./bffEndpoint.js";
+import { OpenApiLocation } from "./openApi.js";
 
 export const ErrorWithCode = z.object({
   code: z.number().int(),

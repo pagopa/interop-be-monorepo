@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const OpenApiLocation = z.object({
-    operationId: z.string(),
-    path: z.string(),
-    fileName: z.string(),
-  });
+  operationId: z.string(),
+  path: z.string(),
+  fileName: z.string(),
+});
 
 export type OpenApiLocation = z.infer<typeof OpenApiLocation>;
 

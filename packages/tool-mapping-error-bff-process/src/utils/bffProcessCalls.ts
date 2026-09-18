@@ -1,4 +1,5 @@
 import ts from "typescript";
+
 import {
   findServiceMethod,
   getServiceMethodBody,
@@ -12,7 +13,7 @@ type ProcessCall = {
 
 export function findProcessCalls(
   serviceFileName: string,
-  serviceMethodName?: string,
+  serviceMethodName?: string
 ): ProcessCall[] {
   if (!serviceMethodName) {
     return [];

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { parse } from "yaml";
+
 import type { OpenApiDocument } from "../models/index.js";
 
 export function normalizePath(path: string): string {
@@ -35,9 +36,8 @@ export function readOpenApiDocument(openApiFileName: string): OpenApiDocument {
 export function findOpenApiOperation(
   routerPath: string,
   method: string,
-  openApi: OpenApiDocument,
+  openApi: OpenApiDocument
 ): { operationId: string; path: string } | undefined {
-
   const normalizedRouterPath = normalizePath(routerPath);
 
   for (const [openApiPath, pathItem] of Object.entries(openApi.paths ?? {})) {

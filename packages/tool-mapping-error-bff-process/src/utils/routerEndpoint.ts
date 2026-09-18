@@ -19,7 +19,7 @@ export function extractRouterEndpoints(file: string): RouterEndpoint[] {
     const mapperMatch = body.match(/makeApiProblem\(\s*[\s\S]*?,\s*(\w+),/);
 
     const rolesMatch = body.match(
-      /validateAuthorization\(\s*ctx,\s*\[([^\]]+)\]/,
+      /validateAuthorization\(\s*ctx,\s*\[([^\]]+)\]/
     );
 
     const roles = rolesMatch
@@ -36,7 +36,7 @@ export function extractRouterEndpoints(file: string): RouterEndpoint[] {
       serviceMethod: serviceMatch?.[2],
       mapper: mapperMatch?.[1],
       roles: (roles ? roles.split(", ").map((role) => role.trim()) : []).filter(
-        Boolean,
+        Boolean
       ),
     });
   }
