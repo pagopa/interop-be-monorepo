@@ -34,6 +34,7 @@ import {
   updateEServiceTemplateVersionQuotasErrorMapper,
   updateEServiceTemplateVersionAttributesErrorMapper,
   createEServiceTemplateVersionErrorMapper,
+  createEServiceTemplateVersionFromLatestErrorMapper,
   getEServiceTemplateErrorMapper,
   createRiskAnalysisErrorMapper,
   deleteRiskAnalysisErrorMapper,
@@ -331,6 +332,39 @@ const eserviceTemplatesRouter = (
         const errorRes = makeApiProblem(
           error,
           createEServiceTemplateVersionErrorMapper,
+          ctx
+        );
+        return res.status(errorRes.status).send(errorRes);
+      }
+    })
+    .post("/templates/:templateId/versions/fromLatest", async (req, res) => {
+      // Keep this route registered before POST /templates/:templateId/versions/:templateVersionId,
+      // otherwise Express matches "fromLatest" as a :templateVersionId
+      const ctx = fromAppContext(req.ctx);
+
+      try {
+        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE]);
+
+        const {
+          data: { eserviceTemplate, createdEServiceTemplateVersionId },
+          metadata,
+        } =
+          await eserviceTemplateService.createEServiceTemplateVersionFromLatest(
+            unsafeBrandId(req.params.templateId),
+            ctx
+          );
+        setMetadataVersionHeader(res, metadata);
+        return res.status(200).send(
+          eserviceTemplateApi.CreatedEServiceTemplateVersion.parse({
+            eserviceTemplate:
+              eserviceTemplateToApiEServiceTemplate(eserviceTemplate),
+            createdEServiceTemplateVersionId,
+          })
+        );
+      } catch (error) {
+        const errorRes = makeApiProblem(
+          error,
+          createEServiceTemplateVersionFromLatestErrorMapper,
           ctx
         );
         return res.status(errorRes.status).send(errorRes);
