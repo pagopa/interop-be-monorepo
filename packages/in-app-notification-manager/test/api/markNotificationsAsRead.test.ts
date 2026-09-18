@@ -32,6 +32,7 @@ describe("API POST /notifications/bulk/markAsRead", () => {
     authRole.ADMIN_ROLE,
     authRole.API_ROLE,
     authRole.SECURITY_ROLE,
+    authRole.REVIEWER_ROLE,
   ];
   it.each(authorizedRoles)(
     "Should return 204 when marking notifications as read with role %s",
