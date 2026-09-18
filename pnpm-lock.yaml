@@ -6539,6 +6539,34 @@ importers:
         specifier: 'catalog:'
         version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
 
+  packages/tool-mapping-error-bff-process:
+    dependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 20.19.9
+      ts-pattern:
+        specifier: 'catalog:'
+        version: 5.2.0
+      yaml:
+        specifier: 'catalog:'
+        version: 2.8.3
+      zod:
+        specifier: 'catalog:'
+        version: 3.23.8
+    devDependencies:
+      eslint:
+        specifier: 'catalog:'
+        version: 9.39.2(jiti@2.6.1)
+      tsx:
+        specifier: 'catalog:'
+        version: 4.19.1
+      typescript:
+        specifier: 'catalog:'
+        version: 5.4.5
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.0(@types/node@20.19.9)(jiti@2.6.1)(tsx@4.19.1)(yaml@2.8.3)
+
 packages:
 
   '@ampproject/remapping@2.3.0':

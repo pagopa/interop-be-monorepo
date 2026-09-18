@@ -1,0 +1,34 @@
+{
+  "name": "pagopa-interop-tool-mapping-error-bff-process",
+  "private": true,
+  "version": "1.0.0",
+  "license": "MPL-2.0",
+  "description": "PagoPA Interoperability tool for listing all process endpoint with errors and bff endpoints",
+  "main": "dist",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:autofix": "eslint . --fix",
+    "start": "tsx ./src/index.ts",
+    "build": "tsc",
+    "check": "tsc --project tsconfig.check.json",
+    "test": "vitest",
+    "test:it": "vitest integration"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "eslint": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  },
+  "dependencies": {
+    "@types/node": "catalog:",
+    "ts-pattern": "catalog:",
+    "yaml": "catalog:",
+    "zod": "catalog:"
+  }
+}
