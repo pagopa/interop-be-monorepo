@@ -4,6 +4,7 @@ import { getRiskAnalysisAssignmentRecipients } from "pagopa-interop-notification
 import { P, match } from "ts-pattern";
 
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
+import { handleDraftPurposeDeletedWithRiskAnalysisToReviewer } from "./handleDraftPurposeDeletedWithRiskAnalysisToReviewer.js";
 import { handlePurposeActivatedRejectedToConsumer } from "./handlePurposeActivatedRejectedToConsumer.js";
 import { handlePurposeOverQuotaToConsumer } from "./handlePurposeOverQuotaToConsumer.js";
 import { handlePurposePublishedWithRiskAnalysisToReviewer } from "./handlePurposePublishedWithRiskAnalysisToReviewer.js";
@@ -146,7 +147,6 @@ export async function handlePurposeEvent(
     .with(
       {
         type: P.union(
-          "DraftPurposeDeleted",
           "WaitingForApprovalPurposeDeleted",
           "PurposeAdded",
           "DraftPurposeUpdated",
@@ -211,6 +211,13 @@ export async function handlePurposeEvent(
           readModelService
         )),
       ]
+    )
+    .with({ type: "DraftPurposeDeleted" }, ({ data: { purpose } }) =>
+      handleDraftPurposeDeletedWithRiskAnalysisToReviewer(
+        purpose,
+        logger,
+        readModelService
+      )
     )
     .exhaustive();
 }
