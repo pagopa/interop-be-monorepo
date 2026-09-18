@@ -34,6 +34,7 @@ import type {
 } from "../src/clients/clientsProvider.js";
 
 import { config } from "../src/config/config.js";
+import { ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER } from "../src/config/constants.js";
 import { invalidZipStructure } from "../src/model/errors.js";
 import { catalogServiceBuilder } from "../src/services/catalogService.js";
 import { fileManager, getBffMockContext } from "./utils.js";
@@ -426,6 +427,78 @@ describe("importEService", () => {
       } finally {
         fs.unlinkSync(zipPath);
       }
+    });
+
+    it("should import async exchange configuration and callback interface", async () => {
+      const callbackPath = `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/callback-interface.yaml`;
+      const asyncExchangeProperties = {
+        responseTime: 60,
+        resourceAvailableTime: 120,
+        confirmation: true,
+        bulk: false,
+        maxResultSet: 100,
+      };
+      const asyncConfiguration = {
+        ...configuration,
+        asyncExchange: true,
+        descriptor: {
+          ...configuration.descriptor,
+          asyncExchangeProperties,
+          asyncExchangeCallbackInterface: {
+            prettyName: "Callback interface",
+            path: callbackPath,
+          },
+        },
+      };
+      const asyncZip = new AdmZip();
+      asyncZip.addFile(
+        `${ASYNC_EXCHANGE_CALLBACK_INTERFACE_FOLDER}/`,
+        Buffer.alloc(0)
+      );
+      asyncZip.addFile(
+        jsonFilename,
+        Buffer.from(JSON.stringify(asyncConfiguration))
+      );
+      asyncZip.addFile(
+        callbackPath,
+        Buffer.from(
+          "openapi: 3.0.0\nservers:\n  - url: http://example.com/callback"
+        )
+      );
+      const zipPath = path.join(__dirname, "test_async.zip");
+      asyncZip.writeZip(zipPath);
+
+      await fileManager.storeBytes(
+        {
+          bucket: config.importEserviceContainer,
+          path: `${config.importEservicePath}`,
+          resourceId: `${tenantId}`,
+          name: `${fileResource.filename}`,
+          content: fs.readFileSync(zipPath),
+        },
+        genericLogger
+      );
+
+      await catalogService.importEService(fileResource, bffMockContext);
+
+      expect(mockImportEService).toHaveBeenCalledTimes(1);
+      const [importSeed] = mockImportEService.mock.calls[0];
+      expect(importSeed).toMatchObject({
+        asyncExchange: true,
+        descriptor: {
+          asyncExchangeProperties,
+        },
+      });
+      expect(
+        importSeed.descriptor.asyncExchangeCallbackInterface
+      ).toMatchObject({
+        prettyName: "Callback interface",
+        fileName: callbackPath,
+        contentType: "text/yaml",
+        serverUrls: [],
+      });
+
+      fs.unlinkSync(zipPath);
     });
   });
   describe("error case", () => {

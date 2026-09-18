@@ -645,6 +645,7 @@ async function innerCreateEService(
     seed,
     template,
     instanceLabel,
+    asyncExchangeProperties,
   }: {
     seed: catalogApi.EServiceSeed;
     template:
@@ -657,6 +658,8 @@ async function innerCreateEService(
         }
       | undefined;
     instanceLabel?: string | undefined;
+    // supplied by the import flow; DescriptorSeedForEServiceCreation has no such field
+    asyncExchangeProperties?: AsyncExchangeProperties;
   },
   readModelService: ReadModelServiceSQL,
   {
@@ -762,7 +765,11 @@ async function innerCreateEService(
     templateVersionRef: templateVersionId
       ? { id: templateVersionId }
       : undefined,
-    asyncExchangeProperties: template?.asyncExchangeProperties,
+    asyncExchangeProperties:
+      template?.asyncExchangeProperties ??
+      (newEService.asyncExchange === true
+        ? asyncExchangeProperties
+        : undefined),
   };
 
   const eserviceWithDescriptor: EService = {
@@ -899,6 +906,14 @@ async function addDocumentsToImportedEservice(
   const documentSeeds: catalogApi.CreateEServiceDescriptorDocumentSeed[] = [
     ...(descriptorSeed.interface
       ? [{ ...descriptorSeed.interface, kind: "INTERFACE" as const }]
+      : []),
+    ...(descriptorSeed.asyncExchangeCallbackInterface
+      ? [
+          {
+            ...descriptorSeed.asyncExchangeCallbackInterface,
+            kind: "ASYNC_EXCHANGE_CALLBACK_INTERFACE" as const,
+          },
+        ]
       : []),
     ...descriptorSeed.docs.map((doc) => ({
       ...doc,
@@ -1332,6 +1347,7 @@ export function catalogServiceBuilder(
         isSignalHubEnabled: seed.isSignalHubEnabled,
         isConsumerDelegable: seed.isConsumerDelegable,
         isClientAccessDelegable: seed.isClientAccessDelegable,
+        asyncExchange: seed.asyncExchange,
       };
 
       const {
@@ -1339,12 +1355,23 @@ export function catalogServiceBuilder(
         events: creationEvents,
         version: creationVersion,
       } = await innerCreateEService(
-        { seed: eserviceSeed, template: undefined },
+        {
+          seed: eserviceSeed,
+          template: undefined,
+          asyncExchangeProperties: seed.descriptor.asyncExchangeProperties,
+        },
         readModelService,
         ctx
       );
 
       const createdDescriptor = createdEservice.descriptors[0];
+
+      assertAsyncExchangeBulkAllowedForDescriptor(
+        createdEservice.technology,
+        createdDescriptor.asyncExchangeProperties,
+        createdEservice.id,
+        createdDescriptor.id
+      );
 
       const withRiskAnalyses = await addRiskAnalysesToImportedEservice(
         createdEservice,

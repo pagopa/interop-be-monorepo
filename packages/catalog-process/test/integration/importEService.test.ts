@@ -11,6 +11,7 @@ import {
   readEventByStreamIdAndVersion,
 } from "pagopa-interop-commons-test";
 import {
+  EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
   EServiceDescriptorDocumentAddedV2,
   EServiceDescriptorInterfaceAddedV2,
   Tenant,
@@ -21,6 +22,7 @@ import {
 } from "pagopa-interop-models";
 import { expect, describe, it, beforeAll, vi, afterAll } from "vitest";
 
+import { config } from "../../src/config/config.js";
 import {
   eServiceNameDuplicateForProducer,
   originNotCompliant,
@@ -232,6 +234,132 @@ describe("import eservice", () => {
     expect(descriptor.serverUrls).toEqual([]);
     expect(descriptor.state).toBe(descriptorState.draft);
     expect(response.data.eservice.riskAnalysis).toEqual([]);
+  });
+
+  it("should import an eservice with async exchange properties and callback interface (DELIVER mode)", async () => {
+    await addOneTenant(producer);
+
+    const asyncExchangeProperties = {
+      responseTime: 60,
+      resourceAvailableTime: 120,
+      confirmation: true,
+      bulk: false,
+      maxResultSet: 100,
+    };
+    const callbackInterfaceSeed: catalogApi.EServiceImportDocumentSeed = {
+      documentId: generateId(),
+      prettyName: "Callback interface",
+      filePath: "callback/file/path",
+      fileName: "callback.yaml",
+      contentType: "application/yaml",
+      checksum: "callbackChecksum",
+      serverUrls: [],
+    };
+
+    const response = await catalogService.importEService(
+      {
+        ...importSeed,
+        mode: "DELIVER",
+        asyncExchange: true,
+        descriptor: {
+          ...importSeed.descriptor,
+          asyncExchangeProperties,
+          asyncExchangeCallbackInterface: callbackInterfaceSeed,
+        },
+        riskAnalysis: [],
+      },
+      getMockContext({ authData: getMockAuthData(producer.id) })
+    );
+
+    const eserviceId = response.data.eservice.id;
+    const descriptorId = response.data.createdDescriptorId;
+
+    expect(response.metadata.version).toBe(5);
+
+    const expectedEventSequence = [
+      "EServiceAdded",
+      "EServiceDescriptorAdded",
+      "EServiceDescriptorInterfaceAdded",
+      "EServiceDescriptorAsyncExchangeCallbackInterfaceAdded",
+      "EServiceDescriptorDocumentAdded",
+      "EServiceDescriptorDocumentAdded",
+    ];
+
+    for (const [version, type] of expectedEventSequence.entries()) {
+      const event = await readEventByStreamIdAndVersion(
+        eserviceId,
+        version,
+        "catalog",
+        postgresDB
+      );
+      expect(event).toMatchObject({
+        stream_id: eserviceId,
+        version: version.toString(),
+        type,
+        event_version: 2,
+      });
+    }
+
+    const callbackEvent = await readEventByStreamIdAndVersion(
+      eserviceId,
+      3,
+      "catalog",
+      postgresDB
+    );
+    const callbackPayload = decodeProtobufPayload({
+      messageType: EServiceDescriptorAsyncExchangeCallbackInterfaceAddedV2,
+      payload: callbackEvent.data,
+    });
+
+    expect(callbackPayload.descriptorId).toBe(descriptorId);
+    expect(callbackPayload.documentId).toBe(callbackInterfaceSeed.documentId);
+    expect(
+      callbackPayload.eservice?.descriptors[0].asyncExchangeCallbackInterface
+        ?.id
+    ).toBe(callbackInterfaceSeed.documentId);
+
+    const finalDescriptor = response.data.eservice.descriptors[0];
+    expect(response.data.eservice.asyncExchange).toBe(true);
+    expect(finalDescriptor.asyncExchangeProperties).toEqual(
+      asyncExchangeProperties
+    );
+    expect(finalDescriptor.asyncExchangeCallbackInterface).toMatchObject({
+      id: callbackInterfaceSeed.documentId,
+      name: callbackInterfaceSeed.fileName,
+      contentType: callbackInterfaceSeed.contentType,
+      prettyName: callbackInterfaceSeed.prettyName,
+      path: callbackInterfaceSeed.filePath,
+      checksum: callbackInterfaceSeed.checksum,
+    });
+  });
+
+  it("should ignore asyncExchangeProperties when featureFlagAsyncExchange is disabled", async () => {
+    config.featureFlagAsyncExchange = false;
+
+    await addOneTenant(producer);
+
+    const response = await catalogService.importEService(
+      {
+        ...importSeed,
+        asyncExchange: true,
+        descriptor: {
+          ...importSeed.descriptor,
+          asyncExchangeProperties: {
+            responseTime: 60,
+            resourceAvailableTime: 120,
+            confirmation: true,
+            bulk: false,
+            maxResultSet: 100,
+          },
+        },
+      },
+      getMockContext({ authData: getMockAuthData(producer.id) })
+    );
+
+    const descriptor = response.data.eservice.descriptors[0];
+    expect(descriptor.asyncExchangeProperties).toBeUndefined();
+
+    config.featureFlagAsyncExchange = true;
   });
 
   it("should throw eserviceNotInReceiveMode if the seed has risk analyses and mode is DELIVER", async () => {
