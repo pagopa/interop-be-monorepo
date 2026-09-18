@@ -17,9 +17,20 @@ CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice (
   instance_label VARCHAR,
   archiving_reason VARCHAR,
   async_exchange BOOLEAN,
+  search_vector TSVECTOR GENERATED ALWAYS AS (
+    setweight(to_tsvector('public.italian_unaccent', public.normalize_text(name)), 'A') ||
+    setweight(to_tsvector('public.italian_unaccent', public.normalize_text(description)), 'B')
+  ) STORED,
   PRIMARY KEY (id),
   CONSTRAINT eservice_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
+
+CREATE INDEX IF NOT EXISTS eservice_search_vector_gin
+  ON readmodel_catalog.eservice USING GIN (search_vector);
+CREATE INDEX IF NOT EXISTS eservice_name_trgm
+  ON readmodel_catalog.eservice USING GIN (public.normalize_text(name) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS eservice_description_trgm
+  ON readmodel_catalog.eservice USING GIN (public.normalize_text(description) gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS readmodel_catalog.eservice_descriptor (
   id UUID,

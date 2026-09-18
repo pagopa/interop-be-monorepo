@@ -13,9 +13,17 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant (
   name VARCHAR NOT NULL,
   onboarded_at TIMESTAMP WITH TIME ZONE,
   sub_unit_type VARCHAR,
+  search_vector TSVECTOR GENERATED ALWAYS AS (
+    setweight(to_tsvector('public.italian_unaccent', public.normalize_text(name)), 'A')
+  ) STORED,
   PRIMARY KEY (id),
   CONSTRAINT tenant_id_metadata_version_unique UNIQUE (id, metadata_version)
 );
+
+CREATE INDEX IF NOT EXISTS tenant_search_vector_gin
+  ON readmodel_tenant.tenant USING GIN (search_vector);
+CREATE INDEX IF NOT EXISTS tenant_name_trgm
+  ON readmodel_tenant.tenant USING GIN (public.normalize_text(name) gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_remote_id (
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,
