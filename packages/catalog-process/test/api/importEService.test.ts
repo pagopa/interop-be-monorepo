@@ -7,15 +7,23 @@ import {
   getMockEService,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { EService, generateId } from "pagopa-interop-models";
+import {
+  EService,
+  featureFlagNotEnabled,
+  generateId,
+} from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
 import { eServiceToApiEService } from "../../src/model/domain/apiConverter.js";
 import {
+  asyncExchangeBulkNotAllowedForSoap,
+  asyncExchangeCallbackInterfaceAlreadyExists,
+  asyncExchangeNotAllowedForReceiveMode,
   checksumDuplicate,
   documentIdDuplicate,
   documentPrettyNameDuplicate,
+  eServiceAsyncExchangeNotEnabled,
   eServiceNameDuplicateForProducer,
   eserviceNotInReceiveMode,
   eserviceTemplateNameConflict,
@@ -175,6 +183,29 @@ describe("API /import/eservices authorization test", () => {
     {
       error: tenantNotFound(mockEservice.producerId),
       expectedStatus: 400,
+    },
+    {
+      error: asyncExchangeNotAllowedForReceiveMode(mockEservice.id),
+      expectedStatus: 400,
+    },
+    {
+      error: eServiceAsyncExchangeNotEnabled(mockEservice.id),
+      expectedStatus: 400,
+    },
+    {
+      error: asyncExchangeBulkNotAllowedForSoap(
+        mockEservice.id,
+        mockDescriptor.id
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: featureFlagNotEnabled("featureFlagAsyncExchange"),
+      expectedStatus: 400,
+    },
+    {
+      error: asyncExchangeCallbackInterfaceAlreadyExists(mockDescriptor.id),
+      expectedStatus: 409,
     },
   ])(
     "Should return $expectedStatus for $error.code",

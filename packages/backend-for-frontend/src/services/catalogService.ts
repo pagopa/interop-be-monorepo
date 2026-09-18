@@ -1852,7 +1852,7 @@ export function catalogServiceBuilder(
 
       const uploadImportedDocument = async (
         doc: { prettyName: string; path: string },
-        kind: "INTERFACE" | "DOCUMENT"
+        kind: "INTERFACE" | "DOCUMENT" | "ASYNC_EXCHANGE_CALLBACK_INTERFACE"
       ): Promise<catalogApi.EServiceImportDocumentSeed> => {
         const uploaded = await verifyAndUploadImportedDocument(
           fileManager,
@@ -1883,6 +1883,14 @@ export function catalogServiceBuilder(
           ? await uploadImportedDocument(descriptorInterface, "INTERFACE")
           : undefined;
 
+        const asyncExchangeCallbackInterfaceSeed =
+          asyncExchangeCallbackInterface
+            ? await uploadImportedDocument(
+                asyncExchangeCallbackInterface,
+                "ASYNC_EXCHANGE_CALLBACK_INTERFACE"
+              )
+            : undefined;
+
         const documentSeeds: catalogApi.EServiceImportDocumentSeed[] = [];
         for (const doc of importedEservice.descriptor.docs) {
           documentSeeds.push(await uploadImportedDocument(doc, "DOCUMENT"));
@@ -1903,6 +1911,9 @@ export function catalogServiceBuilder(
             agreementApprovalPolicy:
               importedEservice.descriptor.agreementApprovalPolicy,
             interface: interfaceSeed,
+            asyncExchangeProperties:
+              importedEservice.descriptor.asyncExchangeProperties,
+            asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceSeed,
             docs: documentSeeds,
           },
           riskAnalysis: importedEservice.riskAnalysis.map(
@@ -1911,6 +1922,7 @@ export function catalogServiceBuilder(
           isSignalHubEnabled: importedEservice.isSignalHubEnabled,
           isConsumerDelegable: importedEservice.isConsumerDelegable,
           isClientAccessDelegable: importedEservice.isClientAccessDelegable,
+          asyncExchange: importedEservice.asyncExchange,
         };
 
         importRequestSent = true;

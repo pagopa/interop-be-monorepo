@@ -77,10 +77,14 @@ export const importEServiceErrorMapper = (
       "inconsistentDailyCalls",
       "eserviceNotInReceiveMode",
       "riskAnalysisValidationFailed",
+      "asyncExchangeNotAllowedForReceiveMode",
+      "eServiceAsyncExchangeNotEnabled",
+      "asyncExchangeBulkNotAllowedForSoap",
       // 500 in the sibling creation mappers, but here the caller has already
       // uploaded the documents and deletes them only on a 4xx: a 500 leaks them
       "tenantNotFound",
       "tenantKindNotFound",
+      "featureFlagNotEnabled",
       () => HTTP_STATUS_BAD_REQUEST
     )
     .with(
@@ -90,6 +94,7 @@ export const importEServiceErrorMapper = (
       "documentPrettyNameDuplicate",
       "checksumDuplicate",
       "documentIdDuplicate",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
       () => HTTP_STATUS_CONFLICT
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
