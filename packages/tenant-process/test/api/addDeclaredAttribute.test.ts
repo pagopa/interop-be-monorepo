@@ -6,7 +6,12 @@ import {
   getMockTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { generateId, Tenant } from "pagopa-interop-models";
+import {
+  generateId,
+  operationForbidden,
+  Tenant,
+  TenantId,
+} from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi } from "vitest";
 
@@ -19,7 +24,7 @@ import {
 } from "../../src/model/domain/errors.js";
 import { api, tenantService } from "../vitest.api.setup.js";
 
-describe("API POST /tenants/attributes/declared test", () => {
+describe("API POST /tenants/{tenantId}/attributes/declared test", () => {
   const tenant: Tenant = getMockTenant();
 
   const apiResponse = tenantApi.Tenant.parse(toApiTenant(tenant));
@@ -31,10 +36,11 @@ describe("API POST /tenants/attributes/declared test", () => {
 
   const makeRequest = async (
     token: string,
-    body: tenantApi.DeclaredTenantAttributeSeed = { id: generateId() }
+    body: tenantApi.DeclaredTenantAttributeSeed = { id: generateId() },
+    tenantId: TenantId = tenant.id
   ) =>
     request(api)
-      .post("/tenants/attributes/declared")
+      .post(`/tenants/${tenantId}/attributes/declared`)
       .set("Authorization", `Bearer ${token}`)
       .set("X-Correlation-Id", generateId())
       .send(body);
@@ -69,6 +75,7 @@ describe("API POST /tenants/attributes/declared test", () => {
     { error: attributeNotFound(generateId()), expectedStatus: 404 },
     { error: delegationNotFound(generateId()), expectedStatus: 404 },
     { error: operationRestrictedToDelegate(), expectedStatus: 403 },
+    { error: operationForbidden, expectedStatus: 403 },
   ])(
     "Should return $expectedStatus for $error.code",
     async ({ error, expectedStatus }) => {
@@ -89,6 +96,16 @@ describe("API POST /tenants/attributes/declared test", () => {
     const res = await makeRequest(
       token,
       body as tenantApi.DeclaredTenantAttributeSeed
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it("Should return 400 if passed an invalid tenant id", async () => {
+    const token: string = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(
+      token,
+      { id: generateId() },
+      "invalid" as TenantId
     );
     expect(res.status).toBe(400);
   });

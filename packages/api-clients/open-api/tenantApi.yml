@@ -548,14 +548,21 @@ paths:
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-  /tenants/attributes/declared:
+  /tenants/{tenantId}/attributes/declared:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
     post:
       tags:
         - tenantAttribute
       operationId: addDeclaredAttribute
-      description: Adds a Declared attribute to the requesting Tenant
+      description: Adds a Declared attribute to the target Tenant
       requestBody:
         content:
           application/json:
@@ -576,9 +583,16 @@ paths:
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-  /tenants/attributes/declared/{attributeId}:
+  /tenants/{tenantId}/attributes/declared/{attributeId}:
     parameters:
       - $ref: "#/components/parameters/CorrelationIdHeader"
+      - name: tenantId
+        in: path
+        description: Tenant id
+        required: true
+        schema:
+          type: string
+          format: uuid
       - name: attributeId
         in: path
         description: Attribute id
@@ -590,7 +604,7 @@ paths:
       tags:
         - tenantAttribute
       operationId: revokeDeclaredAttribute
-      description: Revokes a Declared attribute to the requesting Tenant
+      description: Revokes a Declared attribute from the target Tenant
       responses:
         "200":
           description: Updated Tenant
@@ -603,6 +617,8 @@ paths:
                 $ref: "#/components/schemas/Tenant"
         "400":
           $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
   /tenants/{tenantId}/attributes/verified:

@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { authRole } from "pagopa-interop-commons";
-import { generateToken } from "pagopa-interop-commons-test";
+import {
+  generateToken,
+  mockTokenOrganizationId,
+} from "pagopa-interop-commons-test";
 import { AttributeId, generateId } from "pagopa-interop-models";
 import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -29,6 +32,17 @@ describe("API DELETE /tenants/attributes/declared/{attributeId} test", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token);
     expect(res.status).toBe(204);
+    expect(
+      clients.tenantProcessClient.tenantAttribute.revokeDeclaredAttribute
+    ).toHaveBeenCalledWith(
+      undefined,
+      expect.objectContaining({
+        params: {
+          tenantId: mockTokenOrganizationId,
+          attributeId: expect.any(String),
+        },
+      })
+    );
   });
 
   it("Should return 400 if passed an invalid attribute id", async () => {

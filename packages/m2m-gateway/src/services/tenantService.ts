@@ -3,18 +3,8 @@ import {
   tenantApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
-import {
-  M2MAdminAuthData,
-  WithLogger,
-  isDefined,
-} from "pagopa-interop-commons";
-import {
-  AgreementId,
-  AttributeId,
-  DelegationId,
-  TenantId,
-  unsafeBrandId,
-} from "pagopa-interop-models";
+import { WithLogger, isDefined } from "pagopa-interop-commons";
+import { AgreementId, AttributeId, TenantId } from "pagopa-interop-models";
 
 import {
   toM2MGatewayApiTenantCertifiedAttribute,
@@ -36,7 +26,6 @@ import {
   isPolledVersionAtLeastResponseVersion,
   pollResourceWithMetadata,
 } from "../utils/polling.js";
-import { assertTenantCanEditDeclaredAttributes } from "../utils/validators/tenantValidators.js";
 
 function retrieveDeclaredAttributes(
   tenant: tenantApi.Tenant
@@ -205,22 +194,10 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         id: attributeId,
         delegationId,
       }: m2mGatewayApi.TenantDeclaredAttributeSeed,
-      {
-        logger,
-        headers,
-        authData,
-      }: WithLogger<M2MGatewayAppContext<M2MAdminAuthData>>
+      { logger, headers }: WithLogger<M2MGatewayAppContext>
     ): Promise<m2mGatewayApi.TenantDeclaredAttribute> {
       logger.info(
         `Assigning declared attribute ${attributeId} to tenant ${tenantId}`
-      );
-
-      await assertTenantCanEditDeclaredAttributes(
-        authData,
-        tenantId,
-        delegationId ? unsafeBrandId<DelegationId>(delegationId) : undefined,
-        clients.delegationProcessClient,
-        headers
       );
 
       const response =
@@ -230,6 +207,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
             delegationId,
           },
           {
+            params: { tenantId },
             headers,
           }
         );
@@ -256,7 +234,7 @@ export function tenantServiceBuilder(clients: PagoPAInteropBeClients) {
         await clients.tenantProcessClient.tenantAttribute.revokeDeclaredAttribute(
           undefined,
           {
-            params: { attributeId },
+            params: { tenantId, attributeId },
             headers,
           }
         );

@@ -219,7 +219,8 @@ export async function createServices(
     tenantService: tenantServiceBuilder(
       clients.tenantProcessClient,
       clients.attributeProcessClient,
-      clients.selfcareV2InstitutionClient
+      clients.selfcareV2InstitutionClient,
+      clients.delegationProcessClient
     ),
     toolsService: toolsServiceBuilder(clients, {
       dynamoDBClient,
