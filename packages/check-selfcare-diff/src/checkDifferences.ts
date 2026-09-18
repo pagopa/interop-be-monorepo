@@ -1,6 +1,7 @@
 import { isNotNull } from "drizzle-orm";
 import pLimit from "p-limit";
 import { SelfcareV2InstitutionClient } from "pagopa-interop-api-clients";
+import { CORRELATION_ID_HEADER } from "pagopa-interop-commons";
 import {
   generateId,
   PUBLIC_ADMINISTRATIONS_IDENTIFIER,
@@ -254,11 +255,11 @@ export async function checkDifferences(
       selfcareClient.getInstitutionUsersByProductUsingGET({
         params: { institutionId: selfcareId },
         queries: { productId: config.interopProduct },
-        headers: { "X-Correlation-Id": generateId() },
+        headers: { [CORRELATION_ID_HEADER]: generateId() },
       }),
       selfcareClient.retrieveInstitutionByIdUsingGET({
         params: { id: selfcareId },
-        headers: { "X-Correlation-Id": generateId() },
+        headers: { [CORRELATION_ID_HEADER]: generateId() },
       }),
     ]);
 
