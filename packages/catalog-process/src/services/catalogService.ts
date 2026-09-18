@@ -1054,15 +1054,17 @@ export function catalogServiceBuilder(
       }: WithLogger<AppContext<UIAuthData | M2MAuthData | M2MAdminAuthData>>
     ): Promise<ListResult<EService>> {
       const sortBy = filters.sortBy ?? defaultEServiceSortBy;
+      const trimmedKeyword = filters.keyword?.trim();
+      const keyword = trimmedKeyword === "" ? undefined : trimmedKeyword;
       logger.info(
-        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}`
+        `Querying EServices, limit = ${filters.limit}, offset = ${filters.offset}, sortBy = ${sortBy}, keyword = ${keyword}`
       );
-      const eservicesList = await readModelService.queryEServices(
-        authData,
-        filters.offset,
-        filters.limit,
-        sortBy
-      );
+      const eservicesList = await readModelService.queryEServices(authData, {
+        offset: filters.offset,
+        limit: filters.limit,
+        sortBy,
+        keyword,
+      });
 
       const eservicesToReturn = await Promise.all(
         eservicesList.results.map((eservice) =>

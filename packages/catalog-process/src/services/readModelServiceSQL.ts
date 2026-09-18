@@ -1,6 +1,7 @@
 import {
   and,
   asc,
+  Column,
   count,
   countDistinct,
   desc,
@@ -13,6 +14,7 @@ import {
   notExists,
   or,
   SQL,
+  sql,
 } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";
 import {
@@ -102,6 +104,7 @@ import { match } from "ts-pattern";
 import {
   ApiGetEServicesFilters,
   Consumer,
+  EServicesQueryFilters,
   EServiceSortBy,
 } from "../model/domain/models.js";
 import { activeDescriptorStates } from "./descriptorStates.js";
@@ -138,6 +141,58 @@ const getEServicesOrderBy = (sortBy: EServiceSortBy): SQL[] => [
     .exhaustive(),
   asc(eserviceInReadmodelCatalog.id),
 ];
+
+// Keyword search, same approach as the public catalog: normalized text,
+// Italian full text search that ignores accents, trigram similarity as fallback.
+// normalize_text, italian_unaccent and the search_vector generated columns are
+// defined in docker/readmodel-db. They are not part of the drizzle schema.
+const normalizeText = (value: Column | SQL): SQL =>
+  sql`public.normalize_text(${value})`;
+
+const eserviceSearchVector = sql`${eserviceInReadmodelCatalog}.search_vector`;
+const tenantSearchVector = sql`${tenantInReadmodelTenant}.search_vector`;
+const eserviceName = normalizeText(eserviceInReadmodelCatalog.name);
+const eserviceDescription = normalizeText(
+  eserviceInReadmodelCatalog.description
+);
+const producerName = normalizeText(tenantInReadmodelTenant.name);
+
+const eserviceProducerJoin = eq(
+  eserviceInReadmodelCatalog.producerId,
+  tenantInReadmodelTenant.id
+);
+
+const keywordTsQuery = (keyword: string): SQL => {
+  const normalizedKeyword = normalizeText(sql`${keyword}`);
+  return sql`websearch_to_tsquery('public.italian_unaccent'::regconfig, ${normalizedKeyword})`;
+};
+
+const fullTextKeywordFilter = (keyword: string): SQL => {
+  const tsQuery = keywordTsQuery(keyword);
+  return sql`(${eserviceSearchVector} @@ ${tsQuery} OR ${tenantSearchVector} @@ ${tsQuery})`;
+};
+
+const fuzzyKeywordFilter = (keyword: string): SQL => {
+  const normalizedKeyword = normalizeText(sql`${keyword}`);
+  return sql`(${eserviceName} % ${normalizedKeyword}
+    OR ${eserviceDescription} % ${normalizedKeyword}
+    OR ${producerName} % ${normalizedKeyword})`;
+};
+
+// The producer vector keeps weight A and the e-service vector is lowered to
+// weight B, so a match on the producer name ranks first, as in the public catalog.
+// The tenant columns can be NULL because of the left join.
+const keywordRelevance = (keyword: string): SQL => {
+  const tsQuery = keywordTsQuery(keyword);
+  const normalizedKeyword = normalizeText(sql`${keyword}`);
+  const searchVector = sql`COALESCE(${tenantSearchVector}, ''::tsvector) || setweight(${eserviceSearchVector}, 'B')`;
+  const fullTextRank = sql`COALESCE(ts_rank_cd(${searchVector}, ${tsQuery}), 0)`;
+  const fuzzySimilarity = sql`GREATEST(
+    similarity(${eserviceName}, ${normalizedKeyword}),
+    similarity(${eserviceDescription}, ${normalizedKeyword}),
+    similarity(${producerName}, ${normalizedKeyword}))`;
+  return sql`(${fullTextRank} + 0.5 * ${fuzzySimilarity})`;
+};
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL(
@@ -597,9 +652,7 @@ export function readModelServiceBuilderSQL(
     },
     async queryEServices(
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
-      offset: number,
-      limit: number,
-      sortBy: EServiceSortBy
+      { offset, limit, sortBy, keyword }: EServicesQueryFilters
     ): Promise<ListResult<EService>> {
       return await readmodelDB.transaction(async (tx) => {
         const visibilityFilter = hasRoleToAccessInactiveDescriptors(authData)
@@ -637,23 +690,58 @@ export function readModelServiceBuilderSQL(
             )
           : existsValidDescriptor(tx);
 
-        const [pageIds, totalCount] = await Promise.all([
-          tx
-            .select({ id: eserviceInReadmodelCatalog.id })
-            .from(eserviceInReadmodelCatalog)
-            .where(visibilityFilter)
-            .orderBy(...getEServicesOrderBy(sortBy))
-            .limit(limit)
-            .offset(offset),
-          tx
-            .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
-            .from(eserviceInReadmodelCatalog)
-            .where(visibilityFilter),
-        ]);
+        const getPage = async (
+          keywordFilter: SQL | undefined,
+          relevance: SQL | undefined
+        ): Promise<{ ids: string[]; totalCount: number }> => {
+          const orderBy = relevance
+            ? [desc(relevance), ...getEServicesOrderBy(sortBy)]
+            : getEServicesOrderBy(sortBy);
 
-        const ids = pageIds.map((e) => e.id);
+          const [pageIds, totalCount] = await Promise.all([
+            tx
+              .select({ id: eserviceInReadmodelCatalog.id })
+              .from(eserviceInReadmodelCatalog)
+              .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
+              .where(and(visibilityFilter, keywordFilter))
+              .orderBy(...orderBy)
+              .limit(limit)
+              .offset(offset),
+            tx
+              .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
+              .from(eserviceInReadmodelCatalog)
+              .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
+              .where(and(visibilityFilter, keywordFilter)),
+          ]);
+
+          return {
+            ids: pageIds.map((e) => e.id),
+            totalCount: totalCount[0]?.count ?? 0,
+          };
+        };
+
+        const getKeywordPage = async (
+          searchedKeyword: string
+        ): Promise<{ ids: string[]; totalCount: number }> => {
+          const relevance = keywordRelevance(searchedKeyword);
+          const fullTextPage = await getPage(
+            fullTextKeywordFilter(searchedKeyword),
+            relevance
+          );
+          // The fallback depends on the total count, not on the requested page,
+          // so a high offset does not switch to fuzzy results.
+          return fullTextPage.totalCount > 0
+            ? fullTextPage
+            : await getPage(fuzzyKeywordFilter(searchedKeyword), relevance);
+        };
+
+        const { ids, totalCount } =
+          keyword === undefined
+            ? await getPage(undefined, undefined)
+            : await getKeywordPage(keyword);
+
         if (ids.length === 0) {
-          return createListResult([], totalCount[0]?.count);
+          return createListResult([], totalCount);
         }
 
         const eservices = await catalogReadModelService.getEServicesByFilter(
@@ -664,7 +752,7 @@ export function readModelServiceBuilderSQL(
           .map((id) => eservices.find((e) => e.id === id))
           .filter((e): e is EService => e !== undefined);
 
-        return createListResult(orderedEservices, totalCount[0]?.count);
+        return createListResult(orderedEservices, totalCount);
       });
     },
     async isEServiceNameAvailableForProducer({
