@@ -10,15 +10,15 @@ export const ErrorWithCode = z.object({
 
 export type ErrorWithCode = z.infer<typeof ErrorWithCode>;
 
-export const ErrorMapper = z.object({
+const ErrorMapper = z.object({
   name: z.string(),
   file: z.string(),
   errors: z.array(ErrorWithCode),
 });
 
-export type ErrorMapper = z.infer<typeof ErrorMapper>;
+type ErrorMapper = z.infer<typeof ErrorMapper>;
 
-export const Service = z.object({
+const Service = z.object({
   name: z.string(),
   method: z.string(),
   file: z.string(),
@@ -26,7 +26,7 @@ export const Service = z.object({
   endLine: z.number().int().optional(),
 });
 
-export type Service = z.infer<typeof Service>;
+type Service = z.infer<typeof Service>;
 
 export const Endpoint = z.object({
   method: z.string(),

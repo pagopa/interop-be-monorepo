@@ -7,12 +7,12 @@ const FrontendServiceFile = z.object({
 
 export type FrontendServiceFile = z.infer<typeof FrontendServiceFile>;
 
-export const FrontendStackCall = z.object({
+const FrontendStackCall = z.object({
   fileName: z.string(),
   lineNumber: z.number().int(),
 });
 
-export type FrontendStackCall = z.infer<typeof FrontendStackCall>;
+type FrontendStackCall = z.infer<typeof FrontendStackCall>;
 
 export const FrontendServiceFileWithStackCalls = z.object({
   fileName: z.string(),

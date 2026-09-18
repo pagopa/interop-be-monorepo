@@ -3,14 +3,14 @@ import { z } from "zod";
 import { FrontendServiceFileWithStackCalls } from "./frontend.js";
 import { OpenApiLocation } from "./openApi.js";
 
-export const BffProcess = z.object({
+const BffProcess = z.object({
   process: z.string(),
   method: z.string(),
 });
 
-export type BffProcess = z.infer<typeof BffProcess>;
+type BffProcess = z.infer<typeof BffProcess>;
 
-export const BffService = z.object({
+const BffService = z.object({
   name: z.string(),
   method: z.string(),
   file: z.string(),
@@ -19,7 +19,7 @@ export const BffService = z.object({
   processes: z.array(BffProcess),
 });
 
-export type BffService = z.infer<typeof BffService>;
+type BffService = z.infer<typeof BffService>;
 
 export const BffEndpoint = z.object({
   method: z.string(),

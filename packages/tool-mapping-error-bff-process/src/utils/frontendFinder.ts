@@ -247,7 +247,7 @@ export function findPathInService(
   return undefined;
 }
 
-export type FunctionCall = {
+type FunctionCall = {
   file: string;
   lineNumber: number;
 };

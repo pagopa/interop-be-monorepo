@@ -8,7 +8,7 @@ export const OpenApiLocation = z.object({
 
 export type OpenApiLocation = z.infer<typeof OpenApiLocation>;
 
-export type OpenApiOperation = {
+type OpenApiOperation = {
   operationId?: string;
 };
 

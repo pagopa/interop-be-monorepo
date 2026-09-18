@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
 
-export function resolveImportPath(
+function resolveImportPath(
   importPath: string,
   routerFileName: string
 ): string {
@@ -88,18 +88,18 @@ export function findErrorMapperFile(
   return resolveImportPath(match[1], routerFileName);
 }
 
-export function toCamelCase(str: string): string {
+function toCamelCase(str: string): string {
   if (str === "backend-for-frontend") {
     return "bff";
   }
   return str.replace(/-([a-z])/g, (_, char) => char.toUpperCase());
 }
 
-export function getPackageFolder(): string {
+function getPackageFolder(): string {
   return resolve(dirname(__filename), "..", "..", "..");
 }
 
-export function getFrontendFolder(): string {
+function getFrontendFolder(): string {
   return join(getPackageFolder(), "..", "..", "pdnd-interop-frontend");
 }
 
@@ -107,11 +107,11 @@ function frontendExists(): boolean {
   return existsSync(getFrontendFolder());
 }
 
-export function getFrontendSrcFolder(): string {
+function getFrontendSrcFolder(): string {
   return join(getFrontendFolder(), "src");
 }
 
-export function getFrontendApiFolder(): string {
+function getFrontendApiFolder(): string {
   return join(getFrontendSrcFolder(), "api");
 }
 

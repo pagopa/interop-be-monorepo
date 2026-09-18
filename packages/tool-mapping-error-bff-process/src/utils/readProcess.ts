@@ -6,7 +6,7 @@ import {
 import { getProcessPackages, getRoutersAndOpenapiFiles } from "./filePaths.js";
 import { readRouterEndpoints } from "./readProcessRouter.js";
 
-export function readProcess(
+function readProcess(
   processName: string,
   includeInternalAndMaintenance: boolean,
   includeFrontend: boolean,
