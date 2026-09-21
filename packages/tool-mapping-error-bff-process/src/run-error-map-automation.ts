@@ -1,10 +1,24 @@
 import { execSync } from "child_process";
 import * as fs from "fs";
+import { spawnSync } from "node:child_process";
 import * as path from "path";
 
 import { getPackageFolder } from "./utils/index.js";
 
 const __dirname = getPackageFolder();
+
+export function executeCommand(command: string): string {
+  const result = spawnSync(command, {
+    shell: true,
+    cwd: path.join(__dirname, ".."),
+    stdio: "inherit",
+  });
+
+  if (result.status !== 0) {
+    throw new Error(`Command "${command}" exited with code ${result.status}`);
+  }
+  return result.output.join("");
+}
 
 // 1. Configurazione Parametri
 const PROCESS_NAME = process.argv[2];
@@ -80,14 +94,19 @@ async function runAutomation() {
     );
 
     // Prompt inviato alla CLI di Copilot
-    const promptText = `Usa la skill situata in ../.agents/skills/error-mapping-skill/SKILL.md per analizzare il process "${PROCESS_NAME}" con limit ${currentLimit} e offset ${offset}. Genera esclusivamente la tabella Markdown e i relativi dettagli per questi endpoint, senza aggiungere messaggi di benvenuto o introduzioni.`;
+    const promptText = `Usa la skill situata in ./.agents/skills/error-mapping-skill/SKILL.md per analizzare il process "${PROCESS_NAME}" con limit ${currentLimit} e offset ${offset}.`;
 
     // Comando per Copilot CLI 1.0.15 (Sfrutta 'copilot -p' oppure 'gh copilot exec' a seconda dell'installazione)
     // Se la tua CLI risponde direttamente al comando 'copilot', sostituisci 'gh copilot exec' con 'copilot -p'
-    const copilotCmd = `gh copilot -p "${promptText.replace(/"/g, '\\"')}"`;
+    const frontendFolder = path.resolve(
+      path.join(__dirname, "..", "..", "pdnd-interop-frontend")
+    );
+    const backendFolder = path.resolve(path.join(__dirname, ".."));
+
+    const copilotCmd = `gh copilot --add-dir "${backendFolder}" --add-dir "${frontendFolder}" -i "${promptText.replace(/"/g, '\\"')}"`;
 
     try {
-      const commandOutput = execSync(copilotCmd, { encoding: "utf-8" });
+      const commandOutput = executeCommand(copilotCmd);
       finalMarkdown += commandOutput.trim() + "\n\n---\n\n";
       console.log(
         `✅ [Batch ${batchNumber}/${totalBatches}] Completato con successo!`
