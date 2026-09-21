@@ -87,7 +87,7 @@ export function digestTemplateServiceBuilder(
         data.archivingInProgressEservices?.totalCount === 1;
       const archivingInProgressRemainder = Math.max(
         (data.archivingInProgressEservices?.totalCount ?? 0) -
-        (data.archivingInProgressEservices?.items.length ?? 0),
+          (data.archivingInProgressEservices?.items.length ?? 0),
         0
       );
 

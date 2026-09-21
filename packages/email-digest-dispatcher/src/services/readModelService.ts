@@ -287,7 +287,8 @@ async function getCachedEntities<K, V>(
 
   if (uncachedIds.length > 0) {
     logger.info(
-      `Retrieving ${uncachedIds.length} ${entityName} by IDs (${ids.length - uncachedIds.length
+      `Retrieving ${uncachedIds.length} ${entityName} by IDs (${
+        ids.length - uncachedIds.length
       } from cache)`
     );
     const fetched = await fetchFn(uncachedIds);
