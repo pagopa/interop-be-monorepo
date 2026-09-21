@@ -172,7 +172,7 @@ const getReviewerIdFilter = (
           .where(
             and(
               isNotNull(
-                purposeInReadmodelPurpose.reviewerWorkflowSentToReviewerAt
+                riskAnalysisReviewerInReadmodelPurpose.sentToReviewerAt
               ),
               eq(
                 riskAnalysisReviewerInReadmodelPurpose.purposeId,
@@ -388,7 +388,10 @@ export function readModelServiceBuilderSQL({
             )
           )
           .groupBy(purposeInReadmodelPurpose.id)
-          .orderBy(ascLower(purposeInReadmodelPurpose.title))
+          .orderBy(
+            ascLower(purposeInReadmodelPurpose.title),
+            asc(purposeInReadmodelPurpose.id)
+          )
           .limit(limit)
           .offset(offset)
           .$dynamic()
@@ -482,7 +485,10 @@ export function readModelServiceBuilderSQL({
             eserviceInReadmodelCatalog.id
           )
         )
-        .orderBy(ascLower(purposeInReadmodelPurpose.title));
+        .orderBy(
+          ascLower(purposeInReadmodelPurpose.title),
+          asc(purposeInReadmodelPurpose.id)
+        );
 
       const purposes = aggregatePurposeArray(
         toPurposeAggregatorArray(queryResult)

@@ -71,6 +71,10 @@ export function userNotificationConfigToApiUserNotificationConfig({
     purposeQuotaAdjustmentRequestToProducer:
       purposeQuotaAdjustmentRequestToProducerInApp,
     purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerInApp,
+    eserviceArchivingRequestedToDelegator:
+      eserviceArchivingRequestedToDelegatorInApp,
+    eserviceArchivingApprovedRejectedToDelegate:
+      eserviceArchivingApprovedRejectedToDelegateInApp,
   },
   emailConfig: {
     agreementSuspendedUnsuspendedToProducer:
@@ -112,6 +116,10 @@ export function userNotificationConfigToApiUserNotificationConfig({
     purposeQuotaAdjustmentRequestToProducer:
       purposeQuotaAdjustmentRequestToProducerEmail,
     purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerEmail,
+    eserviceArchivingRequestedToDelegator:
+      eserviceArchivingRequestedToDelegatorEmail,
+    eserviceArchivingApprovedRejectedToDelegate:
+      eserviceArchivingApprovedRejectedToDelegateEmail,
   },
   createdAt,
   updatedAt,
@@ -167,6 +175,10 @@ export function userNotificationConfigToApiUserNotificationConfig({
       purposeQuotaAdjustmentRequestToProducer:
         purposeQuotaAdjustmentRequestToProducerInApp,
       purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerInApp,
+      eserviceArchivingRequestedToDelegator:
+        eserviceArchivingRequestedToDelegatorInApp,
+      eserviceArchivingApprovedRejectedToDelegate:
+        eserviceArchivingApprovedRejectedToDelegateInApp,
     },
     emailConfig: {
       agreementSuspendedUnsuspendedToProducer:
@@ -210,6 +222,10 @@ export function userNotificationConfigToApiUserNotificationConfig({
       purposeQuotaAdjustmentRequestToProducer:
         purposeQuotaAdjustmentRequestToProducerEmail,
       purposeOverQuotaStateToConsumer: purposeOverQuotaStateToConsumerEmail,
+      eserviceArchivingRequestedToDelegator:
+        eserviceArchivingRequestedToDelegatorEmail,
+      eserviceArchivingApprovedRejectedToDelegate:
+        eserviceArchivingApprovedRejectedToDelegateEmail,
     },
     createdAt: createdAt.toJSON(),
     updatedAt: updatedAt?.toJSON(),
