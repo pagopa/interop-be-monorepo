@@ -67,7 +67,7 @@ export type AttributeDigest = BaseDigest & {
   }>;
 };
 
-export type ArchivingProducerItem = {
+type ArchivingProducerItem = {
   id: string;
   eserviceName: string;
   version: string;

@@ -159,7 +159,7 @@ export type PopularEserviceTemplate = {
   totalCount: number;
 };
 
-export type ArchivingScope = "Descriptor" | "EService";
+type ArchivingScope ="Descriptor" | "EService";
 
 export type ArchivingEservice = {
   eserviceId: EServiceId;
