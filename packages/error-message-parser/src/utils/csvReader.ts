@@ -25,15 +25,37 @@ export function readCsvErrorFile(
     skip_empty_lines: true,
   });
 
-  // Exclude the first row and keep only the first x columns
-  const filteredRows = rows
-    .slice(1)
-    .map((row: string[]) => row.slice(0, 3 + languages.length));
+  const headers = rows[0];
+
+  // Find all the columns that have "{language}" or "Copy {language}" in the header, in the exact order of the languages array
+  const languageColumnsIndexes = languages
+    .map<number | undefined>((lang) => {
+      const exactMatch = headers.findIndex(
+        (header) => header.trim().toLowerCase() === lang.toLowerCase()
+      );
+      if (exactMatch !== -1) {
+        return exactMatch;
+      }
+      const copyMatch = headers.findIndex(
+        (header) => header.trim().toLowerCase() === `copy ${lang.toLowerCase()}`
+      );
+      return copyMatch !== -1 ? copyMatch : undefined;
+    })
+    .filter((res) => res !== undefined);
+
+  // Exclude the first row and keep only the first three columns + the language columns
+  const filteredRows = rows.slice(1).map((row: string[]) => {
+    const fixedColumns = row.slice(0, Object.keys(columns).length);
+
+    return [
+      ...fixedColumns,
+      ...(languageColumnsIndexes as number[]).map((idx) => row.at(idx)),
+    ];
+  });
 
   const parsed: ErrorCopy = {};
 
   for (const row of filteredRows) {
-    // Implement the logic to populate the ErrorCopy object based on the row data
     const urlParse = MethodUrl.safeParse(row.at(columns.methodUrl));
     const processParse = ProcessName.safeParse(row.at(columns.process));
     const errorCode = row.at(columns.errorCode);
@@ -47,9 +69,6 @@ export function readCsvErrorFile(
     if (!parsedErrorCode) {
       continue;
     }
-    if (!parsed[url]) {
-      parsed[url] = {};
-    }
 
     const messages = ErrorMessage.safeParse(
       Object.fromEntries(
@@ -60,6 +79,9 @@ export function readCsvErrorFile(
       continue;
     }
 
+    if (!parsed[url]) {
+      parsed[url] = {};
+    }
     if (!parsed[url][parsedErrorCode]) {
       parsed[url][parsedErrorCode] = {
         key: parsedErrorCode,

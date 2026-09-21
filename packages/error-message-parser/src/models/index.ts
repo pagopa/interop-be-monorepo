@@ -8,9 +8,11 @@ export type MethodUrl = z.infer<typeof MethodUrl>;
 
 export const ProcessName = z
   .string()
-  .regex(/^[\w-]+Process$/)
+  .regex(/^[\w-]+\s*Process$/)
   .min(1)
-  .transform((val) => val.trim());
+  .transform((val) =>
+    val.trim().replace(/\s+/g, "").toLowerCase().replace("process", "Process")
+  );
 
 export type ProcessName = z.infer<typeof ProcessName>;
 
