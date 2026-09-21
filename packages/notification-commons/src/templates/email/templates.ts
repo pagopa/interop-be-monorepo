@@ -125,6 +125,8 @@ export const eventMailTemplateType = {
     "purpose-risk-analysis-assigned-for-signing-to-reviewer-mail",
   purposePublishedWithRiskAnalysisToReviewerMailTemplate:
     "purpose-published-with-risk-analysis-to-reviewer-mail",
+  draftPurposeDeletedWithRiskAnalysisToReviewerMailTemplate:
+    "draft-purpose-deleted-with-risk-analysis-to-reviewer-mail",
   eserviceArchivingStartedDescriptorToProducerMailTemplate:
     "eservice-archiving-started-descriptor-to-producer-mail",
   eserviceArchivingStartedDescriptorToConsumerMailTemplate:
