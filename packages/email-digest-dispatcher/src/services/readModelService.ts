@@ -5,6 +5,7 @@ import {
   and,
   or,
   gte,
+  lte,
   isNotNull,
   isNull,
   count,
@@ -32,6 +33,7 @@ import {
   DelegationKind,
   DelegationState,
   delegationState,
+  archivingScope,
 } from "pagopa-interop-models";
 import {
   DrizzleReturnType,
@@ -53,6 +55,7 @@ import {
   purposeVersionInReadmodelPurpose,
   delegationInReadmodelDelegation,
   delegationStampInReadmodelDelegation,
+  eserviceDescriptorArchivingScheduleInReadmodelCatalog,
 } from "pagopa-interop-readmodel-models";
 
 import { config } from "../config/config.js";
@@ -153,6 +156,18 @@ export type PopularEserviceTemplate = {
   eserviceTemplateName: string;
   eserviceTemplateCreatorId: TenantId;
   instances: number;
+  totalCount: number;
+};
+
+export type ArchivingScope = "Descriptor" | "EService";
+
+export type ArchivingEservice = {
+  eserviceId: EServiceId;
+  descriptorId: DescriptorId;
+  eserviceName: string;
+  version: string;
+  scope: ArchivingScope;
+  archivableOn: string;
   totalCount: number;
 };
 
@@ -272,8 +287,7 @@ async function getCachedEntities<K, V>(
 
   if (uncachedIds.length > 0) {
     logger.info(
-      `Retrieving ${uncachedIds.length} ${entityName} by IDs (${
-        ids.length - uncachedIds.length
+      `Retrieving ${uncachedIds.length} ${entityName} by IDs (${ids.length - uncachedIds.length
       } from cache)`
     );
     const fetched = await fetchFn(uncachedIds);
@@ -777,6 +791,178 @@ export function readModelServiceBuilder(db: DrizzleReturnType, logger: Logger) {
         instances: row.instances,
         totalCount: row.totalCount,
       }));
+    },
+
+    /**
+     * Returns descriptors/e-services owned by the producer that are currently in the
+     * "Archiving" notice-period countdown ("fase di archiviazione" snapshot, not a delta).
+     * Ordered from most recently started to least recent. Limited to 5.
+     */
+    async getArchivingInProgressEservices(
+      producerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      logger.info(
+        `Retrieving in-progress archiving e-services for producer ${producerId}`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            eserviceId:
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
+            descriptorId:
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
+            eserviceName: eserviceInReadmodelCatalog.name,
+            version: eserviceDescriptorInReadmodelCatalog.version,
+            scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+            archivableOn:
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+          })
+        )
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(eq(eserviceInReadmodelCatalog.producerId, producerId))
+        .orderBy(
+          desc(eserviceDescriptorArchivingScheduleInReadmodelCatalog.startedAt)
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} in-progress archiving e-services for producer ${producerId}`
+      );
+
+      return results.map((row) => ({
+        eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+        descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
+        eserviceName: row.eserviceName,
+        version: row.version,
+        scope: row.scope as ArchivingScope,
+        archivableOn: row.archivableOn,
+        totalCount: row.totalCount,
+      }));
+    },
+
+    /**
+     * Returns descriptors/e-services owned by the producer whose archiving will become
+     * definitive within the next 7 days ("previste a breve"), ordered from most to least
+     * imminent. Limited to 5.
+     */
+    async getArchivingImminentEservices(
+      producerId: TenantId
+    ): Promise<ArchivingEservice[]> {
+      const imminentCutoff = new Date();
+      imminentCutoff.setDate(imminentCutoff.getDate() + 7);
+
+      logger.info(
+        `Retrieving imminent archiving e-services for producer ${producerId} (cutoff ${imminentCutoff.toISOString()})`
+      );
+
+      const results = await db
+        .select(
+          withTotalCount({
+            eserviceId:
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId,
+            descriptorId:
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId,
+            eserviceName: eserviceInReadmodelCatalog.name,
+            version: eserviceDescriptorInReadmodelCatalog.version,
+            scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+            archivableOn:
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+          })
+        )
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .innerJoin(
+          eserviceDescriptorInReadmodelCatalog,
+          eq(
+            eserviceDescriptorInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.descriptorId
+          )
+        )
+        .where(
+          and(
+            eq(eserviceInReadmodelCatalog.producerId, producerId),
+            lte(
+              eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn,
+              imminentCutoff.toISOString()
+            )
+          )
+        )
+        .orderBy(
+          asc(
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.archivableOn
+          )
+        )
+        .limit(SECTION_LIST_LIMIT);
+
+      logger.info(
+        `Retrieved ${results.length} imminent archiving e-services for producer ${producerId}`
+      );
+
+      return results.map((row) => ({
+        eserviceId: unsafeBrandId<EServiceId>(row.eserviceId),
+        descriptorId: unsafeBrandId<DescriptorId>(row.descriptorId),
+        eserviceName: row.eserviceName,
+        version: row.version,
+        scope: row.scope as ArchivingScope,
+        archivableOn: row.archivableOn,
+        totalCount: row.totalCount,
+      }));
+    },
+
+    /**
+     * Returns, for the producer's e-services currently in the archiving countdown,
+     * how many are scheduled at e-service scope vs single-descriptor scope.
+     * Used for the section's stat cards.
+     */
+    async getArchivingScopeCounts(producerId: TenantId): Promise<{
+      eserviceScopeCount: number;
+      descriptorScopeCount: number;
+    }> {
+      const results = await db
+        .select({
+          scope: eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope,
+          scopeCount: count(),
+        })
+        .from(eserviceDescriptorArchivingScheduleInReadmodelCatalog)
+        .innerJoin(
+          eserviceInReadmodelCatalog,
+          eq(
+            eserviceInReadmodelCatalog.id,
+            eserviceDescriptorArchivingScheduleInReadmodelCatalog.eserviceId
+          )
+        )
+        .where(eq(eserviceInReadmodelCatalog.producerId, producerId))
+        .groupBy(eserviceDescriptorArchivingScheduleInReadmodelCatalog.scope);
+
+      const eserviceScopeCount =
+        results.find((r) => r.scope === archivingScope.eservice)?.scopeCount ??
+        0;
+      const descriptorScopeCount =
+        results.find((r) => r.scope === archivingScope.descriptor)
+          ?.scopeCount ?? 0;
+
+      return { eserviceScopeCount, descriptorScopeCount };
     },
 
     /**

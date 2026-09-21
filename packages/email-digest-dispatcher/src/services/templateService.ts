@@ -81,6 +81,15 @@ export function digestTemplateServiceBuilder(
         data.receivedAttributes?.totalCount === 1;
       const revokedAttributesSingular =
         data.revokedAttributes?.totalCount === 1;
+      const archivingImminentEservicesSingular =
+        data.archivingImminentEservices?.totalCount === 1;
+      const archivingInProgressEservicesSingular =
+        data.archivingInProgressEservices?.totalCount === 1;
+      const archivingInProgressRemainder = Math.max(
+        (data.archivingInProgressEservices?.totalCount ?? 0) -
+        (data.archivingInProgressEservices?.items.length ?? 0),
+        0
+      );
 
       return templateService.compileHtml(digestTemplate, {
         title: "Riepilogo notifiche",
@@ -96,6 +105,7 @@ export function digestTemplateServiceBuilder(
         showReceivedPurposes: visibility.receivedPurposes,
         showDelegations: visibility.delegations,
         showAttributes: visibility.attributes,
+        showArchivingProducer: visibility.archivingProducer,
         newEservicesSingular,
         updatedEservicesSingular,
         updatedEserviceTemplatesSingular,
@@ -112,6 +122,9 @@ export function digestTemplateServiceBuilder(
         rejectedSentDelegationsSingular,
         receivedAttributesSingular,
         revokedAttributesSingular,
+        archivingImminentEservicesSingular,
+        archivingInProgressEservicesSingular,
+        archivingInProgressRemainder,
       });
     },
   };
