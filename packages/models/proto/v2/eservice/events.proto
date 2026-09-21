@@ -329,6 +329,6 @@ message EServicePendingDescriptorDeletedByRevokedDelegationV2 {
 }
 
 message EServiceDeletedByRevokedDelegationV2 {
-  EServiceV2 eservice = 2;
+  EServiceV2 eservice = 1;
 }
 
