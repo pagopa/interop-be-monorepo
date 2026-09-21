@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiTenant,
   getMockDPoPProof,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
 import request from "supertest";
-import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
-import { api, mockTenantService } from "../../vitest.api.setup.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { describe, it, expect, vi } from "vitest";
+
 import { toM2MGatewayApiTenant } from "../../../src/api/tenantApiConverter.js";
+import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockTenantService } from "../../vitest.api.setup.js";
 
 describe("GET /tenants/:tenantId route test", () => {
   const mockApiResponse = getMockedApiTenant();

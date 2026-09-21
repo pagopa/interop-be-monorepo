@@ -1,5 +1,5 @@
-import { notification } from "pagopa-interop-in-app-notification-db-models";
 import { drizzle } from "drizzle-orm/node-postgres";
+import { notification } from "pagopa-interop-in-app-notification-db-models";
 import { NewNotification } from "pagopa-interop-models";
 import { toNotificationSQL } from "pagopa-interop-models";
 

@@ -29,8 +29,9 @@ import {
   VerifiedTenantAttribute,
 } from "pagopa-interop-models";
 import { describe, it, expect } from "vitest";
-import { splitTenantIntoObjectsSQL } from "../../src/tenant/splitters.js";
+
 import { aggregateTenant } from "../../src/tenant/aggregators.js";
+import { splitTenantIntoObjectsSQL } from "../../src/tenant/splitters.js";
 
 describe("Tenant aggregators", () => {
   it("should convert Tenant SQL objects item into a Tenant", () => {

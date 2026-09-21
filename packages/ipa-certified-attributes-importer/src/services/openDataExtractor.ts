@@ -2,9 +2,10 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 /* eslint-disable @typescript-eslint/array-type */
 import axios from "axios";
-import { z } from "zod";
-import { match } from "ts-pattern";
 import { PUBLIC_ADMINISTRATIONS_IDENTIFIER } from "pagopa-interop-models";
+import { match } from "ts-pattern";
+import { z } from "zod";
+
 import type { OpenDataConfig } from "../config/openDataConfig.js";
 
 type Classification = "Agency" | "AOO" | "UO";

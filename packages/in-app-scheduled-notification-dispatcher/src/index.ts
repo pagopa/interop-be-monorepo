@@ -1,9 +1,11 @@
 import { drizzle } from "drizzle-orm/node-postgres";
+import { logger } from "pagopa-interop-commons";
 import {
   CorrelationId,
   NotificationType,
   generateId,
 } from "pagopa-interop-models";
+import { runScheduledDeliveryBatch } from "pagopa-interop-notification-commons";
 import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
@@ -14,13 +16,12 @@ import {
   purposeReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { logger } from "pagopa-interop-commons";
 import {
   makeScheduledNotificationDrizzleConnection,
   scheduledNotificationChannel,
 } from "pagopa-interop-scheduled-notification-db-models";
-import { runScheduledDeliveryBatch } from "pagopa-interop-notification-commons";
 import pg from "pg";
+
 import { config } from "./config/config.js";
 import { dispatchInAppDeliveryBuilder } from "./handlers/dispatchInAppDelivery.js";
 import { inAppNotificationSinkBuilder } from "./services/inAppNotificationSinkService.js";

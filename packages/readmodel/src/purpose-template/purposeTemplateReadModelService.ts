@@ -21,6 +21,7 @@ import {
   purposeTemplateRiskAnalysisFormSignedDocumentInReadmodelPurposeTemplate,
   purposeTemplateRiskAnalysisFormInReadmodelPurposeTemplate,
 } from "pagopa-interop-readmodel-models";
+
 import {
   aggregatePurposeTemplate,
   aggregatePurposeTemplateArray,

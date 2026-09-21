@@ -15,12 +15,13 @@ import {
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { P, match } from "ts-pattern";
 import {
   catalogReadModelServiceBuilder,
   makeDrizzleConnection,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+import { P, match } from "ts-pattern";
+
 import { config } from "./config/config.js";
 import { certifiedEmailSenderServiceBuilder } from "./services/certifiedEmailSenderService.js";
 import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";

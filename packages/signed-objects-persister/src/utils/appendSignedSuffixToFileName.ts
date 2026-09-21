@@ -1,5 +1,6 @@
 import path from "path";
 import { match } from "ts-pattern";
+
 import { FileKind, FileKindSchema } from "./fileKind.config.js";
 
 export const appendSignedSuffixToFileName = (
@@ -12,6 +13,10 @@ export const appendSignedSuffixToFileName = (
 
   return match(fileKind)
     .with(FileKindSchema.Enum.EVENT_JOURNAL, () => `${name}.zip.p7m`)
-    .with(FileKindSchema.Enum.VOUCHER_AUDIT, () => `${name}.ndjson.zip.p7m`)
+    .with(
+      FileKindSchema.Enum.VOUCHER_AUDIT,
+      FileKindSchema.Enum.M2M_VOUCHER_AUDIT,
+      () => `${name}.ndjson.zip.p7m`
+    )
     .otherwise(() => `${name}${ext}`);
 };

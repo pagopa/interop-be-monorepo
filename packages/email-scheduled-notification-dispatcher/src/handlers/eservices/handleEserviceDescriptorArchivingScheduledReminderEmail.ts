@@ -1,18 +1,15 @@
-import { differenceInCalendarDays } from "date-fns";
-import {
-  CorrelationId,
-  EmailNotificationMessagePayload,
-  NotificationType,
-  TenantId,
-} from "pagopa-interop-models";
 import {
   HtmlTemplateService,
   Logger,
   dateAtRomeZone,
 } from "pagopa-interop-commons";
 import {
+  CorrelationId,
+  EmailNotificationMessagePayload,
+  NotificationType,
+} from "pagopa-interop-models";
+import {
   eventMailTemplateType,
-  formatDaysRemaining,
   getRecipientsForTenants,
   mapRecipientToEmailPayload,
   retrieveHTMLTemplate,
@@ -22,12 +19,11 @@ import {
   ScheduledNotificationRow,
   parseEServiceIdDescriptorId,
 } from "pagopa-interop-scheduled-notification-db-models";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 const PRODUCER_NOTIFICATION: NotificationType =
   "eserviceStateChangedToProducer";
-const CONSUMER_NOTIFICATION: NotificationType =
-  "eserviceStateChangedToConsumer";
 
 type EmailReminderHandlerDeps = {
   readModelService: ReadModelServiceSQL;
@@ -75,24 +71,15 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
   }
 
   const archivableOn = descriptor.archivingSchedule.archivableOn;
-  const daysRemaining = Math.max(
-    differenceInCalendarDays(archivableOn, new Date()),
-    0
-  );
   const archivableOnFormatted = dateAtRomeZone(archivableOn);
-  const daysRemainingText = formatDaysRemaining(daysRemaining);
   const entityId = `${eservice.id}/${descriptor.id}`;
 
-  const [producerTemplate, consumerTemplate, producerTenant] =
-    await Promise.all([
-      retrieveHTMLTemplate(
-        eventMailTemplateType.eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate
-      ),
-      retrieveHTMLTemplate(
-        eventMailTemplateType.eserviceStateChangedToConsumerScheduledReminderDescriptorMailTemplate
-      ),
-      retrieveTenant(eservice.producerId, readModelService),
-    ]);
+  const [producerTemplate, producerTenant] = await Promise.all([
+    retrieveHTMLTemplate(
+      eventMailTemplateType.eserviceStateChangedToProducerScheduledReminderDescriptorMailTemplate
+    ),
+    retrieveTenant(eservice.producerId, readModelService),
+  ]);
 
   const producerTargets = await getRecipientsForTenants({
     tenants: [producerTenant],
@@ -113,10 +100,8 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
         ...(t.type === "Tenant" ? { recipientName: producerTenant.name } : {}),
         eserviceName: eservice.name,
         eserviceVersion: descriptor.version,
-        daysRemaining,
-        daysRemainingText,
         archivableOn: archivableOnFormatted,
-        ctaLabel: "Visualizza e-service",
+        ctaLabel: "Accedi a PDND",
         selfcareId: t.selfcareId,
         bffUrl,
       }),
@@ -125,66 +110,5 @@ export async function handleEserviceDescriptorArchivingScheduledReminderEmail(
     ...mapRecipientToEmailPayload(t),
   }));
 
-  const agreements = await readModelService.getAgreementsByEserviceId(
-    eservice.id,
-    { includeArchived: false }
-  );
-  const consumerIds = Array.from(
-    new Set(
-      agreements
-        .filter((a) => a.descriptorId === descriptor.id)
-        .map((a) => a.consumerId)
-    )
-  ) as TenantId[];
-
-  let consumerPayloads: EmailNotificationMessagePayload[] = [];
-  if (consumerIds.length > 0) {
-    const consumerTenants = await readModelService.getTenantsByIds(consumerIds);
-    if (consumerTenants.length < consumerIds.length) {
-      const missing = consumerIds.filter(
-        (id) => !consumerTenants.some((t) => t.id === id)
-      );
-      log.warn(
-        `Skipping ${missing.length} missing consumer tenants for descriptor ${descriptor.id} of eservice ${eservice.id} (row ${row.id}): ${missing.join(", ")}`
-      );
-    }
-    const consumerTargets = await getRecipientsForTenants({
-      tenants: consumerTenants,
-      notificationType: CONSUMER_NOTIFICATION,
-      readModelService,
-      logger: log,
-      includeTenantContactEmails: false,
-    });
-    const consumerSubject = `Promemoria: archiviazione dell'e-service "${eservice.name}" a cui sei iscritto`;
-    consumerPayloads = consumerTargets.map((t) => {
-      const consumerTenant = consumerTenants.find((tt) => tt.id === t.tenantId);
-      return {
-        correlationId,
-        email: {
-          subject: consumerSubject,
-          body: templateService.compileHtml(consumerTemplate, {
-            title: consumerSubject,
-            notificationType: CONSUMER_NOTIFICATION,
-            entityId,
-            ...(t.type === "Tenant" && consumerTenant
-              ? { recipientName: consumerTenant.name }
-              : {}),
-            eserviceName: eservice.name,
-            eserviceVersion: descriptor.version,
-            producerName: producerTenant.name,
-            daysRemaining,
-            daysRemainingText,
-            archivableOn: archivableOnFormatted,
-            ctaLabel: "Visualizza e-service",
-            selfcareId: t.selfcareId,
-            bffUrl,
-          }),
-        },
-        tenantId: t.tenantId,
-        ...mapRecipientToEmailPayload(t),
-      };
-    });
-  }
-
-  return [...producerPayloads, ...consumerPayloads];
+  return producerPayloads;
 }

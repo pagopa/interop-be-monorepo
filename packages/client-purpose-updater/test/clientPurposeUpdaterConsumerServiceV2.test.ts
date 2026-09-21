@@ -1,4 +1,5 @@
 /* eslint-disable functional/no-let */
+import { RefreshableInteropToken } from "pagopa-interop-commons";
 import {
   getMockPurpose,
   getMockPurposeVersion,
@@ -13,7 +14,6 @@ import {
   toPurposeV2,
 } from "pagopa-interop-models";
 import { beforeAll, describe, expect, it, vi, afterEach } from "vitest";
-import { RefreshableInteropToken } from "pagopa-interop-commons";
 
 const removePurposeFromClientsFn = vi.fn();
 

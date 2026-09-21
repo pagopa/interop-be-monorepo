@@ -1,4 +1,5 @@
 import { integer, timestamp, uuid, varchar } from "drizzle-orm/pg-core";
+
 import { m2mEvent } from "../pgSchema.js";
 
 export const eserviceInM2MEvent = m2mEvent.table("eservice", {

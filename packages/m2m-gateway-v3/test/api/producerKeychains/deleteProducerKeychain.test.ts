@@ -1,11 +1,12 @@
-import { describe, it, expect, vi } from "vitest";
-import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
+import { generateToken, getMockDPoPProof } from "pagopa-interop-commons-test";
 import { generateId, pollingMaxRetriesExceeded } from "pagopa-interop-models";
-import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
 import { appBasePath } from "../../../src/config/appBasePath.js";
 import { config } from "../../../src/config/config.js";
+import { api, mockProducerKeychainService } from "../../vitest.api.setup.js";
 
 describe("DELETE /producerKeychains/:keychainId router test", () => {
   const makeRequest = async (token: string, keychainId: string) =>

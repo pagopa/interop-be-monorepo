@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi } from "vitest";
+import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockedApiEservice,
   getMockedApiEserviceDescriptor,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import request from "supertest";
 import { generateId } from "pagopa-interop-models";
-import { catalogApi, m2mGatewayApi } from "pagopa-interop-api-clients";
-import { api, mockEserviceService } from "../../vitest.api.setup.js";
+import request from "supertest";
+import { describe, it, expect, vi } from "vitest";
+
+import { appBasePath } from "../../../src/config/appBasePath.js";
 import {
   eserviceDescriptorAttributeNotFound,
   eserviceDescriptorNotFound,
 } from "../../../src/model/errors.js";
-import { appBasePath } from "../../../src/config/appBasePath.js";
+import { api, mockEserviceService } from "../../vitest.api.setup.js";
 
 describe("GET /eservices/{eServiceId}/descriptors/{descriptorId}/verifiedAttributes router test", () => {
   const attribute1: catalogApi.Attribute = {

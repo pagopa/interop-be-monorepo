@@ -1,4 +1,14 @@
 import {
+  getMockPurposeVersion,
+  getMockPurpose,
+  getMockDelegation,
+  getMockAuthData,
+  getMockContext,
+  getMockEService,
+  sortPurpose,
+  getMockClient,
+} from "pagopa-interop-commons-test";
+import {
   Client,
   EService,
   Purpose,
@@ -15,16 +25,7 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { beforeEach, describe, expect, it } from "vitest";
-import {
-  getMockPurposeVersion,
-  getMockPurpose,
-  getMockDelegation,
-  getMockAuthData,
-  getMockContext,
-  getMockEService,
-  sortPurpose,
-  getMockClient,
-} from "pagopa-interop-commons-test";
+
 import {
   addOneClient,
   addOneDelegation,
@@ -518,16 +519,16 @@ describe("getPurposes", async () => {
   it("should get purposes with filters: signingStates", async () => {
     const reviewerId: UserId = generateId();
     const assignedWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [unsafeBrandId(reviewerId)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.assigned,
-      sentToReviewerAt: new Date(),
     };
     const submittedWorkflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [unsafeBrandId(reviewerId)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.submitted,
-      sentToReviewerAt: new Date(),
     };
 
     const assignedPurpose: Purpose = {
@@ -536,6 +537,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: assignedWorkflow,
     };
 
@@ -545,6 +547,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: submittedWorkflow,
     };
 
@@ -592,28 +595,28 @@ describe("getPurposes", async () => {
     const reviewerIdWithoutPurposes: UserId = generateId();
 
     const submittedReviewer1Workflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [unsafeBrandId(reviewerId1)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId1), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.submitted,
-      sentToReviewerAt: new Date(),
     };
     const submittedReviewer2Workflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [unsafeBrandId(reviewerId2)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId2), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.submitted,
-      sentToReviewerAt: new Date(),
     };
     const assignedReviewer1Workflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [unsafeBrandId(reviewerId1)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId1), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.assigned,
-      sentToReviewerAt: new Date(),
     };
     const assignedReviewer2Workflow: ReviewerWorkflow = {
-      reviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
-      reviewerIds: [unsafeBrandId(reviewerId2)],
+      reviewers: [
+        { id: unsafeBrandId(reviewerId2), sentToReviewerAt: new Date() },
+      ],
       signingState: riskAnalysisSigningState.assigned,
-      sentToReviewerAt: new Date(),
     };
 
     const submittedReviewer1Purpose: Purpose = {
@@ -622,6 +625,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: submittedReviewer1Workflow,
     };
 
@@ -631,6 +635,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: submittedReviewer2Workflow,
     };
 
@@ -640,6 +645,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: assignedReviewer1Workflow,
     };
 
@@ -649,6 +655,7 @@ describe("getPurposes", async () => {
       consumerId: consumerId1,
       eserviceId: mockEService1ByTenant1.id,
       versions: [getMockPurposeVersion(purposeVersionState.suspended)],
+      riskAnalysisReviewMode: riskAnalysisReviewMode.adminWritesReviewerSigns,
       reviewerWorkflow: assignedReviewer2Workflow,
     };
 
@@ -814,6 +821,49 @@ describe("getPurposes", async () => {
       totalCount: 4,
       results: [mockPurpose1, mockPurpose2].map(sortPurpose),
     });
+  });
+
+  it("should paginate purposes with the same title in a deterministic order", async () => {
+    const equalTitlePurposes = [
+      "00000000-0000-0000-0000-000000000003",
+      "00000000-0000-0000-0000-000000000001",
+      "00000000-0000-0000-0000-000000000002",
+    ].map(
+      (id): Purpose => ({
+        ...getMockPurpose(),
+        id: unsafeBrandId(id),
+        title: "Same title",
+        consumerId: consumerId1,
+        eserviceId: mockEService1ByTenant1.id,
+      })
+    );
+    const clientWithEqualTitlePurposes = getMockClient({
+      consumerId: consumerId1,
+      purposes: equalTitlePurposes.map(({ id }) => id),
+    });
+    await Promise.all(equalTitlePurposes.map(addOnePurpose));
+    await addOneClient(clientWithEqualTitlePurposes);
+
+    const pages = await Promise.all(
+      equalTitlePurposes.map((_, offset) =>
+        purposeService.getPurposes(
+          {
+            eservicesIds: [],
+            consumersIds: [],
+            producersIds: [],
+            clientId: clientWithEqualTitlePurposes.id,
+            states: [],
+            excludeDraft: undefined,
+          },
+          { offset, limit: 1 },
+          getMockContext({ authData: getMockAuthData(consumerId1) })
+        )
+      )
+    );
+
+    expect(pages.flatMap(({ results }) => results.map(({ id }) => id))).toEqual(
+      equalTitlePurposes.map(({ id }) => id).toSorted()
+    );
   });
 
   it("should not get purposes if they don't exist", async () => {

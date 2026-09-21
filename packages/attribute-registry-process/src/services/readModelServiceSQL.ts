@@ -1,3 +1,4 @@
+import { and, eq, getTableColumns, inArray, or } from "drizzle-orm";
 import {
   ascLower,
   createListResult,
@@ -23,7 +24,6 @@ import {
   attributeInReadmodelAttribute,
   DrizzleReturnType,
 } from "pagopa-interop-readmodel-models";
-import { and, eq, getTableColumns, inArray, or } from "drizzle-orm";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function readModelServiceBuilderSQL({

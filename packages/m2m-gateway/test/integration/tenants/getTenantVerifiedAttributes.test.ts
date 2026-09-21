@@ -1,19 +1,20 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
-import { unsafeBrandId } from "pagopa-interop-models";
 import { generateMock } from "@anatine/zod-mock";
-import { z } from "zod";
+import { m2mGatewayApi, tenantApi } from "pagopa-interop-api-clients";
 import {
   getMockedApiVerifiedTenantAttribute,
   getMockedApiTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
+import { unsafeBrandId } from "pagopa-interop-models";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { z } from "zod";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   mockInteropBeClients,
   tenantService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getVerifiedAttributes", () => {

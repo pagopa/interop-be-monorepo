@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { isStale } from "../src/scheduled/staleness.js";
 
 const hours = (n: number): number => n * 60 * 60 * 1000;

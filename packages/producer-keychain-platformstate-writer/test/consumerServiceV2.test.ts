@@ -1,5 +1,5 @@
-import crypto from "crypto";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+import crypto from "crypto";
 import {
   getMockKey,
   getMockProducerKeychain,
@@ -20,6 +20,7 @@ import {
   toProducerKeychainV2,
 } from "pagopa-interop-models";
 import { describe, expect, it, vi } from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 
 const loggerMock = {

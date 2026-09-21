@@ -1,9 +1,10 @@
-import { describe, it, expect } from "vitest";
-import { generateId } from "pagopa-interop-models";
 import {
   getMockPurpose,
   getMockPurposeVersion,
 } from "pagopa-interop-commons-test";
+import { generateId } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import { upsertPurpose } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { purposeReadModelService } from "./purposeUtils.js";

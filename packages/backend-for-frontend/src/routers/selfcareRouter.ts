@@ -1,20 +1,23 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
+  authRole,
   ZodiosContext,
   ExpressContext,
+  validateAuthorization,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { TenantId, unsafeBrandId } from "pagopa-interop-models";
 import { z } from "zod";
+
 import { makeApiProblem } from "../model/errors.js";
+import { SelfcareService } from "../services/selfcareService.js";
+import { fromBffAppContext } from "../utilities/context.js";
 import {
   getSelfcareErrorMapper,
   getSelfcareUserErrorMapper,
 } from "../utilities/errorMappers.js";
-import { SelfcareService } from "../services/selfcareService.js";
-import { fromBffAppContext } from "../utilities/context.js";
 
 const selfcareRouter = (
   ctx: ZodiosContext,
@@ -91,6 +94,8 @@ const selfcareRouter = (
       const ctx = fromBffAppContext(req.ctx, req.headers);
 
       try {
+        validateAuthorization(ctx, [authRole.ADMIN_ROLE]);
+
         const results = await selfcareService.getInstitutionUsers(
           unsafeBrandId<TenantId>(req.params.tenantId),
           req.query.personId,

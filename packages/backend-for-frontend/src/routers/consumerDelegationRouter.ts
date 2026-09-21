@@ -1,15 +1,16 @@
-import { ZodiosRouter } from "@zodios/express";
 import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import { emptyErrorMapper, unsafeBrandId } from "pagopa-interop-models";
-import { fromBffAppContext } from "../utilities/context.js";
+
 import { makeApiProblem } from "../model/errors.js";
 import { DelegationService } from "../services/delegationService.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 const consumerDelegationRouter = (
   ctx: ZodiosContext,

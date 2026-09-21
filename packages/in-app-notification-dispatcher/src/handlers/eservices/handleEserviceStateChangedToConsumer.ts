@@ -1,4 +1,6 @@
+import { Logger } from "pagopa-interop-commons";
 import {
+  archivingScope,
   DescriptorId,
   EService,
   EServiceEventV2,
@@ -8,15 +10,15 @@ import {
   NewNotification,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { match, P } from "ts-pattern";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   inAppTemplates,
   getNotificationRecipients,
   retrieveLatestDescriptor,
   retrieveTenant,
 } from "pagopa-interop-notification-commons";
+import { match, P } from "ts-pattern";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type EServiceStateChangedEventType =
   | "EServiceNameUpdated"
@@ -182,25 +184,61 @@ function getBodyAndDescriptorId(
     )
     .with(
       { type: "EServiceDescriptorSuspended" },
-      ({ data: { descriptorId } }) => ({
-        body: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
-          eservice.name,
-          producerName,
-          eservice.descriptors.find((d) => d.id === descriptorId)?.version
-        ),
-        descriptorId,
-      })
+      ({ data: { descriptorId } }) => {
+        const descriptor = eservice.descriptors.find(
+          (d) => d.id === descriptorId
+        );
+        const archivingSchedule = descriptor?.archivingSchedule;
+        if (archivingSchedule) {
+          return {
+            body: inAppTemplates.eserviceArchivingDescriptorSuspendedToConsumer(
+              eservice.name,
+              descriptor?.version,
+              archivingSchedule.archivableOn,
+              archivingSchedule.scope === archivingScope.descriptor
+            ),
+            descriptorId,
+          };
+        } else {
+          return {
+            body: inAppTemplates.eserviceDescriptorSuspendedToConsumer(
+              eservice.name,
+              producerName,
+              descriptor?.version
+            ),
+            descriptorId,
+          };
+        }
+      }
     )
     .with(
       { type: "EServiceDescriptorActivated" },
-      ({ data: { descriptorId } }) => ({
-        body: inAppTemplates.eserviceDescriptorActivatedToConsumer(
-          eservice.name,
-          producerName,
-          eservice.descriptors.find((d) => d.id === descriptorId)?.version
-        ),
-        descriptorId,
-      })
+      ({ data: { descriptorId } }) => {
+        const descriptor = eservice.descriptors.find(
+          (d) => d.id === descriptorId
+        );
+        const archivingSchedule = descriptor?.archivingSchedule;
+        if (archivingSchedule) {
+          return {
+            body: inAppTemplates.eserviceArchivingDescriptorActivatedToConsumer(
+              eservice.name,
+              descriptor?.version,
+              archivingSchedule.archivableOn,
+              archivingSchedule.scope === archivingScope.eservice
+            ),
+            descriptorId,
+          };
+        } else {
+          return {
+            body: inAppTemplates.eserviceDescriptorActivatedToConsumer(
+              eservice.name,
+              producerName,
+              descriptor?.version
+            ),
+            descriptorId,
+          };
+        }
+      }
     )
     .with(
       {

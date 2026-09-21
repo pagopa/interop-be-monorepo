@@ -1,7 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Logger } from "pagopa-interop-commons";
-import { NewNotification, toNotificationSQL } from "pagopa-interop-models";
 import { notification } from "pagopa-interop-in-app-notification-db-models";
+import { NewNotification, toNotificationSQL } from "pagopa-interop-models";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function inAppNotificationSinkBuilder(

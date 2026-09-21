@@ -1,13 +1,13 @@
 import {
-  M2MAdminAuthData,
-  WithLogger,
-  isDefined,
-} from "pagopa-interop-commons";
-import {
   m2mGatewayApi,
   tenantApi,
   WithMaybeMetadata,
 } from "pagopa-interop-api-clients";
+import {
+  M2MAdminAuthData,
+  WithLogger,
+  isDefined,
+} from "pagopa-interop-commons";
 import {
   AgreementId,
   AttributeId,
@@ -15,8 +15,7 @@ import {
   TenantId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
-import { M2MGatewayAppContext } from "../utils/context.js";
+
 import {
   toM2MGatewayApiTenantCertifiedAttribute,
   toGetTenantsApiQueryParams,
@@ -26,15 +25,17 @@ import {
   toM2MGatewayApiTenantVerifier,
   toM2MGatewayApiTenantRevoker,
 } from "../api/tenantApiConverter.js";
-import {
-  isPolledVersionAtLeastResponseVersion,
-  pollResourceWithMetadata,
-} from "../utils/polling.js";
+import { PagoPAInteropBeClients } from "../clients/clientsProvider.js";
 import {
   tenantCertifiedAttributeNotFound,
   tenantDeclaredAttributeNotFound,
   tenantVerifiedAttributeNotFound,
 } from "../model/errors.js";
+import { M2MGatewayAppContext } from "../utils/context.js";
+import {
+  isPolledVersionAtLeastResponseVersion,
+  pollResourceWithMetadata,
+} from "../utils/polling.js";
 import { assertTenantCanEditDeclaredAttributes } from "../utils/validators/tenantValidators.js";
 
 function retrieveDeclaredAttributes(

@@ -1,7 +1,8 @@
 import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
 import { makeDrizzleConnection } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
+
 import { checkDifferences } from "./checkDifferences.js";
+import { config } from "./config/config.js";
 
 const db = makeDrizzleConnection(config);
 const selfcareClient = selfcareV2InstitutionClientBuilder(config);

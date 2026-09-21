@@ -2,11 +2,11 @@
 import { constants } from "http2";
 import { ApiError, CommonErrorCodes } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ErrorCodes as M2MGatewayErrorCodes } from "../model/errors.js";
 
 type AgreementProcessErrorCodes =
   | "agreementNotFound"
-  | "agreementNotInExpectedState"
   | "tenantIsNotTheConsumer"
   | "tenantIsNotTheDelegateConsumer";
 
@@ -15,6 +15,12 @@ type CatalogProcessErrorCodes =
   | "eServiceDescriptorNotFound"
   | "certifiedAttributeGroupNotFoundInSeed"
   | "notValidDescriptor"
+  | "documentPrettyNameDuplicate"
+  | "interfaceAlreadyExists"
+  | "asyncExchangeCallbackInterfaceAlreadyExists"
+  | "checksumDuplicate"
+  | "eServiceAsyncExchangeNotEnabled"
+  | "asyncExchangeBulkNotAllowedForSoap"
   | "templateInstanceNotAllowed"
   | "inconsistentDailyCalls"
   | "unchangedAttributes"
@@ -53,7 +59,6 @@ export const archiveAgreementErrorMapper = (
 ): number =>
   match(error.code)
     .with("agreementNotFound", () => HTTP_STATUS_NOT_FOUND)
-    .with("agreementNotInExpectedState", () => HTTP_STATUS_BAD_REQUEST)
     .with(
       "tenantIsNotTheConsumer",
       "tenantIsNotTheDelegateConsumer",
@@ -196,13 +201,34 @@ export const uploadEServiceDescriptorInterfaceErrorMapper = (
 ): number =>
   match(error.code)
     .with(
+      "eServiceNotFound",
+      "eServiceDescriptorNotFound",
+      () => HTTP_STATUS_NOT_FOUND
+    )
+    .with(
       "invalidContentTypeDetected",
       "invalidEserviceInterfaceFileDetected",
       "invalidServerUrl",
       "openapiVersionNotRecognized",
+      "eServiceAsyncExchangeNotEnabled",
+      "asyncExchangeBulkNotAllowedForSoap",
+      "templateInstanceNotAllowed",
       () => HTTP_STATUS_BAD_REQUEST
     )
+    .with(
+      "notValidDescriptor",
+      "documentPrettyNameDuplicate",
+      "interfaceAlreadyExists",
+      "asyncExchangeCallbackInterfaceAlreadyExists",
+      "checksumDuplicate",
+      () => HTTP_STATUS_CONFLICT
+    )
+    .with("operationForbidden", () => HTTP_STATUS_FORBIDDEN)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const uploadEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    uploadEServiceDescriptorInterfaceErrorMapper(error);
 
 export const deleteEServiceDescriptorInterfaceErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -214,6 +240,16 @@ export const deleteEServiceDescriptorInterfaceErrorMapper = (
       () => HTTP_STATUS_NOT_FOUND
     )
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
+
+export const deleteEServiceDescriptorAsyncExchangeCallbackInterfaceErrorMapper =
+  (error: ApiError<ErrorCodes>): number =>
+    match(error.code)
+      .with(
+        "eserviceDescriptorAsyncExchangeCallbackInterfaceNotFound",
+        "eserviceDescriptorNotFound",
+        () => HTTP_STATUS_NOT_FOUND
+      )
+      .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const assignTenantDeclaredAttributeErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -280,6 +316,7 @@ export const createEServiceDescriptorAttributeGroupsErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceDescriptorNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const createEServiceTemplateVersionAttributeGroupsErrorMapper = (
@@ -287,6 +324,7 @@ export const createEServiceTemplateVersionAttributeGroupsErrorMapper = (
 ): number =>
   match(error.code)
     .with("eserviceTemplateVersionNotFound", () => HTTP_STATUS_NOT_FOUND)
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 export const deleteEServiceDescriptorAttributeFromGroupErrorMapper = (
   error: ApiError<ErrorCodes>
@@ -346,6 +384,7 @@ export const assignEServiceDescriptorAttributesErrorMapper = (
       "eserviceDescriptorAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const assignEServiceTemplateVersionAttributesErrorMapper = (
@@ -358,6 +397,7 @@ export const assignEServiceTemplateVersionAttributesErrorMapper = (
       "eserviceTemplateVersionAttributeNotFound",
       () => HTTP_STATUS_NOT_FOUND
     )
+    .with("missingDiscreteConfig", () => HTTP_STATUS_BAD_REQUEST)
     .otherwise(() => HTTP_STATUS_INTERNAL_SERVER_ERROR);
 
 export const getPurposeTemplateRiskAnalysisErrorMapper = (

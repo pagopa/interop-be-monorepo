@@ -2,16 +2,6 @@
 /* eslint-disable functional/immutable-data */
 /* eslint-disable functional/no-let */
 
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import {
-  AuthorizationEventEnvelopeV2,
-  generateId,
-  Key,
-  ClientV2,
-  PurposeId,
-  UserId,
-  toClientV2,
-} from "pagopa-interop-models";
 import {
   FileManager,
   initFileManager,
@@ -27,9 +17,20 @@ import {
   getMockClient,
   getMockKey,
 } from "pagopa-interop-commons-test";
+import {
+  AuthorizationEventEnvelopeV2,
+  generateId,
+  Key,
+  ClientV2,
+  PurposeId,
+  UserId,
+  toClientV2,
+} from "pagopa-interop-models";
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+
 import { config } from "../../src/config/config.js";
-import { dynamoDBClient } from "../utils/utils.js";
 import { handleAuthorizationMessageV2 } from "../../src/handlers/handleAuthorizationMessageV2.js";
+import { dynamoDBClient } from "../utils/utils.js";
 
 const fileManager: FileManager = initFileManager(config);
 const safeStorageService: SafeStorageService =

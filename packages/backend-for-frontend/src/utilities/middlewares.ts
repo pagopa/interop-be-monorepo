@@ -1,11 +1,12 @@
-import { constants } from "http2";
 import { ZodiosRouterContextRequestHandler } from "@zodios/express";
+import { constants } from "http2";
 import {
   ExpressContext,
   fromAppContext,
   isUiAuthData,
 } from "pagopa-interop-commons";
 import { unauthorizedError } from "pagopa-interop-models";
+
 import { makeApiProblem } from "../model/errors.js";
 
 export function uiAuthDataValidationMiddleware(): ZodiosRouterContextRequestHandler<ExpressContext> {

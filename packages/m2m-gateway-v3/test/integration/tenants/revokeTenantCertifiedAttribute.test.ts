@@ -1,18 +1,25 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { generateMock } from "@anatine/zod-mock";
+import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
+import {
+  getMockedApiCertifiedTenantAttribute,
+  getMockedApiTenant,
+  getMockWithMetadata,
+} from "pagopa-interop-commons-test";
 import {
   AttributeId,
   generateId,
   pollingMaxRetriesExceeded,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { m2mGatewayApiV3, tenantApi } from "pagopa-interop-api-clients";
-import { generateMock } from "@anatine/zod-mock";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { z } from "zod";
+
+import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
+import { config } from "../../../src/config/config.js";
 import {
-  getMockedApiCertifiedTenantAttribute,
-  getMockedApiTenant,
-  getMockWithMetadata,
-} from "pagopa-interop-commons-test";
+  missingMetadata,
+  tenantCertifiedAttributeNotFound,
+} from "../../../src/model/errors.js";
 import {
   expectApiClientGetToHaveBeenCalledWith,
   expectApiClientPostToHaveBeenCalledWith,
@@ -20,12 +27,6 @@ import {
   mockPollingResponse,
   tenantService,
 } from "../../integrationUtils.js";
-import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { config } from "../../../src/config/config.js";
-import {
-  missingMetadata,
-  tenantCertifiedAttributeNotFound,
-} from "../../../src/model/errors.js";
 import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("revokeTenantCertifiedAttribute", () => {

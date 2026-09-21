@@ -1,5 +1,6 @@
 import AdmZip from "adm-zip";
 import { describe, expect, it } from "vitest";
+
 import { compressJson } from "../src/utils/compression.js";
 
 describe("compressJsonToZip", () => {

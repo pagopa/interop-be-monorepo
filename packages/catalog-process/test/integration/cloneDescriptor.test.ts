@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-floating-promises */
 import { genericLogger, FileManagerError } from "pagopa-interop-commons";
+import { dateAtRomeZone, timeAtRomeZone } from "pagopa-interop-commons";
 import {
   decodeProtobufPayload,
   getMockContext,
@@ -28,7 +29,8 @@ import {
   EServiceTemplate,
 } from "pagopa-interop-models";
 import { beforeAll, vi, afterAll, expect, describe, it } from "vitest";
-import { dateAtRomeZone, timeAtRomeZone } from "pagopa-interop-commons";
+
+import { config } from "../../src/config/config.js";
 import {
   eServiceNameDuplicateForProducer,
   eServiceNotFound,
@@ -36,7 +38,6 @@ import {
   templateInstanceNotAllowed,
   eserviceTemplateNameConflict,
 } from "../../src/model/domain/errors.js";
-import { config } from "../../src/config/config.js";
 import {
   addOneDelegation,
   addOneEService,
@@ -81,18 +82,44 @@ describe("clone descriptor", () => {
       name: `${mockDocument.name}_interface`,
       path: `${config.eserviceDocumentsPath}/${interfaceId}/${mockDocument.name}_interface`,
     };
+    const asyncExchangeCallbackInterfaceId = generateId<EServiceDocumentId>();
+    const asyncExchangeCallbackInterfaceDoc: Document = {
+      ...mockDocument,
+      id: asyncExchangeCallbackInterfaceId,
+      name: `${mockDocument.name}_async_callback`,
+      path: `${config.eserviceDocumentsPath}/${asyncExchangeCallbackInterfaceId}/${mockDocument.name}_async_callback`,
+    };
 
     const descriptor: Descriptor = {
       ...mockDescriptor,
       state: descriptorState.draft,
       interface: interfaceDocument,
+      asyncExchangeCallbackInterface: asyncExchangeCallbackInterfaceDoc,
       docs: [document1, document2],
+      rejectionReasons: [
+        { rejectionReason: "Some rejection reason", rejectedAt: new Date() },
+      ],
+      delegatedArchivingRequest: [
+        {
+          requestedAt: new Date(),
+          gracePeriodDays: 30,
+          requesterId: generateId(),
+        },
+      ],
     };
     const eservice: EService = {
       ...mockEService,
       descriptors: [descriptor],
       personalData: true,
       asyncExchange: true,
+      delegatedArchivingRequest: [
+        {
+          requestedAt: new Date(),
+          gracePeriodDays: 30,
+          requesterId: generateId(),
+          archivingReason: "Some reason",
+        },
+      ],
     };
     await addOneEService(eservice);
 
@@ -129,6 +156,17 @@ describe("clone descriptor", () => {
       genericLogger
     );
 
+    await fileManager.storeBytes(
+      {
+        bucket: config.s3Bucket,
+        path: config.eserviceDocumentsPath,
+        resourceId: asyncExchangeCallbackInterfaceDoc.id,
+        name: asyncExchangeCallbackInterfaceDoc.name,
+        content: Buffer.from("testtest"),
+      },
+      genericLogger
+    );
+
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(interfaceDocument.path);
@@ -138,6 +176,9 @@ describe("clone descriptor", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(document2.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(asyncExchangeCallbackInterfaceDoc.path);
 
     const cloneTimestamp = new Date();
     const newEService = await catalogService.cloneDescriptor(
@@ -180,16 +221,32 @@ describe("clone descriptor", () => {
       ),
       path: writtenPayload.eservice!.descriptors[0].docs[1].path,
     };
+    const expectedAsyncExchangeCallbackInterface: Document = {
+      ...asyncExchangeCallbackInterfaceDoc,
+      id: unsafeBrandId(
+        writtenPayload.eservice!.descriptors[0].asyncExchangeCallbackInterface!
+          .id
+      ),
+      uploadDate: new Date(
+        writtenPayload.eservice!.descriptors[0].asyncExchangeCallbackInterface!
+          .uploadDate
+      ),
+      path: writtenPayload.eservice!.descriptors[0]
+        .asyncExchangeCallbackInterface!.path,
+    };
 
     const expectedDescriptor: Descriptor = {
       ...descriptor,
       id: unsafeBrandId(writtenPayload.eservice!.descriptors[0].id),
       version: "1",
       interface: expectedInterface,
+      asyncExchangeCallbackInterface: expectedAsyncExchangeCallbackInterface,
       createdAt: new Date(
         Number(writtenPayload.eservice?.descriptors[0].createdAt)
       ),
       docs: [expectedDocument1, expectedDocument2],
+      rejectionReasons: undefined,
+      delegatedArchivingRequest: undefined,
     };
 
     const expectedEService: EService = {
@@ -200,6 +257,7 @@ describe("clone descriptor", () => {
       )} ${timeAtRomeZone(cloneTimestamp)}`,
       descriptors: [expectedDescriptor],
       createdAt: new Date(Number(writtenPayload.eservice?.createdAt)),
+      delegatedArchivingRequest: undefined,
     };
     expect(writtenPayload).toEqual({
       sourceEservice: toEServiceV2(eservice),
@@ -236,6 +294,14 @@ describe("clone descriptor", () => {
       expectedDocument2.name,
       genericLogger
     );
+    expect(fileManager.copy).toHaveBeenCalledWith(
+      config.s3Bucket,
+      asyncExchangeCallbackInterfaceDoc.path,
+      config.eserviceDocumentsPath,
+      expectedAsyncExchangeCallbackInterface.id,
+      expectedAsyncExchangeCallbackInterface.name,
+      genericLogger
+    );
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedInterface.path);
@@ -245,6 +311,9 @@ describe("clone descriptor", () => {
     expect(
       await fileManager.listFiles(config.s3Bucket, genericLogger)
     ).toContain(expectedDocument2.path);
+    expect(
+      await fileManager.listFiles(config.s3Bucket, genericLogger)
+    ).toContain(expectedAsyncExchangeCallbackInterface.path);
   });
   it("should truncate cloned eService name to 60 characters when original name plus suffix exceeds limit", async () => {
     vi.spyOn(fileManager, "copy");

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { vi } from "vitest";
 import { Request, Response, NextFunction } from "express";
+import { vi } from "vitest";
 
 vi.mock("pagopa-interop-application-audit", async () => ({
   applicationAuditBeginMiddleware: vi.fn(
@@ -47,6 +47,7 @@ import {
   readAuthDataFromJwtToken,
   decodeJwtToken,
 } from "pagopa-interop-commons";
+
 import { createApp } from "../src/app.js";
 import { TenantService } from "../src/services/tenantService.js";
 

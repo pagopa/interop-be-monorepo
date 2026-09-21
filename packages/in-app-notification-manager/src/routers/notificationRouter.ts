@@ -1,3 +1,6 @@
+import { ZodiosEndpointDefinitions } from "@zodios/core";
+import { ZodiosRouter } from "@zodios/express";
+import { inAppNotificationApi } from "pagopa-interop-api-clients";
 import {
   authRole,
   ExpressContext,
@@ -6,17 +9,15 @@ import {
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { ZodiosRouter } from "@zodios/express";
-import { ZodiosEndpointDefinitions } from "@zodios/core";
 import {
   emptyErrorMapper,
   NotificationId,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { inAppNotificationApi } from "pagopa-interop-api-clients";
-import { InAppNotificationService } from "../services/inAppNotificationService.js";
-import { makeApiProblem } from "../model/errors.js";
+
 import { notificationToApiNotification } from "../model/apiConverter.js";
+import { makeApiProblem } from "../model/errors.js";
+import { InAppNotificationService } from "../services/inAppNotificationService.js";
 import {
   markNotificationAsReadErrorMapper,
   deleteNotificationErrorMapper,
@@ -72,7 +73,12 @@ export const notificationRouter = (
     .get("/notifications", async function (req, res) {
       const ctx = fromAppContext(req.ctx);
       try {
-        validateAuthorization(ctx, [ADMIN_ROLE, API_ROLE, SECURITY_ROLE]);
+        validateAuthorization(ctx, [
+          ADMIN_ROLE,
+          API_ROLE,
+          REVIEWER_ROLE,
+          SECURITY_ROLE,
+        ]);
 
         const { limit, offset, q, unread, notificationTypes } = req.query;
         const { results, totalCount } = await service.getNotifications(

@@ -1,4 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   Agreement,
   AgreementEventEnvelopeV2,
@@ -11,7 +12,7 @@ import {
   PlatformStatesAgreementEntry,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
-import { Logger } from "pagopa-interop-commons";
+
 import {
   agreementStateToItemState,
   readAgreementEntry,

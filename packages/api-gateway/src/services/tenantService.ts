@@ -6,11 +6,11 @@ import {
 } from "pagopa-interop-api-clients";
 import { isDefined, WithLogger } from "pagopa-interop-commons";
 import { operationForbidden } from "pagopa-interop-models";
+
 import {
   toApiGatewayOrganization,
   toM2MTenantSeed,
 } from "../api/tenantApiConverter.js";
-import { ApiGatewayAppContext } from "../utilities/context.js";
 import { clientStatusCodeToError } from "../clients/catchClientError.js";
 import {
   attributeByCodeNotFound,
@@ -20,6 +20,7 @@ import {
   tenantByOriginNotFound,
   tenantNotFound,
 } from "../models/errors.js";
+import { ApiGatewayAppContext } from "../utilities/context.js";
 import { enhanceEservice, getAllEservices } from "./catalogService.js";
 
 export async function getOrganization(

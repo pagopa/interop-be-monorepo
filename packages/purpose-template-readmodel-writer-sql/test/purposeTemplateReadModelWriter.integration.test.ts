@@ -8,7 +8,6 @@ import {
   getMockRiskAnalysisTemplateAnswerAnnotationDocument,
   getMockValidRiskAnalysisFormTemplate,
 } from "pagopa-interop-commons-test";
-import { describe, expect, it } from "vitest";
 import {
   dateToBigInt,
   EService,
@@ -39,6 +38,8 @@ import {
   toPurposeTemplateV2,
   WithMetadata,
 } from "pagopa-interop-models";
+import { describe, expect, it } from "vitest";
+
 import { handleMessageV2 } from "../src/consumerServiceV2.js";
 import {
   purposeTemplateReadModelService,

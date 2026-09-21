@@ -9,11 +9,12 @@ import {
   makeDrizzleConnectionWithCleanup,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
+
 import { config } from "./config/config.js";
-import { SftpClient } from "./service/sftpService.js";
-import { TenantProcessService } from "./service/tenantProcessService.js";
 import { importAttributes } from "./service/processor.js";
 import { readModelQueriesBuilderSQL } from "./service/readmodelQueriesServiceSQL.js";
+import { SftpClient } from "./service/sftpService.js";
+import { TenantProcessService } from "./service/tenantProcessService.js";
 
 const sftpClient: SftpClient = new SftpClient(config);
 const { db, cleanup } = makeDrizzleConnectionWithCleanup(config);

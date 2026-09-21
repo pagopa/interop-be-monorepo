@@ -1,6 +1,5 @@
 import { buildHTMLTemplateService } from "pagopa-interop-commons";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
-import { registerEmailTemplatePartials } from "pagopa-interop-notification-commons";
 import {
   Agreement,
   Delegation,
@@ -13,7 +12,7 @@ import {
   TenantId,
   UserId,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
+import { registerEmailTemplatePartials } from "pagopa-interop-notification-commons";
 import {
   agreementReadModelServiceBuilder,
   attributeReadModelServiceBuilder,
@@ -33,6 +32,8 @@ import {
   upsertPurpose,
   upsertTenant,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 export const { cleanup, readModelDB } = await setupTestContainersVitest(

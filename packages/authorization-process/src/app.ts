@@ -1,3 +1,8 @@
+import { authorizationApi } from "pagopa-interop-api-clients";
+import {
+  applicationAuditBeginMiddleware,
+  applicationAuditEndMiddleware,
+} from "pagopa-interop-application-audit";
 import {
   authenticationMiddleware,
   contextMiddleware,
@@ -5,14 +10,10 @@ import {
   healthRouter,
   zodiosCtx,
 } from "pagopa-interop-commons";
-import {
-  applicationAuditBeginMiddleware,
-  applicationAuditEndMiddleware,
-} from "pagopa-interop-application-audit";
 import { serviceName as modelsServiceName } from "pagopa-interop-models";
-import { authorizationApi } from "pagopa-interop-api-clients";
-import authorizationRouter from "./routers/AuthorizationRouter.js";
+
 import { config } from "./config/config.js";
+import authorizationRouter from "./routers/AuthorizationRouter.js";
 import { AuthorizationService } from "./services/authorizationService.js";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type

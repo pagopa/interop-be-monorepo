@@ -1,4 +1,5 @@
-import { match } from "ts-pattern";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { Logger } from "pagopa-interop-commons";
 import {
   fromPurposeV1,
   makePlatformStatesPurposePK,
@@ -8,8 +9,8 @@ import {
   PurposeEventEnvelopeV1,
   PurposeV1,
 } from "pagopa-interop-models";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { Logger } from "pagopa-interop-commons";
+import { match } from "ts-pattern";
+
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,
