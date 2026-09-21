@@ -1,13 +1,14 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import { Agreement, Client, EService, Purpose } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   upsertAgreement,
   upsertClient,
   upsertEService,
   upsertPurpose,
 } from "pagopa-interop-readmodel/testUtils";
+import { afterEach, inject } from "vitest";
+
 import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
 
 const config = inject("tokenGenerationReadModelConfig");

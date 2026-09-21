@@ -1,23 +1,35 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Purpose, PurposeId, generateId } from "pagopa-interop-models";
+import { purposeApi } from "pagopa-interop-api-clients";
+import { AuthRole, authRole } from "pagopa-interop-commons";
 import {
   generateToken,
   getMockPurpose,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
-import { AuthRole, authRole } from "pagopa-interop-commons";
-import { purposeApi } from "pagopa-interop-api-clients";
+import {
+  Purpose,
+  PurposeId,
+  PurposeTemplateId,
+  generateId,
+} from "pagopa-interop-models";
 import request from "supertest";
-import { api, purposeService } from "../vitest.api.setup.js";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
 import { purposeToApiPurpose } from "../../src/model/domain/apiConverter.js";
 import {
   purposeNotFound,
   tenantIsNotTheConsumer,
   reviewerWorkflowConflict,
-  multipleReviewersNotAllowed,
   userWithoutReviewerPrivileges,
+  purposeFromTemplateCannotBeModified,
+  purposeNotInDraftState,
+  reviewerWorkflowNotAllowedForDelegatedPurpose,
+  reviewerWorkflowNotAllowedForReceiveMode,
+  duplicatedReviewersInSeed,
+  missingReviewers,
+  reviewersNotAllowedForReviewMode,
 } from "../../src/model/domain/errors.js";
+import { api, purposeService } from "../vitest.api.setup.js";
 
 describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
   const mockPurpose: Purpose = getMockPurpose();
@@ -51,11 +63,23 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
 
   const authorizedRoles: AuthRole[] = [authRole.ADMIN_ROLE];
 
-  it.each(authorizedRoles)(
-    "Should return 200 for user with role %s",
-    async (role) => {
+  it.each([
+    {
+      description: "with reviewers",
+      body: defaultBody,
+    },
+    {
+      description: "without reviewers for AdminWritesAdminSigns",
+      body: {
+        reviewMode: "ADMIN_WRITES_ADMIN_SIGNS" as const,
+      },
+    },
+  ])(
+    "Should return 200 for an authorized user $description",
+    async ({ body }) => {
+      const role = authRole.ADMIN_ROLE;
       const token = generateToken(role);
-      const res = await makeRequest(token);
+      const res = await makeRequest(token, mockPurpose.id, body);
       expect(res.status).toBe(200);
       expect(res.body).toEqual(apiResponse);
       expect(res.headers["x-metadata-version"]).toBe(
@@ -76,9 +100,36 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
     { error: purposeNotFound(mockPurpose.id), expectedStatus: 404 },
     { error: tenantIsNotTheConsumer(generateId()), expectedStatus: 403 },
     { error: reviewerWorkflowConflict(mockPurpose.id), expectedStatus: 409 },
-    { error: multipleReviewersNotAllowed(mockPurpose.id), expectedStatus: 400 },
+    { error: duplicatedReviewersInSeed(), expectedStatus: 400 },
     {
       error: userWithoutReviewerPrivileges(generateId(), generateId()),
+      expectedStatus: 400,
+    },
+    {
+      error: purposeFromTemplateCannotBeModified(
+        mockPurpose.id,
+        generateId<PurposeTemplateId>()
+      ),
+      expectedStatus: 400,
+    },
+    {
+      error: purposeNotInDraftState(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: reviewerWorkflowNotAllowedForDelegatedPurpose(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: reviewerWorkflowNotAllowedForReceiveMode(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: missingReviewers(mockPurpose.id),
+      expectedStatus: 400,
+    },
+    {
+      error: reviewersNotAllowedForReviewMode(mockPurpose.id),
       expectedStatus: 400,
     },
   ])(
@@ -96,8 +147,15 @@ describe("API POST /purposes/{purposeId}/riskAnalysis/assign test", () => {
   it.each([
     { purposeId: "invalid" as PurposeId },
     { body: {} },
-    { body: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] } },
-    { body: { reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS", reviewerIds: [] } },
+    {
+      body: { reviewMode: "INVALID_MODE", reviewerIds: [generateId()] },
+    },
+    {
+      body: {
+        reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",
+        reviewerIds: [],
+      },
+    },
     {
       body: {
         reviewMode: "REVIEWER_WRITES_REVIEWER_SIGNS",

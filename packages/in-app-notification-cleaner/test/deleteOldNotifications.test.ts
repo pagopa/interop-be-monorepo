@@ -1,8 +1,9 @@
-import { describe, expect, it, vi } from "vitest";
 import { eq } from "drizzle-orm";
+import { logger } from "pagopa-interop-commons";
 import { notification } from "pagopa-interop-in-app-notification-db-models";
 import { generateId, UserId, TenantId } from "pagopa-interop-models";
-import { logger } from "pagopa-interop-commons";
+import { describe, expect, it, vi } from "vitest";
+
 import { deleteOldNotifications } from "../src/deleteOldNotifications.js";
 import {
   addNotifications,

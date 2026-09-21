@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   Descriptor,
   DescriptorId,
@@ -9,14 +10,14 @@ import {
   NewNotification,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
-import { match } from "ts-pattern";
 import {
   getNotificationRecipients,
   inAppTemplates,
   retrieveDescriptor,
   retrieveLatestDescriptor,
 } from "pagopa-interop-notification-commons";
+import { match } from "ts-pattern";
+
 import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type ArchivingEventType =
@@ -26,10 +27,7 @@ type ArchivingEventType =
   | "EServiceArchivingCompleted"
   | "EServiceDescriptorArchived";
 
-export type ArchivingEvent = Extract<
-  EServiceEventV2,
-  { type: ArchivingEventType }
->;
+type ArchivingEvent = Extract<EServiceEventV2, { type: ArchivingEventType }>;
 
 export async function handleEserviceArchivingToProducer(
   msg: ArchivingEvent,
@@ -40,19 +38,6 @@ export async function handleEserviceArchivingToProducer(
     throw missingKafkaMessageDataError("eservice", msg.type);
   }
   const eservice = fromEServiceV2(msg.data.eservice);
-
-  // Discriminator: skip auto-archive routine (Deprecated/Suspended -> Archived)
-  if (msg.type === "EServiceDescriptorArchived") {
-    const archivedDescriptor = eservice.descriptors.find(
-      (d) => d.id === unsafeBrandId<DescriptorId>(msg.data.descriptorId)
-    );
-    if (!archivedDescriptor?.archivingSchedule) {
-      logger.info(
-        `Skipping in-app notification for EServiceDescriptorArchived without archivingSchedule (eservice ${eservice.id}, descriptor ${msg.data.descriptorId}) — routine auto-archiving`
-      );
-      return [];
-    }
-  }
 
   logger.info(
     `Sending in-app notification to producer for ${msg.type} - eservice ${eservice.id}`
@@ -124,7 +109,8 @@ function bodyAndDescriptorForProducer(
         return {
           body: inAppTemplates.eserviceArchivingCompletedDescriptorToProducer(
             eservice.name,
-            descriptor.version
+            descriptor.version,
+            descriptor.archivingSchedule?.archivableOn
           ),
           descriptor,
         };
@@ -147,7 +133,7 @@ function bodyAndDescriptorForProducer(
           unsafeBrandId<DescriptorId>(descriptorId)
         );
         return {
-          body: inAppTemplates.eserviceArchivingEarlyArchivedToProducer(
+          body: inAppTemplates.eserviceArchivingDescriptorArchivedToProducer(
             eservice.name,
             descriptor.version
           ),

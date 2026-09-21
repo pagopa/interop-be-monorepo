@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { and, eq, inArray, lte, sql } from "drizzle-orm";
-import { match } from "ts-pattern";
 import {
   descriptorState,
   unsafeBrandId,
@@ -16,6 +15,8 @@ import {
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   EServiceDescriptorArchivingScheduleSQL,
 } from "pagopa-interop-readmodel-models";
+import { match } from "ts-pattern";
+
 import {
   ArchivableDescriptorRef,
   UnarchivableDescriptor,

@@ -1,4 +1,3 @@
-import { describe, it, expect } from "vitest";
 import {
   getMockCertifiedTenantAttribute,
   getMockDeclaredTenantAttribute,
@@ -18,6 +17,8 @@ import {
   TenantVerifier,
   WithMetadata,
 } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import { upsertTenant } from "../../src/testUtils.js";
 import { readModelDB } from "../utils.js";
 import { tenantReadModelService } from "./tenantUtils.js";

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { describe, expect, it, vi } from "vitest";
+import { purposeApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAgreement,
@@ -35,7 +35,8 @@ import {
   delegationState,
   TenantId,
 } from "pagopa-interop-models";
-import { purposeApi } from "pagopa-interop-api-clients";
+import { describe, expect, it, vi } from "vitest";
+
 import {
   agreementNotFound,
   duplicatedPurposeTitle,

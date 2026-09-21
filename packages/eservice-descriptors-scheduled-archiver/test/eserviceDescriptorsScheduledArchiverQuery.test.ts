@@ -4,6 +4,16 @@ import {
   getMockEService,
 } from "pagopa-interop-commons-test";
 import {
+  Descriptor,
+  DescriptorState,
+  EService,
+  GracePeriodDays,
+  TenantId,
+  descriptorState,
+  generateId,
+  gracePeriodDays,
+} from "pagopa-interop-models";
+import {
   beforeAll,
   describe,
   expect,
@@ -12,20 +22,13 @@ import {
   afterEach,
   beforeEach,
 } from "vitest";
-import {
-  Descriptor,
-  DescriptorState,
-  EService,
-  TenantId,
-  descriptorState,
-  generateId,
-} from "pagopa-interop-models";
+
+import { ArchivableDescriptorRef } from "../src/models/models.js";
 import {
   CatalogProcessZodiosClient,
   catalogProcessClientBuilder,
 } from "../src/services/catalogProcessClient.js";
 import { addOneEService, readModelService, toUTCMidnight } from "./utils.js";
-import { ArchivableDescriptorRef } from "../src/models/models.js";
 
 describe("EService Descriptors Scheduled Archiver Queries", async () => {
   let catalogProcessClient: CatalogProcessZodiosClient;
@@ -53,12 +56,23 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
   );
   describe("getArchivableDescriptorsRefs", async () => {
     it.each(
-      [0, 1, 2, 365].flatMap((daysBefore) =>
-        archivingStates.map((state) => [state, daysBefore] as const)
-      )
+      [0, 1, 2, 365]
+        .flatMap((daysBefore) =>
+          archivingStates.map((state) => [state, daysBefore] as const)
+        )
+        .flatMap(([state, daysBefore]) =>
+          gracePeriodDays.map(
+            (g) =>
+              [state, daysBefore, g] as [
+                DescriptorState,
+                number,
+                GracePeriodDays,
+              ]
+          )
+        )
     )(
-      "should return Descriptor refs when archivableOn is archivable and state is %s and archivableOn is %s days before today",
-      async (state, daysBefore) => {
+      "should return Descriptor refs when archivableOn is archivable and state is %s and archivableOn is %s days before today (gracePeriodDays: %s)",
+      async (state, daysBefore, gracePeriodDaysValue) => {
         const producerId: TenantId = generateId();
 
         const numberOfArchivableDescriptors = 5;
@@ -78,6 +92,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                     toUTCMidnight(new Date(), -(30 + daysBefore))
                   ),
                   scope: "Descriptor",
+                  gracePeriodDays: gracePeriodDaysValue,
                 },
               };
 
@@ -143,12 +158,23 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
     );
 
     it.each(
-      [1, 2, 365].flatMap((daysAfter) =>
-        archivingStates.map((state) => [state, daysAfter] as const)
-      )
+      [1, 2, 365]
+        .flatMap((daysAfter) =>
+          archivingStates.map((state) => [state, daysAfter] as const)
+        )
+        .flatMap(([state, daysAfter]) =>
+          gracePeriodDays.map(
+            (g) =>
+              [state, daysAfter, g] as [
+                DescriptorState,
+                number,
+                GracePeriodDays,
+              ]
+          )
+        )
     )(
-      "should return empty list when Descriptor archivableOn is not archivable and in state %s and archivableOn is %s days after today",
-      async (state, daysAfter) => {
+      "should return empty list when Descriptor archivableOn is not archivable and in state %s and archivableOn is %s days after today (gracePeriodDays: %s)",
+      async (state, daysAfter, gracePeriodDaysValue) => {
         const producerId: TenantId = generateId();
 
         const numberOfNonArchivableDescriptors = 5;
@@ -164,6 +190,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                   archivableOn: new Date(toUTCMidnight(new Date(), daysAfter)),
                   startedAt: new Date(toUTCMidnight(new Date(), -30)),
                   scope: "Descriptor",
+                  gracePeriodDays: gracePeriodDaysValue,
                 },
               };
 
@@ -189,12 +216,23 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
     );
 
     it.each(
-      [0, 1, 2, 365].flatMap((daysBefore) =>
-        archivingStates.map((state) => [state, daysBefore] as const)
-      )
+      [0, 1, 2, 365]
+        .flatMap((daysBefore) =>
+          archivingStates.map((state) => [state, daysBefore] as const)
+        )
+        .flatMap(([state, daysBefore]) =>
+          gracePeriodDays.map(
+            (g) =>
+              [state, daysBefore, g] as [
+                DescriptorState,
+                number,
+                GracePeriodDays,
+              ]
+          )
+        )
     )(
-      "should return list of Descriptor refs only when is not in archiving state in state %s and archivableOn is %s days before today",
-      async (state, daysBefore) => {
+      "should return list of Descriptor refs only when is not in archiving state in state %s and archivableOn is %s days before today (gracePeriodDays: %s)",
+      async (state, daysBefore, gracePeriodDaysValue) => {
         const producerId: TenantId = generateId();
 
         const numberOfArchivableDescriptors = 5;
@@ -213,6 +251,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                   ),
                   startedAt: new Date(toUTCMidnight(new Date(), -30)),
                   scope: "Descriptor",
+                  gracePeriodDays: gracePeriodDaysValue,
                 },
               };
 
@@ -267,12 +306,23 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
 
   describe("getArchivableEservicesRefs", async () => {
     it.each(
-      [0, 1, 2, 365].flatMap((daysBefore) =>
-        archivingStates.map((state) => [state, daysBefore] as const)
-      )
+      [0, 1, 2, 365]
+        .flatMap((daysBefore) =>
+          archivingStates.map((state) => [state, daysBefore] as const)
+        )
+        .flatMap(([state, daysBefore]) =>
+          gracePeriodDays.map(
+            (g) =>
+              [state, daysBefore, g] as [
+                DescriptorState,
+                number,
+                GracePeriodDays,
+              ]
+          )
+        )
     )(
-      "should return an array with all EServices to be archived when their descriptors are in state %s and archivableOn is %s days before today",
-      async (state, daysBefore) => {
+      "should return an array with all EServices to be archived when their descriptors are in state %s and archivableOn is %s days before today (gracePeriodDays: %s)",
+      async (state, daysBefore, gracePeriodDaysValue) => {
         const producerId: TenantId = generateId();
 
         const numberOfArchivableDescriptors = 5;
@@ -296,6 +346,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), -daysBefore)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
+                gracePeriodDays: gracePeriodDaysValue,
               },
             };
 
@@ -335,6 +386,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
             archivableOn: new Date(toUTCMidnight(new Date(), daysAfter)),
             startedAt: new Date(toUTCMidnight(new Date(), -30)),
             scope: "EService",
+            gracePeriodDays: 30,
           },
         };
 
@@ -367,61 +419,71 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
   });
 
   describe("getEServiceWithUnarchivableDescriptors", async () => {
-    it("should return an empty array when all eservices have the correct states", async () => {
-      const producerId: TenantId = generateId();
+    it.each([...gracePeriodDays])(
+      "should return an empty array when all eservices have the correct states (gracePeriodDays: %d)",
+      async (gracePeriodDaysValue: GracePeriodDays) => {
+        const producerId: TenantId = generateId();
 
-      const numberOfArchivableDescriptors = 5;
+        const numberOfArchivableDescriptors = 5;
 
-      const eservice: EService = {
-        ...getMockEService(),
-        producerId,
-        descriptors: [],
-      };
+        const eservice: EService = {
+          ...getMockEService(),
+          producerId,
+          descriptors: [],
+        };
 
-      let i = 0;
+        let i = 0;
 
-      await Promise.all(
-        Array.from({ length: numberOfArchivableDescriptors }, async () => {
-          i++;
-          const descriptor: Descriptor = {
-            ...getMockDescriptor(),
-            state: descriptorState.archiving,
-            version: i.toString(),
-            archivingSchedule: {
-              archivableOn: new Date(toUTCMidnight(new Date(), -1)),
-              startedAt: new Date(toUTCMidnight(new Date(), -30)),
-              scope: "EService",
-            },
-          };
+        await Promise.all(
+          Array.from({ length: numberOfArchivableDescriptors }, async () => {
+            i++;
+            const descriptor: Descriptor = {
+              ...getMockDescriptor(),
+              state: descriptorState.archiving,
+              version: i.toString(),
+              archivingSchedule: {
+                archivableOn: new Date(toUTCMidnight(new Date(), -1)),
+                startedAt: new Date(toUTCMidnight(new Date(), -30)),
+                scope: "EService",
+                gracePeriodDays: gracePeriodDaysValue,
+              },
+            };
 
-          eservice.descriptors.push(descriptor);
-        })
-      );
+            eservice.descriptors.push(descriptor);
+          })
+        );
 
-      await addOneEService(eservice);
+        await addOneEService(eservice);
 
-      const testQuery =
-        await readModelService.getEServicesWithUnarchivableDescriptors([
-          eservice.id,
-        ]);
+        const testQuery =
+          await readModelService.getEServicesWithUnarchivableDescriptors([
+            eservice.id,
+          ]);
 
-      expect(testQuery.length).toEqual(0);
-    });
+        expect(testQuery.length).toEqual(0);
+      }
+    );
 
     it.each(
-      Object.values(descriptorState).filter(
-        (s) =>
-          !(
-            [
-              descriptorState.archiving,
-              descriptorState.archivingSuspended,
-              descriptorState.archived,
-            ] as DescriptorState[]
-          ).includes(s)
-      )
+      Object.values(descriptorState)
+        .filter(
+          (s) =>
+            !(
+              [
+                descriptorState.archiving,
+                descriptorState.archivingSuspended,
+                descriptorState.archived,
+              ] as DescriptorState[]
+            ).includes(s)
+        )
+        .flatMap((state) =>
+          gracePeriodDays.map(
+            (g) => [state, g] as [DescriptorState, GracePeriodDays]
+          )
+        )
     )(
-      "should return an array with the list of unarchivable eservices if one of their descriptor has state %s",
-      async (state) => {
+      "should return an array with the list of unarchivable eservices if one of their descriptor has state %s (gracePeriodDays: %s)",
+      async (state, gracePeriodDaysValue) => {
         const producerId: TenantId = generateId();
 
         const numberOfArchivableDescriptors = 5;
@@ -446,6 +508,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), -1)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
+                gracePeriodDays: gracePeriodDaysValue,
               },
             };
 
@@ -466,6 +529,7 @@ describe("EService Descriptors Scheduled Archiver Queries", async () => {
                 archivableOn: new Date(toUTCMidnight(new Date(), -1)),
                 startedAt: new Date(toUTCMidnight(new Date(), -30)),
                 scope: "EService",
+                gracePeriodDays: gracePeriodDaysValue,
               },
             };
 

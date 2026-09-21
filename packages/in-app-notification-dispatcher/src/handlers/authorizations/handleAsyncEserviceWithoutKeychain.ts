@@ -1,3 +1,4 @@
+import { Logger } from "pagopa-interop-commons";
 import {
   AuthorizationEventEnvelopeV2,
   EServiceId,
@@ -5,14 +6,14 @@ import {
   missingKafkaMessageDataError,
   unsafeBrandId,
 } from "pagopa-interop-models";
-import { Logger } from "pagopa-interop-commons";
 import { NewNotification } from "pagopa-interop-models";
-import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 import {
   getNotificationRecipients,
   inAppTemplates,
   retrieveEservice,
 } from "pagopa-interop-notification-commons";
+
+import { ReadModelServiceSQL } from "../../services/readModelServiceSQL.js";
 
 type AsyncEserviceWithoutKeychainEvent = Extract<
   AuthorizationEventEnvelopeV2,

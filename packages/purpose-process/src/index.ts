@@ -1,5 +1,6 @@
-import { initDB, startServer } from "pagopa-interop-commons";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { selfcareV2InstitutionClientBuilder } from "pagopa-interop-api-clients";
+import { initDB, startServer } from "pagopa-interop-commons";
 import {
   agreementReadModelServiceBuilder,
   catalogReadModelServiceBuilder,
@@ -10,12 +11,12 @@ import {
   purposeTemplateReadModelServiceBuilder,
   tenantReadModelServiceBuilder,
 } from "pagopa-interop-readmodel";
-import { config } from "./config/config.js";
-import { createApp } from "./app.js";
-import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
-import { purposeServiceBuilder } from "./services/purposeService.js";
 import pg from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
+
+import { createApp } from "./app.js";
+import { config } from "./config/config.js";
+import { purposeServiceBuilder } from "./services/purposeService.js";
+import { readModelServiceBuilderSQL } from "./services/readModelServiceSQL.js";
 
 const readModelDB = makeDrizzleConnection(config);
 const tenantKindHistoryDB = drizzle({

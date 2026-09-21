@@ -1,5 +1,6 @@
 import { delegationApi } from "pagopa-interop-api-clients";
 import { M2MAdminAuthData } from "pagopa-interop-commons";
+
 import {
   delegationEServiceMismatch,
   requesterIsNotTheDelegateConsumer,

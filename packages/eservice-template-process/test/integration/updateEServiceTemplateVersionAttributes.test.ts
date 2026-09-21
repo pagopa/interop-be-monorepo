@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
+import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import {
   decodeProtobufPayload,
   getMockAttribute,
@@ -19,8 +20,8 @@ import {
   EServiceTemplateVersion,
   EServiceTemplate,
 } from "pagopa-interop-models";
-import { eserviceTemplateApi } from "pagopa-interop-api-clients";
 import { expect, describe, it, beforeEach } from "vitest";
+
 import {
   attributeDiscreteConfigNotAllowed,
   attributeNotFound,

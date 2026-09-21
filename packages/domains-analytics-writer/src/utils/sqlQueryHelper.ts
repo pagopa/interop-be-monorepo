@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable max-params */
 /* eslint-disable functional/immutable-data */
-import { z } from "zod";
 import { ColumnSet, IColumnDescriptor, IMain, ITask } from "pg-promise";
+import { z } from "zod";
+
+import { config } from "../config/config.js";
 import {
   DbTable,
   DbTableReadModels,
@@ -11,7 +13,6 @@ import {
   DomainDbTableSchemas,
   PartialDbTable,
 } from "../model/db/index.js";
-import { config } from "../config/config.js";
 
 /**
  * Given a table key from `DbTableReadModels`, returns a function that

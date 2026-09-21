@@ -13,9 +13,9 @@ import {
   mapRecipientToEmailPayload,
   eserviceNotFound,
 } from "pagopa-interop-notification-commons";
-import { ProducerKeychainEServiceHandlerParams } from "../../models/handlerParams.js";
 
 import { config } from "../../config/config.js";
+import { ProducerKeychainEServiceHandlerParams } from "../../models/handlerParams.js";
 
 const notificationType: NotificationType = "eserviceStateChangedToConsumer";
 

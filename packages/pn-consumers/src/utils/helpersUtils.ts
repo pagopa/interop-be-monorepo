@@ -1,5 +1,6 @@
-import { PurposeVersionState } from "pagopa-interop-models";
 import { Logger } from "pagopa-interop-commons";
+import { PurposeVersionState } from "pagopa-interop-models";
+
 import {
   PNDataCSVRow,
   StatoFinalitaMigliore,

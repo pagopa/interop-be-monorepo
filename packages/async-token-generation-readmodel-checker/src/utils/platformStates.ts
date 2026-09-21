@@ -6,6 +6,7 @@ import {
   PlatformStatesCatalogEntry,
   PlatformStatesGenericEntry,
 } from "pagopa-interop-models";
+
 import {
   descriptorItemState,
   getAsyncDescriptors,

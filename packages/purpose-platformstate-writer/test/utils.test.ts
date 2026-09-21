@@ -1,15 +1,21 @@
 /* eslint-disable functional/no-let */
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import crypto from "crypto";
+import { genericLogger } from "pagopa-interop-commons";
 import {
-  afterAll,
-  afterEach,
-  beforeAll,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
+  buildDynamoDBTables,
+  deleteDynamoDBTables,
+  getMockPurposeVersion,
+  writeTokenGenStatesConsumerClient,
+  getMockTokenGenStatesConsumerClient,
+  readAllTokenGenStatesItems,
+  getMockPurpose,
+  getMockDescriptor,
+  getMockAgreement,
+  writePlatformAgreementEntry,
+  writePlatformCatalogEntry,
+  writePlatformPurposeEntry,
+} from "pagopa-interop-commons-test";
 import {
   PlatformStatesAgreementEntry,
   PlatformStatesCatalogEntry,
@@ -31,22 +37,17 @@ import {
   TokenGenStatesConsumerClientGSIPurpose,
   Agreement,
 } from "pagopa-interop-models";
-import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import {
-  buildDynamoDBTables,
-  deleteDynamoDBTables,
-  getMockPurposeVersion,
-  writeTokenGenStatesConsumerClient,
-  getMockTokenGenStatesConsumerClient,
-  readAllTokenGenStatesItems,
-  getMockPurpose,
-  getMockDescriptor,
-  getMockAgreement,
-  writePlatformAgreementEntry,
-  writePlatformCatalogEntry,
-  writePlatformPurposeEntry,
-} from "pagopa-interop-commons-test";
-import { genericLogger } from "pagopa-interop-commons";
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+
 import {
   deletePlatformPurposeEntry,
   getPurposeStateFromPurposeVersions,

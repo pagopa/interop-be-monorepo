@@ -1,12 +1,13 @@
 /* eslint-disable @typescript-eslint/no-floating-promises */
-import { ProducerKeychain, TenantId, generateId } from "pagopa-interop-models";
-import { describe, it, expect } from "vitest";
 import {
   getMockProducerKeychain,
   getMockKey,
   getMockAuthData,
   getMockContext,
 } from "pagopa-interop-commons-test";
+import { ProducerKeychain, TenantId, generateId } from "pagopa-interop-models";
+import { describe, it, expect } from "vitest";
+
 import {
   producerKeychainNotFound,
   producerKeyNotFound,

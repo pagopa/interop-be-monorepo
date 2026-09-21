@@ -1,4 +1,13 @@
-import { match } from "ts-pattern";
+import * as jose from "jose";
+import {
+  JOSEError,
+  JWSInvalid,
+  JWSSignatureVerificationFailed,
+  JWTClaimValidationFailed,
+  JWTExpired,
+  JWTInvalid,
+} from "jose/errors";
+import { createPublicKey, Logger } from "pagopa-interop-commons";
 import {
   clientKindTokenGenStates,
   ClientAssertion,
@@ -12,16 +21,33 @@ import {
   interactionState,
   TokenGenerationStatesGenericClient,
 } from "pagopa-interop-models";
-import * as jose from "jose";
+import { match } from "ts-pattern";
+
 import {
-  JOSEError,
-  JWSInvalid,
-  JWSSignatureVerificationFailed,
-  JWTClaimValidationFailed,
-  JWTExpired,
-  JWTInvalid,
-} from "jose/errors";
-import { createPublicKey, Logger } from "pagopa-interop-commons";
+  unexpectedClientAssertionSignatureVerificationError,
+  asyncExchangeNotAllowed,
+  invalidAssertionType,
+  invalidClientAssertionFormat,
+  invalidGrantType,
+  jsonWebTokenError,
+  notBeforeError,
+  purposeIdNotProvided,
+  urlCallbackNotProvided,
+  interactionIdNotProvided,
+  entityNumberNotProvided,
+  invalidEntityNumber,
+  tokenExpiredError,
+  unexpectedClientAssertion,
+  invalidSignature,
+  clientAssertionInvalidClaims,
+  algorithmNotAllowed,
+  clientAssertionSignatureVerificationError,
+} from "./errors.js";
+import {
+  Base64Encoded,
+  ClientAssertionValidationRequest,
+  ValidationResult,
+} from "./types.js";
 import {
   failedValidation,
   successfulValidation,
@@ -44,31 +70,6 @@ import {
   validatePlatformState,
   ALLOWED_ALGORITHM,
 } from "./utils.js";
-import {
-  Base64Encoded,
-  ClientAssertionValidationRequest,
-  ValidationResult,
-} from "./types.js";
-import {
-  unexpectedClientAssertionSignatureVerificationError,
-  asyncExchangeNotAllowed,
-  invalidAssertionType,
-  invalidClientAssertionFormat,
-  invalidGrantType,
-  jsonWebTokenError,
-  notBeforeError,
-  purposeIdNotProvided,
-  urlCallbackNotProvided,
-  interactionIdNotProvided,
-  entityNumberNotProvided,
-  invalidEntityNumber,
-  tokenExpiredError,
-  unexpectedClientAssertion,
-  invalidSignature,
-  clientAssertionInvalidClaims,
-  algorithmNotAllowed,
-  clientAssertionSignatureVerificationError,
-} from "./errors.js";
 
 export const validateRequestParameters = (
   request: ClientAssertionValidationRequest

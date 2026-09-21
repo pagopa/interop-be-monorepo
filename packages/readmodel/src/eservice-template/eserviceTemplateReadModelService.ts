@@ -1,3 +1,4 @@
+import { eq, SQL } from "drizzle-orm";
 import {
   EServiceTemplate,
   EServiceTemplateId,
@@ -15,7 +16,7 @@ import {
   eserviceTemplateVersionInReadmodelEserviceTemplate,
   eserviceTemplateVersionInterfaceInReadmodelEserviceTemplate,
 } from "pagopa-interop-readmodel-models";
-import { eq, SQL } from "drizzle-orm";
+
 import {
   aggregateEServiceTemplate,
   toEServiceTemplateAggregator,

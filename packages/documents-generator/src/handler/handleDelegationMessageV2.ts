@@ -1,4 +1,11 @@
 /* eslint-disable functional/immutable-data */
+import { delegationApi } from "pagopa-interop-api-clients";
+import {
+  FileManager,
+  Logger,
+  RefreshableInteropToken,
+  getInteropHeaders,
+} from "pagopa-interop-commons";
 import {
   CorrelationId,
   Delegation,
@@ -10,22 +17,16 @@ import {
   unsafeBrandId,
 } from "pagopa-interop-models";
 import { match, P } from "ts-pattern";
-import {
-  FileManager,
-  Logger,
-  RefreshableInteropToken,
-  getInteropHeaders,
-} from "pagopa-interop-commons";
-import { PDFGenerator } from "../pdf-generator/pdfGenerator.js";
-import { delegationApi } from "pagopa-interop-api-clients";
-import { contractBuilder } from "../service/delegation/delegationContractBuilder.js";
+
+import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 import { config } from "../config/config.js";
+import { PDFGenerator } from "../pdf-generator/pdfGenerator.js";
+import { contractBuilder } from "../service/delegation/delegationContractBuilder.js";
 import {
   retrieveTenantById,
   retrieveEserviceById,
 } from "../service/delegation/delegationService.js";
 import { ReadModelServiceSQL } from "../service/readModelSql.js";
-import { PagoPAInteropBeClients } from "../clients/clientProvider.js";
 
 // eslint-disable-next-line max-params
 export async function handleDelegationMessageV2(

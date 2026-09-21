@@ -1,4 +1,12 @@
 import {
+  bffApi,
+  catalogApi,
+  purposeApi,
+  purposeTemplateApi,
+  tenantApi,
+} from "pagopa-interop-api-clients";
+import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
+import {
   WithLogger,
   FileManager,
   removeDuplicates,
@@ -15,20 +23,23 @@ import {
   PurposeVersionDocumentId,
   PurposeVersionId,
   RiskAnalysisId,
+  WithMetadata,
+  genericError,
   unsafeBrandId,
 } from "pagopa-interop-models";
+
+import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
 import {
-  bffApi,
-  catalogApi,
-  purposeApi,
-  purposeTemplateApi,
-  tenantApi,
-} from "pagopa-interop-api-clients";
+  toBffApiPurposeVersion,
+  toBffApiRiskAnalysisForm,
+} from "../api/purposeApiConverter.js";
+import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
 import {
   DelegationProcessClient,
   PagoPAInteropBeClients,
   TenantProcessClient,
 } from "../clients/clientsProvider.js";
+import { config } from "../config/config.js";
 import {
   agreementNotFound,
   eserviceDescriptorNotFound,
@@ -36,17 +47,9 @@ import {
   purposeNotFound,
   tenantNotFound,
 } from "../model/errors.js";
-import { BffAppContext, Headers } from "../utilities/context.js";
-import { config } from "../config/config.js";
-import { toBffApiCompactClient } from "../api/authorizationApiConverter.js";
-import {
-  toBffApiPurposeVersion,
-  toBffApiRiskAnalysisForm,
-} from "../api/purposeApiConverter.js";
 import { getLatestTenantContactEmail } from "../model/modelMappingUtils.js";
+import { BffAppContext, Headers } from "../utilities/context.js";
 import { filterUnreadNotifications } from "../utilities/filterUnreadNotifications.js";
-import { toCompactPurposeTemplate } from "../api/purposeTemplateApiConverter.js";
-import { SelfcareV2UsersClient } from "pagopa-interop-api-clients";
 import { getLatestAgreement } from "./agreementService.js";
 import { getAllClients } from "./clientService.js";
 import { getSelfcareCompactUserById } from "./selfcareService.js";
@@ -111,24 +114,32 @@ const enrichPurposeReviewerWorkflow = async (
     return undefined;
   }
   const isConsumer = authData.organizationId === consumerId;
-  const hasAdminOrViewerRole =
+  const hasAdminOrReviewerOrViewerRole =
     userRoles.includes(authRole.ADMIN_ROLE) ||
-    userRoles.includes(authRole.VIEWER_ROLE);
+    userRoles.includes(authRole.VIEWER_ROLE) ||
+    userRoles.includes(authRole.REVIEWER_ROLE);
 
-  if (isConsumer && hasAdminOrViewerRole) {
+  if (isConsumer && hasAdminOrReviewerOrViewerRole) {
     const reviewers = await Promise.all(
-      reviewerWorkflow.reviewerIds.map((reviewerId) =>
-        getSelfcareCompactUserById(
+      reviewerWorkflow.reviewers.map(async (reviewer) => ({
+        ...(await getSelfcareCompactUserById(
           selfcareV2UserClient,
-          reviewerId,
+          reviewer.id,
           selfcareId,
           correlationId
-        )
-      )
+        )),
+        sentToReviewerAt: reviewer.sentToReviewerAt,
+      }))
     );
     return { ...reviewerWorkflow, reviewers };
   }
-  return reviewerWorkflow;
+
+  // Reviewer details are disclosed only to the consumer, so the raw reviewers
+  // array is dropped for everyone else.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { reviewers: _reviewers, ...workflowWithoutReviewers } =
+    reviewerWorkflow;
+  return workflowWithoutReviewers;
 };
 
 const getCurrentVersion = (
@@ -151,6 +162,7 @@ const getCurrentVersion = (
 export function purposeServiceBuilder(
   {
     purposeProcessClient,
+    purposeProcessClientWithMetadata,
     purposeTemplateProcessClient,
     catalogProcessClient,
     tenantProcessClient,
@@ -341,6 +353,7 @@ export function purposeServiceBuilder(
         : undefined,
       isDocumentReady,
       rulesetExpiration: rulesetExpiration?.toJSON(),
+      riskAnalysisReviewMode: purpose.riskAnalysisReviewMode,
       reviewerWorkflow: await enrichPurposeReviewerWorkflow(
         purpose.reviewerWorkflow,
         authData,
@@ -502,10 +515,11 @@ export function purposeServiceBuilder(
     },
     async signRiskAnalysis(
       purposeId: PurposeId,
+      seed: bffApi.RiskAnalysisSignSeed,
       { logger, headers }: WithLogger<BffAppContext>
     ): Promise<void> {
       logger.info(`Signing risk analysis for purpose ${purposeId}`);
-      await purposeProcessClient.signRiskAnalysis(undefined, {
+      await purposeProcessClient.signRiskAnalysis(seed, {
         params: { purposeId },
         headers,
       });
@@ -930,7 +944,7 @@ export function purposeServiceBuilder(
     async getPurpose(
       id: PurposeId,
       ctx: WithLogger<BffAppContext>
-    ): Promise<bffApi.Purpose> {
+    ): Promise<WithMetadata<bffApi.Purpose>> {
       const { headers, authData, logger, correlationId } = ctx;
       logger.info(`Retrieving Purpose ${id}`);
       const notificationsPromise = filterUnreadNotifications(
@@ -938,12 +952,19 @@ export function purposeServiceBuilder(
         [id],
         ctx
       );
-      const purpose = await purposeProcessClient.getPurpose({
-        params: {
-          id,
-        },
-        headers,
-      });
+      const purposeWithMetadata =
+        await purposeProcessClientWithMetadata.getPurpose({
+          params: {
+            id,
+          },
+          headers,
+        });
+
+      if (purposeWithMetadata.metadata === undefined) {
+        throw genericError(`Missing metadata for purpose ${id}`);
+      }
+
+      const purpose = purposeWithMetadata.data;
 
       const eservice = await catalogProcessClient.getEServiceById({
         params: {
@@ -978,18 +999,21 @@ export function purposeServiceBuilder(
           })
         : undefined;
 
-      return await enhancePurpose(
-        authData,
-        purpose,
-        [eservice],
-        [producer],
-        [consumer],
-        purposeTemplate,
-        false,
-        headers,
-        correlationId,
-        notification
-      );
+      return {
+        data: await enhancePurpose(
+          authData,
+          purpose,
+          [eservice],
+          [producer],
+          [consumer],
+          purposeTemplate,
+          false,
+          headers,
+          correlationId,
+          notification
+        ),
+        metadata: purposeWithMetadata.metadata,
+      };
     },
     async retrieveLatestRiskAnalysisConfiguration(
       tenantKind: bffApi.TenantKind | undefined,

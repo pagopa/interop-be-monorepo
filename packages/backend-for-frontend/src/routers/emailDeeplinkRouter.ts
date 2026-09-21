@@ -1,24 +1,25 @@
 import { ZodiosEndpointDefinitions } from "@zodios/core";
 import { ZodiosRouter } from "@zodios/express";
+import { bffApi } from "pagopa-interop-api-clients";
 import {
   ExpressContext,
   ZodiosContext,
   zodiosValidationErrorToApiProblem,
 } from "pagopa-interop-commons";
-import { bffApi } from "pagopa-interop-api-clients";
 import {
   badRequestError,
   DigestNotificationType,
   emptyErrorMapper,
   NotificationType,
 } from "pagopa-interop-models";
-import { fromBffAppContext } from "../utilities/context.js";
-import { makeApiProblem } from "../model/errors.js";
+
 import { config } from "../config/config.js";
+import { makeApiProblem } from "../model/errors.js";
 import {
   digestNotificationTypeToUiSection,
   notificationTypeToUiSection,
 } from "../model/modelMappingUtils.js";
+import { fromBffAppContext } from "../utilities/context.js";
 
 /**
  * Builds the token-exchange URL for selfcare authentication.

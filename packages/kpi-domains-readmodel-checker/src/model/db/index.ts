@@ -1,32 +1,15 @@
 import {
   AgreementDbTableConfig,
-  AgreementDbTableReadModel,
-} from "./agreement.js";
-import {
   AttributeDbTableConfig,
-  AttributeDbTableReadModel,
-} from "./attribute.js";
-import { CatalogDbTableConfig, CatalogDbTableReadModel } from "./catalog.js";
-import {
+  CatalogDbTableConfig,
   ClientDbTableConfig,
-  ClientDbTableReadModel,
   ProducerKeychainDbTableConfig,
-  ProducerKeychainDbTableReadModel,
-} from "./authorization.js";
-import {
   DelegationDbTableConfig,
-  DelegationDbTableReadModel,
-} from "./delegation.js";
-import { PurposeDbTableConfig, PurposeDbTableReadModel } from "./purpose.js";
-import {
   EserviceTemplateDbTableConfig,
-  EserviceTemplateDbTableReadModel,
-} from "./eserviceTemplate.js";
-import { TenantDbTableConfig, TenantDbTableReadModel } from "./tenant.js";
-import {
+  PurposeDbTableConfig,
   PurposeTemplateDbTableConfig,
-  PurposeTemplateDbTableReadModel,
-} from "./purposeTemplate.js";
+  TenantDbTableConfig,
+} from "pagopa-interop-kpi-models";
 
 export const DomainDbTable = {
   ...AttributeDbTableConfig,
@@ -42,17 +25,3 @@ export const DomainDbTable = {
 } as const;
 export type DomainDbTableSchemas = typeof DomainDbTable;
 export type DomainDbTable = keyof DomainDbTableSchemas;
-
-export const DomainDbTableReadModels = {
-  ...AttributeDbTableReadModel,
-  ...CatalogDbTableReadModel,
-  ...AgreementDbTableReadModel,
-  ...DelegationDbTableReadModel,
-  ...PurposeDbTableReadModel,
-  ...TenantDbTableReadModel,
-  ...ClientDbTableReadModel,
-  ...ProducerKeychainDbTableReadModel,
-  ...EserviceTemplateDbTableReadModel,
-  ...PurposeTemplateDbTableReadModel,
-} as const;
-export type DomainDbTableReadModels = typeof DomainDbTableReadModels;

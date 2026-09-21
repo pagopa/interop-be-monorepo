@@ -9,6 +9,7 @@ import {
 import { Logger } from "pagopa-interop-commons";
 import { operationForbidden, TenantId } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
 import { ValidCatalogApiDescriptor } from "../api/catalogApiConverter.js";
 import {
   activeAgreementByEserviceAndConsumerNotFound,

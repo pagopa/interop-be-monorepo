@@ -17,15 +17,16 @@ import {
   EServiceTemplateVersion,
   UserId,
 } from "pagopa-interop-models";
-import { beforeEach, expect, describe, it } from "vitest";
 import { match } from "ts-pattern";
+import { beforeEach, expect, describe, it } from "vitest";
+
+import { PersonalDataFilter } from "../../src/services/readModelService.js";
 import {
   addOneEServiceTemplate,
   addOneTenant,
   eserviceTemplateService,
 } from "../integrationUtils.js";
 import { getContextsAllowedToSeeDraftVersions } from "../mockUtils.js";
-import { PersonalDataFilter } from "../../src/services/readModelService.js";
 
 describe("get eservice templates", () => {
   const organizationId1: TenantId = generateId();

@@ -1,5 +1,28 @@
 import { setupTestContainersVitest } from "pagopa-interop-commons-test";
 import {
+  AttributeSchema,
+  AttributeDbTable,
+  AgreementItemsSchema,
+  AgreementDbTable,
+  EserviceItemsSchema,
+  CatalogDbTable,
+  ClientItemsSchema,
+  ProducerKeychainItemsSchema,
+  ClientDbTable,
+  ProducerKeychainDbTable,
+  DelegationItemsSchema,
+  DelegationDbTable,
+  EserviceTemplateItemsSchema,
+  EserviceTemplateDbTable,
+  PurposeItemsSchema,
+  PurposeDbTable,
+  PurposeTemplateItemsSchema,
+  PurposeTemplateDbTable,
+  TenantItemsSchema,
+  TenantDbTable,
+  DomainDbTableReadModels,
+} from "pagopa-interop-kpi-models";
+import {
   Agreement,
   Attribute,
   Client,
@@ -12,7 +35,6 @@ import {
   Tenant,
   WithMetadata,
 } from "pagopa-interop-models";
-import { afterEach, inject } from "vitest";
 import {
   splitAgreementIntoObjectsSQL,
   splitAttributeIntoObjectsSQL,
@@ -26,39 +48,16 @@ import {
   splitPurposeTemplateIntoObjectsSQL,
 } from "pagopa-interop-readmodel";
 import { IMain, ColumnSet, IColumnDescriptor } from "pg-promise";
+import { afterEach, inject } from "vitest";
 import { z } from "zod";
-import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+
+import { DomainDbTable, DomainDbTableSchemas } from "../src/model/db/index.js";
 import {
   DBContext,
   readModelServiceBuilderKPI,
 } from "../src/services/readModelServiceKPI.js";
-import {
-  DomainDbTable,
-  DomainDbTableReadModels,
-  DomainDbTableSchemas,
-} from "../src/model/db/index.js";
-import { AgreementItemsSchema } from "../src/model/agreement/agreement.js";
-import { AttributeSchema } from "../src/model/attribute/attribute.js";
-import { ClientItemsSchema } from "../src/model/authorization/client.js";
-import { ProducerKeychainItemsSchema } from "../src/model/authorization/producerKeychain.js";
-import { EserviceItemsSchema } from "../src/model/catalog/eservice.js";
-import { AgreementDbTable } from "../src/model/db/agreement.js";
-import { AttributeDbTable } from "../src/model/db/attribute.js";
-import {
-  ClientDbTable,
-  ProducerKeychainDbTable,
-} from "../src/model/db/authorization.js";
-import { CatalogDbTable } from "../src/model/db/catalog.js";
-import { DelegationDbTable } from "../src/model/db/delegation.js";
-import { EserviceTemplateDbTable } from "../src/model/db/eserviceTemplate.js";
-import { PurposeDbTable } from "../src/model/db/purpose.js";
-import { TenantDbTable } from "../src/model/db/tenant.js";
-import { DelegationItemsSchema } from "../src/model/delegation/delegation.js";
-import { EserviceTemplateItemsSchema } from "../src/model/eserviceTemplate/eserviceTemplate.js";
-import { PurposeItemsSchema } from "../src/model/purpose/purpose.js";
-import { TenantItemsSchema } from "../src/model/tenant/tenant.js";
-import { PurposeTemplateDbTable } from "../src/model/db/purposeTemplate.js";
-import { PurposeTemplateItemsSchema } from "../src/model/purposeTemplate/purposeTemplate.js";
+import { readModelServiceBuilderSQL } from "../src/services/readModelServiceSQL.js";
+
 export const { cleanup, analyticsPostgresDB, readModelDB } =
   await setupTestContainersVitest(
     undefined,

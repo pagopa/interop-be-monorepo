@@ -1,3 +1,4 @@
+import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
 import {
   APIEndpoint,
   ApplicationAuditProducerConfig,
@@ -17,7 +18,7 @@ import {
   TokenGenerationConfig,
 } from "pagopa-interop-commons";
 import { z } from "zod";
-import { ClientAssertionValidationConfig } from "pagopa-interop-client-assertion-validation";
+
 import { TokenGenerationValidationConfig } from "./tokenGenerationValidationConfig.js";
 
 const TenantProcessServerConfig = z

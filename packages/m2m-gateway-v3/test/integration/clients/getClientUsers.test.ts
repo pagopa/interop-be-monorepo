@@ -1,16 +1,17 @@
-import { describe, it, vi, beforeEach, expect } from "vitest";
 import {
   getMockTenant,
   getMockWithMetadata,
 } from "pagopa-interop-commons-test";
 import { TenantId, generateId } from "pagopa-interop-models";
+import { describe, it, vi, beforeEach, expect } from "vitest";
+
 import { PagoPAInteropBeClients } from "../../../src/clients/clientsProvider.js";
-import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 import {
   mockInteropBeClients,
   expectApiClientGetToHaveBeenCalledWith,
   clientService,
 } from "../../integrationUtils.js";
+import { getMockM2MAdminAppContext } from "../../mockUtils.js";
 
 describe("getClientUsers", () => {
   const tenantId = generateId<TenantId>();

@@ -1,3 +1,4 @@
+import { catalogApi } from "pagopa-interop-api-clients";
 import {
   InternalAuthData,
   M2MAdminAuthData,
@@ -16,6 +17,10 @@ import {
 import {
   archivingScope,
   AsyncExchangeProperties,
+  AttributeId,
+  DelegatedDescriptorArchivingRequest,
+  DelegatedEServiceArchivingRequest,
+  Delegation,
   delegationKind,
   delegationState,
   Descriptor,
@@ -27,6 +32,7 @@ import {
   eserviceMode,
   EServiceTemplateId,
   getEServiceAttributeDiscreteConfig,
+  GracePeriodDays,
   operationForbidden,
   RiskAnalysisId,
   technology,
@@ -39,6 +45,9 @@ import {
   type EServiceCertifiedAttribute,
 } from "pagopa-interop-models";
 import { match } from "ts-pattern";
+
+import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+
 import { config } from "../config/config.js";
 import {
   draftDescriptorAlreadyExists,
@@ -48,6 +57,8 @@ import {
   eserviceNotInDraftState,
   eserviceNotInReceiveMode,
   eserviceWithActiveOrPendingDelegation,
+  eserviceDescriptorWithActiveOrPendingDelegation,
+  eserviceArchivingWithActiveOrPendingDelegation,
   notValidDescriptorState,
   riskAnalysisNotValid,
   riskAnalysisValidationFailed,
@@ -65,6 +76,7 @@ import {
   riskAnalysisTenantKindMismatch,
   attributeDailyCallsNotAllowed,
   attributeDiscreteConfigNotAllowed,
+  certifiedDiscreteAttributeConfigCannotBeChanged,
   eserviceInArchivingOrArchivedState,
   descriptorArchivingNotCancelableByScope,
   notValidEServiceState,
@@ -72,13 +84,19 @@ import {
   eserviceInDraftState,
   eserviceNotInArchiving,
   eServiceAlreadyArchived,
+  gracePeriodDaysLowerThanDescriptor,
+  delegatedArchivingRequestAlreadyInProgress,
+  noDelegatedArchivingRequestFound,
+  delegatedArchivingRequestNotActive,
+  noActiveDelegationFound,
+  delegatedArchiveRequestForIncorrectDelegateProducer,
 } from "../model/domain/errors.js";
-import type { ReadModelServiceSQL } from "./readModelServiceTypes.js";
+import { hasActiveArchivingRequest } from "../utilities/archivingRequests.js";
+import { calculateArchivableOn } from "../utilities/dateCalculator.js";
 import {
   getLatestActiveDescriptor,
   getLatestDescriptor,
 } from "../utilities/versionGenerator.js";
-import { catalogApi } from "pagopa-interop-api-clients";
 
 export function descriptorStatesNotAllowingDocumentOperations(
   descriptor: Descriptor
@@ -222,18 +240,64 @@ export function assertRequesterIsProducer(
   }
 }
 
-export async function assertNoExistingProducerDelegationInActiveOrPendingState(
+async function getActiveOrPendingProducerDelegation(
   eserviceId: EServiceId,
   readModelService: ReadModelServiceSQL
-): Promise<void> {
-  const producerDelegation = await readModelService.getLatestDelegation({
+): Promise<Delegation | undefined> {
+  return readModelService.getLatestDelegation({
     eserviceId,
     kind: delegationKind.delegatedProducer,
     states: [delegationState.active, delegationState.waitingForApproval],
   });
+}
+
+export async function assertNoExistingProducerDelegationInActiveOrPendingState(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
 
   if (producerDelegation) {
     throw eserviceWithActiveOrPendingDelegation(
+      eserviceId,
+      producerDelegation.id
+    );
+  }
+}
+
+export async function assertNoExistingProducerDelegationForDescriptorArchiving(
+  eserviceId: EServiceId,
+  descriptorId: DescriptorId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
+
+  if (producerDelegation) {
+    throw eserviceDescriptorWithActiveOrPendingDelegation(
+      eserviceId,
+      descriptorId,
+      producerDelegation.id
+    );
+  }
+}
+
+export async function assertNoExistingProducerDelegationForEServiceArchiving(
+  eserviceId: EServiceId,
+  readModelService: ReadModelServiceSQL
+): Promise<void> {
+  const producerDelegation = await getActiveOrPendingProducerDelegation(
+    eserviceId,
+    readModelService
+  );
+
+  if (producerDelegation) {
+    throw eserviceArchivingWithActiveOrPendingDelegation(
       eserviceId,
       producerDelegation.id
     );
@@ -530,6 +594,7 @@ export function hasRoleToAccessInactiveDescriptors(
       userRole.ADMIN_ROLE,
       userRole.API_ROLE,
       userRole.SUPPORT_ROLE,
+      userRole.VIEWER_ROLE,
     ]) ||
     hasAtLeastOneSystemRole(authData, [
       systemRole.M2M_ADMIN_ROLE,
@@ -594,6 +659,59 @@ export function assertDiscreteConfigForCertifiedAttributesOnly(
   if (invalidAttribute) {
     throw attributeDiscreteConfigNotAllowed(invalidAttribute.id);
   }
+}
+
+export function assertCertifiedDiscreteConfigUnchanged(
+  descriptor: Descriptor,
+  newAttributes: EserviceAttributes
+): void {
+  if (descriptor.state === descriptorState.draft) {
+    return;
+  }
+
+  const publishedConfigsById = collectDiscreteConfigKeysById(
+    descriptor.attributes.certified.flat()
+  );
+
+  if (publishedConfigsById.size === 0) {
+    return;
+  }
+
+  const newConfigsById = collectDiscreteConfigKeysById(
+    newAttributes.certified.flat()
+  );
+
+  for (const [attributeId, publishedConfigs] of publishedConfigsById) {
+    const newConfigs = newConfigsById.get(attributeId);
+
+    if (newConfigs === undefined) {
+      continue;
+    }
+
+    const configsUnchanged =
+      newConfigs.size === publishedConfigs.size &&
+      [...publishedConfigs].every((config) => newConfigs.has(config));
+
+    if (!configsUnchanged) {
+      throw certifiedDiscreteAttributeConfigCannotBeChanged(attributeId);
+    }
+  }
+}
+
+function collectDiscreteConfigKeysById(
+  attributes: EServiceCertifiedAttribute[]
+): Map<AttributeId, Set<string>> {
+  const configsById = new Map<AttributeId, Set<string>>();
+  for (const attribute of attributes) {
+    const config = getEServiceAttributeDiscreteConfig(attribute);
+    if (config === undefined) {
+      continue;
+    }
+    const configs = configsById.get(attribute.id) ?? new Set<string>();
+    configs.add(`${config.comparator}:${config.threshold}`);
+    configsById.set(attribute.id, configs);
+  }
+  return configsById;
 }
 
 export function assertTemplateInstanceAttributeStructureUnchanged(
@@ -816,5 +934,117 @@ export function assertEServiceIsNotAlreadyArchived(eservice: EService): void {
   const latestDescriptor = getLatestDescriptor(eservice);
   if (latestDescriptor.state === descriptorState.archived) {
     throw eServiceAlreadyArchived(eservice.id);
+  }
+}
+
+export function assertEServiceGracePeriodIsNotLowerThanDescriptors(
+  requestDate: Date,
+  eservice: EService,
+  gracePeriodDays: GracePeriodDays
+): void {
+  const { archivableOn: requestedArchivableOn } = calculateArchivableOn(
+    requestDate,
+    gracePeriodDays
+  );
+
+  for (const descriptor of eservice.descriptors) {
+    if (
+      descriptor.archivingSchedule &&
+      requestedArchivableOn < descriptor.archivingSchedule.archivableOn
+    ) {
+      throw gracePeriodDaysLowerThanDescriptor(
+        eservice.id,
+        descriptor.id,
+        requestedArchivableOn,
+        descriptor.archivingSchedule.archivableOn
+      );
+    }
+  }
+}
+
+export function assertDelegatedEserviceHasNoActiveArchivingRequests(
+  eservice: EService
+): void {
+  const eserviceHasPendingArchivingRequests = hasActiveArchivingRequest(
+    eservice.delegatedArchivingRequest
+  );
+  const descriptorsHavePendingArchivingRequests = eservice.descriptors.some(
+    (descriptor) =>
+      hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)
+  );
+  if (
+    eserviceHasPendingArchivingRequests ||
+    descriptorsHavePendingArchivingRequests
+  ) {
+    throw delegatedArchivingRequestAlreadyInProgress(eservice.id);
+  }
+}
+
+export function assertRequesterIsDelegateForArchiving(
+  producerDelegation: Delegation,
+  authData: UIAuthData | M2MAdminAuthData
+): void {
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    authData.organizationId !== producerDelegation.delegateId
+  ) {
+    throw operationForbidden;
+  }
+}
+export function assertDelegatedEserviceHasAtLeastOneArchivingRequests(
+  eservice: EService
+): void {
+  const archivingRequests = eservice.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eservice.id);
+  }
+}
+
+export function assertDelegatedEserviceHasActiveArchivingRequests(
+  eservice: EService
+): void {
+  if (!hasActiveArchivingRequest(eservice.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestNotActive(eservice.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasAtLeastOneArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  const archivingRequests = descriptor.delegatedArchivingRequest;
+  if (!archivingRequests || archivingRequests.length === 0) {
+    throw noDelegatedArchivingRequestFound(eserviceId, descriptor.id);
+  }
+}
+
+export function assertDelegatedDescriptorHasActiveArchivingRequests(
+  descriptor: Descriptor,
+  eserviceId: EServiceId
+): void {
+  if (!hasActiveArchivingRequest(descriptor.delegatedArchivingRequest)) {
+    throw delegatedArchivingRequestNotActive(eserviceId, descriptor.id);
+  }
+}
+
+export function assertDelegatedArchivingRequestDelegationIsStillValid(
+  producerDelegation: Delegation | undefined,
+  archivingRequest:
+    | DelegatedEServiceArchivingRequest
+    | DelegatedDescriptorArchivingRequest,
+  eserviceId: EServiceId,
+  descriptorId?: DescriptorId
+): asserts producerDelegation is Delegation {
+  if (!producerDelegation) {
+    throw noActiveDelegationFound(eserviceId);
+  }
+  if (
+    producerDelegation.kind !== delegationKind.delegatedProducer ||
+    archivingRequest.requesterId !== producerDelegation.delegateId
+  ) {
+    throw delegatedArchiveRequestForIncorrectDelegateProducer(
+      eserviceId,
+      descriptorId
+    );
   }
 }
