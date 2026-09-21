@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant (
 CREATE INDEX IF NOT EXISTS tenant_search_vector_gin
   ON readmodel_tenant.tenant USING GIN (search_vector);
 CREATE INDEX IF NOT EXISTS tenant_name_trgm
-  ON readmodel_tenant.tenant USING GIN (public.normalize_text(name) gin_trgm_ops);
+  ON readmodel_tenant.tenant USING GIN (public.normalize_text(name) public.gin_trgm_ops);
 
 CREATE TABLE IF NOT EXISTS readmodel_tenant.tenant_remote_id (
   tenant_id UUID NOT NULL REFERENCES readmodel_tenant.tenant (id) ON DELETE CASCADE,

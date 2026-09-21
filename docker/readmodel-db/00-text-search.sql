@@ -14,7 +14,7 @@ BEGIN
     CREATE TEXT SEARCH CONFIGURATION public.italian_unaccent ( COPY = pg_catalog.italian );
     ALTER TEXT SEARCH CONFIGURATION public.italian_unaccent
       ALTER MAPPING FOR hword, hword_part, word
-      WITH public.unaccent, pg_catalog.italian_stem, simple;
+      WITH public.unaccent, pg_catalog.italian_stem, pg_catalog.simple;
   END IF;
 END$$;
 
