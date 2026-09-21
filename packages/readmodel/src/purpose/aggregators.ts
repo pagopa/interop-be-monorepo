@@ -326,6 +326,13 @@ PurposeItemsSQL): WithMetadata<Purpose> => {
                   ),
                 }
               : {}),
+            ...(purposeSQL.reviewerWorkflowRejectedAt
+              ? {
+                  rejectedAt: stringToDate(
+                    purposeSQL.reviewerWorkflowRejectedAt
+                  ),
+                }
+              : {}),
             ...(purposeSQL.reviewerWorkflowRejectionReason
               ? {
                   rejectionReason: purposeSQL.reviewerWorkflowRejectionReason,

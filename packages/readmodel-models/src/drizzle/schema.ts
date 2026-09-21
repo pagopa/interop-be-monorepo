@@ -956,6 +956,10 @@ export const purposeInReadmodelPurpose = readmodelPurpose.table(
       mode: "string",
     }),
     reviewerWorkflowRejectedBy: uuid("reviewer_workflow_rejected_by"),
+    reviewerWorkflowRejectedAt: timestamp("reviewer_workflow_rejected_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
     reviewerWorkflowRejectionReason: varchar(
       "reviewer_workflow_rejection_reason"
     ),
