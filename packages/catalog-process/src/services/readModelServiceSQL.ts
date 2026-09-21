@@ -169,30 +169,40 @@ const keywordTsQuery = (keyword: string): SQL => {
 
 // The e-service and the producer conditions are two UNION branches instead
 // of one OR: an OR across two tables cannot use the GIN indexes.
-const fullTextKeywordFilter = (keyword: string): SQL => {
+const fullTextMatches = (keyword: string): SQL => {
   const tsQuery = keywordTsQuery(keyword);
-  return inArray(
-    eserviceInReadmodelCatalog.id,
-    sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-      WHERE ${eserviceSearchVector} @@ ${tsQuery}
-      UNION
-      SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-      JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
-      WHERE ${tenantSearchVector} @@ ${tsQuery})`
-  );
+  return sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
+    WHERE ${eserviceSearchVector} @@ ${tsQuery}
+    UNION
+    SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
+    JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
+    WHERE ${tenantSearchVector} @@ ${tsQuery})`;
 };
 
-const fuzzyKeywordFilter = (keyword: string): SQL => {
+const fuzzyMatches = (keyword: string): SQL => {
   const normalizedKeyword = normalizeText(sql`${keyword}`);
-  return inArray(
-    eserviceInReadmodelCatalog.id,
-    sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-      WHERE ${eserviceName} % ${normalizedKeyword}
-        OR ${eserviceDescription} % ${normalizedKeyword}
-      UNION
-      SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
-      JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
-      WHERE ${producerName} % ${normalizedKeyword})`
+  return sql`(SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
+    WHERE ${eserviceName} % ${normalizedKeyword}
+      OR ${eserviceDescription} % ${normalizedKeyword}
+    UNION
+    SELECT ${eserviceInReadmodelCatalog.id} FROM ${eserviceInReadmodelCatalog}
+    JOIN ${tenantInReadmodelTenant} ON ${eserviceProducerJoin}
+    WHERE ${producerName} % ${normalizedKeyword})`;
+};
+
+// As in the public catalog, the trigram matches are the fallback when the
+// full text search has no match at all.
+const keywordFilter = (keyword: string | undefined): SQL | undefined => {
+  if (keyword === undefined) {
+    return undefined;
+  }
+  const fullText = fullTextMatches(keyword);
+  return or(
+    inArray(eserviceInReadmodelCatalog.id, fullText),
+    and(
+      notExists(fullText),
+      inArray(eserviceInReadmodelCatalog.id, fuzzyMatches(keyword))
+    )
   );
 };
 
@@ -671,8 +681,7 @@ export function readModelServiceBuilderSQL(
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
       { offset, limit, sortBy, keyword }: EServicesQueryFilters
     ): Promise<ListResult<EService>> {
-      // The page, the count and the fallback decision are separate statements:
-      // one snapshot keeps them consistent with each other.
+      // One snapshot keeps the page and the count consistent.
       return await readmodelDB.transaction(
         async (tx) => {
           const visibilityFilter = hasRoleToAccessInactiveDescriptors(authData)
@@ -710,58 +719,33 @@ export function readModelServiceBuilderSQL(
               )
             : existsValidDescriptor(tx);
 
-          const getPage = async (
-            keywordFilter: SQL | undefined,
-            relevance: SQL | undefined
-          ): Promise<{ ids: string[]; totalCount: number }> => {
-            const orderBy = relevance
-              ? [desc(relevance), ...getEServicesOrderBy(sortBy)]
-              : getEServicesOrderBy(sortBy);
-
-            const [pageIds, totalCount] = await Promise.all([
-              tx
-                .select({ id: eserviceInReadmodelCatalog.id })
-                .from(eserviceInReadmodelCatalog)
-                .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
-                .where(and(visibilityFilter, keywordFilter))
-                .orderBy(...orderBy)
-                .limit(limit)
-                .offset(offset),
-              tx
-                .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
-                .from(eserviceInReadmodelCatalog)
-                .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
-                .where(and(visibilityFilter, keywordFilter)),
-            ]);
-
-            return {
-              ids: pageIds.map((e) => e.id),
-              totalCount: totalCount[0]?.count ?? 0,
-            };
-          };
-
-          const getKeywordPage = async (
-            searchedKeyword: string
-          ): Promise<{ ids: string[]; totalCount: number }> => {
-            const relevance = keywordRelevance(searchedKeyword);
-            const fullTextPage = await getPage(
-              fullTextKeywordFilter(searchedKeyword),
-              relevance
-            );
-            // The fallback depends on the total count, not on the requested page,
-            // so a high offset does not switch to fuzzy results.
-            return fullTextPage.totalCount > 0
-              ? fullTextPage
-              : await getPage(fuzzyKeywordFilter(searchedKeyword), relevance);
-          };
-
-          const { ids, totalCount } =
+          const condition = and(visibilityFilter, keywordFilter(keyword));
+          const orderBy =
             keyword === undefined
-              ? await getPage(undefined, undefined)
-              : await getKeywordPage(keyword);
+              ? getEServicesOrderBy(sortBy)
+              : [
+                  desc(keywordRelevance(keyword)),
+                  ...getEServicesOrderBy(sortBy),
+                ];
 
+          const [pageIds, totalCount] = await Promise.all([
+            tx
+              .select({ id: eserviceInReadmodelCatalog.id })
+              .from(eserviceInReadmodelCatalog)
+              .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
+              .where(condition)
+              .orderBy(...orderBy)
+              .limit(limit)
+              .offset(offset),
+            tx
+              .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
+              .from(eserviceInReadmodelCatalog)
+              .where(condition),
+          ]);
+
+          const ids = pageIds.map((e) => e.id);
           if (ids.length === 0) {
-            return createListResult([], totalCount);
+            return createListResult([], totalCount[0]?.count);
           }
 
           const eservices = await catalogReadModelService.getEServicesByFilter(
@@ -772,7 +756,7 @@ export function readModelServiceBuilderSQL(
             .map((id) => eservices.find((e) => e.id === id))
             .filter((e): e is EService => e !== undefined);
 
-          return createListResult(orderedEservices, totalCount);
+          return createListResult(orderedEservices, totalCount[0]?.count);
         },
         { isolationLevel: "repeatable read" }
       );
