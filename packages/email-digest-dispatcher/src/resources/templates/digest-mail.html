@@ -229,6 +229,52 @@
         color: #17324d;
         margin: 0;
       }
+      .stat-card {
+        border-radius: 12px;
+        padding: 16px;
+        background-color: #ffffff;
+        box-shadow: 0 2px 6px rgba(23, 50, 77, 0.12);
+      }
+
+      .stat-card-highlight {
+        border-radius: 12px;
+        padding: 16px;
+        background-color: #fdf0d5;
+        box-shadow: 0 2px 6px rgba(23, 50, 77, 0.12);
+      }
+
+      .stat-number {
+        margin: 0;
+        font-size: 40px;
+        font-weight: 800;
+        color: #17324d;
+        line-height: 1;
+      }
+
+      .stat-label {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #17324d;
+        line-height: 1.3;
+      }
+
+      .archiving-box {
+        border-radius: 8px;
+        padding: 16px;
+        background-color: #ffffff;
+        margin-bottom: 16px;
+      }
+
+      .archiving-item {
+        font-size: 16px;
+        color: #17324d;
+        margin: 0 0 12px 0;
+      }
+
+      .archiving-item:last-child {
+        margin-bottom: 0;
+      }
       .card-grid-item {
         display: inline-block;
         width: 100%;
@@ -397,6 +443,29 @@
           color: #e0e0e0;
         }
         .alert-text {
+          color: #ffffff;
+        }
+        .stat-card {
+          background-color: #424242;
+        }
+
+        .stat-card-highlight {
+          background-color: #4d4326;
+        }
+
+        .stat-number {
+          color: #ffffff;
+        }
+
+        .stat-label {
+          color: #e0e0e0;
+        }
+
+        .archiving-box {
+          background-color: #424242;
+        }
+
+        .archiving-item {
           color: #ffffff;
         }
 
@@ -1737,6 +1806,135 @@
                                       </div>
                                     </div>
                                     {{/if}}
+                                    {{/if}}
+                                  </td>
+                                </tr>
+                                {{/if}}
+                                {{#if hasArchivingProducerContent}}
+                                <tr>
+                                  <td align="left" class="mobile-padding content-wrapper">
+                                    <!-- In fase di archiviazione - erogazione -->
+                                    {{#if showArchivingProducer}}
+                                    <div class="section-divider">
+                                      <table class="section-header-table" role="presentation" width="100%" cellpadding="0"
+                                        cellspacing="0" border="0">
+                                        <tr>
+                                          <td valign="middle">
+                                            <h2 class="h2-title">
+                                              In fase di archiviazione - erogazione
+                                            </h2>
+                                          </td>
+                                          {{#if viewAllArchivingProducerLink}}
+                                          <td valign="middle" align="right" style="white-space: nowrap;">
+                                            <a href="{{viewAllArchivingProducerLink}}" class="link-primary"
+                                              style="color: #0073e6;"
+                                              aria-label="Visualizza tutte le archiviazioni in corso">Visualizza
+                                              tutte</a>
+                                          </td>
+                                          {{/if}}
+                                        </tr>
+                                      </table>
+
+                                      <!-- Stat cards -->
+                                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 16px; margin-bottom: 16px;">
+                                        <tr>
+                                          <td width="33%" valign="top" style="padding-right: 8px;">
+                                            <div class="stat-card-highlight">
+                                              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                  <td valign="middle" style="padding-right: 12px;">
+                                                    <p class="stat-number">{{ archivingImminentEservices.totalCount }}</p>
+                                                  </td>
+                                                  <td valign="middle">
+                                                    <p class="stat-label">archiviazioni previste a breve</p>
+                                                  </td>
+                                                </tr>
+                                              </table>
+                                            </div>
+                                          </td>
+                                          <td width="33%" valign="top" style="padding: 0 4px;">
+                                            <div class="stat-card">
+                                              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                  <td valign="middle" style="padding-right: 12px;">
+                                                    <p class="stat-number">{{ archivingEserviceScopeCount }}</p>
+                                                  </td>
+                                                  <td valign="middle">
+                                                    <p class="stat-label">e-service in fase di archiviazione</p>
+                                                  </td>
+                                                </tr>
+                                              </table>
+                                            </div>
+                                          </td>
+                                          <td width="33%" valign="top" style="padding-left: 8px;">
+                                            <div class="stat-card">
+                                              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                                                <tr>
+                                                  <td valign="middle" style="padding-right: 12px;">
+                                                    <p class="stat-number">{{ archivingDescriptorScopeCount }}</p>
+                                                  </td>
+                                                  <td valign="middle">
+                                                    <p class="stat-label">versioni in fase di archiviazione</p>
+                                                  </td>
+                                                </tr>
+                                              </table>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      </table>
+
+                                      {{#if archivingImminentEservices.totalCount}}
+                                      <p class="body-text-no-margin">
+                                        {{#if archivingImminentEservicesSingular}}
+                                        C'è <strong>1 archiviazione prevista a breve</strong>:
+                                        {{else}}
+                                        Ci sono <strong>{{ archivingImminentEservices.totalCount }} archiviazioni previste a breve</strong>:
+                                        {{/if}}
+                                      </p>
+                                      <div class="archiving-box">
+                                        {{#each archivingImminentEservices.items}}
+                                        <p class="archiving-item">
+                                          {{#if isEserviceScope}}
+                                          L'archiviazione dell'e-service <a href="{{ link }}" class="link-primary" style="color: #0073e6;">{{ eserviceName }}</a> avverrà il giorno <strong>{{ archivableOn }}</strong>.
+                                          {{else}}
+                                          L'archiviazione della versione <strong>{{ version }}</strong> dell'e-service <a href="{{ link }}" class="link-primary" style="color: #0073e6;">{{ eserviceName }}</a> avverrà il giorno <strong>{{ archivableOn }}</strong>.
+                                          {{/if}}
+                                        </p>
+                                        {{/each}}
+
+                                        <!-- Red Alert -->
+                                        <div class="alert-error" role="note">
+                                          <p class="alert-text">
+                                            L'archiviazione è un'operazione definitiva: se stai per archiviare una versione, i fruitori dovranno passare a quella aggiornata, se disponibile; se stai per archiviare un e-service, sarà rimosso dal catalogo.
+                                          </p>
+                                        </div>
+                                      </div>
+                                      {{/if}}
+
+                                      {{#if archivingInProgressEservices.totalCount}}
+                                      <p class="body-text-no-margin">
+                                        {{#if archivingInProgressEservicesSingular}}
+                                        C'è <strong>1 versione di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        {{else}}
+                                        Ci sono <strong>{{ archivingInProgressEservices.totalCount }} versioni di e-service o e-service in fase di archiviazione</strong>, tra cui:
+                                        {{/if}}
+                                      </p>
+                                      <div class="archiving-box">
+                                        {{#each archivingInProgressEservices.items}}
+                                        <p class="archiving-item">
+                                          {{#if isEserviceScope}}
+                                          L'e-service <a href="{{ link }}" class="link-primary" style="color: #0073e6;">{{ eserviceName }}</a> è in fase di archiviazione. L'archiviazione avverrà il giorno <strong>{{ archivableOn }}</strong>.
+                                          {{else}}
+                                          La versione <strong>{{ version }}</strong> dell'e-service <a href="{{ link }}" class="link-primary" style="color: #0073e6;">{{ eserviceName }}</a> è in fase di archiviazione. L'archiviazione avverrà il giorno <strong>{{ archivableOn }}</strong>.
+                                          {{/if}}
+                                        </p>
+                                        {{/each}}
+                                        {{#if archivingInProgressRemainder}}
+                                        <p class="archiving-item">E altre <strong>{{ archivingInProgressRemainder }}</strong>.</p>
+                                        {{/if}}
+                                      </div>
+                                      {{/if}}
+                                    </div>
                                     {{/if}}
                                   </td>
                                 </tr>
