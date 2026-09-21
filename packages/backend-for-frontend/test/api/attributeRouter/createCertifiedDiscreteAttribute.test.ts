@@ -7,6 +7,7 @@ import request from "supertest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { appBasePath } from "../../../src/config/appBasePath.js";
+import { config } from "../../../src/config/config.js";
 import {
   getMockBffApiAttribute,
   getMockBffApiAttributeSeed,
@@ -18,6 +19,7 @@ describe("API POST /certifiedDiscreteAttributes", () => {
   const mockAttribute = getMockBffApiAttribute("CERTIFIED_DISCRETE");
 
   beforeEach(() => {
+    config.featureFlagAttributeCertifiedDiscrete = true;
     clients.attributeProcessClient.createCertifiedDiscreteAttribute = vi
       .fn()
       .mockResolvedValue(mockAttribute);
@@ -49,5 +51,17 @@ describe("API POST /certifiedDiscreteAttributes", () => {
     const token = generateToken(authRole.ADMIN_ROLE);
     const res = await makeRequest(token, body as bffApi.AttributeSeed);
     expect(res.status).toBe(400);
+  });
+
+  it("Should return 501 when feature flag is disabled", async () => {
+    config.featureFlagAttributeCertifiedDiscrete = false;
+
+    const token = generateToken(authRole.ADMIN_ROLE);
+    const res = await makeRequest(token);
+
+    expect(res.status).toBe(501);
+    expect(
+      clients.attributeProcessClient.createCertifiedDiscreteAttribute
+    ).not.toHaveBeenCalled();
   });
 });
