@@ -17,9 +17,15 @@ import { api, services } from "../../vitest.api.setup.js";
 
 describe("API GET /purposes/{purposeId} test", () => {
   const mockPurpose = getMockBffApiPurpose();
+  const serviceResponse = {
+    data: mockPurpose,
+    metadata: { version: 1 },
+  };
 
   beforeEach(() => {
-    services.purposeService.getPurpose = vi.fn().mockResolvedValue(mockPurpose);
+    services.purposeService.getPurpose = vi
+      .fn()
+      .mockResolvedValue(serviceResponse);
   });
 
   const makeRequest = async (
@@ -36,6 +42,9 @@ describe("API GET /purposes/{purposeId} test", () => {
     const res = await makeRequest(token);
     expect(res.status).toBe(200);
     expect(res.body).toEqual(mockPurpose);
+    expect(res.headers["x-metadata-version"]).toBe(
+      serviceResponse.metadata.version.toString()
+    );
   });
 
   it.each([
