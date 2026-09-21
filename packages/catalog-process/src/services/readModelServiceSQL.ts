@@ -681,85 +681,78 @@ export function readModelServiceBuilderSQL(
       authData: UIAuthData | M2MAuthData | M2MAdminAuthData,
       { offset, limit, sortBy, keyword }: EServicesQueryFilters
     ): Promise<ListResult<EService>> {
-      // One snapshot keeps the page and the count consistent.
-      return await readmodelDB.transaction(
-        async (tx) => {
-          const visibilityFilter = hasRoleToAccessInactiveDescriptors(authData)
-            ? or(
-                existsValidDescriptor(tx),
-                eq(
-                  eserviceInReadmodelCatalog.producerId,
-                  authData.organizationId
-                ),
-                exists(
-                  tx
-                    .select()
-                    .from(delegationInReadmodelDelegation)
-                    .where(
-                      and(
-                        eq(
-                          delegationInReadmodelDelegation.eserviceId,
-                          eserviceInReadmodelCatalog.id
-                        ),
-                        eq(
-                          delegationInReadmodelDelegation.delegateId,
-                          authData.organizationId
-                        ),
-                        inArray(delegationInReadmodelDelegation.state, [
-                          delegationState.active,
-                          delegationState.waitingForApproval,
-                        ]),
-                        eq(
-                          delegationInReadmodelDelegation.kind,
-                          delegationKind.delegatedProducer
-                        )
+      return await readmodelDB.transaction(async (tx) => {
+        const visibilityFilter = hasRoleToAccessInactiveDescriptors(authData)
+          ? or(
+              existsValidDescriptor(tx),
+              eq(
+                eserviceInReadmodelCatalog.producerId,
+                authData.organizationId
+              ),
+              exists(
+                tx
+                  .select()
+                  .from(delegationInReadmodelDelegation)
+                  .where(
+                    and(
+                      eq(
+                        delegationInReadmodelDelegation.eserviceId,
+                        eserviceInReadmodelCatalog.id
+                      ),
+                      eq(
+                        delegationInReadmodelDelegation.delegateId,
+                        authData.organizationId
+                      ),
+                      inArray(delegationInReadmodelDelegation.state, [
+                        delegationState.active,
+                        delegationState.waitingForApproval,
+                      ]),
+                      eq(
+                        delegationInReadmodelDelegation.kind,
+                        delegationKind.delegatedProducer
                       )
                     )
-                )
+                  )
               )
-            : existsValidDescriptor(tx);
+            )
+          : existsValidDescriptor(tx);
 
-          const condition = and(visibilityFilter, keywordFilter(keyword));
-          const orderBy =
-            keyword === undefined
-              ? getEServicesOrderBy(sortBy)
-              : [
-                  desc(keywordRelevance(keyword)),
-                  ...getEServicesOrderBy(sortBy),
-                ];
+        const condition = and(visibilityFilter, keywordFilter(keyword));
+        const orderBy =
+          keyword === undefined
+            ? getEServicesOrderBy(sortBy)
+            : [desc(keywordRelevance(keyword)), ...getEServicesOrderBy(sortBy)];
 
-          const [pageIds, totalCount] = await Promise.all([
-            tx
-              .select({ id: eserviceInReadmodelCatalog.id })
-              .from(eserviceInReadmodelCatalog)
-              .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
-              .where(condition)
-              .orderBy(...orderBy)
-              .limit(limit)
-              .offset(offset),
-            tx
-              .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
-              .from(eserviceInReadmodelCatalog)
-              .where(condition),
-          ]);
+        const [pageIds, totalCount] = await Promise.all([
+          tx
+            .select({ id: eserviceInReadmodelCatalog.id })
+            .from(eserviceInReadmodelCatalog)
+            .leftJoin(tenantInReadmodelTenant, eserviceProducerJoin)
+            .where(condition)
+            .orderBy(...orderBy)
+            .limit(limit)
+            .offset(offset),
+          tx
+            .select({ count: countDistinct(eserviceInReadmodelCatalog.id) })
+            .from(eserviceInReadmodelCatalog)
+            .where(condition),
+        ]);
 
-          const ids = pageIds.map((e) => e.id);
-          if (ids.length === 0) {
-            return createListResult([], totalCount[0]?.count);
-          }
+        const ids = pageIds.map((e) => e.id);
+        if (ids.length === 0) {
+          return createListResult([], totalCount[0]?.count);
+        }
 
-          const eservices = await catalogReadModelService.getEServicesByFilter(
-            inArray(eserviceInReadmodelCatalog.id, ids)
-          );
+        const eservices = await catalogReadModelService.getEServicesByFilter(
+          inArray(eserviceInReadmodelCatalog.id, ids)
+        );
 
-          const orderedEservices = ids
-            .map((id) => eservices.find((e) => e.id === id))
-            .filter((e): e is EService => e !== undefined);
+        const orderedEservices = ids
+          .map((id) => eservices.find((e) => e.id === id))
+          .filter((e): e is EService => e !== undefined);
 
-          return createListResult(orderedEservices, totalCount[0]?.count);
-        },
-        { isolationLevel: "repeatable read" }
-      );
+        return createListResult(orderedEservices, totalCount[0]?.count);
+      });
     },
     async isEServiceNameAvailableForProducer({
       name,
