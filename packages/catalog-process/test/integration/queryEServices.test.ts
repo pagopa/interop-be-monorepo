@@ -385,5 +385,65 @@ describe("query eservices", () => {
         eserviceMilanoServizi.id,
       ]);
     });
+
+    it("should return an empty page with the total count when the offset exceeds the fuzzy results", async () => {
+      const result = await search("anagrfe", undefined, 5, 1);
+
+      expect(result.totalCount).toBe(1);
+      expect(result.results).toEqual([]);
+    });
+
+    it.each(["!!!", "...", "- -"])(
+      "should return no e-service when the keyword normalizes to an empty string (keyword: '%s')",
+      async (keyword) => {
+        const result = await search(keyword);
+
+        expect(result.totalCount).toBe(0);
+        expect(result.results).toEqual([]);
+      }
+    );
+
+    it.each(['"comune di milano"', "-comune di milano", "comune, di: milano!"])(
+      "should ignore quotes, minus signs and punctuation (keyword: '%s')",
+      async (keyword) => {
+        const result = await search(keyword);
+
+        expect(result.totalCount).toBe(2);
+        expect(idsOf(result)).toEqual([
+          eserviceTributi.id,
+          eserviceAnagrafe.id,
+        ]);
+      }
+    );
+
+    it("should match an e-service whose producer has no tenant in the read model", async () => {
+      const orphanEService: EService = {
+        ...buildEService("Catasto", new Date("2024-05-01T00:00:00Z")),
+        producerId: generateId(),
+      };
+      await addOneEService(orphanEService);
+
+      const result = await search("catasto");
+
+      expect(result.totalCount).toBe(1);
+      expect(idsOf(result)).toEqual([orphanEService.id]);
+    });
+
+    it("should not return an e-service that matches the keyword but is not visible to the requester", async () => {
+      const draftEService: EService = {
+        ...buildEService("Protocollo", new Date("2024-05-01T00:00:00Z")),
+        descriptors: [{ ...getMockDescriptor(), state: descriptorState.draft }],
+        producerId: comuneDiMilano.id,
+      };
+      await addOneEService(draftEService);
+
+      const fullTextResult = await search("protocollo");
+      const fuzzyResult = await search("protocolo");
+
+      expect(fullTextResult.totalCount).toBe(0);
+      expect(fullTextResult.results).toEqual([]);
+      expect(fuzzyResult.totalCount).toBe(0);
+      expect(fuzzyResult.results).toEqual([]);
+    });
   });
 });
