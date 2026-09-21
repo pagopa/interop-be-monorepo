@@ -8,13 +8,10 @@ import {
   eq,
   exists,
   gt,
-  gte,
   inArray,
   isNotNull,
   isNull,
-  lt,
   lte,
-  ne,
   notExists,
   or,
   SQL,
@@ -60,8 +57,6 @@ import {
   stringToDate,
   AttributeKind,
   TenantKind,
-  attributeCertifiedDiscreteComparator,
-  attributeKind,
 } from "pagopa-interop-models";
 import {
   aggregateAgreementArray,
@@ -103,8 +98,6 @@ import {
   delegationSignedContractDocumentInReadmodelDelegation,
   eserviceDescriptorArchivingScheduleInReadmodelCatalog,
   eserviceDescriptorArchivingRequestInReadmodelCatalog,
-  tenantCertifiedDiscreteAttributeInReadmodelTenant,
-  tenantCertifiedAttributeInReadmodelTenant,
 } from "pagopa-interop-readmodel-models";
 import { tenantKindHistory } from "pagopa-interop-tenant-kind-history-db-models";
 import { match } from "ts-pattern";
@@ -842,7 +835,6 @@ export function readModelServiceBuilderSQL(
         onlyActiveEservices,
         subscribedByRequester,
         requesterDelegationRoles,
-        availableForRequester,
       }: EServicesQueryFilters
     ): Promise<ListResult<EService>> {
       // The page, the count and the fallback decision are separate statements:
@@ -896,11 +888,6 @@ export function readModelServiceBuilderSQL(
               tx,
               authData.organizationId,
               requesterDelegationRoles
-            ),
-            availableForRequesterFilter(
-              tx,
-              authData.organizationId,
-              availableForRequester
             )
           );
 
@@ -1321,252 +1308,4 @@ export function readModelServiceBuilderSQL(
       );
     },
   };
-}
-
-/*
- * The same descriptor-attribute table is referenced twice because the query
- * needs to compare one row with all the rows belonging to the same group.
- *
- * Example:
- *
- *   Descriptor D1
- *
- *   Group G1
- *   ├── Attribute A
- *   ├── Attribute B
- *   └── Attribute C
- *
- * `currentGroupAttribute` is one row used to identify G1.
- * `attributeInCurrentGroup` iterates over A, B and C.
- */
-const currentGroupAttribute = alias(
-  eserviceDescriptorAttributeInReadmodelCatalog,
-  "current_group_attribute"
-);
-
-const attributeInCurrentGroup = alias(
-  eserviceDescriptorAttributeInReadmodelCatalog,
-  "attribute_in_current_group"
-);
-
-function availableForRequesterFilter(
-  tx: Parameters<Parameters<DrizzleReturnType["transaction"]>[0]>[0],
-  requesterId: TenantId,
-  enabled?: boolean
-) {
-  if (enabled === undefined) {
-    return undefined;
-  }
-
-  /*
-   * Checks whether the requester owns a non-revoked standard certified
-   * attribute matching the attribute currently being evaluated.
-   */
-  const requesterOwnsNonRevokedCertifiedAttribute = exists(
-    tx
-      .select()
-      .from(tenantCertifiedAttributeInReadmodelTenant)
-      .where(
-        and(
-          eq(tenantCertifiedAttributeInReadmodelTenant.tenantId, requesterId),
-          eq(
-            tenantCertifiedAttributeInReadmodelTenant.attributeId,
-            attributeInCurrentGroup.attributeId
-          ),
-          isNull(tenantCertifiedAttributeInReadmodelTenant.revocationTimestamp)
-        )
-      )
-  );
-
-  /*
-   * Checks whether the requester owns a non-revoked discrete certified
-   * attribute whose value satisfies the comparator and threshold defined by
-   * the descriptor requirement.
-   */
-  const requesterSatisfiesDiscreteCertifiedAttribute = exists(
-    tx
-      .select()
-      .from(tenantCertifiedDiscreteAttributeInReadmodelTenant)
-      .where(
-        and(
-          eq(
-            tenantCertifiedDiscreteAttributeInReadmodelTenant.tenantId,
-            requesterId
-          ),
-          eq(
-            tenantCertifiedDiscreteAttributeInReadmodelTenant.attributeId,
-            attributeInCurrentGroup.attributeId
-          ),
-          isNull(
-            tenantCertifiedDiscreteAttributeInReadmodelTenant.revocationTimestamp
-          ),
-          or(
-            and(
-              eq(
-                attributeInCurrentGroup.comparator,
-                attributeCertifiedDiscreteComparator.GT
-              ),
-              gt(
-                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
-                attributeInCurrentGroup.threshold
-              )
-            ),
-            and(
-              eq(
-                attributeInCurrentGroup.comparator,
-                attributeCertifiedDiscreteComparator.LT
-              ),
-              lt(
-                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
-                attributeInCurrentGroup.threshold
-              )
-            ),
-            and(
-              eq(
-                attributeInCurrentGroup.comparator,
-                attributeCertifiedDiscreteComparator.EQ
-              ),
-              eq(
-                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
-                attributeInCurrentGroup.threshold
-              )
-            ),
-            and(
-              eq(
-                attributeInCurrentGroup.comparator,
-                attributeCertifiedDiscreteComparator.GTE
-              ),
-              gte(
-                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
-                attributeInCurrentGroup.threshold
-              )
-            ),
-            and(
-              eq(
-                attributeInCurrentGroup.comparator,
-                attributeCertifiedDiscreteComparator.LTE
-              ),
-              lte(
-                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
-                attributeInCurrentGroup.threshold
-              )
-            ),
-            and(
-              eq(
-                attributeInCurrentGroup.comparator,
-                attributeCertifiedDiscreteComparator.NE
-              ),
-              ne(
-                tenantCertifiedDiscreteAttributeInReadmodelTenant.discreteValue,
-                attributeInCurrentGroup.threshold
-              )
-            )
-          )
-        )
-      )
-  );
-
-  /*
-   * Searches the current group for at least one attribute satisfied by the
-   * requester.
-   */
-  const satisfiedAttributeInCurrentGroupSubquery = tx
-    .select({
-      attributeId: attributeInCurrentGroup.attributeId,
-    })
-    .from(attributeInCurrentGroup)
-    .where(
-      and(
-        /*
-         * The attribute must belong to the same descriptor.
-         */
-        eq(
-          attributeInCurrentGroup.descriptorId,
-          currentGroupAttribute.descriptorId
-        ),
-
-        /*
-         * The attribute must belong to the same requirement group.
-         */
-        eq(attributeInCurrentGroup.groupId, currentGroupAttribute.groupId),
-
-        or(
-          and(
-            eq(attributeInCurrentGroup.kind, attributeKind.certified),
-            requesterOwnsNonRevokedCertifiedAttribute
-          ),
-          and(
-            eq(attributeInCurrentGroup.kind, attributeKind.certifiedDiscrete),
-            requesterSatisfiesDiscreteCertifiedAttribute
-          )
-        )
-      )
-    );
-
-  /*
-   * Searches the current e-service's visible descriptors for at least one
-   * certified requirement group that the requester does not satisfy.
-   */
-  const unsatisfiedCertifiedGroupSubquery = tx
-    .select({
-      groupId: currentGroupAttribute.groupId,
-    })
-    .from(currentGroupAttribute)
-    .innerJoin(
-      eserviceDescriptorInReadmodelCatalog,
-      eq(
-        eserviceDescriptorInReadmodelCatalog.id,
-        currentGroupAttribute.descriptorId
-      )
-    )
-    .where(
-      and(
-        /*
-         * Restricts the check to descriptors belonging to the e-service
-         * currently being evaluated by the outer catalog query.
-         */
-        eq(
-          eserviceDescriptorInReadmodelCatalog.eserviceId,
-          eserviceInReadmodelCatalog.id
-        ),
-
-        /*
-         * Only requirements belonging to visible descriptors participate in
-         * the availability check.
-         */
-        inArray(eserviceDescriptorInReadmodelCatalog.state, [
-          descriptorState.published,
-          descriptorState.suspended,
-        ]),
-
-        inArray(currentGroupAttribute.kind, [
-          attributeKind.certified,
-          attributeKind.certifiedDiscrete,
-        ]),
-
-        /*
-         * The current group is unsatisfied if the requester satisfies none of
-         * the attributes belonging to it.
-         */
-        notExists(satisfiedAttributeInCurrentGroupSubquery)
-      )
-    );
-
-  /*
-   * enabled = true
-   *
-   *   Include the e-service only if no unsatisfied certified group exists:
-   *
-   *   NOT EXISTS (unsatisfied group)
-   *
-   * enabled = false
-   *
-   *   Include the e-service only if at least one unsatisfied certified group
-   *   exists:
-   *
-   *   EXISTS (unsatisfied group)
-   */
-  return enabled
-    ? notExists(unsatisfiedCertifiedGroupSubquery)
-    : exists(unsatisfiedCertifiedGroupSubquery);
 }

@@ -32,7 +32,6 @@ export type EServicesQueryFilters = {
   onlyActiveEservices?: boolean;
   subscribedByRequester?: boolean;
   requesterDelegationRoles: RequesterDelegationRole[];
-  availableForRequester?: boolean;
 };
 
 export type ApiGetEServicesFilters = {
